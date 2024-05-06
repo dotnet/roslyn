@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -103,7 +103,9 @@ internal static class DocumentBasedFixAllProviderHelpers
             // We're about to making a ton of calls to this new solution, including expensive oop calls to get up to
             // date compilations, skeletons and SG docs.  Create and pin this solution so that all remote calls operate
             // on the same fork and do not cause the forked solution to be created and dropped repeatedly.
-            using var _ = await RemoteKeepAliveSession.CreateAsync(dirtySolution, cancellationToken).ConfigureAwait(false);
+            var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+
+            using var _ = RemoteKeepAliveSession.Create(dirtySolution.CompilationState, remoteClient);
 
             // Next, go and cleanup any trees we inserted. Once we clean the document, we get the text of it and insert that
             // back into the final solution.  This way we can release both the original fixed tree, and the cleaned tree
@@ -118,11 +120,12 @@ internal static class DocumentBasedFixAllProviderHelpers
                     using var _ = args.progressTracker.ItemCompletedScope();
 
                     var dirtyDocument = args.dirtySolution.GetRequiredDocument(documentId);
+                    var codeCleanupOptions = await dirtyDocument.GetCodeCleanupOptionsAsync(
+                        args.originalFixAllContext.State.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
 
-                    var codeCleanupOptions = await dirtyDocument.GetCodeCleanupOptionsAsync(args.originalFixAllContext.State.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
-                    var cleanedDocument = await CodeAction.CleanupDocumentAsync(dirtyDocument, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
+                    var cleanedText = await CleanupDocumentAsync(
+                        args.remoteClient, dirtyDocument, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
 
-                    var cleanedText = await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                     callback((dirtyDocument.Id, cleanedText));
                 },
                 consumeItems: static async (results, args, cancellationToken) =>
@@ -134,8 +137,31 @@ internal static class DocumentBasedFixAllProviderHelpers
 
                     return finalSolution;
                 },
-                args: (originalFixAllContext, dirtySolution, progressTracker),
+                args: (originalFixAllContext, dirtySolution, progressTracker, remoteClient),
                 cancellationToken).ConfigureAwait(false);
         }
+
+        async static Task<SourceText> CleanupDocumentAsync(
+            RemoteHostClient? remoteClient, Document dirtyDocument, CodeCleanupOptions codeCleanupOptions, CancellationToken cancellationToken)
+        {
+            if (remoteClient != null)
+            {
+                var text = await remoteClient.TryInvokeAsync<IRemoteFixAllProviderService, string>(
+                    dirtyDocument.Project.Solution,
+                    (service, solutionChecksum, cancellationToken) => service.PerformCleanupAsync(solutionChecksum, dirtyDocument.Id, codeCleanupOptions, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+                if (text.HasValue)
+                    return SourceText.From(text.Value);
+            }
+
+            return await PerformCleanupInCurrentProcessAsync(dirtyDocument, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    public static async Task<SourceText> PerformCleanupInCurrentProcessAsync(
+        Document dirtyDocument, CodeCleanupOptions codeCleanupOptions, CancellationToken cancellationToken)
+    {
+        var cleanedDocument = await CodeAction.CleanupDocumentAsync(dirtyDocument, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
+        return await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
     }
 }
