@@ -140,21 +140,23 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
         // here, we don't care about timestamp since all those bits should be part of Fx. and we assume that 
         // it won't be changed in the middle of VS running.
-        var (newMetadata, handles) = GetMetadataWorker(fullPath);
+        var newMetadata = GetMetadataWorker(fullPath);
 
         if (!_metadataCache.GetOrAddMetadata(key, newMetadata, out metadata))
             newMetadata.Dispose();
 
-        if (handles != null)
-            s_metadataToStorageHandles.Add(newMetadata, handles);
+        return metadata;
 
-        return newMetadata;
-
-        (AssemblyMetadata assemblyMetadata, IReadOnlyList<TemporaryStorageStreamHandle>? handles) GetMetadataWorker(string fullPath)
+        AssemblyMetadata GetMetadataWorker(string fullPath)
         {
-            return VsSmartScopeCandidate(fullPath)
+            var (metadata, handles) = VsSmartScopeCandidate(fullPath)
                 ? CreateAssemblyMetadataFromMetadataImporter(fullPath)
                 : CreateAssemblyMetadata(fullPath, fullPath => GetMetadataFromTemporaryStorage(fullPath, _temporaryStorageService));
+
+            if (handles != null)
+                s_metadataToStorageHandles.Add(metadata, handles);
+
+            return metadata;
         }
     }
 
