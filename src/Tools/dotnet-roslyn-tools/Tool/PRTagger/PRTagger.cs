@@ -420,6 +420,7 @@ internal static class PRTagger
         var response = await client.GetAsync(query).ConfigureAwait(false);
         var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         var jsonResponseContent = JsonObject.Parse(content)!;
+        logger.LogInformation($"Response object is {jsonResponseContent.ToJsonString()}.");
         return jsonResponseContent;
     }
 }
