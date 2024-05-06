@@ -75,6 +75,12 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     /// </remarks>
     private bool _isSetUp;
 
+    protected abstract string ContentTypeName { get; }
+    protected abstract string LanguageName { get; }
+    protected abstract string RoslynLanguageName { get; }
+    protected abstract Guid DebuggerLanguageId { get; }
+
+
     protected AbstractLanguageService(TPackage package)
     {
         Package = package;
@@ -134,10 +140,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             throw new InvalidOperationException("TearDown not called!");
         }
     }
-
-    protected abstract string ContentTypeName { get; }
-    protected abstract string LanguageName { get; }
-    protected abstract string RoslynLanguageName { get; }
 
     protected virtual void SetupNewTextView(IVsTextView textView)
     {
@@ -219,8 +221,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             }
         }
     }
-
-    protected abstract Guid DebuggerLanguageId { get; }
 
     private VsLanguageDebugInfo CreateLanguageDebugInfo()
     {
