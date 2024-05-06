@@ -80,7 +80,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     protected abstract string RoslynLanguageName { get; }
     protected abstract Guid DebuggerLanguageId { get; }
 
-
     protected AbstractLanguageService(TPackage package)
     {
         Package = package;
