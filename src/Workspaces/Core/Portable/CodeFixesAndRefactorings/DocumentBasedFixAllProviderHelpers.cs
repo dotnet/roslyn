@@ -37,8 +37,8 @@ internal static class DocumentBasedFixAllProviderHelpers
 
         var solution = originalFixAllContext.Solution;
 
-        // One work item for each context.  Then one final item to for cleaning the solution.
-        progressTracker.AddItems(fixAllContexts.Length + 1);
+        // One work item for each context.
+        progressTracker.AddItems(fixAllContexts.Length);
 
         var (dirtySolution, changedRootDocumentIds) = await GetInitialUncleanedSolutionAsync().ConfigureAwait(false);
         return await CleanSolutionAsync(dirtySolution, changedRootDocumentIds).ConfigureAwait(false);
@@ -94,15 +94,18 @@ internal static class DocumentBasedFixAllProviderHelpers
         async Task<Solution> CleanSolutionAsync(Solution dirtySolution, ImmutableArray<DocumentId> changedRootDocumentIds)
         {
             // Update our progress for the single cleaning pass.
-            using var _1 = progressTracker.ItemCompletedScope();
 
             if (changedRootDocumentIds.IsEmpty)
                 return dirtySolution;
 
+            // Clear out the progress so far.  We're starting a new progress pass for the final cleanup.
+            progressTracker.Report(CodeAnalysisProgress.Clear());
+            progressTracker.Report(CodeAnalysisProgress.AddIncompleteItems(changedRootDocumentIds.Length, WorkspacesResources.Cleaning_fixed_documents));
+
             // We're about to making a ton of calls to this new solution, including expensive oop calls to get up to
             // date compilations, skeletons and SG docs.  Create and pin this solution so that all remote calls operate
             // on the same fork and do not cause the forked solution to be created and dropped repeatedly.
-            using var _2 = await RemoteKeepAliveSession.CreateAsync(dirtySolution, cancellationToken).ConfigureAwait(false);
+            using var _ = await RemoteKeepAliveSession.CreateAsync(dirtySolution, cancellationToken).ConfigureAwait(false);
 
             // Next, go and cleanup any trees we inserted. Once we clean the document, we get the text of it and insert that
             // back into the final solution.  This way we can release both the original fixed tree, and the cleaned tree
@@ -112,23 +115,25 @@ internal static class DocumentBasedFixAllProviderHelpers
             // text).
             return await ProducerConsumer<(DocumentId docId, SourceText sourceText)>.RunParallelAsync(
                 source: changedRootDocumentIds,
-                produceItems: static async (documentId, callback, currentSolution, cancellationToken) =>
+                produceItems: static async (documentId, callback, args, cancellationToken) =>
                 {
-                    var dirtyDocument = currentSolution.GetRequiredDocument(documentId);
+                    using var _ = args.progressTracker.ItemCompletedScope();
+
+                    var dirtyDocument = args.dirtySolution.GetRequiredDocument(documentId);
                     var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
                     var cleanedText = await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                     callback((dirtyDocument.Id, cleanedText));
                 },
-                consumeItems: static async (results, currentSolution, cancellationToken) =>
+                consumeItems: static async (results, args, cancellationToken) =>
                 {
                     // Finally, apply the cleaned documents to the solution.
-                    var finalSolution = currentSolution;
+                    var finalSolution = args.dirtySolution;
                     await foreach (var (docId, cleanedText) in results)
                         finalSolution = finalSolution.WithDocumentText(docId, cleanedText);
 
                     return finalSolution;
                 },
-                args: dirtySolution,
+                args: (dirtySolution, progressTracker),
                 cancellationToken).ConfigureAwait(false);
         }
     }
