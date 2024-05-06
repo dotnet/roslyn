@@ -55,13 +55,5 @@ internal sealed partial class VisualStudioMetadataReferenceManager
                 return true;
             }
         }
-
-        public void ClearCache()
-        {
-            lock (_gate)
-            {
-                _metadataCache.Clear();
-            }
-        }
     }
 }
