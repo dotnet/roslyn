@@ -14,7 +14,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -139,7 +138,9 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         if (_metadataCache.TryGetMetadata(key, out var metadata))
             return metadata;
 
-        var (newMetadata, handles) = GetMetadataWorker();
+        // here, we don't care about timestamp since all those bits should be part of Fx. and we assume that 
+        // it won't be changed in the middle of VS running.
+        var (newMetadata, handles) = GetMetadataWorker(fullPath);
 
         if (!_metadataCache.GetOrAddMetadata(key, newMetadata, out metadata))
             newMetadata.Dispose();
@@ -149,25 +150,18 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
         return newMetadata;
 
-        (AssemblyMetadata assemblyMetadata, IReadOnlyList<TemporaryStorageStreamHandle>? handles) GetMetadataWorker()
+        (AssemblyMetadata assemblyMetadata, IReadOnlyList<TemporaryStorageStreamHandle>? handles) GetMetadataWorker(string fullPath)
         {
-            if (VsSmartScopeCandidate(key.FullPath))
-            {
-                var newMetadata = CreateAssemblyMetadataFromMetadataImporter(key);
-                return (newMetadata, handles: null);
-            }
-            else
-            {
-                // use temporary storage
-                return CreateAssemblyMetadata(key, GetMetadataFromTemporaryStorage);
-            }
+            return VsSmartScopeCandidate(fullPath)
+                ? CreateAssemblyMetadataFromMetadataImporter(fullPath)
+                : CreateAssemblyMetadata(fullPath, fullPath => GetMetadataFromTemporaryStorage(fullPath, _temporaryStorageService));
         }
     }
 
-    private (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) GetMetadataFromTemporaryStorage(
-        FileKey moduleFileKey)
+    private static (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) GetMetadataFromTemporaryStorage(
+        string fullPath, TemporaryStorageService temporaryStorageService)
     {
-        GetStorageInfoFromTemporaryStorage(moduleFileKey, out var storageHandle, out var stream);
+        GetStorageInfoFromTemporaryStorage(fullPath, out var storageHandle, out var stream);
 
         unsafe
         {
@@ -179,7 +173,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         }
 
         void GetStorageInfoFromTemporaryStorage(
-            FileKey moduleFileKey, out TemporaryStorageStreamHandle storageHandle, out UnmanagedMemoryStream stream)
+            string fullPath, out TemporaryStorageStreamHandle storageHandle, out UnmanagedMemoryStream stream)
         {
             int size;
 
@@ -188,7 +182,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             {
                 // Open a file on disk, find the metadata section, copy those bytes into the temp stream, and release
                 // the file immediately after.
-                using (var fileStream = FileUtilities.OpenRead(moduleFileKey.FullPath))
+                using (var fileStream = FileUtilities.OpenRead(fullPath))
                 {
                     var headers = new PEHeaders(fileStream);
 
@@ -209,7 +203,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                 // location, so we can create a metadata value wrapping that.  This will also let us share the memory
                 // for that metadata value with our OOP process.
                 copyStream.Position = 0;
-                storageHandle = _temporaryStorageService.WriteToTemporaryStorage(copyStream, CancellationToken.None);
+                storageHandle = temporaryStorageService.WriteToTemporaryStorage(copyStream, CancellationToken.None);
             }
 
             // Now, read the data from the memory-mapped-file back into a stream that we load into the metadata value.
@@ -238,21 +232,21 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
     /// <exception cref="IOException"/>
     /// <exception cref="BadImageFormatException" />
-    private (AssemblyMetadata assemblyMetadata, IReadOnlyList<TemporaryStorageStreamHandle>? handles) CreateAssemblyMetadataFromMetadataImporter(FileKey fileKey)
+    private (AssemblyMetadata assemblyMetadata, IReadOnlyList<TemporaryStorageStreamHandle>? handles) CreateAssemblyMetadataFromMetadataImporter(string fullPath)
     {
-        return CreateAssemblyMetadata(fileKey, fileKey =>
+        return CreateAssemblyMetadata(fullPath, fullPath =>
         {
-            var metadata = TryCreateModuleMetadataFromMetadataImporter(fileKey);
+            var metadata = TryCreateModuleMetadataFromMetadataImporter(fullPath);
             if (metadata != null)
                 return (metadata, storageHandle: null);
 
             // getting metadata didn't work out through importer. fallback to shadow copy one
-            return GetMetadataFromTemporaryStorage(fileKey);
+            return GetMetadataFromTemporaryStorage(fullPath, _temporaryStorageService);
         });
 
-        ModuleMetadata? TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
+        ModuleMetadata? TryCreateModuleMetadataFromMetadataImporter(string fullPath)
         {
-            if (!TryGetFileMappingFromMetadataImporter(moduleFileKey, out var info, out var pImage, out var length))
+            if (!TryGetFileMappingFromMetadataImporter(fullPath, out var info, out var pImage, out var length))
             {
                 return null;
             }
@@ -265,16 +259,12 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             return metadata;
         }
 
-        bool TryGetFileMappingFromMetadataImporter(FileKey fileKey, [NotNullWhen(true)] out IMetaDataInfo? info, out IntPtr pImage, out long length)
+        bool TryGetFileMappingFromMetadataImporter(string fullPath, [NotNullWhen(true)] out IMetaDataInfo? info, out IntPtr pImage, out long length)
         {
             // We might not be able to use COM services to get this if VS is shutting down. We'll synchronize to make sure this
             // doesn't race against 
             using (_readerWriterLock.DisposableRead())
             {
-                // here, we don't care about timestamp since all those bits should be part of Fx. and we assume that 
-                // it won't be changed in the middle of VS running.
-                var fullPath = fileKey.FullPath;
-
                 info = null;
                 pImage = default;
                 length = default;
@@ -303,21 +293,21 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// <exception cref="IOException"/>
     /// <exception cref="BadImageFormatException" />
     private static (AssemblyMetadata assemblyMetadata, IReadOnlyList<TemporaryStorageStreamHandle>? handles) CreateAssemblyMetadata(
-        FileKey fileKey,
-        Func<FileKey, (ModuleMetadata moduleMetadata, TemporaryStorageStreamHandle? storageHandle)> moduleMetadataFactory)
+        string fullPath,
+        Func<string, (ModuleMetadata moduleMetadata, TemporaryStorageStreamHandle? storageHandle)> moduleMetadataFactory)
     {
         using var _1 = ArrayBuilder<ModuleMetadata>.GetInstance(out var moduleBuilder);
         using var _2 = ArrayBuilder<TemporaryStorageStreamHandle?>.GetInstance(out var storageHandles);
 
-        var (manifestModule, manifestHandle) = moduleMetadataFactory(fileKey);
+        var (manifestModule, manifestHandle) = moduleMetadataFactory(fullPath);
         moduleBuilder.Add(manifestModule);
         storageHandles.Add(manifestHandle);
 
-        var assemblyDir = Path.GetDirectoryName(fileKey.FullPath);
+        var assemblyDir = Path.GetDirectoryName(fullPath);
         foreach (var moduleName in manifestModule.GetModuleNames())
         {
             // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
-            var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!);
+            var moduleFileKey = PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!;
 
             var (metadata, metadataStorageHandle) = moduleMetadataFactory(moduleFileKey);
             moduleBuilder.Add(metadata);
@@ -338,6 +328,8 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
     public static class TestAccessor
     {
-        public 
+        public static (AssemblyMetadata assemblyMetadata, IReadOnlyList<TemporaryStorageStreamHandle>? handles) CreateAssemblyMetadata(
+            string fullPath, TemporaryStorageService temporaryStorageService)
+            => VisualStudioMetadataReferenceManager.CreateAssemblyMetadata(fullPath, fullPath => GetMetadataFromTemporaryStorage(fullPath, temporaryStorageService));
     }
 }
