@@ -35,8 +35,10 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     where TPackage : AbstractPackage<TPackage, TLanguageService>
     where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
 {
+    private readonly Lazy<VsLanguageDebugInfo> _vsLanguageDebugInfo;
+
     internal TPackage Package { get; }
-    internal VsLanguageDebugInfo LanguageDebugInfo { get; private set; }
+    private VsLanguageDebugInfo LanguageDebugInfo => _vsLanguageDebugInfo.Value;
 
     // DevDiv 753309:
     // We've redefined some VS interfaces that had incorrect PIAs. When 
@@ -74,6 +76,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     protected AbstractLanguageService(TPackage package)
     {
         Package = package;
+        _vsLanguageDebugInfo = new Lazy<VsLanguageDebugInfo>(CreateLanguageDebugInfo);
     }
 
     public override IServiceProvider SystemServiceProvider
@@ -96,12 +99,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.BackgroundThread,
             () => PrimeLanguageServiceComponentsOnBackground());
 
-        // Finally, once our connections are established, set up any initial state that we need.
-        // Note: we may be instantiated at any time (including when the IDE is already
-        // debugging).  We must not assume anything about our initial state and must instead
-        // query for all the information we need at this point.
-        this.Initialize();
-
         _isSetUp = true;
     }
 
@@ -118,7 +115,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         _isSetUp = false;
         GC.SuppressFinalize(this);
 
-        this.Uninitialize();
         this.RemoveServices();
     }
 
@@ -145,23 +141,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     {
         this.EditorAdaptersFactoryService = null;
         this.Workspace = null;
-    }
-
-    /// <summary>
-    /// Called right after we instantiate the language service.  Used to set up any internal
-    /// state we need.
-    /// 
-    /// Try to keep this method fairly clean.  Any complicated logic should go in methods called
-    /// from this one.  Initialize and Uninitialize go in reverse order 
-    /// </summary>
-    protected virtual void Initialize()
-    {
-        InitializeLanguageDebugInfo();
-    }
-
-    protected virtual void Uninitialize()
-    {
-        UninitializeLanguageDebugInfo();
     }
 
     private void PrimeLanguageServiceComponentsOnBackground()
@@ -255,9 +234,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         }
     }
 
-    private void InitializeLanguageDebugInfo()
-        => this.LanguageDebugInfo = this.CreateLanguageDebugInfo();
-
     protected abstract Guid DebuggerLanguageId { get; }
 
     private VsLanguageDebugInfo CreateLanguageDebugInfo()
@@ -272,9 +248,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             this.Package.ComponentModel.GetService<IThreadingContext>(),
             this.Package.ComponentModel.GetService<IUIThreadOperationExecutor>());
     }
-
-    private void UninitializeLanguageDebugInfo()
-        => this.LanguageDebugInfo = null;
 
     protected virtual IVsContainedLanguage CreateContainedLanguage(
         IVsTextBufferCoordinator bufferCoordinator, ProjectSystemProject project,
