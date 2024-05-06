@@ -28,7 +28,7 @@ internal static class DocumentBasedFixAllProviderHelpers
         ImmutableArray<TFixAllContext> fixAllContexts,
         IProgress<CodeAnalysisProgress> progressTracker,
         string progressTrackerDescription,
-        Func<TFixAllContext, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
+        Func<TFixAllContext, Action<(DocumentId documentId, (SyntaxNode? node, SourceText? text))>, Task> getFixedDocumentsAsync)
         where TFixAllContext : IFixAllContext
     {
         var cancellationToken = originalFixAllContext.CancellationToken;
@@ -50,7 +50,7 @@ internal static class DocumentBasedFixAllProviderHelpers
             // so we never resync or recompute anything.
             using var _ = await RemoteKeepAliveSession.CreateAsync(solution, cancellationToken).ConfigureAwait(false);
 
-            return await ProducerConsumer<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>.RunParallelAsync(
+            return await ProducerConsumer<(DocumentId documentId, (SyntaxNode? node, SourceText? text))>.RunParallelAsync(
                 source: fixAllContexts,
                 produceItems: static async (fixAllContext, callback, args, cancellationToken) =>
                 {
@@ -59,33 +59,29 @@ internal static class DocumentBasedFixAllProviderHelpers
                     Contract.ThrowIfFalse(
                         fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
-                    var singleContextDocIdToNewRootOrText = await args.getFixedDocumentsAsync(fixAllContext).ConfigureAwait(false);
-                    callback(singleContextDocIdToNewRootOrText);
+                    await args.getFixedDocumentsAsync(fixAllContext, callback).ConfigureAwait(false);
                 },
                 consumeItems: static async (stream, args, cancellationToken) =>
                 {
                     var currentSolution = args.solution;
                     using var _ = ArrayBuilder<DocumentId>.GetInstance(out var changedRootDocumentIds);
 
-                    await foreach (var singleContextDocIdToNewRootOrText in stream)
+                    // Next, go and insert those all into the solution so all the docs in this particular project
+                    // point at the new trees (or text).  At this point though, the trees have not been cleaned up.
+                    // We don't cleanup the documents as they are created, or one at a time as we add them, as that
+                    // would cause us to run cleanup on N different solution forks (which would be very expensive).
+                    // Instead, by adding all the changed documents to one solution, and then cleaning *those* we
+                    // only perform cleanup semantics on one forked solution.
+                    await foreach (var (docId, (newRoot, newText)) in stream)
                     {
-                        // Next, go and insert those all into the solution so all the docs in this particular project
-                        // point at the new trees (or text).  At this point though, the trees have not been cleaned up.
-                        // We don't cleanup the documents as they are created, or one at a time as we add them, as that
-                        // would cause us to run cleanup on N different solution forks (which would be very expensive).
-                        // Instead, by adding all the changed documents to one solution, and then cleaning *those* we
-                        // only perform cleanup semantics on one forked solution.
-                        foreach (var (docId, (newRoot, newText)) in singleContextDocIdToNewRootOrText)
-                        {
-                            // If we produced a new root (as opposed to new text), keep track of that doc-id so that we
-                            // can clean this doc later.
-                            if (newRoot != null)
-                                changedRootDocumentIds.Add(docId);
+                        // If we produced a new root (as opposed to new text), keep track of that doc-id so that we
+                        // can clean this doc later.
+                        if (newRoot != null)
+                            changedRootDocumentIds.Add(docId);
 
-                            currentSolution = newRoot != null
-                                ? currentSolution.WithDocumentSyntaxRoot(docId, newRoot)
-                                : currentSolution.WithDocumentText(docId, newText!);
-                        }
+                        currentSolution = newRoot != null
+                            ? currentSolution.WithDocumentSyntaxRoot(docId, newRoot)
+                            : currentSolution.WithDocumentText(docId, newText!);
                     }
 
                     return (currentSolution, changedRootDocumentIds.ToImmutableAndClear());

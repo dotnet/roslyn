@@ -72,12 +72,15 @@ public abstract class DocumentBasedFixAllProvider : FixAllProvider
             fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
 
     private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
-        => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(originalFixAllContext, fixAllContexts,
-                originalFixAllContext.Progress,
-                this.GetFixAllTitle(originalFixAllContext),
-                DetermineDiagnosticsAndGetFixedDocumentsAsync);
+        => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(
+            originalFixAllContext,
+            fixAllContexts,
+            originalFixAllContext.Progress,
+            this.GetFixAllTitle(originalFixAllContext),
+            DetermineDiagnosticsAndGetFixedDocumentsAsync);
 
-    private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> DetermineDiagnosticsAndGetFixedDocumentsAsync(FixAllContext fixAllContext)
+    private async Task DetermineDiagnosticsAndGetFixedDocumentsAsync(
+        FixAllContext fixAllContext, Action<(DocumentId documentId, (SyntaxNode? node, SourceText? text))> callback)
     {
         var cancellationToken = fixAllContext.CancellationToken;
 
@@ -86,16 +89,17 @@ public abstract class DocumentBasedFixAllProvider : FixAllProvider
 
         // Second, get the fixes for all the diagnostics, and apply them to determine the new root/text for each doc.
         if (diagnostics.IsEmpty)
-            return [];
+            return;
 
         // Then, process all documents in parallel to get the change for each doc.
-        return await ProducerConsumer<(DocumentId, (SyntaxNode? node, SourceText? text))>.RunParallelAsync(
+        await RoslynParallel.ForEachAsync(
             source: diagnostics.Where(kvp => !kvp.Value.IsDefaultOrEmpty),
-            produceItems: static async (kvp, callback, args, cancellationToken) =>
+            cancellationToken,
+            async (kvp, cancellationToken) =>
             {
                 var (document, documentDiagnostics) = kvp;
 
-                var newDocument = await args.@this.FixAllAsync(args.fixAllContext, document, documentDiagnostics).ConfigureAwait(false);
+                var newDocument = await this.FixAllAsync(fixAllContext, document, documentDiagnostics).ConfigureAwait(false);
                 if (newDocument == null || newDocument == document)
                     return;
 
@@ -105,16 +109,6 @@ public abstract class DocumentBasedFixAllProvider : FixAllProvider
                 var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 callback((document.Id, (node, text)));
-            },
-            consumeItems: static async (results, args, cancellationToken) =>
-            {
-                var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
-                await foreach (var (docId, nodeOrText) in results)
-                    docIdToNewRootOrText[docId] = nodeOrText;
-
-                return docIdToNewRootOrText;
-            },
-            args: (@this: this, fixAllContext),
-            cancellationToken).ConfigureAwait(false);
+            }).ConfigureAwait(false);
     }
 }
