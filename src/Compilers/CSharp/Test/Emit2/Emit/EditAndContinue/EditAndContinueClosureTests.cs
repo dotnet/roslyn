@@ -217,54 +217,98 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void MethodWithStaticLambda1()
         {
-            var source0 = MarkedSource(@"
-using System;
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                """
+                    using System;
 
-class C
-{
-    void F()
-    {
-        Func<int> x = <N:0>() => 1</N:0>;
-    }
-}");
-            var source1 = MarkedSource(@"
-using System;
+                class C
+                {
+                    void F()
+                    {
+                        Func<int> x = <N:0>() => 1</N:0>;
+                    }
+                }
+                """)
+                .AddGeneration(
+                """
+                using System;
+                
+                class C
+                {
+                    void F()
+                    {
+                        Func<int> x = <N:0>() => 2</N:0>;
+                    }
+                }
+                """,
+                edits:
+                [
+                    Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                ],
+                validator: g =>
+                {
+                    // no new synthesized members generated (with #1 in names):
+                    g.VerifySynthesizedMembers(
+                        "C: {<>c}",
+                        "C.<>c: {<>9__0_0, <F>b__0_0}");
 
-class C
-{
-    void F()
-    {
-        Func<int> x = <N:0>() => 2</N:0>;
-    }
-}");
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            var compilation1 = compilation0.WithSource(source1.Tree);
+                    // Method updates
+                    g.VerifyEncLogDefinitions(
+                    [
+                        Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                    ]);
+                })
+                .AddGeneration(
+                """
+                using System;
+                
+                class C
+                {
+                    void F()
+                    {
+                    }
+                }
+                """,
+                edits:
+                [
+                    Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                ],
+                validator: g =>
+                {
+                    g.VerifySynthesizedMembers(
+                        "C: {<>c}",
+                        "C.<>c: {<>9__0_0, <F>b__0_0}");
 
-            var v0 = CompileAndVerify(compilation0);
-            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+                    // Method updates
+                    g.VerifyEncLogDefinitions(
+                    [
+                        Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                    ]);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+                    g.VerifyMethodDefNames("F", "<F>b__0_0");
 
-            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
-
-            // no new synthesized members generated (with #1 in names):
-            diff1.VerifySynthesizedMembers(
-                "C: {<>c}",
-                "C.<>c: {<>9__0_0, <F>b__0_0}");
-
-            var md1 = diff1.GetMetadata();
-            var reader1 = md1.Reader;
-
-            // Method updates
-            CheckEncLogDefinitions(reader1,
-                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                    g.VerifyIL("""
+                        {
+                          // Code size        2 (0x2)
+                          .maxstack  0
+                          IL_0000:  nop
+                          IL_0001:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000009
+                          IL_0005:  newobj     0x0A000009
+                          IL_000a:  throw
+                        }
+                        """);
+                })
+                .Verify();
         }
 
         [Fact]

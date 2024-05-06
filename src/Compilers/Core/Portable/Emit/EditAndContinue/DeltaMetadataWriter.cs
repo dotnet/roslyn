@@ -192,6 +192,20 @@ namespace Microsoft.CodeAnalysis.Emit
             // otherwise members from the current compilation have already been merged into the baseline.
             var synthesizedMembers = (_previousGeneration.Ordinal == 0) ? module.GetAllSynthesizedMembers() : _previousGeneration.SynthesizedMembers;
 
+            foreach (var (container, members) in synthesizedMembers)
+            {
+                if (container.Kind == SymbolKind.NamedType)
+                {
+                    foreach (var member in members)
+                    {
+                        if (member.Kind == SymbolKind.NamedType)
+                        {
+                            Debug.Assert(synthesizedMembers.ContainsKey(member));
+                        }
+                    }
+                }
+            }
+
             Debug.Assert(module.EncSymbolChanges is not null);
             var deletedMembers = (_previousGeneration.Ordinal == 0) ? module.EncSymbolChanges.DeletedMembers : _previousGeneration.DeletedMembers;
 
