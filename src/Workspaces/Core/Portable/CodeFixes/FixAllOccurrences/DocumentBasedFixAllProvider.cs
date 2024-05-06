@@ -27,18 +27,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 /// project and then appropriately bucketed by document.  These are then passed to <see
 /// cref="FixAllAsync(FixAllContext, Document, ImmutableArray{Diagnostic})"/> for implementors to process.
 /// </remarks>
-public abstract class DocumentBasedFixAllProvider : FixAllProvider
+public abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes) : FixAllProvider
 {
-    private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes;
+    private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes = supportedFixAllScopes;
 
     protected DocumentBasedFixAllProvider()
         : this(DefaultSupportedFixAllScopes)
     {
-    }
-
-    protected DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes)
-    {
-        _supportedFixAllScopes = supportedFixAllScopes;
     }
 
     /// <summary>
@@ -85,19 +80,18 @@ public abstract class DocumentBasedFixAllProvider : FixAllProvider
         var cancellationToken = fixAllContext.CancellationToken;
 
         // First, determine the diagnostics to fix.
-        var diagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
+        var docuementToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
 
-        // Second, get the fixes for all the diagnostics, and apply them to determine the new root/text for each doc.
-        if (diagnostics.IsEmpty)
-            return;
-
-        // Then, process all documents in parallel to get the change for each doc.
+        // Second, get the fixes for each document+diagnostics pair in parallel, and apply them to determine the new
+        // root/text for each doc.
         await RoslynParallel.ForEachAsync(
-            source: diagnostics.Where(kvp => !kvp.Value.IsDefaultOrEmpty),
+            source: docuementToDiagnostics,
             cancellationToken,
             async (kvp, cancellationToken) =>
             {
                 var (document, documentDiagnostics) = kvp;
+                if (documentDiagnostics.IsDefaultOrEmpty)
+                    return;
 
                 var newDocument = await this.FixAllAsync(fixAllContext, document, documentDiagnostics).ConfigureAwait(false);
                 if (newDocument == null || newDocument == document)
