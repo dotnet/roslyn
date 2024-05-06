@@ -40,7 +40,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 {
     internal TPackage Package { get; }
 
-    private readonly VsLanguageDebugInfo LanguageDebugInfo;
+    private readonly VsLanguageDebugInfo _languageDebugInfo;
 
     // DevDiv 753309:
     // We've redefined some VS interfaces that had incorrect PIAs. When 
@@ -85,7 +85,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
         this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
         this.AnalyzerFileWatcherService = this.Package.ComponentModel.GetService<AnalyzerFileWatcherService>();
-        this.LanguageDebugInfo = CreateLanguageDebugInfo();
+        this._languageDebugInfo = CreateLanguageDebugInfo();
     }
 
     public override IServiceProvider SystemServiceProvider
