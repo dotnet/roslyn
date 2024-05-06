@@ -30,7 +30,7 @@ internal partial class VisualStudioMetadataReferenceManager
     /// instance of <see cref="VisualStudioPortableExecutableReference"/> is created for the corresponding reference.
     /// </remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal sealed class VisualStudioPortableExecutableReference : PortableExecutableReference, ISupportTemporaryStorage
+    private sealed class VisualStudioPortableExecutableReference : PortableExecutableReference, ISupportTemporaryStorage
     {
         private readonly VisualStudioMetadataReferenceManager _provider;
         private readonly Lazy<DateTime> _timestamp;
