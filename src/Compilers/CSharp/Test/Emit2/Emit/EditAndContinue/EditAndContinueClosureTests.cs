@@ -311,6 +311,83 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 .Verify();
         }
 
+        [Fact(Skip = "TODO")]
+        public void MethodWithStaticLambda2()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                """
+                    using System;
+
+                    class C
+                    {
+                        int x;
+                        void F()
+                        {
+                            Func<int> f1 = () => 1;
+                            Func<int> f2 = () => x;
+                        }
+
+                        Action<TValue> Create<TValue>(object receiver, Action<TValue> callback) => callback;
+                
+                    }
+                """)
+                .AddGeneration(
+                """
+                using System;
+                
+                class C
+                {
+                    int x;
+                    void F()
+                    {
+                        int y = 2;
+                        Func<int> f1 = () => 1;
+                        Func<int> f2 = () => x;
+                        Func<int> f3 = () => y;
+                        Func<int> f4 = () => y + x;
+                
+                        var f5 = Create<int>(this, z => {});
+                    }
+
+                    Action<TValue> Create<TValue>(object receiver, Action<TValue> callback) => callback;
+                }
+                """,
+                edits:
+                [
+                    Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                ],
+                validator: g =>
+                {
+                    g.VerifySynthesizedMembers();
+                })
+                .AddGeneration(
+                """
+                using System;
+                
+                class C
+                {
+                    int x;
+                    void F()
+                    {
+                        Func<int> f = () => x;
+                        Func<int> g = () => x;
+                
+                    }
+                }
+                """,
+                edits:
+                [
+                    Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                ],
+                validator: g =>
+                {
+                    g.VerifySynthesizedMembers();
+
+                })
+                .Verify();
+        }
+
         [Fact]
         public void MethodWithSwitchExpression()
         {

@@ -33,6 +33,20 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedSynthesizedMembers,
             IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedDeletedMembers)
         {
+            foreach (var (container, members) in mappedSynthesizedMembers)
+            {
+                if (container.Kind == SymbolKind.NamedType)
+                {
+                    foreach (var member in members)
+                    {
+                        if (member.Kind == SymbolKind.NamedType)
+                        {
+                            Debug.Assert(mappedSynthesizedMembers.ContainsKey(member));
+                        }
+                    }
+                }
+            }
+
             // Map all definitions to this compilation.
             var typesAdded = MapDefinitions(baseline.TypesAdded);
             var eventsAdded = MapDefinitions(baseline.EventsAdded);
