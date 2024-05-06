@@ -303,32 +303,22 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         FileKey fileKey,
         Func<FileKey, (ModuleMetadata moduleMetadata, TemporaryStorageStreamHandle? storageHandle)> moduleMetadataFactory)
     {
-        var (manifestModule, manifestHandle) = moduleMetadataFactory(fileKey);
-
         using var _1 = ArrayBuilder<ModuleMetadata>.GetInstance(out var moduleBuilder);
         using var _2 = ArrayBuilder<TemporaryStorageStreamHandle?>.GetInstance(out var storageHandles);
 
-        string? assemblyDir = null;
+        var (manifestModule, manifestHandle) = moduleMetadataFactory(fileKey);
+        moduleBuilder.Add(manifestModule);
+        storageHandles.Add(manifestHandle);
+
+        var assemblyDir = Path.GetDirectoryName(fileKey.FullPath);
         foreach (var moduleName in manifestModule.GetModuleNames())
         {
-            if (assemblyDir is null)
-            {
-                moduleBuilder.Add(manifestModule);
-                assemblyDir = Path.GetDirectoryName(fileKey.FullPath);
-            }
-
             // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
             var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!);
-            var (metadata, metadataStorageHandle) = moduleMetadataFactory(moduleFileKey);
 
+            var (metadata, metadataStorageHandle) = moduleMetadataFactory(moduleFileKey);
             moduleBuilder.Add(metadata);
             storageHandles.Add(metadataStorageHandle);
-        }
-
-        if (moduleBuilder.Count == 0)
-        {
-            moduleBuilder.Add(manifestModule);
-            storageHandles.Add(manifestHandle);
         }
 
         var result = AssemblyMetadata.Create(moduleBuilder.ToImmutable());
