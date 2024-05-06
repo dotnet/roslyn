@@ -32,26 +32,26 @@ internal partial class VisualStudioMetadataReferenceManager
     {
         private readonly VisualStudioMetadataReferenceManager _provider;
         private readonly Lazy<DateTime> _timestamp;
-        private readonly FileChangeTracker _fileChangeTrackerOpt;
+        private readonly FileChangeTracker? _fileChangeTracker;
 
-        private Exception _error;
+        private Exception? _error;
 
         internal VisualStudioPortableExecutableReference(
             VisualStudioMetadataReferenceManager provider,
             MetadataReferenceProperties properties,
             string fullPath,
-            FileChangeTracker fileChangeTrackerOpt)
+            FileChangeTracker? fileChangeTrackerOpt)
             : base(properties, fullPath)
         {
             Debug.Assert(Properties.Kind == MetadataImageKind.Assembly);
             _provider = provider;
-            _fileChangeTrackerOpt = fileChangeTrackerOpt;
+            _fileChangeTracker = fileChangeTrackerOpt;
 
             _timestamp = new Lazy<DateTime>(() =>
             {
                 try
                 {
-                    _fileChangeTrackerOpt?.EnsureSubscription();
+                    _fileChangeTracker?.EnsureSubscription();
 
                     return FileUtilities.GetFileTimeStamp(this.FilePath);
                 }
@@ -67,6 +67,8 @@ internal partial class VisualStudioMetadataReferenceManager
                 }
             }, LazyThreadSafetyMode.PublicationOnly);
         }
+
+        private new string FilePath => base.FilePath!;
 
         protected override Metadata GetMetadataImpl()
         {
@@ -100,12 +102,12 @@ internal partial class VisualStudioMetadataReferenceManager
             => new VisualStudioDocumentationProvider(this.FilePath, _provider._xmlMemberIndexService);
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            => new VisualStudioPortableExecutableReference(_provider, properties, this.FilePath, _fileChangeTrackerOpt);
+            => new VisualStudioPortableExecutableReference(_provider, properties, this.FilePath, _fileChangeTracker);
 
         private string GetDebuggerDisplay()
             => "Metadata File: " + FilePath;
 
-        public IReadOnlyList<ITemporaryStorageStreamHandle> StorageHandles
+        public IReadOnlyList<ITemporaryStorageStreamHandle>? StorageHandles
             => _provider.GetStorageHandles(this.FilePath, _timestamp.Value);
     }
 }
