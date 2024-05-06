@@ -84,15 +84,12 @@ internal abstract class DocumentBasedFixAllProvider : FixAllProvider
     /// them, and are used to perform a final cleanup pass for formatting/simplication/etc.  Text is returned for
     /// documents that don't support syntax.
     /// </summary>
-    private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(
-        FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
+    private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(FixAllContext fixAllContext)
     {
         Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
             or FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
         var cancellationToken = fixAllContext.CancellationToken;
-
-        using var _1 = progressTracker.ItemCompletedScope();
 
         // Process all documents in parallel to get the change for each doc.
         var documentsAndSpansToFix = await fixAllContext.GetFixAllSpansAsync(cancellationToken).ConfigureAwait(false);

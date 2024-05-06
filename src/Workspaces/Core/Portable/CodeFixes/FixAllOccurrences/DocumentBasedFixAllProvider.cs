@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -78,39 +77,14 @@ public abstract class DocumentBasedFixAllProvider : FixAllProvider
                 this.GetFixAllTitle(originalFixAllContext),
                 DetermineDiagnosticsAndGetFixedDocumentsAsync);
 
-    private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> DetermineDiagnosticsAndGetFixedDocumentsAsync(
-        FixAllContext fixAllContext,
-        IProgress<CodeAnalysisProgress> progressTracker)
-    {
-        // First, determine the diagnostics to fix.
-        var diagnostics = await DetermineDiagnosticsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
-
-        // Second, get the fixes for all the diagnostics, and apply them to determine the new root/text for each doc.
-        return await GetFixedDocumentsAsync(fixAllContext, progressTracker, diagnostics).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Determines all the diagnostics we should be fixing for the given <paramref name="fixAllContext"/>.
-    /// </summary>
-    private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
-    {
-        using var _ = progressTracker.ItemCompletedScope();
-        return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Attempts to fix all the provided <paramref name="diagnostics"/> returning, for each updated document, either
-    /// the new syntax root for that document or its new text.  Syntax roots are returned for documents that support
-    /// them, and are used to perform a final cleanup pass for formatting/simplication/etc.  Text is returned for
-    /// documents that don't support syntax.
-    /// </summary>
-    private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(
-        FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnostics)
+    private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> DetermineDiagnosticsAndGetFixedDocumentsAsync(FixAllContext fixAllContext)
     {
         var cancellationToken = fixAllContext.CancellationToken;
 
-        using var _1 = progressTracker.ItemCompletedScope();
+        // First, determine the diagnostics to fix.
+        var diagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
 
+        // Second, get the fixes for all the diagnostics, and apply them to determine the new root/text for each doc.
         if (diagnostics.IsEmpty)
             return [];
 
