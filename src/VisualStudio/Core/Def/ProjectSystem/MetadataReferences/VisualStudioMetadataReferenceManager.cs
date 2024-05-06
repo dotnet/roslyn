@@ -305,9 +305,11 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         modules.Add(manifestModule);
         handles.Add(manifestHandle);
 
-        var assemblyDir = Path.GetDirectoryName(fullPath);
-        foreach (var moduleName in manifestModule.GetModuleNames())
+        string? assemblyDir = null;
+        foreach (var moduleName in moduleNames)
         {
+            assemblyDir ??= Path.GetDirectoryName(fullPath);
+
             // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
             var moduleFileKey = PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!;
 
