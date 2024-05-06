@@ -78,6 +78,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     {
         Package = package;
 
+        Debug.Assert(!this.Package.JoinableTaskFactory.Context.IsOnMainThread, "Language service should be instantiated on background thread");
+
         this.EditorOptionsService = this.Package.ComponentModel.GetService<EditorOptionsService>();
         this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
         this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
