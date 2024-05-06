@@ -143,16 +143,19 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     internal Metadata GetMetadata(string fullPath, DateTime snapshotTimestamp)
     {
         var key = new FileKey(fullPath, snapshotTimestamp);
+
         // check existing metadata
         if (!TryGetMetadata(key, out var metadata))
         {
-            // Now try to create and add the metadata to the cache. If we fail to add it (because some other thread beat
-            // us to this), then Dispose the metadata we just created and will return the existing metadata instead.
+            // wasn't in the cache.  create a new instance.
             metadata = GetMetadataWorker(fullPath);
             Contract.ThrowIfNull(metadata);
 
             lock (_gate)
             {
+                // Now try to create and add the metadata to the cache. If we fail to add it (because some other thread
+                // beat us to this), then Dispose the metadata we just created and will return the existing metadata
+                // instead.
                 if (_metadataCache.TryGetValue(key, out var cachedMetadata))
                 {
                     metadata.Dispose();
