@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -203,13 +204,15 @@ internal partial class SerializerService
         cancellationToken.ThrowIfCancellationRequested();
 
         writer.WriteInt32((int)metadata.Kind);
+        writer.WriteGuid(GetMetadataGuid(metadata));
+    }
 
+    private static Guid GetMetadataGuid(ModuleMetadata metadata)
+    {
         var metadataReader = metadata.GetMetadataReader();
-
         var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
         var guid = metadataReader.GetGuid(mvidHandle);
-
-        writer.WriteGuid(guid);
+        return guid;
     }
 
     private static void WritePortableExecutableReferenceTo(
@@ -535,5 +538,36 @@ internal partial class SerializerService
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
             => new SerializedMetadataReference(properties, FilePath, _metadata, _storageHandles, _provider);
+
+        public override string ToString()
+        {
+            var metadata = TryGetMetadata(this);
+            var modules = GetModules(metadata);
+
+            return $"""
+            {nameof(SerializedMetadataReference)}
+                FilePath={this.FilePath}
+                Kind={this.Properties.Kind}
+                Aliases={this.Properties.Aliases.Join(",")}
+                EmbedInteropTypes={this.Properties.EmbedInteropTypes}
+                MetadataKind={metadata switch { null => "null", AssemblyMetadata => "assembly", ModuleMetadata => "module", _ => metadata.GetType().Name }}
+                Guids={modules.Select(m => GetMetadataGuid(m).ToString()).Join(",")}
+            """;
+
+            static ImmutableArray<ModuleMetadata> GetModules(Metadata? metadata)
+            {
+                if (metadata is AssemblyMetadata assemblyMetadata)
+                {
+                    if (TryGetModules(assemblyMetadata, out var modules))
+                        return modules;
+                }
+                else if (metadata is ModuleMetadata moduleMetadata)
+                {
+                    return [moduleMetadata];
+                }
+
+                return [];
+            }
+        }
     }
 }

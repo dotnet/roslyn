@@ -164,6 +164,7 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
 
     private void InnerTextBox_GotFocus(object sender, RoutedEventArgs e)
     {
+        e.Handled = true; // Prevent selecting all the text
         if (!_smartRenameViewModel.IsUsingDropdown)
         {
             return;
@@ -185,8 +186,7 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
     {
         Assumes.NotNull(_dropDownPopup);
         if ((e.Key is Key.Escape or Key.Space or Key.Enter)
-            && (_dropDownPopup.IsOpen // Handle these keystrokes when dropdown is present
-            || _smartRenameViewModel.IsUsingResultPanel && this.TextSelectionLength < this.Text.Length)) // Or when panel is present and text is not yet selected
+            && _dropDownPopup.IsOpen) // Handle these keystrokes when dropdown is present
         {
             _dropDownPopup.IsOpen = false;
             SelectAllText();

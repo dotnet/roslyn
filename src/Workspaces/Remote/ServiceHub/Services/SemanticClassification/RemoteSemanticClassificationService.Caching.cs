@@ -117,7 +117,6 @@ namespace Microsoft.CodeAnalysis.Remote
             var persistenceService = solution.Services.GetPersistentStorageService();
 
             var storage = await persistenceService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
-            await using var _1 = storage.ConfigureAwait(false);
             if (storage == null)
                 return;
 
@@ -280,7 +279,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var persistenceService = GetWorkspaceServices().GetPersistentStorageService();
             var storage = await persistenceService.GetStorageAsync(documentKey.Project.Solution, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
             if (storage == null)
                 return default;
 
