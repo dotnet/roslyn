@@ -20,6 +20,13 @@ namespace Microsoft.CodeAnalysis
         /// process. Either part of the compiler itself or the process hosting the compiler.
         /// </summary>
         bool IsHostAssembly(Assembly assembly);
+
+        /// <summary>
+        /// For a given <see cref="AssemblyName"/> return the location it was originally added 
+        /// from. This will return null for any value that was not directly added through the 
+        /// loader.
+        /// </summary>
+        string? GetOriginalDependencyLocation(AssemblyName assembly);
     }
 
     /// <summary>
@@ -234,6 +241,9 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
         }
+
+        public string? GetOriginalDependencyLocation(AssemblyName assemblyName) =>
+            GetBestPath(assemblyName).BestOriginalPath;
 
         /// <summary>
         /// Return the best (original, real) path information for loading an assembly with the specified <see cref="AssemblyName"/>.
