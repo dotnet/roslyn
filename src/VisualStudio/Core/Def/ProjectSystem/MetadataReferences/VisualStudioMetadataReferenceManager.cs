@@ -15,7 +15,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -33,8 +32,6 @@ using static TemporaryStorageService;
 /// </remarks>
 internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService, IDisposable
 {
-    private static readonly Guid s_IID_IMetaDataImport = new("7DAC8207-D3AE-4c75-9B67-92801A497D44");
-
     private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
 
     /// <summary>
@@ -46,26 +43,24 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// </summary>
     private static readonly ConditionalWeakTable<AssemblyMetadata, IReadOnlyList<TemporaryStorageStreamHandle>> s_metadataToStorageHandles = new();
 
-    private readonly object _gate = new();
+    private readonly object _metadataCacheLock = new();
 
     /// <summary>
-    /// Access locked with <see cref="_gate"/>.
+    /// Access locked with <see cref="_metadataCacheLock"/>.
     /// </summary>
     private readonly Dictionary<FileKey, AssemblyMetadata> _metadataCache = [];
 
     private readonly ImmutableArray<string> _runtimeDirectories;
     private readonly TemporaryStorageService _temporaryStorageService;
-
     private readonly IVsXMLMemberIndexService _xmlMemberIndexService;
+    private readonly ReaderWriterLockSlim _smartOpenScopeLock = new();
 
     /// <summary>
     /// The smart open scope service. This can be null during shutdown when using the service might crash. Any
-    /// use of this field or derived types should be synchronized with <see cref="_readerWriterLock"/> to ensure
+    /// use of this field or derived types should be synchronized with <see cref="_smartOpenScopeLock"/> to ensure
     /// you don't grab the field and then use it while shutdown continues.
     /// </summary>
     private IVsSmartOpenScope? SmartOpenScopeServiceOpt { get; set; }
-
-    private readonly ReaderWriterLockSlim _readerWriterLock = new();
 
     public VisualStudioMetadataReferenceManager(
         IServiceProvider serviceProvider,
@@ -85,7 +80,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
     public void Dispose()
     {
-        using (_readerWriterLock.DisposableWrite())
+        using (_smartOpenScopeLock.DisposableWrite())
         {
             // IVsSmartOpenScope can't be used as we shutdown, and this is pretty commonly hit according to 
             // Windows Error Reporting as we try creating metadata for compilations.
@@ -95,7 +90,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
     private bool TryGetMetadata(FileKey key, [NotNullWhen(true)] out AssemblyMetadata? metadata)
     {
-        lock (_gate)
+        lock (_metadataCacheLock)
             return _metadataCache.TryGetValue(key, out metadata);
     }
 
@@ -151,7 +146,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             metadata = GetMetadataWorker(fullPath);
             Contract.ThrowIfNull(metadata);
 
-            lock (_gate)
+            lock (_metadataCacheLock)
             {
                 // Now try to create and add the metadata to the cache. If we fail to add it (because some other thread
                 // beat us to this), then Dispose the metadata we just created and will return the existing metadata
@@ -288,7 +283,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         {
             // We might not be able to use COM services to get this if VS is shutting down. We'll synchronize to make sure this
             // doesn't race against 
-            using (_readerWriterLock.DisposableRead())
+            using (_smartOpenScopeLock.DisposableRead())
             {
                 info = null;
                 pImage = default;

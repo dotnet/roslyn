@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal sealed partial class VisualStudioMetadataReferenceManager
 {
+    private static readonly Guid s_IID_IMetaDataImport = new("7DAC8207-D3AE-4c75-9B67-92801A497D44");
+
     [ComImport]
     [Guid("7998EA64-7F95-48B8-86FC-17CAF48BF5CB")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
