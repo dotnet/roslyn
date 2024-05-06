@@ -122,8 +122,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         _isSetUp = false;
         GC.SuppressFinalize(this);
-
-        this.RemoveServices();
     }
 
     ~AbstractLanguageService()
@@ -132,12 +130,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         {
             throw new InvalidOperationException("TearDown not called!");
         }
-    }
-
-    protected virtual void RemoveServices()
-    {
-        this.EditorAdaptersFactoryService = null;
-        this.Workspace = null;
     }
 
     protected abstract string ContentTypeName { get; }
