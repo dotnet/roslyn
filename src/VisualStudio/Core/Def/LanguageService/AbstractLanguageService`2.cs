@@ -59,7 +59,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     internal EditorOptionsService EditorOptionsService { get; private set; }
     internal VisualStudioWorkspaceImpl Workspace { get; private set; }
     internal IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; private set; }
-    internal AnalyzerFileWatcherService AnalyzerFileWatcherService { get; private set; }
 
     /// <summary>
     /// Whether or not we have been set up. This is set once everything is wired up and cleared once tear down has begun.
@@ -138,7 +137,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         this.EditorOptionsService = this.Package.ComponentModel.GetService<EditorOptionsService>();
         this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
         this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
-        this.AnalyzerFileWatcherService = this.Package.ComponentModel.GetService<AnalyzerFileWatcherService>();
     }
 
     protected virtual void RemoveServices()
