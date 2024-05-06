@@ -4,10 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -117,7 +118,10 @@ internal static class DocumentBasedFixAllProviderHelpers
                     using var _ = args.progressTracker.ItemCompletedScope();
 
                     var dirtyDocument = args.dirtySolution.GetRequiredDocument(documentId);
-                    var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
+
+                    var codeCleanupOptions = await dirtyDocument.GetCodeCleanupOptionsAsync(args.originalFixAllContext.State.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+                    var cleanedDocument = await CodeAction.CleanupDocumentAsync(dirtyDocument, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
+
                     var cleanedText = await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                     callback((dirtyDocument.Id, cleanedText));
                 },
@@ -130,21 +134,8 @@ internal static class DocumentBasedFixAllProviderHelpers
 
                     return finalSolution;
                 },
-                args: (dirtySolution, progressTracker),
+                args: (originalFixAllContext, dirtySolution, progressTracker),
                 cancellationToken).ConfigureAwait(false);
         }
-    }
-
-    /// <summary>
-    /// Dummy class just to get access to <see cref="CodeAction.PostProcessChangesAsync(Document, CancellationToken)"/>
-    /// </summary>
-    private class PostProcessCodeAction : CodeAction
-    {
-        public static readonly PostProcessCodeAction Instance = new();
-
-        public override string Title => "";
-
-        public new Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
-            => base.PostProcessChangesAsync(document, cancellationToken);
     }
 }
