@@ -46,11 +46,17 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// </summary>
     private static readonly ConditionalWeakTable<AssemblyMetadata, IReadOnlyList<TemporaryStorageStreamHandle>> s_metadataToStorageHandles = new();
 
-    private readonly MetadataCache _metadataCache = new();
+    private readonly object _gate = new();
+
+    /// <summary>
+    /// Access locked with <see cref="_gate"/>.
+    /// </summary>
+    private readonly Dictionary<FileKey, AssemblyMetadata> _metadataCache = [];
+
     private readonly ImmutableArray<string> _runtimeDirectories;
     private readonly TemporaryStorageService _temporaryStorageService;
 
-    internal IVsXMLMemberIndexService XmlMemberIndexService { get; }
+    private readonly IVsXMLMemberIndexService _xmlMemberIndexService;
 
     /// <summary>
     /// The smart open scope service. This can be null during shutdown when using the service might crash. Any
@@ -67,8 +73,8 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     {
         _runtimeDirectories = GetRuntimeDirectories();
 
-        XmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
-        Assumes.Present(XmlMemberIndexService);
+        _xmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
+        Assumes.Present(_xmlMemberIndexService);
 
         SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
         Assumes.Present(SmartOpenScopeServiceOpt);
@@ -87,11 +93,17 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         }
     }
 
+    private bool TryGetMetadata(FileKey key, [NotNullWhen(true)] out AssemblyMetadata? metadata)
+    {
+        lock (_gate)
+            return _metadataCache.TryGetValue(key, out metadata);
+    }
+
     public IReadOnlyList<TemporaryStorageStreamHandle>? GetStorageHandles(string fullPath, DateTime snapshotTimestamp)
     {
         var key = new FileKey(fullPath, snapshotTimestamp);
         // check existing metadata
-        if (_metadataCache.TryGetMetadata(key, out var source) &&
+        if (TryGetMetadata(key, out var source) &&
             s_metadataToStorageHandles.TryGetValue(source, out var handles))
         {
             return handles;
@@ -132,12 +144,25 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     {
         var key = new FileKey(fullPath, snapshotTimestamp);
         // check existing metadata
-        if (!_metadataCache.TryGetMetadata(key, out var metadata))
+        if (!TryGetMetadata(key, out var metadata))
         {
             // Now try to create and add the metadata to the cache. If we fail to add it (because some other thread beat
-            // us to this), then the metadata cache will Dispose the metadata we just created and will return the existing
-            // metadata instead.
-            metadata = _metadataCache.GetOrAddMetadata(key, GetMetadataWorker(fullPath));
+            // us to this), then Dispose the metadata we just created and will return the existing metadata instead.
+            metadata = GetMetadataWorker(fullPath);
+            Contract.ThrowIfNull(metadata);
+
+            lock (_gate)
+            {
+                if (_metadataCache.TryGetValue(key, out var cachedMetadata))
+                {
+                    metadata.Dispose();
+                    return cachedMetadata;
+                }
+
+                // don't use "Add" since key might already exist with already released metadata
+                _metadataCache[key] = metadata;
+                return metadata;
+            }
         }
 
         return metadata;
