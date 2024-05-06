@@ -135,15 +135,17 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     {
         var key = new FileKey(fullPath, snapshotTimestamp);
         // check existing metadata
-        if (_metadataCache.TryGetMetadata(key, out var metadata))
-            return metadata;
+        if (!_metadataCache.TryGetMetadata(key, out var metadata))
+        {
+            // here, we don't care about timestamp since all those bits should be part of Fx. and we assume that 
+            // it won't be changed in the middle of VS running.
+            var newMetadata = GetMetadataWorker(fullPath);
 
-        // here, we don't care about timestamp since all those bits should be part of Fx. and we assume that 
-        // it won't be changed in the middle of VS running.
-        var newMetadata = GetMetadataWorker(fullPath);
-
-        if (!_metadataCache.GetOrAddMetadata(key, newMetadata, out metadata))
-            newMetadata.Dispose();
+            // Now try to add the metadata to the cache. If we fail to add it, then we need to dispose of the metadata
+            // we just created as some other thread won and we will be returning that instead.
+            if (!_metadataCache.GetOrAddMetadata(key, newMetadata, out metadata))
+                newMetadata.Dispose();
+        }
 
         return metadata;
 
