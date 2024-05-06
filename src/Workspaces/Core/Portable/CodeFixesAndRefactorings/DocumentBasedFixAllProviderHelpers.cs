@@ -97,7 +97,7 @@ internal static class DocumentBasedFixAllProviderHelpers
 
             // Clear out the progress so far.  We're starting a new progress pass for the final cleanup.
             progressTracker.Report(CodeAnalysisProgress.Clear());
-            progressTracker.Report(CodeAnalysisProgress.AddIncompleteItems(changedRootDocumentIds.Length, WorkspacesResources.Cleaning_fixed_documents));
+            progressTracker.Report(CodeAnalysisProgress.AddIncompleteItems(changedRootDocumentIds.Length, WorkspacesResources.Running_code_cleanup_on_fixed_documents));
 
             // We're about to making a ton of calls to this new solution, including expensive oop calls to get up to
             // date compilations, skeletons and SG docs.  Create and pin this solution so that all remote calls operate

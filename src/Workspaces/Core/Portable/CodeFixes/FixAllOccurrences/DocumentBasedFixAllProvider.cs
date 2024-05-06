@@ -79,12 +79,12 @@ public abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> su
         var cancellationToken = fixAllContext.CancellationToken;
 
         // First, determine the diagnostics to fix.
-        var docuementToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
+        var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
 
         // Second, get the fixes for each document+diagnostics pair in parallel, and apply them to determine the new
         // root/text for each doc.
         await RoslynParallel.ForEachAsync(
-            source: docuementToDiagnostics,
+            source: documentToDiagnostics,
             cancellationToken,
             async (kvp, cancellationToken) =>
             {
