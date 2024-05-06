@@ -61,7 +61,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
     private readonly ReaderWriterLockSlim _readerWriterLock = new();
 
-    internal VisualStudioMetadataReferenceManager(
+    public VisualStudioMetadataReferenceManager(
         IServiceProvider serviceProvider,
         TemporaryStorageService temporaryStorageService)
     {
@@ -101,7 +101,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     }
 
     public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)
-        => new VisualStudioMetadataReference.Snapshot(this, properties, filePath, fileChangeTrackerOpt: null);
+        => new VisualStudioPortableExecutableReference(this, properties, filePath, fileChangeTrackerOpt: null);
 
     public void ClearCache()
         => _metadataCache.ClearCache();
