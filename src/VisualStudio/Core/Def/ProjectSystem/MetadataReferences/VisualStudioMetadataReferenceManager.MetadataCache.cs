@@ -42,6 +42,8 @@ internal sealed partial class VisualStudioMetadataReferenceManager
             {
                 if (TryGetMetadata_NoLock(key, out var cachedMetadata))
                 {
+                    // Another thread beat the calling thread.  Dispose the metadata that was just created and return
+                    // the cached metadata.
                     newMetadata.Dispose();
                     return cachedMetadata;
                 }
