@@ -40,12 +40,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ReferenceManager
 
                 stream.Position = 0
                 Dim reader = ObjectReader.GetReader(stream, leaveOpen:=True)
-                Dim deserialized = serializerService.Deserialize(
-                    WellKnownSynchronizationKind.MetadataReference, reader, cancellationToken:=Nothing)
+                Dim deserialized = DirectCast(serializerService.Deserialize(
+                    WellKnownSynchronizationKind.MetadataReference, reader, cancellationToken:=Nothing), MetadataReference)
 
                 Dim checksum1 = SerializerService.CreateChecksum(testReference, cancellationToken:=Nothing)
-                Dim checksum2 = serializerService.CreateChecksum(deserialized, cancellationToken:=Nothing)
+                Dim checksum2 = SerializerService.CreateChecksum(deserialized, cancellationToken:=Nothing)
 
+                ' Serializing the original reference and the deserialized reference should produce the same checksum
                 Assert.Equal(checksum1, checksum2)
             End Using
         End Sub
