@@ -72,7 +72,7 @@ public sealed class SyntaxTokenParser : IDisposable
     }
 
     /// <summary>
-    /// Parse syntax trivia from the current position, according the rules of trailing syntax trivia. This will advance the internal position of the
+    /// Parse syntax trivia from the current position, according to the rules of trailing syntax trivia. This will advance the internal position of the
     /// token parser to the end of the trailing trivia from the current location. The returned result will have a token with <see cref="CSharpExtensions.Kind(SyntaxToken)"/>
     /// of <see cref="SyntaxKind.None"/>, <see cref="SyntaxToken.IsMissing"/> set to <see langword="true"/>, and a parent of <see langword="null"/>. The
     /// parsed trivia will be set as the <see cref="SyntaxToken.TrailingTrivia"/> of the token.
