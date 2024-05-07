@@ -50,7 +50,7 @@ This document captures the current state. Potential future improvements in this 
 | Edit a member referencing an embedded interop type | - |
 | Edit a member with On Error or Resume statements | Specific to Visual Basic |
 | Edit a member containing an Aggregate, Group By, Simple Join, or Group Join LINQ query clause | Specific to Visual Basic |
-| Edits in a solution containing projects with `AssemblyVersionAttribute` value containing `*`, e.g. `[assembly: AssemblyVersion(1.0.*)`].  | See [workaround](#projects-with-variable-assembly-versions) below. |
+| Edit in a solution containing projects that specify `*` in `AssemblyVersionAttribute`, e.g. `[assembly: AssemblyVersion("1.0.*")`]. | See [workaround](#projects-with-variable-assembly-versions) below. |
 
 ### Projects with variable assembly versions
 
