@@ -15575,5 +15575,42 @@ class C1
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "params MyCollection<object>").WithLocation(19, 14)
                 );
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73346")]
+        public void ParameterTypeSpecificity()
+        {
+            string source = """
+using System;
+
+namespace OverloadResolutionRepro
+{
+    public class Foo
+    {
+        public void Method<S>(params Func<Bar, S>[] projections) => Console.Write(1);
+        public void Method<S>(params Func<Bar, Wrapper<S>>[] projections) => Console.Write(2);
+    }
+
+    public class Bar
+    {
+        public Wrapper<int> WrappedValue { get; set; } = new Wrapper<int>();
+    }
+
+    public struct Wrapper<TValue>
+    {
+    }
+
+    public class EntryPoint
+    {
+        static void Main()
+        {
+            new Foo().Method(x => x.WrappedValue);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+        }
     }
 }
