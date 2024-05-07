@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -66,7 +65,15 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
     {
         var hierarchy = hierarchyContent.Hierarchy;
         if (hierarchy == null)
-            return await FixSolutionAsync(_workspace.CurrentSolution, context).ConfigureAwait(true);
+        {
+            var solution = _workspace.CurrentSolution;
+            return await FixAsync(
+                _workspace,
+                // Just defer to FixProjectsAsync, passing in all fixable projects in the solution.
+                (progress, cancellationToken) => FixProjectsAsync(
+                    _globalOptions, solution, solution.Projects.Where(p => p.SupportsCompilation).ToImmutableArray(), context.EnabledFixIds, progress, cancellationToken),
+                context).ConfigureAwait(false);
+        }
 
         // Map the hierarchy to a ProjectId. For hierarchies mapping to multitargeted projects, we first try to
         // get the project in the most recent active context, but fall back to the first target framework if no
@@ -98,7 +105,12 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
             if (project == null || !project.SupportsCompilation)
                 return false;
 
-            return await FixProjectAsync(project, context).ConfigureAwait(true);
+            return await FixAsync(
+                _workspace,
+                // Just defer to FixProjectsAsync, passing in this single project to fix.
+                (progress, cancellationToken) => FixProjectsAsync(
+                    _globalOptions, project.Solution, [project], context.EnabledFixIds, progress, cancellationToken),
+                context).ConfigureAwait(false);
         }
         else if (hierarchy.GetCanonicalName(itemId, out var path) == 0)
         {
@@ -122,36 +134,20 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
 
                 var document = solution.GetRequiredDocument(documentId);
                 var options = _globalOptions.GetCodeActionOptions(document.Project.Services);
-                return await FixDocumentAsync(document, options, context).ConfigureAwait(true);
+
+                return await FixAsync(
+                    _workspace,
+                    async (progress, cancellationToken) =>
+                    {
+                        var newDocument = await FixDocumentAsync(document, context.EnabledFixIds, progress, options, cancellationToken).ConfigureAwait(true);
+                        return newDocument.Project.Solution;
+                    },
+                    context).ConfigureAwait(false);
             }
         }
 
         return false;
     }
-
-    private Task<bool> FixSolutionAsync(Solution solution, ICodeCleanUpExecutionContext context)
-        => FixAsync(
-            solution.Workspace,
-            (progress, cancellationToken) => FixProjectsAsync(
-                _globalOptions, solution, solution.Projects.Where(p => p.SupportsCompilation).ToImmutableArray(), context.EnabledFixIds, progress, cancellationToken),
-            context);
-
-    private Task<bool> FixProjectAsync(Project project, ICodeCleanUpExecutionContext context)
-        => FixAsync(
-            project.Solution.Workspace,
-            (progress, cancellationToken) => FixProjectsAsync(
-                _globalOptions, project.Solution, [project], context.EnabledFixIds, progress, cancellationToken),
-            context);
-
-    private Task<bool> FixDocumentAsync(Document document, CodeActionOptions options, ICodeCleanUpExecutionContext context)
-        => FixAsync(
-            document.Project.Solution.Workspace,
-            async (progress, cancellationToken) =>
-            {
-                var newDocument = await FixDocumentAsync(document, context.EnabledFixIds, progress, options, cancellationToken).ConfigureAwait(true);
-                return newDocument.Project.Solution;
-            },
-            context);
 
     private Task<bool> FixTextBufferAsync(TextBufferCodeCleanUpScope textBufferScope, ICodeCleanUpExecutionContext context)
     {
