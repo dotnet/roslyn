@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Xunit.Abstractions;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private void AddAnalyzersToWorkspace(TestWorkspace workspace)
         {
             var analyzerReference = new AnalyzerImageReference(OtherAnalyzers.Add(SuppressionAnalyzer));
+            SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerReference);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
         }
 
