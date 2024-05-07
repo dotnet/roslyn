@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationFieldSymbol(
+internal abstract class CodeGenerationFieldSymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility accessibility,
@@ -22,7 +22,7 @@ internal class CodeGenerationFieldSymbol(
     ITypeSymbol type,
     string name,
     bool hasConstantValue,
-    object constantValue) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, accessibility, modifiers, name), IFieldSymbol
+    object constantValue) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, accessibility, modifiers, name), ICodeGenerationFieldSymbol
 {
     public ITypeSymbol Type { get; } = type;
     public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
@@ -31,7 +31,7 @@ internal class CodeGenerationFieldSymbol(
 
     protected override CodeGenerationSymbol Clone()
     {
-        return new CodeGenerationFieldSymbol(
+        return (CodeGenerationSymbol)CodeGenerationSymbolMappingFactory.Instance.CreateFieldSymbol(
             this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
             this.Modifiers, this.Type, this.Name, this.HasConstantValue, this.ConstantValue);
     }
@@ -40,7 +40,7 @@ internal class CodeGenerationFieldSymbol(
     {
         get
         {
-            return this;
+            return (IFieldSymbol)this;
         }
     }
 
@@ -49,13 +49,13 @@ internal class CodeGenerationFieldSymbol(
     public override SymbolKind Kind => SymbolKind.Field;
 
     public override void Accept(SymbolVisitor visitor)
-        => visitor.VisitField(this);
+        => visitor.VisitField((IFieldSymbol)this);
 
     public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        => visitor.VisitField(this);
+        => visitor.VisitField((IFieldSymbol)this);
 
     public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-        => visitor.VisitField(this, argument);
+        => visitor.VisitField((IFieldSymbol)this, argument);
 
     public bool IsConst
     {

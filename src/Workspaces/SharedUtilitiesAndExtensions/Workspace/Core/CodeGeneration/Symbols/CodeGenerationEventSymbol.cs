@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationEventSymbol(
+internal abstract class CodeGenerationEventSymbol(
     INamedTypeSymbol? containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility declaredAccessibility,
@@ -22,7 +22,7 @@ internal class CodeGenerationEventSymbol(
     string name,
     IMethodSymbol? addMethod,
     IMethodSymbol? removeMethod,
-    IMethodSymbol? raiseMethod) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name), IEventSymbol
+    IMethodSymbol? raiseMethod) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name), ICodeGenerationEventSymbol
 {
     public ITypeSymbol Type { get; } = type;
     public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
@@ -35,7 +35,7 @@ internal class CodeGenerationEventSymbol(
 
     protected override CodeGenerationSymbol Clone()
     {
-        return new CodeGenerationEventSymbol(
+        return (CodeGenerationSymbol)CodeGenerationSymbolMappingFactory.Instance.CreateEventSymbol(
             this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
             this.Modifiers, this.Type, this.ExplicitInterfaceImplementations,
             this.Name, this.AddMethod, this.RemoveMethod, this.RaiseMethod);
@@ -44,16 +44,16 @@ internal class CodeGenerationEventSymbol(
     public override SymbolKind Kind => SymbolKind.Event;
 
     public override void Accept(SymbolVisitor visitor)
-        => visitor.VisitEvent(this);
+        => visitor.VisitEvent((IEventSymbol)this);
 
     public override TResult? Accept<TResult>(SymbolVisitor<TResult> visitor)
         where TResult : default
-        => visitor.VisitEvent(this);
+        => visitor.VisitEvent((IEventSymbol)this);
 
     public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-        => visitor.VisitEvent(this, argument);
+        => visitor.VisitEvent((IEventSymbol)this, argument);
 
-    public new IEventSymbol OriginalDefinition => this;
+    public new IEventSymbol OriginalDefinition => (IEventSymbol)this;
 
     public bool IsWindowsRuntimeEvent => false;
 

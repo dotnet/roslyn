@@ -39,7 +39,7 @@ internal static class CodeGenerationSymbolFactory
         IMethodSymbol? removeMethod = null,
         IMethodSymbol? raiseMethod = null)
     {
-        var result = new CodeGenerationEventSymbol(null, attributes, accessibility, modifiers, type, explicitInterfaceImplementations, name, addMethod, removeMethod, raiseMethod);
+        var result = CodeGenerationSymbolMappingFactory.Instance.CreateEventSymbol(null, attributes, accessibility, modifiers, type, explicitInterfaceImplementations, name, addMethod, removeMethod, raiseMethod);
         CodeGenerationEventInfo.Attach(result, modifiers.IsUnsafe);
         return result;
     }
@@ -59,7 +59,7 @@ internal static class CodeGenerationSymbolFactory
         bool isIndexer = false,
         SyntaxNode? initializer = null)
     {
-        var result = new CodeGenerationPropertySymbol(
+        var result = CodeGenerationSymbolMappingFactory.Instance.CreatePropertySymbol(
             containingType,
             attributes,
             accessibility,
@@ -112,7 +112,7 @@ internal static class CodeGenerationSymbolFactory
         object? constantValue = null,
         SyntaxNode? initializer = null)
     {
-        var result = new CodeGenerationFieldSymbol(null, attributes, accessibility, modifiers, type, name, hasConstantValue, constantValue);
+        var result = CodeGenerationSymbolMappingFactory.Instance.CreateFieldSymbol(null, attributes, accessibility, modifiers, type, name, hasConstantValue, constantValue);
         CodeGenerationFieldInfo.Attach(result, modifiers.IsUnsafe, modifiers.IsWithEvents, initializer);
         return result;
     }
@@ -131,7 +131,7 @@ internal static class CodeGenerationSymbolFactory
         ImmutableArray<SyntaxNode> thisConstructorArguments = default,
         bool isPrimaryConstructor = false)
     {
-        var result = new CodeGenerationConstructorSymbol(null, attributes, accessibility, modifiers, parameters);
+        var result = CodeGenerationSymbolMappingFactory.Instance.CreateConstructorSymbol(null, attributes, accessibility, modifiers, parameters);
         CodeGenerationConstructorInfo.Attach(result, isPrimaryConstructor, modifiers.IsUnsafe, typeName, statements, baseConstructorArguments, thisConstructorArguments);
         return result;
     }
@@ -143,7 +143,7 @@ internal static class CodeGenerationSymbolFactory
         ImmutableArray<AttributeData> attributes, string typeName,
         ImmutableArray<SyntaxNode> statements = default)
     {
-        var result = new CodeGenerationDestructorSymbol(null, attributes);
+        var result = CodeGenerationSymbolMappingFactory.Instance.CreateDestructorSymbol(null, attributes);
         CodeGenerationDestructorInfo.Attach(result, typeName, statements);
         return result;
     }
@@ -165,7 +165,7 @@ internal static class CodeGenerationSymbolFactory
         MethodKind methodKind = MethodKind.Ordinary,
         bool isInitOnly = false)
     {
-        var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, returnTypeAttributes, documentationCommentXml: null, methodKind, isInitOnly);
+        var result = CodeGenerationSymbolMappingFactory.Instance.CreateMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, returnTypeAttributes, documentationCommentXml: null, methodKind, isInitOnly);
         CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions);
         return result;
     }
@@ -212,7 +212,7 @@ internal static class CodeGenerationSymbolFactory
             throw new ArgumentException(message, nameof(parameters));
         }
 
-        var result = new CodeGenerationOperatorSymbol(null, attributes, accessibility, modifiers, returnType, operatorKind, parameters, returnTypeAttributes, documentationCommentXml);
+        var result = CodeGenerationSymbolMappingFactory.Instance.CreateOperatorSymbol(null, attributes, accessibility, modifiers, returnType, operatorKind, parameters, returnTypeAttributes, documentationCommentXml);
         CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions: default);
         return result;
     }
@@ -257,7 +257,7 @@ internal static class CodeGenerationSymbolFactory
         ImmutableArray<AttributeData> toTypeAttributes = default,
         string? documentationCommentXml = null)
     {
-        var result = new CodeGenerationConversionSymbol(containingType, attributes, accessibility, modifiers, toType, fromType, isImplicit, toTypeAttributes, documentationCommentXml);
+        var result = CodeGenerationSymbolMappingFactory.Instance.CreateConversionSymbol(containingType, attributes, accessibility, modifiers, toType, fromType, isImplicit, toTypeAttributes, documentationCommentXml);
         CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions: default);
         return result;
     }
@@ -280,7 +280,7 @@ internal static class CodeGenerationSymbolFactory
     public static IParameterSymbol CreateParameterSymbol(
         ImmutableArray<AttributeData> attributes, RefKind refKind, bool isParams, ITypeSymbol type, string name, bool isOptional = false, bool hasDefaultValue = false, object? defaultValue = null)
     {
-        return new CodeGenerationParameterSymbol(null, attributes, refKind, isParams, type, name, isOptional, hasDefaultValue, defaultValue);
+        return CodeGenerationSymbolMappingFactory.Instance.CreateParameterSymbol(null, attributes, refKind, isParams, type, name, isOptional, hasDefaultValue, defaultValue);
     }
 
     /// <summary>
@@ -297,7 +297,7 @@ internal static class CodeGenerationSymbolFactory
         bool? hasDefaultValue = null,
         Optional<object> defaultValue = default)
     {
-        return new CodeGenerationParameterSymbol(
+        return CodeGenerationSymbolMappingFactory.Instance.CreateParameterSymbol(
             containingType: null,
             attributes ?? parameter.GetAttributes(),
             refKind ?? parameter.RefKind,
@@ -342,20 +342,20 @@ internal static class CodeGenerationSymbolFactory
         bool allowsRefLikeType = false,
         int ordinal = 0)
     {
-        return new CodeGenerationTypeParameterSymbol(null, attributes, varianceKind, name, nullableAnnotation, constraintTypes, hasConstructorConstraint, hasReferenceConstraint, hasValueConstraint, hasUnmanagedConstraint, hasNotNullConstraint, allowsRefLikeType, ordinal);
+        return CodeGenerationSymbolMappingFactory.Instance.CreateTypeParameterSymbol(null, attributes, varianceKind, name, nullableAnnotation, constraintTypes, hasConstructorConstraint, hasReferenceConstraint, hasValueConstraint, hasUnmanagedConstraint, hasNotNullConstraint, allowsRefLikeType, ordinal);
     }
 
     /// <summary>
     /// Creates a pointer type symbol that can be used to describe a pointer type reference.
     /// </summary>
     public static IPointerTypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType)
-        => new CodeGenerationPointerTypeSymbol(pointedAtType);
+        => CodeGenerationSymbolMappingFactory.Instance.CreatePointerTypeSymbol(pointedAtType);
 
     /// <summary>
     /// Creates an array type symbol that can be used to describe an array type reference.
     /// </summary>
     public static IArrayTypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank = 1, NullableAnnotation nullableAnnotation = NullableAnnotation.None)
-        => new CodeGenerationArrayTypeSymbol(elementType, rank, nullableAnnotation);
+        => CodeGenerationSymbolMappingFactory.Instance.CreateArrayTypeSymbol(elementType, rank, nullableAnnotation);
 
     internal static IMethodSymbol CreateAccessorSymbol(
         IMethodSymbol accessor,
@@ -449,7 +449,7 @@ internal static class CodeGenerationSymbolFactory
     {
         members = members.NullToEmpty();
 
-        return new CodeGenerationNamedTypeSymbol(
+        return CodeGenerationSymbolMappingFactory.Instance.CreateNamedTypeSymbol(
             containingAssembly, null, attributes, accessibility, modifiers, isRecord, typeKind, name,
             typeParameters, baseType, interfaces, specialType, nullableAnnotation,
             members.WhereAsArray(m => m is not INamedTypeSymbol),
@@ -482,7 +482,7 @@ internal static class CodeGenerationSymbolFactory
             typeParameters: default,
             parameters: parameters);
 
-        return new CodeGenerationNamedTypeSymbol(
+        return (CodeGenerationNamedTypeSymbol)CodeGenerationSymbolMappingFactory.Instance.CreateNamedTypeSymbol(
             containingAssembly: null,
             containingType: null,
             attributes: attributes,
@@ -506,7 +506,7 @@ internal static class CodeGenerationSymbolFactory
     /// </summary>
     public static INamespaceSymbol CreateNamespaceSymbol(string name, IList<ISymbol>? imports = null, IList<INamespaceOrTypeSymbol>? members = null)
     {
-        var @namespace = new CodeGenerationNamespaceSymbol(name, members);
+        var @namespace = CodeGenerationSymbolMappingFactory.Instance.CreateNamespaceSymbol(name, members);
         CodeGenerationNamespaceInfo.Attach(@namespace, imports);
         return @namespace;
     }

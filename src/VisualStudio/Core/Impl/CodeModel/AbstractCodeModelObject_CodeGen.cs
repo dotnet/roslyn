@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             var info = GetCodeGenerationContextInfo(containerNode, options, access: access);
 
-            return CodeGenerationService.CreateNamedTypeDeclaration(newTypeSymbol, destination, info, CancellationToken.None);
+            return CodeGenerationService.CreateNamedTypeDeclaration((INamedTypeSymbol)newTypeSymbol, destination, info, CancellationToken.None);
         }
 
         private protected SyntaxNode CreateEventDeclaration(SyntaxNode containerNode, string name, EnvDTE.vsCMAccess access, ITypeSymbol type, CodeGenerationOptions options, bool createPropertyStyleEvent)

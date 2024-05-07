@@ -132,6 +132,29 @@ public partial class CodeGenerationTests
             CancellationToken.None);
     }
 
+    internal static async Task TestAddDestructorAsync(
+        string initial,
+        string expected,
+        string name = "C",
+        ImmutableArray<SyntaxNode> statements = default,
+        CodeGenerationContext context = null)
+    {
+        using var testContext = await TestContext.CreateAsync(initial, expected);
+        var dtor = CodeGenerationSymbolFactory.CreateDestructorSymbol(
+            attributes: default,
+            name,
+            statements);
+
+        testContext.Result = await testContext.Service.AddMethodAsync(
+            new CodeGenerationSolutionContext(
+                testContext.Solution,
+                context ?? CodeGenerationContext.Default,
+                testContext.Workspace.GlobalOptions.CreateProvider()),
+            (INamedTypeSymbol)testContext.GetDestination(),
+            dtor,
+            CancellationToken.None);
+    }
+
     internal static async Task TestAddMethodAsync(
         string initial,
         string expected,
@@ -368,7 +391,7 @@ public partial class CodeGenerationTests
                 context ?? CodeGenerationContext.Default,
                 testContext.Workspace.GlobalOptions.CreateProvider()),
             (INamedTypeSymbol)testContext.GetDestination(),
-            type,
+            (INamedTypeSymbol)type,
             CancellationToken.None);
     }
 
@@ -961,7 +984,7 @@ public partial class CodeGenerationTests
         {
             try
             {
-                if (!_ignoreResult)
+                if (!_ignoreResult && this.Result is not null)
                 {
                     this.Document = this.Result;
 

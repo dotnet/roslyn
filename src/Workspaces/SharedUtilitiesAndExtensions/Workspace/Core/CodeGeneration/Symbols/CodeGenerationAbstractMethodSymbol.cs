@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbol, IMethodSymbol
+internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbol, ICodeGenerationMethodSymbol
 {
     public new IMethodSymbol OriginalDefinition { get; protected set; }
 
@@ -66,13 +66,13 @@ internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbo
     public virtual ITypeSymbol ReceiverType => this.ContainingType;
 
     public override void Accept(SymbolVisitor visitor)
-        => visitor.VisitMethod(this);
+        => visitor.VisitMethod((IMethodSymbol)this);
 
     public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        => visitor.VisitMethod(this);
+        => visitor.VisitMethod((IMethodSymbol)this);
 
     public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-        => visitor.VisitMethod(this, argument);
+        => visitor.VisitMethod((IMethodSymbol)this, argument);
 
     public virtual MethodKind MethodKind => MethodKind.Ordinary;
 
@@ -109,10 +109,10 @@ internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbo
     public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => [];
 
     public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
-        => new CodeGenerationConstructedMethodSymbol(this, [.. typeArguments]);
+        => CodeGenerationSymbolMappingFactory.Instance.CreateConstructedMethodSymbol(this, [.. typeArguments]);
 
     public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
-        => new CodeGenerationConstructedMethodSymbol(this, typeArguments);
+        => CodeGenerationSymbolMappingFactory.Instance.CreateConstructedMethodSymbol(this, typeArguments);
 
     public DllImportData GetDllImportData()
         => null;

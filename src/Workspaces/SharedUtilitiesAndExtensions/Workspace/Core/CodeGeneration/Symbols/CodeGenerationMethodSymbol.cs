@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal partial class CodeGenerationMethodSymbol : CodeGenerationAbstractMethodSymbol
+internal abstract partial class CodeGenerationMethodSymbol : CodeGenerationAbstractMethodSymbol
 {
     public override ITypeSymbol ReturnType { get; }
     public override ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
@@ -52,26 +52,26 @@ internal partial class CodeGenerationMethodSymbol : CodeGenerationAbstractMethod
         this.MethodKind = methodKind;
 
         this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
-        this.OriginalDefinition = this;
+        this.OriginalDefinition = (IMethodSymbol)this;
     }
 
     protected override CodeGenerationSymbol Clone()
     {
-        var result = new CodeGenerationMethodSymbol(this.ContainingType,
+        var result = CodeGenerationSymbolMappingFactory.Instance.CreateMethodSymbol(this.ContainingType,
             this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
             this.ReturnType, this.RefKind, this.ExplicitInterfaceImplementations,
             this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes(),
             _documentationCommentXml, this.MethodKind, this.IsInitOnly);
 
         CodeGenerationMethodInfo.Attach(result,
-            CodeGenerationMethodInfo.GetIsNew(this),
-            CodeGenerationMethodInfo.GetIsUnsafe(this),
-            CodeGenerationMethodInfo.GetIsPartial(this),
-            CodeGenerationMethodInfo.GetIsAsyncMethod(this),
-            CodeGenerationMethodInfo.GetStatements(this),
-            CodeGenerationMethodInfo.GetHandlesExpressions(this));
+            CodeGenerationMethodInfo.GetIsNew((IMethodSymbol)this),
+            CodeGenerationMethodInfo.GetIsUnsafe((IMethodSymbol)this),
+            CodeGenerationMethodInfo.GetIsPartial((IMethodSymbol)this),
+            CodeGenerationMethodInfo.GetIsAsyncMethod((IMethodSymbol)this),
+            CodeGenerationMethodInfo.GetStatements((IMethodSymbol)this),
+            CodeGenerationMethodInfo.GetHandlesExpressions((IMethodSymbol)this));
 
-        return result;
+        return (CodeGenerationSymbol)result;
     }
 
     public override int Arity => this.TypeParameters.Length;
@@ -100,7 +100,7 @@ internal partial class CodeGenerationMethodSymbol : CodeGenerationAbstractMethod
     public override ImmutableArray<ITypeSymbol> TypeArguments
         => this.TypeParameters.As<ITypeSymbol>();
 
-    public override IMethodSymbol ConstructedFrom => this;
+    public override IMethodSymbol ConstructedFrom => (IMethodSymbol)this;
 
     public override bool IsReadOnly => Modifiers.IsReadOnly;
     public override bool IsInitOnly { get; }

@@ -42,7 +42,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         {
             if (options.TypeKind == TypeKind.Delegate)
             {
-                return CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
+                return (INamedTypeSymbol)CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
                     DetermineAttributes(),
                     options.Accessibility,
                     DetermineModifiers(),

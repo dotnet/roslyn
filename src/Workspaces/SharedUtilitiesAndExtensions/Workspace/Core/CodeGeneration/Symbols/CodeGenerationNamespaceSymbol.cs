@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationNamespaceSymbol(string name, IList<INamespaceOrTypeSymbol> members) : CodeGenerationNamespaceOrTypeSymbol(null, null, default, Accessibility.NotApplicable, default, name), INamespaceSymbol
+internal abstract class CodeGenerationNamespaceSymbol(string name, IList<INamespaceOrTypeSymbol> members) : CodeGenerationNamespaceOrTypeSymbol(null, null, default, Accessibility.NotApplicable, default, name), ICodeGenerationNamespaceSymbol
 {
     private readonly IList<INamespaceOrTypeSymbol> _members = members ?? SpecializedCollections.EmptyList<INamespaceOrTypeSymbol>();
 
@@ -20,23 +20,23 @@ internal class CodeGenerationNamespaceSymbol(string name, IList<INamespaceOrType
     public override bool IsType => false;
 
     protected override CodeGenerationSymbol Clone()
-        => new CodeGenerationNamespaceSymbol(this.Name, _members);
+        => (CodeGenerationSymbol)CodeGenerationSymbolMappingFactory.Instance.CreateNamespaceSymbol(this.Name, _members);
 
     public override SymbolKind Kind => SymbolKind.Namespace;
 
     public override void Accept(SymbolVisitor visitor)
-        => visitor.VisitNamespace(this);
+        => visitor.VisitNamespace((INamespaceSymbol)this);
 
     public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        => visitor.VisitNamespace(this);
+        => visitor.VisitNamespace((INamespaceSymbol)this);
 
     public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-        => visitor.VisitNamespace(this, argument);
+        => visitor.VisitNamespace((INamespaceSymbol)this, argument);
 
     public new IEnumerable<INamespaceOrTypeSymbol> GetMembers()
         => _members;
 
-    IEnumerable<INamespaceOrTypeSymbol> INamespaceSymbol.GetMembers(string name)
+    IEnumerable<INamespaceOrTypeSymbol> ICodeGenerationNamespaceSymbol.GetMembers(string name)
         => GetMembers().Where(m => m.Name == name);
 
     public IEnumerable<INamespaceSymbol> GetNamespaceMembers()
@@ -60,7 +60,7 @@ internal class CodeGenerationNamespaceSymbol(string name, IList<INamespaceOrType
     {
         get
         {
-            return [this];
+            return [(INamespaceSymbol)this];
         }
     }
 }
