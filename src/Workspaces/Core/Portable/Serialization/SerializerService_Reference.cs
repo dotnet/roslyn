@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,6 +21,13 @@ internal partial class SerializerService
 {
     private const int MetadataFailed = int.MaxValue;
 
+    /// <summary>
+    /// Allow analyzer tests to exercise the oop codepaths, even though they're referring to in-memory instances of
+    /// DiagnosticAnalyzers.  In that case, we'll just share the in-memory instance of the analyzer across the OOP
+    /// boundary (which still runs in proc in tests), but we will still exercise all codepaths that use the RemoteClient
+    /// as well as exercising all codepaths that send data across the OOP boundary.  Effectively, this allows us to
+    /// pretend that a <see cref="AnalyzerImageReference"/> is a <see cref="AnalyzerFileReference"/> during tests.
+    /// </summary>
     private static readonly object s_analyzerImageReferenceMapGate = new();
     private static IBidirectionalMap<AnalyzerImageReference, Guid> s_analyzerImageReferenceMap = BidirectionalMap<AnalyzerImageReference, Guid>.Empty;
 
