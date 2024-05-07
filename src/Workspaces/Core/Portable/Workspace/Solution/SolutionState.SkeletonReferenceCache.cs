@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionState
+internal partial class SolutionCompilationState
 {
     /// <summary>
     /// Caches the skeleton references produced for a given project/compilation under the varying <see
@@ -130,13 +130,14 @@ internal partial class SolutionState
 
         public async Task<MetadataReference?> GetOrBuildReferenceAsync(
             ICompilationTracker compilationTracker,
-            SolutionState solution,
+            SolutionCompilationState compilationState,
             MetadataReferenceProperties properties,
             CancellationToken cancellationToken)
         {
-            var version = await compilationTracker.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
+            var version = await compilationTracker.GetDependentSemanticVersionAsync(
+                compilationState, cancellationToken).ConfigureAwait(false);
             var referenceSet = await TryGetOrCreateReferenceSetAsync(
-                compilationTracker, solution, version, cancellationToken).ConfigureAwait(false);
+                compilationTracker, compilationState, version, cancellationToken).ConfigureAwait(false);
             if (referenceSet == null)
                 return null;
 
@@ -145,7 +146,7 @@ internal partial class SolutionState
 
         private async Task<SkeletonReferenceSet?> TryGetOrCreateReferenceSetAsync(
             ICompilationTracker compilationTracker,
-            SolutionState solution,
+            SolutionCompilationState compilationState,
             VersionStamp version,
             CancellationToken cancellationToken)
         {
@@ -156,7 +157,7 @@ internal partial class SolutionState
 
             // okay, we don't have anything cached with this version. so create one now.
 
-            var currentSkeletonReferenceSet = await CreateSkeletonReferenceSetAsync(compilationTracker, solution, cancellationToken).ConfigureAwait(false);
+            var currentSkeletonReferenceSet = await CreateSkeletonReferenceSetAsync(compilationTracker, compilationState, cancellationToken).ConfigureAwait(false);
 
             lock (_stateGate)
             {
@@ -175,14 +176,14 @@ internal partial class SolutionState
 
         private static async Task<SkeletonReferenceSet?> CreateSkeletonReferenceSetAsync(
             ICompilationTracker compilationTracker,
-            SolutionState solution,
+            SolutionCompilationState compilationState,
             CancellationToken cancellationToken)
         {
             // It's acceptable for this computation to be something that multiple calling threads may hit at once.  The
             // implementation inside the compilation tracker does an async-wait on a an internal semaphore to ensure 
             // only one thread actually does the computation and the rest wait.
-            var compilation = await compilationTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-            var services = solution.Services;
+            var compilation = await compilationTracker.GetCompilationAsync(compilationState, cancellationToken).ConfigureAwait(false);
+            var services = compilationState.Solution.Services;
 
             // note: computing the assembly metadata is actually synchronous.  However, this ensures we don't have N
             // threads blocking on a lazy to compute the work.  Instead, we'll only occupy one thread, while any

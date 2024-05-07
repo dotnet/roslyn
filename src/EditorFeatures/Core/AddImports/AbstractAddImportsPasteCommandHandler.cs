@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -159,7 +160,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 HideAdvancedMembers: _globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, document.Project.Language));
 
             var textSpan = snapshotSpan.Span.ToTextSpan();
-            var updatedDocument = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
+            var updatedDocument = await addMissingImportsService.AddMissingImportsAsync(
+                document, textSpan, options, backgroundWorkContext.GetCodeAnalysisProgress(), cancellationToken).ConfigureAwait(false);
 
             if (updatedDocument is null)
             {

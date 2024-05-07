@@ -27,7 +27,7 @@
   -->
   <Target Name="_CopyDevKitExtensionFiles" AfterTargets="ResolveProjectReferences">
     <MSBuild Projects="..\..\..\VisualStudio\DevKit\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj"
-             Targets="CollectNpmInputs">
+             Targets="CollectPackInputs">
       <Output TaskParameter="TargetOutputs" ItemName="_DevKitExtensionFile"/>
     </MSBuild>
 

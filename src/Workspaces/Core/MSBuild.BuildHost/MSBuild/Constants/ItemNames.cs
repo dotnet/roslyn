@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string EditorConfigFiles = nameof(EditorConfigFiles);
         public const string Import = nameof(Import);
         public const string ProjectReference = nameof(ProjectReference);
+        public const string PackageReference = nameof(PackageReference);
         public const string ProjectCapability = nameof(ProjectCapability);
         public const string Reference = nameof(Reference);
         public const string ReferencePath = nameof(ReferencePath);

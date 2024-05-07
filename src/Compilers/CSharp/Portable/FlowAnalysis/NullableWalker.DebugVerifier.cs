@@ -64,7 +64,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void VerifyExpression(BoundExpression expression, bool overrideSkippedExpression = false)
             {
-                if (overrideSkippedExpression || !s_skippedExpressions.Contains(expression.Kind))
+                if (expression.IsParamsArray)
+                {
+                    // Params array is processed element wise. 
+                    Debug.Assert(!_analyzedNullabilityMap.ContainsKey(expression), $"Found unexpected {expression} `{expression.Syntax}` in the map.");
+                }
+                else if (overrideSkippedExpression || !s_skippedExpressions.Contains(expression.Kind))
                 {
                     Debug.Assert(_analyzedNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
                     _visitedExpressions.Add(expression);
@@ -91,6 +96,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitExpressionWithStackGuard(ref _recursionDepth, expr);
                 }
                 return base.Visit(node);
+            }
+
+            public override BoundNode? VisitArrayCreation(BoundArrayCreation node)
+            {
+                if (node.IsParamsArray)
+                {
+                    // Synthesized params array is processed element wise.
+                    this.Visit(node.InitializerOpt);
+                    return null;
+                }
+
+                return base.VisitArrayCreation(node);
             }
 
             public override BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
@@ -184,6 +201,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return base.VisitAssignmentOperator(node);
+            }
+
+            public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+            {
+                if (node.LeftConversion is BoundConversion leftConversion)
+                {
+                    VerifyExpression(leftConversion);
+                }
+
+                Visit(node.Left);
+                Visit(node.Right);
+                return null;
             }
 
             public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)

@@ -25,17 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.flags &= ~NodeFlags.IsNotMissing;
             }
 
-            internal MissingTokenWithTrivia(ObjectReader reader)
-                : base(reader)
-            {
-                this.flags &= ~NodeFlags.IsNotMissing;
-            }
-
-            static MissingTokenWithTrivia()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(MissingTokenWithTrivia), r => new MissingTokenWithTrivia(r));
-            }
-
             public override string Text
             {
                 get { return string.Empty; }

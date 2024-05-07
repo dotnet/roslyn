@@ -32,6 +32,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
+using Microsoft.VisualStudio.LanguageServices.Options;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService;
 using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
@@ -194,7 +195,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             foreach (var provider in persisterProviders)
             {
-                _ = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
+                var persister = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
+
+                // Initialize the PackageSettingsPersister to allow it to listen to analysis scope changed
+                // events from this package.
+                if (persister is PackageSettingsPersister packageSettingsPersister)
+                    packageSettingsPersister.Initialize(this);
             }
         }
 
@@ -224,9 +230,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
             await this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
-
-            // Load and initialize the add solution item service so ConfigurationUpdater can use it to create editorconfig files.
-            await this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().InitializeAsync(this).ConfigureAwait(false);
 
             await this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
             await this.ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);

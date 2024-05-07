@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            F As SyntheticBoundNodeFactory,
                            state As FieldSymbol,
                            builder As FieldSymbol,
-                           hoistedVariables As Roslyn.Utilities.IReadOnlySet(Of Symbol),
+                           hoistedVariables As IReadOnlySet(Of Symbol),
                            nonReusableLocalProxies As Dictionary(Of Symbol, CapturedSymbolOrExpression),
                            stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,

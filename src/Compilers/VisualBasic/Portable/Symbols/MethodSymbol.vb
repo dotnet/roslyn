@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
@@ -48,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Returns whether this method is generic; i.e., does it have any type parameters?
         ''' </summary>
-        Public Overridable ReadOnly Property IsGenericMethod As Boolean
+        Public Overridable ReadOnly Property IsGenericMethod As Boolean Implements IMethodSymbolInternal.IsGenericMethod
             Get
                 Return Arity <> 0
             End Get
@@ -181,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <remarks>
         ''' The default implementation is always correct, but may be unnecessarily slow.
         ''' </remarks>
-        Friend Overridable ReadOnly Property ParameterCount As Integer
+        Friend Overridable ReadOnly Property ParameterCount As Integer Implements IMethodSymbolInternal.ParameterCount
             Get
                 Return Me.Parameters.Length
             End Get
@@ -272,6 +273,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overridable ReadOnly Property MetadataSignatureHandle As BlobHandle Implements IMethodSymbolInternal.MetadataSignatureHandle
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         ''' <summary>
         ''' True if this symbol has a special name (metadata flag SpecialName is set).
         ''' </summary>
@@ -280,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' as well as in special synthetic methods such as lambdas.
         ''' Also set for methods marked with System.Runtime.CompilerServices.SpecialNameAttribute.
         ''' </remarks>
-        Friend MustOverride ReadOnly Property HasSpecialName As Boolean
+        Friend MustOverride ReadOnly Property HasSpecialName As Boolean Implements IMethodSymbolInternal.HasSpecialName
 
         ''' <summary>
         ''' If this method has MethodKind of MethodKind.PropertyGet or MethodKind.PropertySet,
@@ -379,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Misc implementation metadata flags (ImplFlags in metadata).
         ''' </summary>
-        Friend MustOverride ReadOnly Property ImplementationAttributes As System.Reflection.MethodImplAttributes
+        Friend MustOverride ReadOnly Property ImplementationAttributes As System.Reflection.MethodImplAttributes Implements IMethodSymbolInternal.ImplementationAttributes
 
         ''' <summary>
         ''' Declaration security information associated with this method, or null if there is none.
@@ -389,7 +396,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' True if the method has declarative security information (HasSecurity flags).
         ''' </summary>
-        Friend MustOverride ReadOnly Property HasDeclarativeSecurity As Boolean
+        Friend MustOverride ReadOnly Property HasDeclarativeSecurity As Boolean Implements IMethodSymbolInternal.HasDeclarativeSecurity
+
+        ''' <summary>
+        ''' True if the method calls another method containing security code (metadata flag RequiresSecurityObject is set).
+        ''' </summary>
+        Friend Overridable ReadOnly Property RequiresSecurityObject As Boolean Implements IMethodSymbolInternal.RequiresSecurityObject
+            Get
+                CheckDefinitionInvariant()
+                Return False
+            End Get
+        End Property
 
         ''' <summary>
         ''' Returns true if this method is an extension method from the VB language perspective; 
@@ -537,7 +554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim firstType = Parameters(0).Type
-            If firstType.TypeKind <> TYPEKIND.Array Then
+            If firstType.TypeKind <> TypeKind.Array Then
                 Return False
             End If
 
@@ -957,6 +974,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbolInternal_Parameters As ImmutableArray(Of IParameterSymbolInternal) Implements IMethodSymbolInternal.Parameters
+            Get
+                Return ImmutableArray(Of IParameterSymbolInternal).CastUp(Me.Parameters)
+            End Get
+        End Property
+
         ''' <summary>
         ''' Returns true if this symbol is defined outside of the compilation.
         ''' For instance if the method is <c>Declare Sub</c>.
@@ -1006,7 +1029,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodSymbol_ReturnsVoid As Boolean Implements IMethodSymbol.ReturnsVoid
+        Private ReadOnly Property IMethodSymbol_ReturnsVoid As Boolean Implements IMethodSymbol.ReturnsVoid, IMethodSymbolInternal.ReturnsVoid
             Get
                 Return Me.IsSub
             End Get
@@ -1135,6 +1158,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IMethodSymbolInternal_IsIterator As Boolean Implements IMethodSymbolInternal.IsIterator
             Get
                 Return Me.IsIterator
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbolInternal_AssociatedSymbol As ISymbolInternal Implements IMethodSymbolInternal.AssociatedSymbol
+            Get
+                Return Me.AssociatedSymbol
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbolInternal_PartialDefinitionPart As IMethodSymbolInternal Implements IMethodSymbolInternal.PartialDefinitionPart
+            Get
+                Return Me.PartialDefinitionPart
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbolInternal_PartialImplementationPart As IMethodSymbolInternal Implements IMethodSymbolInternal.PartialImplementationPart
+            Get
+                Return Me.PartialImplementationPart
             End Get
         End Property
 

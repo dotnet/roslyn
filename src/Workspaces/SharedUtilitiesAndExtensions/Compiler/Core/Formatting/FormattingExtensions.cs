@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             spaceOrIndentation = text.ConvertTabToSpace(tabSize, baseToken.ToString().GetTextColumn(tabSize, initialColumn), text.Length);
         }
 
-        private static readonly char[] s_trimChars = new char[] { '\r', '\n' };
+        private static readonly char[] s_trimChars = ['\r', '\n'];
 
         public static string AdjustIndentForXmlDocExteriorTrivia(
             this string triviaText,

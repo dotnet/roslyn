@@ -48,7 +48,8 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TAnalyzer>, new()
 {
     protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
-    protected abstract bool HasExistingInvalidInitializerForCollection(TObjectCreationExpressionSyntax objectCreation);
+    protected abstract bool HasExistingInvalidInitializerForCollection();
+    protected abstract bool ValidateMatchesForCollectionExpression(ArrayBuilder<Match<TStatementSyntax>> matches, CancellationToken cancellationToken);
 
     protected abstract IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> SyntaxHelper { get; }
 
@@ -124,6 +125,9 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
             }
         }
 
+        if (_analyzeForCollectionExpression)
+            return ValidateMatchesForCollectionExpression(matches, cancellationToken);
+
         return true;
     }
 
@@ -176,20 +180,9 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
 
     protected sealed override bool ShouldAnalyze(CancellationToken cancellationToken)
     {
-        if (this.HasExistingInvalidInitializerForCollection(_objectCreationExpression))
+        if (this.HasExistingInvalidInitializerForCollection())
             return false;
 
-        // Can't use a collection expression if the original object creation has arguments.
-        if (_analyzeForCollectionExpression)
-        {
-            var argumentList = this.SyntaxFacts.GetArgumentListOfBaseObjectCreationExpression(_objectCreationExpression);
-            if (argumentList != null)
-            {
-                var arguments = this.SyntaxFacts.GetArgumentsOfArgumentList(argumentList);
-                if (arguments.Count > 0)
-                    return false;
-            }
-        }
         var type = this.SemanticModel.GetTypeInfo(_objectCreationExpression, cancellationToken).Type;
         if (type == null)
             return false;

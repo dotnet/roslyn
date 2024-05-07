@@ -999,7 +999,7 @@ class C
                 // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer'
                 //         _ = b[0];
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "b[0]").WithArguments("Buffer").WithLocation(6, 13),
-                // (13,21): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (13,21): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     private ref int _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(13, 21)
                 );
@@ -1086,7 +1086,7 @@ class C
                 // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer'
                 //         _ = b[0];
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "b[0]").WithArguments("Buffer").WithLocation(6, 13),
-                // (13,30): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (13,30): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     private ref readonly int _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(13, 30)
                 );
@@ -1540,7 +1540,7 @@ unsafe struct Buffer
                 // (7,9): error CS0306: The type 'void*' may not be used as a type argument
                 //         x[0] = null;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "x[0]").WithArguments("void*").WithLocation(7, 9),
-                // (14,19): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (14,19): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     private void* _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(14, 19)
                 );
@@ -2111,7 +2111,7 @@ unsafe struct Buffer
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithAllowUnsafe(true));
             comp.VerifyDiagnostics(
-                // (5,29): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (5,29): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     private delegate*<void> _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(5, 29)
                 );
@@ -2132,9 +2132,59 @@ struct Buffer
                 // (5,13): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //     private System.ArgIterator _element0;
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(5, 13),
-                // (5,32): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (5,32): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     private System.ArgIterator _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71058")]
+        public void InlineArrayType_51_RefStruct()
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+public ref struct Buffer
+{
+    private char _element0;
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll);
+            CompileAndVerify(comp1, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics(
+                // (3,19): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                // public ref struct Buffer
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "Buffer").WithLocation(3, 19)
+                );
+
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        var a = new Buffer();
+        var x = a[0];
+        var y1 = (System.Span<char>)a;
+        var y2 = (System.ReadOnlySpan<char>)a;
+
+        foreach (var z in a)
+        {}
+    }
+}
+";
+            var comp2 = CreateCompilation(src2, references: new[] { comp1.ToMetadataReference() }, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,17): error CS0306: The type 'Buffer' may not be used as a type argument
+                //         var x = a[0];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "a[0]").WithArguments("Buffer").WithLocation(7, 17),
+                // (8,18): error CS0306: The type 'Buffer' may not be used as a type argument
+                //         var y1 = (System.Span<char>)a;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "(System.Span<char>)a").WithArguments("Buffer").WithLocation(8, 18),
+                // (9,18): error CS0306: The type 'Buffer' may not be used as a type argument
+                //         var y2 = (System.ReadOnlySpan<char>)a;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "(System.ReadOnlySpan<char>)a").WithArguments("Buffer").WithLocation(9, 18),
+                // (11,27): error CS0306: The type 'Buffer' may not be used as a type argument
+                //         foreach (var z in a)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "a").WithArguments("Buffer").WithLocation(11, 27)
                 );
         }
 
@@ -2278,7 +2328,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  ldind.i4
   IL_000c:  ret
 }
@@ -2291,7 +2341,7 @@ class Program
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  ldc.i4.s   111
   IL_000d:  stind.i4
   IL_000e:  ret
@@ -2369,7 +2419,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  ret
 }
 ");
@@ -2406,7 +2456,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  ret
 }
 ");
@@ -2519,7 +2569,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  ret
 }
 ");
@@ -2557,7 +2607,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  ret
 }
 ");
@@ -2598,7 +2648,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  ret
 }
 ");
@@ -2640,7 +2690,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  ret
 }
 ");
@@ -2951,7 +3001,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.1
-  IL_0007:  call       ""InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0007:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000c:  ldind.i4
   IL_000d:  ret
 }
@@ -2965,7 +3015,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.1
-  IL_0007:  call       ""InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0007:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000c:  ldc.i4.s   111
   IL_000e:  stind.i4
   IL_000f:  ret
@@ -3014,7 +3064,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   9
-  IL_0008:  call       ""InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  ldind.i4
   IL_000e:  ret
 }
@@ -3028,7 +3078,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   9
-  IL_0008:  call       ""InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  ldc.i4.s   111
   IL_000f:  stind.i4
   IL_0010:  ret
@@ -3078,7 +3128,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  stloc.0
   IL_000e:  ldloca.s   V_0
   IL_0010:  ldarg.1
@@ -3097,7 +3147,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  stloc.0
   IL_000e:  ldloca.s   V_0
   IL_0010:  ldarg.1
@@ -3206,7 +3256,7 @@ class Program
     IL_0070:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
     IL_0075:  ldflda     ""Buffer10<int> C.F""
     IL_007a:  ldc.i4.s   10
-    IL_007c:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_007c:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
     IL_0081:  stloc.s    V_4
     IL_0083:  ldloca.s   V_4
     IL_0085:  ldloc.2
@@ -3298,7 +3348,7 @@ class Program
     IL_0070:  ldfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_0075:  ldflda     ""Buffer10<int> C.F""
     IL_007a:  ldc.i4.s   10
-    IL_007c:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_007c:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
     IL_0081:  stloc.3
     IL_0082:  ldloca.s   V_3
     IL_0084:  ldloc.1
@@ -3432,7 +3482,7 @@ class Program
     IL_0077:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
     IL_007c:  ldflda     ""Buffer10<int> C.F""
     IL_0081:  ldc.i4.s   10
-    IL_0083:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_0083:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
     IL_0088:  stloc.s    V_4
     IL_008a:  ldloca.s   V_4
     IL_008c:  ldloca.s   V_2
@@ -3528,7 +3578,7 @@ class Program
     IL_0077:  ldfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_007c:  ldflda     ""Buffer10<int> C.F""
     IL_0081:  ldc.i4.s   10
-    IL_0083:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_0083:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
     IL_0088:  stloc.3
     IL_0089:  ldloca.s   V_3
     IL_008b:  ldloca.s   V_1
@@ -3662,7 +3712,7 @@ class Program
     IL_0071:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
     IL_0076:  ldflda     ""Buffer10<int> C.F""
     IL_007b:  ldc.i4.s   10
-    IL_007d:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_007d:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
     IL_0082:  stloc.s    V_4
     IL_0084:  ldloca.s   V_4
     IL_0086:  ldc.i4.s   10
@@ -3756,7 +3806,7 @@ class Program
     IL_0071:  ldfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_0076:  ldflda     ""Buffer10<int> C.F""
     IL_007b:  ldc.i4.s   10
-    IL_007d:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_007d:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
     IL_0082:  stloc.3
     IL_0083:  ldloca.s   V_3
     IL_0085:  ldc.i4.s   10
@@ -3885,7 +3935,7 @@ class Program
     IL_006e:  ldarg.0
     IL_006f:  ldflda     ""Buffer10<int> Program.<M2>d__1.<>7__wrap1""
     IL_0074:  ldc.i4.s   10
-    IL_0076:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+    IL_0076:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
     IL_007b:  stloc.s    V_4
     IL_007d:  ldloca.s   V_4
     IL_007f:  ldloc.2
@@ -4012,7 +4062,7 @@ class Program
     IL_0075:  ldarg.0
     IL_0076:  ldflda     ""Buffer10<int> Program.<M2>d__1.<>7__wrap1""
     IL_007b:  ldc.i4.s   10
-    IL_007d:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+    IL_007d:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
     IL_0082:  stloc.s    V_4
     IL_0084:  ldloca.s   V_4
     IL_0086:  ldloca.s   V_2
@@ -4139,7 +4189,7 @@ class Program
     IL_006f:  ldarg.0
     IL_0070:  ldflda     ""Buffer10<int> Program.<M2>d__1.<>7__wrap1""
     IL_0075:  ldc.i4.s   10
-    IL_0077:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+    IL_0077:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
     IL_007c:  stloc.s    V_4
     IL_007e:  ldloca.s   V_4
     IL_0080:  ldc.i4.s   10
@@ -4272,7 +4322,7 @@ class Program
     IL_0070:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
     IL_0075:  ldflda     ""Buffer10<int> C.F""
     IL_007a:  ldc.i4.s   10
-    IL_007c:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+    IL_007c:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
     IL_0081:  stloc.s    V_4
     IL_0083:  ldloca.s   V_4
     IL_0085:  ldloc.2
@@ -4411,7 +4461,7 @@ class Program
     IL_00a2:  ldfld      ""int Program.<M2>d__1.<>7__wrap3""
     IL_00a7:  ldelema    ""Buffer10<int>""
     IL_00ac:  ldc.i4.s   10
-    IL_00ae:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_00ae:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
     IL_00b3:  stloc.3
     IL_00b4:  ldloca.s   V_3
     IL_00b6:  ldarg.0
@@ -4555,14 +4605,14 @@ class Program
     IL_008d:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
     IL_0092:  ldflda     ""Buffer10<Buffer10<int>> C.F""
     IL_0097:  ldc.i4.s   10
-    IL_0099:  call       ""InlineArrayAsReadOnlySpan<Buffer10<Buffer10<int>>, Buffer10<int>>(in Buffer10<Buffer10<int>>, int)""
+    IL_0099:  call       ""System.ReadOnlySpan<Buffer10<int>> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<Buffer10<int>>, Buffer10<int>>(in Buffer10<Buffer10<int>>, int)""
     IL_009e:  stloc.s    V_4
     IL_00a0:  ldloca.s   V_4
     IL_00a2:  ldarg.0
     IL_00a3:  ldfld      ""int Program.<M1>d__1.<>7__wrap2""
     IL_00a8:  call       ""ref readonly Buffer10<int> System.ReadOnlySpan<Buffer10<int>>.this[int].get""
     IL_00ad:  ldc.i4.s   10
-    IL_00af:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+    IL_00af:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
     IL_00b4:  stloc.s    V_5
     IL_00b6:  ldloca.s   V_5
     IL_00b8:  ldloc.2
@@ -4787,9 +4837,15 @@ public ref struct Buffer10
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (11,41): error CS4007: 'await' cannot be used in an expression containing the type 'Buffer10'
+                // (11,36): error CS0306: The type 'Buffer10' may not be used as a type argument
                 //     static async Task<int> M2() => M3()[await FromResult(0)];
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await FromResult(0)").WithArguments("Buffer10").WithLocation(11, 41)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3()[await FromResult(0)]").WithArguments("Buffer10").WithLocation(11, 36),
+                // (16,9): error CS0306: The type 'Buffer10' may not be used as a type argument
+                //         b[0] = 111;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "b[0]").WithArguments("Buffer10").WithLocation(16, 9),
+                // (29,19): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                // public ref struct Buffer10
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "Buffer10").WithLocation(29, 19)
                 );
         }
 
@@ -4922,7 +4978,7 @@ class Program
     IL_0077:  ldfld      ""C<T> Program.<M1>d__1<T>.<>7__wrap1""
     IL_007c:  ldflda     ""Buffer10<T> C<T>.F""
     IL_0081:  ldc.i4.s   10
-    IL_0083:  call       ""InlineArrayAsSpan<Buffer10<T>, T>(ref Buffer10<T>, int)""
+    IL_0083:  call       ""System.Span<T> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<T>, T>(ref Buffer10<T>, int)""
     IL_0088:  stloc.s    V_4
     IL_008a:  ldloca.s   V_4
     IL_008c:  ldloca.s   V_2
@@ -5018,7 +5074,7 @@ class Program
     IL_007a:  ldfld      ""C<T> Program.<M2>d__2<T>.<>7__wrap1""
     IL_007f:  ldflda     ""Buffer10<T> C<T>.F""
     IL_0084:  ldc.i4.s   10
-    IL_0086:  call       ""InlineArrayAsSpan<Buffer10<T>, T>(ref Buffer10<T>, int)""
+    IL_0086:  call       ""System.Span<T> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<T>, T>(ref Buffer10<T>, int)""
     IL_008b:  stloc.3
     IL_008c:  ldloca.s   V_3
     IL_008e:  ldloca.s   V_1
@@ -5154,7 +5210,7 @@ class Program
     IL_0070:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
     IL_0075:  ldflda     ""Buffer10<int> C.F""
     IL_007a:  ldc.i4.1
-    IL_007b:  call       ""InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_007b:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
     IL_0080:  ldloc.2
     IL_0081:  call       ""int Program.GetInt(ref int, int)""
     IL_0086:  stloc.1
@@ -5242,7 +5298,7 @@ class Program
     IL_0071:  ldfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_0076:  ldflda     ""Buffer10<int> C.F""
     IL_007b:  ldc.i4.1
-    IL_007c:  call       ""InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_007c:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer10<int>, int>(ref Buffer10<int>, int)""
     IL_0081:  ldloc.1
     IL_0082:  stind.i4
     IL_0083:  ldarg.0
@@ -5372,7 +5428,7 @@ class Program
     IL_0070:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
     IL_0075:  ldflda     ""Buffer10<int> C.F""
     IL_007a:  ldc.i4.1
-    IL_007b:  call       ""InlineArrayElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>, int)""
+    IL_007b:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>, int)""
     IL_0080:  ldloc.2
     IL_0081:  call       ""int Program.GetInt(in int, int)""
     IL_0086:  stloc.1
@@ -5499,7 +5555,7 @@ class Program
     IL_006f:  ldarg.0
     IL_0070:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
     IL_0075:  ldflda     ""Buffer10<int> C.F""
-    IL_007a:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+    IL_007a:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
     IL_007f:  ldloc.2
     IL_0080:  call       ""int Program.GetInt(ref int, int)""
     IL_0085:  stloc.1
@@ -5586,7 +5642,7 @@ class Program
     IL_0070:  ldarg.0
     IL_0071:  ldfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_0076:  ldflda     ""Buffer10<int> C.F""
-    IL_007b:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+    IL_007b:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
     IL_0080:  ldloc.1
     IL_0081:  stind.i4
     IL_0082:  ldarg.0
@@ -5715,7 +5771,7 @@ class Program
     IL_006f:  ldarg.0
     IL_0070:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
     IL_0075:  ldflda     ""Buffer10<int> C.F""
-    IL_007a:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+    IL_007a:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
     IL_007f:  ldloc.2
     IL_0080:  call       ""int Program.GetInt(in int, int)""
     IL_0085:  stloc.1
@@ -5780,7 +5836,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  ldind.i4
   IL_000c:  ret
 }
@@ -5793,7 +5849,7 @@ class Program
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  ldc.i4.s   111
   IL_000d:  stind.i4
   IL_000e:  ret
@@ -5867,7 +5923,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  stloc.0
   IL_000e:  ldloca.s   V_0
   IL_0010:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__2.<>p__0""
@@ -5960,7 +6016,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.5
-  IL_0007:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0007:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000c:  ret
 }
 ");
@@ -6040,7 +6096,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -6155,7 +6211,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.5
-  IL_0007:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0007:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000c:  ret
 }
 ");
@@ -6194,7 +6250,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.5
-  IL_0007:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0007:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000c:  ret
 }
 ");
@@ -6237,7 +6293,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.5
-  IL_0007:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0007:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000c:  ret
 }
 ");
@@ -6280,7 +6336,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.5
-  IL_0007:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0007:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000c:  ret
 }
 ");
@@ -6606,7 +6662,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.0
-  IL_0007:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0007:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000c:  ret
 }
 ");
@@ -6651,7 +6707,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  stloc.0
   IL_000e:  ldloca.s   V_0
   IL_0010:  ldc.i4.1
@@ -6701,7 +6757,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  stloc.0
   IL_000e:  ldloca.s   V_0
   IL_0010:  ldc.i4.0
@@ -6754,7 +6810,7 @@ class Program
   IL_0006:  ldarg.1
   IL_0007:  stloc.0
   IL_0008:  ldc.i4.s   10
-  IL_000a:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000a:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000f:  stloc.1
   IL_0010:  ldloca.s   V_1
   IL_0012:  ldloc.0
@@ -6807,7 +6863,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  stloc.0
   IL_000e:  ldloca.s   V_0
   IL_0010:  ldc.i4.1
@@ -6860,7 +6916,7 @@ class Program
   IL_0006:  ldarg.1
   IL_0007:  stloc.0
   IL_0008:  ldc.i4.s   10
-  IL_000a:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_000a:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000f:  stloc.1
   IL_0010:  ldloca.s   V_1
   IL_0012:  ldloc.0
@@ -6911,7 +6967,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   9
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -7004,7 +7060,7 @@ class Program
   IL_0031:  sub
   IL_0032:  stloc.2
   IL_0033:  ldc.i4.s   10
-  IL_0035:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0035:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_003a:  stloc.s    V_4
   IL_003c:  ldloca.s   V_4
   IL_003e:  ldloc.1
@@ -7074,7 +7130,7 @@ class Program
   IL_0031:  sub
   IL_0032:  stloc.2
   IL_0033:  ldc.i4.s   10
-  IL_0035:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0035:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_003a:  stloc.s    V_4
   IL_003c:  ldloca.s   V_4
   IL_003e:  ldloc.1
@@ -7181,7 +7237,7 @@ class Program
     IL_0073:  ldfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_0078:  ldflda     ""Buffer10<int> C.F""
     IL_007d:  ldc.i4.s   10
-    IL_007f:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_007f:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
     IL_0084:  stloc.3
     IL_0085:  ldloca.s   V_3
     IL_0087:  ldc.i4.0
@@ -7324,7 +7380,7 @@ class Program
     IL_0081:  ldfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_0086:  ldflda     ""Buffer10<int> C.F""
     IL_008b:  ldc.i4.s   10
-    IL_008d:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_008d:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
     IL_0092:  stloc.s    V_4
     IL_0094:  ldloca.s   V_4
     IL_0096:  ldloc.2
@@ -7490,7 +7546,7 @@ class Program
     IL_00b7:  ldfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_00bc:  ldflda     ""Buffer10<int> C.F""
     IL_00c1:  ldc.i4.s   10
-    IL_00c3:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_00c3:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
     IL_00c8:  stloc.s    V_7
     IL_00ca:  ldloca.s   V_7
     IL_00cc:  ldloc.3
@@ -7649,7 +7705,7 @@ class Program
     IL_00aa:  ldfld      ""C Program.<M2>d__2.<>7__wrap4""
     IL_00af:  ldflda     ""Buffer10<int> C.F""
     IL_00b4:  ldc.i4.s   10
-    IL_00b6:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_00b6:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
     IL_00bb:  stloc.s    V_4
     IL_00bd:  ldloca.s   V_4
     IL_00bf:  ldarg.0
@@ -7828,7 +7884,7 @@ class Program
     IL_00d3:  ldfld      ""C Program.<M1>d__1.<>7__wrap3""
     IL_00d8:  ldflda     ""Buffer10<int> C.F""
     IL_00dd:  ldc.i4.s   10
-    IL_00df:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+    IL_00df:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
     IL_00e4:  stloc.s    V_8
     IL_00e6:  ldloca.s   V_8
     IL_00e8:  ldarg.0
@@ -7998,7 +8054,7 @@ class Program
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void ElementAccess_ObjectInitializer_Index_02()
         {
             var src = @"
@@ -8034,15 +8090,13 @@ public struct Buffer10<T>
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
-            // This scenario fails due to https://github.com/dotnet/roslyn/issues/67533
             comp.VerifyDiagnostics(
-                // (14,37): error CS1913: Member '[^10]' cannot be initialized. It is not a field or property.
-                //     static C M2() => new C() { F = {[^10] = 111} };
-                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "[^10]").WithArguments("[^10]").WithLocation(14, 37),
                 // (22,14): warning CS9181: Inline array indexer will not be used for element access expression.
                 //     public T this[int i]
                 Diagnostic(ErrorCode.WRN_InlineArrayIndexerNotUsed, "this").WithLocation(22, 14)
                 );
+
+            CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -8114,7 +8168,7 @@ class Program
   IL_000c:  ret
   IL_000d:  ldarg.0
   IL_000e:  ldflda     ""Buffer10<int> C.F""
-  IL_0013:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0013:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_0018:  ldind.i4
   IL_0019:  newobj     ""int?..ctor(int)""
   IL_001e:  ret
@@ -8175,7 +8229,7 @@ class Program
   IL_000d:  ldarg.0
   IL_000e:  ldflda     ""Buffer10<int> C.F""
   IL_0013:  ldc.i4.5
-  IL_0014:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0014:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_0019:  stloc.1
   IL_001a:  ldloca.s   V_1
   IL_001c:  ldc.i4.0
@@ -8232,7 +8286,7 @@ class Program
   IL_0019:  call       ""readonly Buffer10<int> Buffer10<int>?.GetValueOrDefault()""
   IL_001e:  stloc.1
   IL_001f:  ldloca.s   V_1
-  IL_0021:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0021:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_0026:  ldind.i4
   IL_0027:  newobj     ""int?..ctor(int)""
   IL_002c:  ret
@@ -8290,7 +8344,7 @@ class Program
   IL_001e:  stloc.1
   IL_001f:  ldloca.s   V_1
   IL_0021:  ldc.i4.s   10
-  IL_0023:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0023:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_0028:  stloc.2
   IL_0029:  ldloca.s   V_2
   IL_002b:  ldloca.s   V_3
@@ -8349,7 +8403,7 @@ class Program
   IL_001a:  ldfld      ""Buffer10<int> C.F""
   IL_001f:  stloc.1
   IL_0020:  ldloca.s   V_1
-  IL_0022:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0022:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_0027:  ldind.i4
   IL_0028:  newobj     ""int?..ctor(int)""
   IL_002d:  ret
@@ -8406,7 +8460,7 @@ class Program
   IL_001f:  stloc.1
   IL_0020:  ldloca.s   V_1
   IL_0022:  ldc.i4.s   10
-  IL_0024:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0024:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_0029:  stloc.2
   IL_002a:  ldloca.s   V_2
   IL_002c:  ldloca.s   V_3
@@ -8604,7 +8658,7 @@ class Program
   IL_0000:  call       ""Buffer10<int> Program.M3()""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
-  IL_0008:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0008:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000d:  ldind.i4
   IL_000e:  stloc.1
   IL_000f:  ldloca.s   V_1
@@ -8684,7 +8738,7 @@ class Program
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
   IL_0008:  ldc.i4.s   10
-  IL_000a:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_000a:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000f:  stloc.1
   IL_0010:  ldloca.s   V_1
   IL_0012:  ldloca.s   V_2
@@ -8850,7 +8904,7 @@ class Program
   IL_0000:  call       ""Buffer10<int> Program.M3()""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
-  IL_0008:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0008:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000d:  ldind.i4
   IL_000e:  stloc.1
   IL_000f:  ldloca.s   V_1
@@ -8904,6 +8958,9 @@ public ref struct Buffer10
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
+                // (7,16): error CS0306: The type 'Buffer10' may not be used as a type argument
+                //         return M3(x)[0];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("Buffer10").WithLocation(7, 16),
                 // (7,16): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         return M3(x)[0];
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("System.Span<int>").WithLocation(7, 16),
@@ -8913,19 +8970,28 @@ public ref struct Buffer10
                 // (7,19): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         return M3(x)[0];
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(7, 19),
+                // (13,17): error CS0306: The type 'Buffer10' may not be used as a type argument
+                //         var y = M3(x)[0];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("Buffer10").WithLocation(13, 17),
                 // (13,17): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var y = M3(x)[0];
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("System.Span<int>").WithLocation(13, 17),
                 // (14,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         return y;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(14, 16),
+                // (24,16): error CS0306: The type 'Buffer10' may not be used as a type argument
+                //         return M3(xx)[0];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("Buffer10").WithLocation(24, 16),
                 // (24,16): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         return M3(xx)[0];
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("System.Span<int>").WithLocation(24, 16),
+                // (29,18): error CS0306: The type 'Buffer10' may not be used as a type argument
+                //         var yy = M3(xx)[0];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("Buffer10").WithLocation(29, 18),
                 // (29,18): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var yy = M3(xx)[0];
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("System.Span<int>").WithLocation(29, 18),
-                // (37,30): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (37,30): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     private System.Span<int> _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(37, 30)
                 );
@@ -9036,7 +9102,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  ldind.i4
   IL_000c:  ret
 }
@@ -9083,7 +9149,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  ldind.i4
   IL_000c:  ret
 }
@@ -9134,7 +9200,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  call       ""int Program.M4(in int)""
   IL_0010:  ret
 }
@@ -9224,7 +9290,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  ret
 }
 ");
@@ -9269,7 +9335,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  ret
 }
 ");
@@ -9387,7 +9453,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  ldind.i4
   IL_000c:  ret
 }
@@ -9435,7 +9501,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  ldind.i4
   IL_000c:  ret
 }
@@ -9487,7 +9553,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  call       ""int C.M4(in int)""
   IL_0010:  ret
 }
@@ -9619,7 +9685,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  ret
 }
 ");
@@ -9704,7 +9770,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  ret
 }
 ");
@@ -9808,7 +9874,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.5
-  IL_0007:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0007:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000c:  ret
 }
 ");
@@ -9855,7 +9921,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.5
-  IL_0007:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0007:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000c:  ret
 }
 ");
@@ -10140,7 +10206,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.5
-  IL_0007:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0007:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000c:  ret
 }
 ");
@@ -10185,7 +10251,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.5
-  IL_0007:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0007:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000c:  ret
 }
 ");
@@ -10322,7 +10388,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  ldind.i4
   IL_000c:  ret
 }
@@ -10396,7 +10462,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  ldind.i4
   IL_000c:  ret
 }
@@ -10448,7 +10514,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  call       ""int Program.M4(in int)""
   IL_0010:  ret
 }
@@ -10540,7 +10606,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  ret
 }
 ");
@@ -10586,7 +10652,7 @@ class Program
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
+  IL_0006:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayFirstElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>)""
   IL_000b:  ret
 }
 ");
@@ -10925,7 +10991,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.1
-  IL_0007:  call       ""InlineArrayElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0007:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000c:  ldind.i4
   IL_000d:  ret
 }
@@ -10971,7 +11037,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   9
-  IL_0008:  call       ""InlineArrayElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0008:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000d:  ldind.i4
   IL_000e:  ret
 }
@@ -11018,7 +11084,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0008:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000d:  stloc.0
   IL_000e:  ldloca.s   V_0
   IL_0010:  ldarg.1
@@ -11067,7 +11133,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.5
-  IL_0007:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0007:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000c:  ret
 }
 ");
@@ -11141,7 +11207,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.5
-  IL_0007:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0007:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000c:  ret
 }
 ");
@@ -11268,7 +11334,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0008:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000d:  stloc.0
   IL_000e:  ldloca.s   V_0
   IL_0010:  ldc.i4.0
@@ -11797,7 +11863,7 @@ class Program
   IL_0006:  initobj    ""Buffer10<int>""
   IL_000c:  ldarg.0
   IL_000d:  ldflda     ""Buffer10<int> C.F""
-  IL_0012:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0012:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_0017:  ldc.i4.1
   IL_0018:  stind.i4
   IL_0019:  ret
@@ -11849,7 +11915,7 @@ public ref struct Buffer2Ref
                 // (17,13): error CS0165: Use of unassigned local variable 'b'
                 //         _ = b;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "b").WithArguments("b").WithLocation(17, 13),
-                // (30,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (30,20): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     public ref int _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(30, 20)
                 );
@@ -11893,7 +11959,7 @@ public ref struct Buffer2Ref
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (30,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (30,20): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     public ref int _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(30, 20)
                 );
@@ -11998,13 +12064,13 @@ public struct Buffer2<T>
   IL_0013:  stfld      ""int Buffer2<int>._element0""
   IL_0018:  ldarg.0
   IL_0019:  ldflda     ""Buffer2<int> C.F""
-  IL_001e:  call       ""InlineArrayFirstElementRef<Buffer2<int>, int>(ref Buffer2<int>)""
+  IL_001e:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer2<int>, int>(ref Buffer2<int>)""
   IL_0023:  ldc.i4.1
   IL_0024:  stind.i4
   IL_0025:  ldarg.0
   IL_0026:  ldflda     ""Buffer2<int> C.F""
   IL_002b:  ldc.i4.1
-  IL_002c:  call       ""InlineArrayElementRef<Buffer2<int>, int>(ref Buffer2<int>, int)""
+  IL_002c:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer2<int>, int>(ref Buffer2<int>, int)""
   IL_0031:  ldc.i4.2
   IL_0032:  stind.i4
   IL_0033:  ret
@@ -12062,7 +12128,7 @@ public struct Buffer2<T>
   IL_0018:  ldarg.0
   IL_0019:  ldflda     ""Buffer2<int> C.F""
   IL_001e:  ldc.i4.1
-  IL_001f:  call       ""InlineArrayElementRef<Buffer2<int>, int>(ref Buffer2<int>, int)""
+  IL_001f:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer2<int>, int>(ref Buffer2<int>, int)""
   IL_0024:  ldc.i4.2
   IL_0025:  stind.i4
   IL_0026:  ret
@@ -12585,7 +12651,7 @@ public struct Buffer10
   IL_0000:  ldarg.0
   IL_0001:  initobj    ""Buffer10""
   IL_0007:  ldarg.0
-  IL_0008:  call       ""InlineArrayFirstElementRef<Buffer10, int>(ref Buffer10)""
+  IL_0008:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10, int>(ref Buffer10)""
   IL_000d:  ldc.i4.1
   IL_000e:  stind.i4
   IL_000f:  ret
@@ -12712,12 +12778,12 @@ public struct Buffer2
   IL_0008:  ldc.i4.0
   IL_0009:  stfld      ""int Buffer2._element0""
   IL_000e:  ldarg.0
-  IL_000f:  call       ""InlineArrayFirstElementRef<Buffer2, int>(ref Buffer2)""
+  IL_000f:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer2, int>(ref Buffer2)""
   IL_0014:  ldc.i4.1
   IL_0015:  stind.i4
   IL_0016:  ldarg.0
   IL_0017:  ldc.i4.1
-  IL_0018:  call       ""InlineArrayElementRef<Buffer2, int>(ref Buffer2, int)""
+  IL_0018:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer2, int>(ref Buffer2, int)""
   IL_001d:  ldc.i4.2
   IL_001e:  stind.i4
   IL_001f:  ret
@@ -12767,7 +12833,7 @@ public struct Buffer2
   IL_0009:  stfld      ""int Buffer2._element0""
   IL_000e:  ldarg.0
   IL_000f:  ldc.i4.1
-  IL_0010:  call       ""InlineArrayElementRef<Buffer2, int>(ref Buffer2, int)""
+  IL_0010:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer2, int>(ref Buffer2, int)""
   IL_0015:  ldc.i4.2
   IL_0016:  stind.i4
   IL_0017:  ret
@@ -12866,7 +12932,7 @@ public ref struct Buffer1Ref
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics(
-                // (25,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (25,20): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     public ref int _element2;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(25, 20)
                 );
@@ -12909,7 +12975,7 @@ public ref struct Buffer1Ref
                 // (25,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref int _element2;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(25, 12),
-                // (25,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (25,20): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     public ref int _element2;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(25, 20)
                 );
@@ -12996,7 +13062,7 @@ public ref struct Buffer1Ref
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "0 1 0", verify: Verification.Fails).VerifyDiagnostics(
-                // (31,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (31,20): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     public ref int _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(31, 20)
                 );
@@ -13055,7 +13121,7 @@ public ref struct Buffer2Ref
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(
-                // (16,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (16,20): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     public ref int _element2;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(16, 20)
                 );
@@ -13103,7 +13169,7 @@ public ref struct Buffer2Ref
                 // (16,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref int _element2;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(16, 12),
-                // (16,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (16,20): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     public ref int _element2;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(16, 20),
                 // (18,12): error CS0177: The out parameter 'this' must be assigned to before control leaves the current method
@@ -13214,7 +13280,7 @@ public ref struct Buffer2Ref
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
-                // (17,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (17,20): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     public ref int _element2;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(17, 20)
                 );
@@ -13230,7 +13296,7 @@ public ref struct Buffer2Ref
   IL_0008:  ldc.i4.1
   IL_0009:  stfld      ""int Buffer2._element0""
   IL_000e:  ldarg.0
-  IL_000f:  call       ""InlineArrayFirstElementRef<Buffer2, int>(ref Buffer2)""
+  IL_000f:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer2, int>(ref Buffer2)""
   IL_0014:  pop
   IL_0015:  ret
 }
@@ -13271,7 +13337,7 @@ public ref struct Buffer2Ref
                 // (17,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref int _element2;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(17, 12),
-                // (17,20): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (17,20): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     public ref int _element2;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element2").WithLocation(17, 20),
                 // (19,12): error CS0177: The out parameter 'this' must be assigned to before control leaves the current method
@@ -13320,7 +13386,7 @@ public struct Buffer1
   IL_0001:  ldc.i4.1
   IL_0002:  stfld      ""int Buffer1._element0""
   IL_0007:  ldarg.0
-  IL_0008:  call       ""InlineArrayFirstElementRef<Buffer1, int>(ref Buffer1)""
+  IL_0008:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer1, int>(ref Buffer1)""
   IL_000d:  pop
   IL_000e:  ret
 }
@@ -13381,7 +13447,7 @@ public struct Buffer1
   IL_0001:  ldc.i4.0
   IL_0002:  stfld      ""int Buffer1._element0""
   IL_0007:  ldarg.0
-  IL_0008:  call       ""InlineArrayFirstElementRef<Buffer1, int>(ref Buffer1)""
+  IL_0008:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer1, int>(ref Buffer1)""
   IL_000d:  pop
   IL_000e:  ret
 }
@@ -13446,7 +13512,7 @@ public struct Buffer1
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""InlineArrayFirstElementRef<Buffer1, int>(ref Buffer1)""
+  IL_0001:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer1, int>(ref Buffer1)""
   IL_0006:  ldc.i4.1
   IL_0007:  stind.i4
   IL_0008:  ret
@@ -13487,7 +13553,7 @@ public struct Buffer1
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""InlineArrayFirstElementRef<Buffer1, int>(ref Buffer1)""
+  IL_0001:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer1, int>(ref Buffer1)""
   IL_0006:  ldc.i4.1
   IL_0007:  stind.i4
   IL_0008:  ret
@@ -13546,7 +13612,7 @@ public struct Buffer2<T>
   IL_000c:  ldarg.0
   IL_000d:  ldflda     ""Buffer2<int> C.F""
   IL_0012:  ldc.i4.2
-  IL_0013:  call       ""InlineArrayAsSpan<Buffer2<int>, int>(ref Buffer2<int>, int)""
+  IL_0013:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer2<int>, int>(ref Buffer2<int>, int)""
   IL_0018:  pop
   IL_0019:  ret
 }
@@ -13604,7 +13670,7 @@ public struct Buffer2<T>
   IL_000c:  ldarg.0
   IL_000d:  ldflda     ""Buffer2<int> C.F""
   IL_0012:  ldc.i4.2
-  IL_0013:  call       ""InlineArrayAsSpan<Buffer2<int>, int>(ref Buffer2<int>, int)""
+  IL_0013:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer2<int>, int>(ref Buffer2<int>, int)""
   IL_0018:  pop
   IL_0019:  ret
 }
@@ -13662,7 +13728,7 @@ public struct Buffer2<T>
   IL_000c:  ldarg.0
   IL_000d:  ldflda     ""Buffer2<int> C.F""
   IL_0012:  ldc.i4.2
-  IL_0013:  call       ""InlineArrayAsReadOnlySpan<Buffer2<int>, int>(in Buffer2<int>, int)""
+  IL_0013:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer2<int>, int>(in Buffer2<int>, int)""
   IL_0018:  pop
   IL_0019:  ret
 }
@@ -13713,7 +13779,7 @@ public struct Buffer2
   IL_0001:  initobj    ""Buffer2""
   IL_0007:  ldarg.0
   IL_0008:  ldc.i4.2
-  IL_0009:  call       ""InlineArrayAsSpan<Buffer2, int>(ref Buffer2, int)""
+  IL_0009:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer2, int>(ref Buffer2, int)""
   IL_000e:  pop
   IL_000f:  ret
 }
@@ -13764,7 +13830,7 @@ public struct Buffer2
   IL_0001:  initobj    ""Buffer2""
   IL_0007:  ldarg.0
   IL_0008:  ldc.i4.2
-  IL_0009:  call       ""InlineArrayAsSpan<Buffer2, int>(ref Buffer2, int)""
+  IL_0009:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer2, int>(ref Buffer2, int)""
   IL_000e:  pop
   IL_000f:  ret
 }
@@ -13815,7 +13881,7 @@ public struct Buffer2
   IL_0001:  initobj    ""Buffer2""
   IL_0007:  ldarg.0
   IL_0008:  ldc.i4.2
-  IL_0009:  call       ""InlineArrayAsReadOnlySpan<Buffer2, int>(in Buffer2, int)""
+  IL_0009:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer2, int>(in Buffer2, int)""
   IL_000e:  pop
   IL_000f:  ret
 }
@@ -14434,7 +14500,7 @@ class Program
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName));
                 }).VerifyDiagnostics();
 
-            verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName,
+            verifier.VerifyIL("<PrivateImplementationDetails>." + CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsSpanName,
 @"
 {
   // Code size       13 (0xd)
@@ -14483,7 +14549,7 @@ class Program
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName));
                 }).VerifyDiagnostics();
 
-            verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName,
+            verifier.VerifyIL("<PrivateImplementationDetails>." + CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayAsReadOnlySpanName,
 @"
 {
   // Code size       18 (0x12)
@@ -14532,7 +14598,7 @@ class Program
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName));
                 }).VerifyDiagnostics();
 
-            verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName,
+            verifier.VerifyIL("<PrivateImplementationDetails>." + CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefName,
 @"
 {
   // Code size       13 (0xd)
@@ -14580,7 +14646,7 @@ class Program
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName));
                 }).VerifyDiagnostics();
 
-            verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName,
+            verifier.VerifyIL("<PrivateImplementationDetails>." + CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayElementRefReadOnlyName,
 @"
 {
   // Code size       18 (0x12)
@@ -14627,7 +14693,7 @@ class Program
                     Assert.Empty(t.GetMembers(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName));
                 }).VerifyDiagnostics();
 
-            verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName,
+            verifier.VerifyIL("<PrivateImplementationDetails>." + CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefName,
 @"
 {
   // Code size        7 (0x7)
@@ -14671,7 +14737,7 @@ class Program
                                  t.GetMember(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName).ToTestDisplayString());
                 }).VerifyDiagnostics();
 
-            verifier.VerifyIL(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName,
+            verifier.VerifyIL("<PrivateImplementationDetails>." + CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedInlineArrayFirstElementRefReadOnlyName,
 @"
 {
   // Code size       12 (0xc)
@@ -14911,7 +14977,7 @@ class Program
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  dup
   IL_000c:  ldind.i4
   IL_000d:  ldc.i4.s   111
@@ -14958,7 +15024,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0008:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -14971,7 +15037,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -15042,7 +15108,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0008:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -15055,7 +15121,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -15179,7 +15245,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0008:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -15192,7 +15258,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -15234,7 +15300,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0008:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -15247,7 +15313,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -15295,7 +15361,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0008:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -15308,7 +15374,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -15358,7 +15424,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0008:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -15371,7 +15437,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0008:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -15977,7 +16043,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0008:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -16025,7 +16091,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0008:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -16112,7 +16178,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0008:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -16227,7 +16293,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.s   10
-  IL_0008:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+  IL_0008:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
   IL_000d:  ret
 }
 ");
@@ -16518,7 +16584,7 @@ class Program
     IL_0070:  ldfld      ""C Program.<M1>d__1.<>7__wrap1""
     IL_0075:  ldflda     ""Buffer10<int> C.F""
     IL_007a:  ldc.i4.s   10
-    IL_007c:  call       ""InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
+    IL_007c:  call       ""System.ReadOnlySpan<int> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<Buffer10<int>, int>(in Buffer10<int>, int)""
     IL_0081:  stloc.s    V_4
     IL_0083:  ldloca.s   V_4
     IL_0085:  ldloc.2
@@ -16610,7 +16676,7 @@ class Program
     IL_0070:  ldfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_0075:  ldflda     ""Buffer10<int> C.F""
     IL_007a:  ldc.i4.s   10
-    IL_007c:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+    IL_007c:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
     IL_0081:  stloc.3
     IL_0082:  ldloca.s   V_3
     IL_0084:  ldloc.1
@@ -17313,7 +17379,7 @@ public struct Buffer10<T>
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  ldind.i4
   IL_000c:  ret
 }
@@ -17326,7 +17392,7 @@ public struct Buffer10<T>
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  ldc.i4.s   111
   IL_000d:  stind.i4
   IL_000e:  ret
@@ -17369,7 +17435,7 @@ public ref struct Buffer10<T>
                 // (8,9): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10<int>'
                 //         f[0] = 2;
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "f[0]").WithArguments("Buffer10<int>").WithLocation(8, 9),
-                // (15,19): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (15,19): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     private ref T _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(15, 19),
                 // (17,14): warning CS9181: Inline array indexer will not be used for element access expression.
@@ -17431,7 +17497,7 @@ public struct Buffer10<T>
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  ldind.i4
   IL_000c:  ret
 }
@@ -17444,7 +17510,7 @@ public struct Buffer10<T>
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
-  IL_0006:  call       ""InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
+  IL_0006:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer10<int>, int>(ref Buffer10<int>)""
   IL_000b:  ldc.i4.s   111
   IL_000d:  stind.i4
   IL_000e:  ret
@@ -17510,7 +17576,7 @@ public struct Buffer10<T>
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""Buffer10<int> C.F""
   IL_0006:  ldc.i4.5
-  IL_0007:  call       ""InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
+  IL_0007:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer10<int>, int>(ref Buffer10<int>, int)""
   IL_000c:  ret
 }
 ");
@@ -18317,7 +18383,7 @@ class Program
   IL_0009:  br.s       IL_0029
   IL_000b:  ldloc.0
   IL_000c:  ldloc.1
-  IL_000d:  call       ""InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
+  IL_000d:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
   IL_0012:  ldc.i4.s   32
   IL_0014:  call       ""void System.Console.Write(char)""
   IL_0019:  dup
@@ -18415,7 +18481,7 @@ class Program
   IL_0009:  br.s       IL_002e
   IL_000b:  ldloc.0
   IL_000c:  ldloc.1
-  IL_000d:  call       ""InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
+  IL_000d:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
   IL_0012:  ldc.i4.s   32
   IL_0014:  call       ""void System.Console.Write(char)""
   IL_0019:  dup
@@ -18488,7 +18554,7 @@ class Program
   IL_0009:  br.s       IL_0023
   IL_000b:  ldloc.0
   IL_000c:  ldloc.1
-  IL_000d:  call       ""InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
+  IL_000d:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
   IL_0012:  ldind.i4
   IL_0013:  ldc.i4.s   32
   IL_0015:  call       ""void System.Console.Write(char)""
@@ -18642,7 +18708,7 @@ class Program
   IL_0009:  br.s       IL_002e
   IL_000b:  ldloc.0
   IL_000c:  ldloc.1
-  IL_000d:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_000d:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
   IL_0012:  ldc.i4.s   32
   IL_0014:  call       ""void System.Console.Write(char)""
   IL_0019:  dup
@@ -18777,7 +18843,7 @@ public struct Buffer4<T>
   IL_0009:  br.s       IL_0023
   IL_000b:  ldloc.0
   IL_000c:  ldloc.1
-  IL_000d:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_000d:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
   IL_0012:  ldind.i4
   IL_0013:  ldc.i4.s   32
   IL_0015:  call       ""void System.Console.Write(char)""
@@ -18980,7 +19046,7 @@ class Program
   IL_000c:  br.s       IL_003b
   IL_000e:  ldloc.1
   IL_000f:  ldloc.2
-  IL_0010:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_0010:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
   IL_0015:  ldind.i4
   IL_0016:  ldc.i4.s   32
   IL_0018:  call       ""void System.Console.Write(char)""
@@ -19095,16 +19161,22 @@ public ref struct Buffer10
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
+                // (7,27): error CS0306: The type 'Buffer10' may not be used as a type argument
+                //         foreach (var y in GetBuffer(x))
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(x)").WithArguments("Buffer10").WithLocation(7, 27),
                 // (7,27): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         foreach (var y in GetBuffer(x))
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(x)").WithArguments("System.Span<int>").WithLocation(7, 27),
                 // (9,20): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //             return y;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(9, 20),
+                // (17,28): error CS0306: The type 'Buffer10' may not be used as a type argument
+                //         foreach (var yy in GetBuffer(xx))
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(xx)").WithArguments("Buffer10").WithLocation(17, 28),
                 // (17,28): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         foreach (var yy in GetBuffer(xx))
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(xx)").WithArguments("System.Span<int>").WithLocation(17, 28),
-                // (34,30): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (34,30): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     private System.Span<int> _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(34, 30)
                 );
@@ -19646,7 +19718,7 @@ unsafe struct Buffer
                 // (6,26): error CS0306: The type 'void*' may not be used as a type argument
                 //         foreach(var s in GetBuffer())
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer()").WithArguments("void*").WithLocation(6, 26),
-                // (17,19): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (17,19): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     private void* _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(17, 19)
                 );
@@ -19687,7 +19759,7 @@ ref struct Buffer
                 // (6,26): error CS9185: foreach statement on an inline array of type 'Buffer' is not supported
                 //         foreach(var s in GetBuffer())
                 Diagnostic(ErrorCode.ERR_InlineArrayForEachNotSupported, "GetBuffer()").WithArguments("Buffer").WithLocation(6, 26),
-                // (17,21): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (17,21): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     private ref int _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(17, 21)
                 );
@@ -19806,7 +19878,7 @@ class Program
     IL_0077:  br.s       IL_0099
     IL_0079:  ldloc.3
     IL_007a:  ldloc.s    V_4
-    IL_007c:  call       ""InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
+    IL_007c:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
     IL_0081:  ldind.i4
     IL_0082:  call       ""void Program.Increment()""
     IL_0087:  ldc.i4.s   32
@@ -19967,7 +20039,7 @@ class Program
     IL_003e:  ldflda     ""Buffer4<int> C.F""
     IL_0043:  ldarg.0
     IL_0044:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
-    IL_0049:  call       ""InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
+    IL_0049:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
     IL_004e:  ldind.i4
     IL_004f:  call       ""void Program.Increment()""
     IL_0054:  ldc.i4.s   32
@@ -20251,7 +20323,7 @@ class Program
     IL_0077:  br.s       IL_0099
     IL_0079:  ldloc.3
     IL_007a:  ldloc.s    V_4
-    IL_007c:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
+    IL_007c:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
     IL_0081:  ldind.i4
     IL_0082:  call       ""void Program.Increment()""
     IL_0087:  ldc.i4.s   32
@@ -20411,7 +20483,7 @@ class Program
     IL_003e:  ldflda     ""Buffer4<int> C.F""
     IL_0043:  ldarg.0
     IL_0044:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
-    IL_0049:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
+    IL_0049:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
     IL_004e:  ldind.i4
     IL_004f:  call       ""void Program.Increment()""
     IL_0054:  ldc.i4.s   32
@@ -20648,7 +20720,7 @@ class Program
     IL_0022:  ldflda     ""Buffer4<int> Program.<Test>d__1.<>7__wrap1""
     IL_0027:  ldarg.0
     IL_0028:  ldfld      ""int Program.<Test>d__1.<>7__wrap2""
-    IL_002d:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
+    IL_002d:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
     IL_0032:  ldind.i4
     IL_0033:  ldc.i4.s   32
     IL_0035:  call       ""void System.Console.Write(char)""
@@ -20813,7 +20885,7 @@ class Program
   IL_0041:  br.s       IL_0060
   IL_0043:  ldloc.1
   IL_0044:  ldloc.2
-  IL_0045:  call       ""InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
+  IL_0045:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
   IL_004a:  ldind.i4
   IL_004b:  call       ""void Program.Increment()""
   IL_0050:  ldc.i4.s   32
@@ -20927,7 +20999,7 @@ class Program
   IL_003e:  ldflda     ""Buffer4<int> C.F""
   IL_0043:  ldarg.0
   IL_0044:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
-  IL_0049:  call       ""InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
+  IL_0049:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)""
   IL_004e:  ldind.i4
   IL_004f:  call       ""void Program.Increment()""
   IL_0054:  ldc.i4.s   32
@@ -21109,7 +21181,7 @@ class Program
   IL_0041:  br.s       IL_0060
   IL_0043:  ldloc.1
   IL_0044:  ldloc.2
-  IL_0045:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_0045:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
   IL_004a:  ldind.i4
   IL_004b:  call       ""void Program.Increment()""
   IL_0050:  ldc.i4.s   32
@@ -21223,7 +21295,7 @@ class Program
   IL_003e:  ldflda     ""Buffer4<int> C.F""
   IL_0043:  ldarg.0
   IL_0044:  ldfld      ""int Program.<Test>d__3.<>7__wrap1""
-  IL_0049:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_0049:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
   IL_004e:  ldind.i4
   IL_004f:  call       ""void Program.Increment()""
   IL_0054:  ldc.i4.s   32
@@ -21385,7 +21457,7 @@ class Program
   IL_002c:  ldflda     ""Buffer4<int> Program.<Test>d__1.<>7__wrap1""
   IL_0031:  ldarg.0
   IL_0032:  ldfld      ""int Program.<Test>d__1.<>7__wrap2""
-  IL_0037:  call       ""InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
+  IL_0037:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<Buffer4<int>, int>(in Buffer4<int>, int)""
   IL_003c:  ldind.i4
   IL_003d:  ldc.i4.s   32
   IL_003f:  call       ""void System.Console.Write(char)""
@@ -21545,7 +21617,7 @@ ref struct Buffer4
                 // (3,26): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer4'
                 // System.Console.WriteLine(b[0]);
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "b[0]").WithArguments("Buffer4").WithLocation(3, 26),
-                // (8,21): warning CS9184: 'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.
+                // (8,21): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     private ref int _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(8, 21),
                 // (10,19): warning CS9181: Inline array indexer will not be used for element access expression.
@@ -21857,6 +21929,82 @@ struct Buffer4
                 //     public static implicit operator System.Span<int>() => new [] {1, 2, 3, 4}; 
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "()").WithLocation(7, 53)
                 );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70738")]
+        public void CoalesceForNullableElement()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        MyArray x = default;
+        System.Console.Write(Test(x));
+
+        x[0] = 124;
+        System.Console.Write(Test(x));
+    }
+
+    static int Test(MyArray array)
+    {
+        return array[0] ?? 123;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(1)]
+struct MyArray
+{
+    private int? _value;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""ref int? <PrivateImplementationDetails>.InlineArrayFirstElementRef<MyArray, int?>(ref MyArray)""
+  IL_0007:  ldc.i4.s   123
+  IL_0009:  call       ""readonly int int?.GetValueOrDefault(int)""
+  IL_000e:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70910")]
+        public void StringConcatenation()
+        {
+            var src = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Test();
+    }
+
+    static void Test()
+    {
+        var buffer = new ThreeStringBuffer();
+        Console.WriteLine(buffer[0] + ""123"" + buffer[1] + ""124 "" + buffer[2]);
+    }
+}
+
+[InlineArray(3)]
+struct ThreeStringBuffer {
+    string _;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics();
         }
     }
 }

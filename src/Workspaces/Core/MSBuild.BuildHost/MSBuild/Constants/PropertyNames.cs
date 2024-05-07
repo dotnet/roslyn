@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string PdbFile = nameof(PdbFile);
         public const string PlatformTarget = nameof(PlatformTarget);
         public const string Prefer32Bit = nameof(Prefer32Bit);
+        public const string ProjectAssetsFile = nameof(ProjectAssetsFile);
         public const string ProvideCommandLineArgs = nameof(ProvideCommandLineArgs);
         public const string RemoveIntegerChecks = nameof(RemoveIntegerChecks);
         public const string ResolvedCodeAnalysisRuleSet = nameof(ResolvedCodeAnalysisRuleSet);

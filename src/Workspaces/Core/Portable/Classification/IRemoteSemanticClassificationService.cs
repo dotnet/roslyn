@@ -17,10 +17,21 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal interface IRemoteSemanticClassificationService
     {
+        /// <summary>
+        /// Gets the cached semantic classifications for the specified document and text spans.
+        /// </summary>
+        /// <param name="solutionChecksum">The checksum of the solution containing the document.</param>
+        /// <param name="documentId">The ID of the document to get classified spans for.</param>
+        /// <param name="textSpans">The non-intersecting portions of the document to get classified spans for.</param>
+        /// <param name="type">The type of classified spans to get.</param>
+        /// <param name="options">The options to use when getting classified spans.</param>
+        /// <param name="isFullyLoaded">Whether or not the document is fully loaded.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The classified spans for the specified document and text spans.</returns>
         ValueTask<SerializableClassifiedSpans> GetClassificationsAsync(
             Checksum solutionChecksum,
             DocumentId documentId,
-            TextSpan span,
+            ImmutableArray<TextSpan> textSpans,
             ClassificationType type,
             ClassificationOptions options,
             bool isFullyLoaded,
@@ -28,13 +39,18 @@ namespace Microsoft.CodeAnalysis.Classification
 
         /// <summary>
         /// Tries to get cached semantic classifications for the specified document and the specified <paramref
-        /// name="textSpan"/>.  Will return an empty array not able to.
+        /// name="textSpans"/>.  Will return an empty array not able to.
         /// </summary>
+        /// <param name="documentKey">The key of the document to get cached classified spans for.</param>
+        /// <param name="textSpans">The non-intersecting portions of the document to get cached classified spans for.</param>
+        /// <param name="type">The type of classified spans to get.</param>
         /// <param name="checksum">Pass in <see cref="DocumentStateChecksums.Text"/>.  This will ensure that the cached
         /// classifications are only returned if they match the content the file currently has.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The cached classified spans for the specified document and text spans.</returns>
         ValueTask<SerializableClassifiedSpans?> GetCachedClassificationsAsync(
             DocumentKey documentKey,
-            TextSpan textSpan,
+            ImmutableArray<TextSpan> textSpans,
             ClassificationType type,
             Checksum checksum,
             CancellationToken cancellationToken);

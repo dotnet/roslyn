@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
 
                 // Flatten all the chunks into one long list.  Then delete all the spaces
                 // between each piece in that full list.
-                var flattened = _chunks.SelectMany(c => c).ToImmutableArray();
+                var flattened = _chunks.SelectManyAsArray(c => c);
                 DeleteAllSpacesInChunk(result, flattened);
 
                 return result.ToImmutable();

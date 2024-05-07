@@ -867,6 +867,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             await using (var storage = await GetStorageAsync(solution))
             {
                 using var stream = await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum));
+                Contract.ThrowIfNull(stream);
                 stream.ReadByte();
                 stream.ReadByte();
             }
@@ -1072,8 +1073,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             return stream;
         }
 
-        private string ReadStringToEnd(Stream stream)
+        private string ReadStringToEnd(Stream? stream)
         {
+            Contract.ThrowIfNull(stream);
             using (stream)
             {
                 using var memoryStream = new MemoryStream();

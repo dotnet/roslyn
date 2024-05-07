@@ -21,15 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly Symbol OtherSymbol;
         public readonly OverloadResolutionResult<MethodSymbol> OverloadResolutionResult;
         public readonly AnalyzedArguments AnalyzedArguments;
-        public readonly ImmutableBindingDiagnostic<AssemblySymbol> Diagnostics;
+        public readonly ReadOnlyBindingDiagnostic<AssemblySymbol> Diagnostics;
         public readonly LookupResultKind ResultKind;
 
-        public MethodGroupResolution(MethodGroup methodGroup, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
+        public MethodGroupResolution(MethodGroup methodGroup, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics)
             : this(methodGroup, otherSymbol: null, overloadResolutionResult: null, analyzedArguments: null, methodGroup.ResultKind, diagnostics)
         {
         }
 
-        public MethodGroupResolution(Symbol otherSymbol, LookupResultKind resultKind, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
+        public MethodGroupResolution(Symbol otherSymbol, LookupResultKind resultKind, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics)
             : this(methodGroup: null, otherSymbol, overloadResolutionResult: null, analyzedArguments: null, resultKind, diagnostics)
         {
         }
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolutionResult<MethodSymbol> overloadResolutionResult,
             AnalyzedArguments analyzedArguments,
             LookupResultKind resultKind,
-            ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
+            ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics)
         {
             Debug.Assert((methodGroup == null) || (methodGroup.Methods.Count > 0));
             Debug.Assert((methodGroup == null) || ((object)otherSymbol == null));

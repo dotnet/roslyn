@@ -606,7 +606,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             var vsixAnalyzer = new VsixAnalyzer(vsixAnalyzerDiagnosticIds);
             var vsixSuppressor = new VsixSuppressor(vsixAnalyzerDiagnosticIds);
             var nugetSuppressor = new NuGetSuppressor(vsixAnalyzerDiagnosticIds);
-            var partialNugetSuppressor = new NuGetSuppressor(new[] { "Y", "Z" });
+            var partialNugetSuppressor = new NuGetSuppressor(["Y", "Z"]);
 
             Assert.Equal(firstNugetAnalyzerDiagnosticIds, firstNugetAnalyzer.SupportedDiagnostics.Select(d => d.Id).Order());
             Assert.Equal(secondNugetAnalyzerDiagnosticIds, secondNugetAnalyzer.SupportedDiagnostics.Select(d => d.Id).Order());

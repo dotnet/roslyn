@@ -56,6 +56,26 @@ End Namespace", testHost:=testHost)
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889385")>
+        Public Async Function TestPreservesIncorrectIndentation(testHost As TestHost) As Task
+            Await TestInRegularAndScriptAsync(
+"Class Class1
+      Dim v As [|SomeClass1|]
+End Class
+Namespace SomeNamespace
+    Public Class SomeClass1
+    End Class
+End Namespace",
+"Class Class1
+      Dim v As SomeNamespace.SomeClass1
+End Class
+Namespace SomeNamespace
+    Public Class SomeClass1
+    End Class
+End Namespace", testHost:=testHost)
+        End Function
+
+        <Theory, CombinatorialData>
         Public Async Function TestOrdering(testHost As TestHost) As Task
             Dim code = "
 namespace System.Windows.Controls

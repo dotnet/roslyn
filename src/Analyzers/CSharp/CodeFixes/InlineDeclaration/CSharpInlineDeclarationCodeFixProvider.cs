@@ -183,7 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
                     editor.ReplaceNode(
                         nextStatementSyntax,
-                        (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclarationStatement));
+                        (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclarationStatement)
+                                   .WithAdditionalAnnotations(Formatter.Annotation));
                 }
 
                 // The above code handled the moving of trivia.  So remove the node, keeping around no trivia from it.

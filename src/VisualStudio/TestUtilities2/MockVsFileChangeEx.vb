@@ -12,7 +12,7 @@ Imports Task = System.Threading.Tasks.Task
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Friend Class MockVsFileChangeEx
         Implements IVsFileChangeEx
-        Implements IVsAsyncFileChangeEx
+        Implements IVsAsyncFileChangeEx2
 
         Private ReadOnly _lock As New Object
         Private _watchedFiles As ImmutableList(Of WatchedEntity) = ImmutableList(Of WatchedEntity).Empty
@@ -148,6 +148,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Dim cookie As UInteger
             Marshal.ThrowExceptionForHR(AdviseFileChange(filename, CType(filter, UInteger), sink, cookie))
             Return Task.FromResult(cookie)
+        End Function
+
+        Public Function AdviseFileChangesAsync(filenames As IReadOnlyCollection(Of String), filter As _VSFILECHANGEFLAGS, sink As IVsFreeThreadedFileChangeEvents2, cancellationToken As CancellationToken) As Task(Of UInteger()) Implements IVsAsyncFileChangeEx2.AdviseFileChangesAsync
+            Dim cookies As New List(Of UInteger)()
+
+            SyncLock _lock
+                For Each filename In filenames
+                    Dim cookie As UInteger
+                    Marshal.ThrowExceptionForHR(AdviseFileChange(filename, CType(filter, UInteger), sink, cookie))
+
+                    cookies.Add(cookie)
+                Next
+            End SyncLock
+
+            Return Task.FromResult(cookies.ToArray())
         End Function
 
         Public Function UnadviseFileChangeAsync(cookie As UInteger, Optional cancellationToken As CancellationToken = Nothing) As Task(Of String) Implements IVsAsyncFileChangeEx.UnadviseFileChangeAsync

@@ -1484,5 +1484,54 @@ F(Await y, Await x)
 
             expected.AssertEqual(actual)
         End Sub
+
+        <Fact>
+        Public Sub For_ForEach_Using()
+            Dim src1 = "
+For Each a As Integer In {1}
+Next
+
+Using b As New C(1)
+End Using
+
+For c As Integer = 0 To 1
+Next
+"
+            Dim src2 = "
+For Each a As Integer In {2}
+Next
+
+Using b As New C(2)
+End Using
+
+For c As Integer = 0 To 2
+Next
+"
+            Dim match = GetMethodMatches(src1, src2, kind:=MethodKind.Regular)
+            Dim actual = ToMatchingPairs(match)
+
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"For Each a As Integer In {1} Next", "For Each a As Integer In {2} Next"},
+                {"For Each a As Integer In {1}", "For Each a As Integer In {2}"},
+                {"a As Integer", "a As Integer"},
+                {"a", "a"},
+                {"Next", "Next"},
+                {"Using b As New C(1) End Using", "Using b As New C(2) End Using"},
+                {"Using b As New C(1)", "Using b As New C(2)"},
+                {"b As New C(1)", "b As New C(2)"},
+                {"b", "b"},
+                {"End Using", "End Using"},
+                {"For c As Integer = 0 To 1 Next", "For c As Integer = 0 To 2 Next"},
+                {"For c As Integer = 0 To 1", "For c As Integer = 0 To 2"},
+                {"c As Integer", "c As Integer"},
+                {"c", "c"},
+                {"Next", "Next"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
     End Class
 End Namespace

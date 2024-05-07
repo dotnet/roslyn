@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion
             if (IsInstanceContext(tree, targetToken, context.SemanticModel, context.CancellationToken))
             {
                 var enclosingSymbol = context.SemanticModel.GetEnclosingSymbol(targetToken.SpanStart, context.CancellationToken);
-                while (enclosingSymbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction or MethodKind.AnonymousFunction } method)
+                while (enclosingSymbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction or MethodKind.AnonymousFunction })
                 {
                     // It is allowed to reference the instance (`this`) within a local function or anonymous function,
                     // as long as the containing method allows it

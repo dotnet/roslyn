@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private readonly int OperatorSortingGroupIndex = 2;
 
         private readonly string OperatorName = nameof(OperatorName);
-        private readonly ImmutableDictionary<string, string> OperatorProperties =
-            ImmutableDictionary<string, string>.Empty.Add(KindName, OperatorKindName);
+        private readonly ImmutableArray<KeyValuePair<string, string>> OperatorProperties =
+            ImmutableArray.Create(new KeyValuePair<string, string>(KindName, OperatorKindName));
 
         /// <summary>
         /// Ordered in the order we want to display operators in the completion list.
@@ -104,6 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var displayText = GetOperatorText(opName);
 
+            using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(OperatorProperties.Length + 1, out var builder);
+
+            builder.AddRange(OperatorProperties);
+            builder.Add(new KeyValuePair<string, string>(OperatorName, opName));
+
             context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 displayTextSuffix: null,
@@ -113,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: operators.ToImmutableArray(),
                 rules: s_operatorRules,
                 contextPosition: context.Position,
-                properties: OperatorProperties.Add(OperatorName, opName),
+                properties: builder.ToImmutable(),
                 isComplexTextEdit: true));
         }
 
@@ -123,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private async Task<CompletionChange> GetOperatorChangeAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            var opName = item.Properties[OperatorName];
+            var opName = item.GetProperty(OperatorName);
             var opPosition = GetOperatorPosition(opName);
 
             if (opPosition.HasFlag(OperatorPosition.Infix))

@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             EnforceOnBuild enforceOnBuild,
             LocalizableString title,
             LocalizableString messageFormat,
+            bool hasAnyCodeStyleOption,
             bool isUnnecessary,
             bool isEnabledByDefault = true,
             bool isConfigurable = true,
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
                     isEnabledByDefault,
                     description,
                     helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
-                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, enforceOnBuild));
+                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, isCustomConfigurable: hasAnyCodeStyleOption, enforceOnBuild));
 #pragma warning restore RS0030 // Do not use banned APIs
     }
 }

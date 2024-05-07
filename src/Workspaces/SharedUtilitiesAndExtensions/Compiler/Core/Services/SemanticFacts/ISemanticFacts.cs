@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node);
 
-        bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken);
+        bool IsPartial(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken);
 
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
 

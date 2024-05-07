@@ -4,7 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                     methodName: Methods.ClientRegisterCapabilityName,
                     @params: new RegistrationParams()
                     {
-                        Registrations = new[]
-                        {
+                        Registrations =
+                        [
                             new Registration { Id = _registrationId.ToString(), Method = Methods.WorkspaceDidChangeConfigurationName, RegisterOptions = null }
-                        }
+                        ]
                     },
                     cancellationToken).ConfigureAwait(false);
             }

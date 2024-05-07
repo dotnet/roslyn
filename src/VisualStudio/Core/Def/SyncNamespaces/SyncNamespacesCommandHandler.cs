@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -136,10 +137,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
             var options = _globalOptions.GetCodeActionOptionsProvider();
 
             Solution? solution = null;
-            var status = _threadOperationExecutor.Execute(ServicesVSResources.Sync_Namespaces, ServicesVSResources.Updating_namspaces, allowCancellation: true, showProgress: true, (operationContext) =>
-            {
-                solution = _threadingContext.JoinableTaskFactory.Run(() => syncService.SyncNamespacesAsync(projects, options, operationContext.UserCancellationToken));
-            });
+            var status = _threadOperationExecutor.Execute(
+                ServicesVSResources.Sync_Namespaces, ServicesVSResources.Updating_namspaces, allowCancellation: true, showProgress: true,
+                operationContext =>
+                {
+                    solution = _threadingContext.JoinableTaskFactory.Run(
+                        () => syncService.SyncNamespacesAsync(projects, options, operationContext.GetCodeAnalysisProgress(), operationContext.UserCancellationToken));
+                });
 
             if (status != UIThreadOperationStatus.Canceled && solution is not null)
             {

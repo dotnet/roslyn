@@ -964,6 +964,14 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.GenericTypeParameter, 0,
 
+                // System_Nullable_T_GetValueOrDefaultDefaultValue
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)SpecialType.System_Nullable_T,                                                                        // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
                 // System_Nullable_T_get_Value
                 (byte)MemberFlags.PropertyGet,                                                                              // Flags
                 (byte)SpecialType.System_Nullable_T,                                                                        // DeclaringTypeId
@@ -1171,6 +1179,7 @@ namespace Microsoft.CodeAnalysis
                 "op_Explicit",                              // System_UIntPtr__op_Explicit_FromUInt32
                 "op_Explicit",                              // System_UIntPtr__op_Explicit_FromUInt64
                 "GetValueOrDefault",                        // System_Nullable_T_GetValueOrDefault
+                "GetValueOrDefault",                        // System_Nullable_T_GetValueOrDefaultDefaultValue
                 "get_Value",                                // System_Nullable_T_get_Value
                 "get_HasValue",                             // System_Nullable_T_get_HasValue
                 ".ctor",                                    // System_Nullable_T__ctor

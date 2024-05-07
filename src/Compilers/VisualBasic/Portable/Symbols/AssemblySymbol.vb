@@ -238,6 +238,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public MustOverride ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+
+        Public MustOverride ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+
         ''' <summary>
         ''' Lookup a top level type referenced from metadata, names should be
         ''' compared case-sensitively.
@@ -440,9 +444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' the string might be null or an invalid guid representation. False, 
         ''' if there is no GuidAttribute with string argument.
         ''' </summary>
-        Friend Overridable Function GetGuidString(ByRef guidString As String) As Boolean
-            Return GetGuidStringDefaultImplementation(guidString)
-        End Function
+        Friend MustOverride Function GetGuidString(ByRef guidString As String) As Boolean
 
         Public MustOverride ReadOnly Property TypeNames As ICollection(Of String) Implements IAssemblySymbol.TypeNames
 

@@ -10,11 +10,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
-    internal partial class BloomFilter : IObjectWritable
+    internal partial class BloomFilter
     {
         private const string SerializationFormat = "2";
-
-        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         public void WriteTo(ObjectWriter writer)
         {

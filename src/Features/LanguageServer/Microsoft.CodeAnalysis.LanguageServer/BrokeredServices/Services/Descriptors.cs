@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.BrokeredServices;
-using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Utilities.ServiceBroker;
@@ -17,7 +16,6 @@ internal class Descriptors
     // Descriptors for remote services.
     // If adding services here, make sure to update RemoteServicesToRegister.
 
-    public static readonly ServiceRpcDescriptor RemoteHelloWorldService = CreateDescriptor(new("helloServiceHubDotNetHost", new Version("0.1")));
     public static readonly ServiceRpcDescriptor RemoteModelService = CreateDescriptor(new("vs-intellicode-base-models", new Version("0.1")));
 
     /// <summary>
@@ -32,8 +30,6 @@ internal class Descriptors
 
     // Descriptors for local services.
 
-    public static readonly ServiceRpcDescriptor LocalHelloWorldService = CreateDescriptor(new(HelloWorldService.MonikerName, new Version(HelloWorldService.MonikerVersion)));
-
     /// <summary>
     /// The set of remote services that we register to our container.
     /// </summary>
@@ -43,7 +39,6 @@ internal class Descriptors
     /// </remarks>
     public static ImmutableDictionary<ServiceMoniker, ServiceRegistration> RemoteServicesToRegister = new Dictionary<ServiceMoniker, ServiceRegistration>
     {
-        { RemoteHelloWorldService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { RemoteModelService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { RemoteProjectInitializationStatusService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.SolutionSnapshotProvider.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },

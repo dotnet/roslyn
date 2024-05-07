@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var renameOptions = new SymbolRenameOptions();
 
             var fieldLocations = await Renamer.FindRenameLocationsAsync(
-                solution, fieldSymbol, renameOptions, context.Options, cancellationToken).ConfigureAwait(false);
+                solution, fieldSymbol, renameOptions, cancellationToken).ConfigureAwait(false);
 
             // First, create the updated property we want to replace the old property with
             var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(fieldSymbol, fieldLocations, property, cancellationToken);
@@ -138,7 +138,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var resolution = await filteredLocations.ResolveConflictsAsync(
                 fieldSymbol, propertySymbol.Name,
-                nonConflictSymbolKeys: ImmutableArray.Create(propertySymbol.GetSymbolKey(cancellationToken)), cancellationToken).ConfigureAwait(false);
+                nonConflictSymbolKeys: ImmutableArray.Create(propertySymbol.GetSymbolKey(cancellationToken)),
+                context.Options, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfFalse(resolution.IsSuccessful);
 

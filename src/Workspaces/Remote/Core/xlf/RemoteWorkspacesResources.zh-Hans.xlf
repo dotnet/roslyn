@@ -132,6 +132,11 @@
         <target state="translated">资产提供商</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">源生成</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">
         <source>Stack Trace Explorer</source>
         <target state="translated">堆栈跟踪资源管理器</target>

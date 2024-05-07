@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
     internal static class StackTraceExplorerUtilities
     {
         // Order is important here. Resolution should happen from most specific to least specific. 
-        private static readonly AbstractStackTraceSymbolResolver[] _resolvers = new AbstractStackTraceSymbolResolver[]
-            {
+        private static readonly AbstractStackTraceSymbolResolver[] _resolvers =
+            [
                 new StackFrameLocalMethodResolver(),
                 new StackFrameMethodSymbolResolver(),
-            };
+            ];
 
         public static async Task<DefinitionItem?> GetDefinitionAsync(Solution solution, StackFrameCompilationUnit compilationUnit, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)
         {

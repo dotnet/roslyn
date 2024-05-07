@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             rewrittenArgs = MakeArguments(
-                node.Syntax,
                 rewrittenArgs,
                 functionPointer,
                 expanded: false,

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -225,6 +226,85 @@ namespace Microsoft.CodeAnalysis.CSharp
         string ISymbolInternal.Name => this.Name;
 
         string ISymbolInternal.MetadataName => this.MetadataName;
+
+        public Cci.TypeMemberVisibility MetadataVisibility
+        {
+            get
+            {
+                //
+                // We need to relax visibility of members in interactive submissions since they might be emitted into multiple assemblies.
+                //
+                // Top-level:
+                //   private                       -> public
+                //   protected                     -> public (compiles with a warning)
+                //   public
+                //   internal                      -> public
+                //
+                // In a nested class:
+                //
+                //   private
+                //   protected
+                //   public
+                //   internal                      -> public
+                //
+                switch (DeclaredAccessibility)
+                {
+                    case Accessibility.Public:
+                        return Cci.TypeMemberVisibility.Public;
+
+                    case Accessibility.Private:
+                        if (ContainingType?.TypeKind == TypeKind.Submission)
+                        {
+                            // top-level private member:
+                            return Cci.TypeMemberVisibility.Public;
+                        }
+                        else
+                        {
+                            return Cci.TypeMemberVisibility.Private;
+                        }
+
+                    case Accessibility.Internal:
+                        if (ContainingAssembly.IsInteractive)
+                        {
+                            // top-level or nested internal member:
+                            return Cci.TypeMemberVisibility.Public;
+                        }
+                        else
+                        {
+                            return Cci.TypeMemberVisibility.Assembly;
+                        }
+
+                    case Accessibility.Protected:
+                        if (ContainingType.TypeKind == TypeKind.Submission)
+                        {
+                            // top-level protected member:
+                            return Cci.TypeMemberVisibility.Public;
+                        }
+                        else
+                        {
+                            return Cci.TypeMemberVisibility.Family;
+                        }
+
+                    case Accessibility.ProtectedAndInternal:
+                        Debug.Assert(ContainingType.TypeKind != TypeKind.Submission);
+                        return Cci.TypeMemberVisibility.FamilyAndAssembly;
+
+                    case Accessibility.ProtectedOrInternal:
+                        if (ContainingAssembly.IsInteractive)
+                        {
+                            // top-level or nested protected internal member:
+                            return Cci.TypeMemberVisibility.Public;
+                        }
+                        else
+                        {
+                            return Cci.TypeMemberVisibility.FamilyOrAssembly;
+                        }
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(DeclaredAccessibility);
+                }
+            }
+        }
 
         ISymbolInternal ISymbolInternal.ContainingSymbol => this.ContainingSymbol;
 
@@ -1368,28 +1448,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal abstract ObsoleteAttributeData? ObsoleteAttributeData { get; }
 #nullable disable
 
-        /// <summary>
-        /// Returns true and a <see cref="string"/> from the first <see cref="GuidAttribute"/> on the symbol, 
-        /// the string might be null or an invalid guid representation. False, 
-        /// if there is no <see cref="GuidAttribute"/> with string argument.
-        /// </summary>
-        internal bool GetGuidStringDefaultImplementation(out string guidString)
-        {
-            foreach (var attrData in this.GetAttributes())
-            {
-                if (attrData.IsTargetAttribute(this, AttributeDescription.GuidAttribute))
-                {
-                    if (attrData.TryGetGuidAttributeValue(out guidString))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            guidString = null;
-            return false;
-        }
-
         public string ToDisplayString(SymbolDisplayFormat format = null)
         {
             return SymbolDisplay.ToDisplayString(ISymbol, format);
@@ -1463,8 +1521,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var attribute = arguments.Attribute;
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
+            Debug.Assert(attribute is SourceAttributeData);
+
             if ((reserved & ReservedAttributes.DynamicAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.DynamicAttribute))
             {
                 // DynamicAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
@@ -1486,12 +1546,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
             }
             else if ((reserved & ReservedAttributes.TupleElementNamesAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.TupleElementNamesAttribute))
             {
                 diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if ((reserved & ReservedAttributes.NullableAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.NullableAttribute))
             {
                 // NullableAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
@@ -1509,19 +1569,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
             }
             else if ((reserved & ReservedAttributes.CaseSensitiveExtensionAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.CaseSensitiveExtensionAttribute))
             {
                 // ExtensionAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
             }
             else if ((reserved & ReservedAttributes.RequiredMemberAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.RequiredMemberAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.RequiredMemberAttribute))
             {
                 // Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
                 diagnostics.Add(ErrorCode.ERR_ExplicitRequiredMember, arguments.AttributeSyntaxOpt.Location);
             }
             else if ((reserved & ReservedAttributes.ScopedRefAttribute) != 0 &&
-                attribute.IsTargetAttribute(this, AttributeDescription.ScopedRefAttribute))
+                attribute.IsTargetAttribute(AttributeDescription.ScopedRefAttribute))
             {
                 // Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
                 diagnostics.Add(ErrorCode.ERR_ExplicitScopedRef, arguments.AttributeSyntaxOpt.Location);
@@ -1538,7 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool reportExplicitUseOfReservedAttribute(CSharpAttributeData attribute, in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, in AttributeDescription attributeDescription)
             {
-                if (attribute.IsTargetAttribute(this, attributeDescription))
+                if (attribute.IsTargetAttribute(attributeDescription))
                 {
                     // Do not use '{FullName}'. This is reserved for compiler usage.
                     diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, attributeDescription.FullName);
@@ -1714,6 +1774,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.IsAbstract;
             }
         }
+
+        bool ISymbolInternal.IsExtern
+            => IsExtern;
 
         Accessibility ISymbolInternal.DeclaredAccessibility
         {

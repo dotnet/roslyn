@@ -453,7 +453,7 @@ class Class
                     var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);
                     var suppressionProvider = CreateDiagnosticProviderAndFixer(workspace).Item2;
                     var suppressionProviderFactory = new Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,
-                        new CodeChangeProviderMetadata("SuppressionProvider", languages: new[] { LanguageNames.CSharp }));
+                        new CodeChangeProviderMetadata("SuppressionProvider", languages: [LanguageNames.CSharp]));
                     var fixService = new CodeFixService(
                         diagnosticService,
                         SpecializedCollections.EmptyEnumerable<Lazy<IErrorLoggerService>>(),

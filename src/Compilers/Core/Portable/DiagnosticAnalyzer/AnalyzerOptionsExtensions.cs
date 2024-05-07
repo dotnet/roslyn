@@ -39,9 +39,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             //  1. Disabled by default diagnostics
             //  2. Compiler diagnostics
             //  3. Non-configurable diagnostics
+            //  4. Custom-configurable diagnostics
             if (analyzerOptions == null ||
                 !descriptor.IsEnabledByDefault ||
-                descriptor.IsCompilerOrNotConfigurable())
+                descriptor.IsCompilerOrNotConfigurableOrCustomConfigurable())
             {
                 severity = default;
                 return false;

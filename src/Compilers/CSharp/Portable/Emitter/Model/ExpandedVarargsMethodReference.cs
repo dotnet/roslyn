@@ -41,11 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return _underlyingMethod.GenericParameterCount; }
         }
 
-        bool Cci.IMethodReference.IsGeneric
-        {
-            get { return _underlyingMethod.IsGeneric; }
-        }
-
         Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
         {
             return _underlyingMethod.GetResolvedMethod(context);

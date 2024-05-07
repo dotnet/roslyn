@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         private static readonly DiagnosticDescriptor s_outsideDiagnosticDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId,
             EnforceOnBuildValues.MoveMisplacedUsingDirectives,
+            hasAnyCodeStyleOption: true,
             s_localizableTitle, s_localizableOutsideMessage);
 
         private static readonly LocalizableResourceString s_localizableInsideMessage = new(
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         private static readonly DiagnosticDescriptor s_insideDiagnosticDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId,
             EnforceOnBuildValues.MoveMisplacedUsingDirectives,
+            hasAnyCodeStyleOption: true,
             s_localizableTitle, s_localizableInsideMessage);
 
         public MisplacedUsingDirectivesDiagnosticAnalyzer()
@@ -56,19 +58,23 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
             var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
-            if (option.Value != AddImportPlacement.OutsideNamespace)
+            if (option.Value != AddImportPlacement.OutsideNamespace
+                || ShouldSkipAnalysis(context, option.Notification))
+            {
                 return;
+            }
 
             var namespaceDeclaration = (BaseNamespaceDeclarationSyntax)context.Node;
             ReportDiagnostics(context, s_outsideDiagnosticDescriptor, namespaceDeclaration.Usings, option);
         }
 
-        private static void AnalyzeCompilationUnitNode(SyntaxNodeAnalysisContext context)
+        private void AnalyzeCompilationUnitNode(SyntaxNodeAnalysisContext context)
         {
             var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
             var compilationUnit = (CompilationUnitSyntax)context.Node;
 
             if (option.Value != AddImportPlacement.InsideNamespace
+               || ShouldSkipAnalysis(context, option.Notification)
                || ShouldSuppressDiagnostic(compilationUnit))
             {
                 return;
@@ -99,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     descriptor,
                     usingDirective.GetLocation(),
-                    option.Notification.Severity,
+                    option.Notification,
                     additionalLocations: null,
                     properties: null));
             }

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
@@ -45,8 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
             var newName = simpleName.WithLeadingTrivia(SyntaxTriviaList.Empty);
 
             var qualifiedName = SyntaxFactory.QualifiedName(SyntaxFactory.ParseName(containerName), newName)
-                .WithLeadingTrivia(leadingTrivia)
-                .WithAdditionalAnnotations(Formatter.Annotation);
+                .WithLeadingTrivia(leadingTrivia);
 
             var syntaxTree = simpleName.SyntaxTree;
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);

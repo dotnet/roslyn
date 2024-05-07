@@ -654,7 +654,7 @@ namespace Roslyn.Collections.Immutable
                     else
                     {
                         // two of the same hash will never be happy in a hash bucket
-                        return new ListBucket(new ValueBucket[] { this, bucket });
+                        return new ListBucket([this, bucket]);
                     }
                 }
                 else

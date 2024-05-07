@@ -53,8 +53,11 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
                         var documentForLocation = document.Project.GetDocument(syntaxRef.SyntaxTree);
                         Contract.ThrowIfNull(documentForLocation);
                         var root = await syntaxRef.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                        var partialDeclSpan = syntaxFacts.GetContainingTypeDeclaration(root, syntaxRef.Span.Start)!.FullSpan;
-                        builder.MultiAdd(documentForLocation, partialDeclSpan);
+                        var partialDeclSpan = syntaxFacts.GetContainingTypeDeclaration(root, syntaxRef.Span.Start)?.FullSpan;
+                        if (partialDeclSpan != null)
+                        {
+                            builder.MultiAdd(documentForLocation, partialDeclSpan.Value);
+                        }
                     }
 
                     return builder.ToImmutableMultiDictionaryAndFree();

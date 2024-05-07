@@ -10,239 +10,284 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    CSharpUseNotPatternDiagnosticAnalyzer,
+    CSharpUseNotPatternCodeFixProvider>;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
+public partial class CSharpUseNotPatternTests
 {
-    using VerifyCS = CSharpCodeFixVerifier<
-        CSharpUseNotPatternDiagnosticAnalyzer,
-        CSharpUseNotPatternCodeFixProvider>;
-
-    [Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
-    public partial class CSharpUseNotPatternTests
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
+    public async Task BinaryIsExpression()
     {
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
-        public async Task BinaryIsExpression()
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                    class C
+            TestCode = """
+                class C
+                {
+                    void M(object x)
                     {
-                        void M(object x)
+                        if (!(x [|is|] string))
                         {
-                            if (!(x [|is|] string))
-                            {
-                            }
                         }
                     }
-                    """,
-                FixedCode = """
-                    class C
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(object x)
                     {
-                        void M(object x)
+                        if (x is not string)
                         {
-                            if (x is not string)
-                            {
-                            }
                         }
                     }
-                    """,
-                LanguageVersion = LanguageVersion.CSharp9,
-            }.RunAsync();
-        }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
-        public async Task ConstantPattern()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
+    public async Task ConstantPattern()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                    class C
+            TestCode = """
+                class C
+                {
+                    void M(object x)
                     {
-                        void M(object x)
+                        if (!(x [|is|] null))
                         {
-                            if (!(x [|is|] null))
-                            {
-                            }
                         }
                     }
-                    """,
-                FixedCode = """
-                    class C
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(object x)
                     {
-                        void M(object x)
+                        if (x is not null)
                         {
-                            if (x is not null)
-                            {
-                            }
                         }
                     }
-                    """,
-                LanguageVersion = LanguageVersion.CSharp9,
-            }.RunAsync();
-        }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64292")]
-        public async Task BooleanValueConstantPattern()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64292")]
+    public async Task BooleanValueConstantPattern()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                    class C
+            TestCode = """
+                class C
+                {
+                    void M(bool x)
                     {
-                        void M(bool x)
+                        if (!(x [|is|] true))
                         {
-                            if (!(x [|is|] true))
-                            {
-                            }
                         }
                     }
-                    """,
-                FixedCode = """
-                    class C
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool x)
                     {
-                        void M(bool x)
+                        if (x is false)
                         {
-                            if (x is false)
-                            {
-                            }
                         }
                     }
-                    """,
-                LanguageVersion = LanguageVersion.CSharp9,
-            }.RunAsync();
-        }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64292")]
-        public async Task NonBooleanValueConstantPattern()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64292")]
+    public async Task NonBooleanValueConstantPattern()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                    class C
+            TestCode = """
+                class C
+                {
+                    void M(object x)
                     {
-                        void M(object x)
+                        if (!(x [|is|] true))
                         {
-                            if (!(x [|is|] true))
-                            {
-                            }
                         }
                     }
-                    """,
-                FixedCode = """
-                    class C
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(object x)
                     {
-                        void M(object x)
+                        if (x is not true)
                         {
-                            if (x is not true)
-                            {
-                            }
                         }
                     }
-                    """,
-                LanguageVersion = LanguageVersion.CSharp9,
-            }.RunAsync();
-        }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46699")]
-        public async Task UseNotPattern()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46699")]
+    public async Task UseNotPattern()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                    class C
+            TestCode = """
+                class C
+                {
+                    void M(object x)
                     {
-                        void M(object x)
+                        if (!(x [|is|] string s))
                         {
-                            if (!(x [|is|] string s))
-                            {
-                            }
                         }
                     }
-                    """,
-                FixedCode = """
-                    class C
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(object x)
                     {
-                        void M(object x)
+                        if (x is not string s)
                         {
-                            if (x is not string s)
-                            {
-                            }
                         }
                     }
-                    """,
-                LanguageVersion = LanguageVersion.CSharp9,
-            }.RunAsync();
-        }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task UnavailableInCSharp8()
+    [Fact]
+    public async Task UnavailableInCSharp8()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                    class C
+            TestCode = """
+                class C
+                {
+                    void M(object x)
                     {
-                        void M(object x)
+                        if (!(x is string s))
                         {
-                            if (!(x is string s))
-                            {
-                            }
                         }
                     }
-                    """,
-                LanguageVersion = LanguageVersion.CSharp8,
-            }.RunAsync();
-        }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp8,
+        }.RunAsync();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
-        public async Task BinaryIsObject()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
+    public async Task BinaryIsObject()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                    class C
+            TestCode = """
+                class C
+                {
+                    void M(object x)
                     {
-                        void M(object x)
+                        if (!(x [|is|] object))
                         {
-                            if (!(x [|is|] object))
-                            {
-                            }
                         }
                     }
-                    """,
-                FixedCode = """
-                    class C
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(object x)
                     {
-                        void M(object x)
+                        if (x is null)
                         {
-                            if (x is null)
-                            {
-                            }
                         }
                     }
-                    """,
-                LanguageVersion = LanguageVersion.CSharp9,
-            }.RunAsync();
-        }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68784")]
-        public async Task NotInExpressionTree()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68784")]
+    public async Task NotInExpressionTree()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                    using System.Linq;
+            TestCode = """
+                using System.Linq;
 
-                    class C
+                class C
+                {
+                    IQueryable<object> M(IQueryable<object> query)
                     {
-                        IQueryable<object> M(IQueryable<object> query)
+                        return query.Where(x => !(x is string));
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70964")]
+    public async Task TestMissingOnNullable1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        object o = null;
+                        if (!(o is bool?))
                         {
-                            return query.Where(x => !(x is string));
                         }
                     }
-                    """,
-                LanguageVersion = LanguageVersion.CSharp9,
-            }.RunAsync();
-        }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70964")]
+    public async Task TestMissingOnNullable2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        object o = null;
+                        if (!(o is Nullable<bool>))
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
     }
 }

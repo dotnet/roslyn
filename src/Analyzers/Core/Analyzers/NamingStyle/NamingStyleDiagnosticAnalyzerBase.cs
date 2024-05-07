@@ -62,9 +62,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             void SymbolAction(SymbolAnalysisContext symbolContext)
             {
+                var sourceTree = symbolContext.Symbol.Locations.FirstOrDefault()?.SourceTree;
+                if (sourceTree == null
+                    || ShouldSkipAnalysis(sourceTree, symbolContext.Options, symbolContext.Compilation.Options, notification: null, symbolContext.CancellationToken))
+                {
+                    return;
+                }
+
                 var diagnostic = TryGetDiagnostic(
                     symbolContext.Compilation,
                     symbolContext.Symbol,
+                    sourceTree,
                     symbolContext.Options,
                     idToCachedResult,
                     symbolContext.CancellationToken);
@@ -77,8 +85,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
             {
+                if (ShouldSkipAnalysis(syntaxContext, notification: null))
+                {
+                    return;
+                }
+
                 var symbol = syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.Node, syntaxContext.CancellationToken);
-                if (symbol == null)
+                if (symbol?.Locations.FirstOrDefault()?.SourceTree is not { } sourceTree)
                 {
                     // Catch clauses don't need to have a declaration.
                     return;
@@ -87,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 var diagnostic = TryGetDiagnostic(
                     syntaxContext.Compilation,
                     symbol,
+                    sourceTree,
                     syntaxContext.Options,
                     idToCachedResult,
                     syntaxContext.CancellationToken);
@@ -104,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private Diagnostic? TryGetDiagnostic(
             Compilation compilation,
             ISymbol symbol,
+            SyntaxTree sourceTree,
             AnalyzerOptions options,
             ConcurrentDictionary<Guid, ConcurrentDictionary<string, string?>> idToCachedResult,
             CancellationToken cancellationToken)
@@ -124,12 +139,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             if (symbol.IsSymbolWithSpecialDiscardName())
-            {
-                return null;
-            }
-
-            var sourceTree = symbol.Locations.FirstOrDefault()?.SourceTree;
-            if (sourceTree == null)
             {
                 return null;
             }
@@ -165,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             builder["OptionName"] = nameof(NamingStyleOptions.NamingPreferences);
             builder["OptionLanguage"] = compilation.Language;
 
-            return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), applicableRule.EnforcementLevel, additionalLocations: null, builder.ToImmutable(), failureReason);
+            return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), NotificationOption2.ForSeverity(applicableRule.EnforcementLevel), additionalLocations: null, builder.ToImmutable(), failureReason);
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

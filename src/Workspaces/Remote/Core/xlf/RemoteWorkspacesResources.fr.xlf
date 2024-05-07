@@ -132,6 +132,11 @@
         <target state="translated">Fournisseur de ressources</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">Génération de la source</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">
         <source>Stack Trace Explorer</source>
         <target state="translated">Explorateur de traces de pile</target>

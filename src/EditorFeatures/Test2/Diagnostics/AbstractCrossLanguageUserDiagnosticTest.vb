@@ -49,8 +49,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         Protected Shared Function FlattenActions(codeActions As IEnumerable(Of CodeAction)) As IList(Of CodeAction)
             Return codeActions?.SelectMany(
-                Function(a) If(a.NestedCodeActions.Length > 0,
-                               a.NestedCodeActions.ToArray(),
+                Function(a) If(a.NestedActions.Length > 0,
+                               a.NestedActions.ToArray(),
                                {a})).ToList()
         End Function
 

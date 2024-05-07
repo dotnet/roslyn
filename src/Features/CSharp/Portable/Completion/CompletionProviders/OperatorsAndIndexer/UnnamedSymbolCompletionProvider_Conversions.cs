@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -29,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// Tag to let us know we need to rehydrate the conversion from the parameter and return type.
         /// </summary>
         private const string RehydrateName = "Rehydrate";
-        private static readonly ImmutableDictionary<string, string> s_conversionProperties =
-            ImmutableDictionary<string, string>.Empty.Add(KindName, ConversionKindName);
+        private static readonly ImmutableArray<KeyValuePair<string, string>> s_conversionProperties =
+            ImmutableArray.Create(new KeyValuePair<string, string>(KindName, ConversionKindName));
 
         // We set conversion items' match priority to "Deprioritize" so completion selects other symbols over it when user starts typing.
         // e.g. method symbol `Should` should be selected over `(short)` when "sh" is typed.
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 isComplexTextEdit: true));
         }
 
-        private static (ImmutableArray<ISymbol> symbols, ImmutableDictionary<string, string> properties) GetConversionSymbolsAndProperties(
+        private static (ImmutableArray<ISymbol> symbols, ImmutableArray<KeyValuePair<string, string>> properties) GetConversionSymbolsAndProperties(
             CompletionContext context, IMethodSymbol conversion)
         {
             // If it's a non-synthesized method, then we can just encode it as is.
@@ -63,11 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return (ImmutableArray.Create<ISymbol>(conversion), s_conversionProperties);
 
             // Otherwise, encode the constituent parts so we can recover it in GetConversionDescriptionAsync;
-            var properties = s_conversionProperties
-                .Add(RehydrateName, RehydrateName)
-                .Add(DocumentationCommentXmlName, conversion.GetDocumentationCommentXml(cancellationToken: context.CancellationToken) ?? "");
+            using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var builder);
+
+            builder.AddRange(s_conversionProperties);
+            builder.Add(new KeyValuePair<string, string>(RehydrateName, RehydrateName));
+            builder.Add(new KeyValuePair<string, string>(DocumentationCommentXmlName, conversion.GetDocumentationCommentXml(cancellationToken: context.CancellationToken) ?? ""));
             var symbols = ImmutableArray.Create<ISymbol>(conversion.ContainingType, conversion.Parameters.First().Type, conversion.ReturnType);
-            return (symbols, properties);
+            return (symbols, builder.ToImmutable());
         }
 
         private static async Task<CompletionChange> GetConversionChangeAsync(
@@ -139,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static async Task<ISymbol?> TryRehydrateAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             // If we're need to rehydrate the conversion, pull out the necessary parts.
-            if (item.Properties.ContainsKey(RehydrateName))
+            if (item.TryGetProperty(RehydrateName, out var _))
             {
                 var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
                 if (symbols is [INamedTypeSymbol containingType, ITypeSymbol fromType, ITypeSymbol toType])
@@ -148,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         toType: toType,
                         fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"),
                         containingType: containingType,
-                        documentationCommentXml: item.Properties[DocumentationCommentXmlName]);
+                        documentationCommentXml: item.GetProperty(DocumentationCommentXmlName));
                 }
 
                 return null;

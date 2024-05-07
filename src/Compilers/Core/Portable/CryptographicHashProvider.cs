@@ -3,13 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
+using System.Text;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -210,6 +213,62 @@ namespace Microsoft.CodeAnalysis
             {
                 incrementalHash.AppendData(bytes.ToArray());
                 return ImmutableArray.Create(incrementalHash.GetHashAndReset());
+            }
+        }
+
+        static readonly byte[] _singleZeroByteArray = new byte[1] { 0 };
+
+        internal static ImmutableArray<byte> ComputeSourceHash(ImmutableArray<ConstantValue> constants, SourceHashAlgorithm hashAlgorithm = SourceHashAlgorithms.Default)
+        {
+            var algorithmName = GetAlgorithmName(hashAlgorithm);
+            using var incrementalHash = IncrementalHash.CreateHash(algorithmName);
+
+            foreach (var constant in constants)
+            {
+                incrementalHash.AppendData(getBytes(constant));
+            }
+
+            return ImmutableArray.Create(incrementalHash.GetHashAndReset());
+
+            static byte[] getBytes(ConstantValue constant)
+            {
+                switch (constant.Discriminator)
+                {
+                    case ConstantValueTypeDiscriminator.Null:
+                        return _singleZeroByteArray;
+
+                    case ConstantValueTypeDiscriminator.String:
+                        return Encoding.Unicode.GetBytes(constant.StringValue!);
+
+                    case ConstantValueTypeDiscriminator.NInt:
+                        return getBytes(constant.UInt32Value);
+
+                    case ConstantValueTypeDiscriminator.NUInt:
+                        return getBytes(constant.UInt32Value);
+
+                    case ConstantValueTypeDiscriminator.Decimal:
+                        int[] bits = decimal.GetBits(constant.DecimalValue);
+                        Debug.Assert(bits.Length == 4);
+
+                        byte[] bytes = new byte[16];
+                        Span<byte> span = bytes;
+                        BinaryPrimitives.WriteInt32LittleEndian(span, bits[0]);
+                        BinaryPrimitives.WriteInt32LittleEndian(span.Slice(4), bits[1]);
+                        BinaryPrimitives.WriteInt32LittleEndian(span.Slice(8), bits[2]);
+                        BinaryPrimitives.WriteInt32LittleEndian(span.Slice(12), bits[3]);
+
+                        return bytes;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(constant.Discriminator);
+                }
+
+                static byte[] getBytes(uint value)
+                {
+                    var bytes = new byte[4];
+                    BinaryPrimitives.WriteUInt32LittleEndian(bytes, value);
+                    return bytes;
+                }
             }
         }
 

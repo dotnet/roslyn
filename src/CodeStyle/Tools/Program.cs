@@ -70,7 +70,7 @@ namespace CodeStyleConfigFileGenerator
             {
                 CreateGlobalconfig(
                     configDir,
-                    $"AnalysisLevelStyle_{analysisMode}.editorconfig".ToLowerInvariant(),
+                    $"AnalysisLevelStyle_{analysisMode}.globalconfig".ToLowerInvariant(),
                     (AnalysisMode)analysisMode!,
                     allRulesById);
             }
@@ -208,46 +208,69 @@ $@"<Project>{GetTargetContents(language)}
 
             static string GetTargetContents(string language)
             {
-                return $@"
-  <Target Name=""AddGlobalAnalyzerConfigForPackage_MicrosoftCodeAnalysis{language}CodeStyle"" BeforeTargets=""CoreCompile"" Condition=""'$(SkipGlobalAnalyzerConfigForPackage)' != 'true'"">
-    <!-- PropertyGroup to compute global analyzer config file to be used -->
-    <PropertyGroup>
-      <!-- Default 'AnalysisLevelStyle' to the core 'AnalysisLevel' -->
-      <AnalysisLevelStyle Condition=""'$(AnalysisLevelStyle)' == ''"">$(AnalysisLevel)</AnalysisLevelStyle>
-      
-      <!-- AnalysisLevelStyle can also contain compound values with a prefix and suffix separated by a '-' character.
-           The prefix indicates the core AnalysisLevel for CA analyzers, which we ignore for IDE style analyzers.
-           The suffix indicates the bucket of rules to enable for 'Style' rules by default. It is used to map to the correct global config.
-      -->
-      <AnalysisLevelPrefixStyle Condition=""$(AnalysisLevelStyle.Contains('-'))"">$([System.Text.RegularExpressions.Regex]::Replace($(AnalysisLevelStyle), '-(.)*', ''))</AnalysisLevelPrefixStyle>
-      <AnalysisLevelSuffixStyle Condition=""'$(AnalysisLevelPrefixStyle)' != ''"">$([System.Text.RegularExpressions.Regex]::Replace($(AnalysisLevelStyle), '$(AnalysisLevelPrefixStyle)-', ''))</AnalysisLevelSuffixStyle>
-      
-      <!-- Default 'AnalysisLevelSuffixStyle' to the core 'AnalysisLevelSuffix' -->
-      <AnalysisLevelSuffixStyle Condition=""'$(AnalysisLevelSuffixStyle)' == ''"">$(AnalysisLevelSuffix)</AnalysisLevelSuffixStyle>
-      <!-- Default 'AnalysisModeStyle' to the core 'AnalysisMode' -->
-      <AnalysisModeStyle Condition=""'$(AnalysisModeStyle)' == ''"">$(AnalysisMode)</AnalysisModeStyle>
+                return $"""
 
-      <!-- Set the default analysis mode, if not set by the user -->
-      <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>$(AnalysisLevelSuffixStyle)</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
-      <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle Condition=""'$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle)' == ''"">$(AnalysisModeStyle)</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
-      <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle Condition=""'$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle)' == 'AllEnabledByDefault'"">{nameof(AnalysisMode.All)}</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
-      <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle Condition=""'$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle)' == 'AllDisabledByDefault'"">{nameof(AnalysisMode.None)}</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
-      <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle Condition=""'$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle)' == ''"">{nameof(AnalysisMode.Default)}</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
+                      <Target Name="AddGlobalAnalyzerConfigForPackage_MicrosoftCodeAnalysis{language}CodeStyle" BeforeTargets="GenerateMSBuildEditorConfigFileCore;CoreCompile" Condition="'$(SkipGlobalAnalyzerConfigForPackage)' != 'true'">
+                        <!-- PropertyGroup to compute global analyzer config file to be used -->
+                        <PropertyGroup>
+                          <!-- Default 'AnalysisLevelStyle' to the core 'AnalysisLevel' -->
+                          <AnalysisLevelStyle Condition="'$(AnalysisLevelStyle)' == ''">$(AnalysisLevel)</AnalysisLevelStyle>
 
-      <_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>AnalysisLevelStyle_$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle).editorconfig</_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>
-      <_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle.ToLowerInvariant())</_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>
-      
-      <_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle Condition=""'$(_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle)' == ''"">$(MSBuildThisFileDirectory)config</_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle>
-      <_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle Condition=""'$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle)' != ''"">$(_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle)\$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle)</_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle>
-    </PropertyGroup>
+                          <!-- AnalysisLevelStyle can also contain compound values with a prefix and suffix separated by a '-' character.
+                               The prefix indicates the core AnalysisLevel for 'Style' rules and the suffix indicates the bucket of
+                               rules to enable for 'Style' rules by default. For example, some valid compound values for AnalysisLevelStyle are:
+                                 1. '5-all' - Indicates core AnalysisLevelStyle = '5' with 'all' the 'Style' rules enabled by default.
+                                 2. 'latest-none' - Indicates core AnalysisLevelStyle = 'latest' with 'none' of the 'Style' rules enabled by default.
+                               AnalysisLevelPrefixStyle is used to set the EffectiveAnalysisLevelStyle below.
+                               AnalysisLevelSuffixStyle is used to map to the correct global config.
+                          -->
+                          <AnalysisLevelPrefixStyle Condition="$(AnalysisLevelStyle.Contains('-'))">$([System.Text.RegularExpressions.Regex]::Replace($(AnalysisLevelStyle), '-(.)*', ''))</AnalysisLevelPrefixStyle>
+                          <AnalysisLevelSuffixStyle Condition="'$(AnalysisLevelPrefixStyle)' != ''">$([System.Text.RegularExpressions.Regex]::Replace($(AnalysisLevelStyle), '$(AnalysisLevelPrefixStyle)-', ''))</AnalysisLevelSuffixStyle>
 
-    <!-- Add the global config, if required. -->
-    <ItemGroup Condition=""Exists('$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)') and
-                           ('$(AnalysisLevelStyle)' != '$(AnalysisLevel)' or '$(AnalysisModeStyle)' != '$(AnalysisMode)')"">
-      <EditorConfigFiles Include=""$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)"" />
-    </ItemGroup>
-  </Target>
-";
+                          <!-- Default 'AnalysisLevelSuffixStyle' to the core 'AnalysisLevelSuffix' -->
+                          <AnalysisLevelSuffixStyle Condition="'$(AnalysisLevelSuffixStyle)' == ''">$(AnalysisLevelSuffix)</AnalysisLevelSuffixStyle>
+                          <!-- Default 'AnalysisModeStyle' to the core 'AnalysisMode' -->
+                          <AnalysisModeStyle Condition="'$(AnalysisModeStyle)' == ''">$(AnalysisMode)</AnalysisModeStyle>
+
+                          <!-- EffectiveAnalysisLevelStyle is used to differentiate from user specified strings (such as 'none')
+                               and an implied numerical option (such as '4') -->
+                          <EffectiveAnalysisLevelStyle Condition="'$(AnalysisLevelStyle)' == 'none' or '$(AnalysisLevelPrefixStyle)' == 'none'">$(_NoneAnalysisLevel)</EffectiveAnalysisLevelStyle>
+                          <EffectiveAnalysisLevelStyle Condition="'$(AnalysisLevelStyle)' == 'latest' or '$(AnalysisLevelPrefixStyle)' == 'latest'">$(_LatestAnalysisLevel)</EffectiveAnalysisLevelStyle>
+                          <EffectiveAnalysisLevelStyle Condition="'$(AnalysisLevelStyle)' == 'preview' or '$(AnalysisLevelPrefixStyle)' == 'preview'">$(_PreviewAnalysisLevel)</EffectiveAnalysisLevelStyle>
+
+                          <!-- Set EffectiveAnalysisLevelStyle to the value of AnalysisLevelStyle if it is a version number -->
+                          <EffectiveAnalysisLevelStyle Condition="'$(EffectiveAnalysisLevelStyle)' == '' And
+                                                              '$(AnalysisLevelPrefixStyle)' != ''">$(AnalysisLevelPrefixStyle)</EffectiveAnalysisLevelStyle>
+                          <EffectiveAnalysisLevelStyle Condition="'$(EffectiveAnalysisLevelStyle)' == '' And
+                                                              '$(AnalysisLevelStyle)' != ''">$(AnalysisLevelStyle)</EffectiveAnalysisLevelStyle>
+
+                          <!-- Set the default analysis mode, if not set by the user -->
+                          <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>$(AnalysisLevelSuffixStyle)</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
+                          <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle)' == ''">$(AnalysisModeStyle)</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
+                          <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle)' == 'AllEnabledByDefault'">{nameof(AnalysisMode.All)}</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
+                          <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle)' == 'AllDisabledByDefault'">{nameof(AnalysisMode.None)}</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
+                          <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle)' == ''">{nameof(AnalysisMode.Default)}</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
+
+                          <_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>AnalysisLevelStyle_$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle).globalconfig</_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>
+                          <_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle.ToLowerInvariant())</_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>
+
+                          <_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle)' == ''">$(MSBuildThisFileDirectory)config</_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle>
+                          <_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle Condition="'$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle)' != ''">$(_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle)\$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle)</_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle>
+                        </PropertyGroup>
+
+                        <!-- From .NET 9, the global config is systematically added if the file exists. Please check https://github.com/dotnet/roslyn/pull/71173 for more info. -->
+                        <ItemGroup Condition="Exists('$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)') and
+                                               ('$(AnalysisLevelStyle)' != '$(AnalysisLevel)' or '$(AnalysisModeStyle)' != '$(AnalysisMode)' or ('$(EffectiveAnalysisLevelStyle)' != '' and $([MSBuild]::VersionGreaterThanOrEquals('$(EffectiveAnalysisLevelStyle)', '9.0'))))">
+                          <EditorConfigFiles Include="$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)" />
+                        </ItemGroup>
+
+                        <!-- Pass the MSBuild property value for 'EffectiveAnalysisLevelStyle' to the analyzers via analyzer config options. -->
+                        <ItemGroup>
+                          <CompilerVisibleProperty Include="EffectiveAnalysisLevelStyle" />
+                        </ItemGroup>
+                      </Target>
+
+                    """;
             }
         }
 

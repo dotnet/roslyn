@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis
         System_UIntPtr__op_Explicit_FromUInt64,
 
         System_Nullable_T_GetValueOrDefault,
+        System_Nullable_T_GetValueOrDefaultDefaultValue,
         System_Nullable_T_get_Value,
         System_Nullable_T_get_HasValue,
         System_Nullable_T__ctor,

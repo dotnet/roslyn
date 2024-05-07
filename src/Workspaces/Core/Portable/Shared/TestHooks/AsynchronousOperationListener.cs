@@ -17,10 +17,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     {
         private readonly NonReentrantLock _gate = new();
 
-#pragma warning disable IDE0052 // Remove unread private members - Can this field be removed?
-        private readonly string _featureName;
-#pragma warning restore IDE0052 // Remove unread private members
-
         private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new();
         private CancellationTokenSource _expeditedDelayCancellationTokenSource;
 
@@ -35,10 +31,12 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public AsynchronousOperationListener(string featureName, bool enableDiagnosticTokens)
         {
-            _featureName = featureName;
+            FeatureName = featureName;
             _expeditedDelayCancellationTokenSource = new CancellationTokenSource();
             TrackActiveTokens = Debugger.IsAttached || enableDiagnosticTokens;
         }
+
+        public string FeatureName { get; }
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/pull/58646",
@@ -70,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
 
             // Handle continuation in a local function to avoid capturing arguments when this path is avoided
-            return DelaySlow(delayTask, cancellationTokenSource, cancellationToken);
+            return DelaySlowAsync(delayTask, cancellationTokenSource, cancellationToken);
 
-            static Task<bool> DelaySlow(Task delayTask, CancellationTokenSource cancellationTokenSourceToDispose, CancellationToken cancellationToken)
+            static Task<bool> DelaySlowAsync(Task delayTask, CancellationTokenSource cancellationTokenSourceToDispose, CancellationToken cancellationToken)
             {
                 return delayTask.ContinueWith(
                     task =>

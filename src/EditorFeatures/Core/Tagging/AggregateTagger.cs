@@ -3,51 +3,62 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
 /// <summary>
-/// Simple tagger that aggregates the underlying syntax/semantic compiler/analyzer taggers and presents them as
-/// a single event source and source of tags.
+/// Base type of all taggers that wrap a set of other <paramref name="taggers"/>, presenting them all as if they were a
+/// single <see cref="ITagger{T}"/>.
 /// </summary>
-internal sealed class AggregateTagger<TTag>(ImmutableArray<ITagger<TTag>> taggers) : ITagger<TTag>, IDisposable
+internal abstract class AbstractAggregateTagger<TTag>(ImmutableArray<EfficientTagger<TTag>> taggers) : EfficientTagger<TTag>, IDisposable
     where TTag : ITag
 {
-    private readonly ImmutableArray<ITagger<TTag>> _taggers = taggers;
+    protected readonly ImmutableArray<EfficientTagger<TTag>> Taggers = taggers;
 
-    public void Dispose()
+    /// <summary>
+    /// Disposes all the underlying taggers (if they themselves are <see cref="IDisposable"/>.
+    /// </summary>
+    public override void Dispose()
     {
-        foreach (var tagger in _taggers)
-            (tagger as IDisposable)?.Dispose();
+        foreach (var tagger in this.Taggers)
+            tagger.Dispose();
     }
 
-    public event EventHandler<SnapshotSpanEventArgs> TagsChanged
+    /// <summary>
+    /// This tagger considers itself changed if any underlying taggers signal that they are changed.
+    /// </summary>
+    public override event EventHandler<SnapshotSpanEventArgs>? TagsChanged
     {
         add
         {
-            foreach (var tagger in _taggers)
+            foreach (var tagger in this.Taggers)
                 tagger.TagsChanged += value;
         }
 
         remove
         {
-            foreach (var tagger in _taggers)
+            foreach (var tagger in this.Taggers)
                 tagger.TagsChanged -= value;
         }
     }
+}
 
-    public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+/// <summary>
+/// Simple tagger that aggregates the underlying taggers and presents them as a single event source and source of tags.
+/// The final set of tags produced by any <see cref="AddTags"/> request is just the aggregation of all the tags produced
+/// by the individual <paramref name="taggers"/>.
+/// </summary>
+internal sealed class SimpleAggregateTagger<TTag>(ImmutableArray<EfficientTagger<TTag>> taggers)
+    : AbstractAggregateTagger<TTag>(taggers)
+    where TTag : ITag
+{
+    public override void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<TTag>> tags)
     {
-        using var _ = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var result);
-
-        foreach (var tagger in _taggers)
-            result.AddRange(tagger.GetTags(spans));
-
-        return result.ToImmutable();
+        foreach (var tagger in this.Taggers)
+            tagger.AddTags(spans, tags);
     }
 }

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal static class PathMetadataUtilities
     {
-        private static readonly char[] NamespaceSeparatorArray = new[] { '.' };
+        private static readonly char[] NamespaceSeparatorArray = ['.'];
 
         /// <summary>
         /// Given a set of folders from build the namespace that would match

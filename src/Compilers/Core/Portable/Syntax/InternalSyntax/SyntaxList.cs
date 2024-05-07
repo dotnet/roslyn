@@ -19,11 +19,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
         }
 
-        internal SyntaxList(ObjectReader reader)
-            : base(reader)
-        {
-        }
-
         internal static GreenNode List(GreenNode child)
         {
             return child;

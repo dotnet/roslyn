@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
                 return new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
                 {
-                    { methodToken, new MethodDebugInfoBytes.Builder(new [] { importStrings }).Build() },
+                    { methodToken, new MethodDebugInfoBytes.Builder([importStrings]).Build() },
                 }.ToImmutableDictionary());
             }
         }

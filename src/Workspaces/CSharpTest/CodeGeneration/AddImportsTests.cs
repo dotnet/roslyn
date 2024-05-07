@@ -114,10 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         }
 
         public static object[][] TestAllData =
-        {
-            new object[] { false },
-            new object[] { true },
-        };
+        [
+            [false],
+            [true],
+        ];
 
         [Theory, MemberData(nameof(TestAllData))]
         public async Task TestAddImport(bool useSymbolAnnotations)

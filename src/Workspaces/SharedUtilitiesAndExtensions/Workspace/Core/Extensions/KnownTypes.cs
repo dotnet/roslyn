@@ -4,30 +4,36 @@
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal readonly struct KnownTypes
+internal readonly struct KnownTaskTypes(Compilation compilation)
 {
-    public readonly INamedTypeSymbol? TaskType;
-    public readonly INamedTypeSymbol? TaskOfTType;
-    public readonly INamedTypeSymbol? ValueTaskType;
-    public readonly INamedTypeSymbol? ValueTaskOfTTypeOpt;
+    public readonly INamedTypeSymbol? TaskType = compilation.TaskType();
+    public readonly INamedTypeSymbol? TaskOfTType = compilation.TaskOfTType();
+    public readonly INamedTypeSymbol? ValueTaskType = compilation.ValueTaskType();
+    public readonly INamedTypeSymbol? ValueTaskOfTType = compilation.ValueTaskOfTType();
 
-    public readonly INamedTypeSymbol? IEnumerableOfTType;
-    public readonly INamedTypeSymbol? IEnumeratorOfTType;
+    public readonly INamedTypeSymbol? IEnumerableOfTType = compilation.IEnumerableOfTType();
+    public readonly INamedTypeSymbol? IEnumeratorOfTType = compilation.IEnumeratorOfTType();
 
-    public readonly INamedTypeSymbol? IAsyncEnumerableOfTTypeOpt;
-    public readonly INamedTypeSymbol? IAsyncEnumeratorOfTTypeOpt;
+    public readonly INamedTypeSymbol? IAsyncEnumerableOfTType = compilation.IAsyncEnumerableOfTType();
+    public readonly INamedTypeSymbol? IAsyncEnumeratorOfTType = compilation.IAsyncEnumeratorOfTType();
 
-    internal KnownTypes(Compilation compilation)
+    public bool IsTaskLike(ITypeSymbol returnType)
     {
-        TaskType = compilation.TaskType();
-        TaskOfTType = compilation.TaskOfTType();
-        ValueTaskType = compilation.ValueTaskType();
-        ValueTaskOfTTypeOpt = compilation.ValueTaskOfTType();
+        if (returnType.Equals(this.TaskType))
+            return true;
 
-        IEnumerableOfTType = compilation.IEnumerableOfTType();
-        IEnumeratorOfTType = compilation.IEnumeratorOfTType();
+        if (returnType.Equals(this.ValueTaskType))
+            return true;
 
-        IAsyncEnumerableOfTTypeOpt = compilation.IAsyncEnumerableOfTType();
-        IAsyncEnumeratorOfTTypeOpt = compilation.IAsyncEnumeratorOfTType();
+        if (returnType.OriginalDefinition.Equals(this.TaskOfTType))
+            return true;
+
+        if (returnType.OriginalDefinition.Equals(this.ValueTaskOfTType))
+            return true;
+
+        if (returnType.IsErrorType())
+            return returnType.Name is "Task" or "ValueTask";
+
+        return false;
     }
 }

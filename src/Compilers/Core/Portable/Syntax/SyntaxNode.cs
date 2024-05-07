@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
         public SourceText GetText(Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
-            var builder = new StringBuilder();
+            var builder = new StringBuilder(this.Green.FullWidth);
             this.WriteTo(new StringWriter(builder));
             return new StringBuilderText(builder, encoding, checksumAlgorithm);
         }
@@ -1392,31 +1392,16 @@ recurse:
         /// Serializes the node to the given <paramref name="stream"/>.
         /// Leaves the <paramref name="stream"/> open for further writes.
         /// </summary>
-        [Obsolete(SerializationDeprecationException.Text, error: false)]
+        [Obsolete(SerializationDeprecationException.Text, error: true)]
         public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default)
-        {
-            if (stream == null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
-
-            if (!stream.CanWrite)
-            {
-                throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
-            }
-
-            // Report NFW to see if this is being used in the wild.
-            FatalError.ReportNonFatalError(new SerializationDeprecationException());
-            using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
-            writer.WriteValue(Green);
-        }
+            => throw new SerializationDeprecationException();
 
         /// <summary>
         /// Specialized exception subtype to make it easier to search telemetry streams for this specific case.
         /// </summary>
         private protected sealed class SerializationDeprecationException : Exception
         {
-            public const string Text = "Syntax serialization support is deprecated and will be removed in a future version of this API";
+            public const string Text = "Syntax serialization support is no longer supported";
 
             public SerializationDeprecationException()
                 : base(Text)

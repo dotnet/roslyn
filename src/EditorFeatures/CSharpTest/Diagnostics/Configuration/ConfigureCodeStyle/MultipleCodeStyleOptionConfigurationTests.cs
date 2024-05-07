@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         {
             Assert.Single(actions);
-            var nestedActionForOptionIndex = ((AbstractConfigurationActionWithNestedActions)actions[0]).NestedCodeActions[OptionIndex];
+            var nestedActionForOptionIndex = ((AbstractConfigurationActionWithNestedActions)actions[0]).NestedActions[OptionIndex];
             return base.MassageActions(ImmutableArray.Create(nestedActionForOptionIndex));
         }
 

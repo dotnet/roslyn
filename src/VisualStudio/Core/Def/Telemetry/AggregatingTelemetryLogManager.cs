@@ -55,19 +55,19 @@ namespace Microsoft.CodeAnalysis.Telemetry
         {
             token.ThrowIfCancellationRequested();
 
-            PostCollectedTelemetry();
+            Flush();
 
             return ValueTaskFactory.CompletedTask;
         }
 
-        private void PostCollectedTelemetry()
+        public void Flush()
         {
             if (!_session.IsOptedIn)
                 return;
 
             foreach (var log in _aggregatingLogs.Values)
             {
-                log.PostTelemetry(_session);
+                log.Flush();
             }
         }
     }

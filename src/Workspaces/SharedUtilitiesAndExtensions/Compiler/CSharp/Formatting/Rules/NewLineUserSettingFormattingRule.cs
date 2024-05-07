@@ -127,18 +127,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // new { - Object Initialization, or with { - Record with initializer, or is { - property pattern clauses
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
-                currentToken.Parent.Kind() is
-                    SyntaxKind.ObjectInitializerExpression or
-                    SyntaxKind.CollectionInitializerExpression or
-                    SyntaxKind.ArrayInitializerExpression or
-                    SyntaxKind.ImplicitArrayCreationExpression or
-                    SyntaxKind.WithInitializerExpression or
-                    SyntaxKind.PropertyPatternClause)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken))
             {
-                if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers))
+                if (currentToken.Parent.Kind() is SyntaxKind.ObjectInitializerExpression
+                    or SyntaxKind.CollectionInitializerExpression
+                    or SyntaxKind.ArrayInitializerExpression
+                    or SyntaxKind.ImplicitArrayCreationExpression
+                    or SyntaxKind.WithInitializerExpression)
                 {
-                    operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                    if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers))
+                    {
+                        operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                    }
+                }
+                else if (currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause))
+                {
+                    if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers))
+                    {
+                        // Allow property patterns in switch expressions to start on their own line:
+                        //
+                        // var x = y switch {
+                        //    { Value: true } => false,    ⬅️ This line starts with an open brace
+                        //    _ => true,
+                        // };
+                        var isFirstTokenOfSwitchArm = currentToken.Parent.IsParentKind(SyntaxKind.RecursivePattern, out RecursivePatternSyntax? recursivePattern)
+                            && recursivePattern.IsParentKind(SyntaxKind.SwitchExpressionArm, out SwitchExpressionArmSyntax? switchExpressionArm)
+                            && switchExpressionArm.GetFirstToken() == currentToken;
+
+                        var spacesOption = isFirstTokenOfSwitchArm
+                            ? AdjustSpacesOption.ForceSpacesIfOnSingleLine
+                            : AdjustSpacesOption.ForceSpaces;
+                        operation = CreateAdjustSpacesOperation(1, spacesOption);
+                    }
                 }
             }
 

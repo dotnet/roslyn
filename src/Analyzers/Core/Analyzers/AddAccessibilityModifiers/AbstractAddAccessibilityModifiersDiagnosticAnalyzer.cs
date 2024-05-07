@@ -28,13 +28,17 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
 
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
             var option = context.GetAnalyzerOptions().RequireAccessibilityModifiers;
-            if (option.Value == AccessibilityModifiersRequired.Never)
+            if (option.Value == AccessibilityModifiersRequired.Never
+                || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
+            {
                 return;
+            }
 
             ProcessCompilationUnit(context, option, (TCompilationUnitSyntax)context.Tree.GetRoot(context.CancellationToken));
         }

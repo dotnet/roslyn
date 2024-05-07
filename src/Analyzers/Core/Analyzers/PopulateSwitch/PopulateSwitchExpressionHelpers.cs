@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         public static bool IsDefault(ISwitchExpressionArmOperation arm)
             => IsDefault(arm.Pattern);
 
-        private static bool IsDefault(IPatternOperation pattern)
+        public static bool IsDefault(IPatternOperation pattern)
             => pattern switch
             {
                 // _ => ...

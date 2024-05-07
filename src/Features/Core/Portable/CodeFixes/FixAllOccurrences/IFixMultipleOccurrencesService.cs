@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             string equivalenceKey,
             string waitDialogTitle,
             string waitDialogMessage,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken);
 
         /// <summary>
@@ -41,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             string equivalenceKey,
             string waitDialogTitle,
             string waitDialogMessage,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken);
     }
 }

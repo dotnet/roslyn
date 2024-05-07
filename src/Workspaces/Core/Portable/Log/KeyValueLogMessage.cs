@@ -72,19 +72,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
         }
 
-        public IEnumerable<KeyValuePair<string, object?>> Properties
+        public IReadOnlyDictionary<string, object?> Properties
         {
             get
             {
                 EnsureMap();
                 return _lazyMap;
             }
-        }
-
-        public bool TryGetValue(string key, out object? value)
-        {
-            EnsureMap();
-            return _lazyMap.TryGetValue(key, out value);
         }
 
         protected override string CreateMessage()

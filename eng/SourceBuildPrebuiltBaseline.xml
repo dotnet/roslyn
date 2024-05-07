@@ -3,8 +3,6 @@
 
 <UsageData>
   <IgnorePatterns>
-    <UsagePattern IdentityGlob="Microsoft.SourceBuild.Intermediate.*/*" />
-
     <!-- These are cases where the component chooses, when built in isolation, to 
          remain dependent on stable versions. These versions may not have source build intermediates associated with them.
          They cannot be source build reference packages because they actually provide functionality. In full source build, these versions are
@@ -22,6 +20,20 @@
     <!-- Roslyn's source-build CI builds both NetPrevious and NetCurrent. This 7.0 ref pack shows up as
          prebuilt only for the repo CI build but not full source-build. -->
     <UsagePattern IdentityGlob="Microsoft.NETCore.App.Ref/7.0*" />
+
+     <!-- This is upgraded to latest version in full source-build and can be baselined for repo build -->
+    <UsagePattern IdentityGlob="System.Composition*/7.0*" />
+    <UsagePattern IdentityGlob="Microsoft.Extensions.Configuration*/7.0*" />
+    <UsagePattern IdentityGlob="Microsoft.Extensions.Logging*/7.0*" />
+    <UsagePattern IdentityGlob="Microsoft.Extensions.Options.ConfigurationExtension*/7.0*" />
+
+    <UsagePattern IdentityGlob="System.Composition*/8.0*" />
+    <UsagePattern IdentityGlob="System.IO.Pipelines/8.0.0" />
+    <UsagePattern IdentityGlob="System.Text.Encoding.CodePages/8.0.0" />
+    <UsagePattern IdentityGlob="System.Text.Encodings.Web/8.0.0" />
+    <UsagePattern IdentityGlob="System.Text.Json/8.0.0" />
+    <UsagePattern IdentityGlob="System.Threading.Channels/8.0.0" />
+    <UsagePattern IdentityGlob="System.Resources.Extensions/8.0.0" />
   </IgnorePatterns>
   <Usages>
     <Usage Id="Microsoft.Build" Version="17.3.4" IsDirectDependency="true" />
@@ -29,11 +41,5 @@
     <Usage Id="Microsoft.Build.Tasks.Core" Version="17.3.4" IsDirectDependency="true" />
     <Usage Id="Microsoft.Build.Utilities.Core" Version="17.3.4" />
     <Usage Id="Microsoft.NET.StringTools" Version="17.3.4" />
-    <Usage Id="System.Composition" Version="7.0.0" />
-    <Usage Id="System.Composition.AttributedModel" Version="7.0.0" />
-    <Usage Id="System.Composition.Convention" Version="7.0.0" />
-    <Usage Id="System.Composition.Hosting" Version="7.0.0" />
-    <Usage Id="System.Composition.Runtime" Version="7.0.0" />
-    <Usage Id="System.Composition.TypedParts" Version="7.0.0" />
   </Usages>
 </UsageData>

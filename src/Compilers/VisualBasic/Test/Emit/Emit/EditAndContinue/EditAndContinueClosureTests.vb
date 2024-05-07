@@ -4,8 +4,10 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata.Ecma335
+Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
 
@@ -43,7 +45,7 @@ End Class
             Dim compilation0 = CreateEmptyCompilationWithReferences(source0, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source1)
             Dim bytes0 = compilation0.EmitToArray()
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -101,11 +103,11 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -152,11 +154,11 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -204,11 +206,11 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -257,11 +259,11 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -336,11 +338,11 @@ End Class
             Dim ctor0 = compilation0.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
             Dim ctor1 = compilation1.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -420,11 +422,11 @@ End Module
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -521,13 +523,13 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.N")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.N")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
             Dim reader0 = md0.MetadataReader
             CheckNamesSorted({reader0}, reader0.GetTypeDefNames(), "_Closure$__", "<Module>", "C", "VB$AnonymousDelegate_0", "VB$AnonymousDelegate_1`1", "VB$AnonymousDelegate_2`2", "VB$AnonymousDelegate_3`1", "VB$AnonymousType_0`1")
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             Dim md1 = diff1.GetMetadata()
             Dim reader1 = md1.Reader
@@ -617,11 +619,11 @@ End Class
             Dim ctor0 = compilation0.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
             Dim ctor1 = compilation1.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -686,11 +688,11 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -759,11 +761,11 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -823,11 +825,11 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -889,11 +891,11 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -971,20 +973,20 @@ End Class
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             Dim md1 = diff1.GetMetadata()
             Dim reader1 = md1.Reader
 
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
-                "C._Closure$__: {$I0#1, _Lambda$__0#1}")
+                "C._Closure$__: {$I2#1-0#1, _Lambda$__2#1-0#1}")
 
-            diff1.VerifyIL("C._Closure$__._Lambda$__0#1", "
+            diff1.VerifyIL("C._Closure$__._Lambda$__2#1-0#1", "
 {
   // Code size        9 (0x9)
   .maxstack  2
@@ -1001,13 +1003,13 @@ End Class
 ")
             Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
-                "C._Closure$__: {$I0#1, _Lambda$__0#1}")
+                "C._Closure$__: {$I2#1-0#1, _Lambda$__2#1-0#1}")
 
-            diff2.VerifyIL("C._Closure$__._Lambda$__0#1", "
+            diff2.VerifyIL("C._Closure$__._Lambda$__2#1-0#1", "
 {
   // Code size        9 (0x9)
   .maxstack  2
@@ -1086,11 +1088,11 @@ End Class
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
             Dim f3 = compilation3.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             Dim md1 = diff1.GetMetadata()
             Dim reader1 = md1.Reader
@@ -1134,7 +1136,7 @@ End Class
 ")
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
@@ -1190,7 +1192,7 @@ End Class
 ")
             Dim diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3))))
 
             diff3.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
@@ -1329,11 +1331,11 @@ End Class")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             Dim md1 = diff1.GetMetadata()
             Dim reader1 = md1.Reader
@@ -1357,7 +1359,7 @@ End Class")
 
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             ' no new members
             diff2.VerifySynthesizedMembers(
@@ -1460,7 +1462,7 @@ End Class
             CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "F", "_Lambda$__1-1", ".ctor", ".cctor", "_Lambda$__1-0", ".ctor", "_Lambda$__2")
             CheckNames(reader0, reader0.GetFieldDefNames(), "$I", "$I1-0", "$VB$Local_a")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
@@ -1542,11 +1544,11 @@ End Class
             Dim ctor01 = compilation1.GetMembers("C..ctor").Single(Function(m) m.ToTestDisplayString() = "Sub C..ctor()")
             Dim ctor11 = compilation1.GetMembers("C..ctor").Single(Function(m) m.ToTestDisplayString() = "Sub C..ctor(x As System.Int32)")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(generation0, ImmutableArray.Create(
-                New SemanticEdit(SemanticEditKind.Update, ctor00, ctor01, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True),
-                New SemanticEdit(SemanticEditKind.Update, ctor10, ctor11, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                New SemanticEdit(SemanticEditKind.Update, ctor00, ctor01, GetSyntaxMapFromMarkers(source0, source1)),
+                New SemanticEdit(SemanticEditKind.Update, ctor10, ctor11, GetSyntaxMapFromMarkers(source0, source1))))
 
             Dim md1 = diff1.GetMetadata()
 
@@ -1656,13 +1658,13 @@ End Class
             Dim ctor0 = compilation0.GetMember(Of MethodSymbol)("C..ctor")
             Dim ctor1 = compilation1.GetMember(Of MethodSymbol)("C..ctor")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     New SemanticEdit(SemanticEditKind.Insert, Nothing, b1),
-                    New SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
@@ -1755,7 +1757,7 @@ End Class
             Dim b1 = compilation1.GetMember(Of FieldSymbol)("C.B")
             Dim ctor1 = compilation1.GetMember(Of MethodSymbol)("C..ctor")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
@@ -1812,7 +1814,7 @@ End Class
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             v0.VerifyIL("C.F", "
 {
@@ -1847,7 +1849,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__, _Closure$__1-0}",
@@ -1888,7 +1890,7 @@ End Class
 
             Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {_Closure$__, _Closure$__1-0}",
@@ -1974,7 +1976,7 @@ End Class
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             v0.VerifyIL("C.F", "
 {
@@ -2001,7 +2003,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__1-0}",
@@ -2033,7 +2035,7 @@ End Class
 
             Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {_Closure$__1-0}",
@@ -2092,7 +2094,7 @@ End Class
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim expectedIL As String = "
 {
@@ -2122,7 +2124,7 @@ End Class
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__1-0}",
@@ -2133,7 +2135,7 @@ End Class
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {_Closure$__1-0}",
@@ -2170,7 +2172,7 @@ End Class
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim expectedIL As String = "
 {
@@ -2200,7 +2202,7 @@ End Class
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__1-0}",
@@ -2211,13 +2213,1606 @@ End Class
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {_Closure$__1-0}",
                 "C._Closure$__1-0: {_Lambda$__0}")
 
             diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"))
+        End Sub
+
+        <Fact>
+        Public Sub Capture_Local()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()</N:0>
+        Dim <N:1>x = 1</N:1>
+        Dim a1 = new Action(<N:2>Sub() Console.WriteLine(0)</N:2>)
+        Dim a2 = new Action(<N:3>Sub() Console.WriteLine(1)</N:3>)
+    End Sub
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I1-0, $I1-1, _Lambda$__1-0, _Lambda$__1-1}")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()</N:0>
+        Dim <N:1>x = 1</N:1>
+        Dim a1 = new Action(<N:2>Sub() Console.WriteLine(x)</N:2>)
+        Dim a2 = new Action(<N:3>Sub() Console.WriteLine(1)</N:3>)
+    End Sub
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        ' Static lambda is reused.
+                        ' A new display class and method is generated for lambda that captures x.
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__, _Closure$__1-0#1}",
+                            "C._Closure$__: {$I1-1, _Lambda$__1-1}",
+                            "C._Closure$__1-0#1: {_Lambda$__0#1}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1", ".ctor", "_Lambda$__0#1")
+
+                        g.VerifyIL("
+{
+    // Code size       67 (0x43)
+    .maxstack  2
+    IL_0000:  nop
+    IL_0001:  newobj     0x06000007
+    IL_0006:  stloc.3
+    IL_0007:  ldloc.3
+    IL_0008:  ldc.i4.1
+    IL_0009:  stfld      0x04000004
+    IL_000e:  ldloc.3
+    IL_000f:  ldftn      0x06000008
+    IL_0015:  newobj     0x0A000009
+    IL_001a:  stloc.s    V_4
+    IL_001c:  ldsfld     0x04000003
+    IL_0021:  brfalse.s  IL_002a
+    IL_0023:  ldsfld     0x04000003
+    IL_0028:  br.s       IL_0040
+    IL_002a:  ldsfld     0x04000001
+    IL_002f:  ldftn      0x06000006
+    IL_0035:  newobj     0x0A000009
+    IL_003a:  dup
+    IL_003b:  stsfld     0x04000003
+    IL_0040:  stloc.s    V_5
+    IL_0042:  ret
+}
+{
+    // Code size       11 (0xb)
+    .maxstack  8
+    IL_0000:  ldstr      0x70000005
+    IL_0005:  newobj     0x0A00000A
+    IL_000a:  throw
+}
+{
+    // Code size        9 (0x9)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldc.i4.1
+    IL_0002:  call       0x0A00000B
+    IL_0007:  nop
+    IL_0008:  ret
+}
+{
+    // Code size        7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       0x0A00000C
+    IL_0006:  ret
+}
+{
+    // Code size       14 (0xe)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldfld      0x04000004
+    IL_0007:  call       0x0A00000B
+    IL_000c:  nop
+    IL_000d:  ret
+}
+")
+                    End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Capture_Parameter()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F(x As Integer)
+        Dim a1 = New Action(<N:1>Sub() Console.WriteLine(0)</N:1>)
+        Dim a2 = New Action(<N:2>Sub() Console.WriteLine(1)</N:2>)
+    End Sub</N:0>
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I1-0, $I1-1, _Lambda$__1-0, _Lambda$__1-1}")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F(x As Integer)
+        Dim a1 = New Action(<N:1>Sub() Console.WriteLine(0)</N:1>)
+        Dim a2 = New Action(<N:2>Sub() Console.WriteLine(x)</N:2>)
+    End Sub</N:0>
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__, _Closure$__1-0#1}",
+                            "C._Closure$__: {$I1-0, _Lambda$__1-0}",
+                            "C._Closure$__1-0#1: {_Lambda$__1#1}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1", ".ctor", "_Lambda$__1#1")
+
+                        g.VerifyIL("
+{
+  // Code size       66 (0x42)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  newobj     0x06000007
+  IL_0006:  stloc.2
+  IL_0007:  ldloc.2
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      0x04000004
+  IL_000e:  ldsfld     0x04000002
+  IL_0013:  brfalse.s  IL_001c
+  IL_0015:  ldsfld     0x04000002
+  IL_001a:  br.s       IL_0032
+  IL_001c:  ldsfld     0x04000001
+  IL_0021:  ldftn      0x06000005
+  IL_0027:  newobj     0x0A000009
+  IL_002c:  dup
+  IL_002d:  stsfld     0x04000002
+  IL_0032:  stloc.3
+  IL_0033:  ldloc.2
+  IL_0034:  ldftn      0x06000008
+  IL_003a:  newobj     0x0A000009
+  IL_003f:  stloc.s    V_4
+  IL_0041:  ret
+}
+{
+  // Code size        9 (0x9)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  call       0x0A00000A
+  IL_0007:  nop
+  IL_0008:  ret
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  newobj     0x0A00000B
+  IL_000a:  throw
+}
+{
+  // Code size        7 (0x7)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  call       0x0A00000C
+  IL_0006:  ret
+}
+{
+  // Code size       14 (0xe)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000004
+  IL_0007:  call       0x0A00000A
+  IL_000c:  nop
+  IL_000d:  ret
+}
+")
+                    End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Capture_This()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    <N:0>Sub F()
+        Dim a1 = new Action(<N:1>Sub() Console.WriteLine(0)</N:1>)
+        Dim a2 = new Action(<N:2>Sub() Console.WriteLine(1)</N:2>)
+    End Sub</N:0>
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I2-0, $I2-1, _Lambda$__2-0, _Lambda$__2-1}")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    <N:0>Sub F()
+        Dim a1 = new Action(<N:1>Sub() Console.WriteLine(0)</N:1>)
+        Dim a2 = new Action(<N:2>Sub() Console.WriteLine(x)</N:2>)
+    End Sub</N:0>
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Lambda$__2-1#1, _Closure$__}",
+                            "C._Closure$__: {$I2-0, _Lambda$__2-0}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__2-0", "_Lambda$__2-1", "_Lambda$__2-1#1")
+
+                        g.VerifyIL("
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     0x04000003
+  IL_0006:  brfalse.s  IL_000f
+  IL_0008:  ldsfld     0x04000003
+  IL_000d:  br.s       IL_0025
+  IL_000f:  ldsfld     0x04000002
+  IL_0014:  ldftn      0x06000005
+  IL_001a:  newobj     0x0A000009
+  IL_001f:  dup
+  IL_0020:  stsfld     0x04000003
+  IL_0025:  stloc.2
+  IL_0026:  ldarg.0
+  IL_0027:  ldftn      0x06000007
+  IL_002d:  newobj     0x0A000009
+  IL_0032:  stloc.3
+  IL_0033:  ret
+}
+{
+  // Code size        9 (0x9)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  call       0x0A00000A
+  IL_0007:  nop
+  IL_0008:  ret
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  newobj     0x0A00000B
+  IL_000a:  throw
+}
+{
+  // Code size       14 (0xe)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000001
+  IL_0007:  call       0x0A00000A
+  IL_000c:  nop
+  IL_000d:  ret
+}
+")
+                    End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub CeaseCapture_Local()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()
+        Dim <N:1>x = 1</N:1>
+        Dim <N:2>y = 1</N:2>
+        Dim a1 = <N:3>Function() x + y</N:3>
+    End Sub</N:0>
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__1-0}",
+                            "C._Closure$__1-0: {_Lambda$__0}")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()
+        Dim <N:1>x = 1</N:1>
+        Dim <N:2>y = 1</N:2>
+        Dim a1 = <N:3>Function() x</N:3>
+    End Sub</N:0>
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__1-0}",
+                            "C._Closure$__1-0: {_Lambda$__0}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__0")
+
+                        g.VerifyIL("
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  newobj     0x06000007
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      0x04000001
+  IL_000e:  ldc.i4.1
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.0
+  IL_0011:  ldftn      0x06000008
+  IL_0017:  newobj     0x0A000009
+  IL_001c:  stloc.3
+  IL_001d:  ret
+}
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000001
+  IL_0007:  stloc.0
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ldloc.0
+  IL_000b:  ret
+}
+")
+                    End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub CeaseCapture_LastLocal()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()
+        Dim <N:1>x = 1</N:1>
+        Dim a1 = <N:2>Function() x</N:2>
+    End Sub</N:0>
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C._Closure$__1-0: {_Lambda$__0}",
+                            "C: {_Closure$__1-0}")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()
+        Dim <N:1>x = 1</N:1>
+        Dim a1 = <N:2>Function() 1</N:2>
+    End Sub</N:0>
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I1-0#1, _Lambda$__1-0#1}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", ".ctor", ".cctor", "_Lambda$__1-0#1")
+
+                        g.VerifyIL("
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.2
+  IL_0003:  ldsfld     0x04000003
+  IL_0008:  brfalse.s  IL_0011
+  IL_000a:  ldsfld     0x04000003
+  IL_000f:  br.s       IL_0027
+  IL_0011:  ldsfld     0x04000002
+  IL_0016:  ldftn      0x0600000B
+  IL_001c:  newobj     0x0A000009
+  IL_0021:  dup
+  IL_0022:  stsfld     0x04000003
+  IL_0027:  stloc.3
+  IL_0028:  ret
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  newobj     0x0A00000A
+  IL_000a:  throw
+}
+{
+  // Code size        7 (0x7)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  call       0x0A00000B
+  IL_0006:  ret
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  newobj     0x06000009
+  IL_0005:  stsfld     0x04000002
+  IL_000a:  ret
+}
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+  IL_0005:  ldloc.0
+  IL_0006:  ret
+}
+")
+                    End Sub).
+                AddGeneration(' resume capture
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()
+        Dim <N:1>x = 1</N:1>
+        Dim a1 = <N:2>Function() x + 1</N:2>
+    End Sub</N:0>
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__1-0#2, _Closure$__}",
+                            "C._Closure$__: {$I1-0#1, _Lambda$__1-0#1}",
+                            "C._Closure$__1-0#2: {_Lambda$__0#2}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0#1", ".ctor", "_Lambda$__0#2")
+
+                        g.VerifyIL("
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  newobj     0x0600000C
+  IL_0006:  stloc.s    V_4
+  IL_0008:  ldloc.s    V_4
+  IL_000a:  ldc.i4.1
+  IL_000b:  stfld      0x04000004
+  IL_0010:  ldloc.s    V_4
+  IL_0012:  ldftn      0x0600000D
+  IL_0018:  newobj     0x0A00000D
+  IL_001d:  stloc.s    V_5
+  IL_001f:  ret
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x7000014D
+  IL_0005:  newobj     0x0A00000E
+  IL_000a:  throw
+}
+{
+  // Code size        7 (0x7)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  call       0x0A00000F
+  IL_0006:  ret
+}
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000004
+  IL_0007:  ldc.i4.1
+  IL_0008:  add.ovf
+  IL_0009:  stloc.0
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  ret
+}
+")
+                    End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub CeaseCapture_This()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    <N:0>Sub F()
+        Dim a1 = <N:1>Function() x</N:1>
+        Dim a2 = <N:2>Function() 1</N:2>
+    End Sub</N:0>
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Lambda$__2-0, _Closure$__}",
+                            "C._Closure$__: {$I2-1, _Lambda$__2-1}")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    <N:0>Sub F()
+        Dim a1 = <N:1>Function() 0</N:1>
+        Dim a2 = <N:2>Function() 1</N:2>
+    End Sub</N:0>
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I2-0#1, $I2-1, _Lambda$__2-0#1, _Lambda$__2-1}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__2-0", "_Lambda$__2-1", "_Lambda$__2-0#1")
+
+                        g.VerifyIL("
+{
+  // Code size       76 (0x4c)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     0x04000004
+  IL_0006:  brfalse.s  IL_000f
+  IL_0008:  ldsfld     0x04000004
+  IL_000d:  br.s       IL_0025
+  IL_000f:  ldsfld     0x04000002
+  IL_0014:  ldftn      0x0600000B
+  IL_001a:  newobj     0x0A000009
+  IL_001f:  dup
+  IL_0020:  stsfld     0x04000004
+  IL_0025:  stloc.2
+  IL_0026:  ldsfld     0x04000003
+  IL_002b:  brfalse.s  IL_0034
+  IL_002d:  ldsfld     0x04000003
+  IL_0032:  br.s       IL_004a
+  IL_0034:  ldsfld     0x04000002
+  IL_0039:  ldftn      0x0600000A
+  IL_003f:  newobj     0x0A000009
+  IL_0044:  dup
+  IL_0045:  stsfld     0x04000003
+  IL_004a:  stloc.3
+  IL_004b:  ret
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  newobj     0x0A00000A
+  IL_000a:  throw
+}
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+  IL_0005:  ldloc.0
+  IL_0006:  ret
+}
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+  IL_0005:  ldloc.0
+  IL_0006:  ret
+}
+")
+                    End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub AddingAndRemovingClosure()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()
+        Dim <N:1>x = 1</N:1>
+    End Sub</N:0>
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers()
+                    End Sub).
+                AddGeneration('add closure
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()
+        Dim <N:1>x = 1</N:1>
+        Dim a2 = new Func(Of Integer)(<N:2>Function() x</N:2>)
+    End Sub</N:0>
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        ' Method F is assigned a new id in generation 1 since it doesn't have any lambda in the baseline.
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__1#1-0#1}",
+                            "C._Closure$__1#1-0#1: {_Lambda$__0#1}")
+
+                        g.VerifyMethodDefNames("F", ".ctor", "_Lambda$__0#1")
+
+                        g.VerifyIL("
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  newobj     0x06000003
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      0x04000001
+  IL_000e:  ldloc.1
+  IL_000f:  ldftn      0x06000004
+  IL_0015:  newobj     0x0A000006
+  IL_001a:  stloc.2
+  IL_001b:  ret
+}
+{
+  // Code size        7 (0x7)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  call       0x0A000007
+  IL_0006:  ret
+}
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000001
+  IL_0007:  stloc.0
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ldloc.0
+  IL_000b:  ret
+}
+")
+                    End Sub).
+                AddGeneration('remove closure
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()
+        Dim <N:1>x = 1</N:1>
+    End Sub</N:0>
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__1#1-0#1}",
+                            "C._Closure$__1#1-0#1: {_Lambda$__0#1}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__0#1")
+
+                        g.VerifyIL("
+{
+  // Code size        4 (0x4)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.3
+  IL_0003:  ret
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000009
+  IL_0005:  newobj     0x0A000008
+  IL_000a:  throw
+}
+")
+                    End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub ChainClosure()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    <N:0>Sub F()        ' Closure 0
+        Dim <N:1>x0 = 0</N:1>
+
+        <N:2>While True ' Closure 1
+            Dim <N:3>x1 = 1</N:3>
+
+            Dim a1 = New Func(Of Integer)(<N:4>Function() x0</N:4>)
+            Dim a2 = New Func(Of Integer)(<N:5>Function() x1</N:5>)
+        End While</N:2>
+    End Sub</N:0>
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C._Closure$__2-1: {_Lambda$__1}",
+                            "C._Closure$__2-0: {$I0, _Lambda$__0}",
+                            "C: {_Closure$__2-0, _Closure$__2-1}")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    <N:0>Sub F()        ' Closure 0
+        Dim <N:1>x0 = 0</N:1>
+
+        <N:2>While True ' Closure 1 -> Closure 0
+            Dim <N:3>x1 = 1</N:3>
+
+            Dim a1 = New Func(Of Integer)(<N:4>Function() x0</N:4>)
+            Dim a2 = New Func(Of Integer)(<N:5>Function() x0 + x1</N:5>)
+        End While</N:2>
+    End Sub</N:0>
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__2-0, _Closure$__2-1#1}",
+                            "C._Closure$__2-1#1: {$VB$NonLocal_$VB$Closure_2, _Lambda$__1#1}",
+                            "C._Closure$__2-0: {$I0, _Lambda$__0}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", "_Lambda$__1#1")
+
+                        g.VerifyIL("
+{
+  // Code size      128 (0x80)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldloc.0
+  IL_0002:  newobj     0x06000003
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.0
+  IL_000a:  stfld      0x04000002
+  IL_000f:  br.s       IL_007b
+  IL_0011:  ldloc.s    V_6
+  IL_0013:  newobj     0x06000007
+  IL_0018:  stloc.s    V_6
+  IL_001a:  ldloc.s    V_6
+  IL_001c:  ldloc.0
+  IL_001d:  stfld      0x04000006
+  IL_0022:  ldloc.s    V_6
+  IL_0024:  ldc.i4.1
+  IL_0025:  stfld      0x04000005
+  IL_002a:  ldloc.s    V_6
+  IL_002c:  ldfld      0x04000006
+  IL_0031:  ldfld      0x04000003
+  IL_0036:  brfalse.s  IL_0046
+  IL_0038:  ldloc.s    V_6
+  IL_003a:  ldfld      0x04000006
+  IL_003f:  ldfld      0x04000003
+  IL_0044:  br.s       IL_0069
+  IL_0046:  ldloc.s    V_6
+  IL_0048:  ldfld      0x04000006
+  IL_004d:  ldloc.s    V_6
+  IL_004f:  ldfld      0x04000006
+  IL_0054:  ldftn      0x06000004
+  IL_005a:  newobj     0x0A000008
+  IL_005f:  dup
+  IL_0060:  stloc.s    V_9
+  IL_0062:  stfld      0x04000003
+  IL_0067:  ldloc.s    V_9
+  IL_0069:  stloc.s    V_7
+  IL_006b:  ldloc.s    V_6
+  IL_006d:  ldftn      0x06000008
+  IL_0073:  newobj     0x0A000008
+  IL_0078:  stloc.s    V_8
+  IL_007a:  nop
+  IL_007b:  ldc.i4.1
+  IL_007c:  stloc.s    V_5
+  IL_007e:  br.s       IL_0011
+}
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000002
+  IL_0007:  stloc.0
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ldloc.0
+  IL_000b:  ret
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  newobj     0x0A000009
+  IL_000a:  throw
+}
+{
+  // Code size       22 (0x16)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  call       0x0A00000A
+  IL_0006:  ldarg.1
+  IL_0007:  brfalse.s  IL_0015
+  IL_0009:  ldarg.0
+  IL_000a:  ldarg.1
+  IL_000b:  ldfld      0x04000005
+  IL_0010:  stfld      0x04000005
+  IL_0015:  ret
+}
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000006
+  IL_0007:  ldfld      0x04000002
+  IL_000c:  ldarg.0
+  IL_000d:  ldfld      0x04000005
+  IL_0012:  add.ovf
+  IL_0013:  stloc.0
+  IL_0014:  br.s       IL_0016
+  IL_0016:  ldloc.0
+  IL_0017:  ret
+}
+")
+                    End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub UnchainClosure()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()        ' Closure 0
+        Dim <N:1>x0 = 0</N:1>
+
+        <N:2>While True ' Closure 1 -> Closure 0
+            Dim <N:3>x1 = 1</N:3>
+
+            Dim a1 = <N:4>Function() x0</N:4>
+            Dim a2 = <N:5>Function() x0 + x1</N:5>
+        End While</N:2>
+    End Sub</N:0>
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__1-0, _Closure$__1-1}",
+                            "C._Closure$__1-0: {$I0, _Lambda$__0}",
+                            "C._Closure$__1-1: {$VB$NonLocal_$VB$Closure_2, _Lambda$__1}")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()        ' Closure 0
+        Dim <N:1>x0 = 0</N:1>
+
+        <N:2>While True ' Closure 1
+            Dim <N:3>x1 = 1</N:3>
+
+            Dim a1 = <N:4>Function() x0</N:4>
+            Dim a2 = <N:5>Function() x1</N:5>
+        End While</N:2>
+    End Sub</N:0>
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__1-0, _Closure$__1-1#1}",
+                            "C._Closure$__1-0: {$I0, _Lambda$__0}",
+                            "C._Closure$__1-1#1: {_Lambda$__1#1}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", "_Lambda$__1#1")
+
+                        g.VerifyIL("
+{
+  // Code size       96 (0x60)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldloc.0
+  IL_0002:  newobj     0x06000007
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.0
+  IL_000a:  stfld      0x04000001
+  IL_000f:  br.s       IL_005b
+  IL_0011:  ldloc.s    V_6
+  IL_0013:  newobj     0x0600000B
+  IL_0018:  stloc.s    V_6
+  IL_001a:  ldloc.s    V_6
+  IL_001c:  ldc.i4.1
+  IL_001d:  stfld      0x04000005
+  IL_0022:  ldloc.0
+  IL_0023:  ldfld      0x04000002
+  IL_0028:  brfalse.s  IL_0032
+  IL_002a:  ldloc.0
+  IL_002b:  ldfld      0x04000002
+  IL_0030:  br.s       IL_0049
+  IL_0032:  ldloc.0
+  IL_0033:  ldloc.0
+  IL_0034:  ldftn      0x06000008
+  IL_003a:  newobj     0x0A000009
+  IL_003f:  dup
+  IL_0040:  stloc.s    V_9
+  IL_0042:  stfld      0x04000002
+  IL_0047:  ldloc.s    V_9
+  IL_0049:  stloc.s    V_7
+  IL_004b:  ldloc.s    V_6
+  IL_004d:  ldftn      0x0600000C
+  IL_0053:  newobj     0x0A000009
+  IL_0058:  stloc.s    V_8
+  IL_005a:  nop
+  IL_005b:  ldc.i4.1
+  IL_005c:  stloc.s    V_5
+  IL_005e:  br.s       IL_0011
+}
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000001
+  IL_0007:  stloc.0
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ldloc.0
+  IL_000b:  ret
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  newobj     0x0A00000A
+  IL_000a:  throw
+}
+{
+  // Code size       22 (0x16)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  call       0x0A00000B
+  IL_0006:  ldarg.1
+  IL_0007:  brfalse.s  IL_0015
+  IL_0009:  ldarg.0
+  IL_000a:  ldarg.1
+  IL_000b:  ldfld      0x04000005
+  IL_0010:  stfld      0x04000005
+  IL_0015:  ret
+}
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000005
+  IL_0007:  stloc.0
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ldloc.0
+  IL_000b:  ret
+}
+")
+                    End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub ChangeClosureParent()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    <N:0>Sub F()             ' Closure 0
+        Dim <N:1>x = 1</N:1>
+
+        <N:2>While True      
+            Dim <N:3>y = 2</N:3>
+
+            <N:4>While True  ' Closure 1
+                Dim <N:5>z = 3</N:5>
+
+                Dim a1 = <N:6>Function() x</N:6>
+                Dim a2 = <N:7>Function() z + x</N:7>
+            End While</N:4>
+        End While</N:2>
+    End Sub</N:0>  
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__2-0, _Closure$__2-1}",
+                            "C._Closure$__2-0: {$I0, _Lambda$__0}",
+                            "C._Closure$__2-1: {$VB$NonLocal_$VB$Closure_2, _Lambda$__1}")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    <N:0>Sub F()             ' Closure 0
+        Dim <N:1>x = 1</N:1>
+
+        <N:2>While True      ' Closure 1
+            Dim <N:3>y = 2</N:3>
+
+            <N:4>While True  ' Closure 2
+                Dim <N:5>z = 3</N:5>
+
+                Dim a1 = <N:6>Function() x</N:6>
+                Dim a2 = <N:7>Function() z + x</N:7>
+                Dim a3 = Function() z + x + y
+            End While</N:4>
+        End While</N:2>
+    End Sub</N:0>
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        ' closure #0 is preserved, new closures #1 and #2 are created:
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__2-0, _Closure$__2-1#1, _Closure$__2-2#1}",
+                            "C._Closure$__2-0: {$I0, _Lambda$__0}",
+                            "C._Closure$__2-1#1: {$VB$NonLocal_$VB$Closure_3, _Lambda$__1#1, _Lambda$__2#1}",
+                            "C._Closure$__2-2#1: {$VB$NonLocal_$VB$Closure_2}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", "_Lambda$__1#1", "_Lambda$__2#1", ".ctor")
+
+                        g.VerifyIL("
+{
+  // Code size      208 (0xd0)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldloc.0
+  IL_0002:  newobj     0x06000007
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  stfld      0x04000002
+  IL_000f:  br         IL_00c8
+  IL_0014:  ldloc.s    V_8
+  IL_0016:  newobj     0x0600000E
+  IL_001b:  stloc.s    V_8
+  IL_001d:  ldloc.s    V_8
+  IL_001f:  ldloc.0
+  IL_0020:  stfld      0x04000009
+  IL_0025:  ldloc.s    V_8
+  IL_0027:  ldc.i4.2
+  IL_0028:  stfld      0x04000008
+  IL_002d:  br         IL_00c0
+  IL_0032:  ldloc.s    V_9
+  IL_0034:  newobj     0x0600000B
+  IL_0039:  stloc.s    V_9
+  IL_003b:  ldloc.s    V_9
+  IL_003d:  ldloc.s    V_8
+  IL_003f:  stfld      0x04000007
+  IL_0044:  ldloc.s    V_9
+  IL_0046:  ldc.i4.3
+  IL_0047:  stfld      0x04000006
+  IL_004c:  ldloc.s    V_9
+  IL_004e:  ldfld      0x04000007
+  IL_0053:  ldfld      0x04000009
+  IL_0058:  ldfld      0x04000003
+  IL_005d:  brfalse.s  IL_0072
+  IL_005f:  ldloc.s    V_9
+  IL_0061:  ldfld      0x04000007
+  IL_0066:  ldfld      0x04000009
+  IL_006b:  ldfld      0x04000003
+  IL_0070:  br.s       IL_009f
+  IL_0072:  ldloc.s    V_9
+  IL_0074:  ldfld      0x04000007
+  IL_0079:  ldfld      0x04000009
+  IL_007e:  ldloc.s    V_9
+  IL_0080:  ldfld      0x04000007
+  IL_0085:  ldfld      0x04000009
+  IL_008a:  ldftn      0x06000008
+  IL_0090:  newobj     0x0A000009
+  IL_0095:  dup
+  IL_0096:  stloc.s    V_13
+  IL_0098:  stfld      0x04000003
+  IL_009d:  ldloc.s    V_13
+  IL_009f:  stloc.s    V_10
+  IL_00a1:  ldloc.s    V_9
+  IL_00a3:  ldftn      0x0600000C
+  IL_00a9:  newobj     0x0A000009
+  IL_00ae:  stloc.s    V_11
+  IL_00b0:  ldloc.s    V_9
+  IL_00b2:  ldftn      0x0600000D
+  IL_00b8:  newobj     0x0A000009
+  IL_00bd:  stloc.s    V_12
+  IL_00bf:  nop
+  IL_00c0:  ldc.i4.1
+  IL_00c1:  stloc.s    V_6
+  IL_00c3:  br         IL_0032
+  IL_00c8:  ldc.i4.1
+  IL_00c9:  stloc.s    V_7
+  IL_00cb:  br         IL_0014
+}
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000002
+  IL_0007:  stloc.0
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ldloc.0
+  IL_000b:  ret
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  newobj     0x0A00000A
+  IL_000a:  throw
+}
+{
+  // Code size       22 (0x16)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  call       0x0A00000B
+  IL_0006:  ldarg.1
+  IL_0007:  brfalse.s  IL_0015
+  IL_0009:  ldarg.0
+  IL_000a:  ldarg.1
+  IL_000b:  ldfld      0x04000006
+  IL_0010:  stfld      0x04000006
+  IL_0015:  ret
+}
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000006
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      0x04000007
+  IL_000d:  ldfld      0x04000009
+  IL_0012:  ldfld      0x04000002
+  IL_0017:  add.ovf
+  IL_0018:  stloc.0
+  IL_0019:  br.s       IL_001b
+  IL_001b:  ldloc.0
+  IL_001c:  ret
+}
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000006
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      0x04000007
+  IL_000d:  ldfld      0x04000009
+  IL_0012:  ldfld      0x04000002
+  IL_0017:  add.ovf
+  IL_0018:  ldarg.0
+  IL_0019:  ldfld      0x04000007
+  IL_001e:  ldfld      0x04000008
+  IL_0023:  add.ovf
+  IL_0024:  stloc.0
+  IL_0025:  br.s       IL_0027
+  IL_0027:  ldloc.0
+  IL_0028:  ret
+}
+{
+  // Code size       22 (0x16)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  call       0x0A00000B
+  IL_0006:  ldarg.1
+  IL_0007:  brfalse.s  IL_0015
+  IL_0009:  ldarg.0
+  IL_000a:  ldarg.1
+  IL_000b:  ldfld      0x04000008
+  IL_0010:  stfld      0x04000008
+  IL_0015:  ret
+}
+")
+                    End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub ChangeLambdaParent()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()              ' Closure 0
+        Dim <N:1>x = 1</N:1>
+
+        <N:2>While True       ' Closure 1
+            Dim <N:3>y = 2</N:3>
+
+            Dim a1 = New Func(Of Integer)(<N:4>Function() x</N:4>)
+            Dim a2 = New Func(Of Integer)(<N:5>Function() y</N:5>)
+            Dim a3 = New Func(Of Integer)(<N:6>Function() x + 1</N:6>)
+        End While</N:2>
+    End Sub</N:0>
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__1-0, _Closure$__1-1}",
+                            "C._Closure$__1-0: {$I0, $I2, _Lambda$__0, _Lambda$__2}",
+                            "C._Closure$__1-1: {_Lambda$__1}")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()             ' Closure 0
+        Dim <N:1>x = 1</N:1>
+
+        <N:2>While True      ' Closure 1
+            Dim <N:3>y = 2</N:3>
+
+            Dim a1 = New Func(Of Integer)(<N:4>Function() x</N:4>)
+            Dim a2 = New Func(Of Integer)(<N:5>Function() y</N:5>)
+            Dim a3 = New Func(Of Integer)(<N:6>Function() y + 1</N:6>)
+        End While</N:2>
+    End Sub</N:0>
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__1-0, _Closure$__1-1}",
+                            "C._Closure$__1-0: {$I0, _Lambda$__0}",
+                            "C._Closure$__1-1: {_Lambda$__1, _Lambda$__2#1}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__2", "_Lambda$__1", "_Lambda$__2#1")
+
+                        g.VerifyIL("
+ {
+  // Code size      106 (0x6a)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldloc.0
+  IL_0002:  newobj     0x06000003
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  stfld      0x04000001
+  IL_000f:  br.s       IL_0065
+  IL_0011:  ldloc.1
+  IL_0012:  newobj     0x06000006
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  ldc.i4.2
+  IL_001a:  stfld      0x04000004
+  IL_001f:  ldloc.0
+  IL_0020:  ldfld      0x04000002
+  IL_0025:  brfalse.s  IL_002f
+  IL_0027:  ldloc.0
+  IL_0028:  ldfld      0x04000002
+  IL_002d:  br.s       IL_0046
+  IL_002f:  ldloc.0
+  IL_0030:  ldloc.0
+  IL_0031:  ldftn      0x06000004
+  IL_0037:  newobj     0x0A000008
+  IL_003c:  dup
+  IL_003d:  stloc.s    V_10
+  IL_003f:  stfld      0x04000002
+  IL_0044:  ldloc.s    V_10
+  IL_0046:  stloc.s    V_7
+  IL_0048:  ldloc.1
+  IL_0049:  ldftn      0x06000007
+  IL_004f:  newobj     0x0A000008
+  IL_0054:  stloc.s    V_8
+  IL_0056:  ldloc.1
+  IL_0057:  ldftn      0x06000008
+  IL_005d:  newobj     0x0A000008
+  IL_0062:  stloc.s    V_9
+  IL_0064:  nop
+  IL_0065:  ldc.i4.1
+  IL_0066:  stloc.s    V_6
+  IL_0068:  br.s       IL_0011
+}
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000001
+  IL_0007:  stloc.0
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ldloc.0
+  IL_000b:  ret
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  newobj     0x0A000009
+  IL_000a:  throw
+}
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000004
+  IL_0007:  stloc.0
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ldloc.0
+  IL_000b:  ret
+}
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000004
+  IL_0007:  ldc.i4.1
+  IL_0008:  add.ovf
+  IL_0009:  stloc.0
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  ret
+}")
+                    End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        ''' <summary>
+        ''' We allow to add a capture as long as the closure tree shape remains the same.
+        ''' The value of the captured variable might be uninitialized in the lambda.
+        ''' We leave it up to the user to set its value as needed.
+        ''' </summary>
+        <Fact>
+        Public Sub UninitializedCapture()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()
+        Dim <N:1>x = 1</N:1>
+        Dim <N:2>y = 1</N:2>
+
+        Dim a1 = <N:3>Function() x</N:3>
+    End Sub</N:0>
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__1-0}",
+                            "C._Closure$__1-0: {_Lambda$__0}")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()
+        Dim <N:1>x = 1</N:1>
+        Dim <N:2>y = 1</N:2>
+
+        Dim a1 = <N:3>Function() x + y</N:3>
+    End Sub</N:0>
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__1-0}",
+                            "C._Closure$__1-0: {_Lambda$__0}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__0")
+
+                        g.VerifyIL("
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  newobj     0x06000007
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      0x04000001
+  IL_000e:  ldloc.0
+  IL_000f:  ldc.i4.1
+  IL_0010:  stfld      0x04000002
+  IL_0015:  ldloc.0
+  IL_0016:  ldftn      0x06000008
+  IL_001c:  newobj     0x0A000009
+  IL_0021:  stloc.3
+  IL_0022:  ret
+}
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000001
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      0x04000002
+  IL_000d:  add.ovf
+  IL_000e:  stloc.0
+  IL_000f:  br.s       IL_0011
+  IL_0011:  ldloc.0
+  IL_0012:  ret
+}
+")
+                    End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub CaptureOrdering()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()
+        Dim <N:1>x = 1</N:1>
+        Dim <N:2>y = 1</N:2>
+
+        Dim a1 = <N:3>Function() x + y</N:3>
+    End Sub</N:0>
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C._Closure$__1-0: {_Lambda$__0}",
+                            "C: {_Closure$__1-0}")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+Class C
+    <N:0>Sub F()
+        Dim <N:1>x = 1</N:1>
+        Dim <N:2>y = 1</N:2>
+
+        Dim a1 = <N:3>Function() y + x</N:3>
+    End Sub</N:0>
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        ' Unlike local slots, the order is insignificant since the fields are referred to by name (MemberRef)
+
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__1-0}",
+                            "C._Closure$__1-0: {_Lambda$__0}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__0")
+
+                        g.VerifyIL("
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  newobj     0x06000007
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      0x04000001
+  IL_000e:  ldloc.0
+  IL_000f:  ldc.i4.1
+  IL_0010:  stfld      0x04000002
+  IL_0015:  ldloc.0
+  IL_0016:  ldftn      0x06000008
+  IL_001c:  newobj     0x0A000009
+  IL_0021:  stloc.2
+  IL_0022:  ret
+}
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000002
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      0x04000001
+  IL_000d:  add.ovf
+  IL_000e:  stloc.0
+  IL_000f:  br.s       IL_0011
+  IL_0011:  ldloc.0
+  IL_0012:  ret
+}
+")
+                    End Sub).
+                    Verify()
+            End Using
         End Sub
     End Class
 End Namespace

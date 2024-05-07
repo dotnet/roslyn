@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private int CombineHashCodes(IAssemblySymbol x, int currentHash)
-                => Hash.Combine(_symbolEquivalenceComparer._assemblyComparerOpt?.GetHashCode(x) ?? 0, currentHash);
+                => Hash.Combine(_symbolEquivalenceComparer._assemblyComparer?.GetHashCode(x) ?? 0, currentHash);
 
             private int CombineHashCodes(IFieldSymbol x, int currentHash)
             {
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private int CombineHashCodes(INamespaceSymbol x, int currentHash)
             {
-                if (x.IsGlobalNamespace && _symbolEquivalenceComparer._assemblyComparerOpt == null)
+                if (x.IsGlobalNamespace && _symbolEquivalenceComparer._assemblyComparer == null)
                 {
                     // Exclude global namespace's container's hash when assemblies can differ.
                     return Hash.Combine(x.Name, currentHash);

@@ -1444,14 +1444,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Private Function DecodeAttributeUsageInfo() As AttributeUsageInfo
-            Dim attributeUsageHandle = Me.ContainingPEModule.Module.GetAttributeUsageAttributeHandle(_handle)
-            If Not attributeUsageHandle.IsNil Then
-                Dim decoder = New MetadataDecoder(ContainingPEModule)
-                Dim positionalArgs As TypedConstant() = Nothing
-                Dim namedArgs As KeyValuePair(Of String, TypedConstant)() = Nothing
-                If decoder.GetCustomAttribute(attributeUsageHandle, positionalArgs, namedArgs) Then
-                    Return AttributeData.DecodeAttributeUsageAttribute(positionalArgs(0), namedArgs.AsImmutableOrNull())
-                End If
+            Dim result As AttributeUsageInfo = Nothing
+
+            If Me.ContainingPEModule.Module.HasAttributeUsageAttribute(_handle, New MetadataDecoder(ContainingPEModule), result) Then
+                Return result
             End If
 
             Dim baseType = Me.BaseTypeNoUseSiteDiagnostics

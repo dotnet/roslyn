@@ -2204,6 +2204,7 @@ class MyClass
                 ' Get cached project diagnostics.
                 Dim diagnostics = Await diagnosticService.GetCachedDiagnosticsAsync(workspace, project.Id, documentId:=Nothing,
                                                                                     includeSuppressedDiagnostics:=False,
+                                                                                    includeLocalDocumentDiagnostics:=True,
                                                                                     includeNonLocalDocumentDiagnostics:=True,
                                                                                     CancellationToken.None)
 

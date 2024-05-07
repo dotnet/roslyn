@@ -33,15 +33,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         {
             var namespaceDeclaration = (FileScopedNamespaceDeclarationSyntax)context.Node;
 
-            var diagnostic = AnalyzeNamespace(context.GetCSharpAnalyzerOptions().NamespaceDeclarations, namespaceDeclaration);
+            var diagnostic = AnalyzeNamespace(context, namespaceDeclaration);
             if (diagnostic != null)
                 context.ReportDiagnostic(diagnostic);
         }
 
-        private Diagnostic? AnalyzeNamespace(CodeStyleOption2<NamespaceDeclarationPreference> option, FileScopedNamespaceDeclarationSyntax declaration)
+        private Diagnostic? AnalyzeNamespace(SyntaxNodeAnalysisContext context, FileScopedNamespaceDeclarationSyntax declaration)
         {
-            if (!ConvertNamespaceAnalysis.CanOfferUseBlockScoped(option, declaration, forAnalyzer: true))
+            var option = context.GetCSharpAnalyzerOptions().NamespaceDeclarations;
+            if (ShouldSkipAnalysis(context, option.Notification)
+                || !ConvertNamespaceAnalysis.CanOfferUseBlockScoped(option, declaration, forAnalyzer: true))
+            {
                 return null;
+            }
 
             // if the diagnostic is hidden, show it anywhere from the `namespace` keyword through the name.
             // otherwise, if it's not hidden, just squiggle the name.
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             return DiagnosticHelper.Create(
                 this.Descriptor,
                 diagnosticLocation,
-                severity,
+                option.Notification,
                 ImmutableArray.Create(declaration.GetLocation()),
                 ImmutableDictionary<string, string?>.Empty);
         }

@@ -2216,7 +2216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If _lazyClsComplianceDiagnostics.IsDefault OrElse _lazyClsComplianceDependencies.IsDefault Then
                 Dim builder = BindingDiagnosticBag.GetInstance()
                 ClsComplianceChecker.CheckCompliance(Me, builder, cancellationToken)
-                Dim result As ImmutableBindingDiagnostic(Of AssemblySymbol) = builder.ToReadOnlyAndFree()
+                Dim result As ReadOnlyBindingDiagnostic(Of AssemblySymbol) = builder.ToReadOnlyAndFree()
                 ImmutableInterlocked.InterlockedInitialize(_lazyClsComplianceDependencies, result.Dependencies)
                 ImmutableInterlocked.InterlockedInitialize(_lazyClsComplianceDiagnostics, result.Diagnostics)
             End If
@@ -2224,7 +2224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(Not _lazyClsComplianceDependencies.IsDefault)
             Debug.Assert(Not _lazyClsComplianceDiagnostics.IsDefault)
 
-            diagnostics.AddRange(New ImmutableBindingDiagnostic(Of AssemblySymbol)(_lazyClsComplianceDiagnostics, _lazyClsComplianceDependencies), allowMismatchInDependencyAccumulation:=True)
+            diagnostics.AddRange(New ReadOnlyBindingDiagnostic(Of AssemblySymbol)(_lazyClsComplianceDiagnostics, _lazyClsComplianceDependencies), allowMismatchInDependencyAccumulation:=True)
         End Sub
 
         Private Shared Iterator Function FilterDiagnosticsByLocation(diagnostics As IEnumerable(Of Diagnostic), tree As SyntaxTree, filterSpanWithinTree As TextSpan?) As IEnumerable(Of Diagnostic)

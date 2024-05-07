@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 Return Task.CompletedTask
             End Function
 
-            Private Class TestCodeAction : Inherits CodeAction
+            Private NotInheritable Class TestCodeAction : Inherits CodeAction
                 Private ReadOnly _oldDocument As Document
 
                 Public Sub New(oldDocument As Document)
@@ -44,7 +44,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                     End Get
                 End Property
 
-                Protected Overrides Function GetChangedSolutionAsync(cancellationToken As CancellationToken) As Task(Of Solution)
+                Protected Overrides Function GetChangedSolutionAsync(
+                        progress As IProgress(Of CodeAnalysisProgress),
+                        cancellationToken As CancellationToken) As Task(Of Solution)
                     Dim solution = _oldDocument.Project.Solution
 
                     ' Add a document - This will result in IWpfTextView previews.

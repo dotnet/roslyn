@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed partial class SynthesizedStringSwitchHashMethod : SynthesizedGlobalMethodSymbol
     {
-        internal SynthesizedStringSwitchHashMethod(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplType, TypeSymbol returnType, TypeSymbol paramType)
-            : base(containingModule, privateImplType, returnType, PrivateImplementationDetails.SynthesizedStringHashFunctionName)
+        internal SynthesizedStringSwitchHashMethod(SynthesizedPrivateImplementationDetailsType privateImplType, TypeSymbol returnType, TypeSymbol paramType)
+            : base(privateImplType, returnType, PrivateImplementationDetails.SynthesizedStringHashFunctionName)
         {
             this.SetParameters(ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(paramType), 0, RefKind.None, "s")));
         }
@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal sealed partial class SynthesizedSpanSwitchHashMethod : SynthesizedGlobalMethodSymbol
     {
-        internal SynthesizedSpanSwitchHashMethod(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplType, TypeSymbol returnType, TypeSymbol paramType, bool isReadOnlySpan)
-            : base(containingModule, privateImplType, returnType, isReadOnlySpan ? PrivateImplementationDetails.SynthesizedReadOnlySpanHashFunctionName : PrivateImplementationDetails.SynthesizedSpanHashFunctionName)
+        internal SynthesizedSpanSwitchHashMethod(SynthesizedPrivateImplementationDetailsType privateImplType, TypeSymbol returnType, TypeSymbol paramType, bool isReadOnlySpan)
+            : base(privateImplType, returnType, isReadOnlySpan ? PrivateImplementationDetails.SynthesizedReadOnlySpanHashFunctionName : PrivateImplementationDetails.SynthesizedSpanHashFunctionName)
         {
             _isReadOnlySpan = isReadOnlySpan;
             this.SetParameters(ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(paramType), 0, RefKind.None, "s")));

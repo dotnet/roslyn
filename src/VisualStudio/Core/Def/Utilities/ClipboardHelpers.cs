@@ -14,11 +14,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
         private const ushort CF_TEXT = 1;            // winuser.h
         private const ushort CF_UNICODETEXT = 13;    // winuser.h
 
-        private static readonly FORMATETC[] TextFormats = new[]
-        {
+        private static readonly FORMATETC[] TextFormats =
+        [
             CreateFormatEtc(CF_UNICODETEXT),
             CreateFormatEtc(CF_TEXT),
-        };
+        ];
 
         #region Native Methods
         [DllImport("ole32.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
 
             foreach (var format in TextFormats)
             {
-                if (dataObject.QueryGetData(new[] { format }) == VSConstants.S_OK)
+                if (dataObject.QueryGetData([format]) == VSConstants.S_OK)
                 {
                     return GetData(dataObject, format);
                 }

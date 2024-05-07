@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.IGenericMethodParameter,
         Cci.IGenericTypeParameter
     {
+        public bool IsEncDeleted
+            => false;
+
         bool Cci.ITypeReference.IsEnum
         {
             get { return false; }

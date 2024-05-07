@@ -195,9 +195,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? OnSerializedAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(OnSerializedAttribute).FullName!);
 
-        public static INamedTypeSymbol? CollectionBuilderAttribute(this Compilation compilation)
-            => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.CollectionBuilderAttribute");
-
         public static INamedTypeSymbol? ComRegisterFunctionAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(ComRegisterFunctionAttribute).FullName!);
 

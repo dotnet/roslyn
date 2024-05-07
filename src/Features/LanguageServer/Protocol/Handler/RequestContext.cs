@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -53,7 +53,7 @@ internal readonly struct RequestContext
     /// <remarks>
     /// This field is only initialized for handlers that request solution context.
     /// </remarks>
-    private readonly StrongBox<(Workspace Workspace, Solution Solution, Document? Document)>? _lspSolution;
+    private readonly StrongBox<(Workspace Workspace, Solution Solution, TextDocument? Document)>? _lspSolution;
 
     /// <summary>
     /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
@@ -116,6 +116,43 @@ internal readonly struct RequestContext
                 throw new InvalidOperationException();
             }
 
+            if (_lspSolution.Value.Document is null)
+            {
+                return null;
+            }
+
+            if (_lspSolution.Value.Document is Document document)
+            {
+                return document;
+            }
+
+            // Explicitly throw for attempts to get a Document when only a TextDocument is available.
+            throw new InvalidOperationException($"Attempted to retrieve a Document but a TextDocument was found instead.");
+        }
+    }
+
+    /// <summary>
+    /// The text document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to 
+    /// <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
+    /// </summary>
+    public TextDocument? TextDocument
+    {
+        get
+        {
+            if (_lspSolution is null)
+            {
+                // This request context never had a solution instance
+                return null;
+            }
+
+            // The solution is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
+            // for attempts to access this property after it has been manually cleared. Note that we can't rely on
+            // Document being null for this check, because it is not always provided as part of the solution context.
+            if (_lspSolution.Value.Workspace is null)
+            {
+                throw new InvalidOperationException();
+            }
+
             return _lspSolution.Value.Document;
         }
     }
@@ -149,7 +186,7 @@ internal readonly struct RequestContext
         string method,
         ClientCapabilities? clientCapabilities,
         WellKnownLspServerKinds serverKind,
-        Document? document,
+        TextDocument? document,
         IDocumentChangeTracker documentChangeTracker,
         ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> trackedDocuments,
         ImmutableArray<string> supportedLanguages,
@@ -159,7 +196,7 @@ internal readonly struct RequestContext
         if (workspace is not null)
         {
             RoslynDebug.Assert(solution is not null);
-            _lspSolution = new StrongBox<(Workspace Workspace, Solution Solution, Document? Document)>((workspace, solution, document));
+            _lspSolution = new StrongBox<(Workspace Workspace, Solution Solution, TextDocument? Document)>((workspace, solution, document));
         }
         else
         {
@@ -228,7 +265,7 @@ internal readonly struct RequestContext
         {
             Workspace? workspace = null;
             Solution? solution = null;
-            Document? document = null;
+            TextDocument? document = null;
             if (textDocument is not null)
             {
                 // we were given a request associated with a document.  Find the corresponding roslyn document for this.

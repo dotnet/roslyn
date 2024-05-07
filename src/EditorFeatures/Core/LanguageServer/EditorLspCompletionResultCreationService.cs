@@ -9,13 +9,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var lspItem = new LSP.VSInternalCompletionItem
             {
                 Label = item.GetEntireDisplayText(),
-                Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId())
+                Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId().ToLSPImageId()),
             };
 
             // Complex text edits (e.g. override and partial method completions) are always populated in the

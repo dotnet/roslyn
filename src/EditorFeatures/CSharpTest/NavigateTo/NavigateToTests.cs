@@ -1375,7 +1375,7 @@ public class Goo
                         </Document>
                     </Project>
                 </Workspace>
-                """, composition: EditorTestCompositions.EditorFeatures);
+                """, composition: DefaultComposition);
 
             _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
@@ -1450,7 +1450,7 @@ class C
                         </Document>
                     </Project>
                 </Workspace>
-                """, composition: EditorTestCompositions.EditorFeatures);
+                """, composition: DefaultComposition);
 
             _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
@@ -1484,7 +1484,7 @@ class C
                         </Document>
                     </Project>
                 </Workspace>
-                """, composition: EditorTestCompositions.EditorFeatures);
+                """, composition: DefaultComposition);
 
             _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
@@ -1517,7 +1517,7 @@ class C
                         </Document>
                     </Project>
                 </Workspace>
-                """, composition: EditorTestCompositions.EditorFeatures);
+                """, composition: DefaultComposition);
 
             _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
@@ -1547,7 +1547,7 @@ class C
                         </Document>
                     </Project>
                 </Workspace>
-                """, composition: EditorTestCompositions.EditorFeatures);
+                """, composition: DefaultComposition);
 
             _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
@@ -1582,7 +1582,7 @@ class C
                         </Document>
                     </Project>
                 </Workspace>
-                """, composition: EditorTestCompositions.EditorFeatures);
+                """, composition: DefaultComposition);
 
             _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
@@ -1609,7 +1609,7 @@ class C
                         </Document>
                     </Project>
                 </Workspace>
-                """, composition: EditorTestCompositions.EditorFeatures);
+                """, composition: DefaultComposition);
 
             _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
@@ -1636,7 +1636,7 @@ class C
                         </Document>
                     </Project>
                 </Workspace>
-                """, composition: EditorTestCompositions.EditorFeatures);
+                """, composition: DefaultComposition);
 
             _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
@@ -1662,7 +1662,7 @@ class C
                         </DocumentFromSourceGenerator>
                     </Project>
                 </Workspace>
-                """, composition: EditorTestCompositions.EditorFeatures);
+                """, composition: DefaultComposition);
 
             _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);
@@ -1693,7 +1693,7 @@ class C
                     }
                     """,
                 },
-                composition: EditorTestCompositions.EditorFeatures);
+                composition: DefaultComposition);
 
             _provider = CreateProvider(workspace);
             _aggregator = new NavigateToTestAggregator(_provider);

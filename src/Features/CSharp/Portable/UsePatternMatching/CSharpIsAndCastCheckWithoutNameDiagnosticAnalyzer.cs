@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             var styleOption = context.GetCSharpAnalyzerOptions().PreferPatternMatchingOverIsWithCastCheck;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
             {
                 // User has disabled this feature.
                 return;
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor, isExpression.GetLocation(),
-                    styleOption.Notification.Severity,
+                    styleOption.Notification,
                     SpecializedCollections.EmptyCollection<Location>(),
                     ImmutableDictionary<string, string?>.Empty));
         }

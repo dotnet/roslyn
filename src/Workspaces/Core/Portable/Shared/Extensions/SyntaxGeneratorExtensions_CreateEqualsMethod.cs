@@ -375,8 +375,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return fallback;
         }
 
-#nullable restore
-
         private static bool ImplementsIEquatable(ITypeSymbol memberType, INamedTypeSymbol iequatableType)
         {
             if (iequatableType != null)

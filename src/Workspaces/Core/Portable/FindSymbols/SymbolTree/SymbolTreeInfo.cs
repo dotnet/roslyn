@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// will still incur a heavy cost (for example, getting the <see cref="IAssemblySymbol"/> root symbol for a
     /// particular project).
     /// </summary>
-    internal partial class SymbolTreeInfo : IChecksummedObject
+    internal partial class SymbolTreeInfo
     {
         private static readonly StringComparer s_caseInsensitiveComparer =
             CaseInsensitiveComparison.Comparer;
@@ -175,7 +174,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // up overwriting the field, but even if that happens, we are sure to see a fully written spell checker as
             // the runtime guarantees that the initialize of the SpellChecker instnace completely written when we read
             // our field.
-            _spellChecker ??= CreateSpellChecker(Checksum, _nodes);
+            _spellChecker ??= CreateSpellChecker(_nodes);
             _spellChecker.FindSimilarWords(ref similarNames.AsRef(), name, substringsAreSimilar: false);
 
             foreach (var similarName in similarNames)
@@ -297,8 +296,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         #region Construction
 
-        private static SpellChecker CreateSpellChecker(Checksum checksum, ImmutableArray<Node> sortedNodes)
-            => new(checksum, sortedNodes.Select(n => n.Name));
+        private static SpellChecker CreateSpellChecker(ImmutableArray<Node> sortedNodes)
+            => new(sortedNodes.Select(n => n.Name));
 
         private static ImmutableArray<Node> SortNodes(ImmutableArray<BuilderNode> unsortedNodes)
         {

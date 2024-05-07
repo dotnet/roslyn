@@ -475,8 +475,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         [Fact]
         public void TestTriggerCharacters()
         {
-            char[] expectedCharacters = { ',', '(' };
-            char[] unexpectedCharacters = { ' ', '[', '<' };
+            char[] expectedCharacters = [',', '('];
+            char[] unexpectedCharacters = [' ', '[', '<'];
 
             VerifyTriggerCharacters(expectedCharacters, unexpectedCharacters);
         }

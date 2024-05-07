@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    public static async Task<ExportProvider> CreateExportProviderAsync(IEnumerable<string> extensionAssemblyPaths, string? sharedDependenciesPath, ILoggerFactory loggerFactory)
+    public static async Task<ExportProvider> CreateExportProviderAsync(IEnumerable<string> extensionAssemblyPaths, ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
 
@@ -48,7 +48,7 @@ internal sealed class ExportProviderBuilder
 
         foreach (var extensionAssemblyPath in extensionAssemblyPaths)
         {
-            if (AssemblyLoadContextWrapper.TryLoadExtension(extensionAssemblyPath, sharedDependenciesPath, logger, out var extensionAssembly))
+            if (AssemblyLoadContextWrapper.TryLoadExtension(extensionAssemblyPath, logger, out var extensionAssembly))
             {
                 assemblies.Add(extensionAssembly);
             }

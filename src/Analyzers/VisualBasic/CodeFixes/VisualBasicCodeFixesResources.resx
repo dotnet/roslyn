@@ -117,8 +117,8 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Remove_Unnecessary_Imports" xml:space="preserve">
-    <value>Remove Unnecessary Imports</value>
+  <data name="Remove_unnecessary_imports" xml:space="preserve">
+    <value>Remove unnecessary imports</value>
   </data>
   <data name="Add_Me" xml:space="preserve">
     <value>Add 'Me.'</value>

@@ -586,8 +586,23 @@ namespace Microsoft.CodeAnalysis
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
 
         System_NotSupportedException__ctor,
-        System_MissingMethodException__ctor,
+        System_MissingMethodException__ctorString,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
+
+        System_Collections_ICollection__Count,
+        System_Collections_ICollection__IsSynchronized,
+        System_Collections_ICollection__SyncRoot,
+        System_Collections_ICollection__CopyTo,
+        System_Collections_IList__get_Item,
+        System_Collections_IList__IsFixedSize,
+        System_Collections_IList__IsReadOnly,
+        System_Collections_IList__Add,
+        System_Collections_IList__Clear,
+        System_Collections_IList__Contains,
+        System_Collections_IList__IndexOf,
+        System_Collections_IList__Insert,
+        System_Collections_IList__Remove,
+        System_Collections_IList__RemoveAt,
 
         System_Collections_Generic_IReadOnlyCollection_T__Count,
         System_Collections_Generic_IReadOnlyList_T__get_Item,
@@ -616,6 +631,13 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
         System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
         System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T,
+
+        System_Span_T__ToArray,
+        System_ReadOnlySpan_T__ToArray,
+        System_Span_T__CopyTo_Span_T,
+        System_ReadOnlySpan_T__CopyTo_Span_T,
+        System_Collections_Immutable_ImmutableArray_T__AsSpan,
+        System_Collections_Generic_List_T__AddRange,
 
         Count,
 

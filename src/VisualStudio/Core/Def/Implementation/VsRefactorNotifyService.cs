@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            rqnames = new string[1] { rqname };
+            rqnames = [rqname];
             return true;
         }
 

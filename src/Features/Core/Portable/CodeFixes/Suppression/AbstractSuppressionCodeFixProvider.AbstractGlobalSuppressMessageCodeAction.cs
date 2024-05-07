@@ -4,7 +4,8 @@
 
 #nullable disable
 
-using System.Collections.Generic;
+using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -27,15 +28,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 _project = project;
             }
 
-            protected sealed override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected sealed override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var changedSuppressionDocument = await GetChangedSuppressionDocumentAsync(cancellationToken).ConfigureAwait(false);
-                return new CodeActionOperation[]
-                {
+                return ImmutableArray.Create<CodeActionOperation>(
                     new ApplyChangesOperation(changedSuppressionDocument.Project.Solution),
                     new OpenDocumentOperation(changedSuppressionDocument.Id, activateIfAlreadyOpen: true),
-                    new DocumentNavigationOperation(changedSuppressionDocument.Id, position: 0)
-                };
+                    new DocumentNavigationOperation(changedSuppressionDocument.Id, position: 0));
             }
 
             protected abstract Task<Document> GetChangedSuppressionDocumentAsync(CancellationToken cancellationToken);

@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 _debuggingSession = await proxy.StartDebuggingSessionAsync(
                     solution,
-                    new ManagedHotReloadServiceImpl(_debuggerService.Value),
+                    new ManagedHotReloadServiceBridge(_debuggerService.Value),
                     _sourceTextProvider,
                     captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
                     captureAllMatchingDocuments: false,

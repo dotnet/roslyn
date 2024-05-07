@@ -131,6 +131,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override bool HasImportedFromTypeLibAttribute
+            => PrimaryModule.Module.HasImportedFromTypeLibAttribute(Assembly.Handle, out _);
+
+        internal override bool HasPrimaryInteropAssemblyAttribute
+            => PrimaryModule.Module.HasPrimaryInteropAssemblyAttribute(Assembly.Handle, out _, out _);
+
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             if (_lazyCustomAttributes.IsDefault)
@@ -320,23 +326,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (_lazyObsoleteAttributeData == ObsoleteAttributeData.Uninitialized)
                 {
-                    Interlocked.CompareExchange(ref _lazyObsoleteAttributeData, computeObsoleteAttributeData(), ObsoleteAttributeData.Uninitialized);
+                    var experimentalData = PrimaryModule.Module.TryDecodeExperimentalAttributeData(Assembly.Handle, new MetadataDecoder(PrimaryModule));
+                    Interlocked.CompareExchange(ref _lazyObsoleteAttributeData, experimentalData, ObsoleteAttributeData.Uninitialized);
                 }
 
                 return _lazyObsoleteAttributeData;
-
-                ObsoleteAttributeData? computeObsoleteAttributeData()
-                {
-                    foreach (var attrData in GetAttributes())
-                    {
-                        if (attrData.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
-                        {
-                            return attrData.DecodeExperimentalAttribute();
-                        }
-                    }
-
-                    return null;
-                }
             }
         }
     }

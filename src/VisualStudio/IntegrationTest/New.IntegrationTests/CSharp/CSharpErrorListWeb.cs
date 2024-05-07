@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/70627")]
         public async Task ClosedRazorFile()
         {
             var source = """
@@ -37,18 +37,18 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.SolutionExplorer.CloseActiveWindow(HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList], HangMitigatingCancellationToken);
 
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
 
             var actualContents = await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken);
 
             string[] expectedContents =
-            {
-                    "(Compiler) Index.razor(3, 20): error CS1002: ; expected",
-                    "(Compiler) Index.razor(3, 9): warning CS0219: The variable 'x' is assigned but its value is never used",
-                    "(Csc) Index.razor(1, 6): error RZ1016: The 'page' directive expects a string surrounded by double quotes.",
-            };
+            [
+                "(Compiler) Index.razor(3, 20): error CS1002: ; expected",
+                "(Compiler) Index.razor(3, 9): warning CS0219: The variable 'x' is assigned but its value is never used",
+                "(Csc) Index.razor(1, 6): error RZ1016: The 'page' directive expects a string surrounded by double quotes.",
+            ];
 
             AssertEx.EqualOrDiff(
                 string.Join(Environment.NewLine, expectedContents),

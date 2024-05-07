@@ -28,7 +28,7 @@ internal sealed class OrdinaryInstanceConstructorWithExplicitInitializerDeclarat
         => BreakpointSpans.CreateSpanForExplicitConstructorInitializer(Initializer);
 
     public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
-        => model.AnalyzeDataFlow(Initializer)!.Captured.AddRange(model.AnalyzeDataFlow(Body).Captured).Distinct();
+        => model.AnalyzeDataFlow(Initializer)!.CapturedInside.AddRange(model.AnalyzeDataFlow(Body).CapturedInside).Distinct();
 
     public override TextSpan Envelope
         => TextSpan.FromBounds(InitializerActiveStatementSpan.Start, Body.Span.End);

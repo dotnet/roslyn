@@ -123,11 +123,11 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                             var (isCandidate, written) = value;
                             if (isCandidate && !written)
                             {
-                                var option = GetCodeStyleOption(field, symbolEndContext.Options);
+                                var option = GetCodeStyleOption(field, symbolEndContext.Options, out var location);
                                 var diagnostic = DiagnosticHelper.Create(
                                     Descriptor,
-                                    GetDiagnosticLocation(field),
-                                    option.Notification.Severity,
+                                    location,
+                                    option.Notification,
                                     additionalLocations: null,
                                     properties: null);
                                 symbolEndContext.ReportDiagnostic(diagnostic);
@@ -143,7 +143,8 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     {
                         if (member is IFieldSymbol field
                             && IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute)
-                            && context.ShouldAnalyzeLocation(GetDiagnosticLocation(field)))
+                            && GetDiagnosticLocation(field) is { } location
+                            && context.ShouldAnalyzeLocation(location))
                         {
                             return true;
                         }
@@ -208,7 +209,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 }
 
                 // Method to compute the initial field state.
-                static (bool isCandidate, bool written) ComputeInitialFieldState(
+                (bool isCandidate, bool written) ComputeInitialFieldState(
                     IFieldSymbol field,
                     AnalyzerOptions options,
                     INamedTypeSymbol? threadStaticAttribute,
@@ -218,8 +219,10 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 {
                     Debug.Assert(IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute));
 
-                    var option = GetCodeStyleOption(field, options);
-                    if (option == null || !option.Value)
+                    var option = GetCodeStyleOption(field, options, out var location);
+                    if (option == null
+                        || !option.Value
+                        || ShouldSkipAnalysis(location.SourceTree!, options, context.Compilation.Options, option.Notification, cancellationToken))
                     {
                         return default;
                     }
@@ -288,7 +291,10 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             return false;
         }
 
-        private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options)
-            => options.GetAnalyzerOptions(GetDiagnosticLocation(field).SourceTree!).PreferReadonly;
+        private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, out Location diagnosticLocation)
+        {
+            diagnosticLocation = GetDiagnosticLocation(field);
+            return options.GetAnalyzerOptions(diagnosticLocation.SourceTree!).PreferReadonly;
+        }
     }
 }

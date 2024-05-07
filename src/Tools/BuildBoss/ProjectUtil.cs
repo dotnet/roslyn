@@ -97,14 +97,9 @@ namespace BuildBoss
                 .Where(x => !string.IsNullOrEmpty(x));
         }
 
-        internal IEnumerable<XElement> GetItemGroup()
-        {
-            return Document.XPathSelectElements("//mb:ItemGroup", Manager);
-        }
-
         internal List<ProjectReferenceEntry> GetDeclaredProjectReferences()
         {
-            var references = Document.XPathSelectElements("//mb:ProjectReference", Manager);
+            var references = Document.XPathSelectElements("//mb:ItemGroup/mb:ProjectReference", Manager);
             var list = new List<ProjectReferenceEntry>();
             var directory = Path.GetDirectoryName(Key.FilePath);
             foreach (var r in references)
@@ -138,7 +133,7 @@ namespace BuildBoss
         internal List<PackageReference> GetPackageReferences()
         {
             var list = new List<PackageReference>();
-            foreach (var packageRef in Document.XPathSelectElements("//mb:PackageReference", Manager))
+            foreach (var packageRef in Document.XPathSelectElements("//mb:ItemGroup/mb:PackageReference", Manager))
             {
                 list.Add(GetPackageReference(packageRef));
             }

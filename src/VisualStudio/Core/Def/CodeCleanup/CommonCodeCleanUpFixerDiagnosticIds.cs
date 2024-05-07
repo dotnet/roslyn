@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         [ConfigurationKey("unused")]
         [HelpLink("https://learn.microsoft.com/visualstudio/ide/reference/options-text-editor-csharp-advanced#using-directives")]
         [ExportMetadata("EnableByDefault", true)]
-        [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Remove_unnecessary_Imports_or_usings))]
+        [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Remove_unnecessary_imports_or_usings))]
         public static readonly FixIdDefinition? RemoveUnusedImports;
 
         [Export]

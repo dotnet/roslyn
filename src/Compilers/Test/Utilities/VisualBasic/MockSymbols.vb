@@ -384,6 +384,11 @@ Friend Class MockNamedTypeSymbol
             Return False
         End Get
     End Property
+
+    Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+        guidString = Nothing
+        Return False
+    End Function
 End Class
 
 Friend Class MockMethodSymbol
@@ -811,6 +816,18 @@ Friend Class MockAssemblySymbol
         End Get
     End Property
 
+    Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
     Friend Overrides Function GetNoPiaResolutionAssemblies() As ImmutableArray(Of AssemblySymbol)
         Return CType(Nothing, ImmutableArray(Of AssemblySymbol))
     End Function
@@ -874,5 +891,10 @@ Friend Class MockAssemblySymbol
             Return Nothing
         End Get
     End Property
+
+    Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+        guidString = Nothing
+        Return False
+    End Function
 
 End Class

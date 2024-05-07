@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
     [UseExportProvider]
     public abstract class AbstractCompleteStatementTests
     {
-        internal static char semicolon = ';';
+        internal const char Semicolon = ';';
 
         internal abstract ICommandHandler GetCommandHandler(TestWorkspace workspace);
 
@@ -59,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
         {
             var commandHandler = GetCommandHandler(workspace);
 
-            var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, semicolon);
-            var nextHandler = CreateInsertTextHandler(view, semicolon.ToString());
+            var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, Semicolon);
+            var nextHandler = CreateInsertTextHandler(view, Semicolon.ToString());
 
             commandHandler.ExecuteCommand(commandArgs, nextHandler, TestCommandExecutionContext.Create());
         }
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
 
         protected void Verify(string initialMarkup, string expectedMarkup,
             Action<IWpfTextView, TestWorkspace> execute,
-            Action<TestWorkspace> setOptionsOpt = null)
+            Action<TestWorkspace>? setOptions = null)
         {
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {
@@ -99,12 +97,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
 
                 view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, startCaretPosition));
 
-                setOptionsOpt?.Invoke(workspace);
+                setOptions?.Invoke(workspace);
 
                 execute(view, workspace);
                 MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
 
-                Assert.Equal(expectedCode, view.TextSnapshot.GetText());
+                AssertEx.EqualOrDiff(expectedCode, view.TextSnapshot.GetText());
 
                 var endCaretPosition = view.Caret.Position.BufferPosition.Position;
                 Assert.True(expectedPosition == endCaretPosition,

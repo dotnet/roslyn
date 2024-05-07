@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ObjectPool<List<Section>> _sectionKeyPool = new ObjectPool<List<Section>>(() => new List<Section>());
 
-        private StrongBox<AnalyzerConfigOptionsResult>? _lazyConfigOptions;
+        private SingleInitNullable<AnalyzerConfigOptionsResult> _lazyConfigOptions;
 
         private sealed class SequenceEqualComparer : IEqualityComparer<List<Section>>
         {
@@ -166,20 +166,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets an <see cref="AnalyzerConfigOptionsResult"/> that contain the options that apply globally
         /// </summary>
         public AnalyzerConfigOptionsResult GlobalConfigOptions
-        {
-            get
-            {
-                if (_lazyConfigOptions is null)
-                {
-                    Interlocked.CompareExchange(
-                        ref _lazyConfigOptions,
-                        new StrongBox<AnalyzerConfigOptionsResult>(ParseGlobalConfigOptions()),
-                        null);
-                }
-
-                return _lazyConfigOptions.Value;
-            }
-        }
+            => _lazyConfigOptions.Initialize(static @this => @this.ParseGlobalConfigOptions(), this);
 
         /// <summary>
         /// Returns a <see cref="AnalyzerConfigOptionsResult"/> for a source file. This computes which <see cref="AnalyzerConfig"/> rules applies to this file, and correctly applies

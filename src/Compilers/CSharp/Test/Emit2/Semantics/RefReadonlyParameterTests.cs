@@ -6923,10 +6923,12 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 public static void M(this C c, {{modifier}} int x) { }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (6,17): error CS8917: The delegate type could not be inferred.
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17));
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -6946,10 +6948,44 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 public static void M(this C c, ref readonly int x) { }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (6,17): error CS8917: The delegate type could not be inferred.
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17));
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void MethodGroupComparer_TwoExtensionMethods([CombinatorialValues("ref", "in", "")] string modifier)
+    {
+        var source = $$"""
+            class C
+            {
+                void M2()
+                {
+                    var m = this.M;
+                }
+            }
+            static class E1
+            {
+                public static void M(this C c, ref readonly int x) { }
+            }
+            static class E2
+            {
+                public static void M(this C c, {{modifier}} int x) { }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (5,17): error CS8917: The delegate type could not be inferred.
+            //         var m = this.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(5, 17));
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            // (5,17): error CS8917: The delegate type could not be inferred.
+            //         var m = this.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(5, 17));
     }
 
     /// <summary>

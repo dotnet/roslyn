@@ -92,6 +92,9 @@ namespace Microsoft.CodeAnalysis
         public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
             => base.LoadTextAndVersionAsync(workspace, documentId, cancellationToken);
 
+        private FileStream OpenFile(int bufferSize, bool useAsync)
+            => new(this.FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize, useAsync);
+
         /// <summary>
         /// Load a text and a version of the document in the workspace.
         /// </summary>
@@ -102,8 +105,6 @@ namespace Microsoft.CodeAnalysis
             FileUtilities.GetFileLengthAndTimeStamp(Path, out var fileLength, out var prevLastWriteTime);
 
             ValidateFileLength(Path, fileLength);
-
-            TextAndVersion textAndVersion;
 
             // In many .NET Framework versions (specifically the 4.5.* series, but probably much earlier
             // and also later) there is this particularly interesting bit in FileStream.BeginReadAsync:
@@ -171,29 +172,21 @@ namespace Microsoft.CodeAnalysis
             // this logic. This is tracked by https://github.com/dotnet/corefx/issues/6007, at least in
             // corefx. We also open the file for reading with FileShare mode read/write/delete so that
             // we do not lock this file.
-            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 1, useAsync: true)))
-            {
-                var version = VersionStamp.Create(prevLastWriteTime);
 
-                // we do this so that we asynchronously read from file. and this should allocate less for IDE case. 
-                // but probably not for command line case where it doesn't use more sophisticated services.
-                using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var text = CreateText(readStream, options, cancellationToken);
-                textAndVersion = TextAndVersion.Create(text, version, Path);
-            }
+            var textAndVersion = await FileUtilities.RethrowExceptionsAsIOExceptionAsync(
+                async static t =>
+                {
+                    using var stream = t.self.OpenFile(bufferSize: 1, useAsync: true);
+                    var version = VersionStamp.Create(t.prevLastWriteTime);
 
-            // Check if the file was definitely modified and closed while we were reading. In this case, we know the read we got was
-            // probably invalid, so throw an IOException which indicates to our caller that we should automatically attempt a re-read.
-            // If the file hasn't been closed yet and there's another writer, we will rely on file change notifications to notify us
-            // and reload the file.
-            var newLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
-            if (!newLastWriteTime.Equals(prevLastWriteTime))
-            {
-                var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, Path);
-                throw new IOException(message);
-            }
+                    // we do this so that we asynchronously read from file. and this should allocate less for IDE case. 
+                    // but probably not for command line case where it doesn't use more sophisticated services.
+                    using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: t.cancellationToken).ConfigureAwait(false);
+                    var text = t.self.CreateText(readStream, t.options, t.cancellationToken);
+                    return TextAndVersion.Create(text, version, t.self.Path);
+                }, (self: this, prevLastWriteTime, options, cancellationToken)).ConfigureAwait(false);
 
-            return textAndVersion;
+            return CheckForConcurrentFileWrites(prevLastWriteTime, textAndVersion);
         }
 
         /// <summary>
@@ -207,20 +200,25 @@ namespace Microsoft.CodeAnalysis
 
             ValidateFileLength(Path, fileLength);
 
-            TextAndVersion textAndVersion;
+            var textAndVersion = FileUtilities.RethrowExceptionsAsIOException(
+                static t =>
+                {
+                    // Open file for reading with FileShare mode read/write/delete so that we do not lock this file.
+                    using var stream = t.self.OpenFile(bufferSize: 4096, useAsync: false);
+                    var version = VersionStamp.Create(t.prevLastWriteTime);
+                    var text = t.self.CreateText(stream, t.options, t.cancellationToken);
+                    return TextAndVersion.Create(text, version, t.self.Path);
+                }, (self: this, prevLastWriteTime, options, cancellationToken));
 
-            // Open file for reading with FileShare mode read/write/delete so that we do not lock this file.
-            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 4096, useAsync: false)))
-            {
-                var version = VersionStamp.Create(prevLastWriteTime);
-                var text = CreateText(stream, options, cancellationToken);
-                textAndVersion = TextAndVersion.Create(text, version, Path);
-            }
+            return CheckForConcurrentFileWrites(prevLastWriteTime, textAndVersion);
+        }
 
-            // Check if the file was definitely modified and closed while we were reading. In this case, we know the read we got was
-            // probably invalid, so throw an IOException which indicates to our caller that we should automatically attempt a re-read.
-            // If the file hasn't been closed yet and there's another writer, we will rely on file change notifications to notify us
-            // and reload the file.
+        private TextAndVersion CheckForConcurrentFileWrites(DateTime prevLastWriteTime, TextAndVersion textAndVersion)
+        {
+            // Check if the file was definitely modified and closed while we were reading. In this case, we know the
+            // read we got was probably invalid, so throw an IOException which indicates to our caller that we should
+            // automatically attempt a re-read. If the file hasn't been closed yet and there's another writer, we will
+            // rely on file change notifications to notify us and reload the file.
             var newLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
             if (!newLastWriteTime.Equals(prevLastWriteTime))
             {

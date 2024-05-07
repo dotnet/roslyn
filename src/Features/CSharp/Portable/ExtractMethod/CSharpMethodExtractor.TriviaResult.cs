@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         private class CSharpTriviaResult : TriviaResult
         {
-            public static async Task<CSharpTriviaResult> ProcessAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
+            public static async Task<CSharpTriviaResult> ProcessAsync(CSharpSelectionResult selectionResult, CancellationToken cancellationToken)
             {
                 var preservationService = selectionResult.SemanticDocument.Document.Project.Services.GetService<ISyntaxTriviaService>();
                 var root = selectionResult.SemanticDocument.Root;

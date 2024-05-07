@@ -7,7 +7,7 @@ using System;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     /// <summary>
-    /// The LSP modifiers from <see cref="VisualStudio.LanguageServer.Protocol.SemanticTokenModifiers"/>
+    /// The LSP modifiers from <see cref="Roslyn.LanguageServer.Protocol.SemanticTokenModifiers"/>
     /// Roslyn currently supports. Enum is used to signify the modifier(s) that apply to a given token.
     /// </summary>
     [Flags]

@@ -9,16 +9,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed class DocumentDiagnosticSource
-    : AbstractDocumentDiagnosticSource<Document>
+internal sealed class DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Document document)
+    : AbstractDocumentDiagnosticSource<Document>(document)
 {
-    public DiagnosticKind DiagnosticKind { get; }
+    public DiagnosticKind DiagnosticKind { get; } = diagnosticKind;
 
-    public DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Document document)
-        : base(document)
-    {
-        DiagnosticKind = diagnosticKind;
-    }
+    /// <summary>
+    /// This is a normal document source that represents live/fresh diagnostics that should supersede everything else.
+    /// </summary>
+    public override bool IsLiveSource()
+        => true;
 
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)

@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     // from a race caused by multiple features (codefix, refactoring, etc.) attempting to get extensions
                     // from analyzer references at the same time when they are not cached.
                     if (project.GetLanguageService<CompletionService>() is CompletionService completionService)
-                        completionService.TriggerLoadProjectProviders(project);
+                        completionService.TriggerLoadProjectProviders(project, GlobalOptions.GetCompletionOptions(project.Language));
 
                     await InitializeServiceForProjectWithOpenedDocumentAsync(project).ConfigureAwait(false);
                 }

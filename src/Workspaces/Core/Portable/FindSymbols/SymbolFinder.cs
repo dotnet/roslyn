@@ -259,7 +259,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var location in symbol.DeclaringSyntaxReferences)
             {
                 var originalDocument = solution.GetDocument(location.SyntaxTree);
-                var originalRoot = await location.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
                 // GetDocument will return null for locations in #load'ed trees. TODO:  Remove this check and add logic
                 // to fetch the #load'ed tree's Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
@@ -269,6 +268,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     continue;
                 }
 
+                var originalRoot = await location.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var linkedDocumentId in originalDocument.GetLinkedDocumentIds())
                 {
                     var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
@@ -285,13 +285,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     var semanticModel = await linkedDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var linkedSymbol = semanticModel.GetDeclaredSymbol(linkedNode, cancellationToken);
+                    if (linkedSymbol is null)
+                        continue;
 
-                    if (linkedSymbol != null &&
-                        linkedSymbol.Kind == symbol.Kind &&
-                        linkedSymbol.Name == symbol.Name)
+                    if (linkedSymbol.Kind != symbol.Kind)
                     {
-                        linkedSymbols.Add(linkedSymbol);
+                        // With primary constructors, the declaring node of the primary constructor is the type
+                        // declaration node itself.  So, see if we're in that situation, and try to find the
+                        // corresponding primary constructor in the linked file.
+                        if (linkedSymbol is INamedTypeSymbol linkedNamedType &&
+                            symbol.IsConstructor())
+                        {
+                            linkedSymbol = linkedNamedType.Constructors.FirstOrDefault(
+                                c => c.DeclaringSyntaxReferences.Any(r => linkedNode.Equals(r.GetSyntax(cancellationToken))));
+                            if (linkedSymbol is null)
+                                continue;
+                        }
                     }
+
+                    if (linkedSymbol.Name == symbol.Name)
+                        linkedSymbols.Add(linkedSymbol);
                 }
             }
 

@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SolutionState
+    internal partial class SolutionCompilationState
     {
         /// <summary>
         /// An implementation of <see cref="ICompilationTracker"/> that takes a compilation from another compilation tracker and updates it
@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis
                 throw new NotImplementedException();
             }
 
-            public ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
+            public ICompilationTracker FreezePartialStateWithTree(SolutionCompilationState compilationState, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {
                 // Because we override SourceGeneratedDocument.WithFrozenPartialSemantics directly, we shouldn't be able to get here.
                 throw ExceptionUtilities.Unreachable();
             }
 
-            public async Task<Compilation> GetCompilationAsync(SolutionState solution, CancellationToken cancellationToken)
+            public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 // Fast path if we've definitely already done this before
                 if (_compilationWithReplacement != null)
@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis
                     return _compilationWithReplacement;
                 }
 
-                var underlyingCompilation = await UnderlyingTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-                var underlyingSourceGeneratedDocuments = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(solution, cancellationToken).ConfigureAwait(false);
+                var underlyingCompilation = await UnderlyingTracker.GetCompilationAsync(compilationState, cancellationToken).ConfigureAwait(false);
+                var underlyingSourceGeneratedDocuments = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(compilationState, cancellationToken).ConfigureAwait(false);
 
                 underlyingSourceGeneratedDocuments.TryGetState(replacementDocumentState.Id, out var existingState);
 
@@ -101,17 +101,17 @@ namespace Microsoft.CodeAnalysis
                 return _compilationWithReplacement;
             }
 
-            public Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken)
-                => UnderlyingTracker.GetDependentVersionAsync(solution, cancellationToken);
+            public Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+                => UnderlyingTracker.GetDependentVersionAsync(compilationState, cancellationToken);
 
-            public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)
-                => UnderlyingTracker.GetDependentSemanticVersionAsync(solution, cancellationToken);
+            public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+                => UnderlyingTracker.GetDependentSemanticVersionAsync(compilationState, cancellationToken);
 
-            public Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
+            public Task<Checksum> GetDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 if (_lazyDependentChecksum == null)
                 {
-                    var tmp = solution; // temp. local to avoid a closure allocation for the fast path
+                    var tmp = compilationState; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
                     Interlocked.CompareExchange(ref _lazyDependentChecksum, AsyncLazy.Create(c => ComputeDependentChecksumAsync(tmp, c)), null);
                 }
@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis
                 return _lazyDependentChecksum.GetValueAsync(cancellationToken);
             }
 
-            private async Task<Checksum> ComputeDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
+            private async Task<Checksum> ComputeDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
                 => Checksum.Create(
-                    await UnderlyingTracker.GetDependentChecksumAsync(solution, cancellationToken).ConfigureAwait(false),
+                    await UnderlyingTracker.GetDependentChecksumAsync(compilationState, cancellationToken).ConfigureAwait(false),
                     await replacementDocumentState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
 
             public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
@@ -136,9 +136,11 @@ namespace Microsoft.CodeAnalysis
                 throw new NotImplementedException();
             }
 
-            public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(SolutionState solution, CancellationToken cancellationToken)
+            public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
+                SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                var underlyingGeneratedDocumentStates = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(solution, cancellationToken).ConfigureAwait(false);
+                var underlyingGeneratedDocumentStates = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(
+                    compilationState, cancellationToken).ConfigureAwait(false);
 
                 if (underlyingGeneratedDocumentStates.Contains(replacementDocumentState.Id))
                 {
@@ -156,9 +158,10 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, CancellationToken cancellationToken)
+            public Task<bool> HasSuccessfullyLoadedAsync(
+                SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                return UnderlyingTracker.HasSuccessfullyLoadedAsync(solution, cancellationToken);
+                return UnderlyingTracker.HasSuccessfullyLoadedAsync(compilationState, cancellationToken);
             }
 
             public bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation)
@@ -179,13 +182,14 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken)
+            public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
+                SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 // We can directly return the diagnostics from the underlying tracker; this is because
                 // a generated document cannot have any diagnostics that are produced by a generator:
                 // a generator cannot add diagnostics to it's own file outputs, and generators don't see the
                 // outputs of each other.
-                return UnderlyingTracker.GetSourceGeneratorDiagnosticsAsync(solution, cancellationToken);
+                return UnderlyingTracker.GetSourceGeneratorDiagnosticsAsync(compilationState, cancellationToken);
             }
         }
     }

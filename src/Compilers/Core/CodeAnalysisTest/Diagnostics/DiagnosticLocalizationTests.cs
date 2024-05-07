@@ -309,7 +309,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 isCompilerAnalyzer: _ => false, analyzerManager, shouldSkipAnalysisOnGeneratedCode: _ => false,
                 shouldSuppressGeneratedCodeDiagnostic: (_, _, _, _) => false, isGeneratedCodeLocation: (_, _, _) => false,
                 isAnalyzerSuppressedForTree: (_, _, _, _) => false, getAnalyzerGate: _ => null,
-                getSemanticModel: tree => compilation.GetSemanticModel(tree, ignoreAccessibility: true));
+                getSemanticModel: tree => compilation.GetSemanticModel(tree, ignoreAccessibility: true),
+                SeverityFilter.None);
             var descriptors = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor, CancellationToken.None);
 
             Assert.Equal(1, descriptors.Length);

@@ -48,7 +48,7 @@ class C
     {
     }
 }", cancellationToken: HangMitigatingCancellationToken);
-                await telemetry.VerifyFiredAsync(new[] { "vs/ide/vbcs/commandhandler/formatcommand" }, HangMitigatingCancellationToken);
+                await telemetry.VerifyFiredAsync(["vs/ide/vbcs/commandhandler/formatcommand"], HangMitigatingCancellationToken);
             }
         }
 
@@ -66,7 +66,7 @@ public class C
     }
 }", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.BACK, ';' }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendAsync([VirtualKeyCode.BACK, ';'], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 public class C
 {
@@ -140,7 +140,7 @@ class Program
     }
 }", cancellationToken: HangMitigatingCancellationToken);
             // Undo should only undo the formatting
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.Undo, HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 using System;
 class Program
@@ -259,7 +259,7 @@ class Program
     }
 }", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(new InputKey[] { "(ba", (VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT), "// comment" }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendAsync(["(ba", (VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT), "// comment"], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 class Program
 {
@@ -310,13 +310,12 @@ class C
              */
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
-                },
+                ],
                 HangMitigatingCancellationToken);
             await TestServices.Editor.FormatDocumentAsync(HangMitigatingCancellationToken);
 
@@ -336,13 +335,12 @@ indent_size = 2
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", editorConfig, open: false, HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
-                },
+                ],
                 HangMitigatingCancellationToken);
             await TestServices.Editor.FormatDocumentAsync(HangMitigatingCancellationToken);
 
@@ -356,13 +354,12 @@ indent_size = 2
             await TestServices.SolutionExplorer.SetFileContentsAsync(ProjectName, ".editorconfig", editorConfig.Replace("2", "4"), HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[]
-                {
+                [
                     FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
-                },
+                ],
                 HangMitigatingCancellationToken);
             await TestServices.Editor.FormatDocumentAsync(HangMitigatingCancellationToken);
 

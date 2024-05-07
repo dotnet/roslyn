@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Notifications for this event are serialized to preserve order.
         /// However, individual event notifications may occur on any thread.
         /// </summary>
-        event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> DiagnosticsUpdated;
 
         /// <summary>
         /// Get current diagnostics stored in IDiagnosticUpdateSource.

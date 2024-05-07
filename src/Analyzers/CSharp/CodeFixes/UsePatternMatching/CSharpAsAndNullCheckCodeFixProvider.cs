@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -117,7 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 // inlining the declaration, and thus need to see the effects of that change.
                 editor.ReplaceNode(
                     localDeclaration.GetNextStatement()!,
-                    (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
+                    (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration)
+                               .WithAdditionalAnnotations(Formatter.Annotation));
 
                 removeStatement(localDeclaration);
             }

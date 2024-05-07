@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider();
 
-        private static readonly string[] CompositeFormattedMethods = new[]
-        {
+        private static readonly string[] CompositeFormattedMethods =
+        [
             "Console.Write",
             "Console.WriteLine",
             "Debug.WriteLine",
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
             "Trace.TraceError",
             "Trace.TraceWarning",
             "Trace.TraceInformation",
-        };
+        ];
 
         public static IEnumerable<object[]> InvocationData
         {

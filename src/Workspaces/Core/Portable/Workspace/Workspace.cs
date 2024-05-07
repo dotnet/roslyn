@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -20,7 +19,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Determines whether changes made to unchangeable documents will be silently ignored or cause exceptions to be thrown
-        /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgressTracker)"/>. 
+        /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgress{CodeAnalysisProgress})"/>. 
         /// A document is unchangeable if <see cref="IDocumentOperationService.CanApplyChange"/> is false.
         /// </summary>
         internal virtual bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; } = false;
@@ -248,11 +246,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var newSolution = data.transformation(oldSolution);
 
-                    // Attempt to unify the syntax trees in the new solution (unless the option is set disabling that).
-                    var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-                    if (options.DisableSharedSyntaxTrees)
-                        return newSolution;
-
+                    // Attempt to unify the syntax trees in the new solution.
                     return UnifyLinkedDocumentContents(oldSolution, newSolution);
                 },
                 mayRaiseEvents: true,
@@ -285,6 +279,10 @@ namespace Microsoft.CodeAnalysis
                 // For all added documents, see if they link to an existing document.  If so, use that existing documents text/tree.
                 foreach (var addedProject in changes.GetAddedProjects())
                 {
+                    // Ignore projects that don't even have syntax trees to share.
+                    if (!addedProject.SupportsCompilation)
+                        continue;
+
                     foreach (var addedDocument in addedProject.Documents)
                         newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument.Id);
                 }
@@ -293,6 +291,10 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var projectChanges in changes.GetProjectChanges())
                 {
+                    // Ignore projects that don't even have syntax trees to share.
+                    if (!projectChanges.NewProject.SupportsCompilation)
+                        continue;
+
                     // Now do the same for all added documents in a project.
                     foreach (var addedDocument in projectChanges.GetAddedDocuments())
                         newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument);
@@ -1143,25 +1145,16 @@ namespace Microsoft.CodeAnalysis
                         var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(documentId);
                         if (linkedDocumentIds.Length > 0)
                         {
-                            // Two options for updating linked docs (legacy and new).
-                            //
-                            // Legacy behavior: update each linked doc to point at the same SourceText instance.  Each
-                            // doc will reparse itself however it wants (and thus not share any tree contents).
-                            //
-                            // Modern behavior: attempt to actually have the linked documents point *into* the same
-                            // instance data that the initial document points at.  This way things like tree data can be
-                            // shared across docs.
+                            // Have the linked documents point *into* the same instance data that the initial document
+                            // points at.  This way things like tree data can be shared across docs.
 
                             var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-                            var shareSyntaxTrees = !options.DisableSharedSyntaxTrees;
 
                             var newDocument = newSolution.GetRequiredDocument(documentId);
                             foreach (var linkedDocumentId in linkedDocumentIds)
                             {
                                 previousSolution = newSolution;
-                                newSolution = shareSyntaxTrees
-                                    ? newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState)
-                                    : data.updateSolutionWithText(newSolution, linkedDocumentId, data.arg);
+                                newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState);
 
                                 if (previousSolution != newSolution)
                                     updatedDocumentIds.Add(linkedDocumentId);
@@ -1375,9 +1368,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="NotSupportedException">Thrown if the solution contains changes not supported according to the
         /// <see cref="CanApplyChange(ApplyChangesKind)"/> method.</exception>
         public virtual bool TryApplyChanges(Solution newSolution)
-            => TryApplyChanges(newSolution, new ProgressTracker());
+            => TryApplyChanges(newSolution, CodeAnalysisProgress.None);
 
-        internal virtual bool TryApplyChanges(Solution newSolution, IProgressTracker progressTracker)
+        internal virtual bool TryApplyChanges(Solution newSolution, IProgress<CodeAnalysisProgress> progressTracker)
         {
             using (Logger.LogBlock(FunctionId.Workspace_ApplyChanges, CancellationToken.None))
             {
@@ -1421,14 +1414,16 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // changed projects
-                var projectChangesList = solutionChanges.GetProjectChanges().ToList();
-                progressTracker.AddItems(projectChangesList.Count);
+                var projectChangesList = solutionChanges.GetProjectChanges().ToImmutableArray();
+                progressTracker.AddItems(projectChangesList.Length);
 
                 foreach (var projectChanges in projectChangesList)
                 {
                     this.ApplyProjectChanges(projectChanges);
                     progressTracker.ItemCompleted();
                 }
+
+                this.ApplyDocumentsInfoChange(projectChangesList);
 
                 // changes in mapped files outside the workspace (may span multiple projects)
                 this.ApplyMappedFileChanges(solutionChanges);
@@ -1459,6 +1454,39 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return true;
+            }
+        }
+
+        private void ApplyDocumentsInfoChange(ImmutableArray<ProjectChanges> projectChanges)
+        {
+            using var _1 = PooledHashSet<DocumentId>.GetInstance(out var infoChangedDocumentIds);
+            using var _2 = PooledHashSet<Document>.GetInstance(out var infoChangedNewDocuments);
+            foreach (var projectChange in projectChanges)
+            {
+                foreach (var docId in projectChange.GetChangedDocuments())
+                {
+                    if (!infoChangedDocumentIds.Contains(docId))
+                    {
+                        var oldDoc = projectChange.OldProject.GetRequiredDocument(docId);
+                        var newDoc = projectChange.NewProject.GetRequiredDocument(docId);
+                        // For linked documents, when info get changed (e.g. name/folder/filePath)
+                        // only apply one document changed because it will update the 'real' file, causing the other linked documents get changed.
+                        if (oldDoc.HasInfoChanged(newDoc))
+                        {
+                            var linkedDocuments = oldDoc.GetLinkedDocumentIds();
+                            infoChangedDocumentIds.Add(docId);
+                            infoChangedDocumentIds.AddRange(linkedDocuments);
+                            infoChangedNewDocuments.Add(newDoc);
+                        }
+                    }
+                }
+            }
+
+            foreach (var newDoc in infoChangedNewDocuments)
+            {
+                // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
+                ApplyDocumentInfoChanged(newDoc.Id,
+                    new DocumentInfo(newDoc.DocumentState.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
             }
         }
 
@@ -1833,16 +1861,6 @@ namespace Microsoft.CodeAnalysis
                     // So either the new text already knows the individual changes or we do not have a way to compute them.
                     this.ApplyDocumentTextChanged(documentId, newText);
                 }
-            }
-
-            // Update document info if changed. Updating the info can cause files to move on disk (or have other side effects),
-            // so we do this after any text changes have been applied.
-            if (newDoc.HasInfoChanged(oldDoc))
-            {
-                // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
-                ApplyDocumentInfoChanged(
-                    documentId,
-                    new DocumentInfo(newDoc.State.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
             }
         }
 

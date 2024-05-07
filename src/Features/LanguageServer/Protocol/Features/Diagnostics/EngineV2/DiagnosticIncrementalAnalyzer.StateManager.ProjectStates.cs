@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public IEnumerable<StateSet> GetAllProjectStateSets()
             {
                 // return existing state sets
-                return _projectAnalyzerStateMap.Values.SelectMany(e => e.StateSetMap.Values).ToImmutableArray();
+                return _projectAnalyzerStateMap.Values.SelectManyAsArray(e => e.StateSetMap.Values);
             }
 
             private ProjectAnalyzerStateSets? TryGetProjectStateSets(Project project)

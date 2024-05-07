@@ -29,12 +29,21 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService
             _project.Dispose();
         }
 
+        [Obsolete($"Call the {nameof(AddAdditionalFilesAsync)} overload that takes {nameof(SourceFileInfo)}.")]
         public async Task AddAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken)
         {
             await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
 
             foreach (var additionalFilePath in additionalFilePaths)
                 _project.AddAdditionalFile(additionalFilePath);
+        }
+
+        public async Task AddAdditionalFilesAsync(IReadOnlyList<SourceFileInfo> additionalFiles, CancellationToken cancellationToken)
+        {
+            await using var batchScope = _project.CreateBatchScope().ConfigureAwait(false);
+
+            foreach (var additionalFile in additionalFiles)
+                _project.AddAdditionalFile(additionalFile.FilePath, folderNames: additionalFile.FolderNames.ToImmutableArray());
         }
 
         public async Task RemoveAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken)

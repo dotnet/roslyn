@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
         protected abstract SyntaxToken GetIdentifierOfSingleVariableDesignation(TSingleVariableDesignationSyntax variable);
 
         public async Task<ImmutableArray<TextSpan>> GetLocationsAsync(
-            Document document, TextSpan span, CancellationToken cancellationToken)
+            Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
         {
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -48,10 +48,17 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
             using var _1 = PooledDictionary<ISymbol, bool>.GetInstance(out var symbolToIsReassigned);
             using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var result);
             using var _3 = PooledDictionary<SyntaxTree, SemanticModel>.GetInstance(out var syntaxTreeToModel);
+            var semanticModel = GetSemanticModel(root.SyntaxTree);
 
-            return Recurse();
+            foreach (var span in spans)
+            {
+                Recurse(span, semanticModel);
+            }
 
-            ImmutableArray<TextSpan> Recurse()
+            result.RemoveDuplicates();
+            return result.ToImmutable();
+
+            void Recurse(TextSpan span, SemanticModel semanticModel)
             {
                 using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
 
@@ -60,8 +67,6 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 // locals/parameters without any references in the span, or references that don't have the declarations in 
                 // the span
                 stack.Add(root.FindNode(span));
-
-                var semanticModel = GetSemanticModel(root.SyntaxTree);
 
                 // Use a stack so we don't blow out the stack with recursion.
                 while (stack.Count > 0)
@@ -80,9 +85,6 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                         }
                     }
                 }
-
-                result.RemoveDuplicates();
-                return result.ToImmutable();
             }
 
             SemanticModel GetSemanticModel(SyntaxTree syntaxTree)

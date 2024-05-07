@@ -84,20 +84,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             char typedChar,
             CancellationToken cancellationToken)
         {
-            if (!PotentialCommitCharacters.Contains(typedChar))
-            {
-                return false;
-            }
-
-            return !(session.Properties.TryGetProperty(CompletionSource.ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharacter)
-                && excludedCommitCharacter.Contains(typedChar));
+            // this is called only when the typedChar is in the list returned by PotentialCommitCharacters.
+            // It's possible typedChar is intended to be a filter char for some items (either currently considered for commit of not)
+            // we let this case to be handled in `TryCommit` instead, where we will have all the information needed to decide.
+            return true;
         }
 
         public AsyncCompletionData.CommitResult TryCommit(
             IAsyncCompletionSession session,
             ITextBuffer subjectBuffer,
             VSCompletionItem item,
-            char typeChar,
+            char typedChar,
             CancellationToken cancellationToken)
         {
             // We can make changes to buffers. We would like to be sure nobody can change them at the same time.
@@ -121,11 +118,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
-            var filterText = session.ApplicableToSpan.GetText(session.ApplicableToSpan.TextBuffer.CurrentSnapshot) + typeChar;
-            if (Helpers.IsFilterCharacter(itemData.RoslynItem, typeChar, filterText))
+            var roslynItem = itemData.RoslynItem;
+            var filterText = session.ApplicableToSpan.GetText(session.ApplicableToSpan.TextBuffer.CurrentSnapshot) + typedChar;
+
+            if (Helpers.IsFilterCharacter(roslynItem, typedChar, filterText))
             {
                 // Returning Cancel means we keep the current session and consider the character for further filtering.
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
+            }
+
+            // typedChar could be a filter character for another item. If we find such an item that the current filter
+            // text matches its start, then we should cancel commit and give ItemManager a chance to handle it.
+            // This is done here instead of in `ShouldCommitCompletion` because `ShouldCommitCompletion` might be called before
+            // CompletionSource add the `excludedCommitCharactersMap` to the session property bag.
+            if (session.Properties.TryGetProperty(CompletionSource.ExcludedCommitCharactersMap, out MultiDictionary<char, RoslynCompletionItem> excludedCommitCharactersMap))
+            {
+                foreach (var potentialItemForSelection in excludedCommitCharactersMap[typedChar])
+                {
+                    if (potentialItemForSelection != roslynItem && Helpers.TextTypedSoFarMatchesItem(potentialItemForSelection, filterText))
+                        return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
+                }
             }
 
             var options = _globalOptions.GetCompletionOptions(document.Project.Language);
@@ -134,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // We can be called before for ShouldCommitCompletion. However, that call does not provide rules applied for the completion item.
             // Now we check for the commit character in the context of Rules that could change the list of commit characters.
 
-            if (!Helpers.IsStandardCommitCharacter(typeChar) && !IsCommitCharacter(serviceRules, itemData.RoslynItem, typeChar))
+            if (!Helpers.IsStandardCommitCharacter(typedChar) && !IsCommitCharacter(serviceRules, roslynItem, typedChar))
             {
                 // Returning None means we complete the current session with a void commit. 
                 // The Editor then will try to trigger a new completion session for the character.
@@ -162,10 +174,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
-            var commitChar = typeChar == '\0' ? null : (char?)typeChar;
+            var commitChar = typedChar == '\0' ? null : (char?)typedChar;
             return Commit(
                 session, triggerDocument, completionService, subjectBuffer,
-                itemData.RoslynItem, sessionData.CompletionListSpan.Value, commitChar, itemData.TriggerLocation.Value.Snapshot, serviceRules,
+                roslynItem, sessionData.CompletionListSpan.Value, commitChar, itemData.TriggerLocation.Value.Snapshot, serviceRules,
                 filterText, cancellationToken);
         }
 

@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 if (!variableDeclaration.Type.IsKind(SyntaxKind.PointerType))
                 {
                     var containsStackAlloc = initializer
-                        .DescendantNodesAndSelf(descendIntoChildren: node => !node.IsAnyLambdaOrAnonymousMethod())
+                        .DescendantNodesAndSelf(descendIntoChildren: node => node is not AnonymousFunctionExpressionSyntax)
                         .Any(node => node.IsKind(SyntaxKind.StackAllocArrayCreationExpression));
 
                     if (containsStackAlloc)

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.Extensions.Logging;
@@ -44,13 +45,13 @@ public sealed class TelemetryReporterTests : AbstractLanguageServerHostTests
     {
         var service = await CreateReporterAsync();
         service.LogBlockStart(GetEventName(nameof(TestBlockLogging)), kind: 0, blockId: 0);
-        service.LogBlockEnd(blockId: 0, ImmutableDictionary<string, object?>.Empty, CancellationToken.None);
+        service.LogBlockEnd(blockId: 0, [], CancellationToken.None);
     }
 
     [Fact]
     public async Task TestLog()
     {
         var service = await CreateReporterAsync();
-        service.Log(GetEventName(nameof(TestLog)), ImmutableDictionary<string, object?>.Empty);
+        service.Log(GetEventName(nameof(TestLog)), []);
     }
 }

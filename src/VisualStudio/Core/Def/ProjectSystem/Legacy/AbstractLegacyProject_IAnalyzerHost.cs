@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         }
 
         void IAnalyzerHost.AddAdditionalFile(string additionalFilePath)
-            => ProjectSystemProject.AddAdditionalFile(additionalFilePath);
+            => ProjectSystemProject.AddAdditionalFile(additionalFilePath, folders: GetFolderNamesForDocument(additionalFilePath));
 
         void IAnalyzerHost.RemoveAdditionalFile(string additionalFilePath)
             => ProjectSystemProject.RemoveAdditionalFile(additionalFilePath);

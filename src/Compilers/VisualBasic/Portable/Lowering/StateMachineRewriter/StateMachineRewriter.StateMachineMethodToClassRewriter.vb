@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <summary>
             ''' The set of local variables and parameters that were hoisted and need a proxy.
             ''' </summary>
-            Private ReadOnly _hoistedVariables As Roslyn.Utilities.IReadOnlySet(Of Symbol) = Nothing
+            Private ReadOnly _hoistedVariables As IReadOnlySet(Of Symbol) = Nothing
 
             ''' <summary>
             ''' EnC support: the rewriter stores debug info for each await/yield in this builder.
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Sub New(F As SyntheticBoundNodeFactory,
                            stateField As FieldSymbol,
-                           hoistedVariables As Roslyn.Utilities.IReadOnlySet(Of Symbol),
+                           hoistedVariables As IReadOnlySet(Of Symbol),
                            initialProxies As Dictionary(Of Symbol, TProxy),
                            stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,

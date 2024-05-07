@@ -408,7 +408,7 @@ class C
             var f1 = (IMethodSymbol)compilation1.GetMember("C.F").GetPublicSymbol();
 
             using var md0 = ModuleMetadata.CreateFromImage(compilation0.EmitToArray());
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, debugInformationProvider: _ => default);
+            var generation0 = EmitBaseline.CreateInitialBaseline(compilation0, md0, debugInformationProvider: _ => default, localSignatureProvider: _ => default, hasPortableDebugInformation: true);
 
             var diff = compilation1.EmitDifference(
                 generation0,

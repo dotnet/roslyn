@@ -16,6 +16,8 @@ namespace Microsoft.Cci
             _containingMethod = containingMethod;
         }
 
+        bool IDefinition.IsEncDeleted => false;
+
         public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
             return _containingMethod.GetReturnValueAttributes(context);

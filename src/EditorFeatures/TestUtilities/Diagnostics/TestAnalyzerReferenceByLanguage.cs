@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override object Id => Display;
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-            => _analyzersMap.SelectMany(kvp => kvp.Value).ToImmutableArray();
+            => _analyzersMap.SelectManyAsArray(kvp => kvp.Value);
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
         {

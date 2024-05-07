@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The default implementation is to simply load in place.
         /// </summary>
-        /// <param name="fullPath"></param>
-        /// <returns></returns>
-        protected override string PreparePathToLoad(string fullPath) => fullPath;
+        protected override string PreparePathToLoad(string fullPath, ImmutableHashSet<string> satelliteCultureNames) => fullPath;
 
         /// <summary>
         /// Return an <see cref="IAnalyzerAssemblyLoader"/> which does not lock assemblies on disk that is
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
         /// will be the base directory where shadow copy assemblies are stored. </param>
-        internal static IAnalyzerAssemblyLoader CreateNonLockingLoader(string windowsShadowPath)
+        internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(string windowsShadowPath)
         {
 #if NETCOREAPP
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// Returns the semantic model for this document that may be produced from partial semantics. The semantic model
         /// is only guaranteed to contain the syntax tree for <paramref name="document"/> and nothing else.
         /// </summary>
-        public static async Task<(Document document, SemanticModel? semanticModel)> GetPartialSemanticModelAsync(this Document document, CancellationToken cancellationToken)
+        public static async Task<(Document document, SemanticModel? semanticModel)> GetFullOrPartialSemanticModelAsync(this Document document, CancellationToken cancellationToken)
         {
             if (document.Project.TryGetCompilation(out var compilation))
             {

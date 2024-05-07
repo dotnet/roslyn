@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 ((PostfixUnaryExpressionSyntax)left).OperatorToken.GetLocation(),
-                ReportDiagnostic.Warn,
+                NotificationOption2.Warning,
                 ImmutableArray.Create(node.GetLocation()),
                 properties: null));
         }

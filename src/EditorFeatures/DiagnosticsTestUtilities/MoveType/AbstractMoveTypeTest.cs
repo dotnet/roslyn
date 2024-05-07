@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
             var action = actions.Single(a => a.Title.Equals(operation, StringComparison.CurrentCulture));
             var operations = await action.GetOperationsAsync(
-                workspace.CurrentSolution, new ProgressTracker(), CancellationToken.None);
+                workspace.CurrentSolution, CodeAnalysisProgress.None, CancellationToken.None);
 
             return await TestOperationsAsync(workspace,
                 expectedText: expectedCode,

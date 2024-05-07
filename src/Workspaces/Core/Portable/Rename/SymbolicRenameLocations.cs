@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly Solution Solution;
         public readonly ISymbol Symbol;
         public readonly SymbolRenameOptions Options;
-        public readonly CodeCleanupOptionsProvider FallbackOptions;
 
         public readonly ImmutableArray<RenameLocation> Locations;
         public readonly ImmutableArray<ReferenceLocation> ImplicitLocations;
@@ -40,7 +39,6 @@ namespace Microsoft.CodeAnalysis.Rename
             ISymbol symbol,
             Solution solution,
             SymbolRenameOptions options,
-            CodeCleanupOptionsProvider fallbackOptions,
             ImmutableArray<RenameLocation> locations,
             ImmutableArray<ReferenceLocation> implicitLocations,
             ImmutableArray<ISymbol> referencedSymbols)
@@ -53,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Rename
             Solution = solution;
             Symbol = symbol;
             Options = options;
-            FallbackOptions = fallbackOptions;
             Locations = locations;
             ReferencedSymbols = referencedSymbols;
             ImplicitLocations = implicitLocations;
@@ -63,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// Attempts to find all the locations to rename.  Will not cross any process boundaries to do this.
         /// </summary>
         public static async Task<SymbolicRenameLocations> FindLocationsInCurrentProcessAsync(
-            ISymbol symbol, Solution solution, SymbolRenameOptions options, CodeCleanupOptionsProvider cleanupOptions, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, SymbolRenameOptions options, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(symbol);
             using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
@@ -111,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 mergedLocations.RemoveDuplicates();
 
                 return new SymbolicRenameLocations(
-                    symbol, solution, options, cleanupOptions,
+                    symbol, solution, options,
                     mergedLocations.ToImmutable(),
                     mergedImplicitLocations.ToImmutable(),
                     mergedReferencedSymbols.ToImmutable());

@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             var parent = castNode.WalkUpParentheses().GetRequiredParent();
-            if (parent is not PrefixUnaryExpressionSyntax(SyntaxKind.BitwiseNotExpression) originalBitwiseNotExpression)
+            if (parent is not PrefixUnaryExpressionSyntax(SyntaxKind.BitwiseNotExpression))
                 return false;
 
             // If we were parented by a bitwise negation before, we must also be afterwards.
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             Debug.Assert(rewrittenBitwiseNotExpression.Kind() == SyntaxKind.BitwiseNotExpression);
 
             var rewrittenOperation = rewrittenSemanticModel.GetOperation(rewrittenBitwiseNotExpression, cancellationToken);
-            if (rewrittenOperation is not IUnaryOperation { OperatorKind: UnaryOperatorKind.BitwiseNegation } unaryOperation)
+            if (rewrittenOperation is not IUnaryOperation { OperatorKind: UnaryOperatorKind.BitwiseNegation })
                 return false;
 
             // Post rewrite we need to have the same conversion outside that `~` that we had inside.

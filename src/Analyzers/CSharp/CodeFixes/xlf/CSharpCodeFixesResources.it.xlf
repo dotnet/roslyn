@@ -137,11 +137,6 @@
         <target state="translated">Inserisci il token nella riga seguente</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">Rimuovi istruzioni using non necessarie</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_blank_lines_between_braces">
         <source>Remove blank line between braces</source>
         <target state="translated">Rimuovi la riga vuota tra parentesi graffe</target>
@@ -155,6 +150,11 @@
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
         <target state="translated">Rimuovi il modificatore 'new'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">Rimuovi istruzioni using non necessarie</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="Use_collection_expression">
         <source>Use collection expression</source>
-        <target state="translated">Usa espressione di raccolta</target>
+        <target state="translated">Usa l'espressione di raccolta</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.Extensions.Logging;
 using Microsoft.TestPlatform.VsTestConsole.TranslationLayer;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
@@ -128,8 +128,7 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
 
         // TODO - we likely need to pass the no-restore flag once we have automatic restore enabled.
         // https://github.com/dotnet/vscode-csharp/issues/5725
-        var arguments = $"build {projectFileName}";
-        using var process = dotnetCliHelper.Run(arguments, workingDirectory, shouldLocalizeOutput: true);
+        using var process = dotnetCliHelper.Run(["build", projectFileName], workingDirectory, shouldLocalizeOutput: true);
 
         process.OutputDataReceived += (sender, args) => ReportProgress(progress, args.Data);
 

@@ -8,16 +8,15 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
@@ -156,9 +155,10 @@ namespace Microsoft.CodeAnalysis.Classification
                     }
                 }
 
-                return cachedTags == null
-                    ? Array.Empty<ITagSpan<IClassificationTag>>()
-                    : cachedTags.GetIntersectingTagSpans(spans);
+                return SegmentedListPool.ComputeList(
+                    static (args, tags) => args.cachedTags?.AddIntersectingTagSpans(args.spans, tags),
+                    (cachedTags, spans),
+                    _: (ITagSpan<IClassificationTag>?)null);
             }
 
             private Task ProduceTagsAsync(

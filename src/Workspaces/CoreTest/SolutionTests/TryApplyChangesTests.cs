@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // If we simply support the main change kind, then any type of change should be supported and we should not get called
             // to the other method
             using var workspace = new CustomizedCanApplyWorkspace(
-                allowedKinds: new[] { ApplyChangesKind.ChangeCompilationOptions },
+                allowedKinds: [ApplyChangesKind.ChangeCompilationOptions],
                 canApplyCompilationOptions: (_, __) => throw new Exception("This should not have been called."));
 
             var project = workspace.CurrentSolution.Projects.Single();
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             // If we don't support the main change kind, then the other method should be called
             using var workspace = new CustomizedCanApplyWorkspace(
-                allowedKinds: new ApplyChangesKind[] { },
+                allowedKinds: [],
                 canApplyCompilationOptions: (_, newCompilationOptions) => newCompilationOptions.MainTypeName == "Test");
 
             var project = workspace.CurrentSolution.Projects.Single();
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             // If we don't support the main change kind, then the other method should be called
             using var workspace = new CustomizedCanApplyWorkspace(
-                allowedKinds: new ApplyChangesKind[] { },
+                allowedKinds: [],
                 canApplyCompilationOptions: (_, newCompilationOptions) => newCompilationOptions.MainTypeName == "Expected");
 
             var project = workspace.CurrentSolution.Projects.Single();
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // If we simply support the main change kind, then any type of change should be supported and we should not get called
             // to the other method
             using var workspace = new CustomizedCanApplyWorkspace(
-                allowedKinds: new[] { ApplyChangesKind.ChangeParseOptions },
+                allowedKinds: [ApplyChangesKind.ChangeParseOptions],
                 canApplyParseOptions: (_, __) => throw new Exception("This should not have been called."));
 
             var project = workspace.CurrentSolution.Projects.Single();
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             // If we don't support the main change kind, then the other method should be called
             using var workspace = new CustomizedCanApplyWorkspace(
-                allowedKinds: new ApplyChangesKind[] { },
+                allowedKinds: [],
                 canApplyParseOptions: (_, newParseOptions) => newParseOptions.Features["Feature"] == "ExpectedValue");
 
             var project = workspace.CurrentSolution.Projects.Single();
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             // If we don't support the main change kind, then the other method should be called
             using var workspace = new CustomizedCanApplyWorkspace(
-                allowedKinds: new ApplyChangesKind[] { },
+                allowedKinds: [],
                 canApplyParseOptions: (_, newParseOptions) => newParseOptions.Features["Feature"] == "ExpectedValue");
 
             var project = workspace.CurrentSolution.Projects.Single();

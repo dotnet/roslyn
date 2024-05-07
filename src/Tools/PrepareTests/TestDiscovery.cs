@@ -120,8 +120,10 @@ internal class TestDiscovery
 
     private static List<string> GetAssemblies(string binDirectory, bool isUnix)
     {
-        var unitTestAssemblies = Directory.GetFiles(binDirectory, "*.UnitTests.dll", SearchOption.AllDirectories).Where(ShouldInclude);
-        return unitTestAssemblies.ToList();
+        var unitTestAssemblies = Directory.GetFiles(binDirectory, "*UnitTests.dll", SearchOption.AllDirectories);
+        var integrationTestAssemblies = Directory.GetFiles(binDirectory, "*IntegrationTests.dll", SearchOption.AllDirectories);
+        var assemblies = unitTestAssemblies.Concat(integrationTestAssemblies).Where(ShouldInclude);
+        return assemblies.ToList();
 
         bool ShouldInclude(string path)
         {

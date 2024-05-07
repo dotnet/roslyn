@@ -52,20 +52,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 // common
                 public readonly IAsyncToken AsyncToken;
 
-#if false // Not used in unit testing crawling
-                public bool MustRefresh
-                {
-                    get
-                    {
-                        // in current design, we need to re-run all incremental analyzer on document open and close
-                        // so that incremental analyzer who only cares about opened document can have a chance to clean up
-                        // its state.
-                        return InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.DocumentOpened) ||
-                               InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.DocumentClosed);
-                    }
-                }
-#endif
-
                 private UnitTestingWorkItem(
                     DocumentId? documentId,
                     ProjectId projectId,

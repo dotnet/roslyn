@@ -504,7 +504,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return
                 targetToken.GetAncestors<StatementSyntax>().Any(s => s.IsKind(SyntaxKind.UnsafeStatement)) ||
                 targetToken.GetAncestors<MemberDeclarationSyntax>().Any(m => m.GetModifiers().Any(SyntaxKind.UnsafeKeyword) ||
-                targetToken.GetAncestors<LocalFunctionStatementSyntax>().Any(f => f.GetModifiers().Any(SyntaxKind.UnsafeKeyword)));
+                targetToken.GetAncestors<LocalFunctionStatementSyntax>().Any(f => f.GetModifiers().Any(SyntaxKind.UnsafeKeyword))) ||
+                targetToken.GetAncestors<UsingDirectiveSyntax>().Any(d => d.UnsafeKeyword.IsKind(SyntaxKind.UnsafeKeyword));
         }
 
         public static bool IsAfterYieldKeyword(this SyntaxToken targetToken)

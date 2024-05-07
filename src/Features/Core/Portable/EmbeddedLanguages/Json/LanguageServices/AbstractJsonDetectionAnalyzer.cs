@@ -46,8 +46,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         public void Analyze(SemanticModelAnalysisContext context)
         {
-            if (!context.GetIdeAnalyzerOptions().DetectAndOfferEditorFeaturesForProbableJsonStrings)
+            if (!context.GetIdeAnalyzerOptions().DetectAndOfferEditorFeaturesForProbableJsonStrings
+                || ShouldSkipAnalysis(context, notification: null))
+            {
                 return;
+            }
 
             var detector = JsonLanguageDetector.GetOrCreate(context.SemanticModel.Compilation, _info);
             Analyze(context, detector, context.GetAnalysisRoot(findInTrivia: true), context.CancellationToken);
@@ -92,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                         context.ReportDiagnostic(DiagnosticHelper.Create(
                             this.Descriptor,
                             token.GetLocation(),
-                            ReportDiagnostic.Hidden,
+                            NotificationOption2.Silent,
                             additionalLocations: null,
                             properties));
                     }

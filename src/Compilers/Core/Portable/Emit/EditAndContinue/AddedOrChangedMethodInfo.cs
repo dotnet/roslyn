@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Emit
         public readonly ImmutableArray<EncLocalInfo> Locals;
 
         // lambdas, closures:
-        public readonly ImmutableArray<LambdaDebugInfo> LambdaDebugInfo;
-        public readonly ImmutableArray<ClosureDebugInfo> ClosureDebugInfo;
+        public readonly ImmutableArray<EncLambdaInfo> LambdaDebugInfo;
+        public readonly ImmutableArray<EncClosureInfo> ClosureDebugInfo;
 
         // state machines:
         public readonly string? StateMachineTypeName;
@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.Emit
         public AddedOrChangedMethodInfo(
             DebugId methodId,
             ImmutableArray<EncLocalInfo> locals,
-            ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
-            ImmutableArray<ClosureDebugInfo> closureDebugInfo,
+            ImmutableArray<EncLambdaInfo> lambdaDebugInfo,
+            ImmutableArray<EncClosureInfo> closureDebugInfo,
             string? stateMachineTypeName,
             ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlotsOpt,
             ImmutableArray<Cci.ITypeReference?> stateMachineAwaiterSlotsOpt,

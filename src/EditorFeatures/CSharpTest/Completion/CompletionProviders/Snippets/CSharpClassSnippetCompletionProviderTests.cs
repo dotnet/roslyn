@@ -409,5 +409,140 @@ public class MyClass
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
+        public async Task EnsureCorrectModifierOrderAfterPartialKeywordTest_InvalidPreferredModifiersList()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">partial $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                [*]
+                dotnet_style_require_accessibility_modifiers = always
+
+                csharp_preferred_modifier_order = invalid!
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                public partial class MyClass
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBeforeAllOthers()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">sealed unsafe $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                [*]
+                dotnet_style_require_accessibility_modifiers = always
+
+                csharp_preferred_modifier_order = public,sealed,unsafe
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                public sealed unsafe class MyClass
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBeforeAllOthers_NotAllModifiersInTheList()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">sealed unsafe $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                [*]
+                dotnet_style_require_accessibility_modifiers = always
+
+                csharp_preferred_modifier_order = public,sealed
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                public sealed unsafe class MyClass
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBetweenOthers()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">sealed unsafe $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                [*]
+                dotnet_style_require_accessibility_modifiers = always
+
+                csharp_preferred_modifier_order = sealed,public,unsafe
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                sealed public unsafe class MyClass
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierAfterAllOthers()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">sealed unsafe $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                [*]
+                dotnet_style_require_accessibility_modifiers = always
+
+                csharp_preferred_modifier_order = sealed,unsafe,public
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                sealed unsafe public class MyClass
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
     }
 }

@@ -45,7 +45,8 @@ Below are the versions of the language available in the NuGet packages. Remember
 - Version `4.4` includes C# 11.0 (Visual Studio 2022 version 17.4, .NET 7)
 - Version `4.5` includes C# 11.0 (Visual Studio 2022 version 17.5, .NET 7)
 - Version `4.6` includes C# 11.0 (Visual Studio 2022 version 17.6, .NET 7)
-- Version '4.7' includes C# 11.0 (Visual Studio 2022 version 17.7, .NET 7)
+- Version `4.7` includes C# 11.0 (Visual Studio 2022 version 17.7, .NET 7)
+- Version `4.8` includes C# 12.0 (Visual Studio 2022 version 17.8, .NET 8)
 
 See the [history of C# language features](https://github.com/dotnet/csharplang/blob/main/Language-Version-History.md) for more details.
 

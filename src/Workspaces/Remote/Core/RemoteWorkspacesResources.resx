@@ -225,4 +225,7 @@
   <data name="FeatureName_KeepAlive" xml:space="preserve">
     <value>Keep alive service</value>
   </data>
+  <data name="FeatureName_SourceGeneration" xml:space="preserve">
+    <value>Source generation</value>
+  </data>
 </root>

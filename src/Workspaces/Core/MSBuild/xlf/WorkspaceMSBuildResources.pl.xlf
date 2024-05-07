@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pl" original="../WorkspaceMSBuildResources.resx">
+    <body>
+      <trans-unit id="Failed_to_load_solution_filter_0">
+        <source>Failed to load solution filter: '{0}'</source>
+        <target state="translated">Nie można załadować filtru rozwiązań: „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_project_reference_without_a_matching_metadata_reference_0">
+        <source>Found project reference without a matching metadata reference: {0}</source>
+        <target state="translated">Znaleziono odwołanie projektu bez zgodnego odwołania metadanych: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_0_specified_1">
+        <source>Invalid {0} specified: {1}</source>
+        <target state="translated">Określono nieprawidłowy plik {0}” {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Msbuild_failed_when_processing_the_file_0">
+        <source>Msbuild failed when processing the file '{0}'</source>
+        <target state="translated">Operacja programu MSBuild nie powiodła się podczas przetwarzania pliku „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
+        <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
+        <target state="translated">Operacja programu MSBuild nie powiodła się podczas przetwarzania pliku „{0}”, komunikat: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path_for_additional_document_0_was_null">
+        <source>Path for additional document '{0}' was null}</source>
+        <target state="translated">Ścieżka dla dodatkowego dokumentu "{0}" miała wartość null}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path_for_document_0_was_null">
+        <source>Path for document '{0}' was null</source>
+        <target state="translated">Ścieżka dokumentu "{0}" miała wartość null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_already_added">
+        <source>Project already added.</source>
+        <target state="translated">Projekt już został dodany.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_project_with_the_same_file_path_and_output_path_as_another_project_0">
+        <source>Found project with the same file path and output path as another project: {0}</source>
+        <target state="translated">Znaleziono projekt, który ma taką samą ścieżkę pliku i ścieżkę wyjściową co inny projekt: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Duplicate_project_discovered_and_skipped_0">
+        <source>Duplicate project discovered and skipped: {0}</source>
+        <target state="translated">Wykryto i pominięto zduplikowany projekt: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_does_not_have_a_path">
+        <source>Project does not have a path.</source>
+        <target state="translated">Projekt nie ma ścieżki.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_path_for_0_was_null">
+        <source>Project path for '{0}' was null</source>
+        <target state="translated">Ścieżka projektu dla pliku "{0}" miała wartość null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_add_metadata_reference_0">
+        <source>Unable to add metadata reference '{0}'</source>
+        <target state="translated">Nie można dodać odwołania do metadanych "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_find_0">
+        <source>Unable to find '{0}'</source>
+        <target state="translated">Nie można znaleźć pliku "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_find_a_0_for_1">
+        <source>Unable to find a '{0}' for '{1}'</source>
+        <target state="translated">Nie można znaleźć pliku "{0}"dla "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_remove_metadata_reference_0">
+        <source>Unable to remove metadata reference '{0}'</source>
+        <target state="translated">Nie można usunąć odwołania do metadanych "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unresolved_metadata_reference_removed_from_project_0">
+        <source>Unresolved metadata reference removed from project: {0}</source>
+        <target state="translated">Nierozpoznane odwołanie metadanych zostało usunięte z projektu: {0}</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

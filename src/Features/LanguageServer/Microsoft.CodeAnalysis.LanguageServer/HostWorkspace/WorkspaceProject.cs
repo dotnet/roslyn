@@ -24,12 +24,21 @@ internal class WorkspaceProject : IWorkspaceProject
         _targetFrameworkManager = targetFrameworkManager;
     }
 
+    [Obsolete($"Call the {nameof(AddAdditionalFilesAsync)} overload that takes {nameof(SourceFileInfo)}.")]
     public async Task AddAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken _)
     {
         await using var batchScope = _project.CreateBatchScope();
 
         foreach (var additionalFilePath in additionalFilePaths)
             _project.AddAdditionalFile(additionalFilePath);
+    }
+
+    public async Task AddAdditionalFilesAsync(IReadOnlyList<SourceFileInfo> additionalFiles, CancellationToken cancellationToken)
+    {
+        await using var batchScope = _project.CreateBatchScope();
+
+        foreach (var additionalFile in additionalFiles)
+            _project.AddAdditionalFile(additionalFile.FilePath, folders: additionalFile.FolderNames.ToImmutableArray());
     }
 
     public async Task AddAnalyzerConfigFilesAsync(IReadOnlyList<string> analyzerConfigPaths, CancellationToken _)

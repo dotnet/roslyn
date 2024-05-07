@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
                 }
                 """;
 
-            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, currentText, additionalDocuments, new[] { expectedText }).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, currentText, additionalDocuments, [expectedText]).ConfigureAwait(false);
         }
 
         [Fact]

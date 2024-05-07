@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             params RudeEditDiagnosticDescription[] diagnostics)
         {
             VerifySemantics(
-                new[] { editScript },
-                new[] { new DocumentAnalysisResultsDescription(activeStatements: activeStatements, diagnostics: diagnostics) },
+                [editScript],
+                [new DocumentAnalysisResultsDescription(activeStatements: activeStatements, diagnostics: diagnostics)],
                 targetFrameworks,
                 capabilities);
         }
@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             EditAndContinueCapabilities? capabilities = null)
         {
             VerifySemantics(
-                new[] { editScript },
-                new[] { new DocumentAnalysisResultsDescription(activeStatements, semanticEdits: semanticEdits) },
+                [editScript],
+                [new DocumentAnalysisResultsDescription(activeStatements, semanticEdits: semanticEdits)],
                 capabilities: capabilities);
         }
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             TargetFramework[]? targetFrameworks = null,
             EditAndContinueCapabilities? capabilities = null)
         {
-            foreach (var targetFramework in targetFrameworks ?? new[] { TargetFramework.NetCoreApp, TargetFramework.NetFramework })
+            foreach (var targetFramework in targetFrameworks ?? [TargetFramework.NetCoreApp, TargetFramework.NetFramework])
             {
                 new CSharpEditAndContinueTestHelpers().VerifySemantics(editScripts, targetFramework, results, capabilities);
             }

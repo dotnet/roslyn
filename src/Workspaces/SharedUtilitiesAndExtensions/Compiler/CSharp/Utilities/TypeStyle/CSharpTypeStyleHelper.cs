@@ -5,6 +5,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -32,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         /// convert things quickly, even if it's going against their stated style.</para>
         /// </remarks>
         public readonly bool IsStylePreferred;
-        public readonly ReportDiagnostic Severity;
+        public readonly NotificationOption2 Notification;
 
-        public TypeStyleResult(CSharpTypeStyleHelper helper, TypeSyntax typeName, SemanticModel semanticModel, CSharpSimplifierOptions options, bool isStylePreferred, ReportDiagnostic severity, CancellationToken cancellationToken) : this()
+        public TypeStyleResult(CSharpTypeStyleHelper helper, TypeSyntax typeName, SemanticModel semanticModel, CSharpSimplifierOptions options, bool isStylePreferred, NotificationOption2 notificationOption, CancellationToken cancellationToken) : this()
         {
             _helper = helper;
             _typeName = typeName;
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             _cancellationToken = cancellationToken;
 
             IsStylePreferred = isStylePreferred;
-            Severity = severity;
+            Notification = notificationOption;
         }
 
         public bool CanConvert()
@@ -66,10 +67,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var state = new State(
                 declaration, semanticModel, options, cancellationToken);
             var isStylePreferred = this.IsStylePreferred(in state);
-            var severity = state.GetDiagnosticSeverityPreference();
+            var notificationOption = state.GetDiagnosticSeverityPreference();
 
             return new TypeStyleResult(
-                this, typeName, semanticModel, options, isStylePreferred, severity, cancellationToken);
+                this, typeName, semanticModel, options, isStylePreferred, notificationOption, cancellationToken);
         }
 
         internal abstract bool TryAnalyzeVariableDeclaration(

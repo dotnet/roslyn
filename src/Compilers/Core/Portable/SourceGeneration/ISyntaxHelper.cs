@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -67,21 +62,12 @@ namespace Microsoft.CodeAnalysis
         public abstract bool ContainsGlobalAliases(SyntaxNode root);
 
         public bool ContainsAttributeList(SyntaxNode root)
-            => ContainsAttributeList(root.Green, this.AttributeListKind);
-
-        private static bool ContainsAttributeList(GreenNode node, int attributeListKind)
         {
-            if (node.RawKind == attributeListKind)
-                return true;
+            var attributeListKind = this.AttributeListKind;
 
-            for (int i = 0, n = node.SlotCount; i < n; i++)
+            foreach (var node in root.Green.EnumerateNodes())
             {
-                var child = node.GetSlot(i);
-
-                if (child is null || child.IsToken)
-                    continue;
-
-                if (ContainsAttributeList(child, attributeListKind))
+                if (node.RawKind == attributeListKind)
                     return true;
             }
 

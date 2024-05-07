@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services
 {
     internal sealed class AssemblyLoadContextWrapper : IDisposable
     {
-        private static readonly ConcurrentDictionary<AssemblyName, Assembly?> s_loadedSharedAssemblies = new(AssemblyNameComparer.Default);
-
         private AssemblyLoadContext? _assemblyLoadContext;
         private readonly ImmutableDictionary<string, Assembly> _loadedAssemblies;
         private readonly ILogger? _logger;
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services
             _logger = logger;
         }
 
-        public static bool TryLoadExtension(string assemblyFilePath, string? sharedDependenciesPath, ILogger? logger, [NotNullWhen(true)] out Assembly? assembly)
+        public static bool TryLoadExtension(string assemblyFilePath, ILogger? logger, [NotNullWhen(true)] out Assembly? assembly)
         {
             var dir = Path.GetDirectoryName(assemblyFilePath);
             var fileName = Path.GetFileName(assemblyFilePath);
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services
             Contract.ThrowIfNull(fileName);
             Contract.ThrowIfNull(fileNameNoExt);
 
-            var loadContext = TryCreate(fileNameNoExt, dir, sharedDependenciesPath, logger);
+            var loadContext = TryCreate(fileNameNoExt, dir, logger);
             if (loadContext != null)
             {
                 assembly = loadContext.GetAssembly(fileName);
@@ -54,11 +52,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services
             return false;
         }
 
-        public static AssemblyLoadContextWrapper? TryCreate(string name, string assembliesDirectoryPath, string? sharedDependenciesPath, ILogger? logger)
+        public static AssemblyLoadContextWrapper? TryCreate(string name, string assembliesDirectoryPath, ILogger? logger)
         {
             try
             {
-                var loadContext = CreateLoadContext(name, sharedDependenciesPath);
+                var loadContext = CreateLoadContext(name);
                 var directory = new DirectoryInfo(assembliesDirectoryPath);
                 var builder = new Dictionary<string, Assembly>();
                 foreach (var file in directory.GetFiles("*.dll"))
@@ -75,39 +73,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services
             }
         }
 
-        private static AssemblyLoadContext CreateLoadContext(string name, string? sharedDependenciesPath)
+        private static AssemblyLoadContext CreateLoadContext(string name)
         {
             var loadContext = new AssemblyLoadContext(name);
-
-            if (sharedDependenciesPath != null)
-            {
-                loadContext.Resolving += (_, assemblyName) =>
-                {
-                    if (assemblyName.Name is null)
-                    {
-                        return null;
-                    }
-
-                    if (s_loadedSharedAssemblies.TryGetValue(assemblyName, out var loadedAssembly))
-                    {
-                        return loadedAssembly;
-                    }
-
-                    var candidatePath = assemblyName.CultureName is not null
-                        ? Path.Combine(sharedDependenciesPath, assemblyName.CultureName, $"{assemblyName.Name}.dll")
-                        : Path.Combine(sharedDependenciesPath, $"{assemblyName.Name}.dll");
-
-                    if (File.Exists(candidatePath))
-                    {
-                        loadedAssembly = loadContext.LoadFromAssemblyPath(candidatePath);
-                    }
-
-                    s_loadedSharedAssemblies.TryAdd(assemblyName, loadedAssembly);
-
-                    return s_loadedSharedAssemblies[assemblyName];
-                };
-            }
-
             return loadContext;
         }
 

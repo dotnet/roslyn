@@ -25,6 +25,9 @@ internal abstract class OrdinaryInstanceConstructorDeclarationBody(ConstructorDe
     public sealed override SyntaxNode? MatchRoot
         => constructor;
 
+    public sealed override SyntaxNode? ParameterClosure
+        => constructor;
+
     public override OneOrMany<SyntaxNode> RootNodes
         => OneOrMany.Create<SyntaxNode>(constructor);
 }

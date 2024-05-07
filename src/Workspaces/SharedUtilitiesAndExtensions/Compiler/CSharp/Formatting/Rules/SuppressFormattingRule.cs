@@ -375,6 +375,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
+            if (node is CollectionExpressionSyntax collectionExpression)
+            {
+                AddSuppressAllOperationIfOnMultipleLine(list, collectionExpression.OpenBracketToken, collectionExpression.CloseBracketToken);
+                return;
+            }
+
             var initializer = GetInitializerNode(node);
             if (initializer?.Parent != null)
             {
@@ -385,12 +391,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (node is AnonymousObjectCreationExpressionSyntax anonymousCreationNode)
             {
                 AddInitializerSuppressOperations(list, anonymousCreationNode, anonymousCreationNode.Initializers);
-                return;
-            }
-
-            if (node is CollectionExpressionSyntax collectionExpression)
-            {
-                AddInitializerSuppressOperations(list, collectionExpression, collectionExpression.Elements);
                 return;
             }
         }

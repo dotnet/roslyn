@@ -115,7 +115,7 @@ public class Test
 
                 foreach (var attrData in m.ContainingAssembly.GetAttributes())
                 {
-                    if (attrData.IsTargetAttribute(m.ContainingAssembly, AttributeDescription.AssemblyKeyFileAttribute))
+                    if (attrData.IsTargetAttribute(AttributeDescription.AssemblyKeyFileAttribute))
                     {
                         haveAttribute = true;
                         break;
@@ -258,7 +258,7 @@ public class Test
 
                 foreach (var attrData in m.ContainingAssembly.GetAttributes())
                 {
-                    if (attrData.IsTargetAttribute(m.ContainingAssembly, AttributeDescription.AssemblyKeyNameAttribute))
+                    if (attrData.IsTargetAttribute(AttributeDescription.AssemblyKeyNameAttribute))
                     {
                         haveAttribute = true;
                         break;
@@ -2795,7 +2795,7 @@ class B
             {
                 var assembly = module.ContainingAssembly;
                 Assert.NotNull(assembly);
-                Assert.False(assembly.GetAttributes().Any(attr => attr.IsTargetAttribute(assembly, AttributeDescription.InternalsVisibleToAttribute)));
+                Assert.False(assembly.GetAttributes().Any(attr => attr.IsTargetAttribute(AttributeDescription.InternalsVisibleToAttribute)));
             });
         }
 

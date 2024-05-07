@@ -34,6 +34,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Compilation _compilation;
         private GlobalSuppressions? _lazyGlobalSuppressions;
         private readonly ConcurrentDictionary<ISymbol, ImmutableDictionary<string, SuppressMessageInfo>> _localSuppressionsBySymbol;
+
+        // These are StrongBoxes because 'null' is a valid symbol value to compute for these, and as such, we can't use
+        // the null value to indicate 'not yet computed'.
+
         private StrongBox<ISymbol?>? _lazySuppressMessageAttribute;
         private StrongBox<ISymbol?>? _lazyUnconditionalSuppressMessageAttribute;
 

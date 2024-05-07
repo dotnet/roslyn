@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             }
 
             var option = context.GetCSharpAnalyzerOptions().PreferStaticLocalFunction;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 return;
             }
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     localFunction.Identifier.GetLocation(),
-                    option.Notification.Severity,
+                    option.Notification,
                     additionalLocations: ImmutableArray.Create(localFunction.GetLocation()),
                     properties: null));
             }

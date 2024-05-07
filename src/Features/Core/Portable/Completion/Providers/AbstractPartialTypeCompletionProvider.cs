@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 rules: CompletionItemRules.Default);
         }
 
-        protected abstract ImmutableDictionary<string, string> GetProperties(INamedTypeSymbol symbol, TSyntaxContext context);
+        protected abstract ImmutableArray<KeyValuePair<string, string>> GetProperties(INamedTypeSymbol symbol, TSyntaxContext context);
 
         protected abstract SyntaxNode? GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken);
 

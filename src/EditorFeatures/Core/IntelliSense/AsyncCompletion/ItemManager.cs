@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 {
     internal sealed partial class ItemManager : IAsyncCompletionItemManager2
     {
+        private static readonly ObjectPool<List<VSCompletionItem>> s_sortListPool = new(factory: () => new List<CompletionItem>(), size: 5);
+
         /// <summary>
         /// The threshold for us to consider exclude (potentially large amount of) expanded items from completion list.
         /// Showing a large amount of expanded items to user would introduce noise and render the list too long to browse.
@@ -43,11 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             AsyncCompletionSessionInitialDataSnapshot data,
             CancellationToken cancellationToken)
         {
-            var stopwatch = SharedStopwatch.StartNew();
-            var items = SortCompletionItems(data, cancellationToken).ToImmutableArray();
-
-            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
-            return Task.FromResult(items);
+            // Platform prefers IAsyncCompletionItemManager2.SortCompletionItemListAsync when available
+            throw new NotImplementedException();
         }
 
         public Task<CompletionList<VSCompletionItem>> SortCompletionItemListAsync(
@@ -56,24 +56,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             var stopwatch = SharedStopwatch.StartNew();
-            var itemList = session.CreateCompletionList(SortCompletionItems(data, cancellationToken));
+
+            var list = s_sortListPool.Allocate();
+            CompletionList<VSCompletionItem> itemList;
+
+            try
+            {
+                SortCompletionItems(list, data, cancellationToken);
+
+                itemList = session.CreateCompletionList(list);
+            }
+            finally
+            {
+                list.Clear();
+                s_sortListPool.Free(list);
+            }
 
             AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
             return Task.FromResult(itemList);
         }
 
-        private static SegmentedList<VSCompletionItem> SortCompletionItems(AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)
+        private static void SortCompletionItems(List<VSCompletionItem> list, AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var items = new SegmentedList<VSCompletionItem>(data.InitialItemList.Count);
+
             foreach (var item in data.InitialItemList)
             {
                 CompletionItemData.GetOrAddDummyRoslynItem(item);
-                items.Add(item);
+                list.Add(item);
             }
 
-            items.Sort(VSItemComparer.Instance);
-            return items;
+            list.Sort(VSItemComparer.Instance);
         }
 
         public async Task<FilteredCompletionModel?> UpdateCompletionListAsync(

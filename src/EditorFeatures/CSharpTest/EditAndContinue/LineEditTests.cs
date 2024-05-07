@@ -534,7 +534,7 @@ class C<T>
 
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "/******//*edit*/", FeaturesResources.method) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "/******//*edit*/", FeaturesResources.method)],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifyLineEdits(
@@ -567,7 +567,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "/******/", FeaturesResources.method) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "/******/", FeaturesResources.method)],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifyLineEdits(
@@ -660,13 +660,13 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                diagnostics: new[] { Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc bool[64]", GetResource("method")) });
+                diagnostics: [Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc bool[64]", GetResource("method"))]);
 
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(
                 active,
-                new[] { Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc bool[64]", GetResource("method")) });
+                [Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc bool[64]", GetResource("method"))]);
         }
 
         [Fact]
@@ -695,7 +695,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                diagnostics: new[] { Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc bool[64]", GetResource("method")) });
+                diagnostics: [Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc bool[64]", GetResource("method"))]);
         }
 
         [Fact]
@@ -1367,7 +1367,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<SequencePointUpdates>(),
-                diagnostics: new[] { Diagnostic(RudeEditKind.Move, "static int Bar = 2", FeaturesResources.field) });
+                diagnostics: [Diagnostic(RudeEditKind.Move, "static int Bar = 2", FeaturesResources.field)]);
         }
 
         [Fact]
@@ -2428,10 +2428,10 @@ class C { static void F<T>() { } }";
 
             edits.VerifyLineEdits(
                  Array.Empty<SequencePointUpdates>(),
-                 diagnostics: new[]
-                 {
+                 diagnostics:
+                 [
                      Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "{", GetResource("method"))
-                 },
+                 ],
                  capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifyLineEdits(

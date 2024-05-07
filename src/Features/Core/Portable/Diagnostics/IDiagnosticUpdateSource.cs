@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Raise this when new diagnostics are found
         /// </summary>
-        event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> DiagnosticsUpdated;
 
         /// <summary>
         /// Raise this when all diagnostics reported from this update source has cleared
@@ -33,6 +33,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Get diagnostics stored in the source.
         /// </summary>
-        ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken);
     }
 }

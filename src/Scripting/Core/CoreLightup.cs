@@ -110,7 +110,7 @@ namespace Roslyn.Utilities
                 var currentAppDomain = AppDomain.CurrentDomain;
                 object resolveEventHandler = new AssemblyResolveWrapper(handler).GetHandler();
 
-                handlerOperation.Invoke(currentAppDomain, new[] { resolveEventHandler });
+                handlerOperation.Invoke(currentAppDomain, [resolveEventHandler]);
             }
 
             internal static void AddAssemblyResolveHandler(Func<string, Assembly, Assembly> handler)

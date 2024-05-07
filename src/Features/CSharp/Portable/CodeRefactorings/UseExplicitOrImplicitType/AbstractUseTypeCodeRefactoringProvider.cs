@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
 
             var simplifierOptions = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
             var typeStyle = AnalyzeTypeName(declaredType, semanticModel, simplifierOptions, cancellationToken);
-            if (typeStyle.IsStylePreferred && typeStyle.Severity != ReportDiagnostic.Suppress)
+            if (typeStyle.IsStylePreferred && typeStyle.Notification.Severity != ReportDiagnostic.Suppress)
             {
                 // the analyzer would handle this.  So we do not.
                 return;

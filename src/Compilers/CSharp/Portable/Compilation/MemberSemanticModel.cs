@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        public override IMethodSymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
             return GetDeclaredLocalFunction(declarationSyntax).GetPublicSymbol();
@@ -950,9 +950,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // for arrays, that doesn't make sense for pointer arrays since object
             // (the type of System.Collections.IEnumerator.Current) isn't convertible
             // to pointer types.
-            if (enumeratorInfoOpt.ElementType.IsPointerType())
+            if (enumeratorInfoOpt.CurrentConversion is null && enumeratorInfoOpt.ElementType.IsPointerType())
             {
-                Debug.Assert(enumeratorInfoOpt.CurrentConversion is null);
                 return default(ForEachStatementInfo);
             }
 

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             // See if the current snapshot we're pointing at is the same one the host wants us to sync to.  If so, we
             // don't need to do anything.
-            var currentSolutionChecksum = await this.CurrentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            var currentSolutionChecksum = await this.CurrentSolution.CompilationState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
             if (currentSolutionChecksum == solutionChecksum)
                 return;
 
@@ -109,7 +109,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(solutionChecksum);
             Contract.ThrowIfTrue(solutionChecksum == Checksum.Null);
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will

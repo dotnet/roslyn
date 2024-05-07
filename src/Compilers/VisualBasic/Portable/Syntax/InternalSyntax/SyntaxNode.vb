@@ -56,12 +56,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 context.IsWithinIteratorContext = Me.ParsedInIterator
         End Function
 
-#Region "Serialization"
-        Friend Sub New(reader As ObjectReader)
-            MyBase.New(reader)
-        End Sub
-#End Region
-
         ' The rest of this class is just a convenient place to put some helper functions that are shared by the 
         ' various subclasses.
 

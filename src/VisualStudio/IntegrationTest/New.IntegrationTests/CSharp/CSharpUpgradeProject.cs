@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -34,7 +35,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             }
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/38301")]
+        [IdeFact]
         public async Task CPSProject_GeneralPropertyGroupUpdated()
         {
             var project = ProjectName;
@@ -43,8 +44,8 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.SolutionExplorer.AddProjectAsync(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(project, HangMitigatingCancellationToken);
 
-            await InvokeFixAsync(version: "latest", HangMitigatingCancellationToken);
-            VerifyPropertyOutsideConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "LangVersion", "latest");
+            await InvokeFixAsync(version: "preview", HangMitigatingCancellationToken);
+            VerifyPropertyOutsideConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "LangVersion", "preview");
         }
 
         [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]

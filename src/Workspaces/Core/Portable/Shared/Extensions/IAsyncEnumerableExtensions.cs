@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var tasks = new Task[streams.Length];
             for (var i = 0; i < streams.Length; i++)
-                tasks[i] = Process(streams[i], channel.Writer, cancellationToken);
+                tasks[i] = ProcessAsync(streams[i], channel.Writer, cancellationToken);
 
             // Complete the channel writer with the result of all the tasks.  If nothing failed, t.Exception will be
             // null and this will complete successfully.  If anything failed, the exception will propagate out.
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return channel.Reader.ReadAllAsync(cancellationToken);
 
-            static async Task Process(IAsyncEnumerable<T> stream, ChannelWriter<T> writer, CancellationToken cancellationToken)
+            static async Task ProcessAsync(IAsyncEnumerable<T> stream, ChannelWriter<T> writer, CancellationToken cancellationToken)
             {
                 await foreach (var value in stream)
                     await writer.WriteAsync(value, cancellationToken).ConfigureAwait(false);

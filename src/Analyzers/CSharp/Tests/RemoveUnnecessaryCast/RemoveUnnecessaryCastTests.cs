@@ -44,13 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
             await VerifyCS.VerifyCodeFixAsync(
                 source,
-                new[]
-                {
+                [
                     // /0/Test0.cs(5,20): error CS1010: Newline in constant
                     DiagnosticResult.CompilerError("CS1010").WithSpan(5, 20, 5, 20),
                     // /0/Test0.cs(5,22): error CS1002: ; expected
                     DiagnosticResult.CompilerError("CS1002").WithSpan(5, 22, 5, 22),
-                },
+                ],
                 source);
         }
 
@@ -1210,13 +1209,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
             await VerifyCS.VerifyCodeFixAsync(
                 source,
-                new[]
-                {
+                [
                     // /0/Test0.cs(11,16): error CS1010: Newline in constant
                     DiagnosticResult.CompilerError("CS1010").WithSpan(11, 16, 11, 16),
                     // /0/Test0.cs(11,18): error CS1002: ; expected
                     DiagnosticResult.CompilerError("CS1002").WithSpan(11, 18, 11, 18),
-                },
+                ],
                 source);
         }
 
@@ -1394,13 +1392,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
             await VerifyCS.VerifyCodeFixAsync(
                 source,
-                new[]
-                {
+                [
                     // /0/Test0.cs(5,20): error CS1010: Newline in constant
                     DiagnosticResult.CompilerError("CS1010").WithSpan(5, 20, 5, 20),
                     // /0/Test0.cs(5,22): error CS1002: ; expected
                     DiagnosticResult.CompilerError("CS1002").WithSpan(5, 22, 5, 22),
-                },
+                ],
                 source);
         }
 
@@ -3318,8 +3315,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
             await VerifyCS.VerifyCodeFixAsync(
                 source,
-                new[]
-                {
+                [
                     // /0/Test0.cs(8,18): error CS0535: 'C' does not implement interface member 'I.this[int, int]'
                     DiagnosticResult.CompilerError("CS0535").WithSpan(8, 18, 8, 19).WithArguments("C", "I.this[int, int]"),
                     // /0/Test0.cs(10,16): error CS0548: 'C.this[(int y, ?), int]': property or indexer must have at least one accessor
@@ -3346,7 +3342,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
                     DiagnosticResult.CompilerError("CS1002").WithSpan(12, 12, 12, 12),
                     // /0/Test0.cs(16,6): error CS1513: } expected
                     DiagnosticResult.CompilerError("CS1513").WithSpan(16, 6, 16, 6),
-                },
+                ],
                 source);
         }
 
@@ -4068,13 +4064,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
             await VerifyCS.VerifyCodeFixAsync(
                 source,
-                new[]
-                {
+                [
                     // /0/Test0.cs(7,20): error CS1010: Newline in constant
                     DiagnosticResult.CompilerError("CS1010").WithSpan(7, 20, 7, 20),
                     // /0/Test0.cs(7,22): error CS1002: ; expected
                     DiagnosticResult.CompilerError("CS1002").WithSpan(7, 22, 7, 22),
-                },
+                ],
                 source);
         }
 
@@ -4102,13 +4097,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
             await VerifyCS.VerifyCodeFixAsync(
                 source,
-                new[]
-                {
+                [
                     // /0/Test0.cs(7,20): error CS1010: Newline in constant
                     DiagnosticResult.CompilerError("CS1010").WithSpan(7, 20, 7, 20),
                     // /0/Test0.cs(7,22): error CS1002: ; expected
                     DiagnosticResult.CompilerError("CS1002").WithSpan(7, 22, 7, 22),
-                },
+                ],
                 source);
         }
 
@@ -4150,13 +4144,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
             await VerifyCS.VerifyCodeFixAsync(
                 source,
-                new[]
-                {
+                [
                     // /0/Test0.cs(20,20): error CS1010: Newline in constant
                     DiagnosticResult.CompilerError("CS1010").WithSpan(20, 20, 20, 20),
                     // /0/Test0.cs(20,22): error CS1002: ; expected
                     DiagnosticResult.CompilerError("CS1002").WithSpan(20, 22, 20, 22),
-                },
+                ],
                 source);
         }
 
@@ -4204,13 +4197,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
             await VerifyCS.VerifyCodeFixAsync(
                 source,
-                new[]
-                {
+                [
                     // /0/Test0.cs(26,20): error CS1010: Newline in constant
                     DiagnosticResult.CompilerError("CS1010").WithSpan(26, 20, 26, 20),
                     // /0/Test0.cs(26,22): error CS1002: ; expected
                     DiagnosticResult.CompilerError("CS1002").WithSpan(26, 22, 26, 22),
-                },
+                ],
                 source);
         }
 

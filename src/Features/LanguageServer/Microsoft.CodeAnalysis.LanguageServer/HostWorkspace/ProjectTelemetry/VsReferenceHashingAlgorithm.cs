@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 internal static class VsReferenceHashingAlgorithm
 {
     private static readonly ulong[] s_hashText =
-    {
+#pragma warning disable format // https://github.com/dotnet/roslyn/issues/70711 tracks removing this suppression.
+    [
         0x0000000000000000, 0x0809e8a2969451e9, 0x1013d1452d28a3d2, 0x181a39e7bbbcf23b,
         0x2027a28a5a5147a4, 0x282e4a28ccc5164d, 0x303473cf7779e476, 0x383d9b6de1edb59f,
         0x404f4514b4a28f48, 0x4846adb62236dea1, 0x505c9451998a2c9a, 0x58557cf30f1e7d73,
@@ -79,7 +80,8 @@ internal static class VsReferenceHashingAlgorithm
         0x5faddb6d7d6db22b, 0x57a433cfebf9e3c2, 0x4fbe0a28504511f9, 0x47b7e28ac6d14010,
         0x3fc53cf3939e7ac7, 0x37ccd451050a2b2e, 0x2fd6edb6beb6d915, 0x27df0514282288fc,
         0x1fe29e79c9cf3d63, 0x17eb76db5f5b6c8a, 0x0ff14f3ce4e79eb1, 0x07f8a79e7273cf58,
-    };
+    ];
+#pragma warning restore format
 
     /// <summary>
     /// The format in which the input stream should be read.abstract Ulong bitmask

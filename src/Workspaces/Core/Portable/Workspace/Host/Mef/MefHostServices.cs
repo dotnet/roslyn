@@ -104,15 +104,15 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         // Used to build a MEF composition using the main workspaces assemblies and the known VisualBasic/CSharp workspace assemblies.
         // updated: includes feature assemblies since they now have public API's.
-        private static readonly string[] s_defaultAssemblyNames = new string[]
-            {
+        private static readonly string[] s_defaultAssemblyNames =
+            [
                 "Microsoft.CodeAnalysis.Workspaces",
                 "Microsoft.CodeAnalysis.CSharp.Workspaces",
                 "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
                 "Microsoft.CodeAnalysis.Features",
                 "Microsoft.CodeAnalysis.CSharp.Features",
                 "Microsoft.CodeAnalysis.VisualBasic.Features"
-            };
+            ];
 
         internal static bool IsDefaultAssembly(Assembly assembly)
         {

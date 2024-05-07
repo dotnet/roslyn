@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     [DataContract]
-    internal sealed record class SerializableNamingRule : IObjectWritable
+    internal sealed record class SerializableNamingRule
     {
         [DataMember(Order = 0)]
         public Guid SymbolSpecificationID { get; init; }
@@ -50,8 +50,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 SymbolSpecificationID = Guid.Parse(namingRuleElement.Attribute(nameof(SymbolSpecificationID)).Value)
             };
         }
-
-        public bool ShouldReuseInSerialization => false;
 
         public void WriteTo(ObjectWriter writer)
         {

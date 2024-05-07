@@ -54,36 +54,66 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _invisibleEditor = (IVsInvisibleEditor)Marshal.GetUniqueObjectForIUnknown(invisibleEditorPtr);
 
-                var docDataPtr = IntPtr.Zero;
-                Marshal.ThrowExceptionForHR(_invisibleEditor.GetDocData(fEnsureWritable: needsSave ? 1 : 0, riid: typeof(IVsTextLines).GUID, ppDocData: out docDataPtr));
+                _vsTextLines = RetrieveDocData(_invisibleEditor, needsSave);
 
-                try
+                var editorAdapterFactoryService = serviceProvider.GetMefService<IVsEditorAdaptersFactoryService>();
+                _buffer = editorAdapterFactoryService.GetDocumentBuffer(_vsTextLines);
+                if (needsUndoDisabled)
                 {
-                    var docData = Marshal.GetObjectForIUnknown(docDataPtr);
-                    _vsTextLines = (IVsTextLines)docData;
-                    var editorAdapterFactoryService = serviceProvider.GetMefService<IVsEditorAdaptersFactoryService>();
-                    _buffer = editorAdapterFactoryService.GetDocumentBuffer(_vsTextLines);
-                    if (needsUndoDisabled)
+                    Marshal.ThrowExceptionForHR(_vsTextLines.GetUndoManager(out _manager));
+                    Marshal.ThrowExceptionForHR(((IVsUndoState)_manager).IsEnabled(out var isEnabled));
+                    _needsUndoRestored = isEnabled != 0;
+                    if (_needsUndoRestored)
                     {
-                        Marshal.ThrowExceptionForHR(_vsTextLines.GetUndoManager(out _manager));
-                        Marshal.ThrowExceptionForHR(((IVsUndoState)_manager).IsEnabled(out var isEnabled));
-                        _needsUndoRestored = isEnabled != 0;
-                        if (_needsUndoRestored)
-                        {
-                            _manager.DiscardFrom(null); // Discard the undo history for this document
-                            _manager.Enable(0); // Disable Undo for this document
-                        }
+                        _manager.DiscardFrom(null); // Discard the undo history for this document
+                        _manager.Enable(0); // Disable Undo for this document
                     }
-                }
-                finally
-                {
-                    Marshal.Release(docDataPtr);
                 }
             }
             finally
             {
                 // We need to clean up the extra reference we have, now that we have an RCW holding onto the object.
                 Marshal.Release(invisibleEditorPtr);
+            }
+
+            // Try casting the doc data to IVsTextLines first.
+            // If it fails try casting to IVsTextBufferProvider as some files like .aspx use that to provide the buffer
+            static IVsTextLines RetrieveDocData(IVsInvisibleEditor invisibleEditor, bool needsSave)
+            {
+                IVsTextLines? buffer = null;
+                var docDataPtrViaTextBufferProvider = IntPtr.Zero;
+
+                var hr = invisibleEditor.GetDocData(fEnsureWritable: needsSave ? 1 : 0, riid: typeof(IVsTextLines).GUID, ppDocData: out var docDataPtrViaTextLines);
+                try
+                {
+                    if (ErrorHandler.Succeeded(hr) &&
+                        Marshal.GetObjectForIUnknown(docDataPtrViaTextLines) is IVsTextLines vsTextLines)
+                    {
+                        buffer = vsTextLines;
+                    }
+                    else
+                    {
+                        hr = invisibleEditor.GetDocData(fEnsureWritable: needsSave ? 1 : 0, riid: typeof(IVsTextBufferProvider).GUID, ppDocData: out docDataPtrViaTextBufferProvider);
+                        if (ErrorHandler.Succeeded(hr) &&
+                            Marshal.GetObjectForIUnknown(docDataPtrViaTextBufferProvider) is IVsTextBufferProvider vsTextBufferProvider)
+                        {
+                            hr = vsTextBufferProvider.GetTextBuffer(out buffer);
+                        }
+                    }
+                }
+                finally
+                {
+                    if (docDataPtrViaTextBufferProvider != IntPtr.Zero)
+                        Marshal.Release(docDataPtrViaTextBufferProvider);
+
+                    if (docDataPtrViaTextLines != IntPtr.Zero)
+                        Marshal.Release(docDataPtrViaTextLines);
+                }
+
+                Marshal.ThrowExceptionForHR(hr);
+                Contract.ThrowIfNull(buffer, $"We were unable to fetch a buffer in {nameof(InvisibleEditor)}.");
+
+                return buffer;
             }
         }
 

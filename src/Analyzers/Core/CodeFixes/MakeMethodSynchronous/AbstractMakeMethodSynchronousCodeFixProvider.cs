@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
     internal abstract class AbstractMakeMethodSynchronousCodeFixProvider : CodeFixProvider
     {
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
-        protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbol, SyntaxNode node, KnownTypes knownTypes);
+        protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbol, SyntaxNode node, KnownTaskTypes knownTypes);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             Document document, IMethodSymbol methodSymbol, SyntaxNode node, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var knownTypes = new KnownTypes(compilation);
+            var knownTypes = new KnownTaskTypes(compilation);
 
             var annotation = new SyntaxAnnotation();
             var newNode = RemoveAsyncTokenAndFixReturnType(methodSymbol, node, knownTypes)

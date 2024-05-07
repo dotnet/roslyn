@@ -103,17 +103,9 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
     /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.SpanTrackingMode"/>
     protected virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
-    public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+    ITagger<T>? IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
     {
-        using var taggers = TemporaryArray<ITagger<TTag>>.Empty;
-        foreach (var taggerProvider in _viewportTaggerProviders)
-        {
-            var innerTagger = taggerProvider.CreateTagger<TTag>(textView, buffer);
-            if (innerTagger != null)
-                taggers.Add(innerTagger);
-        }
-
-        var tagger = new AggregateTagger<TTag>(taggers.ToImmutableAndClear());
+        var tagger = CreateTagger(textView, buffer);
         if (tagger is not ITagger<T> genericTagger)
         {
             tagger.Dispose();
@@ -121,6 +113,19 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
         }
 
         return genericTagger;
+    }
+
+    public EfficientTagger<TTag> CreateTagger(ITextView textView, ITextBuffer buffer)
+    {
+        using var taggers = TemporaryArray<EfficientTagger<TTag>>.Empty;
+        foreach (var taggerProvider in _viewportTaggerProviders)
+        {
+            var innerTagger = taggerProvider.CreateTagger(textView, buffer);
+            if (innerTagger != null)
+                taggers.Add(innerTagger);
+        }
+
+        return new SimpleAggregateTagger<TTag>(taggers.ToImmutableAndClear());
     }
 
     public bool SpanEquals(SnapshotSpan? span1, SnapshotSpan? span2)

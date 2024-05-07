@@ -47,5 +47,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         {
             return _aggregatingTelemetryLogManager.GetLog(functionId, bucketBoundaries);
         }
+
+        /// <summary>
+        /// Flushes all telemetry logs
+        /// </summary>
+        public void Flush()
+        {
+            _aggregatingTelemetryLogManager.Flush();
+        }
     }
 }

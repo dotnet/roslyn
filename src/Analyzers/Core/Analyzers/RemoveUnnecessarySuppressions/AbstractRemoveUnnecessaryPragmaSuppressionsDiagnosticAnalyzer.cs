@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         internal static readonly DiagnosticDescriptor s_removeUnnecessarySuppressionDescriptor = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId,
             EnforceOnBuildValues.RemoveUnnecessarySuppression,
-            s_localizableRemoveUnnecessarySuppression, s_localizableRemoveUnnecessarySuppression, isUnnecessary: true);
+            s_localizableRemoveUnnecessarySuppression, s_localizableRemoveUnnecessarySuppression,
+            hasAnyCodeStyleOption: false, isUnnecessary: true);
 
         private readonly Lazy<ImmutableHashSet<int>> _lazySupportedCompilerErrorCodes;
 

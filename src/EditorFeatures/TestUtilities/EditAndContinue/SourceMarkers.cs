@@ -40,7 +40,7 @@ internal static class SourceMarkers
     private static IEnumerable<(int, int)> ParseIds(Match match)
         => from ids in match.Groups["Id"].Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
            let parts = ids.Split('.')
-           select (int.Parse(parts[0]), (parts.Length > 1) ? int.Parse(parts[1]) : 0);
+           select (int.Parse(parts[0]), (parts.Length > 1) ? int.Parse(parts[1]) : -1);
 
     private static IEnumerable<((int major, int minor) id, TextSpan span)> GetSpans(string markedSource, string tagName)
     {
@@ -143,10 +143,12 @@ internal static class SourceMarkers
 
         foreach (var ((major, minor), span) in GetSpans(markedSource, tagName: "N"))
         {
-            EnsureSlot(result, major);
-            result[major] ??= new List<TextSpan>();
-            EnsureSlot(result[major], minor);
-            result[major][minor] = span;
+            var (i, j) = (minor >= 0) ? (major, minor) : (0, major);
+
+            EnsureSlot(result, i);
+            result[i] ??= [];
+            EnsureSlot(result[i], j);
+            result[i][j] = span;
         }
 
         return result.Select(r => r.AsImmutableOrEmpty()).AsImmutableOrEmpty();

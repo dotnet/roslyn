@@ -145,7 +145,7 @@
         <StackPanel
             HorizontalAlignment="Right"
             Orientation="Horizontal"
-            Height="21" Width="147" Margin="0,15,21,0">
+            Height="21" Margin="0,15,21,0">
             <Button 
                 x:Uid="OkButton" Name="OKButton" AutomationProperties.AutomationId="OkButton"
                 Content="{Binding ElementName=dialog, Path=OK}"

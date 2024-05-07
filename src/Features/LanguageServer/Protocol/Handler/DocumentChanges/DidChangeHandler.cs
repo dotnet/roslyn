@@ -4,44 +4,39 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
+
+[ExportCSharpVisualBasicStatelessLspService(typeof(DidChangeHandler)), Shared]
+[Method(Methods.TextDocumentDidChangeName)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeTextDocumentParams, object?>
 {
-    [ExportCSharpVisualBasicStatelessLspService(typeof(DidChangeHandler)), Shared]
-    [Method(LSP.Methods.TextDocumentDidChangeName)]
-    internal class DidChangeHandler : ILspServiceDocumentRequestHandler<LSP.DidChangeTextDocumentParams, object?>
+    public bool MutatesSolutionState => true;
+    public bool RequiresLSPSolution => false;
+
+    public TextDocumentIdentifier GetTextDocumentIdentifier(DidChangeTextDocumentParams request)
+        => request.TextDocument;
+
+    public Task<object?> HandleRequestAsync(DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DidChangeHandler()
-        {
-        }
+        var text = context.GetTrackedDocumentSourceText(request.TextDocument.Uri);
 
-        public bool MutatesSolutionState => true;
-        public bool RequiresLSPSolution => false;
+        // Per the LSP spec, each text change builds upon the previous, so we don't need to translate any text
+        // positions between changes, which makes this quite easy. See
+        // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#didChangeTextDocumentParams
+        // for more details.
+        foreach (var change in request.ContentChanges)
+            text = text.WithChanges(ProtocolConversions.ContentChangeEventToTextChange(change, text));
 
-        public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DidChangeTextDocumentParams request) => request.TextDocument;
+        context.UpdateTrackedDocument(request.TextDocument.Uri, text);
 
-        public Task<object?> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
-        {
-            var text = context.GetTrackedDocumentSourceText(request.TextDocument.Uri);
-
-            // Per the LSP spec, each text change builds upon the previous, so we don't need to translate
-            // any text positions between changes, which makes this quite easy.
-            var changes = request.ContentChanges.Select(change => ProtocolConversions.ContentChangeEventToTextChange(change, text));
-
-            text = text.WithChanges(changes);
-
-            context.UpdateTrackedDocument(request.TextDocument.Uri, text);
-
-            return SpecializedTasks.Default<object>();
-        }
+        return SpecializedTasks.Default<object>();
     }
 }

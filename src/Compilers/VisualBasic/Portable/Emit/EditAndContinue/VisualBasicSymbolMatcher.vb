@@ -5,12 +5,13 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -19,211 +20,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Private Shared ReadOnly s_nameComparer As StringComparer = IdentifierComparison.Comparer
 
-        Private ReadOnly _defs As MatchDefs
-        Private ReadOnly _symbols As MatchSymbols
+        Private ReadOnly _visitor As Visitor
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
-                       sourceContext As EmitContext,
                        otherAssembly As SourceAssemblySymbol,
-                       otherContext As EmitContext,
                        synthesizedTypes As SynthesizedTypeMaps,
-                       otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
-                       otherDeletedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)))
+                       otherSynthesizedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                       otherDeletedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)))
 
-            _defs = New MatchDefsToSource(sourceContext, otherContext)
-            _symbols = New MatchSymbols(sourceAssembly, otherAssembly, synthesizedTypes, otherSynthesizedMembersOpt, otherDeletedMembersOpt, New DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)))
+            _visitor = New Visitor(sourceAssembly, otherAssembly, synthesizedTypes, otherSynthesizedMembersOpt, otherDeletedMembersOpt, New DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)))
         End Sub
 
         Public Sub New(synthesizedTypes As SynthesizedTypeMaps,
                        sourceAssembly As SourceAssemblySymbol,
-                       sourceContext As EmitContext,
                        otherAssembly As PEAssemblySymbol)
 
-            _defs = New MatchDefsToMetadata(sourceContext, otherAssembly)
-            _symbols = New MatchSymbols(sourceAssembly, otherAssembly, synthesizedTypes, otherSynthesizedMembersOpt:=Nothing, otherDeletedMembers:=Nothing, deepTranslatorOpt:=Nothing)
+            _visitor = New Visitor(sourceAssembly, otherAssembly, synthesizedTypes, otherSynthesizedMembersOpt:=Nothing, otherDeletedMembers:=Nothing, deepTranslatorOpt:=Nothing)
         End Sub
 
         Public Overrides Function MapDefinition(definition As Cci.IDefinition) As Cci.IDefinition
             Dim symbol As Symbol = TryCast(definition.GetInternalSymbol(), Symbol)
             If symbol IsNot Nothing Then
-                Return DirectCast(_symbols.Visit(symbol)?.GetCciAdapter(), Cci.IDefinition)
+                Return DirectCast(_visitor.Visit(symbol)?.GetCciAdapter(), Cci.IDefinition)
             End If
 
-            ' TODO: this appears to be dead code, remove (https://github.com/dotnet/roslyn/issues/51595)
-            Return _defs.VisitDef(definition)
+            ' For simplicity, PID helpers and no-PIA embedded definitions are not reused across generations, so we don't map them here.
+            ' Instead, new ones are regenerated as needed.
+            Debug.Assert(TypeOf definition Is PrivateImplementationDetails OrElse TypeOf definition Is Cci.IEmbeddedDefinition)
+
+            Return Nothing
         End Function
 
         Public Overrides Function MapNamespace([namespace] As Cci.INamespace) As Cci.INamespace
             Debug.Assert(TypeOf [namespace].GetInternalSymbol() Is NamespaceSymbol)
-            Return DirectCast(_symbols.Visit(DirectCast([namespace]?.GetInternalSymbol(), NamespaceSymbol))?.GetCciAdapter(), Cci.INamespace)
+            Return DirectCast(_visitor.Visit(DirectCast([namespace]?.GetInternalSymbol(), NamespaceSymbol))?.GetCciAdapter(), Cci.INamespace)
         End Function
 
         Public Overrides Function MapReference(reference As Cci.ITypeReference) As Cci.ITypeReference
             Dim symbol As Symbol = TryCast(reference.GetInternalSymbol(), Symbol)
             If symbol IsNot Nothing Then
-                Return DirectCast(_symbols.Visit(symbol)?.GetCciAdapter(), Cci.ITypeReference)
+                Return DirectCast(_visitor.Visit(symbol)?.GetCciAdapter(), Cci.ITypeReference)
             End If
             Return Nothing
         End Function
 
         Friend Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
-            Return _symbols.TryGetAnonymousTypeName(template, name, index)
+            Return _visitor.TryGetAnonymousTypeName(template, name, index)
         End Function
 
-        Private MustInherit Class MatchDefs
-            Private ReadOnly _sourceContext As EmitContext
-            Private ReadOnly _matches As ConcurrentDictionary(Of Cci.IDefinition, Cci.IDefinition)
-            Private _lazyTopLevelTypes As IReadOnlyDictionary(Of String, Cci.INamespaceTypeDefinition)
-
-            Public Sub New(sourceContext As EmitContext)
-                Me._sourceContext = sourceContext
-                Me._matches = New ConcurrentDictionary(Of Cci.IDefinition, Cci.IDefinition)(ReferenceEqualityComparer.Instance)
-            End Sub
-
-            Public Function VisitDef(def As Cci.IDefinition) As Cci.IDefinition
-                Return Me._matches.GetOrAdd(def, AddressOf Me.VisitDefInternal)
-            End Function
-
-            Private Function VisitDefInternal(def As Cci.IDefinition) As Cci.IDefinition
-                Dim type = TryCast(def, Cci.ITypeDefinition)
-                If type IsNot Nothing Then
-                    Dim namespaceType As Cci.INamespaceTypeDefinition = type.AsNamespaceTypeDefinition(Me._sourceContext)
-                    If namespaceType IsNot Nothing Then
-                        Return Me.VisitNamespaceType(namespaceType)
-                    End If
-
-                    Dim nestedType As Cci.INestedTypeDefinition = type.AsNestedTypeDefinition(Me._sourceContext)
-                    Debug.Assert(nestedType IsNot Nothing)
-
-                    Dim otherContainer = DirectCast(Me.VisitDef(nestedType.ContainingTypeDefinition), Cci.ITypeDefinition)
-                    If otherContainer Is Nothing Then
-                        Return Nothing
-                    End If
-
-                    Return VisitTypeMembers(otherContainer, nestedType, AddressOf GetNestedTypes, Function(a, b) s_nameComparer.Equals(a.Name, b.Name))
-                End If
-
-                Dim member = TryCast(def, Cci.ITypeDefinitionMember)
-                If member IsNot Nothing Then
-                    Dim otherContainer = DirectCast(Me.VisitDef(member.ContainingTypeDefinition), Cci.ITypeDefinition)
-                    If otherContainer Is Nothing Then
-                        Return Nothing
-                    End If
-
-                    Dim field = TryCast(def, Cci.IFieldDefinition)
-                    If field IsNot Nothing Then
-                        Return VisitTypeMembers(otherContainer, field, AddressOf GetFields, Function(a, b) s_nameComparer.Equals(a.Name, b.Name))
-                    End If
-                End If
-
-                ' We are only expecting types and fields currently.
-                Throw ExceptionUtilities.UnexpectedValue(def)
-            End Function
-
-            Protected MustOverride Function GetTopLevelTypes() As IEnumerable(Of Cci.INamespaceTypeDefinition)
-            Protected MustOverride Function GetNestedTypes(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.INestedTypeDefinition)
-            Protected MustOverride Function GetFields(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.IFieldDefinition)
-
-            Private Function VisitNamespaceType(def As Cci.INamespaceTypeDefinition) As Cci.INamespaceTypeDefinition
-                ' All generated top-level types are assumed to be in the global namespace.
-                ' However, this may be an embedded NoPIA type within a namespace.
-                ' Since we do not support edits that include references to NoPIA types
-                ' (see #855640), it's reasonable to simply drop such cases.
-                If Not String.IsNullOrEmpty(def.NamespaceName) Then
-                    Return Nothing
-                End If
-
-                Dim otherDef As Cci.INamespaceTypeDefinition = Nothing
-                Me.GetTopLevelTypesByName().TryGetValue(def.Name, otherDef)
-                Return otherDef
-            End Function
-
-            Private Function GetTopLevelTypesByName() As IReadOnlyDictionary(Of String, Cci.INamespaceTypeDefinition)
-                If Me._lazyTopLevelTypes Is Nothing Then
-                    Dim typesByName As Dictionary(Of String, Cci.INamespaceTypeDefinition) = New Dictionary(Of String, Cci.INamespaceTypeDefinition)(s_nameComparer)
-                    For Each type As Cci.INamespaceTypeDefinition In Me.GetTopLevelTypes()
-                        ' All generated top-level types are assumed to be in the global namespace.
-                        If String.IsNullOrEmpty(type.NamespaceName) Then
-                            typesByName.Add(type.Name, type)
-                        End If
-                    Next
-                    Interlocked.CompareExchange(Me._lazyTopLevelTypes, typesByName, Nothing)
-                End If
-                Return Me._lazyTopLevelTypes
-            End Function
-
-            Private Shared Function VisitTypeMembers(Of T As {Class, Cci.ITypeDefinitionMember})(
-                otherContainer As Cci.ITypeDefinition,
-                member As T,
-                getMembers As Func(Of Cci.ITypeDefinition, IEnumerable(Of T)),
-                predicate As Func(Of T, T, Boolean)) As T
-
-                ' We could cache the members by name (see Matcher.VisitNamedTypeMembers)
-                ' but the assumption is this class is only used for types with few members
-                ' so caching is not necessary and linear search is acceptable.
-                Return getMembers(otherContainer).FirstOrDefault(Function(otherMember As T) predicate(member, otherMember))
-            End Function
-        End Class
-
-        Private NotInheritable Class MatchDefsToMetadata
-            Inherits MatchDefs
-
-            Private ReadOnly _otherAssembly As PEAssemblySymbol
-
-            Public Sub New(sourceContext As EmitContext, otherAssembly As PEAssemblySymbol)
-                MyBase.New(sourceContext)
-                Me._otherAssembly = otherAssembly
-            End Sub
-
-            Protected Overrides Function GetTopLevelTypes() As IEnumerable(Of Cci.INamespaceTypeDefinition)
-                Dim builder As ArrayBuilder(Of Cci.INamespaceTypeDefinition) = ArrayBuilder(Of Cci.INamespaceTypeDefinition).GetInstance()
-                GetTopLevelTypes(builder, Me._otherAssembly.GlobalNamespace)
-                Return builder.ToArrayAndFree()
-            End Function
-
-            Protected Overrides Function GetNestedTypes(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.INestedTypeDefinition)
-                Return (DirectCast(def, PENamedTypeSymbol)).GetTypeMembers().Cast(Of Cci.INestedTypeDefinition)()
-            End Function
-
-            Protected Overrides Function GetFields(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.IFieldDefinition)
-                Return (DirectCast(def, PENamedTypeSymbol)).GetFieldsToEmit().Cast(Of Cci.IFieldDefinition)()
-            End Function
-
-            Private Overloads Shared Sub GetTopLevelTypes(builder As ArrayBuilder(Of Cci.INamespaceTypeDefinition), [namespace] As NamespaceSymbol)
-                For Each member In [namespace].GetMembers()
-                    If member.Kind = SymbolKind.Namespace Then
-                        GetTopLevelTypes(builder, DirectCast(member, NamespaceSymbol))
-                    Else
-                        builder.Add(DirectCast(member.GetCciAdapter(), Cci.INamespaceTypeDefinition))
-                    End If
-                Next
-            End Sub
-        End Class
-
-        Private NotInheritable Class MatchDefsToSource
-            Inherits MatchDefs
-
-            Private ReadOnly _otherContext As EmitContext
-
-            Public Sub New(sourceContext As EmitContext, otherContext As EmitContext)
-                MyBase.New(sourceContext)
-                _otherContext = otherContext
-            End Sub
-
-            Protected Overrides Function GetTopLevelTypes() As IEnumerable(Of Cci.INamespaceTypeDefinition)
-                Return _otherContext.Module.GetTopLevelTypeDefinitions(_otherContext)
-            End Function
-
-            Protected Overrides Function GetNestedTypes(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.INestedTypeDefinition)
-                Return def.GetNestedTypes(_otherContext)
-            End Function
-
-            Protected Overrides Function GetFields(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.IFieldDefinition)
-                Return def.GetFields(_otherContext)
-            End Function
-        End Class
-
-        Private NotInheritable Class MatchSymbols
+        Private NotInheritable Class Visitor
             Inherits VisualBasicSymbolVisitor(Of Symbol)
 
             Private ReadOnly _synthesizedTypes As SynthesizedTypeMaps
@@ -232,8 +77,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private ReadOnly _sourceAssembly As SourceAssemblySymbol
             Private ReadOnly _otherAssembly As AssemblySymbol
-            Private ReadOnly _otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))
-            Private ReadOnly _otherDeletedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))
+            Private ReadOnly _otherSynthesizedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))
+            Private ReadOnly _otherDeletedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal))
 
             ' A cache of members per type, populated when the first member for a given
             ' type Is needed. Within each type, members are indexed by name. The reason
@@ -244,8 +89,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Public Sub New(sourceAssembly As SourceAssemblySymbol,
                            otherAssembly As AssemblySymbol,
                            synthesizedTypes As SynthesizedTypeMaps,
-                           otherSynthesizedMembersOpt As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
-                           otherDeletedMembers As ImmutableDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                           otherSynthesizedMembersOpt As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
+                           otherDeletedMembers As IReadOnlyDictionary(Of ISymbolInternal, ImmutableArray(Of ISymbolInternal)),
                            deepTranslatorOpt As DeepTranslator)
 
                 _synthesizedTypes = synthesizedTypes
@@ -685,10 +530,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Function
 
             Private Class SymbolComparer
-                Private ReadOnly _matcher As MatchSymbols
+                Private ReadOnly _matcher As Visitor
                 Private ReadOnly _deepTranslatorOpt As DeepTranslator
 
-                Public Sub New(matcher As MatchSymbols, deepTranslatorOpt As DeepTranslator)
+                Public Sub New(matcher As Visitor, deepTranslatorOpt As DeepTranslator)
                     Debug.Assert(matcher IsNot Nothing)
                     _matcher = matcher
                     _deepTranslatorOpt = deepTranslatorOpt

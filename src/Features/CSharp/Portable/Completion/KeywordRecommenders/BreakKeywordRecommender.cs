@@ -5,6 +5,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var token = context.LeftToken;
             foreach (var v in token.GetAncestors<SyntaxNode>())
             {
-                if (v.IsAnyLambdaOrAnonymousMethod())
+                if (v is AnonymousFunctionExpressionSyntax)
                 {
                     // if we hit a lambda while walking up, then we can't
                     // 'continue' any outer loops.

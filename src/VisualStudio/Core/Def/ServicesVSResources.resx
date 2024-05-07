@@ -2035,4 +2035,10 @@ Additional information: {1}</value>
   <data name="Not_applicable" xml:space="preserve">
     <value>Not applicable</value>
   </data>
+  <data name="When_types_exactly_match" xml:space="preserve">
+    <value>When types exactly match</value>
+  </data>
+  <data name="When_types_loosely_match" xml:space="preserve">
+    <value>When types loosely match</value>
+  </data>
 </root>

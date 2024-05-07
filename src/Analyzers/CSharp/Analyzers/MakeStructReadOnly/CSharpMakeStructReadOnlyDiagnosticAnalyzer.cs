@@ -60,14 +60,14 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
                     context.ReportDiagnostic(DiagnosticHelper.Create(
                         Descriptor,
                         location,
-                        option.Notification.Severity,
+                        option.Notification,
                         additionalLocations: ImmutableArray.Create(additionalLocation),
                         properties: null));
                 });
             }, SymbolKind.NamedType);
         });
 
-    private static bool IsCandidate(
+    private bool IsCandidate(
         SymbolStartAnalysisContext context,
         [NotNullWhen(true)] out Location? primaryLocation,
         [NotNullWhen(true)] out Location? additionalLocation,
@@ -93,7 +93,7 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
 
         var options = context.GetCSharpAnalyzerOptions(typeDeclaration.SyntaxTree);
         option = options.PreferReadOnlyStruct;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(typeDeclaration.SyntaxTree, context.Options, context.Compilation.Options, option.Notification, cancellationToken))
             return false;
 
         // Now, ensure we have at least one field and that all fields are readonly.

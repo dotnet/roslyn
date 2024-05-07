@@ -483,13 +483,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return specifiers;
         }
 
-        public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual, DiagnosticDescription[] unamtchedExpected, IEnumerable<Diagnostic> unmatchedActual)
+        public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual, DiagnosticDescription[] unmatchedExpected, IEnumerable<Diagnostic> unmatchedActual)
         {
-            const int CSharp = 1;
-            const int VisualBasic = 2;
-            var language = actual.Any() && actual.First() is CSDiagnostic ? CSharp : VisualBasic;
-            var includeDiagnosticMessagesAsComments = (language == CSharp);
-            int indentDepth = (language == CSharp) ? 4 : 1;
+            var isCSharpOrRazor = actual.Any() && actual.First() is CSDiagnostic or { Descriptor.Category: "Razor" };
+            var includeDiagnosticMessagesAsComments = isCSharpOrRazor;
+            int indentDepth = isCSharpOrRazor ? 4 : 1;
             var includeDefaultSeverity = expected.Any() && expected.All(d => d.DefaultSeverity != null);
             var includeEffectiveSeverity = expected.Any() && expected.All(d => d.EffectiveSeverity != null);
 
@@ -556,7 +554,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             assertText.AppendLine("Diff:");
 
             var unmatchedExpectedText = ArrayBuilder<string>.GetInstance();
-            foreach (var d in unamtchedExpected)
+            foreach (var d in unmatchedExpected)
             {
                 unmatchedExpectedText.Add(GetDiagnosticDescription(d, indentDepth));
             }

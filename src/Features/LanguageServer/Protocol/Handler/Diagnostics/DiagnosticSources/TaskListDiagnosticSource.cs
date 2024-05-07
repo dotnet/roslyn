@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 using static PullDiagnosticConstants;
 
-internal sealed class TaskListDiagnosticSource : AbstractDocumentDiagnosticSource<Document>
+internal sealed class TaskListDiagnosticSource(Document document, IGlobalOptionService globalOptions) : AbstractDocumentDiagnosticSource<Document>(document)
 {
     private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(TaskItemCustomTag);
 
@@ -27,13 +27,10 @@ internal sealed class TaskListDiagnosticSource : AbstractDocumentDiagnosticSourc
     private static Tuple<ImmutableArray<string>, ImmutableArray<TaskListItemDescriptor>> s_lastRequestedTokens =
         Tuple.Create(ImmutableArray<string>.Empty, ImmutableArray<TaskListItemDescriptor>.Empty);
 
-    private readonly IGlobalOptionService _globalOptions;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-    public TaskListDiagnosticSource(Document document, IGlobalOptionService globalOptions)
-        : base(document)
-    {
-        _globalOptions = globalOptions;
-    }
+    public override bool IsLiveSource()
+        => true;
 
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)

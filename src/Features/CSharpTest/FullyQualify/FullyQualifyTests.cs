@@ -74,6 +74,48 @@ index: 1, testHost: testHost);
         }
 
         [Theory, CombinatorialData]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889385")]
+        public async Task TestPreservesIncorrectIndentation1(TestHost testHost)
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+      [|IDictionary|] Method()
+    {
+        Goo();
+    }
+}",
+@"class Class
+{
+      System.Collections.IDictionary Method()
+    {
+        Goo();
+    }
+}", testHost: testHost);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889385")]
+        public async Task TestPreservesIncorrectIndentation2(TestHost testHost)
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+\t[|IDictionary|] Method()
+    {
+        Goo();
+    }
+}".Replace(@"\t", "\t"),
+@"class Class
+{
+\tSystem.Collections.IDictionary Method()
+    {
+        Goo();
+    }
+}".Replace(@"\t", "\t"), testHost: testHost);
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestGenericWithNoArgs(TestHost testHost)
         {
             await TestInRegularAndScriptAsync(
@@ -1052,7 +1094,7 @@ class Program
         {
             await TestInRegularAndScriptAsync(
 @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ",
-@"[ assembly : System.Runtime.InteropServices.Guid( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost: testHost);
+@"[ assembly : System.Runtime.InteropServices.Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost: testHost);
         }
 
         [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]

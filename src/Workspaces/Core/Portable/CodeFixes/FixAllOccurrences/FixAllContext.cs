@@ -67,7 +67,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        internal IProgressTracker ProgressTracker { get; }
+        /// <summary>
+        /// Progress sink for reporting the progress of a fix-all operation.
+        /// </summary>
+        public IProgress<CodeAnalysisProgress> Progress { get; }
 
         #region IFixAllContext implementation
         IFixAllState IFixAllContext.State => this.State;
@@ -75,8 +78,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         IFixAllProvider IFixAllContext.FixAllProvider => this.FixAllProvider;
 
         object IFixAllContext.Provider => this.CodeFixProvider;
-
-        IProgressTracker IFixAllContext.ProgressTracker => this.ProgressTracker;
 
         string IFixAllContext.GetDefaultFixAllTitle()
             => this.GetDefaultFixAllTitle();
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
                     fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
                     CodeActionOptions.DefaultProvider),
-                  new ProgressTracker(), cancellationToken)
+                  CodeAnalysisProgress.None, cancellationToken)
         {
         }
 
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
                     fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
                     CodeActionOptions.DefaultProvider),
-                  new ProgressTracker(), cancellationToken)
+                  CodeAnalysisProgress.None, cancellationToken)
         {
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
             {
@@ -212,11 +213,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal FixAllContext(
             FixAllState state,
-            IProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             State = state;
-            this.ProgressTracker = progressTracker;
+            this.Progress = progressTracker;
             this.CancellationToken = cancellationToken;
         }
 
@@ -336,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return this;
             }
 
-            return new FixAllContext(State, this.ProgressTracker, cancellationToken);
+            return new FixAllContext(State, this.Progress, cancellationToken);
         }
 
         internal FixAllContext With(
@@ -345,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Optional<string?> codeActionEquivalenceKey = default)
         {
             var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
-            return State == newState ? this : new FixAllContext(newState, ProgressTracker, CancellationToken);
+            return State == newState ? this : new FixAllContext(newState, this.Progress, CancellationToken);
         }
 
         internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync()

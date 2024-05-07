@@ -78,10 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         {
             var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferLocalOverAnonymousFunction;
             // Bail immediately if the user has disabled this feature.
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
                 return;
 
-            var severity = styleOption.Notification.Severity;
             var anonymousFunction = (AnonymousFunctionExpressionSyntax)syntaxContext.Node;
 
             var semanticModel = syntaxContext.SemanticModel;
@@ -137,14 +136,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             additionalLocations = additionalLocations.AddRange(referenceLocations);
 
-            if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
+            if (styleOption.Notification.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
             {
                 // If the diagnostic is not hidden, then just place the user visible part
                 // on the local being initialized with the lambda.
                 syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     localDeclaration.Declaration.Variables[0].Identifier.GetLocation(),
-                    severity,
+                    styleOption.Notification,
                     additionalLocations,
                     properties: null));
             }
@@ -154,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     localDeclaration.GetLocation(),
-                    severity,
+                    styleOption.Notification,
                     additionalLocations,
                     properties: null));
 
@@ -163,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                         Descriptor,
                         anonymousFunctionStatement!.GetLocation(),
-                        severity,
+                        styleOption.Notification,
                         additionalLocations,
                         properties: null));
                 }
