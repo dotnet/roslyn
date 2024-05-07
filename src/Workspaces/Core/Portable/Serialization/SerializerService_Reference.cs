@@ -23,6 +23,15 @@ internal partial class SerializerService
 {
     private const int MetadataFailed = int.MaxValue;
 
+    private static readonly object s_analyzerImageReferenceMapGate = new();
+    private static IBidirectionalMap<AnalyzerImageReference, Guid> s_analyzerImageReferenceMap = BidirectionalMap<AnalyzerImageReference, Guid>.Empty;
+
+    private static bool TryGetAnalyzerImageReferenceGuid(AnalyzerImageReference imageReference, out Guid guid)
+    {
+        lock (s_analyzerImageReferenceMapGate)
+            return s_analyzerImageReferenceMap.TryGetValue(imageReference, out guid);
+    }
+
     public static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
     {
         if (reference is PortableExecutableReference portable)
@@ -49,6 +58,11 @@ internal partial class SerializerService
                 case AnalyzerFileReference file:
                     writer.WriteString(file.FullPath);
                     writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
+                    break;
+
+                case AnalyzerImageReference analyzerImageReference:
+                    Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceGuid(analyzerImageReference, out var guid), "AnalyzerImageReferences are only supported during testing");
+                    writer.WriteGuid(guid);
                     break;
 
                 default:
@@ -101,6 +115,12 @@ internal partial class SerializerService
                 writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
                 break;
 
+            case AnalyzerImageReference analyzerImageReference:
+                Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceGuid(analyzerImageReference, out var guid), "AnalyzerImageReferences are only supported during testing");
+                writer.WriteString(nameof(AnalyzerImageReference));
+                writer.WriteGuid(guid);
+                break;
+
             default:
                 throw ExceptionUtilities.UnexpectedValue(reference);
         }
@@ -111,11 +131,20 @@ internal partial class SerializerService
         cancellationToken.ThrowIfCancellationRequested();
 
         var type = reader.ReadString();
-        if (type == nameof(AnalyzerFileReference))
+        switch (type)
         {
-            var fullPath = reader.ReadRequiredString();
-            var shadowCopy = reader.ReadBoolean();
-            return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(new AnalyzerAssemblyLoaderOptions(shadowCopy)));
+            case nameof(AnalyzerFileReference):
+                var fullPath = reader.ReadRequiredString();
+                var shadowCopy = reader.ReadBoolean();
+                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(new AnalyzerAssemblyLoaderOptions(shadowCopy)));
+
+            case nameof(AnalyzerImageReference):
+                var guid = reader.ReadGuid();
+                lock (s_analyzerImageReferenceMapGate)
+                {
+                    Contract.ThrowIfFalse(s_analyzerImageReferenceMap.TryGetKey(guid, out var analyzerImageReference));
+                    return analyzerImageReference;
+                }
         }
 
         throw ExceptionUtilities.UnexpectedValue(type);
@@ -503,71 +532,12 @@ internal partial class SerializerService
             => new MissingMetadataReference(properties, FilePath, _provider);
     }
 
-    [DebuggerDisplay("{" + nameof(Display) + ",nq}")]
-    private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
+    public static class TestAccessor
     {
-        private readonly Metadata _metadata;
-        private readonly ImmutableArray<TemporaryStorageStreamHandle> _storageHandles;
-        private readonly DocumentationProvider _provider;
-
-        public IReadOnlyList<ITemporaryStorageStreamHandle> StorageHandles => _storageHandles;
-
-        public SerializedMetadataReference(
-            MetadataReferenceProperties properties,
-            string? fullPath,
-            Metadata metadata,
-            ImmutableArray<TemporaryStorageStreamHandle> storageHandles,
-            DocumentationProvider initialDocumentation)
-            : base(properties, fullPath, initialDocumentation)
+        public static void AddAnalyzerImageReference(AnalyzerImageReference analyzerImageReference)
         {
-            Contract.ThrowIfTrue(storageHandles.IsDefault);
-            _metadata = metadata;
-            _storageHandles = storageHandles;
-
-            _provider = initialDocumentation;
-        }
-
-        protected override DocumentationProvider CreateDocumentationProvider()
-        {
-            // this uses documentation provider given at the constructor
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        protected override Metadata GetMetadataImpl()
-            => _metadata;
-
-        protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            => new SerializedMetadataReference(properties, FilePath, _metadata, _storageHandles, _provider);
-
-        public override string ToString()
-        {
-            var metadata = TryGetMetadata(this);
-            var modules = GetModules(metadata);
-
-            return $"""
-            {nameof(SerializedMetadataReference)}
-                FilePath={this.FilePath}
-                Kind={this.Properties.Kind}
-                Aliases={this.Properties.Aliases.Join(",")}
-                EmbedInteropTypes={this.Properties.EmbedInteropTypes}
-                MetadataKind={metadata switch { null => "null", AssemblyMetadata => "assembly", ModuleMetadata => "module", _ => metadata.GetType().Name }}
-                Guids={modules.Select(m => GetMetadataGuid(m).ToString()).Join(",")}
-            """;
-
-            static ImmutableArray<ModuleMetadata> GetModules(Metadata? metadata)
-            {
-                if (metadata is AssemblyMetadata assemblyMetadata)
-                {
-                    if (TryGetModules(assemblyMetadata, out var modules))
-                        return modules;
-                }
-                else if (metadata is ModuleMetadata moduleMetadata)
-                {
-                    return [moduleMetadata];
-                }
-
-                return [];
-            }
+            lock (s_analyzerImageReferenceMapGate)
+                s_analyzerImageReferenceMap = s_analyzerImageReferenceMap.Add(analyzerImageReference, Guid.NewGuid());
         }
     }
 }
