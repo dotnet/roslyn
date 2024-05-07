@@ -190,12 +190,27 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
             // (14,18): error CS8116: It is not legal to use nullable type 'Task?' in a pattern; use the underlying type 'Task' instead.
             //             case Task?:
             Diagnostic(ErrorCode.ERR_PatternNullableType, "Task?").WithArguments("System.Threading.Tasks.Task").WithLocation(14, 18),
-            // (16,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+            // (16,21): error CS1003: Syntax error, ':' expected
             //             case int? i1:
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(16, 18),
-            // (18,18): error CS8116: It is not legal to use nullable type 'Task?' in a pattern; use the underlying type 'Task' instead.
+            Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":").WithLocation(16, 21),
+            // (16,21): error CS1513: } expected
+            //             case int? i1:
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "?").WithLocation(16, 21),
+            // (16,23): warning CS0164: This label has not been referenced
+            //             case int? i1:
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "i1").WithLocation(16, 23),
+            // (18,18): error CS0119: 'Task' is a type, which is not valid in the given context
             //             case Task? t1:
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task?").WithArguments("System.Threading.Tasks.Task").WithLocation(18, 18),
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "Task").WithArguments("System.Threading.Tasks.Task", "type").WithLocation(18, 18),
+            // (18,24): error CS0103: The name 't1' does not exist in the current context
+            //             case Task? t1:
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "t1").WithArguments("t1").WithLocation(18, 24),
+            // (18,27): error CS1525: Invalid expression term 'break'
+            //             case Task? t1:
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(18, 27),
+            // (18,27): error CS1003: Syntax error, ':' expected
+            //             case Task? t1:
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(18, 27),
             // (20,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
             //             case int? when x > 0:
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(20, 18),
@@ -264,12 +279,24 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
             // (14,18): error CS8116: It is not legal to use nullable type 'Task[]?' in a pattern; use the underlying type 'Task[]' instead.
             //             case Task[]?:
             Diagnostic(ErrorCode.ERR_PatternNullableType, "Task[]?").WithArguments("System.Threading.Tasks.Task[]").WithLocation(14, 18),
-            // (16,18): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
+            // (16,23): error CS1003: Syntax error, ':' expected
             //             case int[]? i1:
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(16, 18),
-            // (18,18): error CS8116: It is not legal to use nullable type 'Task[]?' in a pattern; use the underlying type 'Task[]' instead.
+            Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":").WithLocation(16, 23),
+            // (16,23): error CS1513: } expected
+            //             case int[]? i1:
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "?").WithLocation(16, 23),
+            // (16,25): warning CS0164: This label has not been referenced
+            //             case int[]? i1:
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "i1").WithLocation(16, 25),
+            // (18,24): error CS1003: Syntax error, ':' expected
             //             case Task[]? t1:
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task[]?").WithArguments("System.Threading.Tasks.Task[]").WithLocation(18, 18),
+            Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":").WithLocation(18, 24),
+            // (18,24): error CS1513: } expected
+            //             case Task[]? t1:
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "?").WithLocation(18, 24),
+            // (18,26): warning CS0164: This label has not been referenced
+            //             case Task[]? t1:
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "t1").WithLocation(18, 26),
             // (20,18): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
             //             case int[]? when x > 0:
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(20, 18),
@@ -328,12 +355,30 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
             // (13,13): error CS8116: It is not legal to use nullable type 'Task?' in a pattern; use the underlying type 'Task' instead.
             //             Task? => 2,
             Diagnostic(ErrorCode.ERR_PatternNullableType, "Task?").WithArguments("System.Threading.Tasks.Task").WithLocation(13, 13),
-            // (14,13): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+            // (14,16): error CS1003: Syntax error, '=>' expected
             //             int? i1 => 3,
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(14, 13),
-            // (15,13): error CS8116: It is not legal to use nullable type 'Task?' in a pattern; use the underlying type 'Task' instead.
+            Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>").WithLocation(14, 16),
+            // (14,16): error CS1525: Invalid expression term '?'
+            //             int? i1 => 3,
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(14, 16),
+            // (14,25): error CS1003: Syntax error, ':' expected
+            //             int? i1 => 3,
+            Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments(":").WithLocation(14, 25),
+            // (14,25): error CS1525: Invalid expression term ','
+            //             int? i1 => 3,
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(14, 25),
+            // (15,17): error CS1003: Syntax error, '=>' expected
             //             Task? t1 => 4,
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task?").WithArguments("System.Threading.Tasks.Task").WithLocation(15, 13),
+            Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>").WithLocation(15, 17),
+            // (15,17): error CS1525: Invalid expression term '?'
+            //             Task? t1 => 4,
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(15, 17),
+            // (15,26): error CS1003: Syntax error, ':' expected
+            //             Task? t1 => 4,
+            Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments(":").WithLocation(15, 26),
+            // (15,26): error CS1525: Invalid expression term ','
+            //             Task? t1 => 4,
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(15, 26),
             // (16,13): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
             //             int? when x > 0 => 5,
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(16, 13),
@@ -392,12 +437,30 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
             // (13,13): error CS8116: It is not legal to use nullable type 'Task[]?' in a pattern; use the underlying type 'Task[]' instead.
             //             Task[]? => 2,
             Diagnostic(ErrorCode.ERR_PatternNullableType, "Task[]?").WithArguments("System.Threading.Tasks.Task[]").WithLocation(13, 13),
-            // (14,13): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
+            // (14,18): error CS1003: Syntax error, '=>' expected
             //             int[]? i1 => 3,
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(14, 13),
-            // (15,13): error CS8116: It is not legal to use nullable type 'Task[]?' in a pattern; use the underlying type 'Task[]' instead.
+            Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>").WithLocation(14, 18),
+            // (14,18): error CS1525: Invalid expression term '?'
+            //             int[]? i1 => 3,
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(14, 18),
+            // (14,27): error CS1003: Syntax error, ':' expected
+            //             int[]? i1 => 3,
+            Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments(":").WithLocation(14, 27),
+            // (14,27): error CS1525: Invalid expression term ','
+            //             int[]? i1 => 3,
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(14, 27),
+            // (15,19): error CS1003: Syntax error, '=>' expected
             //             Task[]? t1 => 4,
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task[]?").WithArguments("System.Threading.Tasks.Task[]").WithLocation(15, 13),
+            Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>").WithLocation(15, 19),
+            // (15,19): error CS1525: Invalid expression term '?'
+            //             Task[]? t1 => 4,
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(15, 19),
+            // (15,28): error CS1003: Syntax error, ':' expected
+            //             Task[]? t1 => 4,
+            Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments(":").WithLocation(15, 28),
+            // (15,28): error CS1525: Invalid expression term ','
+            //             Task[]? t1 => 4,
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(15, 28),
             // (16,13): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
             //             int[]? when x > 0 => 5,
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(16, 13),
