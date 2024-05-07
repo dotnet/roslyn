@@ -108,7 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 var analyzerImageReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
                 analyzerReferences = [analyzerImageReference];
-                SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerImageReference);
             }
             else
             {

@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -746,6 +747,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             return submissions;
+        }
+
+        public override bool TryApplyChanges(Solution newSolution)
+        {
+            var result = base.TryApplyChanges(newSolution);
+
+            foreach (var analyzer in this.CurrentSolution.AnalyzerReferences)
+            {
+                if (analyzer is AnalyzerImageReference analyzerImageReference)
+                {
+#pragma warning disable CA1416 // Validate platform compatibility
+                    SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerImageReference);
+#pragma warning restore CA1416 // Validate platform compatibility
+                }
+            }
+
+            return result;
         }
     }
 }
