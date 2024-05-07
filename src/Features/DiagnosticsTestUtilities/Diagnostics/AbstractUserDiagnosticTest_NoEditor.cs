@@ -106,8 +106,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             AnalyzerReference[] analyzerReferences;
             if (analyzer != null)
             {
-                // Contract.ThrowIfTrue(parameters.testHost == TestHost.OutOfProcess, $"Out-of-proc testing is not supported since {analyzer} can't be serialized.");
-
                 var analyzerImageReference = new AnalyzerImageReference([analyzer]);
                 analyzerReferences = [analyzerImageReference];
 
