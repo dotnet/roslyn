@@ -2441,20 +2441,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InterceptsLocationFileNotFound
                 or ErrorCode.ERR_InterceptsLocationDataInvalidPosition
                 or ErrorCode.INF_TooManyBoundLambdas
-<<<<<<< upstream/main
-=======
 
-                case ErrorCode.ERR_PartialPropertyMissingImplementation:
-                case ErrorCode.ERR_PartialPropertyMissingDefinition:
-                case ErrorCode.ERR_PartialPropertyDuplicateDefinition:
-                case ErrorCode.ERR_PartialPropertyDuplicateImplementation:
-                case ErrorCode.ERR_PartialPropertyMissingAccessor:
-                case ErrorCode.ERR_PartialPropertyUnexpectedAccessor:
-                case ErrorCode.ERR_PartialPropertyInitMismatch:
-                case ErrorCode.ERR_PartialPropertyTypeDifference:
-                case ErrorCode.WRN_PartialPropertySignatureDifference:
-                case ErrorCode.ERR_PartialPropertyRequiredDifference:
->>>>>>> HEAD
+                or ErrorCode.ERR_PartialPropertyMissingImplementation
+                or ErrorCode.ERR_PartialPropertyMissingDefinition
+                or ErrorCode.ERR_PartialPropertyDuplicateDefinition
+                or ErrorCode.ERR_PartialPropertyDuplicateImplementation
+                or ErrorCode.ERR_PartialPropertyMissingAccessor
+                or ErrorCode.ERR_PartialPropertyUnexpectedAccessor
+                or ErrorCode.ERR_PartialPropertyInitMismatch
+                or ErrorCode.ERR_PartialPropertyTypeDifference
+                or ErrorCode.WRN_PartialPropertySignatureDifference
+                or ErrorCode.ERR_PartialPropertyRequiredDifference
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
