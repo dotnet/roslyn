@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             string? equivalenceKey = null,
             LanguageVersion languageVersion = LanguageVersion.CSharp9,
             OptionsCollection? options = null,
-            TestHost testHost = TestHost.InProcess,
+            TestHost testHost = TestHost.OutOfProcess,
             string[]? actions = null)
         {
             if (index != 0)
