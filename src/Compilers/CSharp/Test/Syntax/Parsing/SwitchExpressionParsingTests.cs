@@ -4796,4 +4796,60 @@ public class SwitchExpressionParsingTests : ParsingTests
         }
         EOF();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+    public void TestConditionalExpressionAsPattern()
+    {
+        UsingExpression("""
+            obj switch
+            {
+                (flag ? a : b) => 1
+            }
+            """);
+
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "obj");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.ConditionalExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "flag");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.ColonToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
 }
