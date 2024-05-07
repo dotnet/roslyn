@@ -2027,46 +2027,90 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         }
 
         [Fact]
-        public void Required_Errors()
+        public void Semantics_Required()
+        {
+            var source = """
+                using System;
+
+                partial class C
+                {
+                    public required partial string P1 { get; set; }
+                    public required partial string P1 { get => ""; set { Console.Write(value); } }
+
+                    static void Main()
+                    {
+                        _ = new C() { P1 = "A" };
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute], expectedOutput: "A");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  2
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldstr      "A"
+                  IL_000a:  callvirt   "void C.P1.set"
+                  IL_000f:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Required_CreationSiteError()
         {
             var source = """
                 partial class C
                 {
                     public required partial string P1 { get; set; }
                     public required partial string P1 { get => ""; set { } }
-                
-                    public required partial string P2 { get; set; }
-                    public partial string P2 { get => ""; set { } }
-                
-                    public partial string P3 { get; set; }
-                    public required partial string P3 { get => ""; set { } }
 
-                    static void M()
+                    static void Main()
                     {
                         _ = new C();
-                        _ = new C() { P1 = "A" };
-                        _ = new C() { P1 = "A", P2 = "B" };
                     }
                 }
                 """;
 
             var comp = CreateCompilation([source, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute]);
             comp.VerifyEmitDiagnostics(
-                // (7,27): error CS9309: Both partial property declarations must be required or neither may be required
-                //     public partial string P2 { get => ""; set { } }
-                Diagnostic(ErrorCode.ERR_PartialPropertyRequiredDifference, "P2").WithLocation(7, 27),
-                // (10,36): error CS9309: Both partial property declarations must be required or neither may be required
-                //     public required partial string P3 { get => ""; set { } }
-                Diagnostic(ErrorCode.ERR_PartialPropertyRequiredDifference, "P3").WithLocation(10, 36),
-                // (14,17): error CS9035: Required member 'C.P2' must be set in the object initializer or attribute constructor.
+                // (8,17): error CS9035: Required member 'C.P1' must be set in the object initializer or attribute constructor.
                 //         _ = new C();
-                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.P2").WithLocation(14, 17),
-                // (14,17): error CS9035: Required member 'C.P1' must be set in the object initializer or attribute constructor.
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.P1").WithLocation(8, 17));
+        }
+
+        [Fact]
+        public void Required_Difference()
+        {
+            var source = """
+                partial class C
+                {
+                    public required partial string P1 { get; set; }
+                    public partial string P1 { get => ""; set { } }
+                
+                    public partial string P2 { get; set; }
+                    public required partial string P2 { get => ""; set { } }
+
+                    static void Main()
+                    {
+                        _ = new C();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute]);
+            comp.VerifyEmitDiagnostics(
+                // (4,27): error CS9309: Both partial property declarations must be required or neither may be required
+                //     public partial string P1 { get => ""; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyRequiredDifference, "P1").WithLocation(4, 27),
+                // (7,36): error CS9309: Both partial property declarations must be required or neither may be required
+                //     public required partial string P2 { get => ""; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyRequiredDifference, "P2").WithLocation(7, 36),
+                // (11,17): error CS9035: Required member 'C.P1' must be set in the object initializer or attribute constructor.
                 //         _ = new C();
-                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.P1").WithLocation(14, 17),
-                // (15,17): error CS9035: Required member 'C.P2' must be set in the object initializer or attribute constructor.
-                //         _ = new C() { P1 = "A" };
-                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.P2").WithLocation(15, 17));
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.P1").WithLocation(11, 17));
         }
 
         [Fact]
