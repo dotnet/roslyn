@@ -15578,14 +15578,14 @@ class C1
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/73346")]
-        public void ParameterTypeSpecificity()
+        public void ParameterTypeSpecificity_01()
         {
             string source = """
 using System;
 
 namespace OverloadResolutionRepro
 {
-    public class Foo
+    public class C
     {
         public void Method<S>(params Func<Bar, S>[] projections) => Console.Write(1);
         public void Method<S>(params Func<Bar, Wrapper<S>>[] projections) => Console.Write(2);
@@ -15604,7 +15604,44 @@ namespace OverloadResolutionRepro
     {
         static void Main()
         {
-            new Foo().Method(x => x.WrappedValue);
+            new C().Method(x => x.WrappedValue);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73346")]
+        public void ParameterTypeSpecificity_02()
+        {
+            string source = """
+using System;
+
+namespace OverloadResolutionRepro
+{
+    public class C<S>
+    {
+        public C(params Func<Bar, S>[] projections) => Console.Write(1);
+        public C(params Func<Bar, Wrapper<int>>[] projections) => Console.Write(2);
+    }
+
+    public class Bar
+    {
+        public Wrapper<int> WrappedValue { get; set; } = new Wrapper<int>();
+    }
+
+    public struct Wrapper<TValue>
+    {
+    }
+
+    public class EntryPoint
+    {
+        static void Main()
+        {
+            new C<Wrapper<int>>(x => x.WrappedValue);
         }
     }
 }
