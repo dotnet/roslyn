@@ -7171,7 +7171,7 @@ done:;
                         // 1. As a start of conditional expression, e.g. `var a = obj is string ? a : b`
                         // 2. As a designation of a nullable-typed pattern, e.g. `if (obj is string? str)`
                         //
-                        // Since nullable types (no matter reference of value types) are not valid in patterns by
+                        // Since nullable types (no matter reference or value types) are not valid in patterns by
                         // default we are biased towards the first option and consider case 2 only for error recovery
                         // purposes (if we parse here as nullable type pattern an error will be reported during
                         // binding). This condition checks for simple cases, where we better use option 2 and parse a
