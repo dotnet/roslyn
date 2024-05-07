@@ -29,6 +29,12 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 /// </summary>
 internal static class DocumentBasedFixAllProviderHelpers
 {
+    private const string SimplifierAddImportsAnnotation = $"{nameof(Simplifier)}.{nameof(Simplifier.AddImportsAnnotation)}";
+    private const string SimplifierAnnotation = $"{nameof(Simplifier)}.{nameof(Simplifier.Annotation)}";
+    private const string FormatterAnnotation = $"{nameof(Formatter)}.{nameof(Formatter.Annotation)}";
+    private const string CaseCorrectorAnnotation = $"{nameof(CaseCorrector)}.{nameof(CaseCorrector.Annotation)}";
+    private const string SyntaxAnnotationElasticAnnotation = $"{nameof(SyntaxAnnotation)}.{nameof(SyntaxAnnotation.ElasticAnnotation)}";
+
     public static async Task<Solution?> FixAllContextsAsync<TFixAllContext>(
         TFixAllContext originalFixAllContext,
         ImmutableArray<TFixAllContext> fixAllContexts,
@@ -173,21 +179,20 @@ internal static class DocumentBasedFixAllProviderHelpers
         var annotatedTokens = new Dictionary<string, ImmutableArray<TextSpan>>();
         var root = await dirtyDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        GetAnnotations(Simplifier.AddImportsAnnotation);
-        GetAnnotations(Simplifier.Annotation);
-        GetAnnotations(Formatter.Annotation);
-        GetAnnotations(SyntaxAnnotation.ElasticAnnotation);
-        GetAnnotations(CaseCorrector.Annotation);
+        GetAnnotations(SimplifierAddImportsAnnotation, Simplifier.AddImportsAnnotation);
+        GetAnnotations(SimplifierAnnotation, Simplifier.Annotation);
+        GetAnnotations(FormatterAnnotation, Formatter.Annotation);
+        GetAnnotations(SyntaxAnnotationElasticAnnotation, SyntaxAnnotation.ElasticAnnotation);
+        GetAnnotations(CaseCorrectorAnnotation, CaseCorrector.Annotation);
 
         return (annotatedNodes, annotatedTokens);
 
-        void GetAnnotations(SyntaxAnnotation annotation)
+        void GetAnnotations(string kind, SyntaxAnnotation annotation)
         {
             using var _1 = ArrayBuilder<TextSpan>.GetInstance(out var nodeSpans);
             using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var tokenSpans);
 
-            var kind = annotation.Kind!;
-            foreach (var nodeOrToken in root.GetAnnotatedNodesAndTokens(kind))
+            foreach (var nodeOrToken in root.GetAnnotatedNodesAndTokens(annotation))
             {
                 if (nodeOrToken.IsNode)
                     nodeSpans.Add(nodeOrToken.AsNode()!.FullSpan);
@@ -198,6 +203,14 @@ internal static class DocumentBasedFixAllProviderHelpers
             annotatedNodes.Add(kind, nodeSpans.ToImmutableAndClear());
             annotatedTokens.Add(kind, tokenSpans.ToImmutableAndClear());
         }
+    }
+
+    public static SyntaxNode AnnotatedRoot(
+        SyntaxNode root,
+        Dictionary<string, ImmutableArray<TextSpan>> annotatedNodes,
+        Dictionary<string, ImmutableArray<TextSpan>> annotatedTokens)
+    {
+
     }
 
     public static async Task<SourceText> PerformCleanupInCurrentProcessAsync(
