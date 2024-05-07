@@ -28,8 +28,6 @@ internal interface IMetadataAsSourceFileService
 
     bool TryRemoveDocumentFromWorkspace(string filePath);
 
-    void CleanupGeneratedFiles();
-
     bool IsNavigableMetadataSymbol(ISymbol symbol);
 
     Workspace? TryGetWorkspace();
