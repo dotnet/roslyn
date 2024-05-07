@@ -39127,7 +39127,7 @@ internal class AnyClass : AnyBaseClass
             Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(1, 43),
             // (5,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
             // internal class AnyClass : AnyBaseClass
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(5, 27) );
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(5, 27));
     }
 
     [Fact]
@@ -39257,6 +39257,114 @@ implicit extension E for C.Interface
         var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C.Interface.Nested");
         // PROTOTYPE(static) consider blocking extension resolution in semantic model correspondingly with source
         Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void Circularity_ForType_NestedType()
+    {
+        var source = """
+implicit extension E for E.Nested
+{
+    public class Nested { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,20): error CS0146: Circular base type dependency involving 'E.Nested' and 'E'
+            // implicit extension E for E.Nested
+            Diagnostic(ErrorCode.ERR_CircularBase, "E").WithArguments("E.Nested", "E").WithLocation(1, 20));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "E.Nested");
+        Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AliasDirective_UsedInForType()
+    {
+        var source = """
+using InterfaceAlias = C.Interface;
+
+InterfaceAlias.M();
+
+internal class C
+{
+    internal interface Interface { }
+}
+
+implicit extension E for InterfaceAlias
+{
+    public static void M() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "InterfaceAlias.M");
+        Assert.Equal("void E.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AliasDirective_UsedInForType_GenericCycle()
+    {
+        var source = """
+using MyInterface = C<E.Interface>.Interface;
+
+class C<T> { }
+implicit extension E for C<MyInterface>
+{
+    public interface Interface { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        comp.VerifyEmitDiagnostics(
+            // (1,36): error CS0426: The type name 'Interface' does not exist in the type 'C<E.Interface>'
+            // using MyInterface = C<E.Interface>.Interface;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Interface").WithArguments("Interface", "C<E.Interface>").WithLocation(1, 36));
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "MyNested.M");
+        Assert.Equal("void E.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AliasDirective_Keyword()
+    {
+        var source = """
+using MyInterface = object.Interface;
+MyInterface.M();
+
+implicit extension E for object
+{
+    public interface Interface
+    {
+        public static void M() { System.Console.Write("ran "); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        // PROTOTYPE(static) We should be able to parse this using/alias directive
+        comp.VerifyEmitDiagnostics(
+            // (1,27): error CS1002: ; expected
+            // using MyInterface = object.Interface;
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ".").WithLocation(1, 27),
+            // (1,27): error CS1022: Type or namespace definition, or end-of-file expected
+            // using MyInterface = object.Interface;
+            Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(1, 27),
+            // (1,28): error CS0103: The name 'Interface' does not exist in the current context
+            // using MyInterface = object.Interface;
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "Interface").WithArguments("Interface").WithLocation(1, 28),
+            // (1,28): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+            // using MyInterface = object.Interface;
+            Diagnostic(ErrorCode.ERR_IllegalStatement, "Interface").WithLocation(1, 28),
+            // (2,13): error CS0117: 'object' does not contain a definition for 'M'
+            // MyInterface.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(2, 13));
     }
 
     [Fact]

@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
-            if (type.ExtendedTypeNoUseSiteDiagnostics is { } extendedType)
+            if (type.GetExtendedTypeNoUseSiteDiagnostics(basesBeingResolved) is { } extendedType)
             {
                 type = extendedType;
             }
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var extension in extensions)
                 {
                     Debug.Assert(extension.IsDefinition);
-                    if (basesBeingResolved?.ContainsReference(extension) == true || extension.ExtendedTypeNoUseSiteDiagnostics is null)
+                    if (extension.GetExtendedTypeNoUseSiteDiagnostics(basesBeingResolved) is null)
                     {
                         continue;
                     }
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var extension = (NamedTypeSymbol)type;
                     this.LookupMembersInExtension(result, extension, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
 
-                    if (extension.ExtendedTypeNoUseSiteDiagnostics is { } extendedType)
+                    if (extension.GetExtendedTypeNoUseSiteDiagnostics(basesBeingResolved) is { } extendedType)
                     {
                         // any viable non-methods [non-indexers] found here will hide viable methods [indexers] (with the same name) in any further base classes
                         // short circuit looking up in extended type if we already have a viable result and we won't be adding on more
@@ -1528,7 +1528,7 @@ symIsHidden:;
             {
                 var sym = hiddenSymbols[i];
 
-                if (sym.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } symExtendedType)
+                if (sym.ContainingType.GetExtendedTypeNoUseSiteDiagnostics(basesBeingResolved) is not { } symExtendedType)
                 {
                     // We wouldn't have gathered these members if we didn't have an extended type for them.
                     throw ExceptionUtilities.Unreachable();
@@ -1539,7 +1539,7 @@ symIsHidden:;
                 {
                     var hidingSym = hidingSymbols[j];
 
-                    if (hidingSym.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } hidingSymExtendedType)
+                    if (hidingSym.ContainingType.GetExtendedTypeNoUseSiteDiagnostics(basesBeingResolved) is not { } hidingSymExtendedType)
                     {
                         // We wouldn't have gathered these members if we didn't have an extended type for them.
                         throw ExceptionUtilities.Unreachable();

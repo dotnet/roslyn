@@ -405,20 +405,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         internal sealed override bool IsExtension => _underlyingType.IsExtension;
         internal sealed override bool IsExplicitExtension => _underlyingType.IsExplicitExtension;
 
-        internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics
+        internal sealed override TypeSymbol? GetExtendedTypeNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved)
         {
-            get
+            if (ReferenceEquals(_lazyExtendedType, ErrorTypeSymbol.UnknownResultType))
             {
-                if (ReferenceEquals(_lazyExtendedType, ErrorTypeSymbol.UnknownResultType))
-                {
-                    // Cycles are handled in `GetDeclaredExtensionUnderlyingType` (where a bad extended type,
-                    // such as one that is an extension type, would be replaced with an error type)
-                    TypeSymbol? extendedType = GetDeclaredExtensionUnderlyingType();
-                    Interlocked.CompareExchange(ref _lazyExtendedType, extendedType, ErrorTypeSymbol.UnknownResultType);
-                }
-
-                return _lazyExtendedType;
+                // PROTOTYPE(static) consider handling basesBeingResolved through GetDeclaredExtensionUnderlyingType
+                // Cycles are handled in `GetDeclaredExtensionUnderlyingType` (where a bad extended type,
+                // such as one that is an extension type, would be replaced with an error type)
+                TypeSymbol? extendedType = GetDeclaredExtensionUnderlyingType();
+                Interlocked.CompareExchange(ref _lazyExtendedType, extendedType, ErrorTypeSymbol.UnknownResultType);
             }
+
+            return _lazyExtendedType;
         }
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()

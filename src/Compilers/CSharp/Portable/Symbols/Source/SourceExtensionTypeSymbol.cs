@@ -101,65 +101,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
             => GetDeclaredExtensionInfo(basesBeingResolved: null).UnderlyingType;
 
-        internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics
+        internal sealed override TypeSymbol? GetExtendedTypeNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved)
         {
-            get
+            if (ReferenceEquals(_lazyExtensionUnderlyingType, ErrorTypeSymbol.UnknownResultType))
             {
-                if (ReferenceEquals(_lazyExtensionUnderlyingType, ErrorTypeSymbol.UnknownResultType))
+                if (basesBeingResolved?.ContainsReference(this.OriginalDefinition) == true)
                 {
-                    var diagnostics = BindingDiagnosticBag.GetInstance();
-                    TypeSymbol? acyclicBase = makeAcyclicUnderlyingType(diagnostics);
-
-                    if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyExtensionUnderlyingType, acyclicBase, ErrorTypeSymbol.UnknownResultType),
-                            ErrorTypeSymbol.UnknownResultType))
-                    {
-                        AddDeclarationDiagnostics(diagnostics);
-                    }
-
-                    diagnostics.Free();
+                    return null;
                 }
 
-                return _lazyExtensionUnderlyingType;
-
-                TypeSymbol? makeAcyclicUnderlyingType(BindingDiagnosticBag diagnostics)
+                var diagnostics = BindingDiagnosticBag.GetInstance();
+                TypeSymbol? acyclicBase = makeAcyclicUnderlyingType(basesBeingResolved, diagnostics);
+                if (basesBeingResolved is not null)
                 {
-                    TypeSymbol? declaredUnderlyingType = GetDeclaredExtensionInfo(basesBeingResolved: null).UnderlyingType;
-
-                    if (declaredUnderlyingType is null)
-                    {
-                        return null;
-                    }
-
-                    if (BaseTypeAnalysis.TypeDependsOn(depends: declaredUnderlyingType, on: this))
-                    {
-                        return new ExtendedErrorTypeSymbol(declaredUnderlyingType, LookupResultKind.NotReferencable,
-                            diagnostics.Add(ErrorCode.ERR_CircularBase, Locations[0], declaredUnderlyingType, this));
-                    }
-
-                    var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
-                    var current = declaredUnderlyingType;
-                    do
-                    {
-                        // PROTOTYPE should this should check declaring module rather than compilations?
-                        if (ReferenceEquals(current.DeclaringCompilation, this.DeclaringCompilation))
-                        {
-                            break;
-                        }
-
-                        current.AddUseSiteInfo(ref useSiteInfo);
-                        current = current.BaseTypeNoUseSiteDiagnostics;
-                    }
-                    while (current is not null);
-
-                    if (!useSiteInfo.Diagnostics.IsNullOrEmpty())
-                    {
-                        // PROTOTYPE Are we dropping dependencies if we are not getting into this 'if'?
-                        var location = FindUnderlyingTypeSyntax(declaredUnderlyingType) ?? Locations[0];
-                        diagnostics.Add(location, useSiteInfo);
-                    }
-
-                    return declaredUnderlyingType;
+                    return acyclicBase;
                 }
+
+                if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyExtensionUnderlyingType, acyclicBase, ErrorTypeSymbol.UnknownResultType),
+                        ErrorTypeSymbol.UnknownResultType))
+                {
+                    AddDeclarationDiagnostics(diagnostics);
+                }
+
+                diagnostics.Free();
+            }
+
+            return _lazyExtensionUnderlyingType;
+
+            TypeSymbol? makeAcyclicUnderlyingType(ConsList<TypeSymbol>? basesBeingResolved, BindingDiagnosticBag diagnostics)
+            {
+                TypeSymbol? declaredUnderlyingType = GetDeclaredExtensionInfo(basesBeingResolved).UnderlyingType;
+
+                if (declaredUnderlyingType is null)
+                {
+                    return null;
+                }
+
+                if (BaseTypeAnalysis.TypeDependsOn(depends: declaredUnderlyingType, on: this))
+                {
+                    return new ExtendedErrorTypeSymbol(declaredUnderlyingType, LookupResultKind.NotReferencable,
+                        diagnostics.Add(ErrorCode.ERR_CircularBase, Locations[0], declaredUnderlyingType, this));
+                }
+
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
+                var current = declaredUnderlyingType;
+                do
+                {
+                    // PROTOTYPE should this should check declaring module rather than compilations?
+                    if (ReferenceEquals(current.DeclaringCompilation, this.DeclaringCompilation))
+                    {
+                        break;
+                    }
+
+                    current.AddUseSiteInfo(ref useSiteInfo);
+                    current = current.BaseTypeNoUseSiteDiagnostics;
+                }
+                while (current is not null);
+
+                if (!useSiteInfo.Diagnostics.IsNullOrEmpty())
+                {
+                    // PROTOTYPE Are we dropping dependencies if we are not getting into this 'if'?
+                    var location = FindUnderlyingTypeSyntax(declaredUnderlyingType) ?? Locations[0];
+                    diagnostics.Add(location, useSiteInfo);
+                }
+
+                return declaredUnderlyingType;
             }
         }
 

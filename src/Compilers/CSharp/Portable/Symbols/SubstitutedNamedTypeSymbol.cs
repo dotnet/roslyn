@@ -484,8 +484,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsExtension => _underlyingType.IsExtension;
         internal sealed override bool IsExplicitExtension => _underlyingType.IsExplicitExtension;
 
-        internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics
-            => _unbound ? null : Map.SubstituteType(OriginalDefinition.ExtendedTypeNoUseSiteDiagnostics).Type;
+        internal sealed override TypeSymbol? GetExtendedTypeNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved)
+        {
+            return _unbound ? null : Map.SubstituteType(OriginalDefinition.ExtendedTypeNoUseSiteDiagnostics).Type;
+        }
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
             => throw new InvalidOperationException("PROTOTYPE"); // PROTOTYPE
