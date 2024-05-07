@@ -48,7 +48,7 @@ internal sealed class CodeLensFindReferencesProgress(
 
     public int ReferencesCount => _locations.Count;
 
-    public ImmutableArray<Location> Locations => _locations.ToImmutableArray();
+    public ImmutableArray<Location> Locations => [.. _locations];
 
     public void OnStarted()
     {

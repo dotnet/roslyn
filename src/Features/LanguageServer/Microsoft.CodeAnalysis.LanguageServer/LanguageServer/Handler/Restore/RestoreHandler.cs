@@ -87,7 +87,7 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServ
     {
         if (request.ProjectFilePaths.Any())
         {
-            return request.ProjectFilePaths.ToImmutableArray();
+            return [.. request.ProjectFilePaths];
         }
 
         // No file paths were specified - this means we should restore all projects in the solution.

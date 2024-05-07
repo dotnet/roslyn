@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 lock (_tasks)
                 {
                     _tokenSource.Cancel();
-                    tasks = _tasks.ToArray();
+                    tasks = [.. _tasks];
                 }
 
                 try

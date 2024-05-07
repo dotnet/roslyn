@@ -83,7 +83,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             appliedChanges = await AddDocumentMergeChangesAsync(
                 oldSolution.GetDocument(documentId),
                 newSolution.GetDocument(documentId),
-                appliedChanges.ToList(),
+                [.. appliedChanges],
                 unmergedChanges,
                 groupSessionInfo,
                 textDifferencingService,

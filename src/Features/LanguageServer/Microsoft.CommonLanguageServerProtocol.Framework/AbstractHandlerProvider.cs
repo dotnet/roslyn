@@ -13,11 +13,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// <summary>
 /// Manages handler discovery and distribution.
 /// </summary>
-#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
-public abstract class AbstractHandlerProvider
-#else
 internal abstract class AbstractHandlerProvider
-#endif
 {
     /// <summary>
     /// Gets the <see cref="RequestHandlerMetadata"/>s for all registered methods.

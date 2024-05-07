@@ -236,7 +236,7 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
         }
 
         var codeActions = await Task.WhenAll(tasks).ConfigureAwait(false);
-        return codeActions.ToImmutableArray();
+        return [.. codeActions];
 
     }
 

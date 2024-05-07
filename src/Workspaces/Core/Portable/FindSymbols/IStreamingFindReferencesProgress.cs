@@ -72,11 +72,8 @@ internal interface IStreamingFindReferencesProgress
     ValueTask OnStartedAsync(CancellationToken cancellationToken);
     ValueTask OnCompletedAsync(CancellationToken cancellationToken);
 
-    ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken);
-    ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken);
-
     ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken);
-    ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken);
+    ValueTask OnReferencesFoundAsync(ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken);
 }
 
 internal interface IStreamingFindLiteralReferencesProgress

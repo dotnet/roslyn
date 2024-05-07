@@ -148,7 +148,7 @@ internal abstract partial class AbstractStructuralTypeDisplayService : IStructur
     {
         if (symbol is IMethodSymbol method)
         {
-            return structuralTypes.OrderBy(
+            return [.. structuralTypes.OrderBy(
                 (n1, n2) =>
                 {
                     var index1 = method.TypeArguments.IndexOf(n1);
@@ -157,11 +157,11 @@ internal abstract partial class AbstractStructuralTypeDisplayService : IStructur
                     index2 = index2 < 0 ? int.MaxValue : index2;
 
                     return index1 - index2;
-                }).ToImmutableArray();
+                })];
         }
         else if (symbol is IPropertySymbol property)
         {
-            return structuralTypes.OrderBy(
+            return [.. structuralTypes.OrderBy(
                 (n1, n2) =>
                 {
                     if (n1.Equals(property.ContainingType) && !n2.Equals(property.ContainingType))
@@ -176,7 +176,7 @@ internal abstract partial class AbstractStructuralTypeDisplayService : IStructur
                     {
                         return 0;
                     }
-                }).ToImmutableArray();
+                })];
         }
 
         return structuralTypes;

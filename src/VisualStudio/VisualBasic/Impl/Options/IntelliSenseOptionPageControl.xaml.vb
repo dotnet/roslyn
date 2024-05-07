@@ -42,8 +42,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         End Sub
 
         Private Sub SetEnterKeyDefaultBehavior()
-            Dim snippetValue = Me.OptionStore.GetOption(CompletionOptionsStorage.EnterKeyBehavior, LanguageNames.VisualBasic)
-            If snippetValue = SnippetsRule.Default Then
+            Dim enterKeyRule = Me.OptionStore.GetOption(CompletionOptionsStorage.EnterKeyBehavior, LanguageNames.VisualBasic)
+            If enterKeyRule = EnterKeyRule.Default Then
                 Always_add_new_line_on_enter.IsChecked = True
             End If
         End Sub
