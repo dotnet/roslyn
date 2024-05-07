@@ -1118,22 +1118,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 addMethods = [];
                                 result = false;
                             }
-                            else if (finalApplicableCandidates.Length == 1 &&
-                                     tryEarlyBindSingleCandidateInvocationWithDynamicArgument(addMethodBinder, syntax, expression, methodGroup, diagnostics, resolution, finalApplicableCandidates[0], out var addMethod) is bool earlyBoundResult)
-                            {
-                                addMethods = addMethod is null ? [] : [addMethod];
-                                result = earlyBoundResult;
-                            }
                             else
                             {
-                                Debug.Assert(finalApplicableCandidates.Length > 0);
-
                                 addMethods = filterOutBadGenericMethods(addMethodBinder, syntax, methodGroup, analyzedArguments, resolution, finalApplicableCandidates, ref useSiteInfo);
                                 result = !addMethods.IsEmpty;
 
                                 if (!result)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, syntax, methodGroup.ReceiverOpt.Type);
+                                }
+                                else if (addMethods.Length == 1)
+                                {
+                                    addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, addMethods[0], syntax, hasBaseReceiver: false);
+                                    ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, addMethods[0], syntax, isDelegateConversion: false);
                                 }
                             }
                         }
@@ -1257,67 +1254,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return resultBuilder.ToImmutableAndFree();
-            }
-
-            // This is what CanEarlyBindSingleCandidateInvocationWithDynamicArgument is doing in terms of reporting diagnostics and detecting a failure
-            static bool canEarlyBindSingleCandidateInvocationWithDynamicArgument(
-                        Binder addMethodBinder,
-                        SyntaxNode syntax,
-                        BoundMethodGroup boundMethodGroup,
-                        BindingDiagnosticBag diagnostics,
-                        MethodGroupResolution resolution,
-                        MemberResolutionResult<MethodSymbol> methodResolutionResult,
-                        MethodSymbol singleCandidate)
-            {
-                Debug.Assert(boundMethodGroup.TypeArgumentsOpt.IsDefaultOrEmpty);
-
-                if (singleCandidate.IsGenericMethod)
-                {
-                    return false;
-                }
-
-                if (addMethodBinder.IsAmbiguousDynamicParamsArgument(resolution.AnalyzedArguments.Arguments, methodResolutionResult, out SyntaxNode argumentSyntax))
-                {
-                    return false;
-                }
-
-                return true;
-            }
-
-            // This is what TryEarlyBindSingleCandidateInvocationWithDynamicArgument is doing in terms of reporting diagnostics and detecting a failure
-            static bool? tryEarlyBindSingleCandidateInvocationWithDynamicArgument(
-                Binder addMethodBinder,
-                SyntaxNode syntax,
-                SyntaxNode expression,
-                BoundMethodGroup boundMethodGroup,
-                BindingDiagnosticBag diagnostics,
-                MethodGroupResolution resolution,
-                MemberResolutionResult<MethodSymbol> methodResolutionResult,
-                out MethodSymbol? addMethod)
-            {
-                MethodSymbol singleCandidate = methodResolutionResult.LeastOverriddenMember;
-                if (!canEarlyBindSingleCandidateInvocationWithDynamicArgument(addMethodBinder, syntax, boundMethodGroup, diagnostics, resolution, methodResolutionResult, singleCandidate))
-                {
-                    addMethod = null;
-                    return null;
-                }
-
-                var resultWithSingleCandidate = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                resultWithSingleCandidate.ResultsBuilder.Add(methodResolutionResult);
-
-                bool result = bindInvocationExpressionContinued(
-                    addMethodBinder,
-                    node: syntax,
-                    expression: expression,
-                    result: resultWithSingleCandidate,
-                    analyzedArguments: resolution.AnalyzedArguments,
-                    methodGroup: resolution.MethodGroup,
-                    diagnostics: diagnostics,
-                    out addMethod);
-
-                resultWithSingleCandidate.Free();
-
-                return result;
             }
 
             // This is what BindInvocationExpressionContinued is doing in terms of reporting diagnostics and detecting a failure

@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenLeft.Expanded,
                             rewrittenLeft.ArgsToParamsOpt,
                             rewrittenLeft.DefaultArguments,
-                            originalIndexerAccessOrObjectInitializerMember: rewrittenLeft,
+                            oldNodeOpt: null,
                             isLeftOfAssignment: !isRhsNestedInitializer);
                     }
                     else
