@@ -38,8 +38,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     private MetadataAsSourceWorkspace? _workspace;
 
     /// <summary>
-    /// A lock to guard the mutex and filesystem data below.  We want to ensure we generate into that and clean that
-    /// up safely.  
+    /// A lock to ensure we initialize <see cref="_workspace"/> and cleanup stale data only once.
     /// </summary>
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
