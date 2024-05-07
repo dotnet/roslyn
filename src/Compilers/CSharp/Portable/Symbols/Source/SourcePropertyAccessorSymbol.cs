@@ -145,7 +145,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics) :
             base(containingType, syntax.GetReference(), location, isIterator: false,
-                 MakeModifiersAndFlags(property, propertyModifiers, isNullableAnalysisEnabled))
+                MakeModifiersAndFlags(
+                    containingType,
+                    property,
+                    propertyModifiers,
+                    location,
+                    hasBlockBody: false,
+                    hasExpressionBody: true,
+                    modifiers: [],
+                    methodKind: MethodKind.PropertyGet,
+                    isNullableAnalysisEnabled,
+                    diagnostics,
+                    out var modifierErrors))
         {
             _property = property;
             _isAutoPropertyAccessor = false;
@@ -156,21 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, property.IsExplicitInterfaceImplementation, diagnostics, location);
 
             this.CheckModifiers(location, hasBody: true, isAutoPropertyOrExpressionBodied: true, diagnostics: diagnostics);
-        }
-
-        private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(SourcePropertySymbol property, DeclarationModifiers propertyModifiers, bool isNullableAnalysisEnabled)
-        {
-            // The modifiers for the accessor are the same as the modifiers for the property,
-            // minus the indexer and readonly bit
-            var declarationModifiers = GetAccessorModifiers(propertyModifiers);
-
-            // ReturnsVoid property is overridden in this class so
-            // returnsVoid argument to MakeFlags is ignored.
-            Flags flags = MakeFlags(MethodKind.PropertyGet, property.RefKind, declarationModifiers, returnsVoid: false, returnsVoidIsSet: false,
-                                    isExpressionBodied: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                                    isVarArg: false, isExplicitInterfaceImplementation: property.IsExplicitInterfaceImplementation, hasThisInitializer: false);
-
-            return (declarationModifiers, flags);
         }
 
 #nullable enable
@@ -821,5 +817,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsPartialImplementation => _property is SourcePropertySymbol { IsPartialImplementation: true };
 
         public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : base.IsExtern;
+
+        internal void PartialAccessorChecks(SourcePropertyAccessorSymbol implementationAccessor, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(IsPartialDefinition);
+
+            if (LocalAccessibility != implementationAccessor.LocalAccessibility)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberAccessibilityDifference, implementationAccessor.GetFirstLocation());
+            }
+
+            if (LocalDeclaredReadOnly != implementationAccessor.LocalDeclaredReadOnly)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberReadOnlyDifference, implementationAccessor.GetFirstLocation());
+            }
+
+            if (_usesInit != implementationAccessor._usesInit)
+            {
+                var accessorName = _usesInit ? "init" : "set";
+                diagnostics.Add(ErrorCode.ERR_PartialPropertyInitMismatch, implementationAccessor.GetFirstLocation(), implementationAccessor, accessorName);
+            }
+        }
     }
 }

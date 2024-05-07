@@ -373,6 +373,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         }
 
         [Fact]
+        public void DuplicateDeclaration_09()
+        {
+            // partial indexer and partial property Item
+            var source = """
+                partial class C
+                {
+                    public partial int this[int i] { get; }
+                    public partial int Item => 1;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,24): error CS9300: Partial property 'C.this[int]' must have an implementation part.
+                //     public partial int this[int i] { get; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "this").WithArguments("C.this[int]").WithLocation(3, 24),
+                // (3,24): error CS0102: The type 'C' already contains a definition for 'Item'
+                //     public partial int this[int i] { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("C", "Item").WithLocation(3, 24),
+                // (4,24): error CS9301: Partial property 'C.Item' must have an definition part.
+                //     public partial int Item => 1;
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "Item").WithArguments("C.Item").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
+        public void DuplicateDeclaration_10()
+        {
+            // partial parameterless (error) indexer and partial property Item
+            var source = """
+                partial class C
+                {
+                    public partial int this[] { get; }
+                    public partial int Item => 1;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,24): error CS9300: Partial property 'C.this' must have an implementation part.
+                //     public partial int this[] { get; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "this").WithArguments("C.this").WithLocation(3, 24),
+                // (3,24): error CS0102: The type 'C' already contains a definition for 'Item'
+                //     public partial int this[] { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("C", "Item").WithLocation(3, 24),
+                // (3,29): error CS1551: Indexers must have at least one parameter
+                //     public partial int this[] { get; }
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]").WithLocation(3, 29),
+                // (4,24): error CS9301: Partial property 'C.Item' must have an definition part.
+                //     public partial int Item => 1;
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "Item").WithArguments("C.Item").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
         public void MissingAccessor_01()
         {
             // implementation missing setter
@@ -553,9 +606,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                     partial int P { get => throw null!; init { } }
                 }
                 """;
-            // PROTOTYPE(partial-properties): give an error diagnostic for an accessor kind difference
+
             var comp = CreateCompilation([source, IsExternalInitTypeDefinition]);
             comp.VerifyEmitDiagnostics(
+                // (4,41): error CS9306: Property accessor 'C.P.init' must be 'set' to match the definition part       
+                //     partial int P { get => throw null!; init { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyInitMismatch, "init").WithArguments("C.P.init", "set").WithLocation(4, 41)
                 );
         }
 
@@ -570,9 +626,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                     partial int P { get => throw null!; set { } }
                 }
                 """;
-            // PROTOTYPE(partial-properties): give an error diagnostic for an accessor kind difference
             var comp = CreateCompilation([source, IsExternalInitTypeDefinition]);
             comp.VerifyEmitDiagnostics(
+                // (4,41): error CS9306: Property accessor 'C.P.set' must be 'init' to match the definition part
+                //     partial int P { get => throw null!; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyInitMismatch, "set").WithArguments("C.P.set", "init").WithLocation(4, 41)
                 );
         }
 
@@ -955,33 +1013,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         }
 
         [Fact]
-        public void ModifierDifference_01()
+        public void ModifierDifference_Accessibility_Property()
         {
-            // access modifier on declaration but not implementation
             var source = """
                 partial class C
                 {
-                    public partial int P { get; set; }
+                    public partial int P1 { get; set; }
+                    partial int P2 { get; set; }
                 }
 
                 partial class C
                 {
-                    partial int P { get => throw null!; set { } }
+                    partial int P1 { get => throw null!; set { } }
+                    protected partial int P2 { get => throw null!; set { } }
                 }
                 """;
 
-            // PROTOTYPE(partial-properties): diagnostic message should be generalized for properties as well.
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (8,17): error CS8799: Both partial method declarations must have identical accessibility modifiers.
-                //     partial int P { get => throw null!; set { } }
-                Diagnostic(ErrorCode.ERR_PartialMethodAccessibilityDifference, "P").WithLocation(8, 17));
+                // (9,17): error CS8799: Both partial member declarations must have identical accessibility modifiers.
+                //     partial int P1 { get => throw null!; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "P1").WithLocation(9, 17),
+                // (10,27): error CS8799: Both partial member declarations must have identical accessibility modifiers.
+                //     protected partial int P2 { get => throw null!; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "P2").WithLocation(10, 27));
         }
 
+        // Property accessor modifiers can only include:
+        // - accessibility modifiers
+        // - readonly modifier
+        // The test burden for accessors is further reduced by the fact that explicit accessibility
+        // is only permitted when it is more restrictive than the containing property.
+
         [Fact]
-        public void ModifierDifference_02()
+        public void ModifierDifference_Accessibility_Accessors()
         {
-            // access modifier on declaration but not implementation
+            // access modifier mismatch on accessors
             var source = """
                 partial class C
                 {
@@ -990,19 +1057,1174 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
                 partial class C
                 {
-                    public partial int P { get => throw null!; set { } }
+                    public partial int P { internal get => throw null!; set { } }
                 }
                 """;
 
             var comp = CreateCompilation(source);
 
-            // PROTOTYPE(partial-properties): missing diagnostic
+            comp.VerifyEmitDiagnostics(
+                // (8,37): error CS8799: Both partial member declarations must have identical accessibility modifiers.
+                //     public partial int P { internal get => throw null!; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "get").WithLocation(8, 37),
+                // (8,57): error CS8799: Both partial member declarations must have identical accessibility modifiers.
+                //     public partial int P { internal get => throw null!; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "set").WithLocation(8, 57));
+        }
+
+        [Fact]
+        public void Semantics_Readonly_01()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M(new S());
+                    }
+
+                    static void M(in S s)
+                    {
+                        Console.Write(s.P1);
+                        Console.Write(s.P2);
+                        // We can't exercise S.P2.set here because non-readonly setters will error instead of implicitly copying the receiver.
+                        s.P3 = 3;
+                        Console.Write(s.P3);
+                        Console.Write(s.P4);
+                    }
+                }
+
+                partial struct S
+                {
+                    public readonly partial int P1 { get; }
+                    public readonly partial int P1 { get => 1; }
+
+                    public partial int P2 { readonly get; set; }
+                    public partial int P2 { readonly get => 2; set { } }
+
+                    public partial int P3 { get; readonly set; }
+                    public partial int P3 { get => 3; readonly set { } }
+                    
+                    public partial int P4 { get; }
+                    public partial int P4 { get => 4; }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "1234");
+            verifier.VerifyDiagnostics();
+
+            // non-readonly accessors need to copy the value to temp before invoking.
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       68 (0x44)
+                  .maxstack  2
+                  .locals init (S V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "readonly int S.P1.get"
+                  IL_0006:  call       "void System.Console.Write(int)"
+                  IL_000b:  ldarg.0
+                  IL_000c:  call       "readonly int S.P2.get"
+                  IL_0011:  call       "void System.Console.Write(int)"
+                  IL_0016:  ldarg.0
+                  IL_0017:  ldc.i4.3
+                  IL_0018:  call       "readonly void S.P3.set"
+                  IL_001d:  ldarg.0
+                  IL_001e:  ldobj      "S"
+                  IL_0023:  stloc.0
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  call       "int S.P3.get"
+                  IL_002b:  call       "void System.Console.Write(int)"
+                  IL_0030:  ldarg.0
+                  IL_0031:  ldobj      "S"
+                  IL_0036:  stloc.0
+                  IL_0037:  ldloca.s   V_0
+                  IL_0039:  call       "int S.P4.get"
+                  IL_003e:  call       "void System.Console.Write(int)"
+                  IL_0043:  ret
+                }
+                """);
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+        }
+
+        [Fact]
+        public void ModifierDifference_Readonly_Property()
+        {
+            // readonly modifier mismatch on property
+            var source = """
+                partial struct S
+                {
+                    readonly partial int P1 { get; set; }
+                    partial int P2 { get; set; }
+                    readonly partial int P3 { get; set; }
+                }
+
+                partial struct S
+                {
+                    partial int P1 { get => throw null!; set { } }
+                    readonly partial int P2 { get => throw null!; set { } }
+                    readonly partial int P3 { get => throw null!; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (10,17): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                //     partial int P1 { get => throw null!; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "P1").WithLocation(10, 17),
+                // (11,26): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                //     readonly partial int P2 { get => throw null!; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "P2").WithLocation(11, 26));
+        }
+
+        [Fact]
+        public void ModifierDifference_Readonly_Accessors()
+        {
+            // readonly modifier mismatch on accessors
+            var source = """
+                partial struct S
+                {
+                    public partial int P { readonly get; set; }
+                }
+
+                partial struct S
+                {
+                    public partial int P { get => throw null!; readonly set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.VerifyEmitDiagnostics(
+                // (8,28): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                //     public partial int P { get => throw null!; readonly set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "get").WithLocation(8, 28),
+                // (8,57): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                //     public partial int P { get => throw null!; readonly set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "set").WithLocation(8, 57));
+        }
+
+        [Fact]
+        public void Accessibility_ExplicitDefault()
+        {
+            // properties can explicitly specify the default accessibility
+            var source = """
+                using System;
+
+                partial class C
+                {
+                    private partial int P1 { get; }
+
+                    static void Main()
+                    {
+                        Console.Write(new C().P1);
+                    }
+                }
+
+                partial class C
+                {
+                    private partial int P1 { get => 1; }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Accessibility_ExplicitDefault_IsRespected()
+        {
+            var source = """
+                using System;
+                
+                class Program
+                {
+                    static void Main()
+                    {
+                        Console.Write(new C().P1); // 1
+                    }
+
+                }
+
+                partial class C
+                {
+                    private partial int P1 { get; }
+                }
+
+                partial class C
+                {
+                    private partial int P1 { get => 1; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,31): error CS0122: 'C.P1' is inaccessible due to its protection level
+                //         Console.Write(new C().P1); // 1
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("C.P1").WithLocation(7, 31));
+
+            var p1Def = comp.GetMember<SourcePropertySymbol>("C.P1");
+            Assert.True(p1Def.IsPartialDefinition);
+            Assert.Equal(Accessibility.Private, p1Def.DeclaredAccessibility);
+
+            var p1DefPublic = p1Def.GetPublicSymbol();
+            Assert.Equal(Accessibility.Private, p1DefPublic.DeclaredAccessibility);
+        }
+
+        [Fact]
+        public void ModifierDifference_Accessibility_ExplicitDefault_01()
+        {
+            // only one part explicitly specifies the default accessibility
+            var source = """
+                partial class C
+                {
+                    private partial int P1 { get; set; }
+                    partial int P2 { get; set; }
+                }
+
+                partial class C
+                {
+                    partial int P1 { get => throw null!; set { } }
+                    private partial int P2 { get => throw null!; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS8799: Both partial member declarations must have identical accessibility modifiers.
+                //     partial int P1 { get => throw null!; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "P1").WithLocation(9, 17),
+                // (10,25): error CS8799: Both partial member declarations must have identical accessibility modifiers.
+                //     private partial int P2 { get => throw null!; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "P2").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void ModifierDifference_Accessibility_ExplicitDefault_02()
+        {
+            var source = """
+                using System;
+
+                partial class C
+                {
+                    private partial int P1 { get; set; }
+                    partial int P2 { private get; private set; }
+                }
+
+                partial class C
+                {
+                    partial int P1 { private get => 1; private set; }
+                    partial int P2 { private get => 1; private set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,17): error CS0274: Cannot specify accessibility modifiers for both accessors of the property or indexer 'C.P2'
+                //     partial int P2 { private get; private set; }
+                Diagnostic(ErrorCode.ERR_DuplicatePropertyAccessMods, "P2").WithArguments("C.P2").WithLocation(6, 17),
+                // (6,30): error CS0273: The accessibility modifier of the 'C.P2.get' accessor must be more restrictive than the property or indexer 'C.P2'       
+                //     partial int P2 { private get; private set; }
+                Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("C.P2.get", "C.P2").WithLocation(6, 30),
+                // (6,43): error CS0273: The accessibility modifier of the 'C.P2.set' accessor must be more restrictive than the property or indexer 'C.P2'       
+                //     partial int P2 { private get; private set; }
+                Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "set").WithArguments("C.P2.set", "C.P2").WithLocation(6, 43),
+                // (11,17): error CS8799: Both partial member declarations must have identical accessibility modifiers.
+                //     partial int P1 { private get => 1; private set; }
+                Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "P1").WithLocation(11, 17),
+                // (11,30): error CS8799: Both partial member declarations must have identical accessibility modifiers.
+                //     partial int P1 { private get => 1; private set; }
+                Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "get").WithLocation(11, 30),
+                // (11,48): error CS8799: Both partial member declarations must have identical accessibility modifiers.
+                //     partial int P1 { private get => 1; private set; }
+                Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "set").WithLocation(11, 48));
+        }
+
+        [Fact]
+        public void TypeDifference_01()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                partial class C
+                {
+                    partial int P1 { get; set; }
+                    partial string P1 { get => ""; set { } }
+                    
+                    partial List<int> P2 { get; set; }
+                    partial List<string> P2 { get => []; set { } }
+                    
+                    partial IEnumerable<object> P3 { get; set; }
+                    partial IEnumerable<string> P3 { get => []; set { } }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,20): error CS9307: Both partial property declarations must have the same type.
+                //     partial string P1 { get => ""; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyTypeDifference, "P1").WithLocation(6, 20),
+                // (9,26): error CS9307: Both partial property declarations must have the same type.
+                //     partial List<string> P2 { get => []; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyTypeDifference, "P2").WithLocation(9, 26),
+                // (12,33): error CS9307: Both partial property declarations must have the same type.
+                //     partial IEnumerable<string> P3 { get => []; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyTypeDifference, "P3").WithLocation(12, 33));
+        }
+
+        [Fact]
+        public void TypeDifference_02()
+        {
+            var source = """
+                #nullable enable
+                partial class C
+                {
+                    partial string? P1 { get; set; }
+                    partial string P1 { get => ""; set { } }
+
+                    partial string P2 { get; set; }
+                    partial string? P2 { get => ""; set { } }
+
+                    partial string?[] P3 { get; set; }
+                    partial string[] P3 { get => []; set { } }
+
+                    partial string[] P4 { get; set; }
+                    partial string?[] P4 { get => []; set { } }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,20): error CS9308: Partial property declarations 'string? C.P1' and 'string C.P1' have signature differences.
+                //     partial string P1 { get => ""; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P1").WithArguments("string? C.P1", "string C.P1").WithLocation(5, 20),
+                // (8,21): error CS9308: Partial property declarations 'string C.P2' and 'string? C.P2' have signature differences.
+                //     partial string? P2 { get => ""; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P2").WithArguments("string C.P2", "string? C.P2").WithLocation(8, 21),
+                // (11,22): error CS9308: Partial property declarations 'string?[] C.P3' and 'string[] C.P3' have signature differences.
+                //     partial string[] P3 { get => []; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P3").WithArguments("string?[] C.P3", "string[] C.P3").WithLocation(11, 22),
+                // (14,23): error CS9308: Partial property declarations 'string[] C.P4' and 'string?[] C.P4' have signature differences.
+                //     partial string?[] P4 { get => []; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P4").WithArguments("string[] C.P4", "string?[] C.P4").WithLocation(14, 23));
+        }
+
+        [Fact]
+        public void NullableDifference_NullableWarningsDisabled()
+        {
+            // 'safe' nullable differences for partial methods are still reported even when nullable warnings are disabled.
+            // For simplicity we replicate this behavior for partial properties.
+            var source = """
+                partial class C
+                {
+                    public partial string? P1 { get; set; }
+                    public partial string P1 { get => ""; set { } }
+
+                    public partial string P2 { get; set; }
+                    public partial string? P2 { get => ""; set { } }
+                    
+                    public partial string? M1();
+                    public partial string M1() => "";
+
+                    public partial string M2();
+                    public partial string? M2() => "";
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Enable));
+            comp.VerifyEmitDiagnostics(
+                // (4,27): warning CS9308: Partial property declarations 'string? C.P1' and 'string C.P1' have signature differences.
+                //     public partial string P1 { get => ""; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P1").WithArguments("string? C.P1", "string C.P1").WithLocation(4, 27),
+                // (7,28): warning CS9308: Partial property declarations 'string C.P2' and 'string? C.P2' have signature differences.
+                //     public partial string? P2 { get => ""; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P2").WithArguments("string C.P2", "string? C.P2").WithLocation(7, 28),
+                // (10,27): warning CS8826: Partial method declarations 'string? C.M1()' and 'string C.M1()' have signature differences.
+                //     public partial string M1() => "";
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("string? C.M1()", "string C.M1()").WithLocation(10, 27),
+                // (13,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
+                //     public partial string? M2() => "";
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M2").WithLocation(13, 28));
+
+            comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Annotations));
+            comp.VerifyEmitDiagnostics(
+                // (4,27): warning CS9308: Partial property declarations 'string? C.P1' and 'string C.P1' have signature differences.
+                //     public partial string P1 { get => ""; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P1").WithArguments("string? C.P1", "string C.P1").WithLocation(4, 27),
+                // (7,28): warning CS9308: Partial property declarations 'string C.P2' and 'string? C.P2' have signature differences.
+                //     public partial string? P2 { get => ""; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P2").WithArguments("string C.P2", "string? C.P2").WithLocation(7, 28),
+                // (10,27): warning CS8826: Partial method declarations 'string? C.M1()' and 'string C.M1()' have signature differences.
+                //     public partial string M1() => "";
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("string? C.M1()", "string C.M1()").WithLocation(10, 27));
+        }
+
+        [Fact]
+        public void NullableDifference_Oblivious()
+        {
+            var source = """
+                #nullable enable
+                partial class C<T>
+                {
+                    public partial T P1 { get; set; }
+                    public partial T? P2 { get; set; }
+                #nullable disable
+                    public partial T P3 { get; set; }
+                }
+                
+                #nullable disable
+                partial class C<T>
+                {
+                    public partial T P1 { get => default!; set { } }
+                    public partial T P2 { get => default!; set { } }
+                #nullable enable
+                    public partial T P3 { get => default!; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+
+            var p1 = comp.GetMember<SourcePropertySymbol>("C.P1");
+            Assert.True(p1.IsPartialDefinition);
+            Assert.Equal(NullableAnnotation.NotAnnotated, p1.TypeWithAnnotations.NullableAnnotation);
+
+            var p2 = comp.GetMember<SourcePropertySymbol>("C.P2");
+            Assert.True(p2.IsPartialDefinition);
+            Assert.Equal(NullableAnnotation.Annotated, p2.TypeWithAnnotations.NullableAnnotation);
+
+            var p3 = comp.GetMember<SourcePropertySymbol>("C.P3");
+            Assert.True(p3.IsPartialDefinition);
+            Assert.Equal(NullableAnnotation.Oblivious, p3.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void TypeDifference_03()
+        {
+            // tuple element name difference
+            // this is an error for consistency with methods
+            var source = """
+                using System.Collections.Generic;
+
+                partial class C
+                {
+                    partial (int a, int b) P1 { get; set; }
+                    partial (int a, int x) P1 { get => default; set { } }
+
+                    partial (int a, int b) P2 { get; set; }
+                    partial (int x, int y) P2 { get => default; set { } }
+
+                    partial List<(int a, int b)> P3 { get; set; }
+                    partial List<(int x, int y)> P3 { get => null!; set { } }
+
+                    partial List<(int, int)> P4 { get; set; }
+                    partial List<(int x, int y)> P4 { get => null!; set { } }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,28): error CS8142: Both partial member declarations, 'C.P1' and 'C.P1', must use the same tuple element names.
+                //     partial (int a, int x) P1 { get => default; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "P1").WithArguments("C.P1", "C.P1").WithLocation(6, 28),
+                // (9,28): error CS8142: Both partial member declarations, 'C.P2' and 'C.P2', must use the same tuple element names.
+                //     partial (int x, int y) P2 { get => default; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "P2").WithArguments("C.P2", "C.P2").WithLocation(9, 28),
+                // (12,34): error CS8142: Both partial member declarations, 'C.P3' and 'C.P3', must use the same tuple element names.
+                //     partial List<(int x, int y)> P3 { get => null!; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "P3").WithArguments("C.P3", "C.P3").WithLocation(12, 34),
+                // (15,34): error CS8142: Both partial member declarations, 'C.P4' and 'C.P4', must use the same tuple element names.
+                //     partial List<(int x, int y)> P4 { get => null!; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "P4").WithArguments("C.P4", "C.P4").WithLocation(15, 34));
+        }
+
+        [Fact]
+        public void Semantics_RefKind()
+        {
+            var source = """
+                using System;
+
+                var c = new C();
+                ref int i = ref c.P1;
+                c.P1++;
+                Console.Write(i);
+                Console.Write(c.P2);
+                
+                partial class C
+                {
+                    public partial ref int P1 { get; }
+                    public partial ref readonly int P2 { get; }
+
+                    private int _p;
+                    public partial ref int P1 => ref _p;
+                    public partial ref readonly int P2 { get => ref _p; }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "11");
+            verifier.VerifyDiagnostics();
+            var comp = (CSharpCompilation)verifier.Compilation;
+
+            var members = comp.GetMember<NamedTypeSymbol>("C").GetMembers().SelectAsArray(m => m.ToTestDisplayString());
+            AssertEx.Equal([
+                "ref System.Int32 C.P1 { get; }",
+                "ref System.Int32 C.P1.get",
+                "ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32 C.P2 { get; }",
+                "ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32 C.P2.get",
+                "System.Int32 C._p",
+                "C..ctor()"
+                ], members);
+        }
+
+        [Fact]
+        public void RefKindDifference_01()
+        {
+            var source = """
+                partial class C
+                {
+                    partial int P1 { get; }
+                    partial ref int P1 { get => throw null!; }
+
+                    partial int P2 { get; }
+                    partial ref readonly int P2 { get => throw null!; }
+
+                    partial ref int P3 { get; }
+                    partial int P3 { get => throw null!; }
+
+                    partial ref readonly int P4 { get; }
+                    partial int P4 { get => throw null!; }
+
+                    partial ref readonly int P5 { get; }
+                    partial ref int P5 { get => throw null!; }
+
+                    partial ref int P6 { get; }
+                    partial ref readonly int P6 { get => throw null!; }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,21): error CS8818: Partial member declarations must have matching ref return values.
+                //     partial ref int P1 { get => throw null!; }
+                Diagnostic(ErrorCode.ERR_PartialMemberRefReturnDifference, "P1").WithLocation(4, 21),
+                // (7,30): error CS8818: Partial member declarations must have matching ref return values.
+                //     partial ref readonly int P2 { get => throw null!; }
+                Diagnostic(ErrorCode.ERR_PartialMemberRefReturnDifference, "P2").WithLocation(7, 30),
+                // (10,17): error CS8818: Partial member declarations must have matching ref return values.
+                //     partial int P3 { get => throw null!; }
+                Diagnostic(ErrorCode.ERR_PartialMemberRefReturnDifference, "P3").WithLocation(10, 17),
+                // (13,17): error CS8818: Partial member declarations must have matching ref return values.
+                //     partial int P4 { get => throw null!; }
+                Diagnostic(ErrorCode.ERR_PartialMemberRefReturnDifference, "P4").WithLocation(13, 17),
+                // (16,21): error CS8818: Partial member declarations must have matching ref return values.
+                //     partial ref int P5 { get => throw null!; }
+                Diagnostic(ErrorCode.ERR_PartialMemberRefReturnDifference, "P5").WithLocation(16, 21),
+                // (19,30): error CS8818: Partial member declarations must have matching ref return values.
+                //     partial ref readonly int P6 { get => throw null!; }
+                Diagnostic(ErrorCode.ERR_PartialMemberRefReturnDifference, "P6").WithLocation(19, 30));
+        }
+
+        [Fact]
+        public void AllTypeDifferences()
+        {
+            // Verify which diagnostics are reported when multiple kinds of type differences are present
+            var source = """
+                #nullable enable
+
+                partial class C
+                {
+                    public partial ref (int x, string? y) Prop { get; }
+                    public partial ref readonly (long x, string y) Prop => throw null!;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,52): error CS9307: Both partial property declarations must have the same type.
+                //     public partial ref readonly (long x, string y) Prop => throw null!;
+                Diagnostic(ErrorCode.ERR_PartialPropertyTypeDifference, "Prop").WithLocation(6, 52),
+                // (6,52): error CS8818: Partial member declarations must have matching ref return values.
+                //     public partial ref readonly (long x, string y) Prop => throw null!;
+                Diagnostic(ErrorCode.ERR_PartialMemberRefReturnDifference, "Prop").WithLocation(6, 52));
+        }
+
+        [Fact]
+        public void Semantics_Static()
+        {
+            var source = """
+                using System;
+
+                C.P++;
+                Console.Write(C.P);
+                
+                partial class C
+                {
+                    public static partial int P { get; set; }
+
+                    public static partial int P { get => _p; set => _p = value; }
+                    private static int _p;
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+            var comp = (CSharpCompilation)verifier.Compilation;
+
+            var members = comp.GetMember<NamedTypeSymbol>("C").GetMembers().SelectAsArray(m => m.ToTestDisplayString());
+            AssertEx.Equal([
+                "System.Int32 C.P { get; set; }",
+                "System.Int32 C.P.get",
+                "void C.P.set",
+                "System.Int32 C._p",
+                "C..ctor()"
+                ], members);
+        }
+
+        [Fact]
+        public void StaticDifference()
+        {
+            var source = """
+                partial class C
+                {
+                    public static partial int P1 { get; set; }
+                    public partial int P1 { get => 1; set { } }
+
+                    public partial int P2 { get; set; }
+                    public static partial int P2 { get => 1; set { } }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS0763: Both partial member declarations must be static or neither may be static
+                //     public partial int P1 { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberStaticDifference, "P1").WithLocation(4, 24),
+                // (7,31): error CS0763: Both partial member declarations must be static or neither may be static
+                //     public static partial int P2 { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberStaticDifference, "P2").WithLocation(7, 31));
+        }
+
+        [Fact]
+        public void Semantics_Unsafe()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static unsafe void Main()
+                    {
+                        int i = 1;
+                        S s = new S() { P = &i };
+                        Console.Write(*s.P);
+                    }
+                }
+
+                partial struct S
+                {
+                    public unsafe partial int* P { get; set; }
+
+                    public unsafe partial int* P { get => _p; set => _p = value; }
+                    private unsafe int* _p;
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+            var comp = (CSharpCompilation)verifier.Compilation;
+
+            var members = comp.GetMember<NamedTypeSymbol>("S").GetMembers().SelectAsArray(m => m.ToTestDisplayString());
+            AssertEx.Equal([
+                "System.Int32* S.P { get; set; }",
+                "System.Int32* S.P.get",
+                "void S.P.set",
+                "System.Int32* S._p",
+                "S..ctor()"
+                ], members);
+        }
+
+        [Fact]
+        public void UnsafeDifference_01()
+        {
+            // 'unsafe' modifiers are required to match across property declarations.
+            // Therefore an error is reported on implementation of 'P2' even though both parts are "effectively unsafe".
+            var source = """
+                partial class C
+                {
+                    public partial int P1 { get; set; }
+                    public unsafe partial int P2 { get; set; }
+                }
+
+                unsafe partial class C
+                {
+                    public unsafe partial int P1 { get => 1; set { } }
+                    public partial int P2 { get => 1; set { } }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (9,31): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+                //     public unsafe partial int P1 { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "P1").WithLocation(9, 31),
+                // (10,24): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+                //     public partial int P2 { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "P2").WithLocation(10, 24));
+
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,15): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // partial class C
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 15),
+                // (4,31): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     public unsafe partial int P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P2").WithLocation(4, 31),
+                // (9,31): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     public unsafe partial int P1 { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P1").WithLocation(9, 31));
+        }
+
+        [Fact]
+        public void UnsafeDifference_02()
+        {
+            // A difference in unsafe context only matters when unsafe types are used in the signature
+            var source = """
+                unsafe partial class C
+                {
+                    public partial int* P1 { get; set; }
+                    public partial int P2 { get; set; }
+                }
+
+                partial class C
+                {
+                    public partial int* P1 { get => null; set { } }
+                    public partial int P2 { get => 1; set { } }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (9,20): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public partial int* P1 { get => null; set { } }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 20));
+        }
+
+        [Fact]
+        public void Semantics_ExtendedModifier()
+        {
+            var source = """
+                using System;
+
+                C c = new C();
+                Console.Write(c.P);
+
+                c = new D1();
+                Console.Write(c.P);
+
+                c = new D2();
+                Console.Write(c.P);
+
+                c = new D3();
+                Console.Write(c.P);
+                Console.Write(new D3().P);
+
+                partial class C
+                {
+                    public virtual partial int P { get; }
+                    public virtual partial int P => 0;
+                }
+                
+                partial class D1 : C
+                {
+                    public override partial int P { get; }
+                    public override partial int P => 1;
+                }
+                
+                partial class D2 : C
+                {
+                    public sealed override partial int P { get; }
+                    public sealed override partial int P => 2;
+                }
+                
+                partial class D3 : C
+                {
+                    public new partial int P { get; }
+                    public new partial int P => 3;
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "01203");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExtendedDifference_01()
+        {
+            var source = """
+                partial class C
+                {
+                    public virtual partial int P1 { get; }
+                    public partial int P1 => 1; // 1
+                    
+                    public partial int P2 { get; }
+                    public virtual partial int P2 => 1; // 2
+                }
+
+                partial class D1 : C
+                {
+                    public partial int P1 { get; } // 3
+                    public override partial int P1 => 1; // 4
+                    
+                    public override partial int P2 { get; } // 5
+                    public partial int P2 => 1; // 6
+                }
+
+                partial class D2 : C
+                {
+                    public partial int P1 { get; } // 7 
+                    public sealed override partial int P1 => 1; // 8
+                    
+                    public sealed override partial int P2 { get; } // 9
+                    public partial int P2 => 1; // 10
+                }
+
+                partial class D3 : C
+                {
+                    public sealed partial int P1 { get; } // 11, 12
+                    public override partial int P1 => 1; // 13
+                    
+                    public override partial int P2 { get; } // 14
+                    public sealed partial int P2 => 1; // 15
+                }
+
+                partial class D4 : C
+                {
+                    public partial int P1 { get; } // 16
+                    public new partial int P1 => 1; // 17
+                    
+                    public new partial int P2 { get; }
+                    public partial int P2 => 1; // 18
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public partial int P1 => 1; // 1
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P1").WithLocation(4, 24),
+                // (7,32): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public virtual partial int P2 => 1; // 2
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P2").WithLocation(7, 32),
+                // (12,24): warning CS0114: 'D1.P1' hides inherited member 'C.P1'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public partial int P1 { get; } // 3
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "P1").WithArguments("D1.P1", "C.P1").WithLocation(12, 24),
+                // (13,33): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public override partial int P1 => 1; // 4
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P1").WithLocation(13, 33),
+                // (15,33): error CS0506: 'D1.P2': cannot override inherited member 'C.P2' because it is not marked virtual, abstract, or override
+                //     public override partial int P2 { get; } // 5
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "P2").WithArguments("D1.P2", "C.P2").WithLocation(15, 33),
+                // (16,24): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public partial int P2 => 1; // 6
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P2").WithLocation(16, 24),
+                // (21,24): warning CS0114: 'D2.P1' hides inherited member 'C.P1'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public partial int P1 { get; } // 7
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "P1").WithArguments("D2.P1", "C.P1").WithLocation(21, 24),
+                // (22,40): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public sealed override partial int P1 => 1; // 8
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P1").WithLocation(22, 40),
+                // (24,40): error CS0506: 'D2.P2': cannot override inherited member 'C.P2' because it is not marked virtual, abstract, or override
+                //     public sealed override partial int P2 { get; } // 9
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "P2").WithArguments("D2.P2", "C.P2").WithLocation(24, 40),
+                // (25,24): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public partial int P2 => 1; // 10
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P2").WithLocation(25, 24),
+                // (30,31): warning CS0114: 'D3.P1' hides inherited member 'C.P1'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public sealed partial int P1 { get; } // 11, 12
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "P1").WithArguments("D3.P1", "C.P1").WithLocation(30, 31),
+                // (30,31): error CS0238: 'D3.P1' cannot be sealed because it is not an override
+                //     public sealed partial int P1 { get; } // 11, 12
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "P1").WithArguments("D3.P1").WithLocation(30, 31),
+                // (31,33): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public override partial int P1 => 1; // 13
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P1").WithLocation(31, 33),
+                // (33,33): error CS0506: 'D3.P2': cannot override inherited member 'C.P2' because it is not marked virtual, abstract, or override
+                //     public override partial int P2 { get; } // 14
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "P2").WithArguments("D3.P2", "C.P2").WithLocation(33, 33),
+                // (34,31): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public sealed partial int P2 => 1; // 15
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P2").WithLocation(34, 31),
+                // (39,24): warning CS0114: 'D4.P1' hides inherited member 'C.P1'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public partial int P1 { get; } // 16
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "P1").WithArguments("D4.P1", "C.P1").WithLocation(39, 24),
+                // (40,28): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public new partial int P1 => 1; // 17
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P1").WithLocation(40, 28),
+                // (43,24): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public partial int P2 => 1; // 18
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P2").WithLocation(43, 24));
+        }
+
+        [Fact]
+        public void Abstract()
+        {
+            // 'abstract' is not permitted on partial declarations
+            var source = """
+                abstract partial class C
+                {
+                    public abstract partial int P1 { get; set; }
+
+                    public abstract partial int P2 { get => ""; set { } }
+                
+                    public abstract partial int P3 { get; set; }
+                    public abstract partial int P3 { get => ""; set { } }
+                
+                    public abstract partial int P4 { get; set; }
+                    public partial int P4 { get => ""; set { } }
+                
+                    public partial int P5 { get; set; }
+                    public abstract partial int P5 { get => ""; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,33): error CS9300: Partial property 'C.P1' must have an implementation part.
+                //     public abstract partial int P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P1").WithArguments("C.P1").WithLocation(3, 33),
+                // (3,33): error CS0750: A partial member cannot have the 'abstract' modifier
+                //     public abstract partial int P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "P1").WithLocation(3, 33),
+                // (5,33): error CS9301: Partial property 'C.P2' must have an definition part.
+                //     public abstract partial int P2 { get => ""; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "P2").WithArguments("C.P2").WithLocation(5, 33),
+                // (5,33): error CS0750: A partial member cannot have the 'abstract' modifier
+                //     public abstract partial int P2 { get => ""; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "P2").WithLocation(5, 33),
+                // (5,38): error CS0500: 'C.P2.get' cannot declare a body because it is marked abstract
+                //     public abstract partial int P2 { get => ""; set { } }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("C.P2.get").WithLocation(5, 38),
+                // (5,49): error CS0500: 'C.P2.set' cannot declare a body because it is marked abstract
+                //     public abstract partial int P2 { get => ""; set { } }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("C.P2.set").WithLocation(5, 49),
+                // (7,33): error CS0750: A partial member cannot have the 'abstract' modifier
+                //     public abstract partial int P3 { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "P3").WithLocation(7, 33),
+                // (8,38): error CS0500: 'C.P3.get' cannot declare a body because it is marked abstract
+                //     public abstract partial int P3 { get => ""; set { } }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("C.P3.get").WithLocation(8, 38),
+                // (8,49): error CS0500: 'C.P3.set' cannot declare a body because it is marked abstract
+                //     public abstract partial int P3 { get => ""; set { } }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("C.P3.set").WithLocation(8, 49),
+                // (10,33): error CS0750: A partial member cannot have the 'abstract' modifier
+                //     public abstract partial int P4 { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "P4").WithLocation(10, 33),
+                // (11,36): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //     public partial int P4 { get => ""; set { } }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "int").WithLocation(11, 36),
+                // (14,38): error CS0500: 'C.P5.get' cannot declare a body because it is marked abstract
+                //     public abstract partial int P5 { get => ""; set { } }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("C.P5.get").WithLocation(14, 38),
+                // (14,49): error CS0500: 'C.P5.set' cannot declare a body because it is marked abstract
+                //     public abstract partial int P5 { get => ""; set { } }
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("C.P5.set").WithLocation(14, 49));
+        }
+
+        [Fact]
+        public void Semantics_Required()
+        {
+            var source = """
+                using System;
+
+                partial class C
+                {
+                    public required partial string P1 { get; set; }
+                    public required partial string P1 { get => ""; set { Console.Write(value); } }
+
+                    static void Main()
+                    {
+                        _ = new C() { P1 = "A" };
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute], expectedOutput: "A");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  2
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldstr      "A"
+                  IL_000a:  callvirt   "void C.P1.set"
+                  IL_000f:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Required_CreationSiteError()
+        {
+            var source = """
+                partial class C
+                {
+                    public required partial string P1 { get; set; }
+                    public required partial string P1 { get => ""; set { } }
+
+                    static void Main()
+                    {
+                        _ = new C();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute]);
+            comp.VerifyEmitDiagnostics(
+                // (8,17): error CS9035: Required member 'C.P1' must be set in the object initializer or attribute constructor.
+                //         _ = new C();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.P1").WithLocation(8, 17));
+        }
+
+        [Fact]
+        public void Required_Difference()
+        {
+            var source = """
+                partial class C
+                {
+                    public required partial string P1 { get; set; }
+                    public partial string P1 { get => ""; set { } }
+                
+                    public partial string P2 { get; set; }
+                    public required partial string P2 { get => ""; set { } }
+
+                    static void Main()
+                    {
+                        _ = new C();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute]);
+            comp.VerifyEmitDiagnostics(
+                // (4,27): error CS9309: Both partial property declarations must be required or neither may be required
+                //     public partial string P1 { get => ""; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyRequiredDifference, "P1").WithLocation(4, 27),
+                // (7,36): error CS9309: Both partial property declarations must be required or neither may be required
+                //     public required partial string P2 { get => ""; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyRequiredDifference, "P2").WithLocation(7, 36),
+                // (11,17): error CS9035: Required member 'C.P1' must be set in the object initializer or attribute constructor.
+                //         _ = new C();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.P1").WithLocation(11, 17));
+        }
+
+        [Fact]
+        public void AliasDifference()
+        {
+            var source = """
+                namespace NS;
+
+                using MyInt = System.Int32;
+                using MyInt2 = System.Int32;
+
+                partial class C
+                {
+                    public partial int P1 { get; set; }
+                    public partial MyInt P1 { get => 1; set { } }
+                    
+                    public partial MyInt P2 { get; set; }
+                    public partial MyInt2 P2 { get => 2; set { } }
+                    
+                    public partial string P3 { get; set; }
+                    public partial MyInt P3 { get => 3; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,26): error CS9307: Both partial property declarations must have the same type.
+                //     public partial MyInt P3 { get => 3; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyTypeDifference, "P3").WithLocation(15, 26));
+        }
+
+        [Fact]
+        public void ExplicitImplementation()
+        {
+            var source = """
+                interface I
+                {
+                    public int P { get; set; }
+                }
+
+                partial class C1 : I
+                {
+                    partial int I.P { get; set; }
+                    partial int I.P { get => 1; set { } }
+                }
+
+                partial class C2 : I
+                {
+                    partial int I.P { get; set; }
+                }
+
+                partial class C3 : I
+                {
+                    partial int I.P { get => 1; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,19): error CS0754: A partial member may not explicitly implement an interface member
+                //     partial int I.P { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "P").WithLocation(8, 19),
+                // (14,19): error CS9300: Partial property 'C2.I.P' must have an implementation part.
+                //     partial int I.P { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P").WithArguments("C2.I.P").WithLocation(14, 19),
+                // (14,19): error CS0754: A partial member may not explicitly implement an interface member
+                //     partial int I.P { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "P").WithLocation(14, 19),
+                // (19,19): error CS9301: Partial property 'C3.I.P' must have an definition part.
+                //     partial int I.P { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "P").WithArguments("C3.I.P").WithLocation(19, 19),
+                // (19,19): error CS0754: A partial member may not explicitly implement an interface member
+                //     partial int I.P { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "P").WithLocation(19, 19));
+        }
+
+        [Fact]
+        public void NotInPartialType()
+        {
+            var source = """
+                class C
+                {
+                    partial int P1 { get; set; }
+                    partial int P1 { get => 1; set { } }
+
+                    partial int P2 { get; set; }
+
+                    partial int P3 { get => 1; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,17): error CS0751: A partial member must be declared within a partial type
+                //     partial int P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "P1").WithLocation(3, 17),
+                // (6,17): error CS9300: Partial property 'C.P2' must have an implementation part.
+                //     partial int P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P2").WithArguments("C.P2").WithLocation(6, 17),
+                // (6,17): error CS0751: A partial member must be declared within a partial type
+                //     partial int P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "P2").WithLocation(6, 17),
+                // (8,17): error CS9301: Partial property 'C.P3' must have an definition part.
+                //     partial int P3 { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "P3").WithArguments("C.P3").WithLocation(8, 17),
+                // (8,17): error CS0751: A partial member must be declared within a partial type
+                //     partial int P3 { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "P3").WithLocation(8, 17));
         }
 
         // PROTOTYPE(partial-properties): override partial property where base has modopt
-        // PROTOTYPE(partial-properties): unsafe context differences between partial property declarations
         // PROTOTYPE(partial-properties): test indexers incl parameters with attributes
+        // PROTOTYPE(partial-properties): indexer parameter 'in' vs 'ref readonly' difference
+        // PROTOTYPE(partial-properties): indexer optional parameters with default values (check methods behavior as starting point)
         // PROTOTYPE(partial-properties): test merging property attributes
     }
 }

@@ -410,9 +410,9 @@ public partial struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (10,27): error CS8662: Both partial method declarations must be readonly or neither may be readonly
+                // (10,27): error CS8662: Both partial member declarations must be readonly or neither may be readonly
                 //     readonly partial void M()
-                Diagnostic(ErrorCode.ERR_PartialMethodReadOnlyDifference, "M").WithLocation(10, 27),
+                Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "M").WithLocation(10, 27),
                 // (12,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i++;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(12, 9));
@@ -443,9 +443,9 @@ public partial struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (10,18): error CS8662: Both partial method declarations must be readonly or neither may be readonly
+                // (10,18): error CS8662: Both partial member declarations must be readonly or neither may be readonly
                 //     partial void M()
-                Diagnostic(ErrorCode.ERR_PartialMethodReadOnlyDifference, "M").WithLocation(10, 18));
+                Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "M").WithLocation(10, 18));
 
             var method = comp.GetMember<NamedTypeSymbol>("S").GetMethod("M");
             // Symbol APIs always return the declaration part of the partial method.

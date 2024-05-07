@@ -471,6 +471,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parts of a partial method. Diagnostics are reported on the
         /// implementing part, matching Dev10 behavior.
         /// </summary>
+        /// <remarks>
+        /// This method is analogous to <see cref="SourcePropertySymbol.PartialPropertyChecks" />.
+        /// Whenever new checks are added to this method, the other method should also have those checks added, if applicable.
+        /// </remarks>
         private static void PartialMethodChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!ReferenceEquals(definition, implementation));
@@ -484,22 +488,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(definition, implementation))
             {
                 hasTypeDifferences = true;
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, implementation.GetFirstLocation(), definition, implementation);
+                diagnostics.Add(ErrorCode.ERR_PartialMemberInconsistentTupleNames, implementation.GetFirstLocation(), definition, implementation);
             }
 
             if (definition.RefKind != implementation.RefKind)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodRefReturnDifference, implementation.GetFirstLocation());
+                diagnostics.Add(ErrorCode.ERR_PartialMemberRefReturnDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsStatic != implementation.IsStatic)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodStaticDifference, implementation.GetFirstLocation());
+                diagnostics.Add(ErrorCode.ERR_PartialMemberStaticDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsDeclaredReadOnly != implementation.IsDeclaredReadOnly)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodReadOnlyDifference, implementation.GetFirstLocation());
+                diagnostics.Add(ErrorCode.ERR_PartialMemberReadOnlyDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsExtensionMethod != implementation.IsExtensionMethod)
@@ -509,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (definition.IsUnsafe != implementation.IsUnsafe && definition.CompilationAllowsUnsafe()) // Don't cascade.
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodUnsafeDifference, implementation.GetFirstLocation());
+                diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsParams() != implementation.IsParams())
@@ -520,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (definition.HasExplicitAccessModifier != implementation.HasExplicitAccessModifier
                 || definition.DeclaredAccessibility != implementation.DeclaredAccessibility)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodAccessibilityDifference, implementation.GetFirstLocation());
+                diagnostics.Add(ErrorCode.ERR_PartialMemberAccessibilityDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsVirtual != implementation.IsVirtual
@@ -528,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 || definition.IsSealed != implementation.IsSealed
                 || definition.IsNew != implementation.IsNew)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodExtendedModDifference, implementation.GetFirstLocation());
+                diagnostics.Add(ErrorCode.ERR_PartialMemberExtendedModDifference, implementation.GetFirstLocation());
             }
 
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);
@@ -806,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsPartial && IsAbstract)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, location);
+                diagnostics.Add(ErrorCode.ERR_PartialMemberCannotBeAbstract, location);
             }
             else if (IsPartial && !HasExplicitAccessModifier && !ReturnsVoid)
             {

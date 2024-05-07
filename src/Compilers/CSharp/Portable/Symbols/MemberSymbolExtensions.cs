@@ -547,6 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsPartialMember(this Symbol member)
         {
+            Debug.Assert(member.IsDefinition);
             return member
                 is SourceOrdinaryMethodSymbol { IsPartial: true }
                 or SourcePropertySymbol { IsPartial: true }
@@ -555,6 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsPartialImplementation(this Symbol member)
         {
+            Debug.Assert(member.IsDefinition);
             return member
                 is SourceOrdinaryMethodSymbol { IsPartialImplementation: true }
                 or SourcePropertySymbol { IsPartialImplementation: true }
@@ -563,6 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsPartialDefinition(this Symbol member)
         {
+            Debug.Assert(member.IsDefinition);
             return member
                 is SourceOrdinaryMethodSymbol { IsPartialDefinition: true }
                 or SourcePropertySymbol { IsPartialDefinition: true }

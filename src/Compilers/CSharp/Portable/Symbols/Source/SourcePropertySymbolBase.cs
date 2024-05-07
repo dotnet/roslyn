@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -12,6 +13,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -34,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             IsExplicitInterfaceImplementation = 1 << 2,
             HasInitializer = 1 << 3,
             AccessorsHaveImplementation = 1 << 4,
+            HasExplicitAccessModifier = 1 << 5,
         }
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
@@ -79,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string? aliasQualifierOpt,
             DeclarationModifiers modifiers,
             bool hasInitializer,
+            bool hasExplicitAccessMod,
             bool isAutoProperty,
             bool isExpressionBodied,
             bool isInitOnly,
@@ -112,6 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool isIndexer = IsIndexer;
             isAutoProperty = isAutoProperty && !(containingType.IsInterface && !IsStatic) && !IsAbstract && !IsExtern && !isIndexer;
+
+            if (hasExplicitAccessMod)
+            {
+                _propertyFlags |= Flags.HasExplicitAccessModifier;
+            }
 
             if (isAutoProperty)
             {
@@ -621,6 +630,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsAutoPropertyWithGetAccessor
             => IsAutoProperty && _getMethod is object;
 
+        protected bool HasExplicitAccessModifier
+            => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
+
         protected bool IsAutoProperty
             => (_propertyFlags & Flags.IsAutoProperty) != 0;
 
@@ -875,6 +887,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // '{0}' cannot be sealed because it is not an override
                 diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
+            }
+            else if (IsPartial && !ContainingType.IsPartial())
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberOnlyInPartialClass, location);
+            }
+            else if (IsPartial && isExplicitInterfaceImplementation)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberNotExplicit, location);
+            }
+            else if (IsPartial && IsAbstract)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberCannotBeAbstract, location);
             }
             else if (IsAbstract && ContainingType.TypeKind == TypeKind.Struct)
             {
@@ -1437,6 +1461,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return true; }
         }
+
+        internal bool IsPartial => (_modifiers & DeclarationModifiers.Partial) != 0;
 
         internal sealed override bool HasComplete(CompletionPart part)
         {
