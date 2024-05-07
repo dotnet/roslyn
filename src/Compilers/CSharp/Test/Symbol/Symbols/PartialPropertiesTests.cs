@@ -2219,7 +2219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 // (8,17): error CS0751: A partial member must be declared within a partial type
                 //     partial int P3 { get => 1; set { } }
                 Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "P3").WithLocation(8, 17));
-        } 
+        }
 
         // PROTOTYPE(partial-properties): override partial property where base has modopt
         // PROTOTYPE(partial-properties): test indexers incl parameters with attributes
