@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsRefLikeTypeOrAllowsByRefLike(this TypeSymbol type)
         {
-            return type is { IsRefLikeType: true } or TypeParameterSymbol { AllowByRefLike: true };
+            return type is { IsRefLikeType: true } or TypeParameterSymbol { AllowsByRefLike: true };
         }
 
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };

@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool AllowByRefLike
+        public override bool AllowsByRefLike
         {
             get
             {

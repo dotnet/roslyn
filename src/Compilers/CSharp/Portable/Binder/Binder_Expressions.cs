@@ -8673,7 +8673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (receiverOpt is { Type: TypeParameterSymbol { AllowByRefLike: true } } &&
+                if (receiverOpt is { Type: TypeParameterSymbol { AllowsByRefLike: true } } &&
                     isNotImplementableInstanceMember(symbol))
                 {
                     Error(diagnostics, ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, node);

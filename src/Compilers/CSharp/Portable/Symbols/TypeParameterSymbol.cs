@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract bool HasValueTypeConstraint { get; }
 
-        public abstract bool AllowByRefLike { get; }
+        public abstract bool AllowsByRefLike { get; }
 
         public abstract bool IsValueTypeFromConstraintTypes { get; }
 

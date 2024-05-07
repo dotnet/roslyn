@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool HasValueTypeConstraint => false;
 
-        public override bool AllowByRefLike => false; // The list is a class type and cannot store ref structs as elements.
+        public override bool AllowsByRefLike => false; // The list is a class type and cannot store ref structs as elements.
 
         public override bool IsValueTypeFromConstraintTypes => false;
 

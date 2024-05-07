@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return AdaptedTypeParameterSymbol.AllowByRefLike;
+                return AdaptedTypeParameterSymbol.AllowsByRefLike;
             }
         }
 

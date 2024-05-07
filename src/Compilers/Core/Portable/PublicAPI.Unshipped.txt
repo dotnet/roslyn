@@ -57,3 +57,5 @@ static Microsoft.CodeAnalysis.DocumentationCommentId.CreateDeclarationId(Microso
 [RSEXPERIMENTAL001]Microsoft.CodeAnalysis.SemanticModelOptions.DisableNullableAnalysis = 2 -> Microsoft.CodeAnalysis.SemanticModelOptions
 [RSEXPERIMENTAL001]Microsoft.CodeAnalysis.Compilation.GetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree! syntaxTree, Microsoft.CodeAnalysis.SemanticModelOptions options) -> Microsoft.CodeAnalysis.SemanticModel!
 abstract Microsoft.CodeAnalysis.SemanticModel.NullableAnalysisIsDisabled.get -> bool
+Microsoft.CodeAnalysis.ITypeParameterSymbol.AllowsByRefLike.get -> bool
+Microsoft.CodeAnalysis.RuntimeCapability.ByRefLikeGenerics = 8 -> Microsoft.CodeAnalysis.RuntimeCapability

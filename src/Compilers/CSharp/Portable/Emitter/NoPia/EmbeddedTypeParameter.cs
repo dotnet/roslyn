@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.AllowByRefLike;
+                return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.AllowsByRefLike;
             }
         }
 
