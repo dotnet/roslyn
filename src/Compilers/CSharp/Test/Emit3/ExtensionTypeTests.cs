@@ -8,6 +8,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -18,6 +20,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.MetadataReaderUtils;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
@@ -54,7 +57,7 @@ public class ExtensionTypeTests : CompilingTestBase
     }
 
     // Verify things that are common for all extension types
-    private static void VerifyExtension<T>(TypeSymbol type, bool? isExplicit, SpecialType specialType = SpecialType.None) where T : TypeSymbol
+    private static void VerifyExtension<T>(TypeSymbol type, bool? isExplicit, SpecialType specialType = SpecialType.None, string fieldType = null) where T : TypeSymbol
     {
         var namedType = (NamedTypeSymbol)type;
         Assert.True(namedType is T);
@@ -125,6 +128,28 @@ public class ExtensionTypeTests : CompilingTestBase
             Assert.False(sourceNamedType.IsAnonymousType);
             Assert.False(sourceNamedType.IsSimpleProgram);
             Assert.False(sourceNamedType.IsImplicitlyDeclared);
+        }
+
+        if (type is PENamedTypeSymbol peType)
+        {
+            var module = (PEModuleSymbol)type.ContainingModule;
+            var reader = module.Module.GetMetadataReader();
+            var fieldDefHandle = reader.GetTypeDefinition(peType.Handle).GetFields()
+                .Where(f => reader.GetString(reader.GetFieldDefinition(f).Name) == WellKnownMemberNames.ExtensionFieldName).SingleOrDefault();
+
+            // Static extensions don't have this field, but non-static extensions have it
+            Assert.Equal(fieldDefHandle.IsNil, type.IsStatic);
+
+            if (!type.IsStatic)
+            {
+                var fieldDef = reader.GetFieldDefinition(fieldDefHandle);
+                var blob = reader.GetBlobReader(fieldDef.Signature);
+                var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
+                var fieldTypeDisplay = decoder.DecodeFieldSignature(ref blob);
+
+                // The instance value field has the expected type
+                Assert.Equal(fieldType, fieldTypeDisplay);
+            }
         }
 
         static void checkBaseExtension(NamedTypeSymbol baseExtension)
@@ -243,7 +268,7 @@ explicit extension R2 for UnderlyingClass : R { }
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit, fieldType: "UnderlyingClass");
             }
 
             Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -398,6 +423,7 @@ class C<T>
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -644,7 +670,7 @@ explicit extension R for UnderlyingClass
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true, fieldType: "UnderlyingClass");
             }
 
             AssertEx.Equal(new[]
@@ -2032,7 +2058,7 @@ explicit extension R for UnderlyingStruct
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true, fieldType: "UnderlyingStruct");
             }
 
             Assert.Equal("UnderlyingStruct", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -2074,7 +2100,7 @@ interface I { }
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit, fieldType: "!0");
             }
 
             Assert.Equal("T", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -2116,7 +2142,7 @@ enum E { }
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit, fieldType: "E");
             }
 
             Assert.Equal("E", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -2184,7 +2210,7 @@ explicit extension R<U> for C<U>
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true, fieldType: "C`1{!0}");
             }
 
             Assert.Equal("C<U>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -2225,7 +2251,7 @@ explicit extension R for (int, int)
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true, fieldType: "System.ValueTuple`2{Int32, Int32}");
             }
 
             Assert.Equal("(System.Int32, System.Int32)", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -2266,7 +2292,7 @@ explicit extension R for int[]
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true, fieldType: "Int32[]");
             }
 
             Assert.Equal("System.Int32[]", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -3095,7 +3121,7 @@ explicit extension R3 for System.IntPtr : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r, isExplicit: true);
+            VerifyExtension<TypeSymbol>(r, isExplicit: true, fieldType: "IntPtr");
             Assert.Equal("nint", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
@@ -3137,7 +3163,7 @@ explicit extension R3 for System.IntPtr : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r, isExplicit: true);
+            VerifyExtension<TypeSymbol>(r, isExplicit: true, fieldType: "IntPtr");
             Assert.Equal("nint", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
@@ -3181,7 +3207,7 @@ explicit extension R3 for C<System.IntPtr> : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r, isExplicit: true);
+            VerifyExtension<TypeSymbol>(r, isExplicit: true, fieldType: "C`1{IntPtr}");
             Assert.Equal("C<nint>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
@@ -3198,7 +3224,45 @@ public explicit extension R for C<dynamic> { }
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        // Note: we don't emit a DynamicAttribute on synthesized field
+        verifier.VerifyTypeIL("R", """
+.class public sequential ansi sealed beforefieldinit R
+	extends [System.Runtime]System.ValueType
+{
+	.custom instance void [System.Runtime]System.ObsoleteAttribute::.ctor(string, bool) = (
+		01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+		65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+		72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+		73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+		70 69 6c 65 72 2e 01 00 00
+	)
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+		01 00 0e 45 78 74 65 6e 73 69 6f 6e 54 79 70 65
+		73 00 00
+	)
+	// Fields
+	.field private class C`1<object> '<UnderlyingInstance>$'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method private hidebysig static
+		void '<ExplicitExtension>$' (
+			class C`1<object> ''
+		) cil managed
+	{
+		.param [1]
+			.custom instance void [System.Linq.Expressions]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = (
+				01 00 02 00 00 00 00 01 00 00
+			)
+		// Method begins at RVA 0x206f
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method R::'<ExplicitExtension>$'
+} // end of class R
+""");
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -3223,7 +3287,7 @@ explicit extension R3 for C<object> : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r, isExplicit: true);
+            VerifyExtension<TypeSymbol>(r, isExplicit: true, fieldType: "C`1{Object}");
             Assert.Equal("C<dynamic>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
@@ -3280,7 +3344,7 @@ explicit extension R3 for C<object> : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r, isExplicit: true);
+            VerifyExtension<TypeSymbol>(r, isExplicit: true, fieldType: "C`1{Object}");
             Assert.Equal("C<System.Object?>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString(includeNonNullable: true));
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
@@ -3337,7 +3401,7 @@ explicit extension R3 for C<object> : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r, isExplicit: true);
+            VerifyExtension<TypeSymbol>(r, isExplicit: true, fieldType: "C`1{Object}");
             Assert.Equal("C<System.Object!>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString(includeNonNullable: true));
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
@@ -3397,7 +3461,7 @@ explicit extension R4 for (int a, int other) : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r, isExplicit: true);
+            VerifyExtension<TypeSymbol>(r, isExplicit: true, fieldType: "System.ValueTuple`2{Int32, Int32}");
             Assert.Equal("(System.Int32 a, System.Int32 b)", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
@@ -4467,7 +4531,7 @@ public explicit extension R1 for R2 { }
         comp5.VerifyDiagnostics();
 
         var r1 = comp5.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true, fieldType: "R2");
         var r2FromR1 = (ExtendedErrorTypeSymbol)r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("R2", r2FromR1.ToTestDisplayString());
         AssertEx.Equal("error CS9322: Extension marker method on type 'R1' is malformed.", r2FromR1.ErrorInfo.ToString());
@@ -6719,8 +6783,8 @@ explicit extension E2 for int : E1<object> { }
         void validate(ModuleSymbol module)
         {
             var e2 = module.GlobalNamespace.GetTypeMember("E1").GetTypeMember("E2");
-            VerifyExtension<NamedTypeSymbol>(e2.ContainingType, isExplicit: isExplicit);
-            VerifyExtension<NamedTypeSymbol>(e2, isExplicit: isExplicit2);
+            VerifyExtension<NamedTypeSymbol>(e2.ContainingType, isExplicit: isExplicit, fieldType: "Int32");
+            VerifyExtension<NamedTypeSymbol>(e2, isExplicit: isExplicit2, fieldType: "Int32");
         }
     }
 
@@ -7114,6 +7178,7 @@ public unsafe explicit extension R2<T> for C : R1<int*> { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7129,10 +7194,55 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
         VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
+    }
+
+    [Theory]
+    [InlineData("public")]
+    [InlineData("family")]
+    [InlineData("assembly")]
+    public void ExtensionMarkerMethod_NotPrivateMethod(string methodAccessibility)
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit R1
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method {{methodAccessibility}} hidebysig static void '{{ExtensionMarkerName(false)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: ret
+    }
+}
+""";
+
+        var src = """
+object.M();
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'M'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8));
+
+        var r1 = comp.GlobalNamespace.GetTypeMember("R1");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: false, fieldType: "Object");
+        Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
     }
 
     [Theory, CombinatorialData]
@@ -7146,6 +7256,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7161,7 +7272,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
         var r1ExtendedType = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
@@ -7191,6 +7302,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7206,7 +7318,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -7232,6 +7344,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7247,7 +7360,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -7271,6 +7384,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7286,7 +7400,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
         var r1ExtendedType = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
@@ -7305,6 +7419,46 @@ public explicit extension R2 for object : R1 { }
     }
 
     [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_WithModoptOnFirstParameter_FieldHasModoptToo(bool isExplicit)
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit R1
+    extends [mscorlib]System.ValueType
+{
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object modopt(object) '') cil managed
+    {
+        IL_0000: ret
+    }
+    .field private object modopt(object) '{{WellKnownMemberNames.ExtensionFieldName}}'
+
+    .method public hidebysig static void M() cil managed
+    {
+        IL_0000: ldstr "ran"
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+}
+""";
+
+        var src = """
+object.M();
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'M'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8)
+            );
+
+        var r1 = comp.GlobalNamespace.GetTypeMember("R1");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "modopt(Object) Object");
+        var r1ExtendedType = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
+        Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
+        Assert.True(r1ExtendedType.IsErrorType());
+    }
+
+    [Theory, CombinatorialData]
     public void ExtensionMarkerMethod_WithModreqOnFirstParameter(bool isExplicit)
     {
         // PROTOTYPE consider allowing modopts in extension marker methods
@@ -7316,6 +7470,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7331,7 +7486,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
         var r1ExtendedType = (ExtendedErrorTypeSymbol)r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
@@ -7362,6 +7517,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 
 .class public sequential ansi sealed beforefieldinit R2
@@ -7387,7 +7543,7 @@ public explicit extension R3 for object : R2 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -7469,6 +7625,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7506,6 +7663,7 @@ public explicit extension R2 for object : R1 { }
 
         Assert.Equal(new[]
             {
+                $$"""System.Object R1.{{WellKnownMemberNames.ExtensionFieldName}}""",
                 "R1..ctor()",
                 $$"""void R1.{{ExtensionMarkerName(isExplicit)}}(System.Object A_0)""",
                 $$"""void R1.{{ExtensionMarkerName(isExplicit)}}(System.String A_0)"""
@@ -7537,6 +7695,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7574,6 +7733,7 @@ public explicit extension R2 for object : R1 { }
 
         Assert.Equal(new[]
             {
+                $$"""System.Object R1.{{WellKnownMemberNames.ExtensionFieldName}}""",
                 "R1..ctor()",
                 $$"""void R1.{{ExtensionMarkerName(isExplicit)}}(System.Object A_0)""",
                 $$"""void R1.{{ExtensionMarkerName(!isExplicit)}}(System.String A_0)"""
@@ -7594,6 +7754,7 @@ public explicit extension R2 for object : R1 { }
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7613,7 +7774,7 @@ static class OtherExtension
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
         VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
@@ -7631,6 +7792,7 @@ static class OtherExtension
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 01 )
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7645,7 +7807,7 @@ public explicit extension R2 for object : R1 { }
             Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
             );
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
     }
 
     [Theory, CombinatorialData]
@@ -7661,6 +7823,7 @@ public explicit extension R2 for object : R1 { }
         .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = ( 01 00 00 00 )
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7676,7 +7839,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
         var r1Underyling = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("dynamic", r1Underyling.ToTestDisplayString());
         Assert.True(r1Underyling.IsErrorType());
@@ -7706,6 +7869,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 
 .class public sequential ansi sealed beforefieldinit R1
@@ -7715,6 +7879,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private valuetype R0 '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7731,7 +7896,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "R0");
         var r1Underyling = (ExtendedErrorTypeSymbol)r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("R0", r1Underyling.ToTestDisplayString());
         Assert.True(r1Underyling.IsErrorType());
@@ -7762,6 +7927,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private valuetype R1 '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7779,7 +7945,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true, fieldType: "R1");
         var r1Underyling = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("R1", r1Underyling.ToTestDisplayString());
         Assert.True(r1Underyling.IsErrorType());
@@ -7809,6 +7975,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7848,6 +8015,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7888,6 +8056,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 
 .class public sequential ansi sealed beforefieldinit R2
@@ -7897,6 +8066,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7914,11 +8084,11 @@ public explicit extension R3 for object : R2 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true, fieldType: "Object");
         Assert.Empty(r1.BaseExtensionsNoUseSiteDiagnostics);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<PENamedTypeSymbol>(r2, isExplicit: true);
+        VerifyExtension<PENamedTypeSymbol>(r2, isExplicit: true, fieldType: "Object");
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -7951,6 +8121,7 @@ public explicit extension R3 for object : R2 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -7966,7 +8137,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true, fieldType: "Object");
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -8219,6 +8390,7 @@ class C2 : C
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -8251,6 +8423,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -8266,7 +8439,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
         Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         if (new NoBaseExtensions().ShouldSkip) return;
@@ -8293,6 +8466,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -8308,7 +8482,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
         Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         if (new NoBaseExtensions().ShouldSkip) return;
@@ -8335,6 +8509,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -8350,7 +8525,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true, fieldType: "Object");
         Assert.False(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
@@ -8368,6 +8543,7 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -8383,7 +8559,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
         Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
@@ -8411,6 +8587,7 @@ public explicit extension R2 for object : R1 { }
         IL_0000: ldnull
         IL_0001: throw
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -8426,7 +8603,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
         Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         if (new NoBaseExtensions().ShouldSkip) return;
@@ -8452,6 +8629,8 @@ public explicit extension R2 for object : R1 { }
     {
         IL_0000: ret
     }
+
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -8467,7 +8646,8 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true, fieldType: "Object");
+        Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -8479,7 +8659,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true, fieldType: "Object");
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
@@ -8692,6 +8872,7 @@ public explicit extension R2 for object : R1<nint> { }
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -8736,6 +8917,7 @@ static class OtherExtension
         IL_0000: ret
     }
     .field public int32 'field'
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 }
 """;
 
@@ -8766,7 +8948,7 @@ public explicit extension R2 for object : R1 { }
     }
 
     [Fact]
-    public void ExtensionMarkerMethodHiddenInMetadata()
+    public void ExtensionMarkerMethodAndInstanceValueFieldHiddenInMetadata()
     {
         var src = """
 public explicit extension R for object { }
@@ -12315,6 +12497,7 @@ implicit extension E<T, U> for I2<T>
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 
     .class nested public auto ansi beforefieldinit Nested`1<T, U>
         extends [mscorlib]System.Object
@@ -12358,7 +12541,7 @@ class D<T> where T : System.Object.Nested<string>
             Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<string>").WithArguments("Nested<>", "object").WithLocation(5, 36));
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
-        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "Object");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -35400,6 +35583,7 @@ public implicit extension E<T> for T where T : struct
     {
         IL_0000: ret
     }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
 
     .method public hidebysig specialname newslot static int32 get_Item ( int32 x ) cil managed
     {
@@ -39507,5 +39691,548 @@ namespace N
         var qualifiedName = GetSyntaxes<QualifiedNameSyntax>(tree, "Interface.INested.Val").ToArray();
         Assert.Equal("IBase.Val", model.GetSymbolInfo(qualifiedName[0]).Symbol.ToTestDisplayString());
         Assert.Equal("IBase.Val", model.GetSymbolInfo(qualifiedName[1]).Symbol.ToTestDisplayString());
+    }
+
+    [Theory, CombinatorialData]
+    public void InstanceField_StaticExtension(bool isExplicit)
+    {
+        var source = $$"""
+E.M();
+
+public class C { }
+
+static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
+{
+    public static void M() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"),
+            sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        void validate(ModuleSymbol module)
+        {
+            bool inSource = module is SourceModuleSymbol;
+            var e = module.GlobalNamespace.GetTypeMember("E");
+            if (inSource)
+            {
+                VerifyExtension<SourceExtensionTypeSymbol>(e, isExplicit: isExplicit);
+            }
+            else
+            {
+                VerifyExtension<PENamedTypeSymbol>(e, isExplicit: isExplicit, fieldType: "C");
+            }
+        }
+    }
+
+    [Fact]
+    public void InstanceField_Baseline()
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
+
+    .method public hidebysig static void M() cil managed
+    {
+        IL_0000: ldstr "ran"
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+}
+""";
+
+        var src = """
+object.M();
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "Object");
+        var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
+        Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
+        Assert.False(r1ExtendedType.IsErrorType());
+    }
+
+    [Theory]
+    [InlineData("public")]
+    [InlineData("family")]
+    [InlineData("assembly")]
+    public void InstanceField_FieldNotPrivate(string fieldAccessibility)
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+    .field {{fieldAccessibility}} object '{{WellKnownMemberNames.ExtensionFieldName}}'
+
+    .method public hidebysig static void M () cil managed
+    {
+        IL_0000: ret
+    }
+}
+""";
+
+        var src = """
+object.M();
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'M'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8));
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "Object");
+        var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
+        Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
+        Assert.True(r1ExtendedType.IsErrorType());
+    }
+
+    [Fact]
+    public void InstanceField_Static()
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+    .field private static object '{{WellKnownMemberNames.ExtensionFieldName}}'
+
+    .method public hidebysig static void M() cil managed
+    {
+        IL_0000: ldstr "ran"
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+}
+""";
+
+        var src = """
+object.M();
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'M'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8));
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        VerifyNotExtension<PENamedTypeSymbol>(e);
+    }
+
+    [Fact]
+    public void InstanceField_Missing()
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+    // no instance field
+
+    .method public hidebysig static void M() cil managed
+    {
+        IL_0000: ldstr "ran"
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+}
+""";
+
+        var src = """
+object.M();
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'M'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8));
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        VerifyNotExtension<PENamedTypeSymbol>(e);
+    }
+
+    [Fact]
+    public void InstanceField_WrongType()
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+    .field private string '{{WellKnownMemberNames.ExtensionFieldName}}'
+
+    .method public hidebysig static void M() cil managed
+    {
+        IL_0000: ldstr "ran"
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+}
+""";
+
+        var src = """
+object.M();
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'M'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8));
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "String");
+        var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
+        Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
+        Assert.True(r1ExtendedType.IsErrorType());
+    }
+
+    [Fact]
+    public void InstanceField_RefType()
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+    .field private object& '{{WellKnownMemberNames.ExtensionFieldName}}'
+
+    .method public hidebysig static void M() cil managed
+    {
+        IL_0000: ldstr "ran"
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+}
+""";
+
+        var src = """
+object.M();
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'M'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8));
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "Object&");
+        var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
+        Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
+        Assert.True(r1ExtendedType.IsErrorType());
+    }
+
+    [Fact]
+    public void InstanceField_DynamicVsObject()
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = ( 01 00 00 00 )
+
+    .method public hidebysig static void M() cil managed
+    {
+        IL_0000: ldstr "ran"
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+}
+""";
+
+        var src = """
+object.M();
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "Object");
+        var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
+        Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
+        Assert.False(r1ExtendedType.IsErrorType());
+    }
+
+    [Fact]
+    public void InstanceField_NullabilityDifference_TopLevel()
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = ( 01 00 01 00 00 )
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 02 00 00 )
+
+    .method public hidebysig static void M() cil managed
+    {
+        IL_0000: ldstr "ran"
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+}
+""";
+
+        var src = """
+object.M();
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "Object");
+        var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
+        Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
+        Assert.False(r1ExtendedType.IsErrorType());
+    }
+
+    [Fact]
+    public void InstanceField_NullabilityDifference_Nested()
+    {
+        var ilSource = $$"""
+.class public auto ansi beforefieldinit C`1<T>
+    extends [mscorlib]System.Object
+{
+    .param type T
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = ( 01 00 01 00 00)
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(class C`1<object> '') cil managed
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = ( 01 00 02 00 00 00 01 02 00 00)
+        IL_0000: ret
+    }
+
+    .field private class C`1<object> '{{WellKnownMemberNames.ExtensionFieldName}}' // C<object!>!
+
+    .method public hidebysig static void M() cil managed
+    {
+        IL_0000: ldstr "ran"
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+}
+""";
+
+        var src = """
+C<object>.M();
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        // PROTOTYPE what should we do about the top-level annotation in marker method?
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "C`1{Object}");
+        var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
+        Assert.Equal("C<System.Object?>", r1ExtendedType.ToTestDisplayString());
+        Assert.False(r1ExtendedType.IsErrorType());
+    }
+
+    [Fact]
+    public void InstanceField_Modopt()
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+    .field private object modopt(object) '{{WellKnownMemberNames.ExtensionFieldName}}'
+
+    .method public hidebysig static void M() cil managed
+    {
+        IL_0000: ldstr "ran"
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+}
+""";
+
+        var src = """
+object.M();
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'M'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8));
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "modopt(Object) Object");
+        var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
+        Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
+        Assert.True(r1ExtendedType.IsErrorType());
+    }
+
+    [Fact]
+    public void InstanceField_Readonly()
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit E
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+    .field private initonly object '{{WellKnownMemberNames.ExtensionFieldName}}'
+
+    .method public hidebysig static void M() cil managed
+    {
+        IL_0000: ldstr "ran"
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+}
+""";
+
+        var src = """
+object.M();
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'M'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8));
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "Object");
+        var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
+        Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
+        Assert.True(r1ExtendedType.IsErrorType());
     }
 }

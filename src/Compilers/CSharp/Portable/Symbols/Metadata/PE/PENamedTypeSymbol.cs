@@ -1871,7 +1871,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                     }
 
                                     // PROTOTYPE consider caching/optimizing this computation
-                                    if (!TryGetExtensionMarkerMethod().IsNil)
+                                    if (!TryGetExtensionInfo().MarkerMethod.IsNil)
                                     {
                                         // Extension
                                         result = TypeKind.Extension;
@@ -1895,10 +1895,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         /// <summary>
         /// Superficially checks whether this is a valid extension type
-        /// and returns the extension marker method (to be validated later)
+        /// and returns the extension marker method and underlying instance field if applicable
         /// if it is.
+        /// Both will be validated later.
         /// </summary>
-        private MethodDefinitionHandle TryGetExtensionMarkerMethod()
+        private (MethodDefinitionHandle MarkerMethod, FieldDefinitionHandle UnderlyingInstanceField)
+            TryGetExtensionInfo()
         {
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
@@ -1913,13 +1915,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             try
             {
-                // They must not contain any instance state
+                // The only expected instance state is the underlying instance field
+                FieldDefinitionHandle foundUnderlyingInstanceField = default;
                 foreach (var field in module.GetFieldsOfTypeOrThrow(_handle))
                 {
-                    if ((module.GetFieldDefFlagsOrThrow(field) & FieldAttributes.Static) == 0)
+                    if (module.GetFieldDefNameOrThrow(field) == WellKnownMemberNames.ExtensionFieldName)
+                    {
+                        if ((module.GetFieldDefFlagsOrThrow(field) & FieldAttributes.Static) != 0)
+                        {
+                            // It must be an instance field
+                            return default;
+                        }
+
+                        if (this.IsStatic)
+                        {
+                            // It's only allowed in non-static extension types
+                            return default;
+                        }
+
+                        Debug.Assert(foundUnderlyingInstanceField.IsNil);
+                        foundUnderlyingInstanceField = field;
+                    }
+                    else if ((module.GetFieldDefFlagsOrThrow(field) & FieldAttributes.Static) == 0)
                     {
                         return default;
                     }
+                }
+
+                if (!this.IsStatic && foundUnderlyingInstanceField.IsNil)
+                {
+                    // Non-static extensions must have an underlying instance field (to be validated later)
+                    return default;
                 }
 
                 // They must have a single marker method (to be validated later)
@@ -1940,7 +1966,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                return foundMarkerMethod;
+                return (foundMarkerMethod, foundUnderlyingInstanceField);
             }
             catch (BadImageFormatException)
             {
@@ -1968,10 +1994,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             bool tryDecodeExtensionType(out bool isExplicit, [NotNullWhen(true)] out TypeSymbol? underlyingType)
             {
-                var markerMethod = TryGetExtensionMarkerMethod();
+                var (markerMethod, underlyingInstanceField) = TryGetExtensionInfo();
                 Debug.Assert(!markerMethod.IsNil);
                 var moduleSymbol = this.ContainingPEModule;
 
+                // Decode and validate marker method
                 isExplicit = false;
                 underlyingType = null;
 
@@ -1987,7 +2014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 // PROTOTYPE do we want to tighten the flags check further? (require that type be sealed?)
-                if ((localFlags & MethodAttributes.Private) == 0 ||
+                if ((localFlags & MethodAttributes.MemberAccessMask) != MethodAttributes.Private ||
                     (localFlags & MethodAttributes.Static) == 0)
                 {
                     return false;
@@ -2011,6 +2038,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // PROTOTYPE need to decode extension type references (may be some cycle issues)
                     type = ApplyTransforms(type, paramInfo.Handle, moduleSymbol);
 
+                    // PROTOTYPE consider checking top-level nullability annotation
                     if (paramInfo.IsByRef || !paramInfo.CustomModifiers.IsDefault)
                     {
                         var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this); // PROTOTYPE need to report use-site diagnostic
@@ -2031,10 +2059,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         {
                             var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this); // PROTOTYPE need to report use-site diagnostic
                             underlyingType = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
+                            return false;
                         }
                         else
                         {
-                            underlyingType = type;
+                            // Validate instance field
+                            if (!underlyingInstanceField.IsNil
+                                && !validateUnderlyingInstanceField(underlyingInstanceField, moduleSymbol, type))
+                            {
+                                var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this); // PROTOTYPE need to report use-site diagnostic
+                                underlyingType = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
+                                return false;
+                            }
+                            else
+                            {
+                                underlyingType = type;
+                            }
                         }
                     }
                     else
@@ -2044,6 +2084,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 Debug.Assert(underlyingType is not null);
+                return true;
+            }
+
+            bool validateUnderlyingInstanceField(FieldDefinitionHandle underlyingInstanceFieldHandle, PEModuleSymbol moduleSymbol, TypeSymbol underlyingType)
+            {
+                var fieldSymbol = new PEFieldSymbol(moduleSymbol, this, underlyingInstanceFieldHandle);
+
+                if (fieldSymbol.DeclaredAccessibility != Accessibility.Private
+                    || fieldSymbol.RefKind != RefKind.None
+                    || fieldSymbol.IsReadOnly)
+                {
+                    return false;
+                }
+
+                if (!fieldSymbol.TypeWithAnnotations.Equals(TypeWithAnnotations.Create(underlyingType), TypeCompareKind.CLRSignatureCompareOptions))
+                {
+                    return false;
+                }
+
+                // PROTOTYPE do we want to tighten the checks further? (required)
                 return true;
             }
         }
@@ -2186,12 +2246,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
+            var underlyingInstanceField = TryGetExtensionInfo().UnderlyingInstanceField;
             try
             {
                 foreach (var fieldRid in module.GetFieldsOfTypeOrThrow(_handle))
                 {
                     try
                     {
+                        if (!underlyingInstanceField.IsNil && fieldRid == underlyingInstanceField)
+                        {
+                            continue;
+                        }
+
                         if (!(isOrdinaryEmbeddableStruct ||
                             (isOrdinaryStruct && (module.GetFieldDefFlagsOrThrow(fieldRid) & FieldAttributes.Static) == 0) ||
                             module.ShouldImportField(fieldRid, moduleSymbol.ImportOptions)))
@@ -2231,7 +2297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // PROTOTYPE are extensions embeddable?
             // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used
             var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None) && this.ContainingAssembly.IsLinked;
-            var extensionMarkerMethod = TryGetExtensionMarkerMethod();
+            var extensionMarkerMethod = TryGetExtensionInfo().MarkerMethod;
 
             try
             {
