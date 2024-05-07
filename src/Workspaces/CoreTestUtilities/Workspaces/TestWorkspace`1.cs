@@ -54,8 +54,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
-        private readonly IMetadataAsSourceFileService? _metadataAsSourceFileService;
-
         private readonly string _workspaceKind;
         private readonly bool _supportsLspMutation;
 
@@ -115,8 +113,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     throw new InvalidOperationException($"{severityText} {fullMessage}");
                 };
             }
-
-            _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
         }
 
         private static HostServices GetHostServices([NotNull] ref TestComposition? composition, bool hasWorkspaceConfigurationOptions)
@@ -201,12 +197,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public new void RegisterText(SourceTextContainer text)
             => base.RegisterText(text);
-
-        protected override void Dispose(bool finalize)
-        {
-            _metadataAsSourceFileService?.CleanupGeneratedFiles();
-            base.Dispose(finalize);
-        }
 
         internal void AddTestSolution(TSolution solution)
             => this.OnSolutionAdded(SolutionInfo.Create(solution.Id, solution.Version, solution.FilePath, projects: solution.Projects.Select(p => p.ToProjectInfo())));
