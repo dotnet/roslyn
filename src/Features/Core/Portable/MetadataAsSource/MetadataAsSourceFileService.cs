@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
 [Export(typeof(IMetadataAsSourceFileService)), Shared]
-internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService, IDisposable
+internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 {
     /// <summary>
     /// Set of providers that can be used to generate source for a symbol (for example, by decompiling, or by
@@ -42,14 +42,12 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     /// <summary>
-    /// We create a mutex so other processes can see if our directory is still alive. We destroy the mutex when we purge
-    /// our generated files.
+    /// We create a mutex so other processes can see if our directory is still alive.  As long as we own the mutex, no
+    /// other VS instance will try to delete our _rootTemporaryPathWithGuid folder.
     /// </summary>
     private readonly Mutex _mutex;
     private readonly string _rootTemporaryPathWithGuid;
     private readonly string _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
-
-    private bool _disposed;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -62,9 +60,6 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         _rootTemporaryPathWithGuid = Path.Combine(_rootTemporaryPath, guidString);
         _mutex = new Mutex(initiallyOwned: true, name: CreateMutexName(guidString));
     }
-
-    public void Dispose()
-        => CleanupGeneratedFiles();
 
     private static string CreateMutexName(string directoryName)
         => "MetadataAsSource-" + directoryName;
@@ -90,7 +85,14 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            _workspace ??= new MetadataAsSourceWorkspace(this, sourceWorkspace.Services.HostServices);
+            if (_workspace is null)
+            {
+                _workspace = new MetadataAsSourceWorkspace(this, sourceWorkspace.Services.HostServices);
+
+                // We're being initialized the first time.  Use this time to clean up any stale metadata-as-source files
+                // from previous VS sessions.
+                CleanupGeneratedFiles(_rootTemporaryPath);
+            }
 
             Contract.ThrowIfNull(_workspace);
 
@@ -109,6 +111,48 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 
         // The decompilation provider can always return something
         throw ExceptionUtilities.Unreachable();
+
+        static void CleanupGeneratedFiles(string rootDirectory)
+        {
+            try
+            {
+                if (Directory.Exists(rootDirectory))
+                {
+                    // Let's look through directories to delete.
+                    foreach (var directoryInfo in new DirectoryInfo(rootDirectory).EnumerateDirectories())
+                    {
+                        // Is there a mutex for this one?  If so, that means it's a folder open in another VS instance.
+                        // We should leave it alone.  If not, then it's a folder from a previous VS run.  Delete that
+                        // now.
+                        if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out var acquiredMutex))
+                        {
+                            acquiredMutex.Dispose();
+                        }
+                        else
+                        {
+                            TryDeleteFolderWhichContainsReadOnlyFiles(directoryInfo.FullName);
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        static void TryDeleteFolderWhichContainsReadOnlyFiles(string directoryPath)
+        {
+            try
+            {
+                foreach (var fileInfo in new DirectoryInfo(directoryPath).EnumerateFiles("*", SearchOption.AllDirectories))
+                    IOUtilities.PerformIO(() => fileInfo.IsReadOnly = false);
+
+                IOUtilities.PerformIO(() => Directory.Delete(directoryPath, recursive: true));
+            }
+            catch (Exception)
+            {
+            }
+        }
     }
 
     private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)
@@ -227,72 +271,6 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
             return null;
 
         return new SymbolMappingResult(project, resolutionResult.Symbol);
-    }
-
-    private void CleanupGeneratedFiles()
-    {
-        using (_gate.DisposableWait())
-        {
-            if (_disposed)
-                return;
-
-            _disposed = true;
-
-            // Release our mutex to indicate we're no longer using our directory and reset state
-            _mutex.Dispose();
-
-            // Only cleanup for providers that have actually generated a file. This keeps us from accidentally loading
-            // lazy providers on cleanup that weren't used
-            var workspace = _workspace;
-            if (workspace != null)
-            {
-                foreach (var provider in _providers)
-                {
-                    if (!provider.IsValueCreated)
-                        continue;
-
-                    provider.Value.CleanupGeneratedFiles(workspace);
-                }
-            }
-
-            try
-            {
-                if (Directory.Exists(_rootTemporaryPath))
-                {
-                    // Let's look through directories to delete.
-                    foreach (var directoryInfo in new DirectoryInfo(_rootTemporaryPath).EnumerateDirectories())
-                    {
-                        // Is there a mutex for this one?  If so, that means it's a folder open in another VS instance.
-                        // We should leave it alone.
-                        if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out var acquiredMutex))
-                        {
-                            acquiredMutex.Dispose();
-                        }
-                        else
-                        {
-                            TryDeleteFolderWhichContainsReadOnlyFiles(directoryInfo.FullName);
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
-        }
-    }
-
-    private static void TryDeleteFolderWhichContainsReadOnlyFiles(string directoryPath)
-    {
-        try
-        {
-            foreach (var fileInfo in new DirectoryInfo(directoryPath).EnumerateFiles("*", SearchOption.AllDirectories))
-                IOUtilities.PerformIO(() => fileInfo.IsReadOnly = false);
-
-            IOUtilities.PerformIO(() => Directory.Delete(directoryPath, recursive: true));
-        }
-        catch (Exception)
-        {
-        }
     }
 
     public bool IsNavigableMetadataSymbol(ISymbol symbol)
