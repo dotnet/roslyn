@@ -15,6 +15,6 @@ internal interface IRemoteFixAllProviderService
 {
     ValueTask<string> PerformCleanupAsync(
         Checksum solutionChecksum, DocumentId documentId, CodeCleanupOptions codeCleanupOptions,
-        Dictionary<string, ImmutableArray<TextSpan>> annotationNodes, Dictionary<string, ImmutableArray<TextSpan>> annotationTokens,
+        Dictionary<TextSpan, List<string>> annotationNodes, Dictionary<TextSpan, List<string>> annotationTokens,
         CancellationToken cancellationToken);
 }

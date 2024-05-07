@@ -173,10 +173,10 @@ internal static class DocumentBasedFixAllProviderHelpers
         }
     }
 
-    private static async Task<(Dictionary<string, ImmutableArray<TextSpan>> annotatedNodes, Dictionary<string, ImmutableArray<TextSpan>> annotatedTokens)> GetAnnotationsAsync(Document dirtyDocument, CancellationToken cancellationToken)
+    private static async Task<(Dictionary<TextSpan, List<string>> annotatedNodes, Dictionary<TextSpan, List<string>> annotatedTokens)> GetAnnotationsAsync(Document dirtyDocument, CancellationToken cancellationToken)
     {
-        var annotatedNodes = new Dictionary<string, ImmutableArray<TextSpan>>();
-        var annotatedTokens = new Dictionary<string, ImmutableArray<TextSpan>>();
+        var annotatedNodes = new Dictionary<TextSpan, List<string>>();
+        var annotatedTokens = new Dictionary<TextSpan, List<string>>();
         var root = await dirtyDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         GetAnnotations(SimplifierAddImportsAnnotation, Simplifier.AddImportsAnnotation);
@@ -194,23 +194,18 @@ internal static class DocumentBasedFixAllProviderHelpers
 
             foreach (var nodeOrToken in root.GetAnnotatedNodesAndTokens(annotation))
             {
-                if (nodeOrToken.IsNode)
-                    nodeSpans.Add(nodeOrToken.AsNode()!.FullSpan);
-                else
-                    tokenSpans.Add(nodeOrToken.AsToken().FullSpan);
+                var dictionary = nodeOrToken.IsNode ? annotatedNodes : annotatedTokens;
+                dictionary.MultiAdd(nodeOrToken.FullSpan, kind);
             }
-
-            annotatedNodes.Add(kind, nodeSpans.ToImmutableAndClear());
-            annotatedTokens.Add(kind, tokenSpans.ToImmutableAndClear());
         }
     }
 
     public static SyntaxNode AnnotatedRoot(
         SyntaxNode root,
-        Dictionary<string, ImmutableArray<TextSpan>> annotatedNodes,
-        Dictionary<string, ImmutableArray<TextSpan>> annotatedTokens)
+        Dictionary<TextSpan, List<string>> annotatedNodes,
+        Dictionary<TextSpan, List<string>> annotatedTokens)
     {
-
+        root.repl
     }
 
     public static async Task<SourceText> PerformCleanupInCurrentProcessAsync(
