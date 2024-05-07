@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal override Task<CodeRefactoring> GetCodeRefactoringAsync(TestWorkspace workspace, TestParameters parameters)
             => throw new NotImplementedException("No refactoring provided in diagnostic test");
 
-        protected static void AddAnalyzerToWorkspace(Workspace workspace, DiagnosticAnalyzer analyzer, TestParameters parameters)
+        protected static void AddAnalyzerToWorkspace(Workspace workspace, DiagnosticAnalyzer analyzer)
         {
             AnalyzerReference[] analyzerReferences;
             if (analyzer != null)
