@@ -148,18 +148,16 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
         var sourceName = IOUtilities.PerformIO(() => Path.GetFileName(sourceDocument.FilePath));
         var destinationName = IOUtilities.PerformIO(() => Path.GetFileName(destinationDocument.FilePath));
         if (string.IsNullOrEmpty(sourceName) || string.IsNullOrEmpty(destinationName))
-        {
             return banner;
-        }
 
-        using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var result);
+        var result = new FixedSizeArrayBuilder<SyntaxTrivia>(banner.Length);
         foreach (var trivia in banner)
         {
             var updated = CreateTrivia(trivia, trivia.ToFullString().Replace(sourceName, destinationName));
             result.Add(updated);
         }
 
-        return result.ToImmutable();
+        return result.MoveToImmutable();
     }
 
     private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(

@@ -7,9 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests
@@ -257,21 +255,15 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
         Private Shared Sub VerifyAllAvailableDiagnostics(test As XElement, diagnostics As XElement, Optional ordered As Boolean = True)
             Using workspace = EditorTestWorkspace.CreateWorkspace(test, composition:=s_composition)
-
-                Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                    workspace.CurrentSolution.Options.WithChangedOption(New OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), False))))
-
                 ' Ensure that diagnostic service computes diagnostics for all open files, not just the active file (default mode)
                 For Each language In workspace.Projects.Select(Function(p) p.Language).Distinct()
                     workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, language, BackgroundAnalysisScope.OpenFiles)
                 Next
 
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
-                Dim actualDiagnostics = diagnosticProvider.GetDiagnosticsAsync(
-                    workspace.CurrentSolution, projectId:=Nothing, documentId:=Nothing,
-                    includeSuppressedDiagnostics:=False,
-                    includeNonLocalDocumentDiagnostics:=True,
-                    CancellationToken.None).Result
+                Dim actualDiagnostics = diagnosticProvider.GetDiagnosticsForIdsAsync(
+                    workspace.CurrentSolution, projectId:=Nothing, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
+                    includeSuppressedDiagnostics:=False, includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None).Result
 
                 If diagnostics Is Nothing Then
                     Assert.Equal(0, actualDiagnostics.Length)

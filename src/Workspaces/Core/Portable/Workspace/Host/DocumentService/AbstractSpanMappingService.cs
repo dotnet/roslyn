@@ -46,6 +46,6 @@ internal abstract class AbstractSpanMappingService : ISpanMappingService
             }
         }
 
-        return mappedFilePathAndTextChange.ToImmutable();
+        return mappedFilePathAndTextChange.ToImmutableAndClear();
     }
 }

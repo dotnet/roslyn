@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 if ((currentSegmentBottom - currentSegmentTop) >= MinLineHeight)
                     segments.Add((currentSegmentTop, currentSegmentBottom));
 
-                return segments.ToImmutable();
+                return segments.ToImmutableAndClear();
             }
 
             private static bool IsInHole(ImmutableArray<SnapshotSpan> orderedHoleSpans, ITextViewLine line)

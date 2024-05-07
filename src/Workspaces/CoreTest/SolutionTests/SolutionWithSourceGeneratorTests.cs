@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Drawing.Text;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -25,7 +24,7 @@ using static Microsoft.CodeAnalysis.UnitTests.WorkspaceTestUtilities;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public class SolutionWithSourceGeneratorTests : TestBase
+    public sealed class SolutionWithSourceGeneratorTests : TestBase
     {
         [Theory, CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTrees(
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
 
             // Now remove and confirm that we don't have any files
-            project = project.WithAnalyzerReferences(SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
+            project = project.WithAnalyzerReferences([]);
 
             Assert.Empty((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
         }
@@ -837,7 +836,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var frozenWithSingleDocument = project.Solution.WithFrozenSourceGeneratedDocument(
                     identity, DateTime.Now, SourceText.From("// Frozen Document"));
                 Assert.Equal("// Frozen Document", (await frozenWithSingleDocument.GetTextAsync()).ToString());
-                var frozenTree = Assert.Single((await frozenWithSingleDocument.Project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+                var syntaxTrees = (await frozenWithSingleDocument.Project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees;
+                var frozenTree = Assert.Single(syntaxTrees);
                 Assert.Equal("// Frozen Document", frozenTree.ToString());
             }
         }

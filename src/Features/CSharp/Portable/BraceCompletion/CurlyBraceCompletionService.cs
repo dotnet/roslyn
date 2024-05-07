@@ -260,7 +260,7 @@ internal class CurlyBraceCompletionService : AbstractCurlyBraceOrBracketCompleti
                     // If the user has set block style indentation and we're in a valid brace pair
                     // then make sure we align the close brace to the open brace.
                     AddAlignIndentationOfTokensToBaseTokenOperation(list, node, bracePair.openBrace,
-                        SpecializedCollections.SingletonEnumerable(bracePair.closeBrace), AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine);
+                        [bracePair.closeBrace], AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine);
                 }
             }
         }

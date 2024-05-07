@@ -843,8 +843,7 @@ namespace N
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Parameter_Update_RefKind_RuntimeTypeUnchanged(
             [CombinatorialValues("ref", "out", "in", "ref readonly")] string oldModifiers,
             [CombinatorialValues("ref", "out", "in", "ref readonly")] string newModifiers)
@@ -10453,7 +10452,7 @@ class C
             // should not contain RUDE_EDIT_INSERT_AROUND
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
@@ -10484,7 +10483,7 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
@@ -10667,7 +10666,7 @@ class C
             // should not contain RUDE_EDIT_INSERT_AROUND
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
@@ -10758,7 +10757,7 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
@@ -10786,7 +10785,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]

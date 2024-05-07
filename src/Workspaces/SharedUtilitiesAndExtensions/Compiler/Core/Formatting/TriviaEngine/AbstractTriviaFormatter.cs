@@ -275,7 +275,7 @@ internal abstract class AbstractTriviaFormatter
 
         if (Succeeded())
         {
-            return changes.ToImmutable();
+            return changes.ToImmutableAndClear();
         }
 
         return [];

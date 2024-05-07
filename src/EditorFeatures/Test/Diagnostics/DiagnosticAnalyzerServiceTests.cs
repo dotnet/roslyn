@@ -12,20 +12,16 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Editor.Test;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
@@ -43,14 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private static readonly TestComposition s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures;
 
         private static AdhocWorkspace CreateWorkspace(Type[] additionalParts = null)
-        {
-            var workspace = new AdhocWorkspace(s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(additionalParts).GetHostServices());
-
-            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
-
-            return workspace;
-        }
+            => new AdhocWorkspace(s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(additionalParts).GetHostServices());
 
         private static IGlobalOptionService GetGlobalOptions(Workspace workspace)
             => workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOptionService>();
@@ -78,8 +67,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
             var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
-            var diagnostics = await analyzer.GetDiagnosticsAsync(
-                workspace.CurrentSolution, projectId: null, documentId: null, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
+            var diagnostics = await analyzer.GetDiagnosticsForIdsAsync(
+                workspace.CurrentSolution, projectId: null, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null, getDocuments: null,
+                includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
             Assert.NotEmpty(diagnostics);
         }
 
@@ -427,8 +417,6 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         internal async Task TestAdditionalFileAnalyzer(bool registerFromInitialize, bool testMultiple)
         {
             using var workspace = CreateWorkspace();
-            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             var globalOptions = GetGlobalOptions(workspace);
 
@@ -513,8 +501,6 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var analyzerReference = new AnalyzerImageReference(analyzers.ToImmutableArray());
 
             using var workspace = EditorTestWorkspace.CreateCSharp("class A {}", composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
-            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
 
@@ -625,8 +611,6 @@ class A
                 typeof(TestDocumentTrackingService));
 
             using var workspace = new EditorTestWorkspace(composition);
-            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, isSourceGenerated);
@@ -870,8 +854,6 @@ class A
         internal async Task TestGeneratorProducedDiagnostics(bool fullSolutionAnalysis, bool analyzeProject, TestHost testHost)
         {
             using var workspace = EditorTestWorkspace.CreateCSharp("// This file will get a diagnostic", composition: s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.WithTestHostParts(testHost));
-            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             var globalOptions = workspace.GetService<IGlobalOptionService>();
 

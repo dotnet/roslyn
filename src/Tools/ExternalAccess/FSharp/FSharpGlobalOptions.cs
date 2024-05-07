@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
             _globalOptions.SetGlobalOption(
                 SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.FSharp,
                 openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
+            _globalOptions.SetGlobalOption(
+                SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.FSharp,
+                openFilesOnly ? CompilerDiagnosticsScope.OpenFiles : CompilerDiagnosticsScope.FullSolution);
         }
     }
 }

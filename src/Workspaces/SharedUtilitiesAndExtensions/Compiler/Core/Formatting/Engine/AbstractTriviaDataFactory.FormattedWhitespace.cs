@@ -51,7 +51,7 @@ internal abstract partial class AbstractTriviaDataFactory
         public override bool ContainsChanges => true;
 
         public override IEnumerable<TextChange> GetTextChanges(TextSpan textSpan)
-            => SpecializedCollections.SingletonEnumerable<TextChange>(new TextChange(textSpan, _newString));
+            => [new TextChange(textSpan, _newString)];
 
         public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
             => throw new NotImplementedException();

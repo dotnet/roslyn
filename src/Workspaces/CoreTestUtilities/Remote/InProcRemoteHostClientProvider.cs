@@ -17,6 +17,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
 {
+#pragma warning disable CA1416 // Validate platform compatibility
     internal sealed class InProcRemoteHostClientProvider : IRemoteHostClientProvider, IDisposable
     {
         [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider), ServiceLayer.Test), Shared, PartNotDiscoverable]
@@ -99,4 +100,5 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             => Task.FromResult<RemoteHostClient?>(_lazyClient.Value);
     }
+#pragma warning restore CA1416 // Validate platform compatibility
 }

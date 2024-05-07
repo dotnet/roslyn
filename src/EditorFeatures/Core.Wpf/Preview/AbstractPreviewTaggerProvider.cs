@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                     return intersection.Select(s => new TagSpan<TTag>(s, _tagInstance));
                 }
 
-                return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+                return [];
             }
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged = (s, e) => { };

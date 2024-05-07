@@ -15,11 +15,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// An item to be queued for execution.
 /// </summary>
 /// <typeparam name="TRequestContext">The type of the request context to be passed along to the handler.</typeparam>
-#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
-public interface IQueueItem<TRequestContext>
-#else
 internal interface IQueueItem<TRequestContext>
-#endif
 {
     /// <summary>
     /// Executes the work specified by this queue item.

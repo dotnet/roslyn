@@ -54,7 +54,7 @@ internal partial class GenerateOverridesCodeRefactoringProvider
         {
             var result = (PickMembersResult)options;
             if (result.IsCanceled || result.Members.Length == 0)
-                return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
+                return [];
 
             var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             RoslynDebug.AssertNotNull(syntaxTree);

@@ -93,39 +93,36 @@ internal abstract class DocumentBasedFixAllProvider : FixAllProvider
         var cancellationToken = fixAllContext.CancellationToken;
 
         using var _1 = progressTracker.ItemCompletedScope();
-        using var _2 = ArrayBuilder<Task<(DocumentId, (SyntaxNode? node, SourceText? text))>>.GetInstance(out var tasks);
-
-        var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
 
         // Process all documents in parallel to get the change for each doc.
         var documentsAndSpansToFix = await fixAllContext.GetFixAllSpansAsync(cancellationToken).ConfigureAwait(false);
 
-        foreach (var (document, spans) in documentsAndSpansToFix)
-        {
-            tasks.Add(Task.Run(async () =>
+        return await ProducerConsumer<(DocumentId, (SyntaxNode? node, SourceText? text))>.RunParallelAsync(
+            source: documentsAndSpansToFix,
+            produceItems: static async (tuple, callback, args, cancellationToken) =>
             {
-                var newDocument = await this.FixAllAsync(fixAllContext, document, spans).ConfigureAwait(false);
+                var (document, spans) = tuple;
+                var newDocument = await args.@this.FixAllAsync(args.fixAllContext, document, spans).ConfigureAwait(false);
                 if (newDocument == null || newDocument == document)
-                    return default;
+                    return;
 
                 // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
                 // language that doesn't support that, then just grab the text.
                 var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
                 var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
-                return (document.Id, (node, text));
-            }, cancellationToken));
-        }
+                callback((document.Id, (node, text)));
+            },
+            consumeItems: static async (results, args, cancellationToken) =>
+            {
+                var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
 
-        await Task.WhenAll(tasks).ConfigureAwait(false);
+                await foreach (var (docId, nodeOrText) in results)
+                    docIdToNewRootOrText[docId] = nodeOrText;
 
-        foreach (var task in tasks)
-        {
-            var (docId, nodeOrText) = await task.ConfigureAwait(false);
-            if (docId != null)
-                docIdToNewRootOrText[docId] = nodeOrText;
-        }
-
-        return docIdToNewRootOrText;
+                return docIdToNewRootOrText;
+            },
+            args: (@this: this, fixAllContext),
+            cancellationToken).ConfigureAwait(false);
     }
 }

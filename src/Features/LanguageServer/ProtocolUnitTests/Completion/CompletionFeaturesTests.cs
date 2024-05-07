@@ -390,7 +390,7 @@ class A
 
         await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
             new InitializationOptions { ClientCapabilities = clientCapability, CallInitialized = true },
-            extraExportedTypes: new[] { typeof(CSharpLspMockCompletionService.Factory) }.ToList());
+            Composition.AddParts(typeof(CSharpLspMockCompletionService.Factory)));
 
         var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspMockCompletionService;
         mockService.NonDefaultRule = CompletionItemRules.Default.WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ', '('));
@@ -437,7 +437,7 @@ class A
         var markup = "Item{|caret:|}";
         await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
             new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true },
-            extraExportedTypes: new[] { typeof(CSharpLspMockCompletionService.Factory) }.ToList());
+            composition: Composition.AddParts(typeof(CSharpLspMockCompletionService.Factory)));
 
         var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspMockCompletionService;
         mockService.NonDefaultRule = CompletionItemRules.Default.WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ', '('));
@@ -496,8 +496,7 @@ class A
         }
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/26488")]
     public async Task TestCompletionForObsoleteSymbol(bool mutatingLspWorkspace)
     {
@@ -765,7 +764,7 @@ public class C
         var markup = "{|caret:|}";
         await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
             new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true },
-            extraExportedTypes: new[] { typeof(CSharpLspMockCompletionService.Factory) }.ToList());
+            composition: Composition.AddParts(typeof(CSharpLspMockCompletionService.Factory)));
 
         var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspMockCompletionService;
         mockService.NonDefaultRule = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect);
@@ -873,7 +872,7 @@ public class C
         var markup = "Item {|caret:|}";
         await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
             new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true },
-            extraExportedTypes: new[] { typeof(CSharpLspThrowExceptionOnChangeCompletionService.Factory) }.ToList());
+            composition: Composition.AddParts(typeof(CSharpLspThrowExceptionOnChangeCompletionService.Factory)));
 
         var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspThrowExceptionOnChangeCompletionService;
         var builder = ImmutableArray.CreateBuilder<CodeAnalysis.Completion.CompletionItem>();

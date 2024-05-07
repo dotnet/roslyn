@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities;
 
@@ -23,6 +24,18 @@ internal static class ICollectionExtensions
             {
                 collection.Add(item);
             }
+        }
+    }
+
+    public static void AddRange<T>(this ICollection<T> collection, ArrayBuilder<T>? values)
+    {
+        if (collection == null)
+            throw new ArgumentNullException(nameof(collection));
+
+        if (values != null)
+        {
+            foreach (var item in values)
+                collection.Add(item);
         }
     }
 

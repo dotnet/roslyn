@@ -10,5 +10,5 @@ namespace System.Runtime.CompilerServices;
 internal sealed class RestrictedInternalsVisibleToAttribute(string assemblyName, params string[] allowedNamespaces) : Attribute
 {
     public string AssemblyName { get; } = assemblyName;
-    public ImmutableArray<string> AllowedNamespaces { get; } = allowedNamespaces.ToImmutableArray();
+    public ImmutableArray<string> AllowedNamespaces { get; } = [.. allowedNamespaces];
 }

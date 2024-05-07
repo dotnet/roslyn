@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer\AbstractBuiltInCodeStyleDiagnosticAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAnonymousTypeMemberName\AddAnonymousTypeMemberNameTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastTests.cs" />
@@ -35,6 +36,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\AddYieldTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\ChangeToIEnumerableTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeAnonymousFunctionStatic\MakeAnonymousFunctionStaticTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberRequired\MakeMemberRequiredTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\MakeMemberStaticTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMethodAsynchronous\MakeMethodAsynchronousTests.cs" />
@@ -179,5 +181,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForEmptyTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer\" />
   </ItemGroup>
 </Project>

@@ -215,10 +215,8 @@ internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyle
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
         stack.Push(scope);
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var current))
         {
-            var current = stack.Pop();
-
             if (current == variable)
                 continue;
 

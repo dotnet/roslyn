@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -15,25 +16,29 @@ internal sealed class ExplicitInterfaceMethodReferenceFinder : AbstractReference
     protected override bool CanFind(IMethodSymbol symbol)
         => symbol.MethodKind == MethodKind.ExplicitInterfaceImplementation;
 
-    protected sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected sealed override Task DetermineDocumentsToSearchAsync<TData>(
         IMethodSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         // An explicit method can't be referenced anywhere.
-        return SpecializedTasks.EmptyImmutableArray<Document>();
+        return Task.CompletedTask;
     }
 
-    protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         // An explicit method can't be referenced anywhere.
-        return new([]);
+        return ValueTaskFactory.CompletedTask;
     }
 }

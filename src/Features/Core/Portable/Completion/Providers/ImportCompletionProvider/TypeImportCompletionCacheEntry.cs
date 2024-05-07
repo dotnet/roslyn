@@ -129,7 +129,7 @@ internal readonly struct TypeImportCompletionCacheEntry
             builder.Add(item);
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
 
         static CompletionItem GetAppropriateAttributeItem(CompletionItem attributeItem, bool isCaseSensitive)
         {

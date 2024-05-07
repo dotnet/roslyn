@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp
 
         public Func<CancellationToken, IEnumerable<TaggedText>> DocumentationFactory { get; }
 
-        private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory =
-            _ => SpecializedCollections.EmptyEnumerable<TaggedText>();
+        private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory = _ => [];
 
         public FSharpSignatureHelpItem(
             bool isVariadic,
