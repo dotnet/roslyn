@@ -18,7 +18,7 @@ internal static class CaseCorrector
     /// <summary>
     /// The annotation normally used on nodes to request case correction.
     /// </summary>
-    public static readonly SyntaxAnnotation Annotation = new($"{nameof(CaseCorrector)}.{nameof(Annotation)}");
+    public static readonly SyntaxAnnotation Annotation = new();
 
     /// <summary>
     /// Case corrects all names found in the provided document.
@@ -46,7 +46,7 @@ internal static class CaseCorrector
             throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
         }
 
-        return await CaseCorrectAsync(document, root.GetAnnotatedNodesAndTokens(annotation.Kind!).Select(n => n.Span).ToImmutableArray(), cancellationToken).ConfigureAwait(false);
+        return await CaseCorrectAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(n => n.Span).ToImmutableArray(), cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

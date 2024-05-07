@@ -42,7 +42,7 @@ public static partial class Simplifier
     /// The annotation the reducer uses to identify sub trees to be reduced.
     /// The Expand operations add this annotation to nodes so that the Reduce operations later find them.
     /// </summary>
-    public static SyntaxAnnotation Annotation { get; } = new($"{nameof(Simplifier)}.{nameof(Annotation)}");
+    public static SyntaxAnnotation Annotation { get; } = new();
 
     /// <summary>
     /// This is the annotation used by the simplifier and expander to identify Predefined type and preserving
@@ -54,7 +54,7 @@ public static partial class Simplifier
     /// The annotation <see cref="CodeAction.CleanupDocumentAsync"/> used to identify sub trees to look for symbol annotations on.
     /// It will then add import directives for these symbol annotations.
     /// </summary>
-    public static SyntaxAnnotation AddImportsAnnotation { get; } = new($"{nameof(Simplifier)}.{nameof(AddImportsAnnotation)}");
+    public static SyntaxAnnotation AddImportsAnnotation { get; } = new();
 
     /// <summary>
     /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
@@ -193,7 +193,7 @@ public static partial class Simplifier
     internal static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, SimplifierOptions options, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        return await ReduceAsync(document, root.GetAnnotatedNodesAndTokens(annotation.Kind!).Select(t => t.FullSpan), options, cancellationToken).ConfigureAwait(false);
+        return await ReduceAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(t => t.FullSpan), options, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

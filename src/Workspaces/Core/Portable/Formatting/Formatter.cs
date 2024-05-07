@@ -28,7 +28,7 @@ public static class Formatter
     /// <summary>
     /// The annotation used to mark portions of a syntax tree to be formatted.
     /// </summary>
-    public static SyntaxAnnotation Annotation { get; } = new($"{nameof(Formatter)}.{nameof(Annotation)}");
+    public static SyntaxAnnotation Annotation { get; } = new();
 
     /// <summary>
     /// Gets the formatting rules that would be applied if left unspecified.

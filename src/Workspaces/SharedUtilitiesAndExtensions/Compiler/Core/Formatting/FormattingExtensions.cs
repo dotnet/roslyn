@@ -267,9 +267,9 @@ internal static class FormattingExtensions
 
     internal static IEnumerable<TextSpan> GetAnnotatedSpans(SyntaxNode node, SyntaxAnnotation annotation)
     {
-        if (annotation.Kind == SyntaxAnnotation.ElasticAnnotation.Kind)
+        if (annotation == SyntaxAnnotation.ElasticAnnotation)
         {
-            var tokens = node.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation.Kind!).Select(tr => tr.Token).Distinct();
+            var tokens = node.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Select(tr => tr.Token).Distinct();
             return AggregateSpans(tokens.Select(GetElasticSpan));
         }
 
@@ -277,7 +277,7 @@ internal static class FormattingExtensions
 
         static IEnumerable<TextSpan> EnumerateAnnotatedSpans(SyntaxNode node, SyntaxAnnotation annotation)
         {
-            foreach (var nodeOrToken in node.GetAnnotatedNodesAndTokens(annotation.Kind!))
+            foreach (var nodeOrToken in node.GetAnnotatedNodesAndTokens(annotation))
             {
                 var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
                 var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
