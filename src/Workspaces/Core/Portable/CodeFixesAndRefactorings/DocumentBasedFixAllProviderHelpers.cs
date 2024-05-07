@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Reflection.Metadata.Ecma335;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CaseCorrection;
@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -34,6 +33,12 @@ internal static class DocumentBasedFixAllProviderHelpers
     private const string FormatterAnnotation = $"{nameof(Formatter)}.{nameof(Formatter.Annotation)}";
     private const string CaseCorrectorAnnotation = $"{nameof(CaseCorrector)}.{nameof(CaseCorrector.Annotation)}";
     private const string SyntaxAnnotationElasticAnnotation = $"{nameof(SyntaxAnnotation)}.{nameof(SyntaxAnnotation.ElasticAnnotation)}";
+
+    private static readonly IEnumerable<SyntaxAnnotation> s_singleSimplifierAddImportsAnnotation = [Simplifier.AddImportsAnnotation];
+    private static readonly IEnumerable<SyntaxAnnotation> s_singleSimplifierAnnotation = [Simplifier.Annotation];
+    private static readonly IEnumerable<SyntaxAnnotation> s_singleFormatterAnnotation = [Formatter.Annotation];
+    private static readonly IEnumerable<SyntaxAnnotation> s_singleCaseCorrectorAnnotation = [CaseCorrector.Annotation];
+    private static readonly IEnumerable<SyntaxAnnotation> s_singleSyntaxAnnotationElasticAnnotation = [SyntaxAnnotation.ElasticAnnotation];
 
     public static async Task<Solution?> FixAllContextsAsync<TFixAllContext>(
         TFixAllContext originalFixAllContext,
@@ -189,9 +194,6 @@ internal static class DocumentBasedFixAllProviderHelpers
 
         void GetAnnotations(string kind, SyntaxAnnotation annotation)
         {
-            using var _1 = ArrayBuilder<TextSpan>.GetInstance(out var nodeSpans);
-            using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var tokenSpans);
-
             foreach (var nodeOrToken in root.GetAnnotatedNodesAndTokens(annotation))
             {
                 var dictionary = nodeOrToken.IsNode ? annotatedNodes : annotatedTokens;
@@ -200,12 +202,81 @@ internal static class DocumentBasedFixAllProviderHelpers
         }
     }
 
-    public static SyntaxNode AnnotatedRoot(
+    public static SyntaxNode WithAnnotations(
         SyntaxNode root,
         Dictionary<TextSpan, List<string>> annotatedNodes,
         Dictionary<TextSpan, List<string>> annotatedTokens)
     {
-        root.repl
+        return root.ReplaceSyntax(
+            GetNodes(),
+            (_, current) => WithNodeAnnotations(current),
+            GetTokens(),
+            (_, current) => WithTokenAnnotations(current),
+            trivia: null,
+            computeReplacementTrivia: null);
+
+        IEnumerable<SyntaxNode> GetNodes()
+        {
+            foreach (var (fullSpan, _) in annotatedNodes)
+            {
+                var node = root.FindNode(fullSpan, getInnermostNodeForTie: true);
+                yield return node;
+            }
+        }
+
+        IEnumerable<SyntaxToken> GetTokens()
+        {
+            foreach (var (fullSpan, _) in annotatedTokens)
+            {
+                var token = root.FindToken(fullSpan.Start, findInsideTrivia: true);
+                if (token.FullSpan == fullSpan)
+                {
+                    yield return token;
+                    continue;
+                }
+
+                token = root.FindToken(fullSpan.Start, findInsideTrivia: false);
+                if (token.FullSpan == fullSpan)
+                {
+                    yield return token;
+                    continue;
+                }
+
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        SyntaxNode WithNodeAnnotations(SyntaxNode current)
+            => current.WithAdditionalAnnotations(GetAnnotations(annotatedNodes[current.FullSpan]));
+
+        SyntaxToken WithTokenAnnotations(SyntaxToken current)
+            => current.WithAdditionalAnnotations(GetAnnotations(annotatedTokens[current.FullSpan]));
+
+        IEnumerable<SyntaxAnnotation> GetAnnotations(List<string> annotationKinds)
+        {
+            if (annotationKinds is [var kind])
+            {
+                return kind switch
+                {
+                    SimplifierAddImportsAnnotation => s_singleSimplifierAddImportsAnnotation,
+                    SimplifierAnnotation => s_singleSimplifierAnnotation,
+                    FormatterAnnotation => s_singleFormatterAnnotation,
+                    CaseCorrectorAnnotation => s_singleCaseCorrectorAnnotation,
+                    SyntaxAnnotationElasticAnnotation => s_singleSyntaxAnnotationElasticAnnotation,
+                    _ => throw ExceptionUtilities.UnexpectedValue(kind),
+                };
+            }
+
+            return annotationKinds.Select(kind => kind switch
+            {
+                SimplifierAddImportsAnnotation => Simplifier.AddImportsAnnotation,
+                SimplifierAnnotation => Simplifier.Annotation,
+                FormatterAnnotation => Formatter.Annotation,
+                CaseCorrectorAnnotation => CaseCorrector.Annotation,
+                SyntaxAnnotationElasticAnnotation => SyntaxAnnotation.ElasticAnnotation,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            });
+        }
     }
 
     public static async Task<SourceText> PerformCleanupInCurrentProcessAsync(
