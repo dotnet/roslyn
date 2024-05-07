@@ -753,6 +753,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var result = base.TryApplyChanges(newSolution);
 
+            // Ensure that any in-memory analyzer references in this test workspace are known by the serializer service
+            // so that we can validate OOP scenarios involving analyzers.
             foreach (var analyzer in this.CurrentSolution.AnalyzerReferences)
             {
                 if (analyzer is AnalyzerImageReference analyzerImageReference)
