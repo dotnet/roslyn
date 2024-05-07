@@ -26,7 +26,7 @@ public static class ImportAdder
     private static async ValueTask<IEnumerable<TextSpan>> GetSpansAsync(Document document, SyntaxAnnotation annotation, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        return root.GetAnnotatedNodesAndTokens(annotation).Select(t => t.FullSpan);
+        return root.GetAnnotatedNodesAndTokens(annotation.Kind!).Select(t => t.FullSpan);
     }
 
     /// <summary>

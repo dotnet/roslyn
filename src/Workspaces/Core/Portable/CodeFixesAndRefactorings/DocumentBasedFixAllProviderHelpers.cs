@@ -3,16 +3,22 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CaseCorrection;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -146,15 +152,51 @@ internal static class DocumentBasedFixAllProviderHelpers
         {
             if (remoteClient != null)
             {
+                var (annotatedNodes, annotatedTokens) = await GetAnnotationsAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
+
                 var text = await remoteClient.TryInvokeAsync<IRemoteFixAllProviderService, string>(
                     dirtyDocument.Project.Solution,
-                    (service, solutionChecksum, cancellationToken) => service.PerformCleanupAsync(solutionChecksum, dirtyDocument.Id, codeCleanupOptions, cancellationToken),
+                    (service, solutionChecksum, cancellationToken) => service.PerformCleanupAsync(
+                        solutionChecksum, dirtyDocument.Id, codeCleanupOptions, annotatedNodes, annotatedTokens, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
                 if (text.HasValue)
                     return SourceText.From(text.Value);
             }
 
             return await PerformCleanupInCurrentProcessAsync(dirtyDocument, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task<(Dictionary<string, ImmutableArray<TextSpan>> annotatedNodes, Dictionary<string, ImmutableArray<TextSpan>> annotatedTokens)> GetAnnotationsAsync(Document dirtyDocument, CancellationToken cancellationToken)
+    {
+        var annotatedNodes = new Dictionary<string, ImmutableArray<TextSpan>>();
+        var annotatedTokens = new Dictionary<string, ImmutableArray<TextSpan>>();
+        var root = await dirtyDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        GetAnnotations(Simplifier.AddImportsAnnotation);
+        GetAnnotations(Simplifier.Annotation);
+        GetAnnotations(Formatter.Annotation);
+        GetAnnotations(SyntaxAnnotation.ElasticAnnotation);
+        GetAnnotations(CaseCorrector.Annotation);
+
+        return (annotatedNodes, annotatedTokens);
+
+        void GetAnnotations(SyntaxAnnotation annotation)
+        {
+            using var _1 = ArrayBuilder<TextSpan>.GetInstance(out var nodeSpans);
+            using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var tokenSpans);
+
+            var kind = annotation.Kind!;
+            foreach (var nodeOrToken in root.GetAnnotatedNodesAndTokens(kind))
+            {
+                if (nodeOrToken.IsNode)
+                    nodeSpans.Add(nodeOrToken.AsNode()!.FullSpan);
+                else
+                    tokenSpans.Add(nodeOrToken.AsToken().FullSpan);
+            }
+
+            annotatedNodes.Add(kind, nodeSpans.ToImmutableAndClear());
+            annotatedTokens.Add(kind, tokenSpans.ToImmutableAndClear());
         }
     }
 

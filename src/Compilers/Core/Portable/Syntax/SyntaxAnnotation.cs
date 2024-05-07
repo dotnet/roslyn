@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A predefined syntax annotation that indicates whether the syntax element has elastic trivia.
         /// </summary>
-        public static SyntaxAnnotation ElasticAnnotation { get; } = new SyntaxAnnotation();
+        public static SyntaxAnnotation ElasticAnnotation { get; } = new SyntaxAnnotation($"{nameof(SyntaxAnnotation)}.{nameof(ElasticAnnotation)}");
 
         // use a value identity instead of object identity so a deserialized instance matches the original instance.
         private readonly long _id;

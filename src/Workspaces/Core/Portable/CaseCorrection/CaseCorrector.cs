@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,7 +18,7 @@ internal static class CaseCorrector
     /// <summary>
     /// The annotation normally used on nodes to request case correction.
     /// </summary>
-    public static readonly SyntaxAnnotation Annotation = new();
+    public static readonly SyntaxAnnotation Annotation = new($"{nameof(CaseCorrector)}.{nameof(Annotation)}");
 
     /// <summary>
     /// Case corrects all names found in the provided document.
@@ -47,7 +46,7 @@ internal static class CaseCorrector
             throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
         }
 
-        return await CaseCorrectAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(n => n.Span).ToImmutableArray(), cancellationToken).ConfigureAwait(false);
+        return await CaseCorrectAsync(document, root.GetAnnotatedNodesAndTokens(annotation.Kind!).Select(n => n.Span).ToImmutableArray(), cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
