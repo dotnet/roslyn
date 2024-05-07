@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var syntax = usingDirective.NamespaceOrType;
-            var flags = BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks;
+            var flags = BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks | BinderFlags.InUsingDirective;
             if (usingDirective.UnsafeKeyword != default)
             {
                 this.CheckUnsafeModifier(DeclarationModifiers.Unsafe, usingDirective.UnsafeKeyword.GetLocation(), diagnostics);

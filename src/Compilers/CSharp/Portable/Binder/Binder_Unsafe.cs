@@ -23,14 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Flags.Includes(BinderFlags.UnsafeRegion); }
         }
 
-        /// <summary>
-        /// PROTOTYPE(static) we currently disallow resolving extensions in using directives
-        /// </summary>
-        internal bool InUsingDirective
-        {
-            get { return this.Flags.Includes(BinderFlags.InUsingDirective); }
-        }
-
         /// <returns>True if a diagnostic was reported</returns>
         internal bool ReportUnsafeIfNotAllowed(SyntaxNode node, BindingDiagnosticBag diagnostics, TypeSymbol sizeOfTypeOpt = null)
         {

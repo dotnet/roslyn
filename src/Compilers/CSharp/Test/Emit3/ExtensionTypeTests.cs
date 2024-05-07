@@ -39156,7 +39156,7 @@ implicit extension E for AnyClass.AnyEnum { }
             Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(1, 43),
             // (5,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
             // internal class AnyClass : AnyBaseClass
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(5, 27) );
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(5, 27));
     }
 
     [Fact]
@@ -39191,6 +39191,7 @@ implicit extension E for AnyClass.AnyEnum
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "AnyClass.AnyEnum.Val");
+        // PROTOTYPE(static) consider blocking extension resolution in semantic model correspondingly with source
         Assert.Equal("E.Val", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
     }
 
@@ -39223,6 +39224,7 @@ implicit extension E for C.Interface
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C.Interface.Nested");
+        // PROTOTYPE(static) consider blocking extension resolution in semantic model correspondingly with source
         Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
     }
 
@@ -39245,12 +39247,40 @@ implicit extension E for C.Interface
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,30): error CS0426: The type name 'Nested' does not exist in the type 'C.Interface'
+            // using MyNested = C.Interface.Nested;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C.Interface").WithLocation(1, 30));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C.Interface.Nested");
+        // PROTOTYPE(static) consider blocking extension resolution in semantic model correspondingly with source
         Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ForAlias()
+    {
+        var source = """
+using Alias = C;
+
+Alias.M();
+
+class C { }
+
+implicit extension E for Alias
+{
+    public static void M() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Alias.M");
+        Assert.Equal("void E.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -39285,6 +39315,7 @@ namespace N
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C.Interface.Nested");
+        // PROTOTYPE(static) consider blocking extension resolution in semantic model correspondingly with source
         Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
     }
 
@@ -39315,12 +39346,16 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (13,34): error CS0426: The type name 'Nested' does not exist in the type 'C.Interface'
+            //     using MyNested = C.Interface.Nested;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C.Interface").WithLocation(13, 34));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C.Interface.Nested");
+        // PROTOTYPE(static) consider blocking extension resolution in semantic model correspondingly with source
         Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
     }
 
