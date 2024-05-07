@@ -30,7 +30,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     /// Set of providers that can be used to generate source for a symbol (for example, by decompiling, or by
     /// extracting it from a pdb).
     /// </summary>
-    private readonly ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> _providers;
+    private readonly Lazy<ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>>> _providers;
 
     /// <summary>
     /// Workspace created the first time we generate any metadata for any symbol.
@@ -55,7 +55,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     public MetadataAsSourceFileService(
         [ImportMany] IEnumerable<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> providers)
     {
-        _providers = [.. ExtensionOrderer.Order(providers)];
+        _providers = new(() => [.. ExtensionOrderer.Order(providers)]);
 
         var guidString = Guid.NewGuid().ToString("N");
         _rootTemporaryPathWithGuid = Path.Combine(_rootTemporaryPath, guidString);
@@ -100,7 +100,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
             // We don't want to track telemetry for signatures only requests, only where we try to show source
             using var telemetryMessage = signaturesOnly ? null : new TelemetryMessage(cancellationToken);
 
-            foreach (var lazyProvider in _providers)
+            foreach (var lazyProvider in _providers.Value)
             {
                 var provider = lazyProvider.Value;
                 var providerTempPath = Path.Combine(_rootTemporaryPathWithGuid, provider.GetType().Name);
@@ -172,7 +172,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         {
             AssertIsMainThread(workspace);
 
-            foreach (var provider in _providers)
+            foreach (var provider in _providers.Value)
             {
                 if (!provider.IsValueCreated)
                     continue;
@@ -195,7 +195,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         {
             AssertIsMainThread(workspace);
 
-            foreach (var provider in _providers)
+            foreach (var provider in _providers.Value)
             {
                 if (!provider.IsValueCreated)
                     continue;
@@ -231,7 +231,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 
         AssertIsMainThread(workspace);
 
-        foreach (var provider in _providers)
+        foreach (var provider in _providers.Value)
         {
             if (!provider.IsValueCreated)
                 continue;
@@ -250,7 +250,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         Project? project = null;
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            foreach (var provider in _providers)
+            foreach (var provider in _providers.Value)
             {
                 if (!provider.IsValueCreated)
                     continue;
