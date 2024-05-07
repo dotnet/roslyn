@@ -537,7 +537,10 @@ internal partial class SerializerService
         public static void AddAnalyzerImageReference(AnalyzerImageReference analyzerImageReference)
         {
             lock (s_analyzerImageReferenceMapGate)
-                s_analyzerImageReferenceMap = s_analyzerImageReferenceMap.Add(analyzerImageReference, Guid.NewGuid());
+            {
+                if (!s_analyzerImageReferenceMap.ContainsKey(analyzerImageReference))
+                    s_analyzerImageReferenceMap = s_analyzerImageReferenceMap.Add(analyzerImageReference, Guid.NewGuid());
+            }
         }
     }
 }
