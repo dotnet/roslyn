@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource;
 [Export(typeof(IMetadataAsSourceFileService)), Shared]
 internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 {
+    private const string MetadataAsSource = nameof(MetadataAsSource);
+
     /// <summary>
     /// Set of providers that can be used to generate source for a symbol (for example, by decompiling, or by
     /// extracting it from a pdb).
@@ -47,7 +49,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     /// </summary>
     private readonly Mutex _mutex;
     private readonly string _rootTemporaryPathWithGuid;
-    private readonly string _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
+    private readonly string _rootTemporaryPath = Path.Combine(Path.GetTempPath(), MetadataAsSource);
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -62,7 +64,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     }
 
     private static string CreateMutexName(string directoryName)
-        => "MetadataAsSource-" + directoryName;
+        => $"{MetadataAsSource}-{directoryName}";
 
     public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(
         Workspace sourceWorkspace,
