@@ -2142,6 +2142,85 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 Diagnostic(ErrorCode.ERR_PartialPropertyTypeDifference, "P3").WithLocation(15, 26));
         }
 
+        [Fact]
+        public void ExplicitImplementation()
+        {
+            var source = """
+                interface I
+                {
+                    public int P { get; set; }
+                }
+
+                partial class C1 : I
+                {
+                    partial int I.P { get; set; }
+                    partial int I.P { get => 1; set { } }
+                }
+
+                partial class C2 : I
+                {
+                    partial int I.P { get; set; }
+                }
+
+                partial class C3 : I
+                {
+                    partial int I.P { get => 1; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,19): error CS0754: A partial member may not explicitly implement an interface member
+                //     partial int I.P { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "P").WithLocation(8, 19),
+                // (14,19): error CS9300: Partial property 'C2.I.P' must have an implementation part.
+                //     partial int I.P { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P").WithArguments("C2.I.P").WithLocation(14, 19),
+                // (14,19): error CS0754: A partial member may not explicitly implement an interface member
+                //     partial int I.P { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "P").WithLocation(14, 19),
+                // (19,19): error CS9301: Partial property 'C3.I.P' must have an definition part.
+                //     partial int I.P { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "P").WithArguments("C3.I.P").WithLocation(19, 19),
+                // (19,19): error CS0754: A partial member may not explicitly implement an interface member
+                //     partial int I.P { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "P").WithLocation(19, 19));
+        }
+
+        [Fact]
+        public void NotInPartialType()
+        {
+            var source = """
+                class C
+                {
+                    partial int P1 { get; set; }
+                    partial int P1 { get => 1; set { } }
+
+                    partial int P2 { get; set; }
+
+                    partial int P3 { get => 1; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,17): error CS0751: A partial member must be declared within a partial type
+                //     partial int P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "P1").WithLocation(3, 17),
+                // (6,17): error CS9300: Partial property 'C.P2' must have an implementation part.
+                //     partial int P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P2").WithArguments("C.P2").WithLocation(6, 17),
+                // (6,17): error CS0751: A partial member must be declared within a partial type
+                //     partial int P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "P2").WithLocation(6, 17),
+                // (8,17): error CS9301: Partial property 'C.P3' must have an definition part.
+                //     partial int P3 { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "P3").WithArguments("C.P3").WithLocation(8, 17),
+                // (8,17): error CS0751: A partial member must be declared within a partial type
+                //     partial int P3 { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "P3").WithLocation(8, 17));
+        } 
+
         // PROTOTYPE(partial-properties): override partial property where base has modopt
         // PROTOTYPE(partial-properties): test indexers incl parameters with attributes
         // PROTOTYPE(partial-properties): indexer parameter 'in' vs 'ref readonly' difference

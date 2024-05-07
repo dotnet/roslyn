@@ -2213,11 +2213,11 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PartialMemberCannotBeAbstract" xml:space="preserve">
     <value>A partial member cannot have the 'abstract' modifier</value>
   </data>
-  <data name="ERR_PartialMethodOnlyInPartialClass" xml:space="preserve">
-    <value>A partial method must be declared within a partial type</value>
+  <data name="ERR_PartialMemberOnlyInPartialClass" xml:space="preserve">
+    <value>A partial member must be declared within a partial type</value>
   </data>
-  <data name="ERR_PartialMethodNotExplicit" xml:space="preserve">
-    <value>A partial method may not explicitly implement an interface method</value>
+  <data name="ERR_PartialMemberNotExplicit" xml:space="preserve">
+    <value>A partial member may not explicitly implement an interface member</value>
   </data>
   <data name="ERR_PartialMethodExtensionDifference" xml:space="preserve">
     <value>Both partial method declarations must be extension methods or neither may be an extension method</value>

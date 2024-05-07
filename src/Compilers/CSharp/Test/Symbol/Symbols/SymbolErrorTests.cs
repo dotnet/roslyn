@@ -14031,7 +14031,7 @@ public partial class C : Base
         }
 
         [Fact]
-        public void CS0751ERR_PartialMethodOnlyInPartialClass()
+        public void CS0751ERR_PartialMemberOnlyInPartialClass()
         {
             var text = @"
 
@@ -14045,7 +14045,7 @@ public class C
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodOnlyInPartialClass, Line = 5, Column = 18 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMemberOnlyInPartialClass, Line = 5, Column = 18 });
         }
 
         [Fact]
@@ -14099,7 +14099,7 @@ partial class C
         }
 
         [Fact]
-        public void CS0754ERR_PartialMethodNotExplicit()
+        public void CS0754ERR_PartialMemberNotExplicit()
         {
             var text = @"
 public interface IF
@@ -14116,7 +14116,7 @@ public partial class C : IF
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodNotExplicit, Line = 8, Column = 21 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMemberNotExplicit, Line = 8, Column = 21 });
         }
 
         [Fact]

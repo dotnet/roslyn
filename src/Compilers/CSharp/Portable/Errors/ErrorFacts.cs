@@ -1071,8 +1071,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InvalidInitializerElementInitializer:
                 case ErrorCode.ERR_InconsistentLambdaParameterUsage:
                 case ErrorCode.ERR_PartialMemberCannotBeAbstract:
-                case ErrorCode.ERR_PartialMethodOnlyInPartialClass:
-                case ErrorCode.ERR_PartialMethodNotExplicit:
+                case ErrorCode.ERR_PartialMemberOnlyInPartialClass:
+                case ErrorCode.ERR_PartialMemberNotExplicit:
                 case ErrorCode.ERR_PartialMethodExtensionDifference:
                 case ErrorCode.ERR_PartialMethodOnlyOneLatent:
                 case ErrorCode.ERR_PartialMethodOnlyOneActual:

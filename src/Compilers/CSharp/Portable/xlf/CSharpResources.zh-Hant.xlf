@@ -1622,6 +1622,11 @@
         <target state="new">Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
+        <source>A partial member must be declared within a partial type</source>
+        <target state="new">A partial member must be declared within a partial type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberReadOnlyDifference">
         <source>Both partial member declarations must be readonly or neither may be readonly</source>
         <target state="new">Both partial member declarations must be readonly or neither may be readonly</target>
@@ -8132,13 +8137,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">Lambda 參數用法不一致; 參數類型必須全部為明確類型或全部為隱含類型</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial type</source>
-        <target state="translated">在部分型別中必須宣告部分方法</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodNotExplicit">
-        <source>A partial method may not explicitly implement an interface method</source>
+      <trans-unit id="ERR_PartialMemberNotExplicit">
+        <source>A partial member may not explicitly implement an interface member</source>
         <target state="translated">部分方法不可明確地實作介面方法</target>
         <note />
       </trans-unit>

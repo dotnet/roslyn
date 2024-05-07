@@ -1622,6 +1622,11 @@
         <target state="new">Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
+        <source>A partial member must be declared within a partial type</source>
+        <target state="new">A partial member must be declared within a partial type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberReadOnlyDifference">
         <source>Both partial member declarations must be readonly or neither may be readonly</source>
         <target state="new">Both partial member declarations must be readonly or neither may be readonly</target>
@@ -8132,13 +8137,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <target state="translated">Utilizzo non coerente dei parametri lambda: i parametri devono essere tutti di tipo esplicito o implicito</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial type</source>
-        <target state="translated">Un metodo parziale deve essere dichiarato in un tipo parziale</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodNotExplicit">
-        <source>A partial method may not explicitly implement an interface method</source>
+      <trans-unit id="ERR_PartialMemberNotExplicit">
+        <source>A partial member may not explicitly implement an interface member</source>
         <target state="translated">Un metodo parziale non può implementare in modo esplicito un metodo di interfaccia</target>
         <note />
       </trans-unit>

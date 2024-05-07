@@ -1819,12 +1819,12 @@ partial class C : I
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (9,20): error CS0754: A partial method may not explicitly implement an interface method
+                // (9,20): error CS0754: A partial member may not explicitly implement an interface member
                 //     partial void I.M(); // 1
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(9, 20),
-                // (10,20): error CS0754: A partial method may not explicitly implement an interface method
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "M").WithLocation(9, 20),
+                // (10,20): error CS0754: A partial member may not explicitly implement an interface member
                 //     partial void I.M() { } // 2
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(10, 20));
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "M").WithLocation(10, 20));
         }
 
         [Fact]
@@ -1844,15 +1844,15 @@ partial class C : I
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (9,19): error CS0754: A partial method may not explicitly implement an interface method
+                // (9,19): error CS0754: A partial member may not explicitly implement an interface member
                 //     partial int I.M();
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(9, 19),
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "M").WithLocation(9, 19),
                 // (9,19): error CS8794: Partial method 'C.I.M()' must have accessibility modifiers because it has a non-void return type.
                 //     partial int I.M();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M").WithArguments("C.I.M()").WithLocation(9, 19),
-                // (10,19): error CS0754: A partial method may not explicitly implement an interface method
+                // (10,19): error CS0754: A partial member may not explicitly implement an interface member
                 //     partial int I.M() => 42;
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(10, 19),
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "M").WithLocation(10, 19),
                 // (10,19): error CS8794: Partial method 'C.I.M()' must have accessibility modifiers because it has a non-void return type.
                 //     partial int I.M() => 42;
                 Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M").WithArguments("C.I.M()").WithLocation(10, 19));

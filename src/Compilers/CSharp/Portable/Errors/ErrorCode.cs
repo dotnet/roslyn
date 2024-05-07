@@ -530,10 +530,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidInitializerElementInitializer = 747,
         ERR_InconsistentLambdaParameterUsage = 748,
         ERR_PartialMemberCannotBeAbstract = 750,
-        ERR_PartialMethodOnlyInPartialClass = 751,
+        ERR_PartialMemberOnlyInPartialClass = 751,
         // ERR_PartialMethodCannotHaveOutParameters = 752, Removed as part of 'extended partial methods' feature
         // ERR_PartialMethodOnlyMethods = 753, Removed as it is subsumed by ERR_PartialMisplaced
-        ERR_PartialMethodNotExplicit = 754,
+        ERR_PartialMemberNotExplicit = 754,
         ERR_PartialMethodExtensionDifference = 755,
         ERR_PartialMethodOnlyOneLatent = 756,
         ERR_PartialMethodOnlyOneActual = 757,

@@ -2458,12 +2458,12 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,18): error CS0751: A partial method must be declared within a partial type
+                // (4,18): error CS0751: A partial member must be declared within a partial type
                 //     partial void M();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(4, 18),
-                // (5,18): error CS0751: A partial method must be declared within a partial type
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(4, 18),
+                // (5,18): error CS0751: A partial member must be declared within a partial type
                 //     partial void M() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(5, 18)
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(5, 18)
             );
             var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
             Assert.True(m.IsPartialDefinition);
