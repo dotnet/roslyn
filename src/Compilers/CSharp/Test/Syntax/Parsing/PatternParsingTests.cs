@@ -2550,20 +2550,26 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 // (1,32): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class C { void M() { var v = 1 switch { a?b:c => d }; } }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "switch").WithArguments("recursive patterns", "8.0").WithLocation(1, 32),
-                // (1,41): error CS0246: The type or namespace name 'a' could not be found (are you missing a using directive or an assembly reference?)
+                // (1,41): error CS0103: The name 'a' does not exist in the current context
                 // class C { void M() { var v = 1 switch { a?b:c => d }; } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("a").WithLocation(1, 41),
-                // (1,41): error CS8116: It is not legal to use nullable type 'a?' in a pattern; use the underlying type 'a' instead.
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(1, 41),
+                // (1,42): error CS1003: Syntax error, '=>' expected
                 // class C { void M() { var v = 1 switch { a?b:c => d }; } }
-                Diagnostic(ErrorCode.ERR_PatternNullableType, "a?").WithArguments("a").WithLocation(1, 41),
-                // (1,44): error CS1003: Syntax error, '=>' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>").WithLocation(1, 42),
+                // (1,42): error CS1525: Invalid expression term '?'
                 // class C { void M() { var v = 1 switch { a?b:c => d }; } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(1, 44));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 42),
+                // (1,43): error CS0103: The name 'b' does not exist in the current context
+                // class C { void M() { var v = 1 switch { a?b:c => d }; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(1, 43));
 
             UsingExpression(test, TestOptions.RegularWithoutRecursivePatterns,
-                // (1,15): error CS1003: Syntax error, '=>' expected
+                // (1,13): error CS1003: Syntax error, '=>' expected
                 // 1 switch { a?b:c => d }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(1, 15));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>").WithLocation(1, 13),
+                // (1,13): error CS1525: Invalid expression term '?'
+                // 1 switch { a?b:c => d }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 13));
 
             N(SyntaxKind.SwitchExpression);
             {
@@ -2575,32 +2581,37 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.SwitchExpressionArm);
                 {
-                    N(SyntaxKind.DeclarationPattern);
+                    N(SyntaxKind.ConstantPattern);
                     {
-                        N(SyntaxKind.NullableType);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "a");
-                            }
-                            N(SyntaxKind.QuestionToken);
-                        }
-                        N(SyntaxKind.SingleVariableDesignation);
-                        {
-                            N(SyntaxKind.IdentifierToken, "b");
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
                     }
                     M(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.SimpleLambdaExpression);
+                    N(SyntaxKind.ConditionalExpression);
                     {
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "c");
+                            M(SyntaxKind.IdentifierToken);
                         }
-                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.QuestionToken);
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "d");
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleLambdaExpression);
+                        {
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "d");
+                            }
                         }
                     }
                 }
@@ -12579,14 +12590,6 @@ switch (e)
                 TestOptions.RegularWithPatternCombinators
             );
 
-            // Despite the test name being about conditional expression (and looking at code you will probably think about the conditional expression first as well)
-            // there are 2 valid parse strategies here:
-            // 1. Parse `a?x:y` as conditional expression and then `:` as case label end
-            // 2. Parse `a?x` as a declaration pattern with nullable type `a?` and variable `x`, then `:` as case label end and then `y:` as a label
-            // From the error recovery perspective these cases are equivalent: they are both syntactically valid and semantically invalid.
-            // With current error recovery state parser is more greedy regarding the `:` tokens, so it treats the first `:` as a case statement end,
-            // thus the second strategy is used. However, slight changes to the code like adding parentheses around `a?x:y` may change that.
-            // For the `(a?x:y)` case see test below.
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -12599,35 +12602,32 @@ switch (e)
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.SwitchSection);
                 {
-                    N(SyntaxKind.CasePatternSwitchLabel);
+                    N(SyntaxKind.CaseSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.DeclarationPattern);
+                        N(SyntaxKind.ConditionalExpression);
                         {
-                            N(SyntaxKind.NullableType);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "a");
-                                }
-                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.IdentifierToken, "a");
                             }
-                            N(SyntaxKind.SingleVariableDesignation);
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.ColonToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
                             }
                         }
                         N(SyntaxKind.ColonToken);
                     }
-                    N(SyntaxKind.LabeledStatement);
+                    N(SyntaxKind.BreakStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "y");
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.BreakStatement);
-                        {
-                            N(SyntaxKind.BreakKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);

@@ -7015,20 +7015,20 @@ done:
             FirstElementOfPossibleTupleLiteral,
         }
 
-        private TypeSyntax ParseType(ParseTypeMode mode = ParseTypeMode.Normal, bool inSwitchArmPattern = false)
+        private TypeSyntax ParseType(ParseTypeMode mode = ParseTypeMode.Normal)
         {
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
                 return _syntaxFactory.RefType(
                     this.EatToken(),
                     this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword ? this.EatToken() : null,
-                    ParseTypeCore(ParseTypeMode.AfterRef, inSwitchArmPattern));
+                    ParseTypeCore(ParseTypeMode.AfterRef));
             }
 
-            return ParseTypeCore(mode, inSwitchArmPattern);
+            return ParseTypeCore(mode);
         }
 
-        private TypeSyntax ParseTypeCore(ParseTypeMode mode, bool inSwitchArmPattern)
+        private TypeSyntax ParseTypeCore(ParseTypeMode mode)
         {
             NameOptions nameOptions;
             switch (mode)
@@ -7069,7 +7069,7 @@ done:
                 {
                     case SyntaxKind.QuestionToken when canBeNullableType():
                         {
-                            var question = EatNullableQualifierIfApplicable(mode, inSwitchArmPattern);
+                            var question = EatNullableQualifierIfApplicable(mode);
                             if (question != null)
                             {
                                 type = _syntaxFactory.NullableType(type, question);
@@ -7142,9 +7142,7 @@ done:;
             return type;
         }
 
-        /// <param name="inSwitchArmPattern">If this is in the patternsection of a switch-expression arm or a
-        /// switch-statement case-clause.</param>
-        private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode, bool inSwitchArmPattern)
+        private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
@@ -7180,17 +7178,6 @@ done:;
                         // nullable-typed pattern
                         if (IsTrueIdentifier(this.CurrentToken))
                         {
-                            // If we're in a cast statement/expression arm, then we have:
-                            //
-                            // `switch { case X ? y` or
-                            //
-                            //  e switch { X ? y `
-                            //
-                            // In both these cases, this isn't a conditional expression and should be treated as a
-                            // nullable type pattern (with a a good binding error to be reported later).
-                            if (inSwitchArmPattern)
-                                return true;
-
                             // In a non-async method, `await` is a simple identifier.  However, if we see `x ? await`
                             // it's almost certainly the start of an `await expression` in a conditional expression
                             // (e.g. `x is Y ? await ...`), not a nullable type pattern (since users would not use

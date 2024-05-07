@@ -5547,7 +5547,13 @@ System.Console.WriteLine(true)";
                     case Type? varName:
                         break;
                 }
-                """);
+                """,
+                // (3,24): error CS1525: Invalid expression term 'break'
+                //     case Type? varName:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(3, 24),
+                // (3,24): error CS1003: Syntax error, ':' expected
+                //     case Type? varName:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(3, 24));
 
             N(SyntaxKind.SwitchStatement);
             {
@@ -5561,25 +5567,27 @@ System.Console.WriteLine(true)";
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.SwitchSection);
                 {
-                    N(SyntaxKind.CasePatternSwitchLabel);
+                    N(SyntaxKind.CaseSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.DeclarationPattern);
+                        N(SyntaxKind.ConditionalExpression);
                         {
-                            N(SyntaxKind.NullableType);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "Type");
-                                }
-                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.IdentifierToken, "Type");
                             }
-                            N(SyntaxKind.SingleVariableDesignation);
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "varName");
                             }
+                            N(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.ColonToken);
                     }
                     N(SyntaxKind.BreakStatement);
                     {

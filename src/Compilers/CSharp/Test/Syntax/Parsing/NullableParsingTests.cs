@@ -681,7 +681,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void DeclarationPattern_NullableType()
         {
-            UsingStatement("switch (e) { case T? t: break; }");
+            UsingStatement("switch (e) { case T? t: break; }",
+                // (1,25): error CS1525: Invalid expression term 'break'
+                // switch (e) { case T? t: break; }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "break").WithArguments("break").WithLocation(1, 25),
+                // (1,25): error CS1003: Syntax error, ':' expected
+                // switch (e) { case T? t: break; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "break").WithArguments(":").WithLocation(1, 25));
 
             N(SyntaxKind.SwitchStatement);
             {
@@ -695,25 +701,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.SwitchSection);
                 {
-                    N(SyntaxKind.CasePatternSwitchLabel);
+                    N(SyntaxKind.CaseSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.DeclarationPattern);
+                        N(SyntaxKind.ConditionalExpression);
                         {
-                            N(SyntaxKind.NullableType);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "T");
-                                }
-                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
-                            N(SyntaxKind.SingleVariableDesignation);
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "t");
                             }
+                            N(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.ColonToken);
                     }
                     N(SyntaxKind.BreakStatement);
                     {
@@ -806,14 +814,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,9): error CS0103: The name 'e' does not exist in the current context
                 // switch (e) { case T[]? t: break; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 9),
+                // (1,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "T[]").WithArguments("type pattern", "9.0").WithLocation(1, 19),
                 // (1,19): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
                 // switch (e) { case T[]? t: break; }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(1, 19),
-                // (1,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                // (1,22): error CS1003: Syntax error, ':' expected
                 // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(1, 22));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":").WithLocation(1, 22),
+                // (1,22): error CS1513: } expected
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "?").WithLocation(1, 22),
+                // (1,24): warning CS0164: This label has not been referenced
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "t").WithLocation(1, 24));
 
-            UsingStatement(test, options: TestOptions.Regular8);
+            UsingStatement(test, options: TestOptions.Regular8,
+                // (1,22): error CS1003: Syntax error, ':' expected
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":").WithLocation(1, 22),
+                // (1,22): error CS1513: } expected
+                // switch (e) { case T[]? t: break; }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "?").WithLocation(1, 22));
 
             N(SyntaxKind.SwitchStatement);
             {
@@ -830,39 +853,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.DeclarationPattern);
+                        N(SyntaxKind.TypePattern);
                         {
-                            N(SyntaxKind.NullableType);
+                            N(SyntaxKind.ArrayType);
                             {
-                                N(SyntaxKind.ArrayType);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "T");
-                                    }
-                                    N(SyntaxKind.ArrayRankSpecifier);
-                                    {
-                                        N(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.OmittedArraySizeExpression);
-                                        {
-                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                        }
-                                        N(SyntaxKind.CloseBracketToken);
-                                    }
+                                    N(SyntaxKind.IdentifierToken, "T");
                                 }
-                                N(SyntaxKind.QuestionToken);
-                            }
-                            N(SyntaxKind.SingleVariableDesignation);
-                            {
-                                N(SyntaxKind.IdentifierToken, "t");
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
                             }
                         }
-                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.ColonToken);
                     }
-                    N(SyntaxKind.BreakStatement);
+                    N(SyntaxKind.LabeledStatement);
                     {
-                        N(SyntaxKind.BreakKeyword);
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.IdentifierToken, "t");
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.BreakStatement);
+                        {
+                            N(SyntaxKind.BreakKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);

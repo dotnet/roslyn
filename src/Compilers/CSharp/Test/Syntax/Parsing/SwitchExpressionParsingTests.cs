@@ -4327,7 +4327,19 @@ public class SwitchExpressionParsingTests : ParsingTests
             {
                 Type? varName => 1
             }
-            """);
+            """,
+            // (3,9): error CS1003: Syntax error, '=>' expected
+            //     Type? varName => 1
+            Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>").WithLocation(3, 9),
+            // (3,9): error CS1525: Invalid expression term '?'
+            //     Type? varName => 1
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(3, 9),
+            // (3,23): error CS1003: Syntax error, ':' expected
+            //     Type? varName => 1
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(3, 23),
+            // (3,23): error CS1525: Invalid expression term '}'
+            //     Type? varName => 1
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(3, 23));
 
         N(SyntaxKind.SwitchExpression);
         {
@@ -4339,25 +4351,38 @@ public class SwitchExpressionParsingTests : ParsingTests
             N(SyntaxKind.OpenBraceToken);
             N(SyntaxKind.SwitchExpressionArm);
             {
-                N(SyntaxKind.DeclarationPattern);
+                N(SyntaxKind.ConstantPattern);
                 {
-                    N(SyntaxKind.NullableType);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Type");
-                        }
-                        N(SyntaxKind.QuestionToken);
-                    }
-                    N(SyntaxKind.SingleVariableDesignation);
-                    {
-                        N(SyntaxKind.IdentifierToken, "varName");
+                        N(SyntaxKind.IdentifierToken, "Type");
                     }
                 }
-                N(SyntaxKind.EqualsGreaterThanToken);
-                N(SyntaxKind.NumericLiteralExpression);
+                M(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.ConditionalExpression);
                 {
-                    N(SyntaxKind.NumericLiteralToken, "1");
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.SimpleLambdaExpression);
+                    {
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "varName");
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    M(SyntaxKind.ColonToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
                 }
             }
             N(SyntaxKind.CloseBraceToken);
@@ -4374,9 +4399,12 @@ public class SwitchExpressionParsingTests : ParsingTests
                 Type? varName : 1
             }
             """,
-            // (3,19): error CS1003: Syntax error, '=>' expected
+            // (3,9): error CS1003: Syntax error, '=>' expected
             //     Type? varName : 1
-            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(3, 19));
+            Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>").WithLocation(3, 9),
+            // (3,9): error CS1525: Invalid expression term '?'
+            //     Type? varName : 1
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(3, 9));
 
         N(SyntaxKind.SwitchExpression);
         {
@@ -4388,25 +4416,30 @@ public class SwitchExpressionParsingTests : ParsingTests
             N(SyntaxKind.OpenBraceToken);
             N(SyntaxKind.SwitchExpressionArm);
             {
-                N(SyntaxKind.DeclarationPattern);
+                N(SyntaxKind.ConstantPattern);
                 {
-                    N(SyntaxKind.NullableType);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "Type");
-                        }
-                        N(SyntaxKind.QuestionToken);
-                    }
-                    N(SyntaxKind.SingleVariableDesignation);
-                    {
-                        N(SyntaxKind.IdentifierToken, "varName");
+                        N(SyntaxKind.IdentifierToken, "Type");
                     }
                 }
                 M(SyntaxKind.EqualsGreaterThanToken);
-                N(SyntaxKind.NumericLiteralExpression);
+                N(SyntaxKind.ConditionalExpression);
                 {
-                    N(SyntaxKind.NumericLiteralToken, "1");
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "varName");
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
                 }
             }
             N(SyntaxKind.CloseBraceToken);
