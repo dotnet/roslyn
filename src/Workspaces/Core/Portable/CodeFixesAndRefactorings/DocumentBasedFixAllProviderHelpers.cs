@@ -180,8 +180,8 @@ internal static class DocumentBasedFixAllProviderHelpers
 
     private static async Task<(Dictionary<TextSpan, List<string>> annotatedNodes, Dictionary<TextSpan, List<string>> annotatedTokens)> GetAnnotationsAsync(Document dirtyDocument, CancellationToken cancellationToken)
     {
-        var annotatedNodes = new Dictionary<TextSpan, List<string>>();
-        var annotatedTokens = new Dictionary<TextSpan, List<string>>();
+        var nodeAnnotations = new Dictionary<TextSpan, List<string>>();
+        var tokenAnnotations = new Dictionary<TextSpan, List<string>>();
         var root = await dirtyDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         GetAnnotations(SimplifierAddImportsAnnotation, Simplifier.AddImportsAnnotation);
@@ -190,13 +190,13 @@ internal static class DocumentBasedFixAllProviderHelpers
         GetAnnotations(SyntaxAnnotationElasticAnnotation, SyntaxAnnotation.ElasticAnnotation);
         GetAnnotations(CaseCorrectorAnnotation, CaseCorrector.Annotation);
 
-        return (annotatedNodes, annotatedTokens);
+        return (nodeAnnotations, tokenAnnotations);
 
         void GetAnnotations(string kind, SyntaxAnnotation annotation)
         {
             foreach (var nodeOrToken in root.GetAnnotatedNodesAndTokens(annotation))
             {
-                var dictionary = nodeOrToken.IsNode ? annotatedNodes : annotatedTokens;
+                var dictionary = nodeOrToken.IsNode ? nodeAnnotations : tokenAnnotations;
                 dictionary.MultiAdd(nodeOrToken.FullSpan, kind);
             }
         }
@@ -204,20 +204,17 @@ internal static class DocumentBasedFixAllProviderHelpers
 
     public static SyntaxNode WithAnnotations(
         SyntaxNode root,
-        Dictionary<TextSpan, List<string>> annotatedNodes,
-        Dictionary<TextSpan, List<string>> annotatedTokens)
+        Dictionary<TextSpan, List<string>> nodeAnnotations,
+        Dictionary<TextSpan, List<string>> tokenAnnotations)
     {
         return root.ReplaceSyntax(
-            GetNodes(),
-            (_, current) => WithNodeAnnotations(current),
-            GetTokens(),
-            (_, current) => WithTokenAnnotations(current),
-            trivia: null,
-            computeReplacementTrivia: null);
+            GetNodes(), WithNodeAnnotations,
+            GetTokens(), WithTokenAnnotations,
+            trivia: null, computeReplacementTrivia: null);
 
         IEnumerable<SyntaxNode> GetNodes()
         {
-            foreach (var (fullSpan, _) in annotatedNodes)
+            foreach (var (fullSpan, _) in nodeAnnotations)
             {
                 var node = root.FindNode(fullSpan, getInnermostNodeForTie: true);
                 yield return node;
@@ -226,7 +223,7 @@ internal static class DocumentBasedFixAllProviderHelpers
 
         IEnumerable<SyntaxToken> GetTokens()
         {
-            foreach (var (fullSpan, _) in annotatedTokens)
+            foreach (var (fullSpan, _) in tokenAnnotations)
             {
                 var token = root.FindToken(fullSpan.Start, findInsideTrivia: true);
                 if (token.FullSpan == fullSpan)
@@ -246,11 +243,11 @@ internal static class DocumentBasedFixAllProviderHelpers
             }
         }
 
-        SyntaxNode WithNodeAnnotations(SyntaxNode current)
-            => current.WithAdditionalAnnotations(GetAnnotations(annotatedNodes[current.FullSpan]));
+        SyntaxNode WithNodeAnnotations(SyntaxNode original, SyntaxNode current)
+            => current.WithAdditionalAnnotations(GetAnnotations(nodeAnnotations[original.FullSpan]));
 
-        SyntaxToken WithTokenAnnotations(SyntaxToken current)
-            => current.WithAdditionalAnnotations(GetAnnotations(annotatedTokens[current.FullSpan]));
+        SyntaxToken WithTokenAnnotations(SyntaxToken original, SyntaxToken current)
+            => current.WithAdditionalAnnotations(GetAnnotations(tokenAnnotations[original.FullSpan]));
 
         IEnumerable<SyntaxAnnotation> GetAnnotations(List<string> annotationKinds)
         {
