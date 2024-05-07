@@ -4155,7 +4155,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
 
                 case BoundKind.AssignmentOperator:
+                    // PROTOTYPE(RefStructInterfaces): We do not have a test that demonstrates that the statement below makes a difference.
+                    //                                 If 'scopeOfTheContainingExpression' is always returned, not a single test fails.
+                    //                                 Same for the 'case BoundKind.NullCoalescingAssignmentOperator:' below.
                     return GetValEscape(((BoundAssignmentOperator)expr).Right, scopeOfTheContainingExpression);
+
+                case BoundKind.NullCoalescingAssignmentOperator:
+                    return GetValEscape(((BoundNullCoalescingAssignmentOperator)expr).RightOperand, scopeOfTheContainingExpression);
 
                 case BoundKind.IncrementOperator:
                     return GetValEscape(((BoundIncrementOperator)expr).Operand, scopeOfTheContainingExpression);
@@ -4846,6 +4852,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.AssignmentOperator:
                     var assignment = (BoundAssignmentOperator)expr;
                     return CheckValEscape(node, assignment.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                case BoundKind.NullCoalescingAssignmentOperator:
+                    var nullCoalescingAssignment = (BoundNullCoalescingAssignmentOperator)expr;
+                    return CheckValEscape(node, nullCoalescingAssignment.LeftOperand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.IncrementOperator:
                     var increment = (BoundIncrementOperator)expr;

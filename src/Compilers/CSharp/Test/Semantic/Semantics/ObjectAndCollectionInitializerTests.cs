@@ -4178,9 +4178,9 @@ interface I : IEnumerable<int>
                 """;
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,15): error CS1922: Cannot initialize type 'S' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                // (5,11): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
                 // S s = new S() { d };
-                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ d }").WithArguments("S").WithLocation(5, 15)
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "S").WithArguments("S").WithLocation(5, 11)
             );
         }
     }

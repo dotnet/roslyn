@@ -23232,5 +23232,669 @@ class Program
 }
 ");
         }
+
+        [Fact]
+        public void NullCoalescingAssignment_01()
+        {
+            var text = @"
+class Program
+{
+    static void Test<T>()
+        where T : I1<T>, allows ref struct
+    {
+        var x = new C<T>();
+        System.Console.Write(x.PT.P);
+        x._pT.P++;
+        System.Console.Write("" "");
+        System.Console.Write(x.PT.P);
+    }
+
+    static void Main()
+    {
+        Test<S1>();
+        System.Console.Write("" "");
+        Test<S2>();
+        System.Console.Write("" "");
+        Test<C3>();
+    }
+}
+
+ref struct C<T>
+    where T : I1<T>, allows ref struct
+{
+    public T _pT;
+    public T PT
+    {
+        get
+        {
+            return _pT ??= T.Create();
+        }
+    }
+}
+
+public ref struct S1 : I1<S1>
+{
+    public int P {get;set;}
+    public static S1 Create() => default;
+}
+
+public struct S2 : I1<S2>
+{
+    public int P {get;set;}
+    public static S2 Create() => default;
+}
+
+public class C3 : I1<C3>
+{
+    public int P {get;set;}
+    public static C3 Create() => new C3();
+}
+
+public interface I1<T>
+    where T : I1<T>, allows ref struct
+{
+    public int P {get;set;}
+
+    abstract static T Create();
+}
+";
+
+            var comp = CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "0 1 0 1 0 1" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify.WithILVerifyMessage(
+@"[get_PT]: Call not allowed on abstract methods. { Offset = 0x16 }
+[get_PT]: Missing callvirt following constrained prefix. { Offset = 0x16 }
+[Create]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }") :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C<T>.PT.get", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  3
+  .locals init (T V_0,
+            T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""T C<T>._pT""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  box        ""T""
+  IL_000d:  brtrue.s   IL_0024
+  IL_000f:  ldarg.0
+  IL_0010:  constrained. ""T""
+  IL_0016:  call       ""T I1<T>.Create()""
+  IL_001b:  dup
+  IL_001c:  stloc.1
+  IL_001d:  stfld      ""T C<T>._pT""
+  IL_0022:  ldloc.1
+  IL_0023:  ret
+  IL_0024:  ldloc.0
+  IL_0025:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NullCoalescingAssignment_02()
+        {
+            var text = @"
+ref struct C<T>
+    where T : struct, I1<T>, allows ref struct
+{
+    public T _pT;
+    public T PT
+    {
+        get
+        {
+            return _pT ??= T.Create();
+        }
+    }
+}
+
+public interface I1<T>
+    where T : I1<T>, allows ref struct
+{
+    public int P {get;set;}
+
+    abstract static T Create();
+}
+";
+
+            var comp = CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (10,20): error CS0019: Operator '??=' cannot be applied to operands of type 'T' and 'T'
+                //             return _pT ??= T.Create();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "_pT ??= T.Create()").WithArguments("??=", "T", "T").WithLocation(10, 20)
+                );
+        }
+
+        [Fact]
+        public void NullCoalescingAssignment_03()
+        {
+            var comp = CreateCompilation(@"
+using System;
+class C
+{
+    void M<T>() where T : allows ref struct
+    {
+        T s1 = GetT<T>(stackalloc int[1]);
+        T s2 = GetT<T>(new Span<int>());
+
+        s2 = (s2 ??= GetT<T>(new Span<int>()));
+        s2 = (s1 ??= s2);
+    }
+
+    T GetT<T>(Span<int> s) where T : allows ref struct => default;
+}
+", targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //         s2 = (s1 ??= s2);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1 ??= s2").WithArguments("s1").WithLocation(11, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ObjectCreation_01(bool addStructConstraint)
+        {
+            var text = @"
+class Program
+{
+    static T Test<T>()
+        where T : " + (addStructConstraint ? "struct, I1" : "I1, new()") + @", allows ref struct
+    {
+        return new T() { P = 123 };
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test<S>().P);
+    }
+}
+
+public ref struct S : I1
+{
+    public int P {get;set;}
+}
+
+public interface I1
+{
+    public int P {get;set;}
+}
+
+namespace System
+{
+    public class Activator
+    {
+        public static T CreateInstance<T>() where T : allows ref struct => default;
+    }
+}
+";
+
+            var comp = CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ObjectCreation_02(bool addStructConstraint)
+        {
+            var text = @"
+class Program
+{
+    static T Test<T>()
+        where T : " + (addStructConstraint ? "struct, I1" : "I1, new()") + @", allows ref struct
+    {
+        return new T() { C = { P = 123 } };
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test<S>().C.P);
+    }
+}
+
+public class C
+{
+    public int P {get;set;}
+}
+
+public ref struct S : I1
+{
+    private C _c;
+    public C C 
+    {
+        get
+        {
+            return _c ??= new C();
+        }
+    }
+}
+
+public interface I1
+{
+    public C C {get;}
+}
+
+namespace System
+{
+    public class Activator
+    {
+        public static T CreateInstance<T>() where T : allows ref struct => default;
+    }
+}
+";
+
+            var comp = CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ObjectCreation_03()
+        {
+            var text = @"
+class Program
+{
+    static C<T> Test<T>()
+        where T : I1<T>, allows ref struct
+    {
+        return new C<T>() { PT = { P = 123 } };
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test<S1>().PT.P);
+        System.Console.Write("" "");
+        System.Console.Write(Test<S2>().PT.P);
+        System.Console.Write("" "");
+        System.Console.Write(Test<C3>().PT.P);
+    }
+}
+
+ref struct C<T>
+    where T : I1<T>, allows ref struct
+{
+    private T _pT;
+    public T PT
+    {
+        get
+        {
+            return _pT ??= T.Create();
+        }
+    }
+}
+
+public ref struct S1 : I1<S1>
+{
+    public int P {get;set;}
+    public static S1 Create() => default;
+}
+
+public struct S2 : I1<S2>
+{
+    public int P {get;set;}
+    public static S2 Create() => default;
+}
+
+public class C3 : I1<C3>
+{
+    public int P {get;set;}
+    public static C3 Create() => new C3();
+}
+
+public interface I1<T>
+    where T : I1<T>, allows ref struct
+{
+    public int P {get;set;}
+    abstract static T Create();
+}
+";
+
+            var comp = CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "0 0 123" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify.WithILVerifyMessage(
+@"[Test]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x20 }
+[get_PT]: Call not allowed on abstract methods. { Offset = 0x16 }
+[get_PT]: Missing callvirt following constrained prefix. { Offset = 0x16 }
+[Create]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }") :
+                    Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ObjectCreation_04()
+        {
+            var text = @"
+class Program
+{
+    static C<T> Test<T>()
+        where T : struct, I1, allows ref struct
+    {
+        return new C<T>() { PT = { P = 123 } };
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test<S>().PT.P);
+    }
+}
+
+ref struct C<T>
+    where T : struct, I1, allows ref struct
+{
+    public T PT {get;set;}
+}
+
+public ref struct S : I1
+{
+    public int P {get;set;}
+}
+
+public interface I1
+{
+    public int P {get;set;}
+}
+";
+
+            var comp = CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (7,29): error CS1918: Members of property 'C<T>.PT' of type 'T' cannot be assigned with an object initializer because it is of a value type
+                //         return new C<T>() { PT = { P = 123 } };
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "PT").WithArguments("C<T>.PT", "T").WithLocation(7, 29)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ObjectCreation_05(bool addStructConstraint)
+        {
+            var text = @"
+class Program
+{
+    static T Test<T>()
+        where T : " + (addStructConstraint ? "struct, I1" : "I1, new()") + @", allows ref struct
+    {
+        return new T() { 100, 20, 3 };
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test<S>().P);
+        System.Console.Write("" "");
+        System.Console.Write((new S() { 200, 40, 6 }).P);
+    }
+}
+
+public ref struct S : I1
+{
+    public int P {get;set;}
+    public void Add(int x) => P += x;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => null;
+}
+
+public interface I1 : System.Collections.IEnumerable
+{
+    public void Add(int x);
+}
+
+namespace System
+{
+    public class Activator
+    {
+        public static T CreateInstance<T>() where T : allows ref struct => default;
+    }
+}
+";
+
+            var comp = CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123 246" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ObjectCreation_06(bool addStructConstraint)
+        {
+            var text = @"
+class Program
+{
+    static T Test<T>()
+        where T : " + (addStructConstraint ? "struct, I1" : "I1, new()") + @", allows ref struct
+    {
+        return new T() { C = { 100, 20, 3 } };
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test<S>().C.P);
+    }
+}
+
+public class C : System.Collections.IEnumerable
+{
+    public int P {get;set;}
+    public void Add(int x) => P += x;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => null;
+}
+
+public ref struct S : I1
+{
+    private C _c;
+    public C C 
+    {
+        get
+        {
+            return _c ??= new C();
+        }
+    }
+}
+
+public interface I1
+{
+    public C C {get;}
+}
+
+namespace System
+{
+    public class Activator
+    {
+        public static T CreateInstance<T>() where T : allows ref struct => default;
+    }
+}
+";
+
+            var comp = CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ObjectCreation_07()
+        {
+            var text = @"
+class Program
+{
+    static C<T> Test<T>()
+        where T : I1<T>, allows ref struct
+    {
+        return new C<T>() { PT = { 100, 20, 3 } };
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test<S1>().PT.P);
+        System.Console.Write("" "");
+        System.Console.Write(Test<S2>().PT.P);
+        System.Console.Write("" "");
+        System.Console.Write(Test<C3>().PT.P);
+    }
+}
+
+ref struct C<T>
+    where T : I1<T>, allows ref struct
+{
+    private T _pT;
+    public T PT
+    {
+        get
+        {
+            return _pT ??= T.Create();
+        }
+    }
+}
+
+public ref struct S1 : I1<S1>
+{
+    public int P {get;set;}
+    public void Add(int x) => P += x;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => null;
+    public static S1 Create() => default;
+}
+
+public struct S2 : I1<S2>
+{
+    public int P {get;set;}
+    public void Add(int x) => P += x;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => null;
+    public static S2 Create() => default;
+}
+
+public class C3 : I1<C3>
+{
+    public int P {get;set;}
+    public void Add(int x) => P += x;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => null;
+    public static C3 Create() => new C3();
+}
+
+public interface I1<T> : System.Collections.IEnumerable
+    where T : I1<T>, allows ref struct
+{
+    public void Add(int x);
+    abstract static T Create();
+}
+";
+
+            var comp = CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "0 0 123" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify.WithILVerifyMessage(
+@"[Test]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x4d }
+[get_PT]: Call not allowed on abstract methods. { Offset = 0x16 }
+[get_PT]: Missing callvirt following constrained prefix. { Offset = 0x16 }
+[Create]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }") :
+                    Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ObjectCreation_08()
+        {
+            var text = @"
+class Program
+{
+    static C<T> Test<T>()
+        where T : struct, I1, allows ref struct
+    {
+        return new C<T>() { PT = { 100, 20, 3 } };
+    }
+}
+
+ref struct C<T>
+    where T : struct, I1, allows ref struct
+{
+    public T PT {get;set;}
+}
+
+public interface I1 : System.Collections.IEnumerable
+{
+    public void Add(int x);
+}
+";
+
+            var comp = CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (7,29): error CS1918: Members of property 'C<T>.PT' of type 'T' cannot be assigned with an object initializer because it is of a value type
+                //         return new C<T>() { PT = { P = 123 } };
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "PT").WithArguments("C<T>.PT", "T").WithLocation(7, 29)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CollectionExpressions_01(bool addStructConstraint)
+        {
+            var text = @"
+class Program
+{
+    static T Test<T>()
+        where T : " + (addStructConstraint ? "struct, I1" : "I1, new()") + @", allows ref struct
+    {
+        return [ 100, 20, 3 ];
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test<S>().P);
+        System.Console.Write("" "");
+        System.Console.Write(((S)([ 200, 40, 6 ])).P);
+    }
+}
+
+public ref struct S : I1
+{
+    public int P {get;set;}
+    public void Add(int x) => P += x;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => null;
+}
+
+public interface I1 : System.Collections.IEnumerable
+{
+    public void Add(int x);
+}
+
+namespace System
+{
+    public class Activator
+    {
+        public static T CreateInstance<T>() where T : allows ref struct => default;
+    }
+}
+";
+
+            var comp = CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123 246" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
     }
 }
