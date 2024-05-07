@@ -202,12 +202,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public new void RegisterText(SourceTextContainer text)
             => base.RegisterText(text);
 
-        protected override void Dispose(bool finalize)
-        {
-            _metadataAsSourceFileService?.CleanupGeneratedFiles();
-            base.Dispose(finalize);
-        }
-
         internal void AddTestSolution(TSolution solution)
             => this.OnSolutionAdded(SolutionInfo.Create(solution.Id, solution.Version, solution.FilePath, projects: solution.Projects.Select(p => p.ToProjectInfo())));
 
