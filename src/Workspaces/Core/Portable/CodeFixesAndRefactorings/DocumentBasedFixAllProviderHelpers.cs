@@ -67,10 +67,10 @@ internal static class DocumentBasedFixAllProviderHelpers
                         {
                             // As the FixAllProvider informs us about fixed documents, go and clean them up
                             // syntactically, and then invoke the callback to put into the channel for consumption.
-                            var tupleOpt = await CleanDocumentSyntaxAsync(
+                            var tuple = await CleanDocumentSyntaxAsync(
                                 originalDocument, newDocument, fixAllContext.State.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
-                            if (tupleOpt.HasValue)
-                                callback(tupleOpt.Value);
+                            if (tuple.HasValue)
+                                callback(tuple.Value);
                         }).ConfigureAwait(false);
                 },
                 consumeItems: static async (stream, args, cancellationToken) =>
