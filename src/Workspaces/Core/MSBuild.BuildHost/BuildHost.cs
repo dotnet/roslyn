@@ -12,23 +12,22 @@ using System.Threading.Tasks;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
-using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class BuildHost : IBuildHost
 {
-    private readonly ILogger _logger;
+    private readonly BuildHostLogger _logger;
     private readonly ImmutableDictionary<string, string> _globalMSBuildProperties;
     private readonly string? _binaryLogPath;
     private readonly RpcServer _server;
     private readonly object _gate = new object();
     private ProjectBuildManager? _buildManager;
 
-    public BuildHost(ILoggerFactory loggerFactory, ImmutableDictionary<string, string> globalMSBuildProperties, string? binaryLogPath, RpcServer server)
+    public BuildHost(BuildHostLogger logger, ImmutableDictionary<string, string> globalMSBuildProperties, string? binaryLogPath, RpcServer server)
     {
-        _logger = loggerFactory.CreateLogger<BuildHost>();
+        _logger = logger;
         _globalMSBuildProperties = globalMSBuildProperties;
         _binaryLogPath = binaryLogPath;
         _server = server;
