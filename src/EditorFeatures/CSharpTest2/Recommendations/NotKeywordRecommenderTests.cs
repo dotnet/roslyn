@@ -334,5 +334,14 @@ $@"if (e is Test.TestValue {precedingKeyword} $$)
 
 enum Test {{ TestValue }}");
         }
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
     }
 }

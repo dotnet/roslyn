@@ -169,5 +169,115 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 }
                 """);
         }
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterExtensionName()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterExtensionTypeParameters()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E<T> $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterExtensionPrimaryConstructor()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E(int i) $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotInExtensionTypeParameterList1()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E<$$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotInExtensionTypeParameterList2()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E<T, $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotInExtensionParameterList1()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E($$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotInExtensionParameterList2()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E(int i, $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotInExtensionInheritanceList()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E : $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterClassName()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class E $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterGenericClassName()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class E<T> $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotInsideExtension()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E
+                {
+                    $$
+                """);
+        }
     }
 }

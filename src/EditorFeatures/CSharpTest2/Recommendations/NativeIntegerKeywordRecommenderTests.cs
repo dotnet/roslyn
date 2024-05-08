@@ -465,6 +465,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
+        [Fact]
+        public async Task TestInExtensionForType()
+        {
+            await VerifyKeywordAsync(
+                SourceCodeKind.Regular,
+                """
+                implicit extension E for $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestInsideExtension()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E
+                {
+                    $$
+                """);
+        }
+
         #region Collection expressions
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]

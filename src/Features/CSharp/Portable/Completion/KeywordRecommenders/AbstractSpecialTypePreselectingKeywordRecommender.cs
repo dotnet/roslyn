@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
@@ -19,9 +20,9 @@ internal abstract class AbstractSpecialTypePreselectingKeywordRecommender(
     protected abstract SpecialType SpecialType { get; }
     protected abstract bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken);
 
-    // When the keyword is the inferred type in this context, we should treat it like its corresponding type symbol
-    // in terms of MatchPripority, so the selection can be determined by how well it matches the filter text instead,
-    // e.g. selecting "string" over "String" when user typed "str".
+    // When the keyword is the inferred type in this context, we should treat it like its corresponding type symbol in
+    // terms of MatchPriority, so the selection can be determined by how well it matches the filter text instead, e.g.
+    // selecting "string" over "String" when user typed "str".
     protected override int PreselectMatchPriority => SymbolMatchPriority.PreferType;
 
     protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
@@ -32,6 +33,43 @@ internal abstract class AbstractSpecialTypePreselectingKeywordRecommender(
         // Filter out all special-types from locations where we think we only want something task-like.
         if (context.IsTaskLikeTypeContext)
             return false;
+
+        if (context.IsAnyExpressionContext ||
+            context.IsCrefContext ||
+            context.IsDefiniteCastTypeContext ||
+            context.IsDelegateReturnTypeContext ||
+            context.IsExtensionForTypeContext ||
+            context.IsFunctionPointerTypeArgumentContext ||
+            context.IsGlobalStatementContext ||
+            context.IsImplicitOrExplicitOperatorTypeContext ||
+            context.IsIsOrAsTypeContext ||
+            context.IsLocalFunctionDeclarationContext ||
+            context.IsLocalVariableDeclarationContext ||
+            context.IsObjectCreationTypeContext ||
+            context.IsParameterTypeContext ||
+            context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
+            context.IsPossibleTupleContext ||
+            context.IsStatementContext ||
+            context.IsUsingAliasTypeContext)
+        {
+            return true;
+        }
+
+        if (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>())
+            return true;
+
+        if (context.SyntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken))
+            return true;
+
+        if (context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+            context.IsMemberDeclarationContext(
+                validModifiers: SyntaxKindSet.AllMemberModifiers,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
+                canBePartial: false,
+                cancellationToken: cancellationToken))
+        {
+            return true;
+        }
 
         return IsValidContextWorker(position, context, cancellationToken) ||
             IsAfterRefOrReadonlyInTopLevelOrMemberDeclaration(context, position, cancellationToken);

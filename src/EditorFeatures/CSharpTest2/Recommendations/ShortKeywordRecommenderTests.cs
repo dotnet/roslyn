@@ -992,5 +992,25 @@ $@"{type} N
     ref readonly $$
 }}");
         }
+
+        [Fact]
+        public async Task TestInExtensionForType()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestInsideExtension()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E
+                {
+                    $$
+                """);
+        }
     }
 }

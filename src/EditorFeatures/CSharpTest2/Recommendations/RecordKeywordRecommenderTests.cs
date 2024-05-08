@@ -540,5 +540,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             // readonly record struct is allowed.
             await VerifyKeywordAsync("readonly $$");
         }
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestInsideExtension()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E
+                {
+                    $$
+                """);
+        }
     }
 }

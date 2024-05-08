@@ -26,11 +26,13 @@ internal abstract class AbstractNativeIntegerKeywordRecommender : IKeywordRecomm
             context.IsGlobalStatementContext ||
             context.IsPossibleTupleContext ||
             context.IsAtStartOfPattern ||
-            context.IsUsingAliasTypeContext ||
-            (context.IsTypeContext && !context.IsEnumBaseListContext))
+            context.IsUsingAliasTypeContext)
         {
             return true;
         }
+
+        if (context.IsTypeContext)
+            return !context.IsEnumBaseListContext;
 
         return context.IsLocalVariableDeclarationContext;
     }

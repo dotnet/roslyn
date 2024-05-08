@@ -475,5 +475,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     int Goo { get; internal $$
                 """);
         }
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestInsideExtension()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E
+                {
+                    $$
+                """);
+        }
     }
 }

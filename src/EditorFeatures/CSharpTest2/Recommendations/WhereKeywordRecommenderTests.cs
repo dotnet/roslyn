@@ -672,5 +672,104 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                             $$
                 """);
         }
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints1()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints2()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E<T> $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints3()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E(int i) $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints4()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E<T>(int i) $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints5()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E : X $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints6()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E<T> : X $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints7()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E : X, Y $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints8()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E<T> : X, Y $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints9()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E : X<int> $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints10()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E<T> : X<int> $$
+                """);
+        }
     }
 }

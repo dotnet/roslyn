@@ -689,9 +689,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                             Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v)))
         End Function
 
-        Public Async Function AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
-                               Optional documentation As String = Nothing,
-                               Optional selectedParameter As String = Nothing) As Task
+        Public Async Function AssertSelectedSignatureHelpItem(
+                Optional displayText As String = Nothing,
+                Optional documentation As String = Nothing,
+                Optional selectedParameter As String = Nothing) As Task
             Await WaitForAsynchronousOperationsAsync()
 
             If displayText IsNot Nothing Then

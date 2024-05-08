@@ -33,7 +33,7 @@ internal sealed class DelegateKeywordRecommender : AbstractSyntacticSingleKeywor
             IsAfterAsyncKeywordInExpressionContext(context, cancellationToken) ||
             context.IsTypeDeclarationContext(
                 validModifiers: s_validModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken))
         {
@@ -50,6 +50,10 @@ internal sealed class DelegateKeywordRecommender : AbstractSyntacticSingleKeywor
                 return false;
 
             if (context.IsAttributeNameContext)
+                return false;
+
+            // An extension *currently* cannot be for a function pointer type.
+            if (context.IsExtensionForTypeContext)
                 return false;
 
             return true;

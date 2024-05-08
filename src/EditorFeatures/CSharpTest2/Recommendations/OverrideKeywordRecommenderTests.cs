@@ -444,5 +444,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     private protected $$
                 """);
         }
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotInsideExtension()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E
+                {
+                    $$
+                """);
+        }
     }
 }

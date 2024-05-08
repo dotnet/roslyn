@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class LoadKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class LoadKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public LoadKeywordRecommender()
         : base(SyntaxKind.LoadKeyword, isValidInPreprocessorContext: true)

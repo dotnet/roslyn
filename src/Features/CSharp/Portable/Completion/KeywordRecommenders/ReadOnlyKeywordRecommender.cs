@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class ReadOnlyKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class ReadOnlyKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     private static readonly ISet<SyntaxKind> s_validMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
@@ -37,7 +37,7 @@ internal class ReadOnlyKeywordRecommender : AbstractSyntacticSingleKeywordRecomm
             context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
             context.IsMemberDeclarationContext(
                 validModifiers: s_validMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken) ||
             IsStructAccessorContext(context);
@@ -53,7 +53,7 @@ internal class ReadOnlyKeywordRecommender : AbstractSyntacticSingleKeywordRecomm
     private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers.Except([SyntaxKind.ReadOnlyKeyword]).ToSet(),
-            validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken);
+            validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: false, cancellationToken);
     }
 
     private static bool IsStructAccessorContext(CSharpSyntaxContext context)

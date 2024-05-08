@@ -10,19 +10,19 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class ExplicitKeywordRecommenderTests : KeywordRecommenderTests
+    public sealed class ExplicitKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact]
-        public async Task TestNotAtRoot_Interactive()
+        public async Task TestAtRoot_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact]
-        public async Task TestNotAfterClass_Interactive()
+        public async Task TestAfterClassDeclaration_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
                 """
                 class C { }
                 $$
@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
                 """
                 int i = 0;
                 $$
@@ -71,67 +71,67 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotInCompilationUnit()
-            => await VerifyAbsenceAsync(@"$$");
+        public async Task TestInCompilationUnit()
+            => await VerifyKeywordAsync(@"$$");
 
         [Fact]
-        public async Task TestNotAfterExtern()
+        public async Task TestAfterExternDeclaration()
         {
-            await VerifyAbsenceAsync("""
+            await VerifyKeywordAsync("""
                 extern alias Goo;
                 $$
                 """);
         }
 
         [Fact]
-        public async Task TestNotAfterUsing()
+        public async Task TestAfterUsingDeclaration()
         {
-            await VerifyAbsenceAsync("""
+            await VerifyKeywordAsync("""
                 using Goo;
                 $$
                 """);
         }
 
         [Fact]
-        public async Task TestNotAfterGlobalUsing()
+        public async Task TestAfterGlobalUsing()
         {
-            await VerifyAbsenceAsync("""
+            await VerifyKeywordAsync("""
                 global using Goo;
                 $$
                 """);
         }
 
         [Fact]
-        public async Task TestNotAfterNamespace()
+        public async Task TestAfterNamespaceDeclaration()
         {
-            await VerifyAbsenceAsync("""
+            await VerifyKeywordAsync("""
                 namespace N {}
                 $$
                 """);
         }
 
         [Fact]
-        public async Task TestNotAfterTypeDeclaration()
+        public async Task TestAfterTypeDeclaration()
         {
-            await VerifyAbsenceAsync("""
+            await VerifyKeywordAsync("""
                 class C {}
                 $$
                 """);
         }
 
         [Fact]
-        public async Task TestNotAfterDelegateDeclaration()
+        public async Task TestAfterDelegateDeclaration()
         {
-            await VerifyAbsenceAsync("""
+            await VerifyKeywordAsync("""
                 delegate void Goo();
                 $$
                 """);
         }
 
         [Fact]
-        public async Task TestNotAfterMethod()
+        public async Task TestAfterMethod()
         {
-            await VerifyAbsenceAsync("""
+            await VerifyKeywordAsync("""
                 class C {
                   void Goo() {}
                   $$
@@ -139,9 +139,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterMethodInPartialType()
+        public async Task TestAfterMethodInPartialType()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 partial class C {
                   void Goo() {}
@@ -150,9 +150,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterFieldInPartialClass()
+        public async Task TestAfterFieldInPartialClass()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 partial class C {
                   int i;
@@ -161,9 +161,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterPropertyInPartialClass()
+        public async Task TestAfterPropertyInPartialClass()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 partial class C {
                   int i { get; }
@@ -192,27 +192,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterAssemblyAttribute()
+        public async Task TestAfterAssemblyAttribute()
         {
-            await VerifyAbsenceAsync("""
+            await VerifyKeywordAsync("""
                 [assembly: goo]
                 $$
                 """);
         }
 
         [Fact]
-        public async Task TestNotAfterRootAttribute()
+        public async Task TestAfterRootAttribute()
         {
-            await VerifyAbsenceAsync("""
+            await VerifyKeywordAsync("""
                 [goo]
                 $$
                 """);
         }
 
         [Fact]
-        public async Task TestNotAfterNestedAttributeInPartialClass()
+        public async Task TestAfterNestedAttributeInPartialClass()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 partial class C {
                   [goo]
@@ -220,21 +220,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        // This will be fixed once we have accessibility for members
         [Fact]
-        public async Task TestNotInsideStruct()
+        public async Task TestInsideStruct()
         {
-            await VerifyAbsenceAsync("""
+            await VerifyKeywordAsync("""
                 struct S {
                    $$
                 """);
         }
 
-        // This will be fixed once we have accessibility for members
         [Fact]
-        public async Task TestNotInsidePartialStruct()
+        public async Task TestInsidePartialStruct()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 partial struct S {
                    $$
@@ -242,18 +240,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotInsideInterface()
+        public async Task TestInsideInterface()
         {
-            await VerifyAbsenceAsync("""
+            await VerifyKeywordAsync("""
                 interface I {
                    $$
                 """);
         }
 
         [Fact]
-        public async Task TestNotInsidePartialClass()
+        public async Task TestInsidePartialClass()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 partial class C {
                    $$
@@ -261,24 +259,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterPartial()
-            => await VerifyAbsenceAsync(@"partial $$");
+        public async Task TestAfterPartial()
+            => await VerifyKeywordAsync(@"partial $$");
 
         [Fact]
         public async Task TestNotAfterAbstract()
             => await VerifyAbsenceAsync(@"abstract $$");
 
         [Fact]
-        public async Task TestNotAfterInternal()
-            => await VerifyAbsenceAsync(@"internal $$");
+        public async Task TestAfterInternal()
+            => await VerifyKeywordAsync(@"internal $$");
 
         [Fact]
-        public async Task TestNotAfterPublic()
-            => await VerifyAbsenceAsync(@"public $$");
+        public async Task TestAfterPublic()
+            => await VerifyKeywordAsync(@"public $$");
 
         [Fact]
-        public async Task TestNotAfterStaticPublic()
-            => await VerifyAbsenceAsync(@"static public $$");
+        public async Task TestAfterStaticPublic()
+            => await VerifyKeywordAsync(@"static public $$");
 
         [Fact]
         public async Task TestAfterNestedStaticPublicInClass()
@@ -291,9 +289,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterNestedStaticPublicInInterface()
+        public async Task TestAfterNestedStaticPublicInInterface()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 interface C {
                     static public $$
@@ -351,9 +349,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterNestedStaticInInterface()
+        public async Task TestAfterNestedStaticInInterface()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 interface C {
                     static $$
@@ -361,8 +359,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterPublicStatic()
-            => await VerifyAbsenceAsync(@"public static $$");
+        public async Task TestAfterPublicStatic()
+            => await VerifyKeywordAsync(@"public static $$");
 
         [Fact]
         public async Task TestAfterNestedPublicStaticInClass()
@@ -375,9 +373,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterNestedPublicStaticInInterface()
+        public async Task TestAfterNestedPublicStaticInInterface()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 interface C {
                     public static $$
@@ -419,20 +417,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             => await VerifyAbsenceAsync(@"virtual public $$");
 
         [Fact]
-        public async Task TestNotAfterPrivate()
-            => await VerifyAbsenceAsync(@"private $$");
+        public async Task TestAfterPrivate()
+            => await VerifyKeywordAsync(@"private $$");
 
         [Fact]
-        public async Task TestNotAfterProtected()
-            => await VerifyAbsenceAsync(@"protected $$");
+        public async Task TestAfterProtected()
+            => await VerifyKeywordAsync(@"protected $$");
 
         [Fact]
         public async Task TestNotAfterSealed()
             => await VerifyAbsenceAsync(@"sealed $$");
 
         [Fact]
-        public async Task TestNotAfterStatic()
-            => await VerifyAbsenceAsync(@"static $$");
+        public async Task TestAfterStatic()
+            => await VerifyKeywordAsync(@"static $$");
 
         [Fact]
         public async Task TestNotAfterClass()
@@ -589,6 +587,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyAbsenceAsync("""
                 interface C {
                      extern static abstract $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestInsideExtension()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E
+                {
+                    $$
                 """);
         }
     }

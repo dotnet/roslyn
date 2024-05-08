@@ -68,27 +68,30 @@ internal class SyntaxKindSet
 
     public static readonly ISet<SyntaxKind> AllTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
-        SyntaxKind.InterfaceDeclaration,
         SyntaxKind.ClassDeclaration,
-        SyntaxKind.RecordDeclaration,
-        SyntaxKind.StructDeclaration,
-        SyntaxKind.RecordStructDeclaration,
         SyntaxKind.EnumDeclaration,
-    };
-
-    public static readonly ISet<SyntaxKind> ClassInterfaceStructRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-    {
+        SyntaxKind.ExtensionDeclaration,
         SyntaxKind.InterfaceDeclaration,
-        SyntaxKind.ClassDeclaration,
         SyntaxKind.RecordDeclaration,
-        SyntaxKind.StructDeclaration,
         SyntaxKind.RecordStructDeclaration,
+        SyntaxKind.StructDeclaration,
     };
 
-    public static readonly ISet<SyntaxKind> ClassInterfaceRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+    public static readonly ISet<SyntaxKind> NonEnumTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
-        SyntaxKind.InterfaceDeclaration,
         SyntaxKind.ClassDeclaration,
+        SyntaxKind.ExtensionDeclaration,
+        SyntaxKind.InterfaceDeclaration,
+        SyntaxKind.RecordDeclaration,
+        SyntaxKind.RecordStructDeclaration,
+        SyntaxKind.StructDeclaration,
+    };
+
+    public static readonly ISet<SyntaxKind> NonEnumNonStructTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+    {
+        SyntaxKind.ClassDeclaration,
+        SyntaxKind.ExtensionDeclaration,
+        SyntaxKind.InterfaceDeclaration,
         SyntaxKind.RecordDeclaration,
     };
 

@@ -8,12 +8,13 @@ Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestStateFactory
-        Public Shared Function CreateCSharpTestState(documentElement As XElement,
-                                                     Optional excludedTypes As List(Of Type) = Nothing,
-                                                     Optional extraExportedTypes As List(Of Type) = Nothing,
-                                                     Optional includeFormatCommandHandler As Boolean = False,
-                                                     Optional languageVersion As LanguageVersion = LanguageVersion.Default,
-                                                     Optional showCompletionInArgumentLists As Boolean = True) As TestState
+        Public Shared Function CreateCSharpTestState(
+                documentElement As XElement,
+                Optional excludedTypes As List(Of Type) = Nothing,
+                Optional extraExportedTypes As List(Of Type) = Nothing,
+                Optional includeFormatCommandHandler As Boolean = False,
+                Optional languageVersion As LanguageVersion = LanguageVersion.Default,
+                Optional showCompletionInArgumentLists As Boolean = True) As TestState
 
             Dim testState = New TestState(<Workspace>
                                               <Project Language="C#" CommonReferences="true" LanguageVersion=<%= languageVersion.ToDisplayString() %>>

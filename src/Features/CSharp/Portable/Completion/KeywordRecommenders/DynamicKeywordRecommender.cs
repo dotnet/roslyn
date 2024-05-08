@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class DynamicKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
+internal sealed class DynamicKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
 {
     private static bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
@@ -31,7 +31,7 @@ internal class DynamicKeywordRecommender : IKeywordRecommender<CSharpSyntaxConte
             : [];
     }
 
-    protected static bool IsDynamicTypeContext(
+    private static bool IsDynamicTypeContext(
         int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var syntaxTree = context.SyntaxTree;
@@ -63,7 +63,7 @@ internal class DynamicKeywordRecommender : IKeywordRecommender<CSharpSyntaxConte
             syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
             context.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken);
     }

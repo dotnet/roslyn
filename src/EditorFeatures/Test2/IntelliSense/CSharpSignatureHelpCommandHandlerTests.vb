@@ -931,5 +931,59 @@ class C
             End Using
         End Function
 
+        ' SemanticModel.GetMemberGroup doesn't work for extension members yet.
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/66722"), CombinatorialData>
+        Public Async Function TypingUpdatesParameters_ExtensionType1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                using System;
+
+                implicit extension E for Console
+                {
+                    public static void Goo(int i, string j) { }
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        Console.Goo$$
+                    }
+                }
+                </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("(")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void E.Goo(int i, string j)", selectedParameter:="int i")
+                state.SendTypeChars("1,")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void E.Goo(int i, string j)", selectedParameter:="string j")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TypingUpdatesParameters_ExtensionType2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                using System;
+
+                implicit extension E for Console
+                {
+                    public static void Goo(int i, string j) { }
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        E.Goo$$
+                    }
+                }
+                </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("(")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void E.Goo(int i, string j)", selectedParameter:="int i")
+                state.SendTypeChars("1,")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void E.Goo(int i, string j)", selectedParameter:="string j")
+            End Using
+        End Function
     End Class
 End Namespace

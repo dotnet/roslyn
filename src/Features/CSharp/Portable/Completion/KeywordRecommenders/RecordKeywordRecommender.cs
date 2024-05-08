@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class RecordKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class RecordKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
@@ -37,7 +37,7 @@ internal class RecordKeywordRecommender : AbstractSyntacticSingleKeywordRecommen
             context.IsGlobalStatementContext ||
             context.IsTypeDeclarationContext(
                 validModifiers: s_validModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: true,
                 cancellationToken: cancellationToken);
     }

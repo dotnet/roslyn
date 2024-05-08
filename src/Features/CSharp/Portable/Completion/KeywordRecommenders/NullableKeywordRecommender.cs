@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class NullableKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class NullableKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public NullableKeywordRecommender()
         : base(SyntaxKind.NullableKeyword, isValidInPreprocessorContext: true)

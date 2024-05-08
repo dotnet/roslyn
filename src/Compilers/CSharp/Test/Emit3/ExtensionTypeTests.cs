@@ -141,6 +141,43 @@ public class ExtensionTypeTests : CompilingTestBase
     }
 
     [Theory, CombinatorialData]
+    public void TestLanguageVersion(bool isExplicit, bool withParameterList)
+    {
+        var src = $$"""
+            {{(isExplicit ? "explicit" : "implicit")}} extension E{{(withParameterList ? "(int i)" : "")}} { }
+            """;
+
+        foreach (var parseOptions in new[] { TestOptions.Regular12, TestOptions.RegularNext, TestOptions.RegularPreview })
+        {
+            var diagnostics = new List<DiagnosticDescription>();
+
+            if (parseOptions.LanguageVersion == LanguageVersion.CSharp12)
+            {
+                diagnostics.Add(
+                    // (1,10): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // implicit extension E { }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(1, 10));
+            }
+
+            diagnostics.Add(
+                // (1,20): error CS9314: No part of a partial extension 'E' includes an underlying type specification.
+                // implicit extension E { }
+                Diagnostic(ErrorCode.ERR_ExtensionMissingUnderlyingType, "E").WithArguments("E").WithLocation(1, 20));
+
+            if (withParameterList)
+            {
+                diagnostics.Add(
+                    // (1,21): error CS9122: Unexpected parameter list.
+                    // implicit extension E(int i) { }
+                    Diagnostic(ErrorCode.ERR_UnexpectedParameterList, "(int i)").WithLocation(1, 21));
+            }
+
+            var comp = CreateCompilation(src, parseOptions: parseOptions, targetFramework: TargetFramework.Net70)
+                .VerifyEmitDiagnostics(diagnostics.ToArray());
+        }
+    }
+
+    [Theory, CombinatorialData]
     public void ForClass(bool useImageReference, bool isExplicit)
     {
         var src = $$"""
@@ -2355,46 +2392,13 @@ explicit extension R(int i) for UnderlyingClass { }
         // PROTOTYPE should parse but remain error
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (3,20): error CS9314: No part of a partial extension 'R' includes an underlying type specification.
+            // (3,21): error CS9122: Unexpected parameter list.
             // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_ExtensionMissingUnderlyingType, "R").WithArguments("R").WithLocation(3, 20),
-            // (3,21): error CS1514: { expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(3, 21),
-            // (3,21): error CS1513: } expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(3, 21),
-            // (3,21): error CS8803: Top-level statements must precede namespace and type declarations.
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int ").WithLocation(3, 21),
-            // (3,22): error CS1525: Invalid expression term 'int'
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(3, 22),
-            // (3,22): error CS0119: 'int' is a type, which is not valid in the given context
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_BadSKunknown, "int").WithArguments("int", "type").WithLocation(3, 22),
-            // (3,26): error CS1026: ) expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "i").WithLocation(3, 26),
-            // (3,26): error CS1002: ; expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "i").WithLocation(3, 26),
-            // (3,26): error CS0246: The type or namespace name 'i' could not be found (are you missing a using directive or an assembly reference?)
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "i").WithArguments("i").WithLocation(3, 26),
-            // (3,27): error CS1001: Identifier expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(3, 27),
-            // (3,27): error CS1003: Syntax error, ',' expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(3, 27),
-            // (3,51): error CS1002: ; expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(3, 51),
-            // (3,51): error CS1022: Type or namespace definition, or end-of-file expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(3, 51)
-            );
+            Diagnostic(ErrorCode.ERR_UnexpectedParameterList, "(int i)").WithLocation(3, 21));
+
+        // No constructor, despite the presence of an invalid primary constructor in syntax.
+        var rType = comp.GetTypeByMetadataName("R");
+        Assert.Empty(rType.Constructors);
     }
 
     [Fact]

@@ -84,6 +84,10 @@ internal static partial class ISymbolExtensions2
                         case TypeKind.Error:
                             return Glyph.Error;
 
+                        case TypeKind.Extension:
+                            publicIcon = Glyph.ClassPublic;
+                            break;
+
                         default:
                             throw new ArgumentException(FeaturesResources.The_symbol_does_not_have_an_icon, nameof(symbol));
                     }
