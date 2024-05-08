@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -461,15 +462,19 @@ public abstract class CodeAction
     internal static async Task<ImmutableArray<(DocumentId documentId, CodeCleanupOptions codeCleanupOptions)>> GetDocumentIdsAndOptionsAsync(
         Solution solution, CodeCleanupOptionsProvider optionsProvider, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
     {
-        var documentIdsAndOptions = new FixedSizeArrayBuilder<(DocumentId documentId, CodeCleanupOptions options)>(documentIds.Length);
+        using var _ = ArrayBuilder<(DocumentId documentId, CodeCleanupOptions options)>.GetInstance(documentIds.Length, out var documentIdsAndOptions);
         foreach (var documentId in documentIds)
         {
             var document = solution.GetRequiredDocument(documentId);
-            var codeActionOptions = await document.GetCodeCleanupOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
-            documentIdsAndOptions.Add((documentId, codeActionOptions));
+
+            if (document.SupportsSyntaxTree)
+            {
+                var codeActionOptions = await document.GetCodeCleanupOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+                documentIdsAndOptions.Add((documentId, codeActionOptions));
+            }
         }
 
-        return documentIdsAndOptions.MoveToImmutable();
+        return documentIdsAndOptions.ToImmutableAndClear();
     }
 
     internal static async Task<Solution> PostProcessChangesAsync(
@@ -496,28 +501,26 @@ public abstract class CodeAction
             changedSolution, fallbackOptions, documentIds, cancellationToken).ConfigureAwait(false);
 
         // Do an initial pass where we cleanup syntax.
-        var syntaxCleanedSolution = await ProducerConsumer<(DocumentId documentId, (SyntaxNode? node, SourceText? text))>.RunParallelAsync(
+        var syntaxCleanedSolution = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
             source: documentIdsAndOptions,
             produceItems: static async (documentIdAndOptions, callback, changedSolution, cancellationToken) =>
             {
                 var document = changedSolution.GetRequiredDocument(documentIdAndOptions.documentId);
+                Contract.ThrowIfFalse(document.SupportsSyntaxTree, "GetDocumentIdsAndOptionsAsync should only be returning documents that support syntax");
                 var cleanedDocument = await CleanupSyntaxAsync(document, documentIdAndOptions.codeCleanupOptions, cancellationToken).ConfigureAwait(false);
                 if (cleanedDocument is null || cleanedDocument == document)
                     return;
 
-                var newRoot = cleanedDocument.SupportsSyntaxTree ? await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
-                var newText = cleanedDocument.SupportsSyntaxTree ? null : await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                callback((document.Id, (newRoot, newText)));
+                var newRoot = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                callback((document.Id, newRoot));
             },
             consumeItems: static async (stream, changedSolution, cancellationToken) =>
             {
                 var currentSolution = changedSolution;
-                await foreach (var (documentId, (newRoot, newText)) in stream)
+                await foreach (var (documentId, newRoot) in stream)
                 {
                     var document = currentSolution.GetRequiredDocument(documentId);
-                    currentSolution = newRoot != null
-                        ? currentSolution.WithDocumentSyntaxRoot(document.Id, newRoot)
-                        : currentSolution.WithDocumentText(document.Id, newText!);
+                    currentSolution = currentSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
                 }
 
                 return currentSolution;
