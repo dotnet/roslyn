@@ -60,21 +60,31 @@ internal static class DocumentBasedFixAllProviderHelpers
                     Contract.ThrowIfFalse(
                         fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
-                    await args.getFixedDocumentsAsync(fixAllContext,
-                        (originalDocument, newDocument) => CleanDocumentSyntaxAsync(
-                            callback, originalDocument, newDocument, fixAllContext.State.CodeActionOptionsProvider, cancellationToken)).ConfigureAwait(false);
+                    // Defer to the FixAllProvider to actually compute each fixed document.
+                    await args.getFixedDocumentsAsync(
+                        fixAllContext,
+                        async (originalDocument, newDocument) =>
+                        {
+                            // As the FixAllProvider informs us about fixed documents, go and clean them up
+                            // syntactically, and then invoke the callback to put into the channel for consumption.
+                            var tupleOpt = await CleanDocumentSyntaxAsync(
+                                originalDocument, newDocument, fixAllContext.State.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+                            if (tupleOpt.HasValue)
+                                callback(tupleOpt.Value);
+                        }).ConfigureAwait(false);
                 },
                 consumeItems: static async (stream, args, cancellationToken) =>
                 {
                     var currentSolution = args.solution;
                     using var _ = ArrayBuilder<DocumentId>.GetInstance(out var changedRootDocumentIds);
 
-                    // Next, go and insert those all into the solution so all the docs in this particular project
-                    // point at the new trees (or text).  At this point though, the trees have not been cleaned up.
-                    // We don't cleanup the documents as they are created, or one at a time as we add them, as that
-                    // would cause us to run cleanup on N different solution forks (which would be very expensive).
-                    // Instead, by adding all the changed documents to one solution, and then cleaning *those* we
-                    // only perform cleanup semantics on one forked solution.
+                    // Next, go and insert those all into the solution so all the docs in this particular project point
+                    // at the new trees (or text).  At this point though, the trees have not been semantically cleaned
+                    // up. We don't cleanup the documents as they are created, or one at a time as we add them, as that
+                    // would cause us to run semantic cleanup on N different solution forks (which would be very
+                    // expensive as we'd fork, produce semantics, fork, produce semantics, etc. etc.). Instead, by
+                    // adding all the changed documents to one solution, and then cleaning *those* we only perform
+                    // cleanup semantics on one forked solution.
                     await foreach (var (docId, (newRoot, newText)) in stream)
                     {
                         // If we produced a new root (as opposed to new text), keep track of that doc-id so that we
@@ -107,9 +117,9 @@ internal static class DocumentBasedFixAllProviderHelpers
             // on the same fork and do not cause the forked solution to be created and dropped repeatedly.
             using var _ = await RemoteKeepAliveSession.CreateAsync(dirtySolution, cancellationToken).ConfigureAwait(false);
 
-            // Next, go and cleanup any trees we inserted. Once we clean the document, we get the text of it and insert
-            // that back into the final solution.  This way we can release both the original fixed tree, and the cleaned
-            // tree (both of which can be much more expensive than just text).
+            // Next, go and semantically cleanup any trees we inserted. Once we clean the document, we get the text of
+            // it and insert that back into the final solution.  This way we can release both the original fixed tree,
+            // and the cleaned tree (both of which can be much more expensive than just text).
             //
             // Do this in parallel across all the documents that were fixed and resulted in a new tree (as opposed to new
             // text).
@@ -141,15 +151,14 @@ internal static class DocumentBasedFixAllProviderHelpers
                 cancellationToken).ConfigureAwait(false);
         }
 
-        static async ValueTask CleanDocumentSyntaxAsync(
-            Action<(DocumentId documentId, (SyntaxNode? node, SourceText? text))> callback,
+        static async ValueTask<(DocumentId documentId, (SyntaxNode? node, SourceText? text))?> CleanDocumentSyntaxAsync(
             Document document,
             Document? newDocument,
             CodeActionOptionsProvider codeActionOptionsProvider,
             CancellationToken cancellationToken)
         {
             if (newDocument == null || newDocument == document)
-                return;
+                return null;
 
             if (newDocument.SupportsSyntaxTree)
             {
@@ -160,13 +169,13 @@ internal static class DocumentBasedFixAllProviderHelpers
                 var cleanedDocument = await CodeAction.CleanupSyntaxAsync(newDocument, codeActionOptions, cancellationToken).ConfigureAwait(false);
                 var node = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                callback((document.Id, (node, text: null)));
+                return (document.Id, (node, text: null));
             }
             else
             {
                 // If it's a language that doesn't support that, then just grab the text.
                 var text = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                callback((document.Id, (node: null, text)));
+                return (document.Id, (node: null, text));
             }
         }
     }
