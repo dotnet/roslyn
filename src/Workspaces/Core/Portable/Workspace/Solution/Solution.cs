@@ -1307,20 +1307,23 @@ public partial class Solution
     /// rooted by the specified syntax node.
     /// </summary>
     public Solution WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
+        => WithDocumentSyntaxRoots([(documentId, root, mode)]);
+
+    /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
+    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root, PreservationMode mode)> syntaxRoots)
     {
-        CheckContainsDocument(documentId);
-
-        if (root == null)
+        foreach (var (documentId, root, mode) in syntaxRoots)
         {
-            throw new ArgumentNullException(nameof(root));
+            CheckContainsDocument(documentId);
+
+            if (root == null)
+                throw new ArgumentNullException(nameof(root));
+
+            if (!mode.IsValid())
+                throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        if (!mode.IsValid())
-        {
-            throw new ArgumentOutOfRangeException(nameof(mode));
-        }
-
-        return WithCompilationState(_compilationState.WithDocumentSyntaxRoot(documentId, root, mode));
+        return WithCompilationState(_compilationState.WithDocumentSyntaxRoots(syntaxRoots));
     }
 
     internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)

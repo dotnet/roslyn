@@ -162,7 +162,7 @@ internal partial class SolutionCompilationState
                 {
                     // The generated file still exists in the underlying compilation, but the contents may not match the open file if the open file
                     // is stale. Replace the syntax tree so we have a tree that matches the text.
-                    newStates = newStates.SetState(id, replacementState);
+                    newStates = newStates.SetState(replacementState);
                 }
                 else
                 {

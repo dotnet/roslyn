@@ -762,15 +762,61 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode));
     }
 
-    /// <inheritdoc cref="SolutionState.WithDocumentSyntaxRoot"/>
-    public SolutionCompilationState WithDocumentSyntaxRoot(
-        DocumentId documentId, SyntaxNode root, PreservationMode mode)
+    /// <inheritdoc cref="SolutionState.WithDocumentSyntaxRoots"/>
+    public SolutionCompilationState WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root, PreservationMode mode)> syntaxRoots)
     {
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentSyntaxRoot(documentId, root, mode), documentId);
+        return UpdateDocumentsInMultipleProjects(
+             syntaxRoots.GroupBy(d => d.documentId.ProjectId).Select(g =>
+             {
+                 var projectId = g.Key;
+                 var projectState = this.SolutionState.GetRequiredProjectState(projectId);
+
+                 using var _ = ArrayBuilder<DocumentState>.GetInstance(out var updatedDocumentStates);
+                 foreach (var (documentId, root, mode) in g)
+                 {
+                     var documentState = projectState.DocumentStates.GetRequiredState(documentId);
+                     if (IsUnchanged(documentState, root))
+                         continue;
+
+                     updatedDocumentStates.Add(documentState.UpdateTree(root, mode));
+                 }
+
+                 return (projectId, updatedDocumentStates.ToImmutableAndClear());
+             }),
+             static (projectState, updatedDocumentStates) =>
+             {
+                 return new TranslationAction.TouchDocumentAction(projectState, projectState.UpdateDocument.UpdateDocuments(updatedDocumentStates, contentChanged: true), updatedDocumentStates);
+             });
+
+        static bool IsUnchanged(DocumentState oldDocument, SyntaxNode root)
+        {
+            return oldDocument.TryGetSyntaxTree(out var oldTree) &&
+                oldTree.TryGetRoot(out var oldRoot) &&
+                oldRoot == root;
+        }
     }
 
-    public SolutionCompilationState WithDocumentContentsFrom(
+
+
+///// <summary>
+///// Creates a new solution instance with the document specified updated to have a syntax tree
+///// rooted by the specified syntax node.
+///// </summary>
+//public StateChange WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
+//{
+//    var oldDocument = GetRequiredDocumentState(documentId);
+//    if (oldDocument.TryGetSyntaxTree(out var oldTree) &&
+//        oldTree.TryGetRoot(out var oldRoot) &&
+//        oldRoot == root)
+//    {
+//        var oldProject = GetRequiredProjectState(documentId.ProjectId);
+//        return new(this, oldProject, oldProject);
+//    }
+
+//    return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
+//}
+
+public SolutionCompilationState WithDocumentContentsFrom(
         DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
     {
         return UpdateDocumentState(
@@ -1498,12 +1544,20 @@ internal sealed partial class SolutionCompilationState
         Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> addDocumentsToProjectState)
         where TDocumentState : TextDocumentState
     {
+        return UpdateDocumentsInMultipleProjects(projectIdAndNewDocuments, addDocumentsToProjectState);
+    }
+
+    private SolutionCompilationState UpdateDocumentsInMultipleProjects<TDocumentState>(
+        IEnumerable<(ProjectId projectId, ImmutableArray<TDocumentState> updatedDocumentState)> projectIdAndUpdatedDocuments,
+        Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> updatedDocumentsToProjectState)
+        where TDocumentState : TextDocumentState
+    {
         var newCompilationState = this;
 
-        foreach (var (projectId, newDocumentStates) in projectIdAndNewDocuments)
+        foreach (var (projectId, newDocumentStates) in projectIdAndUpdatedDocuments)
         {
             var oldProjectState = newCompilationState.SolutionState.GetRequiredProjectState(projectId);
-            var compilationTranslationAction = addDocumentsToProjectState(oldProjectState, newDocumentStates);
+            var compilationTranslationAction = updatedDocumentsToProjectState(oldProjectState, newDocumentStates);
             var newProjectState = compilationTranslationAction.NewProjectState;
 
             var stateChange = newCompilationState.SolutionState.ForkProject(
