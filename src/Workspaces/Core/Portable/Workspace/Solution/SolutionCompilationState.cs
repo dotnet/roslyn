@@ -762,7 +762,7 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode));
     }
 
-    /// <inheritdoc cref="SolutionState.WithDocumentSyntaxRoots"/>
+    /// <inheritdoc cref="Solution.WithDocumentSyntaxRoots"/>
     public SolutionCompilationState WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root, PreservationMode mode)> syntaxRoots)
     {
         return UpdateDocumentsInMultipleProjects(
@@ -771,21 +771,24 @@ internal sealed partial class SolutionCompilationState
                  var projectId = g.Key;
                  var projectState = this.SolutionState.GetRequiredProjectState(projectId);
 
-                 using var _ = ArrayBuilder<DocumentState>.GetInstance(out var updatedDocumentStates);
+                 using var _ = ArrayBuilder<DocumentState>.GetInstance(out var newDocumentStates);
                  foreach (var (documentId, root, mode) in g)
                  {
                      var documentState = projectState.DocumentStates.GetRequiredState(documentId);
                      if (IsUnchanged(documentState, root))
                          continue;
 
-                     updatedDocumentStates.Add(documentState.UpdateTree(root, mode));
+                     newDocumentStates.Add(documentState.UpdateTree(root, mode));
                  }
 
-                 return (projectId, updatedDocumentStates.ToImmutableAndClear());
+                 return (projectId, newDocumentStates.ToImmutableAndClear());
              }),
-             static (projectState, updatedDocumentStates) =>
+             static (projectState, newDocumentStates) =>
              {
-                 return new TranslationAction.TouchDocumentAction(projectState, projectState.UpdateDocument.UpdateDocuments(updatedDocumentStates, contentChanged: true), updatedDocumentStates);
+                 return TranslationAction.TouchDocumentsAction.Create(
+                     projectState,
+                     projectState.UpdateDocuments(newDocumentStates, contentChanged: true),
+                     newDocumentStates);
              });
 
         static bool IsUnchanged(DocumentState oldDocument, SyntaxNode root)
@@ -796,27 +799,7 @@ internal sealed partial class SolutionCompilationState
         }
     }
 
-
-
-///// <summary>
-///// Creates a new solution instance with the document specified updated to have a syntax tree
-///// rooted by the specified syntax node.
-///// </summary>
-//public StateChange WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
-//{
-//    var oldDocument = GetRequiredDocumentState(documentId);
-//    if (oldDocument.TryGetSyntaxTree(out var oldTree) &&
-//        oldTree.TryGetRoot(out var oldRoot) &&
-//        oldRoot == root)
-//    {
-//        var oldProject = GetRequiredProjectState(documentId.ProjectId);
-//        return new(this, oldProject, oldProject);
-//    }
-
-//    return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
-//}
-
-public SolutionCompilationState WithDocumentContentsFrom(
+    public SolutionCompilationState WithDocumentContentsFrom(
         DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
     {
         return UpdateDocumentState(

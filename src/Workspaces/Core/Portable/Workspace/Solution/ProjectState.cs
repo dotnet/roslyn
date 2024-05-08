@@ -185,15 +185,15 @@ internal partial class ProjectState
     }
 
     private AsyncLazy<VersionStamp> CreateLazyLatestDocumentTopLevelChangeVersion(
-        TextDocumentState newDocument,
+        ImmutableArray<TextDocumentState> newDocuments,
         TextDocumentStates<DocumentState> newDocumentStates,
         TextDocumentStates<AdditionalDocumentState> newAdditionalDocumentStates)
     {
         if (_lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out var oldVersion))
         {
             return AsyncLazy.Create(static (arg, cancellationToken) =>
-                ComputeTopLevelChangeTextVersionAsync(arg.oldVersion, arg.newDocument, cancellationToken),
-                arg: (oldVersion, newDocument));
+                ComputeTopLevelChangeTextVersionAsync(arg.oldVersion, arg.newDocuments, cancellationToken),
+                arg: (oldVersion, newDocuments));
         }
         else
         {
@@ -204,10 +204,16 @@ internal partial class ProjectState
     }
 
     private static async Task<VersionStamp> ComputeTopLevelChangeTextVersionAsync(
-        VersionStamp oldVersion, TextDocumentState newDocument, CancellationToken cancellationToken)
+        VersionStamp oldVersion, ImmutableArray<TextDocumentState> newDocuments, CancellationToken cancellationToken)
     {
-        var newVersion = await newDocument.GetTopLevelChangeTextVersionAsync(cancellationToken).ConfigureAwait(false);
-        return newVersion.GetNewerVersion(oldVersion);
+        var finalVersion = oldVersion;
+        foreach (var newDocument in newDocuments)
+        {
+            var newVersion = await newDocument.GetTopLevelChangeTextVersionAsync(cancellationToken).ConfigureAwait(false);
+            finalVersion = newVersion.GetNewerVersion(finalVersion);
+        }
+
+        return finalVersion;
     }
 
     private static async Task<VersionStamp> ComputeLatestDocumentTopLevelChangeVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<AdditionalDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
@@ -850,7 +856,10 @@ internal partial class ProjectState
 
         // When computing the latest dependent version, we just need to know how 
         GetLatestDependentVersions(
-            newDocumentStates, AdditionalDocumentStates, oldDocuments, newDocuments, contentChanged,
+            newDocumentStates, AdditionalDocumentStates,
+            oldDocuments.CastArray<TextDocumentState>(),
+            newDocuments.CastArray<TextDocumentState>(),
+            contentChanged,
             out var dependentDocumentVersion, out var dependentSemanticVersion);
 
         return With(
@@ -869,7 +878,7 @@ internal partial class ProjectState
 
         var newDocumentStates = AdditionalDocumentStates.SetState(newDocument);
         GetLatestDependentVersions(
-            DocumentStates, newDocumentStates, oldDocument, newDocument, contentChanged,
+            DocumentStates, newDocumentStates, [oldDocument], [newDocument], contentChanged,
             out var dependentDocumentVersion, out var dependentSemanticVersion);
 
         return this.With(
@@ -906,47 +915,71 @@ internal partial class ProjectState
     private void GetLatestDependentVersions(
         TextDocumentStates<DocumentState> newDocumentStates,
         TextDocumentStates<AdditionalDocumentState> newAdditionalDocumentStates,
-        TextDocumentState oldDocument,
-        TextDocumentState newDocument,
+        ImmutableArray<TextDocumentState> oldDocuments,
+        ImmutableArray<TextDocumentState> newDocuments,
         bool contentChanged,
-        out AsyncLazy<VersionStamp> dependentDocumentVersion, out AsyncLazy<VersionStamp> dependentSemanticVersion)
+        out AsyncLazy<VersionStamp> dependentDocumentVersion,
+        out AsyncLazy<VersionStamp> dependentSemanticVersion)
     {
         var recalculateDocumentVersion = false;
         var recalculateSemanticVersion = false;
 
         if (contentChanged)
         {
-            if (oldDocument.TryGetTextVersion(out var oldVersion))
+            foreach (var oldDocument in oldDocuments)
             {
-                if (!_lazyLatestDocumentVersion.TryGetValue(out var documentVersion) || documentVersion == oldVersion)
+                if (oldDocument.TryGetTextVersion(out var oldVersion))
                 {
-                    recalculateDocumentVersion = true;
+                    if (!_lazyLatestDocumentVersion.TryGetValue(out var documentVersion) || documentVersion == oldVersion)
+                        recalculateDocumentVersion = true;
+
+                    if (!_lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out var semanticVersion) || semanticVersion == oldVersion)
+                        recalculateSemanticVersion = true;
                 }
 
-                if (!_lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out var semanticVersion) || semanticVersion == oldVersion)
-                {
-                    recalculateSemanticVersion = true;
-                }
+                if (recalculateDocumentVersion && recalculateSemanticVersion)
+                    break;
             }
         }
 
-        dependentDocumentVersion = recalculateDocumentVersion
-            ? AsyncLazy.Create(static (arg, cancellationToken) =>
+        if (recalculateDocumentVersion)
+        {
+            dependentDocumentVersion = AsyncLazy.Create(static (arg, cancellationToken) =>
                 ComputeLatestDocumentVersionAsync(arg.newDocumentStates, arg.newAdditionalDocumentStates, cancellationToken),
-                arg: (newDocumentStates, newAdditionalDocumentStates))
-            : contentChanged
-                ? AsyncLazy.Create(
-                    static (newDocument, cancellationToken) => newDocument.GetTextVersionAsync(cancellationToken),
-                    arg: newDocument)
-                : _lazyLatestDocumentVersion;
+                arg: (newDocumentStates, newAdditionalDocumentStates));
+        }
+        else if (contentChanged)
+        {
+            dependentDocumentVersion = AsyncLazy.Create(
+                static async (newDocuments, cancellationToken) =>
+                {
+                    var finalVersion = await newDocuments[0].GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
+                    for (var i = 1; i < newDocuments.Length; i++)
+                        finalVersion = finalVersion.GetNewerVersion(await newDocuments[i].GetTextVersionAsync(cancellationToken).ConfigureAwait(false));
 
-        dependentSemanticVersion = recalculateSemanticVersion
-            ? AsyncLazy.Create(static (arg, c) =>
-                ComputeLatestDocumentTopLevelChangeVersionAsync(arg.newDocumentStates, arg.newAdditionalDocumentStates, c),
-                arg: (newDocumentStates, newAdditionalDocumentStates))
-            : contentChanged
-                ? CreateLazyLatestDocumentTopLevelChangeVersion(newDocument, newDocumentStates, newAdditionalDocumentStates)
-                : _lazyLatestDocumentTopLevelChangeVersion;
+                    return finalVersion;
+                },
+                arg: newDocuments);
+        }
+        else
+        {
+            dependentDocumentVersion = _lazyLatestDocumentVersion;
+        }
+
+        if (recalculateSemanticVersion)
+        {
+            dependentSemanticVersion = AsyncLazy.Create(static (arg, cancellationToken) =>
+                ComputeLatestDocumentTopLevelChangeVersionAsync(arg.newDocumentStates, arg.newAdditionalDocumentStates, cancellationToken),
+                arg: (newDocumentStates, newAdditionalDocumentStates));
+        }
+        else if (contentChanged)
+        {
+            dependentSemanticVersion = CreateLazyLatestDocumentTopLevelChangeVersion(newDocuments, newDocumentStates, newAdditionalDocumentStates);
+        }
+        else
+        {
+            dependentSemanticVersion = _lazyLatestDocumentTopLevelChangeVersion;
+        }
     }
 
     public void AddDocumentIdsWithFilePath(ref TemporaryArray<DocumentId> temporaryArray, string filePath)
