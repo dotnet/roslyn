@@ -190,6 +190,15 @@ namespace Microsoft.CodeAnalysis
             // we would have merged them earlier.
             foreach (var section in _globalConfig.NamedSections)
             {
+                if (!PathUtilities.IsUnixLikePlatform
+                    && section.Name.Length > 2
+                    && char.ToUpperInvariant(normalizedPath[0]) == char.ToUpperInvariant(section.Name[0])
+                    && PathUtilities.PathsEqual(normalizedPath[1..], normalizedPath[1..]))
+                {
+                    sectionKey.Add(section);
+                    break;
+                }
+
                 if (normalizedPath.Equals(section.Name, Section.NameComparer))
                 {
                     sectionKey.Add(section);
