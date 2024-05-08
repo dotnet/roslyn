@@ -142,10 +142,9 @@ internal static class DocumentBasedFixAllProviderHelpers
         }
 
         async static ValueTask<(DocumentId documentId, (SyntaxNode? node, SourceText? text))?> ProcessFixedDocumentAsync(
-            Document document,
-            Document? newDocument,
-            CancellationToken cancellationToken)
+            Document document, Document? newDocument, CancellationToken cancellationToken)
         {
+            // If we didn't get a distinct new document, then we don't have anything to do.
             if (newDocument == null || newDocument == document)
                 return null;
 
