@@ -27,7 +27,7 @@ internal static class DocumentBasedFixAllProviderHelpers
         ImmutableArray<TFixAllContext> fixAllContexts,
         IProgress<CodeAnalysisProgress> progressTracker,
         string progressTrackerDescription,
-        Func<TFixAllContext, Action<(DocumentId documentId, (SyntaxNode? node, SourceText? text))>, Task> getFixedDocumentsAsync)
+        Func<TFixAllContext, Func<Document, Document?, ValueTask>, Task> getFixedDocumentsAsync)
         where TFixAllContext : IFixAllContext
     {
         var cancellationToken = originalFixAllContext.CancellationToken;
@@ -59,7 +59,14 @@ internal static class DocumentBasedFixAllProviderHelpers
                     Contract.ThrowIfFalse(
                         fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
-                    await args.getFixedDocumentsAsync(fixAllContext, callback).ConfigureAwait(false);
+                    await args.getFixedDocumentsAsync(
+                        fixAllContext,
+                        async (document, newDocument) =>
+                        {
+                            var tuple = await ProcessFixedDocumentAsync(document, newDocument, cancellationToken).ConfigureAwait(false);
+                            if (tuple.HasValue)
+                                callback(tuple.Value);
+                        }).ConfigureAwait(false);
                 },
                 consumeItems: static async (stream, args, cancellationToken) =>
                 {
@@ -132,6 +139,21 @@ internal static class DocumentBasedFixAllProviderHelpers
                 },
                 args: (dirtySolution, progressTracker),
                 cancellationToken).ConfigureAwait(false);
+        }
+
+        async static ValueTask<(DocumentId documentId, (SyntaxNode? node, SourceText? text))?> ProcessFixedDocumentAsync(
+            Document document, Document? newDocument, CancellationToken cancellationToken)
+        {
+            // If we didn't get a distinct new document, then we don't have anything to do.
+            if (newDocument == null || newDocument == document)
+                return null;
+
+            // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
+            // language that doesn't support that, then just grab the text.
+            var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
+            var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+
+            return (document.Id, (node, text));
         }
     }
 

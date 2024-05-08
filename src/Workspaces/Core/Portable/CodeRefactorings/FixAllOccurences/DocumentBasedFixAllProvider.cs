@@ -87,7 +87,7 @@ internal abstract class DocumentBasedFixAllProvider : FixAllProvider
     /// documents that don't support syntax.
     /// </summary>
     private async Task GetFixedDocumentsAsync(
-        FixAllContext fixAllContext, Action<(DocumentId documentId, (SyntaxNode? node, SourceText? text))> callback)
+        FixAllContext fixAllContext, Func<Document, Document?, ValueTask> onDocumentFixed)
     {
         Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
             or FixAllScope.ContainingMember or FixAllScope.ContainingType);
@@ -104,15 +104,7 @@ internal abstract class DocumentBasedFixAllProvider : FixAllProvider
             {
                 var (document, spans) = tuple;
                 var newDocument = await this.FixAllAsync(fixAllContext, document, spans).ConfigureAwait(false);
-                if (newDocument == null || newDocument == document)
-                    return;
-
-                // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
-                // language that doesn't support that, then just grab the text.
-                var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
-                var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-
-                callback((document.Id, (node, text)));
+                await onDocumentFixed(document, newDocument).ConfigureAwait(false);
             }).ConfigureAwait(false);
     }
 }
