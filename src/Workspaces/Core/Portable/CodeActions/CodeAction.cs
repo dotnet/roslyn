@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
@@ -495,21 +496,28 @@ public abstract class CodeAction
             changedSolution, fallbackOptions, documentIds, cancellationToken).ConfigureAwait(false);
 
         // Do an initial pass where we cleanup syntax.
-        var syntaxCleanedSolution = await ProducerConsumer<Document>.RunParallelAsync(
+        var syntaxCleanedSolution = await ProducerConsumer<(DocumentId documentId, (SyntaxNode? node, SourceText? text))>.RunParallelAsync(
             source: documentIdsAndOptions,
             produceItems: static async (documentIdAndOptions, callback, changedSolution, cancellationToken) =>
             {
                 var document = changedSolution.GetRequiredDocument(documentIdAndOptions.documentId);
-                var newDoc = await CleanupSyntaxAsync(document, documentIdAndOptions.codeCleanupOptions, cancellationToken).ConfigureAwait(false);
+                var cleanedDocument = await CleanupSyntaxAsync(document, documentIdAndOptions.codeCleanupOptions, cancellationToken).ConfigureAwait(false);
+                if (cleanedDocument is null || cleanedDocument == document)
+                    return;
+
+                var newRoot = cleanedDocument.SupportsSyntaxTree ? await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
+                var newText = cleanedDocument.SupportsSyntaxTree ? null : await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                callback((document.Id, (newRoot, newText)));
             },
             consumeItems: static async (stream, changedSolution, cancellationToken) =>
             {
                 var currentSolution = changedSolution;
-                await foreach (var document in stream)
+                await foreach (var (documentId, (newRoot, newText)) in stream)
                 {
-                    currentSolution = document.SupportsSyntaxTree
-                        ? currentSolution.WithDocumentSyntaxRoot(document.Id, await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false))
-                        : currentSolution.WithDocumentText(document.Id, await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false));
+                    var document = currentSolution.GetRequiredDocument(documentId);
+                    currentSolution = newRoot != null
+                        ? currentSolution.WithDocumentSyntaxRoot(document.Id, newRoot)
+                        : currentSolution.WithDocumentText(document.Id, newText!);
                 }
 
                 return currentSolution;
