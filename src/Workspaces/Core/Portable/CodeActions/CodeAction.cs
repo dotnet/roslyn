@@ -459,24 +459,6 @@ public abstract class CodeAction
 #pragma warning restore CA1822 // Mark members as static
     => PostProcessChangesAsync(originalSolution: null!, changedSolution, cancellationToken);
 
-    internal static async Task<ImmutableArray<(DocumentId documentId, CodeCleanupOptions codeCleanupOptions)>> GetDocumentIdsAndOptionsToCleanAsync(
-        Solution solution, CodeCleanupOptionsProvider optionsProvider, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
-    {
-        using var _ = ArrayBuilder<(DocumentId documentId, CodeCleanupOptions options)>.GetInstance(documentIds.Length, out var documentIdsAndOptions);
-        foreach (var documentId in documentIds)
-        {
-            var document = solution.GetRequiredDocument(documentId);
-
-            if (document.SupportsSyntaxTree)
-            {
-                var codeActionOptions = await document.GetCodeCleanupOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
-                documentIdsAndOptions.Add((documentId, codeActionOptions));
-            }
-        }
-
-        return documentIdsAndOptions.ToImmutableAndClear();
-    }
-
     internal static async Task<Solution> PostProcessChangesAsync(
         Solution originalSolution,
         Solution changedSolution,
@@ -509,18 +491,16 @@ public abstract class CodeAction
     internal static async Task<Solution> CleanSyntaxAndSemanticsAsync(
         Solution originalSolution,
         Solution changedSolution,
-        CodeCleanupOptionsProvider codeCleanupOptions,
+        CodeCleanupOptionsProvider optionsProvider,
         IProgress<CodeAnalysisProgress> progress,
         CancellationToken cancellationToken)
     {
         var solutionChanges = changedSolution.GetChanges(originalSolution);
 
         var documentIds = GetAllChangedOrAddedDocumentIds(originalSolution, changedSolution);
+        var documentIdsAndOptionsToClean = await GetDocumentIdsAndOptionsToCleanAsync().ConfigureAwait(false);
 
-        var documentIdsAndOptionsToClean = await GetDocumentIdsAndOptionsToCleanAsync(
-            changedSolution, codeCleanupOptions, documentIds, cancellationToken).ConfigureAwait(false);
-
-        // Do an initial pass where we cleanup syntax.
+        // Do an initial pass where we cleanup syntax only.
         var syntaxCleanedSolution = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
             source: documentIdsAndOptionsToClean,
             produceItems: static async (documentIdAndOptions, callback, changedSolution, cancellationToken) =>
@@ -553,6 +533,23 @@ public abstract class CodeAction
             syntaxCleanedSolution, documentIdsAndOptionsToClean, progress, cancellationToken).ConfigureAwait(false);
 
         return semanticCleanedSolution;
+
+        async Task<ImmutableArray<(DocumentId documentId, CodeCleanupOptions codeCleanupOptions)>> GetDocumentIdsAndOptionsToCleanAsync()
+        {
+            using var _ = ArrayBuilder<(DocumentId documentId, CodeCleanupOptions options)>.GetInstance(documentIds.Length, out var documentIdsAndOptions);
+            foreach (var documentId in documentIds)
+            {
+                var document = changedSolution.GetRequiredDocument(documentId);
+
+                if (document.SupportsSyntaxTree)
+                {
+                    var codeActionOptions = await document.GetCodeCleanupOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+                    documentIdsAndOptions.Add((documentId, codeActionOptions));
+                }
+            }
+
+            return documentIdsAndOptions.ToImmutableAndClear();
+        }
     }
 
     /// <summary>
