@@ -671,6 +671,8 @@ public abstract class CodeAction
                     {
                         // Now, perform the requested cleanup pass on it.
                         var cleanedDocument = await args.cleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+                        if (cleanedDocument is null || cleanedDocument == document)
+                            return;
 
                         // Now get the cleaned root and pass it back to the consumer.
                         var newRoot = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
