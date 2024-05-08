@@ -230,7 +230,7 @@ internal static class DocumentBasedFixAllProviderHelpers
             foreach (var nodeOrToken in root.GetAnnotatedNodesAndTokens(annotation))
             {
                 var dictionary = nodeOrToken.IsNode ? nodeAnnotations : tokenAnnotations;
-                dictionary.MultiAdd(nodeOrToken.FullSpan, kind);
+                dictionary.MultiAdd(nodeOrToken.Span, kind);
             }
         }
     }
@@ -247,26 +247,27 @@ internal static class DocumentBasedFixAllProviderHelpers
 
         IEnumerable<SyntaxNode> GetNodes()
         {
-            foreach (var (fullSpan, _) in nodeAnnotations)
+            foreach (var (span, _) in nodeAnnotations)
             {
-                var node = root.FindNode(fullSpan, getInnermostNodeForTie: true);
+                var node = root.FindNode(span, getInnermostNodeForTie: true);
+                Contract.ThrowIfTrue(node.Span != span);
                 yield return node;
             }
         }
 
         IEnumerable<SyntaxToken> GetTokens()
         {
-            foreach (var (fullSpan, _) in tokenAnnotations)
+            foreach (var (span, _) in tokenAnnotations)
             {
-                var token = root.FindToken(fullSpan.Start, findInsideTrivia: true);
-                if (token.FullSpan == fullSpan)
+                var token = root.FindToken(span.Start, findInsideTrivia: true);
+                if (token.Span == span)
                 {
                     yield return token;
                     continue;
                 }
 
-                token = root.FindToken(fullSpan.Start, findInsideTrivia: false);
-                if (token.FullSpan == fullSpan)
+                token = root.FindToken(span.Start, findInsideTrivia: false);
+                if (token.Span == span)
                 {
                     yield return token;
                     continue;
@@ -277,10 +278,10 @@ internal static class DocumentBasedFixAllProviderHelpers
         }
 
         SyntaxNode WithNodeAnnotations(SyntaxNode original, SyntaxNode current)
-            => current.WithAdditionalAnnotations(GetAnnotations(nodeAnnotations[original.FullSpan]));
+            => current.WithAdditionalAnnotations(GetAnnotations(nodeAnnotations[original.Span]));
 
         SyntaxToken WithTokenAnnotations(SyntaxToken original, SyntaxToken current)
-            => current.WithAdditionalAnnotations(GetAnnotations(tokenAnnotations[original.FullSpan]));
+            => current.WithAdditionalAnnotations(GetAnnotations(tokenAnnotations[original.Span]));
 
         IEnumerable<SyntaxAnnotation> GetAnnotations(List<string> annotationKinds)
         {
