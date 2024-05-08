@@ -573,36 +573,39 @@ public abstract class CodeAction
         return document2;
     }
 
+    /// <summary>
+    /// We do cleanup in N serialized passes.  This allows us to process all documents in parallel, while only forking
+    /// the solution N times *total* (instead of N times *per* document).
+    /// </summary>
+    private static readonly ImmutableArray<Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>>> s_cleanupPasses =
+    [
+        // First, ensure that everything is formatted as the feature asked for.  We want to do this prior to doing
+        // semantic cleanup as the semantic cleanup passes may end up making changes that end up dropping some of
+        // the formatting/elastic annotations that the feature wanted respected.
+        static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken),
+        // Then add all missing imports to all changed documents.
+        static (document, options, cancellationToken) => ImportAdder.AddImportsFromSymbolAnnotationAsync(document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken),
+        // Then simplify any expanded constructs.
+        static (document, options, cancellationToken) => Simplifier.ReduceAsync(document, Simplifier.Annotation, options.SimplifierOptions, cancellationToken),
+        // The do any necessary case correction for VB files.
+        static (document, options, cancellationToken) => CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken),
+        // Finally, after doing the semantic cleanup, do another syntax cleanup pass to ensure that the tree is in a
+        // good state. The semantic cleanup passes may have introduced new nodes with elastic trivia that have to be
+        // cleaned.
+        static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken),
+    ];
+
     private static async Task<Solution> CleanupSyntaxAndSemanticsAsync(
         Solution solution,
         ImmutableArray<(DocumentId documentId, CodeCleanupOptions options)> documentIdsAndOptions,
         IProgress<CodeAnalysisProgress> progress,
         CancellationToken cancellationToken)
     {
-        // We do this in N serialized passes.  This allows us to process all documents in parallel, while only forking
-        // the solution N times *total* (instead of N times *per* document).
-
-        Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>>[] cleanupPasses = [
-            // First, ensure that everything is formatted as the feature asked for.  We want to do this prior to doing
-            // semantic cleanup as the semantic cleanup passes may end up making changes that end up dropping some of
-            // the formatting/elastic annotations that the feature wanted respected.
-            static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken),
-            // Then add all missing imports to all changed documents.
-            static (document, options, cancellationToken) => ImportAdder.AddImportsFromSymbolAnnotationAsync(document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken),
-            // Then simplify any expanded constructs.
-            static (document, options, cancellationToken) => Simplifier.ReduceAsync(document, Simplifier.Annotation, options.SimplifierOptions, cancellationToken),
-            // The do any necessary case correction for VB files.
-            static (document, options, cancellationToken) => CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken),
-            // Finally, after doing the semantic cleanup, do another syntax cleanup pass to ensure that the tree is in a
-            // good state. The semantic cleanup passes may have introduced new nodes with elastic trivia that have to be
-            // cleaned.
-            static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken),
-        ];
-
-        progress.AddItems(documentIdsAndOptions.Length * cleanupPasses.Length);
+        // One item per document per cleanup pass.
+        progress.AddItems(documentIdsAndOptions.Length * s_cleanupPasses.Length);
 
         var currentSolution = solution;
-        foreach (var cleanupPass in cleanupPasses)
+        foreach (var cleanupPass in s_cleanupPasses)
         {
             currentSolution = await RunParallelCleanupPassAsync(
                 currentSolution, documentIdsAndOptions, progress, cleanupPass, cancellationToken).ConfigureAwait(false);
