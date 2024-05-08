@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -555,7 +556,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
             inlineExpression = (TExpressionSyntax)syntaxGenerator.AddParentheses(
                 syntaxGenerator.CastExpression(
                     GenerateTypeSyntax(calleeMethodSymbol.ReturnType, allowVar: false),
-                    syntaxGenerator.AddParentheses(inlineMethodContext.InlineExpression)));
+                    syntaxGenerator.AddParentheses(inlineMethodContext.InlineExpression.WithAdditionalAnnotations(Formatter.Annotation))));
 
         }
 
