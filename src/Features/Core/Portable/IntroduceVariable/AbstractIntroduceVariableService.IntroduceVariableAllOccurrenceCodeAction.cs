@@ -24,8 +24,5 @@ internal partial class AbstractIntroduceVariableService<TService, TExpressionSyn
             : base(service, document, options, expression, allOccurrences, isConstant, isLocal, isQueryLocal)
         {
         }
-
-        protected override Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
-            => CleanupSemanticsAsync(document, this.Options, cancellationToken);
     }
 }
