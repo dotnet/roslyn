@@ -140,34 +140,34 @@ internal static class DocumentBasedFixAllProviderHelpers
                 args: (originalFixAllContext, dirtySolution, progressTracker),
                 cancellationToken).ConfigureAwait(false);
         }
-    }
 
-    public static async ValueTask CleanDocumentSyntaxAsync(
-        Action<(DocumentId documentId, (SyntaxNode? node, SourceText? text))> callback,
-        Document document,
-        Document? newDocument,
-        CodeActionOptionsProvider codeActionOptionsProvider,
-        CancellationToken cancellationToken)
-    {
-        if (newDocument == null || newDocument == document)
-            return;
-
-        if (newDocument.SupportsSyntaxTree)
+        static async ValueTask CleanDocumentSyntaxAsync(
+            Action<(DocumentId documentId, (SyntaxNode? node, SourceText? text))> callback,
+            Document document,
+            Document? newDocument,
+            CodeActionOptionsProvider codeActionOptionsProvider,
+            CancellationToken cancellationToken)
         {
-            // For documents that support syntax, grab the tree so that we can clean it. We do the formatting up front
-            // ensuring that we have well-formatted syntax trees in the solution to work with.  A later pass will do the
-            // semantic cleanup on all documents in parallel.
-            var codeActionOptions = await newDocument.GetCodeCleanupOptionsAsync(codeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
-            var cleanedDocument = await CodeAction.CleanupSyntaxAsync(newDocument, codeActionOptions, cancellationToken).ConfigureAwait(false);
-            var node = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (newDocument == null || newDocument == document)
+                return;
 
-            callback((document.Id, (node, text: null)));
-        }
-        else
-        {
-            // If it's a language that doesn't support that, then just grab the text.
-            var text = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            callback((document.Id, (node: null, text)));
+            if (newDocument.SupportsSyntaxTree)
+            {
+                // For documents that support syntax, grab the tree so that we can clean it. We do the formatting up front
+                // ensuring that we have well-formatted syntax trees in the solution to work with.  A later pass will do the
+                // semantic cleanup on all documents in parallel.
+                var codeActionOptions = await newDocument.GetCodeCleanupOptionsAsync(codeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+                var cleanedDocument = await CodeAction.CleanupSyntaxAsync(newDocument, codeActionOptions, cancellationToken).ConfigureAwait(false);
+                var node = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                callback((document.Id, (node, text: null)));
+            }
+            else
+            {
+                // If it's a language that doesn't support that, then just grab the text.
+                var text = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                callback((document.Id, (node: null, text)));
+            }
         }
     }
 }
