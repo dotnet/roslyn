@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Telemetry;
 using Roslyn.Utilities;
@@ -464,6 +466,29 @@ public abstract partial class CodeAction
         var globalOptions = changedSolution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
         var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
         return await CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, fallbackOptions, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Apply post processing steps to a single document:
+    ///   Reducing nodes annotated with <see cref="Simplifier.Annotation"/>
+    ///   Formatting nodes annotated with <see cref="Formatter.Annotation"/>
+    /// </summary>
+    /// <param name="document">The document changed by the <see cref="CodeAction"/>.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>A document with the post processing changes applied.</returns>
+    protected virtual async Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
+    {
+        if (document.SupportsSyntaxTree)
+        {
+            // TODO: avoid ILegacyGlobalCodeActionOptionsWorkspaceService https://github.com/dotnet/roslyn/issues/60777
+            var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
+            var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
+
+            var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            return await CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+        }
+
+        return document;
     }
 
     #region Factories for standard code actions
