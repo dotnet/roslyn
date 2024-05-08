@@ -112,11 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var diagnostics = BindingDiagnosticBag.GetInstance();
                 TypeSymbol? acyclicBase = makeAcyclicUnderlyingType(basesBeingResolved, diagnostics);
-                if (basesBeingResolved is not null)
-                {
-                    return acyclicBase;
-                }
-
                 if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyExtensionUnderlyingType, acyclicBase, ErrorTypeSymbol.UnknownResultType),
                         ErrorTypeSymbol.UnknownResultType))
                 {
