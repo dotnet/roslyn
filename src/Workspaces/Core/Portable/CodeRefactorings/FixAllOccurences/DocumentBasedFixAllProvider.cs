@@ -8,8 +8,6 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -28,18 +26,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 ///
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
-internal abstract class DocumentBasedFixAllProvider : FixAllProvider
+internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes) : FixAllProvider
 {
-    private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes;
+    private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes = supportedFixAllScopes;
 
     protected DocumentBasedFixAllProvider()
         : this(DefaultSupportedFixAllScopes)
     {
-    }
-
-    protected DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes)
-    {
-        _supportedFixAllScopes = supportedFixAllScopes;
     }
 
     /// <summary>
@@ -81,13 +74,12 @@ internal abstract class DocumentBasedFixAllProvider : FixAllProvider
             GetFixedDocumentsAsync);
 
     /// <summary>
-    /// Attempts to apply fix all operations returning, for each updated document, either
-    /// the new syntax root for that document or its new text.  Syntax roots are returned for documents that support
-    /// them, and are used to perform a final cleanup pass for formatting/simplication/etc.  Text is returned for
-    /// documents that don't support syntax.
+    /// Attempts to apply fix all operations returning, for each updated document, either the new syntax root for that
+    /// document or its new text.  Syntax roots are returned for documents that support them, and are used to perform a
+    /// final cleanup pass for formatting/simplification/etc.  Text is returned for documents that don't support syntax.
     /// </summary>
     private async Task GetFixedDocumentsAsync(
-        FixAllContext fixAllContext, Action<(DocumentId documentId, (SyntaxNode? node, SourceText? text))> callback)
+        FixAllContext fixAllContext, Func<Document, Document?, ValueTask> onDocumentFixed)
     {
         Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
             or FixAllScope.ContainingMember or FixAllScope.ContainingType);
@@ -104,8 +96,7 @@ internal abstract class DocumentBasedFixAllProvider : FixAllProvider
             {
                 var (document, spans) = tuple;
                 var newDocument = await this.FixAllAsync(fixAllContext, document, spans).ConfigureAwait(false);
-                await DocumentBasedFixAllProviderHelpers.ProcessFixedDocumentAsync(
-                    callback, document, newDocument, fixAllContext.State.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+                await onDocumentFixed(document, newDocument).ConfigureAwait(false);
             }).ConfigureAwait(false);
     }
 }

@@ -21,7 +21,7 @@ internal sealed partial class RemoteFixAllProviderService(in BrokeredServiceBase
             => new RemoteFixAllProviderService(arguments);
     }
 
-    public ValueTask<string> PerformCleanupAsync(
+    public ValueTask<string> PerformSemanticCleanupAsync(
         Checksum solutionChecksum, DocumentId documentId, CodeCleanupOptions codeCleanupOptions,
         Dictionary<TextSpan, List<string>> nodeAnnotations, Dictionary<TextSpan, List<string>> tokenAnnotations,
         CancellationToken cancellationToken)
@@ -30,10 +30,12 @@ internal sealed partial class RemoteFixAllProviderService(in BrokeredServiceBase
         {
             var document = solution.GetRequiredDocument(documentId);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // Add the annotations into our local document.
             var updatedRoot = DocumentBasedFixAllProviderHelpers.WithAnnotations(root, nodeAnnotations, tokenAnnotations);
             var updatedDocument = document.WithSyntaxRoot(updatedRoot);
 
-            var sourceText = await DocumentBasedFixAllProviderHelpers.PerformCleanupInCurrentProcessAsync(
+            var sourceText = await DocumentBasedFixAllProviderHelpers.PerformSemanticCleanupInCurrentProcessAsync(
                 updatedDocument, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
             return sourceText.ToString();
         }, cancellationToken);

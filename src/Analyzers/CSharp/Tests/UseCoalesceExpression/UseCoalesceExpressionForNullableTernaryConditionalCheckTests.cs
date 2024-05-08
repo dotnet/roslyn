@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
                 {
                     void M(int? x, int? y)
                     {
-                        var z = x ?? y ;
+                        var z = x ?? y;
                     }
                 }
                 """);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
                 {
                     void M(int? x, int? y)
                     {
-                        var z = (x + y) ?? y ;
+                        var z = (x + y) ?? y;
                     }
                 }
                 """);
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
                 {
                     void M(int? x, int? y)
                     {
-                        Expression<Func<int>> e = () => {|Warning:x ?? y|} ;
+                        Expression<Func<int>> e = () => {|Warning:x ?? y|};
                     }
                 }
                 """);
