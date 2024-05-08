@@ -4,15 +4,17 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.AddDebuggerDisplay;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
-    Microsoft.CodeAnalysis.CSharp.AddDebuggerDisplay.CSharpAddDebuggerDisplayCodeRefactoringProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddDebuggerDisplay
 {
+    using VerifyCS = CSharpCodeRefactoringVerifier<CSharpAddDebuggerDisplayCodeRefactoringProvider>;
+
+    [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddDebuggerDisplay)]
     public sealed class AddDebuggerDisplayTests
     {
