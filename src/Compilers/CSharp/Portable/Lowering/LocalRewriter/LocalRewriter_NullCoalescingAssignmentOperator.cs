@@ -25,11 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lhsRead = MakeRValue(transformedLHS);
             BoundExpression loweredRight = VisitExpression(node.RightOperand);
 
-            var result = node.IsNullableValueTypeAssignment ?
+            return node.IsNullableValueTypeAssignment ?
                     rewriteNullCoalescingAssignmentForValueType() :
                     rewriteNullCoalscingAssignmentStandard();
-
-            return ConvertResultOfAssignmentToDynamicIfNecessary(node, node.LeftOperand, result, used: true);
 
             BoundExpression rewriteNullCoalscingAssignmentStandard()
             {

@@ -2421,7 +2421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CollectionExpressionMissingAdd
                 or ErrorCode.WRN_ConvertingLock
                 or ErrorCode.ERR_BadSpecialByRefLock
-                or ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections
+                or ErrorCode.ERR_DynamicDispatchToParamsCollection
                 or ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument
                 or ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod
                 or ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer
