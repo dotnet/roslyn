@@ -536,21 +536,15 @@ public abstract class CodeAction
     {
         if (document.SupportsSyntaxTree)
         {
-            var options = await GetCodeCleanupOptionAsync(document, cancellationToken).ConfigureAwait(false);
+            // TODO: avoid ILegacyGlobalCodeActionOptionsWorkspaceService https://github.com/dotnet/roslyn/issues/60777
+            var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
+            var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
+
+            var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             return await CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
         }
 
         return document;
-    }
-
-    private static async Task<CodeCleanupOptions> GetCodeCleanupOptionAsync(Document document, CancellationToken cancellationToken)
-    {
-        // TODO: avoid ILegacyGlobalCodeActionOptionsWorkspaceService https://github.com/dotnet/roslyn/issues/60777
-        var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
-        var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
-
-        var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-        return options;
     }
 
     internal static async Task<Document> CleanupDocumentAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
