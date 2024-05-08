@@ -490,27 +490,32 @@ public abstract class CodeAction
 
         var globalOptions = changedSolution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
         var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
-        return await PostProcessChangesAsync(originalSolution, changedSolution, fallbackOptions, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+        return await CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, fallbackOptions, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
     }
 
-    internal static async Task<Solution> PostProcessChangesAsync(
+    internal static ImmutableArray<DocumentId> GetAllChangedOrAddedDocumentIds(
+        Solution originalSolution,
+        Solution changedSolution)
+    {
+        var solutionChanges = changedSolution.GetChanges(originalSolution);
+        var documentIds = solutionChanges
+            .GetProjectChanges()
+            .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(p.GetAddedDocuments()))
+            .Concat(solutionChanges.GetAddedProjects().SelectMany(p => p.DocumentIds))
+            .ToImmutableArray();
+        return documentIds;
+    }
+
+    internal static async Task<Solution> CleanSyntaxAndSemanticsAsync(
         Solution originalSolution,
         Solution changedSolution,
         CodeCleanupOptionsProvider codeCleanupOptions,
         IProgress<CodeAnalysisProgress> progress,
         CancellationToken cancellationToken)
     {
-        // originalSolution is only null on backward compatible codepaths.  In that case, we get the workspace's
-        // current solution.  This is not ideal (as that is a mutable field that could be changing out from
-        // underneath us).  But it's the only option we have for the compat case with existing public extension
-        // points.
         var solutionChanges = changedSolution.GetChanges(originalSolution);
 
-        var documentIds = solutionChanges
-            .GetProjectChanges()
-            .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(p.GetAddedDocuments()))
-            .Concat(solutionChanges.GetAddedProjects().SelectMany(p => p.DocumentIds))
-            .ToImmutableArray();
+        var documentIds = GetAllChangedOrAddedDocumentIds(originalSolution, changedSolution);
 
         var documentIdsAndOptionsToClean = await GetDocumentIdsAndOptionsToCleanAsync(
             changedSolution, codeCleanupOptions, documentIds, cancellationToken).ConfigureAwait(false);
