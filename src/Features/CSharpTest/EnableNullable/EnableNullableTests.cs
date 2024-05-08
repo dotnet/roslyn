@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Utilities;
 using Xunit;
@@ -18,6 +19,7 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeR
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.EnableNullable
 {
+    [UseExportProvider]
     public class EnableNullableTests
     {
         private static readonly Func<Solution, ProjectId, Solution> s_enableNullableInFixedSolution =
