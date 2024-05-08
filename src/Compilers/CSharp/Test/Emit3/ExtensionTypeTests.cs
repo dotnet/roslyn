@@ -39319,17 +39319,16 @@ implicit extension E for C<MyInterface>
     public interface Interface { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,36): error CS0426: The type name 'Interface' does not exist in the type 'C<E.Interface>'
             // using MyInterface = C<E.Interface>.Interface;
             Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Interface").WithArguments("Interface", "C<E.Interface>").WithLocation(1, 36));
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "MyNested.M");
-        Assert.Equal("void E.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C<E.Interface>.Interface");
+        Assert.Null(model.GetSymbolInfo(qualifiedName).Symbol);
     }
 
     [Fact]
