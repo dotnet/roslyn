@@ -14,4 +14,7 @@ internal static class SolutionExtensions
 
     public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
         => LanguageServer.Extensions.GetDocumentIds(solution, documentUri);
+
+    public static int GetWorkspaceVersion(this Solution solution)
+        => solution.WorkspaceVersion;
 }
