@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.MSBuild.Rpc;
-using Microsoft.VisualStudio.Telemetry;
 using Nerdbank.Streams;
 using Xunit;
 
