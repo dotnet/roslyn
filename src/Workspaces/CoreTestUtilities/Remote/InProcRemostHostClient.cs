@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             {
                 var remoteLogger = new TraceSource("InProcRemoteClient")
                 {
-                    Switch = { Level = SourceLevels.Off },
+                    Switch = { Level = SourceLevels.Warning },
                 };
 
                 if (traceListener != null)
