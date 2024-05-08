@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CaseCorrection;
@@ -459,6 +460,20 @@ public abstract class CodeAction
 #pragma warning restore CA1822 // Mark members as static
     => PostProcessChangesAsync(originalSolution: null!, changedSolution, cancellationToken);
 
+    internal static async Task<ImmutableArray<(DocumentId documentId, CodeCleanupOptions codeCleanupOptions)>> GetDocumentIdsAndOptionsAsync(
+        Solution solution, CodeCleanupOptionsProvider optionsProvider, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+    {
+        var documentIdsAndOptions = new FixedSizeArrayBuilder<(DocumentId documentId, CodeCleanupOptions options)>(documentIds.Length);
+        foreach (var documentId in documentIds)
+        {
+            var document = solution.GetRequiredDocument(documentId);
+            var codeActionOptions = await document.GetCodeCleanupOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+            documentIdsAndOptions.Add((documentId, codeActionOptions));
+        }
+
+        return documentIdsAndOptions.MoveToImmutable();
+    }
+
     internal static async Task<Solution> PostProcessChangesAsync(
         Solution originalSolution,
         Solution changedSolution,
@@ -471,11 +486,16 @@ public abstract class CodeAction
         originalSolution ??= changedSolution.Workspace.CurrentSolution;
         var solutionChanges = changedSolution.GetChanges(originalSolution);
 
-        var documentIdsAndOptions = await solutionChanges
+        var documentIds = solutionChanges
             .GetProjectChanges()
             .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(p.GetAddedDocuments()))
             .Concat(solutionChanges.GetAddedProjects().SelectMany(p => p.DocumentIds))
-            .SelectAsArrayAsync(async documentId => (documentId, options: await GetCodeCleanupOptionAsync(changedSolution.GetRequiredDocument(documentId), cancellationToken).ConfigureAwait(false))).ConfigureAwait(false);
+            .ToImmutableArray();
+
+        var globalOptions = changedSolution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
+        var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
+        var documentIdsAndOptions = await GetDocumentIdsAndOptionsAsync(
+            changedSolution, fallbackOptions, documentIds, cancellationToken).ConfigureAwait(false);
 
         // Do an initial pass where we cleanup syntax.
         var syntaxCleanedSolution = await ProducerConsumer<Document>.RunParallelAsync(
@@ -483,7 +503,7 @@ public abstract class CodeAction
             produceItems: static async (documentIdAndOptions, callback, changedSolution, cancellationToken) =>
             {
                 var document = changedSolution.GetRequiredDocument(documentIdAndOptions.documentId);
-                var newDoc = await CleanupSyntaxAsync(document, documentIdAndOptions.options, cancellationToken).ConfigureAwait(false);
+                var newDoc = await CleanupSyntaxAsync(document, documentIdAndOptions.codeCleanupOptions, cancellationToken).ConfigureAwait(false);
             },
             consumeItems: static async (stream, changedSolution, cancellationToken) =>
             {
