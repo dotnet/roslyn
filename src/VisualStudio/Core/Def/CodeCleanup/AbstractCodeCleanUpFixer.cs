@@ -219,7 +219,7 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
         progressTracker.AddItems(projects.Sum(static p => p.DocumentIds.Count));
 
         // Run in parallel across all projects.
-        return await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+        var changedRoots = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
             source: projects,
             produceItems: static async (project, callback, args, cancellationToken) =>
             {
@@ -246,18 +246,10 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
                         callback((document.Id, await fixedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
                     }).ConfigureAwait(false);
             },
-            consumeItems: static async (stream, args, cancellationToken) =>
-            {
-                // Now consume the changed documents, applying their new roots to the solution in one go.
-                using var _ = ArrayBuilder<(DocumentId documentId, SyntaxNode newRoot, PreservationMode mode)>.GetInstance(out var syntaxRoots);
-
-                await foreach (var (documentId, newRoot) in stream)
-                    syntaxRoots.Add((documentId, newRoot, PreservationMode.PreserveValue));
-
-                return args.solution.WithDocumentSyntaxRoots(syntaxRoots.ToImmutableAndClear());
-            },
             args: (globalOptions, solution, enabledFixIds, progressTracker),
             cancellationToken).ConfigureAwait(false);
+
+        return solution.WithDocumentSyntaxRoots(changedRoots.SelectAsArray(t => (t.documentId, t.newRoot, PreservationMode.PreserveValue)));
     }
 
     private static async Task<Document> FixDocumentAsync(
