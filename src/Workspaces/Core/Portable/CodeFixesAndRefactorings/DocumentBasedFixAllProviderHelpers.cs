@@ -86,12 +86,6 @@ internal static class DocumentBasedFixAllProviderHelpers
                         fixAllContext,
                         async (originalDocument, newDocument) =>
                         {
-                            //// As the FixAllProvider informs us about fixed documents, go and clean them up
-                            //// syntactically, and then invoke the callback to put into the channel for consumption.
-                            //var tuple = await CleanDocumentSyntaxAsync(
-                            //    originalDocument, newDocument, fixAllContext.State.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
-                            //if (tuple.HasValue)
-                            //    callback(tuple.Value);
                             if (newDocument == null || newDocument == originalDocument)
                                 return;
 
