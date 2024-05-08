@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Testing
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
-
+    <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.CodeActionsInlineMethod)>
     Public Class VisualBasicInlineMethodTests
         Private Class TestVerifier
