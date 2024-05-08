@@ -709,11 +709,42 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, SourceText, PreservationMode)"/>
-    public SolutionCompilationState WithDocumentText(
-        DocumentId documentId, SourceText text, PreservationMode mode)
+    public SolutionCompilationState WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode)
+        => WithDocumentTexts([(documentId, text, mode)]);
+
+    internal SolutionCompilationState WithDocumentTexts(
+        ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
     {
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentText(documentId, text, mode), documentId);
+        return UpdateDocumentsInMultipleProjects(
+             texts.GroupBy(d => d.documentId.ProjectId).Select(g =>
+             {
+                 var projectId = g.Key;
+                 var projectState = this.SolutionState.GetRequiredProjectState(projectId);
+
+                 using var _ = ArrayBuilder<DocumentState>.GetInstance(out var newDocumentStates);
+                 foreach (var (documentId, text, mode) in g)
+                 {
+                     var documentState = projectState.DocumentStates.GetRequiredState(documentId);
+                     if (IsUnchanged(documentState, text))
+                         continue;
+
+                     newDocumentStates.Add(documentState.UpdateText(text, mode));
+                 }
+
+                 return (projectId, newDocumentStates.ToImmutableAndClear());
+             }),
+             static (projectState, newDocumentStates) =>
+             {
+                 return TranslationAction.TouchDocumentsAction.Create(
+                     projectState,
+                     projectState.UpdateDocuments(newDocumentStates, contentChanged: true),
+                     newDocumentStates);
+             });
+
+        static bool IsUnchanged(DocumentState oldDocument, SourceText text)
+        {
+            return oldDocument.TryGetText(out var oldText) && text == oldText;
+        }
     }
 
     public SolutionCompilationState WithDocumentState(

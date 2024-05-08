@@ -1181,20 +1181,22 @@ public partial class Solution
     /// specified.
     /// </summary>
     public Solution WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        => WithDocumentTexts([(documentId, text, mode)]);
+
+    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
     {
-        CheckContainsDocument(documentId);
-
-        if (text == null)
+        foreach (var (documentId, text, mode) in texts)
         {
-            throw new ArgumentNullException(nameof(text));
+            CheckContainsDocument(documentId);
+
+            if (text == null)
+                throw new ArgumentNullException(nameof(text));
+
+            if (!mode.IsValid())
+                throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        if (!mode.IsValid())
-        {
-            throw new ArgumentOutOfRangeException(nameof(mode));
-        }
-
-        return WithCompilationState(_compilationState.WithDocumentText(documentId, text, mode));
+        return WithCompilationState(_compilationState.WithDocumentTexts(texts));
     }
 
     /// <summary>

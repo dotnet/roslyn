@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -105,14 +106,22 @@ internal static class DocumentBasedFixAllProviderHelpers
                     // expensive as we'd fork, produce semantics, fork, produce semantics, etc. etc.). Instead, by
                     // adding all the changed documents to one solution, and then cleaning *those* we only perform
                     // cleanup semantics on one forked solution.
-                    await foreach (var (docId, (newRoot, newText)) in stream)
+
+                    using var _1 = ArrayBuilder<(DocumentId documentId, SyntaxNode newRoot, PreservationMode mode)>.GetInstance(out var syntaxRoots);
+                    using var _2 = ArrayBuilder<(DocumentId documentId, SourceText newText, PreservationMode mode)>.GetInstance(out var newTexts);
+
+                    await foreach (var (documentId, (newRoot, newText)) in stream)
                     {
-                        currentSolution = newRoot != null
-                            ? currentSolution.WithDocumentSyntaxRoot(docId, newRoot)
-                            : currentSolution.WithDocumentText(docId, newText!);
+                        if (newRoot != null)
+                            syntaxRoots.Add((documentId, newRoot, PreservationMode.PreserveValue));
+                        else
+                            newTexts.Add((documentId, newText!, PreservationMode.PreserveValue));
                     }
 
-                    return currentSolution;
+                    return args.originalSolution
+                        .WithDocumentSyntaxRoots(syntaxRoots.ToImmutableAndClear())
+                        .WithDocumentTexts(newTexts.ToImmutableAndClear());
+
                 },
                 args: (getFixedDocumentsAsync, progressTracker, originalSolution),
                 cancellationToken).ConfigureAwait(false);
