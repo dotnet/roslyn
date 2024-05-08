@@ -487,6 +487,23 @@ public abstract class CodeAction
         // underneath us).  But it's the only option we have for the compat case with existing public extension
         // points.
         originalSolution ??= changedSolution.Workspace.CurrentSolution;
+
+        var globalOptions = changedSolution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
+        var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
+        return await PostProcessChangesAsync(originalSolution, changedSolution, fallbackOptions, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal static async Task<Solution> PostProcessChangesAsync(
+        Solution originalSolution,
+        Solution changedSolution,
+        CodeCleanupOptionsProvider codeCleanupOptions,
+        IProgress<CodeAnalysisProgress> progress,
+        CancellationToken cancellationToken)
+    {
+        // originalSolution is only null on backward compatible codepaths.  In that case, we get the workspace's
+        // current solution.  This is not ideal (as that is a mutable field that could be changing out from
+        // underneath us).  But it's the only option we have for the compat case with existing public extension
+        // points.
         var solutionChanges = changedSolution.GetChanges(originalSolution);
 
         var documentIds = solutionChanges
@@ -495,10 +512,8 @@ public abstract class CodeAction
             .Concat(solutionChanges.GetAddedProjects().SelectMany(p => p.DocumentIds))
             .ToImmutableArray();
 
-        var globalOptions = changedSolution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
-        var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
         var documentIdsAndOptionsToClean = await GetDocumentIdsAndOptionsToCleanAsync(
-            changedSolution, fallbackOptions, documentIds, cancellationToken).ConfigureAwait(false);
+            changedSolution, codeCleanupOptions, documentIds, cancellationToken).ConfigureAwait(false);
 
         // Do an initial pass where we cleanup syntax.
         var syntaxCleanedSolution = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
@@ -530,7 +545,7 @@ public abstract class CodeAction
 
         // Then do a pass where we cleanup semantics.
         var semanticCleanedSolution = await CleanupSemanticsAsync(
-            syntaxCleanedSolution, documentIdsAndOptionsToClean, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+            syntaxCleanedSolution, documentIdsAndOptionsToClean, progress, cancellationToken).ConfigureAwait(false);
 
         return semanticCleanedSolution;
     }
