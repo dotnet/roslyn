@@ -8958,39 +8958,27 @@ public ref struct Buffer10
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (7,16): error CS9504: The type 'Buffer10' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TFrom' in the generic type or method 'Unsafe.As<TFrom, TTo>(ref TFrom)'
+                // (7,16): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         return M3(x)[0];
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M3(x)[0]").WithArguments("System.Runtime.CompilerServices.Unsafe.As<TFrom, TTo>(ref TFrom)", "TFrom", "Buffer10").WithLocation(7, 16),
-                // (7,16): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TTo' in the generic type or method 'Unsafe.As<TFrom, TTo>(ref TFrom)'
-                //         return M3(x)[0];
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M3(x)[0]").WithArguments("System.Runtime.CompilerServices.Unsafe.As<TFrom, TTo>(ref TFrom)", "TTo", "System.Span<int>").WithLocation(7, 16),
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("System.Span<int>").WithLocation(7, 16),
                 // (7,16): error CS8347: Cannot use a result of 'Program.M3(Span<int>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return M3(x)[0];
                 Diagnostic(ErrorCode.ERR_EscapeCall, "M3(x)").WithArguments("Program.M3(System.Span<int>)", "x").WithLocation(7, 16),
                 // (7,19): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         return M3(x)[0];
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(7, 19),
-                // (13,17): error CS9504: The type 'Buffer10' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TFrom' in the generic type or method 'Unsafe.As<TFrom, TTo>(ref TFrom)'
+                // (13,17): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var y = M3(x)[0];
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M3(x)[0]").WithArguments("System.Runtime.CompilerServices.Unsafe.As<TFrom, TTo>(ref TFrom)", "TFrom", "Buffer10").WithLocation(13, 17),
-                // (13,17): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TTo' in the generic type or method 'Unsafe.As<TFrom, TTo>(ref TFrom)'
-                //         var y = M3(x)[0];
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M3(x)[0]").WithArguments("System.Runtime.CompilerServices.Unsafe.As<TFrom, TTo>(ref TFrom)", "TTo", "System.Span<int>").WithLocation(13, 17),
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("System.Span<int>").WithLocation(13, 17),
                 // (14,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         return y;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(14, 16),
-                // (24,16): error CS9504: The type 'Buffer10' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TFrom' in the generic type or method 'Unsafe.As<TFrom, TTo>(ref TFrom)'
+                // (24,16): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         return M3(xx)[0];
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M3(xx)[0]").WithArguments("System.Runtime.CompilerServices.Unsafe.As<TFrom, TTo>(ref TFrom)", "TFrom", "Buffer10").WithLocation(24, 16),
-                // (24,16): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TTo' in the generic type or method 'Unsafe.As<TFrom, TTo>(ref TFrom)'
-                //         return M3(xx)[0];
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M3(xx)[0]").WithArguments("System.Runtime.CompilerServices.Unsafe.As<TFrom, TTo>(ref TFrom)", "TTo", "System.Span<int>").WithLocation(24, 16),
-                // (29,18): error CS9504: The type 'Buffer10' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TFrom' in the generic type or method 'Unsafe.As<TFrom, TTo>(ref TFrom)'
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("System.Span<int>").WithLocation(24, 16),
+                // (29,18): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var yy = M3(xx)[0];
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M3(xx)[0]").WithArguments("System.Runtime.CompilerServices.Unsafe.As<TFrom, TTo>(ref TFrom)", "TFrom", "Buffer10").WithLocation(29, 18),
-                // (29,18): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TTo' in the generic type or method 'Unsafe.As<TFrom, TTo>(ref TFrom)'
-                //         var yy = M3(xx)[0];
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M3(xx)[0]").WithArguments("System.Runtime.CompilerServices.Unsafe.As<TFrom, TTo>(ref TFrom)", "TTo", "System.Span<int>").WithLocation(29, 18),
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("System.Span<int>").WithLocation(29, 18),
                 // (37,30): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     private System.Span<int> _element0;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_element0").WithLocation(37, 30)
