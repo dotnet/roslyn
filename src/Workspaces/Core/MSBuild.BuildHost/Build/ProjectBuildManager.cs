@@ -11,11 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Build
+namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class ProjectBuildManager
     {

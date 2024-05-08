@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Logging
+namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class MSBuildDiagnosticLogItem : DiagnosticLogItem
     {

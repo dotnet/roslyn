@@ -9,7 +9,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
+namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal static class MonoMSBuildDiscovery
 {
