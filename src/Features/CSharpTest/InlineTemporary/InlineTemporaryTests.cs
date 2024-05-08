@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
                 x.ToString(); }
                 """,
                 """
-                { 
+                {
                     3.ToString(); }
                 """);
         }

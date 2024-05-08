@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
         {
             await TestInRegularAndScriptAsync(
                 @"class C { void M(string s){ [||]if (s == ""a""){}else{ s = ""b""}}}",
-                @"class C { void M(string s){ if (s != ""a""){ s = ""b""}}}");
+                @"class C { void M(string s){ if (s != ""a"") { s = ""b""}}}");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43224")]
