@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNamedArguments
 {
     using VerifyCS = CSharpCodeRefactoringVerifier<CSharpUseNamedArgumentsCodeRefactoringProvider>;
 
+    [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
     public class UseNamedArgumentsTests
     {
