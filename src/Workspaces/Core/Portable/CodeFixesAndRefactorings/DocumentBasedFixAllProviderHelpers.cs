@@ -40,10 +40,10 @@ internal static class DocumentBasedFixAllProviderHelpers
         // One work item for each context.
         progressTracker.AddItems(fixAllContexts.Length);
 
-        var (dirtySolution, changedRootDocumentIds) = await GetInitialUncleanedSolutionAsync().ConfigureAwait(false);
-        return await CleanSolutionAsync(dirtySolution, changedRootDocumentIds).ConfigureAwait(false);
+        var (dirtySolution, changedDocumentIds) = await GetInitialUncleanedSolutionAsync().ConfigureAwait(false);
+        return await CleanSolutionAsync(dirtySolution, changedDocumentIds).ConfigureAwait(false);
 
-        async Task<(Solution dirtySolution, ImmutableArray<DocumentId> changedRootDocumentIds)> GetInitialUncleanedSolutionAsync()
+        async Task<(Solution dirtySolution, ImmutableArray<DocumentId> changedDocumentIds)> GetInitialUncleanedSolutionAsync()
         {
             // First, iterate over all contexts, and collect all the changes for each of them.  We'll be making a lot of
             // calls to the remote server to compute diagnostics and changes.  So keep a single connection alive to it
@@ -76,7 +76,7 @@ internal static class DocumentBasedFixAllProviderHelpers
                 consumeItems: static async (stream, args, cancellationToken) =>
                 {
                     var currentSolution = args.solution;
-                    using var _ = ArrayBuilder<DocumentId>.GetInstance(out var changedRootDocumentIds);
+                    using var _ = ArrayBuilder<DocumentId>.GetInstance(out var changedDocumentIds);
 
                     // Next, go and insert those all into the solution so all the docs in this particular project point
                     // at the new trees (or text).  At this point though, the trees have not been semantically cleaned
@@ -87,25 +87,22 @@ internal static class DocumentBasedFixAllProviderHelpers
                     // cleanup semantics on one forked solution.
                     await foreach (var (docId, (newRoot, newText)) in stream)
                     {
-                        // If we produced a new root (as opposed to new text), keep track of that doc-id so that we
-                        // can clean this doc later.
-                        if (newRoot != null)
-                            changedRootDocumentIds.Add(docId);
+                        changedDocumentIds.Add(docId);
 
                         currentSolution = newRoot != null
                             ? currentSolution.WithDocumentSyntaxRoot(docId, newRoot)
                             : currentSolution.WithDocumentText(docId, newText!);
                     }
 
-                    return (currentSolution, changedRootDocumentIds.ToImmutableAndClear());
+                    return (currentSolution, changedDocumentIds.ToImmutableAndClear());
                 },
                 args: (getFixedDocumentsAsync, progressTracker, solution),
                 cancellationToken).ConfigureAwait(false);
         }
 
-        async Task<Solution> CleanSolutionAsync(Solution dirtySolution, ImmutableArray<DocumentId> changedRootDocumentIds)
+        async Task<Solution> CleanSolutionAsync(Solution dirtySolution, ImmutableArray<DocumentId> changedDocumentIds)
         {
-            if (changedRootDocumentIds.IsEmpty)
+            if (changedDocumentIds.IsEmpty)
                 return dirtySolution;
 
             // Clear out the progress so far.  We're starting a new progress pass for the final cleanup.
@@ -114,8 +111,8 @@ internal static class DocumentBasedFixAllProviderHelpers
 
             // Next, go and semantically cleanup any trees we inserted. Do this in parallel across all the documents
             // that were fixed and resulted in a new tree (as opposed to new text).
-            var documentIdsAndOptions = await CodeAction.GetDocumentIdsAndOptionsAsync(
-                dirtySolution, originalFixAllContext.State.CodeActionOptionsProvider, changedRootDocumentIds, cancellationToken).ConfigureAwait(false);
+            var documentIdsAndOptions = await CodeAction.GetDocumentIdsAndOptionsToCleanAsync(
+                dirtySolution, originalFixAllContext.State.CodeActionOptionsProvider, changedDocumentIds, cancellationToken).ConfigureAwait(false);
 
             var solutionWithCleanedRoots = await CodeAction.CleanupSemanticsAsync(
                 dirtySolution, documentIdsAndOptions, progressTracker, cancellationToken).ConfigureAwait(false);

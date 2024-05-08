@@ -459,7 +459,7 @@ public abstract class CodeAction
 #pragma warning restore CA1822 // Mark members as static
     => PostProcessChangesAsync(originalSolution: null!, changedSolution, cancellationToken);
 
-    internal static async Task<ImmutableArray<(DocumentId documentId, CodeCleanupOptions codeCleanupOptions)>> GetDocumentIdsAndOptionsAsync(
+    internal static async Task<ImmutableArray<(DocumentId documentId, CodeCleanupOptions codeCleanupOptions)>> GetDocumentIdsAndOptionsToCleanAsync(
         Solution solution, CodeCleanupOptionsProvider optionsProvider, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<(DocumentId documentId, CodeCleanupOptions options)>.GetInstance(documentIds.Length, out var documentIdsAndOptions);
@@ -497,12 +497,12 @@ public abstract class CodeAction
 
         var globalOptions = changedSolution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
         var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
-        var documentIdsAndOptions = await GetDocumentIdsAndOptionsAsync(
+        var documentIdsAndOptionsToClean = await GetDocumentIdsAndOptionsToCleanAsync(
             changedSolution, fallbackOptions, documentIds, cancellationToken).ConfigureAwait(false);
 
         // Do an initial pass where we cleanup syntax.
         var syntaxCleanedSolution = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
-            source: documentIdsAndOptions,
+            source: documentIdsAndOptionsToClean,
             produceItems: static async (documentIdAndOptions, callback, changedSolution, cancellationToken) =>
             {
                 var document = changedSolution.GetRequiredDocument(documentIdAndOptions.documentId);
@@ -530,7 +530,7 @@ public abstract class CodeAction
 
         // Then do a pass where we cleanup semantics.
         var semanticCleanedSolution = await CleanupSemanticsAsync(
-            syntaxCleanedSolution, documentIdsAndOptions, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+            syntaxCleanedSolution, documentIdsAndOptionsToClean, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
 
         return semanticCleanedSolution;
     }
