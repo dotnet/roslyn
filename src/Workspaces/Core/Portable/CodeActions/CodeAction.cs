@@ -572,7 +572,7 @@ public abstract class CodeAction
         return document2;
     }
 
-    internal static async Task<Solution> CleanupSyntaxAndSemanticsAsync(
+    private static async Task<Solution> CleanupSyntaxAndSemanticsAsync(
         Solution solution,
         ImmutableArray<(DocumentId documentId, CodeCleanupOptions options)> documentIdsAndOptions,
         IProgress<CodeAnalysisProgress> progress,
