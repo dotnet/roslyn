@@ -1627,6 +1627,11 @@
         <target state="new">A partial member must be declared within a partial type</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberParamsDifference">
+        <source>Both partial member declarations must use a params parameter or neither may use a params parameter</source>
+        <target state="new">Both partial member declarations must use a params parameter or neither may use a params parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberReadOnlyDifference">
         <source>Both partial member declarations must be readonly or neither may be readonly</source>
         <target state="new">Both partial member declarations must be readonly or neither may be readonly</target>
@@ -1693,8 +1698,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingDefinition">
-        <source>Partial property '{0}' must have an definition part.</source>
-        <target state="new">Partial property '{0}' must have an definition part.</target>
+        <source>Partial property '{0}' must have a definition part.</source>
+        <target state="new">Partial property '{0}' must have a definition part.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingImplementation">
@@ -1963,8 +1968,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
-        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="translated">パラメーター '{0}' の 'scoped' 修飾子が部分メソッド宣言と一致しません。</target>
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
+        <target state="needs-review-translation">パラメーター '{0}' の 'scoped' 修飾子が部分メソッド宣言と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -4765,12 +4770,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="translated">パラメーター '{0}' の型における参照型の Null 許容性が、部分メソッド宣言と一致しません。</target>
+        <target state="needs-review-translation">パラメーター '{0}' の型における参照型の Null 許容性が、部分メソッド宣言と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial_Title">
         <source>Nullability of reference types in type of parameter doesn't match partial method declaration.</source>
-        <target state="translated">パラメーターの型における参照型の Null 許容性が、部分メソッド宣言と一致しません。</target>
+        <target state="needs-review-translation">パラメーターの型における参照型の Null 許容性が、部分メソッド宣言と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
@@ -4815,12 +4820,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="translated">戻り値の型における参照型の Null 値の許容が、部分メソッド宣言と一致しません。</target>
+        <target state="needs-review-translation">戻り値の型における参照型の Null 値の許容が、部分メソッド宣言と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="translated">戻り値の型における参照型の Null 値の許容が、部分メソッド宣言と一致しません。</target>
+        <target state="needs-review-translation">戻り値の型における参照型の Null 値の許容が、部分メソッド宣言と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
@@ -8155,11 +8160,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_PartialMethodOnlyOneActual">
         <source>A partial method may not have multiple implementing declarations</source>
         <target state="translated">部分メソッドでは、複数の実装宣言を含むことができない場合があります</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodParamsDifference">
-        <source>Both partial method declarations must use a params parameter or neither may use a params parameter</source>
-        <target state="translated">部分メソッド宣言は、両方とも params パラメーターを使用するか、両方とも params パラメーターを使用しないかのいずれかである必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodMustHaveLatent">

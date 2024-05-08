@@ -14087,10 +14087,10 @@ partial class C
                 // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.
                 //     partial int f;
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,20): error CS9301: Partial property 'C.P' must have an definition part.
+                // (5,20): error CS9301: Partial property 'C.P' must have a definition part.
                 //     partial object P { get { return null; } }
                 Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "P").WithArguments("C.P").WithLocation(5, 20),
-                // (6,17): error CS9301: Partial property 'C.this[int]' must have an definition part.
+                // (6,17): error CS9301: Partial property 'C.this[int]' must have a definition part.
                 //     partial int this[int index]
                 Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "this").WithArguments("C.this[int]").WithLocation(6, 17),
                 // (4,17): warning CS0169: The field 'C.f' is never used
@@ -14184,7 +14184,7 @@ public partial class C
         }
 
         [Fact]
-        public void CS0758ERR_PartialMethodParamsDifference()
+        public void CS0758ERR_PartialMemberParamsDifference()
         {
             var text =
 @"partial class C
@@ -14196,9 +14196,9 @@ public partial class C
 }";
             CreateCompilation(text).VerifyDiagnostics(
                 // (4,18): error CS0758: Both partial method declarations must use a parameter array or neither may use a parameter array
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "M1").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "M1").WithLocation(4, 18),
                 // (5,18): error CS0758: Both partial method declarations must use a parameter array or neither may use a parameter array
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "M2").WithLocation(5, 18));
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "M2").WithLocation(5, 18));
         }
 
         [Fact]

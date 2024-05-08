@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -143,6 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (syntax is PropertyDeclarationSyntax { Initializer: { } initializer })
                 MessageID.IDS_FeatureAutoPropertyInitializer.CheckFeatureAvailability(diagnostics, initializer.EqualsToken);
+        }
+
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
+        {
+            PartialImplementationPart?.ForceComplete(locationOpt, filter, cancellationToken);
+            base.ForceComplete(locationOpt, filter, cancellationToken);
         }
 
         private TypeSyntax GetTypeSyntax(SyntaxNode syntax) => ((BasePropertyDeclarationSyntax)syntax).Type;
@@ -635,7 +642,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
             }
 
-            // PROTOTYPE(partial-properties): test 'params' differences in indexers
+            if (this.IsParams() != implementation.IsParams())
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberParamsDifference, implementation.GetFirstLocation());
+            }
 
             if (DeclaredAccessibility != implementation.DeclaredAccessibility
                 || HasExplicitAccessModifier != implementation.HasExplicitAccessModifier)
@@ -651,7 +661,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMemberExtendedModDifference, implementation.GetFirstLocation());
             }
 
-            // PROTOTYPE(partial-properties): test 'scoped' differences in indexers
+            Debug.Assert(this.ParameterCount == implementation.ParameterCount);
+            for (var i = 0; i < this.ParameterCount; i++)
+            {
+                // An error is only reported for a modifier difference here, regardless of whether the difference is safe or not.
+                // Presence of UnscopedRefAttribute is also not considered when checking partial signatures, because when the attribute is used, it will affect both parts the same way.
+                var definitionParameter = (SourceParameterSymbol)this.Parameters[i];
+                var implementationParameter = (SourceParameterSymbol)implementation.Parameters[i];
+                if (definitionParameter.DeclaredScope != implementationParameter.DeclaredScope)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, implementation.GetFirstLocation(), new FormattedSymbol(implementation.Parameters[i], SymbolDisplayFormat.ShortFormat));
+                }
+            }
 
             if (this.GetMethod is { } definitionGetAccessor && implementation.GetMethod is { } implementationGetAccessor)
             {

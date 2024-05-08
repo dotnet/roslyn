@@ -2228,8 +2228,8 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PartialMethodOnlyOneActual" xml:space="preserve">
     <value>A partial method may not have multiple implementing declarations</value>
   </data>
-  <data name="ERR_PartialMethodParamsDifference" xml:space="preserve">
-    <value>Both partial method declarations must use a params parameter or neither may use a params parameter</value>
+  <data name="ERR_PartialMemberParamsDifference" xml:space="preserve">
+    <value>Both partial member declarations must use a params parameter or neither may use a params parameter</value>
   </data>
   <data name="ERR_PartialMethodMustHaveLatent" xml:space="preserve">
     <value>No defining declaration found for implementing declaration of partial method '{0}'</value>
@@ -7047,7 +7047,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The 'scoped' modifier of parameter doesn't match target.</value>
   </data>
   <data name="ERR_ScopedMismatchInParameterOfPartial" xml:space="preserve">
-    <value>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</value>
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</value>
   </data>
   <data name="ERR_FixedFieldMustNotBeRef" xml:space="preserve">
     <value>A fixed field must not be a ref field.</value>
@@ -7933,7 +7933,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Partial property '{0}' must have an implementation part.</value>
   </data>
   <data name="ERR_PartialPropertyMissingDefinition" xml:space="preserve">
-    <value>Partial property '{0}' must have an definition part.</value>
+    <value>Partial property '{0}' must have a definition part.</value>
   </data>
   <data name="ERR_PartialPropertyDuplicateDefinition" xml:space="preserve">
     <value>A partial property may not have multiple defining declarations, and cannot be an auto-property.</value>
