@@ -9131,15 +9131,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var unsafeAsMethod = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: node);
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: node);
                 _ = GetWellKnownTypeMember(createSpanHelper, diagnostics, syntax: node);
                 _ = GetWellKnownTypeMember(getItemOrSliceHelper, diagnostics, syntax: node);
 
-                if (unsafeAsMethod is MethodSymbol { HasUnsupportedMetadata: false } method)
-                {
-                    method.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(expr.Type), elementField.TypeWithAnnotations)).
-                        CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, node.GetLocation(), diagnostics));
-                }
+                CheckInlineArrayTypeIsSupported(node, expr.Type, elementField.Type, diagnostics);
 
                 if (!Compilation.Assembly.RuntimeSupportsInlineArrayTypes)
                 {

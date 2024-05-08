@@ -18438,9 +18438,9 @@ class C
                 // (6,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     T _f;
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7),
-                // (14,9): error CS9504: The type 'S1<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TFrom' in the generic type or method 'Unsafe.As<TFrom, TTo>(ref TFrom)'
+                // (14,9): error CS0306: The type 'S1<int>' may not be used as a type argument
                 //         x[0] = 123;
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x[0]").WithArguments("System.Runtime.CompilerServices.Unsafe.As<TFrom, TTo>(ref TFrom)", "TFrom", "S1<int>").WithLocation(14, 9)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x[0]").WithArguments("S1<int>").WithLocation(14, 9)
                 );
         }
 
@@ -18477,25 +18477,11 @@ namespace System.Runtime.CompilerServices
             comp.VerifyEmitDiagnostics(
                 // (6,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     T _f;
-                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7)
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7),
+                // (14,9): error CS0306: The type 'S1<int>' may not be used as a type argument
+                //         x[0] = 123;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x[0]").WithArguments("S1<int>").WithLocation(14, 9)
                 );
-
-            // PROTOTYPE(RefStructInterfaces): Here, however, we managed to successfully compile an invalid program. 
-            //                                 We should either stop relying on constraints of Unsafe.As as a way to
-            //                                 detect ref struct based inline arrays, or should propagate 'allows ref struct' to 
-            //                                 the helper methods that we generate in '<PrivateImplementationDetails>', which
-            //                                 could be tricky because they often call other generic APIs that might disagree
-            //                                 in the 'allows ref struct' constraint with Unsafe.As. 
-
-            // Message:
-            //           System.Security.VerificationException : Method<PrivateImplementationDetails>.InlineArrayFirstElementRef: type argument 'S1`1[System.Int32]' violates the constraint of type parameter 'TBuffer'.
-            //   
-            // Stack Trace: 
-            //   C.Main()
-            //   RuntimeMethodHandle.InvokeMethod(Object target, Void * *arguments, Signature sig, Boolean isConstructor)
-            //   MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
-            //
-            //CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "nothing");
         }
 
         [Fact]
