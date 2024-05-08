@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// <summary>
             /// The <see cref="TestHost"/> we want this test to run in.  Defaults to <see cref="TestHost.InProcess"/> if unspecified.
             /// </summary>
-            public TestHost TestHost { get; set; } = TestHost.InProcess;
+            public TestHost TestHost { get; set; } = TestHost.OutOfProcess;
 
             private static readonly TestComposition s_editorFeaturesOOPComposition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
 
