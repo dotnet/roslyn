@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
                     void M(int? x, int? y)
                     {
                         var z1 = x ?? y;
-                        var z2 = x ?? y ;
+                        var z2 = x ?? y;
                     }
                 }
                 """);
