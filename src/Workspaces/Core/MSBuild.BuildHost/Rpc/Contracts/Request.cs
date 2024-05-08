@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Rpc;
+namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class Request
 {

@@ -6,11 +6,10 @@ using System;
 using System.Collections.Immutable;
 using System.CommandLine;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.MSBuild.Rpc;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
+namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal static class Program
 {
