@@ -1484,7 +1484,7 @@ outerDefault:
 
                 if (result.Result.IsValid || result.HasUseSiteDiagnosticToReport)
                 {
-                    if (result.Member.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } extendedType)
+                    if (result.Member.ContainingType.GetExtendedTypeNoUseSiteDiagnostics(null) is not { } extendedType)
                     {
                         continue;
                     }
@@ -1548,7 +1548,7 @@ outerDefault:
                 }
                 else if (currentType.IsExtension)
                 {
-                    if (currentType.ExtendedTypeNoUseSiteDiagnostics is { } extendedType)
+                    if (currentType.GetExtendedTypeNoUseSiteDiagnostics(null) is { } extendedType)
                     {
                         if (extendedType.Equals(type, TypeCompareKind.ConsiderEverything))
                         {
@@ -1607,7 +1607,7 @@ outerDefault:
                     continue;
                 }
 
-                if (result.Member.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } currentExtendedType)
+                if (result.Member.ContainingType.GetExtendedTypeNoUseSiteDiagnostics(null) is not { } currentExtendedType)
                 {
                     continue;
                 }

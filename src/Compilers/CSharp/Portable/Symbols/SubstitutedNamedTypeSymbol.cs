@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override TypeSymbol? GetExtendedTypeNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved)
         {
-            return _unbound ? null : Map.SubstituteType(OriginalDefinition.ExtendedTypeNoUseSiteDiagnostics).Type;
+            return _unbound ? null : Map.SubstituteType(OriginalDefinition.GetExtendedTypeNoUseSiteDiagnostics(basesBeingResolved)).Type;
         }
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()

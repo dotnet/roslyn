@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void CheckUnderlyingType(BindingDiagnosticBag diagnostics)
         {
-            var underlyingType = this.ExtendedTypeNoUseSiteDiagnostics;
+            var underlyingType = this.GetExtendedTypeNoUseSiteDiagnostics(null);
 
             if (underlyingType is null)
                 return;

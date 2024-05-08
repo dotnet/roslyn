@@ -2491,9 +2491,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsExtension { get; }
         internal abstract bool IsExplicitExtension { get; }
 
-        internal TypeSymbol? ExtendedTypeNoUseSiteDiagnostics
-            => GetExtendedTypeNoUseSiteDiagnostics(basesBeingResolved: null);
-
         internal abstract TypeSymbol? GetExtendedTypeNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved);
 
         // PROTOTYPE restore base extension logic
