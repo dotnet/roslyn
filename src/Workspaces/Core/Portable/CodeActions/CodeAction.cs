@@ -427,10 +427,10 @@ public abstract class CodeAction
 #pragma warning disable CA1822 // Mark members as static. This is a public API.
     protected Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
 #pragma warning restore CA1822 // Mark members as static
-        => PostProcessAsync(originalSolution: null!, operations, cancellationToken);
+        => PostProcessAsync(originalSolution: null, operations, cancellationToken);
 
     internal static async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(
-        Solution originalSolution, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
+        Solution? originalSolution, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
     {
         using var result = TemporaryArray<CodeActionOperation>.Empty;
 
@@ -457,10 +457,10 @@ public abstract class CodeAction
 #pragma warning disable CA1822 // Mark members as static. This is a public API.
     protected Task<Solution> PostProcessChangesAsync(Solution changedSolution, CancellationToken cancellationToken)
 #pragma warning restore CA1822 // Mark members as static
-    => PostProcessChangesAsync(originalSolution: null!, changedSolution, cancellationToken);
+    => PostProcessChangesAsync(originalSolution: null, changedSolution, cancellationToken);
 
-    internal static async Task<Solution> PostProcessChangesAsync(
-        Solution originalSolution,
+    private static async Task<Solution> PostProcessChangesAsync(
+        Solution? originalSolution,
         Solution changedSolution,
         CancellationToken cancellationToken)
     {
