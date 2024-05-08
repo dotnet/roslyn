@@ -13,11 +13,12 @@ Imports VerifyRefactoring = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.
         Microsoft.CodeAnalysis.GenerateDefaultConstructors.GenerateDefaultConstructorsCodeRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateDefaultConstructors
+    <UseExportProvider>
     Public Class GenerateDefaultConstructorsTests
 
         Private Shared Async Function TestRefactoringAsync(source As String, fixedSource As String, Optional index As Integer = 0) As Task
             Await TestRefactoringOnlyAsync(source, fixedSource, index)
-            await TestCodeFixMissingAsync(source)
+            Await TestCodeFixMissingAsync(source)
         End Function
 
         Private Shared Async Function TestRefactoringOnlyAsync(source As String, fixedSource As String, Optional index As Integer = 0) As Task

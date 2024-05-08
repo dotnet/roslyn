@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Threading;
@@ -35,6 +36,12 @@ internal partial class SerializerService
     {
         lock (s_analyzerImageReferenceMapGate)
             return s_analyzerImageReferenceMap.TryGetValue(imageReference, out guid);
+    }
+
+    private static bool TryGetAnalyzerImageReferenceFromGuid(Guid guid, [NotNullWhen(true)] out AnalyzerImageReference? imageReference)
+    {
+        lock (s_analyzerImageReferenceMapGate)
+            return s_analyzerImageReferenceMap.TryGetKey(guid, out imageReference);
     }
 
     public static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
@@ -145,11 +152,8 @@ internal partial class SerializerService
 
             case nameof(AnalyzerImageReference):
                 var guid = reader.ReadGuid();
-                lock (s_analyzerImageReferenceMapGate)
-                {
-                    Contract.ThrowIfFalse(s_analyzerImageReferenceMap.TryGetKey(guid, out var analyzerImageReference));
-                    return analyzerImageReference;
-                }
+                Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceFromGuid(guid, out var analyzerImageReference));
+                return analyzerImageReference;
         }
 
         throw ExceptionUtilities.UnexpectedValue(type);
