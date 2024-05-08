@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -247,12 +248,13 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
             },
             consumeItems: static async (stream, args, cancellationToken) =>
             {
-                // Now consume the changed documents, applying their new roots to the solution.
-                var currentSolution = args.solution;
-                await foreach (var (documentId, newRoot) in stream)
-                    currentSolution = currentSolution.WithDocumentSyntaxRoot(documentId, newRoot);
+                // Now consume the changed documents, applying their new roots to the solution in one go.
+                using var _ = ArrayBuilder<(DocumentId documentId, SyntaxNode newRoot, PreservationMode mode)>.GetInstance(out var syntaxRoots);
 
-                return currentSolution;
+                await foreach (var (documentId, newRoot) in stream)
+                    syntaxRoots.Add((documentId, newRoot, PreservationMode.PreserveValue));
+
+                return args.solution.WithDocumentSyntaxRoots(syntaxRoots.ToImmutableAndClear());
             },
             args: (globalOptions, solution, enabledFixIds, progressTracker),
             cancellationToken).ConfigureAwait(false);
