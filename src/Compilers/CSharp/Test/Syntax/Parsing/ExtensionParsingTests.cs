@@ -1352,7 +1352,7 @@ using
         EOF();
 
         UsingTree(text, options: TestOptions.Regular12,
-            // (1,6): error CS1041: Identifier expected; 'explicit' is a keyword
+            // (1,6): error CS1041: Identifier expected; 'implicit' is a keyword
             // using
             Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", isExplicit ? "explicit" : "implicit").WithLocation(1, 6));
 
@@ -1537,8 +1537,7 @@ partial {{keyword}} extension R for U { }
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 11),
             // (1,11): error CS1002: ; expected
             // using Type
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11)
-            );
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11));
 
         N(SyntaxKind.CompilationUnit);
         {
