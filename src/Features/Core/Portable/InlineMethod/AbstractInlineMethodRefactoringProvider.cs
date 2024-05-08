@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -552,10 +553,12 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
             // After:
             // void Caller() { var x = ((Func<int>)(() => 1))(); }
             // Func<int> Callee() { return () => 1; }
+            //
+            // Also, ensure that the node is formatted properly at the destination location.
             inlineExpression = (TExpressionSyntax)syntaxGenerator.AddParentheses(
                 syntaxGenerator.CastExpression(
                     GenerateTypeSyntax(calleeMethodSymbol.ReturnType, allowVar: false),
-                    syntaxGenerator.AddParentheses(inlineMethodContext.InlineExpression)));
+                    syntaxGenerator.AddParentheses(inlineMethodContext.InlineExpression.WithAdditionalAnnotations(Formatter.Annotation))));
 
         }
 
