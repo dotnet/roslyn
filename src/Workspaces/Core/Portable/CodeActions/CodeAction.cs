@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,6 +28,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
@@ -250,7 +252,7 @@ public abstract class CodeAction
 
         if (operations != null)
         {
-            return await this.PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
+            return await PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
         }
 
         return [];
@@ -271,7 +273,7 @@ public abstract class CodeAction
 
         if (operations != null)
         {
-            return await this.PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
+            return await PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
         }
 
         return [];
@@ -410,7 +412,7 @@ public abstract class CodeAction
             return solution;
         }
 
-        return await this.PostProcessChangesAsync(originalSolution, solution, cancellationToken).ConfigureAwait(false);
+        return await PostProcessChangesAsync(originalSolution, solution, cancellationToken).ConfigureAwait(false);
     }
 
     internal Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
@@ -422,10 +424,12 @@ public abstract class CodeAction
     /// <param name="operations">A list of operations.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A new list of operations with post processing steps applied to any <see cref="ApplyChangesOperation"/>'s.</returns>
+#pragma warning disable CA1822 // Mark members as static. This is a public API.
     protected Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
+#pragma warning restore CA1822 // Mark members as static
         => PostProcessAsync(originalSolution: null!, operations, cancellationToken);
 
-    internal async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(
+    internal static async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(
         Solution originalSolution, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
     {
         using var result = TemporaryArray<CodeActionOperation>.Empty;
@@ -434,7 +438,7 @@ public abstract class CodeAction
         {
             if (op is ApplyChangesOperation ac)
             {
-                result.Add(new ApplyChangesOperation(await this.PostProcessChangesAsync(originalSolution, ac.ChangedSolution, cancellationToken).ConfigureAwait(false)));
+                result.Add(new ApplyChangesOperation(await PostProcessChangesAsync(originalSolution, ac.ChangedSolution, cancellationToken).ConfigureAwait(false)));
             }
             else
             {
@@ -450,10 +454,12 @@ public abstract class CodeAction
     /// </summary>
     /// <param name="changedSolution">The solution changed by the <see cref="CodeAction"/>.</param>
     /// <param name="cancellationToken">A cancellation token</param>
+#pragma warning disable CA1822 // Mark members as static. This is a public API.
     protected Task<Solution> PostProcessChangesAsync(Solution changedSolution, CancellationToken cancellationToken)
-        => PostProcessChangesAsync(originalSolution: null!, changedSolution, cancellationToken);
+#pragma warning restore CA1822 // Mark members as static
+    => PostProcessChangesAsync(originalSolution: null!, changedSolution, cancellationToken);
 
-    internal async Task<Solution> PostProcessChangesAsync(
+    internal static async Task<Solution> PostProcessChangesAsync(
         Solution originalSolution,
         Solution changedSolution,
         CancellationToken cancellationToken)
@@ -465,36 +471,40 @@ public abstract class CodeAction
         originalSolution ??= changedSolution.Workspace.CurrentSolution;
         var solutionChanges = changedSolution.GetChanges(originalSolution);
 
-        var processedSolution = changedSolution;
+        var documentIdsAndOptions = await solutionChanges
+            .GetProjectChanges()
+            .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(p.GetAddedDocuments()))
+            .Concat(solutionChanges.GetAddedProjects().SelectMany(p => p.DocumentIds))
+            .SelectAsArrayAsync(async documentId => (documentId, options: await GetCodeCleanupOptionAsync(changedSolution.GetRequiredDocument(documentId), cancellationToken).ConfigureAwait(false))).ConfigureAwait(false);
 
-        // process changed projects
-        foreach (var projectChanges in solutionChanges.GetProjectChanges())
-        {
-            var documentsToProcess = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(
-                projectChanges.GetAddedDocuments());
-
-            foreach (var documentId in documentsToProcess)
+        // Do an initial pass where we cleanup syntax.
+        var syntaxCleanedSolution = await ProducerConsumer<Document>.RunParallelAsync(
+            source: documentIdsAndOptions,
+            produceItems: static async (documentIdAndOptions, callback, changedSolution, cancellationToken) =>
             {
-                var document = processedSolution.GetRequiredDocument(documentId);
-                var processedDocument = await PostProcessChangesAsync(document, cancellationToken).ConfigureAwait(false);
-                processedSolution = processedDocument.Project.Solution;
-            }
-        }
-
-        // process completely new projects too
-        foreach (var addedProject in solutionChanges.GetAddedProjects())
-        {
-            var documentsToProcess = addedProject.DocumentIds;
-
-            foreach (var documentId in documentsToProcess)
+                var document = changedSolution.GetRequiredDocument(documentIdAndOptions.documentId);
+                var newDoc = await CleanupSyntaxAsync(document, documentIdAndOptions.options, cancellationToken).ConfigureAwait(false);
+            },
+            consumeItems: static async (stream, changedSolution, cancellationToken) =>
             {
-                var document = processedSolution.GetRequiredDocument(documentId);
-                var processedDocument = await PostProcessChangesAsync(document, cancellationToken).ConfigureAwait(false);
-                processedSolution = processedDocument.Project.Solution;
-            }
-        }
+                var currentSolution = changedSolution;
+                await foreach (var document in stream)
+                {
+                    currentSolution = document.SupportsSyntaxTree
+                        ? currentSolution.WithDocumentSyntaxRoot(document.Id, await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false))
+                        : currentSolution.WithDocumentText(document.Id, await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false));
+                }
 
-        return processedSolution;
+                return currentSolution;
+            },
+            args: changedSolution,
+            cancellationToken).ConfigureAwait(false);
+
+        // Then do a pass where we cleanup semantics.
+        var semanticCleanedSolution = await CleanupSemanticsAsync(
+            syntaxCleanedSolution, documentIdsAndOptions, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+
+        return semanticCleanedSolution;
     }
 
     /// <summary>
@@ -509,15 +519,21 @@ public abstract class CodeAction
     {
         if (document.SupportsSyntaxTree)
         {
-            // TODO: avoid ILegacyGlobalCodeActionOptionsWorkspaceService https://github.com/dotnet/roslyn/issues/60777
-            var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
-            var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
-
-            var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = await GetCodeCleanupOptionAsync(document, cancellationToken).ConfigureAwait(false);
             return await CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
         }
 
         return document;
+    }
+
+    private static async Task<CodeCleanupOptions> GetCodeCleanupOptionAsync(Document document, CancellationToken cancellationToken)
+    {
+        // TODO: avoid ILegacyGlobalCodeActionOptionsWorkspaceService https://github.com/dotnet/roslyn/issues/60777
+        var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
+        var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
+
+        var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        return options;
     }
 
     internal static async Task<Document> CleanupDocumentAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
