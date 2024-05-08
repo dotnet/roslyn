@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -487,27 +488,23 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         var refLocationGroups = refLocationsInSolution.GroupBy(loc => loc.Document.Id);
 
-        var fixedDocuments = await Task.WhenAll(refLocationGroups.Select(async refInOneDocument =>
-        {
-            var result = await FixReferencingDocumentAsync(
-                solutionWithChangedNamespace.GetRequiredDocument(refInOneDocument.Key),
-                refInOneDocument,
-                newNamespace,
-                fallbackOptions,
-                cancellationToken).ConfigureAwait(false);
-            return (result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
-        })).ConfigureAwait(false);
+        var fixedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot, PreservationMode preservationMode)>.RunParallelAsync(
+            source: refLocationGroups,
+            produceItems: static async (refInOneDocument, callback, args, cancellationToken) =>
+            {
+                var result = await FixReferencingDocumentAsync(
+                    args.solutionWithChangedNamespace.GetRequiredDocument(refInOneDocument.Key),
+                    refInOneDocument,
+                    args.newNamespace,
+                    args.fallbackOptions,
+                    cancellationToken).ConfigureAwait(false);
+                callback((result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false), PreservationMode.PreserveValue));
+            },
+            args: (solutionWithChangedNamespace, newNamespace, fallbackOptions),
+            cancellationToken).ConfigureAwait(false);
 
-        var solutionWithFixedReferences = MergeDocumentChanges(solutionWithChangedNamespace, fixedDocuments);
-
+        var solutionWithFixedReferences = solutionWithChangedNamespace.WithDocumentSyntaxRoots(fixedDocuments);
         return (solutionWithFixedReferences, refLocationGroups.SelectAsArray(g => g.Key));
-    }
-
-    private static Solution MergeDocumentChanges(
-        Solution originalSolution, (DocumentId documentId, SyntaxNode newRoot)[] changedDocuments)
-    {
-        return originalSolution.WithDocumentSyntaxRoots(
-            changedDocuments.SelectAsArray(t => (t.documentId, t.newRoot, PreservationMode.PreserveValue)));
     }
 
     private readonly struct LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
@@ -770,44 +767,39 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         CodeCleanupOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
-        using var _ = PooledHashSet<DocumentId>.GetInstance(out var linkedDocumentsToSkip);
-        var documentsToProcessBuilder = ArrayBuilder<Document>.GetInstance();
+        using var _1 = PooledHashSet<DocumentId>.GetInstance(out var linkedDocumentsToSkip);
+        using var _2 = ArrayBuilder<Document>.GetInstance(out var documentsToProcess);
 
         foreach (var id in ids)
         {
             if (linkedDocumentsToSkip.Contains(id))
-            {
                 continue;
-            }
 
             var document = solution.GetRequiredDocument(id);
             linkedDocumentsToSkip.AddRange(document.GetLinkedDocumentIds());
-            documentsToProcessBuilder.Add(document);
-
-            document = await RemoveUnnecessaryImportsWorkerAsync(
-                document,
-                CreateImports(document, names, withFormatterAnnotation: false),
-                cancellationToken).ConfigureAwait(false);
-            solution = document.Project.Solution;
+            documentsToProcess.Add(document);
         }
 
-        var documentsToProcess = documentsToProcessBuilder.ToImmutableAndFree();
-
-        var changeDocuments = await Task.WhenAll(documentsToProcess.Select(
-            async doc =>
+        var changedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot, PreservationMode preservationMode)>.RunParallelAsync(
+            source: documentsToProcess,
+            produceItems: static async (doc, callback, args, cancellationToken) =>
             {
                 var result = await RemoveUnnecessaryImportsWorkerAsync(
                     doc,
-                    CreateImports(doc, names, withFormatterAnnotation: false),
+                    CreateImports(doc, args.names, withFormatterAnnotation: false),
+                    args.fallbackOptions,
                     cancellationToken).ConfigureAwait(false);
-                return (result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
-            })).ConfigureAwait(false);
+                callback((result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false), PreservationMode.PreserveValue));
+            },
+            args: (names, fallbackOptions),
+            cancellationToken).ConfigureAwait(false);
 
-        return MergeDocumentChanges(solution, changeDocuments);
+        return solution.WithDocumentSyntaxRoots(changedDocuments);
 
-        async Task<Document> RemoveUnnecessaryImportsWorkerAsync(
+        async static Task<Document> RemoveUnnecessaryImportsWorkerAsync(
             Document doc,
             IEnumerable<SyntaxNode> importsToRemove,
+            CodeCleanupOptionsProvider fallbackOptions,
             CancellationToken token)
         {
             var removeImportService = doc.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
