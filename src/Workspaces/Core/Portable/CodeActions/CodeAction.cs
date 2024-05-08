@@ -511,6 +511,7 @@ public abstract class CodeAction
             {
                 var document = changedSolution.GetRequiredDocument(documentId);
 
+                // Only care about documents that support syntax.  Non-C#/VB files can't be cleaned.
                 if (document.SupportsSyntaxTree)
                 {
                     var codeActionOptions = await document.GetCodeCleanupOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
