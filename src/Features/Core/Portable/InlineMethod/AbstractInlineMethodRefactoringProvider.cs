@@ -554,7 +554,9 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
             // void Caller() { var x = ((Func<int>)(() => 1))(); }
             // Func<int> Callee() { return () => 1; }
             //
-            // Also, ensure that the node is formatted properly at the destination location.
+            // Also, ensure that the node is formatted properly at the destination location. This is needed as the
+            // location of the destination node might be very different (indentation/nesting wise) from the original
+            // method where the inlined code is coming from.
             inlineExpression = (TExpressionSyntax)syntaxGenerator.AddParentheses(
                 syntaxGenerator.CastExpression(
                     GenerateTypeSyntax(calleeMethodSymbol.ReturnType, allowVar: false),
