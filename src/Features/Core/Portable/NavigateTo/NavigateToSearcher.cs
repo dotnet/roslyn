@@ -191,7 +191,7 @@ internal sealed class NavigateToSearcher
         await AddProgressItemsAsync(1, cancellationToken).ConfigureAwait(false);
         await service.SearchDocumentAsync(
             _activeDocument, _searchPattern, _kinds,
-            r => _callback.AddItemAsync(project, r, cancellationToken),
+            r => _callback.AddResultsAsync(r, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -345,8 +345,8 @@ internal sealed class NavigateToSearcher
     private async Task ProcessOrderedProjectsAsync(
         bool parallel,
         ImmutableArray<ImmutableArray<Project>> orderedProjects,
-        HashSet<INavigateToSearchResult> seenItems,
-        Func<INavigateToSearchService, ImmutableArray<Project>, Func<Project, INavigateToSearchResult, Task>, Func<Task>, Task> processProjectAsync,
+        HashSet<INavigateToSearchResult> seenResults,
+        Func<INavigateToSearchService, ImmutableArray<Project>, Func<ImmutableArray<INavigateToSearchResult>, Task>, Func<Task>, Task> processProjectAsync,
         CancellationToken cancellationToken)
     {
         // Process each group one at a time.  However, in each group process all projects in parallel to get results
@@ -362,38 +362,47 @@ internal sealed class NavigateToSearcher
             if (!parallel)
             {
                 foreach (var group in groups)
-                    await SearchCoreAsync(group).ConfigureAwait(false);
+                    await SearchCoreAsync(group, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                var allTasks = groups.Select(SearchCoreAsync);
-                await Task.WhenAll(allTasks).ConfigureAwait(false);
+                await RoslynParallel.ForEachAsync(
+                    source: groups,
+                    cancellationToken,
+                    SearchCoreAsync).ConfigureAwait(false);
             }
         }
 
         return;
 
-        async Task SearchCoreAsync(IGrouping<INavigateToSearchService, Project> grouping)
+        async ValueTask SearchCoreAsync(IGrouping<INavigateToSearchService, Project> grouping, CancellationToken cancellationToken)
         {
-            await Task.Yield().ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             var searchService = grouping.Key;
             await processProjectAsync(
                 searchService,
-                grouping.ToImmutableArray(),
-                (project, result) =>
+                [.. grouping],
+                results =>
                 {
+                    using var _ = ArrayBuilder<INavigateToSearchResult>.GetInstance(results.Length, out var nonDuplicates);
+
                     // If we're seeing a dupe in another project, then filter it out here.  The results from
                     // the individual projects will already contain the information about all the projects
                     // leading to a better condensed view that doesn't look like it contains duplicate info.
-                    lock (seenItems)
+                    lock (seenResults)
                     {
-                        if (!seenItems.Add(result))
-                            return Task.CompletedTask;
+                        foreach (var result in results)
+                        {
+                            if (seenResults.Add(result))
+                                nonDuplicates.Add(result);
+                        }
                     }
 
-                    return _callback.AddItemAsync(project, result, cancellationToken);
+                    if (nonDuplicates.Count > 0)
+                        _callback.AddResultsAsync(nonDuplicates.ToImmutableAndClear(), cancellationToken);
+
+                    return Task.CompletedTask;
                 },
                 () => this.ProgressItemsCompletedAsync(count: 1, cancellationToken)).ConfigureAwait(false);
         }
@@ -430,7 +439,7 @@ internal sealed class NavigateToSearcher
             parallel: true,
             orderedProjects,
             seenItems,
-            async (service, projects, onItemFound, onProjectCompleted) =>
+            async (service, projects, onResultsFound, onProjectCompleted) =>
             {
                 // if the language doesn't support searching cached docs, immediately transition the project to the
                 // completed state.
@@ -443,7 +452,7 @@ internal sealed class NavigateToSearcher
                 {
                     await advancedService.SearchCachedDocumentsAsync(
                         _solution, projects, GetPriorityDocuments(projects), _searchPattern, _kinds, _activeDocument,
-                        onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+                        onResultsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
                 }
             },
             cancellationToken);
@@ -487,7 +496,7 @@ internal sealed class NavigateToSearcher
             parallel: false,
             filteredProjects,
             seenItems,
-            async (service, projects, onItemFound, onProjectCompleted) =>
+            async (service, projects, onResultsFound, onProjectCompleted) =>
             {
                 // if the language doesn't support searching generated docs, immediately transition the project to the
                 // completed state.
@@ -499,7 +508,7 @@ internal sealed class NavigateToSearcher
                 else
                 {
                     await advancedService.SearchGeneratedDocumentsAsync(
-                        _solution, projects, _searchPattern, _kinds, _activeDocument, onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+                        _solution, projects, _searchPattern, _kinds, _activeDocument, onResultsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
                 }
             },
             cancellationToken);
@@ -519,10 +528,10 @@ internal sealed class NavigateToSearcher
         public bool CanFilter
             => false;
 
-        public Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+        public Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        public async Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<Project, INavigateToSearchResult, Task> onResultFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+        public async Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
         {
             foreach (var _ in projects)
                 await onProjectCompleted().ConfigureAwait(false);

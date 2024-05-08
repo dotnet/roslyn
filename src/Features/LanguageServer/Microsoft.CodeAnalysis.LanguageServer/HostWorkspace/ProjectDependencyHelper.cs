@@ -129,7 +129,7 @@ internal static class ProjectDependencyHelper
 
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
         var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
-        var unresolvedParams = new UnresolvedDependenciesParams(projectPaths.ToArray());
+        var unresolvedParams = new UnresolvedDependenciesParams([.. projectPaths]);
         await languageServerManager.SendRequestAsync(ProjectNeedsRestoreName, unresolvedParams, cancellationToken);
     }
 

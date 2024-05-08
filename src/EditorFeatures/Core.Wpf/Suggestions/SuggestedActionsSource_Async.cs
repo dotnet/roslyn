@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CancellationToken cancellationToken)
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-                using var state = SourceState.TryAddReference();
+                using var state = _state.TryAddReference();
                 if (state is null)
                     return;
 

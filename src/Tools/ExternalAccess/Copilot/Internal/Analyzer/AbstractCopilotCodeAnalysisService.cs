@@ -28,7 +28,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
 {
     // The _diagnosticsCache is a cache for computed diagnostics via `AnalyzeDocumentAsync`.
     // Each document maps to a dictionary, which in tern maps a prompt title to a list of existing Diagnostics and a boolean flag.
-    // The list of diangostics represents the diagnostics computed for the document under the given prompt title,
+    // The list of diagnostics represents the diagnostics computed for the document under the given prompt title,
     // the boolean flag indicates whether the diagnostics result is for the entire document.
     // This cache is used to avoid duplicate analysis calls by storing the computed diagnostics for each document and prompt title.
     private readonly ConditionalWeakTable<Document, ConcurrentDictionary<string, (ImmutableArray<Diagnostic> Diagnostics, bool IsCompleteResult)>> _diagnosticsCache = new();
@@ -38,6 +38,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     protected abstract Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken);
     protected abstract Task<ImmutableArray<Diagnostic>> GetCachedDiagnosticsCoreAsync(Document document, string promptTitle, CancellationToken cancellationToken);
     protected abstract Task StartRefinementSessionCoreAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
+    protected abstract Task<string> GetOnTheFlyDocsCoreAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
 
     public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         => IsAvailableCoreAsync(cancellationToken);
@@ -168,5 +169,13 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
 
         if (await service.IsRefineOptionEnabledAsync().ConfigureAwait(false))
             await StartRefinementSessionCoreAsync(oldDocument, newDocument, primaryDiagnostic, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken)
+    {
+        if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+            return string.Empty;
+
+        return await GetOnTheFlyDocsCoreAsync(symbolSignature, declarationCode, language, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -49419,7 +49419,7 @@ public interface I1
         public void RuntimeFeature_01()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,
-                                                 references: new[] { Net461.mscorlib },
+                                                 references: new[] { Net461.References.mscorlib },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -49430,7 +49430,7 @@ public interface I1
         public void RuntimeFeature_02()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,
-                                                 references: new[] { Net70.SystemRuntime },
+                                                 references: new[] { Net70.References.SystemRuntime },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -49730,7 +49730,7 @@ namespace System
 ";
 
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll,
-                                                 references: new[] { Net461.mscorlib },
+                                                 references: new[] { Net461.References.mscorlib },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);

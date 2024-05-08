@@ -32,17 +32,27 @@ internal sealed class FindReferenceCache
 
         static async Task<FindReferenceCache> ComputeCacheAsync(Document document, CancellationToken cancellationToken)
         {
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+
             // Find-Refs is not impacted by nullable types at all.  So get a nullable-disabled semantic model to avoid
             // unnecessary costs while binding.
             var model = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return new(document, model, root);
+
+            // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
+            // any unicode escapes in it, then we do simple string matching to find the tokens.
+            var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+
+            return new(document, text, model, root, index);
         }
     }
 
     public readonly Document Document;
+    public readonly SourceText Text;
     public readonly SemanticModel SemanticModel;
     public readonly SyntaxNode Root;
+    public readonly ISyntaxFactsService SyntaxFacts;
+    public readonly SyntaxTreeIndex SyntaxTreeIndex;
 
     private readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> _symbolInfoCache = [];
     private readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> _identifierCache;
@@ -50,11 +60,16 @@ internal sealed class FindReferenceCache
     private ImmutableHashSet<string>? _aliasNameSet;
     private ImmutableArray<SyntaxToken> _constructorInitializerCache;
 
-    private FindReferenceCache(Document document, SemanticModel semanticModel, SyntaxNode root)
+    private FindReferenceCache(
+        Document document, SourceText text, SemanticModel semanticModel, SyntaxNode root, SyntaxTreeIndex syntaxTreeIndex)
     {
         Document = document;
+        Text = text;
         SemanticModel = semanticModel;
         Root = root;
+        SyntaxTreeIndex = syntaxTreeIndex;
+        SyntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
         _identifierCache = new(comparer: semanticModel.Language switch
         {
             LanguageNames.VisualBasic => StringComparer.OrdinalIgnoreCase,
@@ -81,10 +96,8 @@ internal sealed class FindReferenceCache
         return null;
     }
 
-    public async ValueTask<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(
-        Document document,
-        string identifier,
-        CancellationToken cancellationToken)
+    public ImmutableArray<SyntaxToken> FindMatchingIdentifierTokens(
+        string identifier, CancellationToken cancellationToken)
     {
         if (identifier == "")
         {
@@ -99,103 +112,82 @@ internal sealed class FindReferenceCache
         if (_identifierCache.TryGetValue(identifier, out var result))
             return result;
 
-        // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
-        // any unicode escapes in it, then we do simple string matching to find the tokens.
-        var info = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
-
         // If this document doesn't even contain this identifier (escaped or non-escaped) we don't have to search it at all.
-        if (!info.ProbablyContainsIdentifier(identifier))
+        if (!this.SyntaxTreeIndex.ProbablyContainsIdentifier(identifier))
             return [];
 
-        return await ComputeAndCacheTokensAsync(this, document, identifier, info, cancellationToken).ConfigureAwait(false);
+        // If the identifier was escaped in the file then we'll have to do a more involved search that actually
+        // walks the root and checks all identifier tokens.
+        //
+        // otherwise, we can use the text of the document to quickly find candidates and test those directly.
+        return this.SyntaxTreeIndex.ProbablyContainsEscapedIdentifier(identifier)
+            ? _identifierCache.GetOrAdd(identifier, identifier => FindMatchingIdentifierTokensFromTree(identifier, cancellationToken))
+            : _identifierCache.GetOrAdd(identifier, _ => FindMatchingIdentifierTokensFromText(identifier, cancellationToken));
+    }
 
-        static async ValueTask<ImmutableArray<SyntaxToken>> ComputeAndCacheTokensAsync(
-            FindReferenceCache cache, Document document, string identifier, SyntaxTreeIndex info, CancellationToken cancellationToken)
+    private bool IsMatch(string identifier, SyntaxToken token)
+        => !token.IsMissing && this.SyntaxFacts.IsIdentifier(token) && this.SyntaxFacts.TextMatch(token.ValueText, identifier);
+
+    private ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromTree(
+        string identifier, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
+        using var obj = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
+
+        var stack = obj.Object;
+        stack.Push(this.Root);
+
+        while (stack.TryPop(out var current))
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var root = await cache.SemanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-            // If the identifier was escaped in the file then we'll have to do a more involved search that actually
-            // walks the root and checks all identifier tokens.
-            //
-            // otherwise, we can use the text of the document to quickly find candidates and test those directly.
-            if (info.ProbablyContainsEscapedIdentifier(identifier))
+            cancellationToken.ThrowIfCancellationRequested();
+            if (current.IsNode)
             {
-                return cache._identifierCache.GetOrAdd(
-                    identifier, _ => FindMatchingIdentifierTokensFromTree(syntaxFacts, identifier, root));
+                foreach (var child in current.AsNode()!.ChildNodesAndTokens().Reverse())
+                    stack.Push(child);
             }
-            else
+            else if (current.IsToken)
             {
-                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                return cache._identifierCache.GetOrAdd(
-                    identifier, _ => FindMatchingIdentifierTokensFromText(syntaxFacts, identifier, root, text, cancellationToken));
-            }
-        }
+                var token = current.AsToken();
+                if (IsMatch(identifier, token))
+                    result.Add(token);
 
-        static bool IsMatch(ISyntaxFactsService syntaxFacts, string identifier, SyntaxToken token)
-            => !token.IsMissing && syntaxFacts.IsIdentifier(token) && syntaxFacts.TextMatch(token.ValueText, identifier);
-
-        static ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromTree(
-            ISyntaxFactsService syntaxFacts, string identifier, SyntaxNode root)
-        {
-            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
-            using var obj = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
-
-            var stack = obj.Object;
-            stack.Push(root);
-
-            while (stack.TryPop(out var current))
-            {
-                if (current.IsNode)
+                if (token.HasStructuredTrivia)
                 {
-                    foreach (var child in current.AsNode()!.ChildNodesAndTokens().Reverse())
-                        stack.Push(child);
-                }
-                else if (current.IsToken)
-                {
-                    var token = current.AsToken();
-                    if (IsMatch(syntaxFacts, identifier, token))
-                        result.Add(token);
-
-                    if (token.HasStructuredTrivia)
+                    // structured trivia can only be leading trivia
+                    foreach (var trivia in token.LeadingTrivia)
                     {
-                        // structured trivia can only be leading trivia
-                        foreach (var trivia in token.LeadingTrivia)
-                        {
-                            if (trivia.HasStructure)
-                                stack.Push(trivia.GetStructure()!);
-                        }
+                        if (trivia.HasStructure)
+                            stack.Push(trivia.GetStructure()!);
                     }
                 }
             }
-
-            return result.ToImmutableAndClear();
         }
 
-        static ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromText(
-            ISyntaxFactsService syntaxFacts, string identifier, SyntaxNode root, SourceText sourceText, CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
-
-            var index = 0;
-            while ((index = sourceText.IndexOf(identifier, index, syntaxFacts.IsCaseSensitive)) >= 0)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var token = root.FindToken(index, findInsideTrivia: true);
-                var span = token.Span;
-                if (span.Start == index && span.Length == identifier.Length && IsMatch(syntaxFacts, identifier, token))
-                    result.Add(token);
-
-                var nextIndex = index + identifier.Length;
-                nextIndex = Math.Max(nextIndex, token.SpanStart);
-                index = nextIndex;
-            }
-
-            return result.ToImmutableAndClear();
-        }
+        return result.ToImmutableAndClear();
     }
 
+    private ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromText(
+        string identifier, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
+
+        var index = 0;
+        while ((index = this.Text.IndexOf(identifier, index, this.SyntaxFacts.IsCaseSensitive)) >= 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var token = this.Root.FindToken(index, findInsideTrivia: true);
+            var span = token.Span;
+            if (span.Start == index && span.Length == identifier.Length && IsMatch(identifier, token))
+                result.Add(token);
+
+            var nextIndex = index + identifier.Length;
+            nextIndex = Math.Max(nextIndex, token.SpanStart);
+            index = nextIndex;
+        }
+
+        return result.ToImmutableAndClear();
+    }
     public IEnumerable<SyntaxToken> GetConstructorInitializerTokens(
         ISyntaxFactsService syntaxFacts, SyntaxNode root, CancellationToken cancellationToken)
     {

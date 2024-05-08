@@ -51,13 +51,8 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                         // we wait for global operation, higher and normal priority processor to finish its working
                         await WaitForHigherPriorityOperationsAsync().ConfigureAwait(false);
 
-                        // process any available project work, preferring the active project.
-                        var preferableProjectId = Processor._documentTracker.SupportsDocumentTracking
-                            ? Processor._documentTracker.TryGetActiveDocument()?.ProjectId
-                            : null;
-
                         if (_workItemQueue.TryTakeAnyWork(
-                                preferableProjectId,
+                                preferableProjectId: null,
                                 out var workItem, out var projectCancellation))
                         {
                             await ProcessProjectAsync(Analyzers, workItem, projectCancellation).ConfigureAwait(false);

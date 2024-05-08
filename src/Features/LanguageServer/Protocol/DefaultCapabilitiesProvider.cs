@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = true,
                 Legend = new SemanticTokensLegend
                 {
-                    TokenTypes = SemanticTokensSchema.GetSchema(clientCapabilities.HasVisualStudioLspCapability()).AllTokenTypes.ToArray(),
+                    TokenTypes = [.. SemanticTokensSchema.GetSchema(clientCapabilities.HasVisualStudioLspCapability()).AllTokenTypes],
                     TokenModifiers = SemanticTokensSchema.TokenModifiers
                 }
             };
@@ -119,16 +119,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             // Using VS server capabilities because we have our own custom client.
             capabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = ["'", "/", "\n"] };
-
-            if (!supportsVsExtensions)
-            {
-                capabilities.DiagnosticOptions = new DiagnosticOptions
-                {
-                    InterFileDependencies = true,
-                    WorkDoneProgress = true,
-                    WorkspaceDiagnostics = true,
-                };
-            }
 
             return capabilities;
         }

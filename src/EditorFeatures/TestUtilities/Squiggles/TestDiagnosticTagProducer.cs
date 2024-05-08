@@ -18,11 +18,11 @@ internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
     where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
     where TTag : class, ITag
 {
-    internal static Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpans(
+    internal static Task<ImmutableArray<ITagSpan<TTag>>> GetTagSpansAsync(
         EditorTestWorkspace workspace,
         IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>>? analyzerMap = null)
     {
-        return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(workspace, analyzerMap);
+        return SquiggleUtilities.GetTagSpansAsync<TProvider, TTag>(workspace, analyzerMap);
     }
 
     internal static DiagnosticData CreateDiagnosticData(EditorTestHostDocument document, TextSpan span)

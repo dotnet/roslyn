@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             Assert.True(applied);
             return;
 
-            string GenerateAnalyzerConfigText(OptionsCollectionAlias options)
+            static string GenerateAnalyzerConfigText(OptionsCollectionAlias options)
             {
                 var textBuilder = new StringBuilder();
 

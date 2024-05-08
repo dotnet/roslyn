@@ -196,7 +196,7 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
 
         return default;
 
-        bool IsExtendedPropertyPattern(MemberAccessExpressionSyntax memberAccess, [NotNullWhen(true)] out PropertyPatternClauseSyntax? propertyPatternClause)
+        static bool IsExtendedPropertyPattern(MemberAccessExpressionSyntax memberAccess, [NotNullWhen(true)] out PropertyPatternClauseSyntax? propertyPatternClause)
         {
             while (memberAccess.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             {

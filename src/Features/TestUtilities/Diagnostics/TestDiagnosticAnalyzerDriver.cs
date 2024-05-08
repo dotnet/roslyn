@@ -55,7 +55,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             if (getDocumentDiagnostics)
             {
                 var text = await document.GetTextAsync().ConfigureAwait(false);
-                var dxs = await _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, document.Id, _includeSuppressedDiagnostics, _includeNonLocalDocumentDiagnostics, CancellationToken.None);
+                var dxs = await _diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
+                    project.Solution, project.Id, document.Id, diagnosticIds: null, shouldIncludeAnalyzer: null,
+                    _includeSuppressedDiagnostics, includeLocalDocumentDiagnostics: true, _includeNonLocalDocumentDiagnostics, CancellationToken.None);
                 documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(
                     filterSpan is null
                         ? dxs.Where(d => d.DataLocation.DocumentId != null)
@@ -66,7 +68,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             if (getProjectDiagnostics)
             {
-                var dxs = await _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, documentId: null, _includeSuppressedDiagnostics, _includeNonLocalDocumentDiagnostics, CancellationToken.None);
+                var dxs = await _diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
+                    project.Solution, project.Id, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null,
+                    _includeSuppressedDiagnostics, includeLocalDocumentDiagnostics: true, _includeNonLocalDocumentDiagnostics, CancellationToken.None);
                 projectDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => d.DocumentId is null), project, CancellationToken.None);
             }
 

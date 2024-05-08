@@ -3,15 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -21,13 +16,14 @@ internal partial class DocumentPullDiagnosticHandler
 {
     public DocumentPullDiagnosticHandler(
         IDiagnosticAnalyzerService analyzerService,
+        IDiagnosticSourceManager diagnosticSourceManager,
         IDiagnosticsRefresher diagnosticRefresher,
         IGlobalOptionService globalOptions)
-        : base(analyzerService, diagnosticRefresher, globalOptions)
+        : base(analyzerService, diagnosticRefresher, diagnosticSourceManager, globalOptions)
     {
     }
 
-    protected override string? GetDiagnosticCategory(VSInternalDocumentDiagnosticsParams diagnosticsParams)
+    protected override string? GetRequestDiagnosticCategory(VSInternalDocumentDiagnosticsParams diagnosticsParams)
         => diagnosticsParams.QueryingDiagnosticKind?.Value;
 
     public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams diagnosticsParams)
@@ -72,59 +68,7 @@ internal partial class DocumentPullDiagnosticHandler
         => ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: false);
 
     protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport[]> progress)
-        => progress.GetFlattenedValues();
-
-    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
-        VSInternalDocumentDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
-        => new(GetDiagnosticSource(diagnosticsParams, context) is { } diagnosticSource ? [diagnosticSource] : []);
-
-    private IDiagnosticSource? GetDiagnosticSource(VSInternalDocumentDiagnosticsParams diagnosticsParams, RequestContext context)
     {
-        var category = diagnosticsParams.QueryingDiagnosticKind?.Value;
-
-        // TODO: Implement as extensibility point. https://github.com/dotnet/roslyn/issues/72896
-
-        if (category == PullDiagnosticCategories.Task)
-            return context.GetTrackedDocument<Document>() is { } document ? new TaskListDiagnosticSource(document, GlobalOptions) : null;
-
-        if (category == PullDiagnosticCategories.EditAndContinue)
-            return GetEditAndContinueDiagnosticSource(context);
-
-        var diagnosticKind = category switch
-        {
-            PullDiagnosticCategories.DocumentCompilerSyntax => DiagnosticKind.CompilerSyntax,
-            PullDiagnosticCategories.DocumentCompilerSemantic => DiagnosticKind.CompilerSemantic,
-            PullDiagnosticCategories.DocumentAnalyzerSyntax => DiagnosticKind.AnalyzerSyntax,
-            PullDiagnosticCategories.DocumentAnalyzerSemantic => DiagnosticKind.AnalyzerSemantic,
-            // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
-            null => DiagnosticKind.All,
-            // if it's a category we don't recognize, return nothing.
-            _ => (DiagnosticKind?)null,
-        };
-
-        if (diagnosticKind is null)
-            return null;
-
-        return GetDiagnosticSource(diagnosticKind.Value, context);
-    }
-
-    internal static IDiagnosticSource? GetEditAndContinueDiagnosticSource(RequestContext context)
-        => context.GetTrackedDocument<Document>() is { } document ? EditAndContinueDiagnosticSource.CreateOpenDocumentSource(document) : null;
-
-    internal static IDiagnosticSource? GetDiagnosticSource(DiagnosticKind diagnosticKind, RequestContext context)
-        => context.GetTrackedDocument<TextDocument>() is { } textDocument ? new DocumentDiagnosticSource(diagnosticKind, textDocument) : null;
-
-    internal static IDiagnosticSource? GetNonLocalDiagnosticSource(RequestContext context, IGlobalOptionService globalOptions)
-    {
-        var textDocument = context.GetTrackedDocument<Document>();
-        if (textDocument == null)
-            return null;
-
-        // Non-local document diagnostics are reported only when full solution analysis is enabled for analyzer execution.
-        if (globalOptions.GetBackgroundAnalysisScope(textDocument.Project.Language) != BackgroundAnalysisScope.FullSolution)
-            return null;
-
-        // NOTE: Compiler does not report any non-local diagnostics, so we bail out for compiler analyzer.
-        return new NonLocalDocumentDiagnosticSource(textDocument, shouldIncludeAnalyzer: static analyzer => !analyzer.IsCompilerAnalyzer());
+        return progress.GetFlattenedValues();
     }
 }

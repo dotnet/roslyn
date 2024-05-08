@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public static IEnumerable<ProjectFileReference> GetProjectReferences(this MSB.Execution.ProjectInstance executedProject)
             => executedProject
                 .GetItems(ItemNames.ProjectReference)
-                .Where(i => i.ReferenceOutputAssemblyIsTrue())
                 .Select(CreateProjectFileReference);
 
         public static ImmutableArray<PackageReference> GetPackageReferences(this MSB.Execution.ProjectInstance executedProject)
@@ -48,14 +47,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 references.Add(packageReference);
             }
 
-            return references.ToImmutableArray();
+            return [.. references];
         }
 
         /// <summary>
         /// Create a <see cref="ProjectFileReference"/> from a ProjectReference node in the MSBuild file.
         /// </summary>
         private static ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
-            => new(reference.EvaluatedInclude, reference.GetAliases());
+            => new(reference.EvaluatedInclude, reference.GetAliases(), reference.ReferenceOutputAssemblyIsTrue());
 
         public static ImmutableArray<string> GetAliases(this MSB.Framework.ITaskItem item)
         {

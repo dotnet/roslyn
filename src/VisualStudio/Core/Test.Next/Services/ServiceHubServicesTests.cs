@@ -241,8 +241,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 await remoteWorkspace.CurrentSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1365014")]
         public async Task TestRemoteHostSynchronizeIncrementalUpdate(bool applyInBatch)
         {
@@ -1450,7 +1449,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static async Task VerifyAssetStorageAsync(InProcRemoteHostClient client, Solution solution)
         {
-            var map = await solution.GetAssetMapAsync(CancellationToken.None);
+            var map = await solution.GetAssetMapAsync(projectConeId: null, CancellationToken.None);
 
             var storage = client.TestData.WorkspaceManager.SolutionAssetCache;
 
@@ -1525,7 +1524,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             ],
             [
                 "cs additional file content"
-            ], solution.ProjectIds.ToArray());
+            ], [.. solution.ProjectIds]);
 
             solution = AddProject(solution, LanguageNames.CSharp,
             [

@@ -6,7 +6,7 @@ using System;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 
 #if DEBUG
 using System.Diagnostics;
@@ -63,7 +63,7 @@ namespace Roslyn.Utilities
         // slightly slower than local cache
         // we read this cache when having a miss in local cache
         // writes to local cache will update shared cache as well.
-        private static readonly Entry[] s_sharedTable = new Entry[SharedSize];
+        private static readonly SegmentedArray<Entry> s_sharedTable = new SegmentedArray<Entry>(SharedSize);
 
         // essentially a random number 
         // the usage pattern will randomly use and increment this

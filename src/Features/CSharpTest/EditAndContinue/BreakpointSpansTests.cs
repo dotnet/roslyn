@@ -4401,8 +4401,7 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void InstanceConstructor_Primary_ImplicitBaseInitializer_OutsideOfIdentifierAndNonEmptyParameters(
             [CombinatorialValues("class", "struct", "record", "record struct")] string keyword,
             [CombinatorialValues(
@@ -4425,8 +4424,7 @@ $$    using ([|var vv = goo()|])
             TestSpan(source.Replace("class", keyword));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void InstanceConstructor_Primary_ImplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_NonRecord(
             [CombinatorialValues("class", "struct")] string keyword,
             [CombinatorialValues(
@@ -4443,8 +4441,7 @@ $$    using ([|var vv = goo()|])
             TestSpan(source.Replace("class", keyword));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void InstanceConstructor_Primary_ImplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_Record(
             [CombinatorialValues("record", "record struct")] string keyword,
             [CombinatorialValues(
@@ -4465,8 +4462,7 @@ $$    using ([|var vv = goo()|])
             TestSpan(source.Replace("record", keyword));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void InstanceConstructor_Primary_ImplicitBaseInitializer_NoBreakpoint(
             [CombinatorialValues("class", "struct", "record", "record struct")] string keyword,
             [CombinatorialValues(
@@ -4481,8 +4477,7 @@ $$    using ([|var vv = goo()|])
             TestMissing(source.Replace("class", keyword));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void InstanceConstructor_Primary_ExplicitBaseInitializer_OutsideOfIdentifierAndNonEmptyParameters(
             [CombinatorialValues("class", "struct", "record", "record struct")] string keyword,
             [CombinatorialValues(
@@ -4509,8 +4504,7 @@ $$    using ([|var vv = goo()|])
             TestSpan(source.Replace("class", keyword));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void InstanceConstructor_Primary_ExplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_NonRecord(
             [CombinatorialValues("class", "struct")] string keyword,
             [CombinatorialValues(
@@ -4525,8 +4519,7 @@ $$    using ([|var vv = goo()|])
             TestSpan(source.Replace("class", keyword));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void InstanceConstructor_Primary_ExplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_Record(
             [CombinatorialValues("record", "record struct")] string keyword,
             [CombinatorialValues(
@@ -4541,8 +4534,7 @@ $$    using ([|var vv = goo()|])
             TestSpan(source.Replace("record", keyword));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void InstanceConstructor_Primary_ExplicitBaseInitializer_NoBreakpoint(
             [CombinatorialValues("class", "struct", "record", "record struct")] string keyword,
             [CombinatorialValues(
