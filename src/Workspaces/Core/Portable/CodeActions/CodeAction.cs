@@ -518,23 +518,39 @@ public abstract class CodeAction
         return document;
     }
 
-    internal static async Task<Document> CleanupDocumentAsync(
-        Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
+    internal static async Task<Document> CleanupDocumentAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
     {
-        document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-            document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
+        // First, do a syntax pass.  Ensuring that things are formatted correctly based on the original nodes and
+        // tokens. We want to do this prior to cleaning semantics as semantic cleanup can change the shape of the tree
+        // (for example, by removing tokens), which can then cause formatting to not work as expected.
+        var document1 = await CleanupSyntaxAsync(document, options, cancellationToken).ConfigureAwait(false);
 
-        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, options.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+        // Now, do the semantic cleaning pass.
+        var document2 = await CleanupSemanticsAsync(document1, options, cancellationToken).ConfigureAwait(false);
+        return document2;
+    }
 
+    internal static async Task<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
+    {
         // format any node with explicit formatter annotation
-        document = await Formatter.FormatAsync(document, Formatter.Annotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
+        var document1 = await Formatter.FormatAsync(document, Formatter.Annotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
         // format any elastic whitespace
-        document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
+        var document2 = await Formatter.FormatAsync(document1, SyntaxAnnotation.ElasticAnnotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
+        return document2;
+    }
 
-        document = await CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
+    internal static async Task<Document> CleanupSemanticsAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
+    {
+        var document1 = await ImportAdder.AddImportsFromSymbolAnnotationAsync(document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
+        var document2 = await Simplifier.ReduceAsync(document1, Simplifier.Annotation, options.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+        var document3 = await CaseCorrector.CaseCorrectAsync(document2, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
 
-        return document;
+        // After doing the semantic cleanup, do another syntax cleanup pass to ensure that the tree is in a good state.
+        // The semantic cleanup passes may have introduced new nodes with elastic trivia that have to be cleaned.
+        var document4 = await CleanupSyntaxAsync(document3, options, cancellationToken).ConfigureAwait(false);
+
+        return document4;
     }
 
     #region Factories for standard code actions

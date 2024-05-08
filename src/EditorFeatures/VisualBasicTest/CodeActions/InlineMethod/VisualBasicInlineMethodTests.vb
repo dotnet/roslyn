@@ -796,8 +796,8 @@ Imports System
 Public Class TestClass
     Public Sub Caller(i As Integer, j As Integer)
         Dim x = Function()
-                   Return i * j
-               End Function()
+                    Return i * j
+                End Function()
     End Sub
 ##
     Private Function Callee(i As Integer, j As Integer) as Func(Of Integer)
@@ -1288,7 +1288,7 @@ Public Class TestClass
 End Class", "
 Public Class TestClass
     Public Sub Caller(i As Integer)
-        Dim y = If (true, 10, 100)
+        Dim y = If(true, 10, 100)
     End Sub
 ##
     Private Function Callee(a As Boolean) As Integer

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -16,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.InlineTemporary
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-    public class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
+    public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpInlineTemporaryCodeRefactoringProvider();
@@ -253,16 +252,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         [Fact]
         public async Task Conversion_NoConversion()
         {
-            await TestFixOneAsync(
+            await TestAsync(
                 """
-                { int [||]x = 3;
+                class C
+                {
+                    void F(){ int [||]x = 3;
 
                 x.ToString(); }
+                }
                 """,
-                       """
-                       { 
-                       3.ToString(); }
-                       """);
+                """
+                class C
+                {
+                    void F(){
+                        3.ToString(); }
+                }
+                """,
+                CSharpParseOptions.Default);
         }
 
         [Fact]
@@ -690,7 +696,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
                     static void Main()
                     {
                         int x = 2;
-                        Bar(x < x, x > 1+2);
+                        Bar(x < x, x > 1 + 2);
                     }
 
                     static void Bar(object a, object b)

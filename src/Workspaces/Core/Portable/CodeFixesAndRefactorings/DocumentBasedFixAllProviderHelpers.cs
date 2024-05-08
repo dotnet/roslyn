@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
@@ -59,11 +60,15 @@ internal static class DocumentBasedFixAllProviderHelpers
                     Contract.ThrowIfFalse(
                         fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
+                    // Defer to the FixAllProvider to actually compute each fixed document.
                     await args.getFixedDocumentsAsync(
                         fixAllContext,
-                        async (document, newDocument) =>
+                        async (originalDocument, newDocument) =>
                         {
-                            var tuple = await ProcessFixedDocumentAsync(document, newDocument, cancellationToken).ConfigureAwait(false);
+                            // As the FixAllProvider informs us about fixed documents, go and clean them up
+                            // syntactically, and then invoke the callback to put into the channel for consumption.
+                            var tuple = await CleanDocumentSyntaxAsync(
+                                originalDocument, newDocument, fixAllContext.State.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
                             if (tuple.HasValue)
                                 callback(tuple.Value);
                         }).ConfigureAwait(false);
@@ -73,12 +78,13 @@ internal static class DocumentBasedFixAllProviderHelpers
                     var currentSolution = args.solution;
                     using var _ = ArrayBuilder<DocumentId>.GetInstance(out var changedRootDocumentIds);
 
-                    // Next, go and insert those all into the solution so all the docs in this particular project
-                    // point at the new trees (or text).  At this point though, the trees have not been cleaned up.
-                    // We don't cleanup the documents as they are created, or one at a time as we add them, as that
-                    // would cause us to run cleanup on N different solution forks (which would be very expensive).
-                    // Instead, by adding all the changed documents to one solution, and then cleaning *those* we
-                    // only perform cleanup semantics on one forked solution.
+                    // Next, go and insert those all into the solution so all the docs in this particular project point
+                    // at the new trees (or text).  At this point though, the trees have not been semantically cleaned
+                    // up. We don't cleanup the documents as they are created, or one at a time as we add them, as that
+                    // would cause us to run semantic cleanup on N different solution forks (which would be very
+                    // expensive as we'd fork, produce semantics, fork, produce semantics, etc. etc.). Instead, by
+                    // adding all the changed documents to one solution, and then cleaning *those* we only perform
+                    // cleanup semantics on one forked solution.
                     await foreach (var (docId, (newRoot, newText)) in stream)
                     {
                         // If we produced a new root (as opposed to new text), keep track of that doc-id so that we
@@ -111,9 +117,9 @@ internal static class DocumentBasedFixAllProviderHelpers
             // on the same fork and do not cause the forked solution to be created and dropped repeatedly.
             using var _ = await RemoteKeepAliveSession.CreateAsync(dirtySolution, cancellationToken).ConfigureAwait(false);
 
-            // Next, go and cleanup any trees we inserted. Once we clean the document, we get the text of it and insert that
-            // back into the final solution.  This way we can release both the original fixed tree, and the cleaned tree
-            // (both of which can be much more expensive than just text).
+            // Next, go and semantically cleanup any trees we inserted. Once we clean the document, we get the text of
+            // it and insert that back into the final solution.  This way we can release both the original fixed tree,
+            // and the cleaned tree (both of which can be much more expensive than just text).
             //
             // Do this in parallel across all the documents that were fixed and resulted in a new tree (as opposed to new
             // text).
@@ -124,7 +130,11 @@ internal static class DocumentBasedFixAllProviderHelpers
                     using var _ = args.progressTracker.ItemCompletedScope();
 
                     var dirtyDocument = args.dirtySolution.GetRequiredDocument(documentId);
-                    var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
+                    var codeCleanupOptions = await dirtyDocument.GetCodeCleanupOptionsAsync(
+                        args.originalFixAllContext.State.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+
+                    // Only have to cleanup semantics here.  Syntax was already done in CleanDocumentSyntaxAsync.
+                    var cleanedDocument = await CodeAction.CleanupSemanticsAsync(dirtyDocument, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
                     var cleanedText = await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                     callback((dirtyDocument.Id, cleanedText));
                 },
@@ -137,36 +147,36 @@ internal static class DocumentBasedFixAllProviderHelpers
 
                     return finalSolution;
                 },
-                args: (dirtySolution, progressTracker),
+                args: (originalFixAllContext, dirtySolution, progressTracker),
                 cancellationToken).ConfigureAwait(false);
         }
 
-        async static ValueTask<(DocumentId documentId, (SyntaxNode? node, SourceText? text))?> ProcessFixedDocumentAsync(
-            Document document, Document? newDocument, CancellationToken cancellationToken)
+        static async ValueTask<(DocumentId documentId, (SyntaxNode? node, SourceText? text))?> CleanDocumentSyntaxAsync(
+            Document document,
+            Document? newDocument,
+            CodeActionOptionsProvider codeActionOptionsProvider,
+            CancellationToken cancellationToken)
         {
-            // If we didn't get a distinct new document, then we don't have anything to do.
             if (newDocument == null || newDocument == document)
                 return null;
 
-            // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
-            // language that doesn't support that, then just grab the text.
-            var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
-            var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            if (newDocument.SupportsSyntaxTree)
+            {
+                // For documents that support syntax, grab the tree so that we can clean it. We do the formatting up front
+                // ensuring that we have well-formatted syntax trees in the solution to work with.  A later pass will do the
+                // semantic cleanup on all documents in parallel.
+                var codeActionOptions = await newDocument.GetCodeCleanupOptionsAsync(codeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+                var cleanedDocument = await CodeAction.CleanupSyntaxAsync(newDocument, codeActionOptions, cancellationToken).ConfigureAwait(false);
+                var node = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            return (document.Id, (node, text));
+                return (document.Id, (node, text: null));
+            }
+            else
+            {
+                // If it's a language that doesn't support that, then just grab the text.
+                var text = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                return (document.Id, (node: null, text));
+            }
         }
-    }
-
-    /// <summary>
-    /// Dummy class just to get access to <see cref="CodeAction.PostProcessChangesAsync(Document, CancellationToken)"/>
-    /// </summary>
-    private class PostProcessCodeAction : CodeAction
-    {
-        public static readonly PostProcessCodeAction Instance = new();
-
-        public override string Title => "";
-
-        public new Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
-            => base.PostProcessChangesAsync(document, cancellationToken);
     }
 }
