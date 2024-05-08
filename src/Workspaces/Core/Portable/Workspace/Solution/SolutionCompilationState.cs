@@ -709,11 +709,42 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, SourceText, PreservationMode)"/>
-    public SolutionCompilationState WithDocumentText(
-        DocumentId documentId, SourceText text, PreservationMode mode)
+    public SolutionCompilationState WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode)
+        => WithDocumentTexts([(documentId, text, mode)]);
+
+    internal SolutionCompilationState WithDocumentTexts(
+        ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
     {
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentText(documentId, text, mode), documentId);
+        return UpdateDocumentsInMultipleProjects(
+             texts.GroupBy(d => d.documentId.ProjectId).Select(g =>
+             {
+                 var projectId = g.Key;
+                 var projectState = this.SolutionState.GetRequiredProjectState(projectId);
+
+                 using var _ = ArrayBuilder<DocumentState>.GetInstance(out var newDocumentStates);
+                 foreach (var (documentId, text, mode) in g)
+                 {
+                     var documentState = projectState.DocumentStates.GetRequiredState(documentId);
+                     if (IsUnchanged(documentState, text))
+                         continue;
+
+                     newDocumentStates.Add(documentState.UpdateText(text, mode));
+                 }
+
+                 return (projectId, newDocumentStates.ToImmutableAndClear());
+             }),
+             static (projectState, newDocumentStates) =>
+             {
+                 return TranslationAction.TouchDocumentsAction.Create(
+                     projectState,
+                     projectState.UpdateDocuments(newDocumentStates, contentChanged: true),
+                     newDocumentStates);
+             });
+
+        static bool IsUnchanged(DocumentState oldDocument, SourceText text)
+        {
+            return oldDocument.TryGetText(out var oldText) && text == oldText;
+        }
     }
 
     public SolutionCompilationState WithDocumentState(
@@ -762,12 +793,41 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode));
     }
 
-    /// <inheritdoc cref="SolutionState.WithDocumentSyntaxRoot"/>
-    public SolutionCompilationState WithDocumentSyntaxRoot(
-        DocumentId documentId, SyntaxNode root, PreservationMode mode)
+    /// <inheritdoc cref="Solution.WithDocumentSyntaxRoots"/>
+    public SolutionCompilationState WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root, PreservationMode mode)> syntaxRoots)
     {
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentSyntaxRoot(documentId, root, mode), documentId);
+        return UpdateDocumentsInMultipleProjects(
+             syntaxRoots.GroupBy(d => d.documentId.ProjectId).Select(g =>
+             {
+                 var projectId = g.Key;
+                 var projectState = this.SolutionState.GetRequiredProjectState(projectId);
+
+                 using var _ = ArrayBuilder<DocumentState>.GetInstance(out var newDocumentStates);
+                 foreach (var (documentId, root, mode) in g)
+                 {
+                     var documentState = projectState.DocumentStates.GetRequiredState(documentId);
+                     if (IsUnchanged(documentState, root))
+                         continue;
+
+                     newDocumentStates.Add(documentState.UpdateTree(root, mode));
+                 }
+
+                 return (projectId, newDocumentStates.ToImmutableAndClear());
+             }),
+             static (projectState, newDocumentStates) =>
+             {
+                 return TranslationAction.TouchDocumentsAction.Create(
+                     projectState,
+                     projectState.UpdateDocuments(newDocumentStates, contentChanged: true),
+                     newDocumentStates);
+             });
+
+        static bool IsUnchanged(DocumentState oldDocument, SyntaxNode root)
+        {
+            return oldDocument.TryGetSyntaxTree(out var oldTree) &&
+                oldTree.TryGetRoot(out var oldRoot) &&
+                oldRoot == root;
+        }
     }
 
     public SolutionCompilationState WithDocumentContentsFrom(
@@ -1498,12 +1558,20 @@ internal sealed partial class SolutionCompilationState
         Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> addDocumentsToProjectState)
         where TDocumentState : TextDocumentState
     {
+        return UpdateDocumentsInMultipleProjects(projectIdAndNewDocuments, addDocumentsToProjectState);
+    }
+
+    private SolutionCompilationState UpdateDocumentsInMultipleProjects<TDocumentState>(
+        IEnumerable<(ProjectId projectId, ImmutableArray<TDocumentState> updatedDocumentState)> projectIdAndUpdatedDocuments,
+        Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> updatedDocumentsToProjectState)
+        where TDocumentState : TextDocumentState
+    {
         var newCompilationState = this;
 
-        foreach (var (projectId, newDocumentStates) in projectIdAndNewDocuments)
+        foreach (var (projectId, newDocumentStates) in projectIdAndUpdatedDocuments)
         {
             var oldProjectState = newCompilationState.SolutionState.GetRequiredProjectState(projectId);
-            var compilationTranslationAction = addDocumentsToProjectState(oldProjectState, newDocumentStates);
+            var compilationTranslationAction = updatedDocumentsToProjectState(oldProjectState, newDocumentStates);
             var newProjectState = compilationTranslationAction.NewProjectState;
 
             var stateChange = newCompilationState.SolutionState.ForkProject(

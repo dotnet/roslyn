@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -36,8 +34,10 @@ internal partial class SolutionCompilationState
 
             public DocumentId DocumentId => _newState.Attributes.Id;
 
-            // Replacing a single tree doesn't impact the generated trees in a compilation, so we can use this against
-            // compilations that have generated trees.
+            /// <summary>
+            /// Replacing a single tree doesn't impact the generated trees in a compilation, so we can use this against
+            /// compilations that have generated trees.
+            /// </summary>
             public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
 
             public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
@@ -55,6 +55,59 @@ internal partial class SolutionCompilationState
 
                 return null;
             }
+        }
+
+        internal sealed class TouchDocumentsAction : TranslationAction
+        {
+            private readonly ImmutableArray<DocumentState> _newStates;
+
+            private TouchDocumentsAction(
+                ProjectState oldProjectState,
+                ProjectState newProjectState,
+                ImmutableArray<DocumentState> newStates)
+                : base(oldProjectState, newProjectState)
+            {
+                _newStates = newStates;
+            }
+
+            public static TranslationAction Create(
+                ProjectState oldProjectState,
+                ProjectState newProjectState,
+                ImmutableArray<DocumentState> newStates)
+            {
+                // Special case when we're only updating a single document.  This case can be optimized more, and
+                // corresponds to the common case of a single file being edited.
+                return newStates.Length == 1
+                    ? new TouchDocumentAction(oldProjectState, newProjectState, oldProjectState.DocumentStates.GetRequiredState(newStates[0].Id), newStates[0])
+                    : new TouchDocumentsAction(oldProjectState, newProjectState, newStates);
+            }
+
+            public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+            {
+                var finalCompilation = oldCompilation;
+                for (int i = 0, n = _newStates.Length; i < n; i++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var newState = _newStates[i];
+                    var oldState = this.OldProjectState.DocumentStates.GetRequiredState(newState.Id);
+                    finalCompilation = finalCompilation.ReplaceSyntaxTree(
+                        await oldState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
+                        await newState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                }
+
+                return finalCompilation;
+            }
+
+            /// <inheritdoc cref="TouchDocumentAction.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput"/>
+            public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput
+                => true;
+
+            /// <inheritdoc cref="TouchDocumentAction.TransformGeneratorDriver"/>
+            public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
+                => generatorDriver;
+
+            public override TranslationAction? TryMergeWithPrior(TranslationAction priorAction)
+                => null;
         }
 
         internal sealed class TouchAdditionalDocumentAction(

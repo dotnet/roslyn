@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -71,7 +72,7 @@ internal static class DocumentBasedFixAllProviderHelpers
             // so we never resync or recompute anything.
             using var _ = await RemoteKeepAliveSession.CreateAsync(originalSolution, cancellationToken).ConfigureAwait(false);
 
-            return await ProducerConsumer<(DocumentId documentId, (SyntaxNode? node, SourceText? text))>.RunParallelAsync(
+            var changedRootsAndTexts = await ProducerConsumer<(DocumentId documentId, (SyntaxNode? node, SourceText? text))>.RunParallelAsync(
                 source: fixAllContexts,
                 produceItems: static async (fixAllContext, callback, args, cancellationToken) =>
                 {
@@ -94,28 +95,22 @@ internal static class DocumentBasedFixAllProviderHelpers
                             callback((newDocument.Id, (newRoot, newText)));
                         }).ConfigureAwait(false);
                 },
-                consumeItems: static async (stream, args, cancellationToken) =>
-                {
-                    var currentSolution = args.originalSolution;
-
-                    // Next, go and insert those all into the solution so all the docs in this particular project point
-                    // at the new trees (or text).  At this point though, the trees have not been semantically cleaned
-                    // up. We don't cleanup the documents as they are created, or one at a time as we add them, as that
-                    // would cause us to run semantic cleanup on N different solution forks (which would be very
-                    // expensive as we'd fork, produce semantics, fork, produce semantics, etc. etc.). Instead, by
-                    // adding all the changed documents to one solution, and then cleaning *those* we only perform
-                    // cleanup semantics on one forked solution.
-                    await foreach (var (docId, (newRoot, newText)) in stream)
-                    {
-                        currentSolution = newRoot != null
-                            ? currentSolution.WithDocumentSyntaxRoot(docId, newRoot)
-                            : currentSolution.WithDocumentText(docId, newText!);
-                    }
-
-                    return currentSolution;
-                },
                 args: (getFixedDocumentsAsync, progressTracker, originalSolution),
                 cancellationToken).ConfigureAwait(false);
+
+            // Next, go and insert those all into the solution so all the docs in this particular project point
+            // at the new trees (or text).  At this point though, the trees have not been semantically cleaned
+            // up. We don't cleanup the documents as they are created, or one at a time as we add them, as that
+            // would cause us to run semantic cleanup on N different solution forks (which would be very
+            // expensive as we'd fork, produce semantics, fork, produce semantics, etc. etc.). Instead, by
+            // adding all the changed documents to one solution, and then cleaning *those* we only perform
+            // cleanup semantics on one forked solution.
+            var changedRoots = changedRootsAndTexts.SelectAsArray(t => t.Item2.node != null, t => (t.documentId, t.Item2.node!, PreservationMode.PreserveValue));
+            var changedTexts = changedRootsAndTexts.SelectAsArray(t => t.Item2.text != null, t => (t.documentId, t.Item2.text!, PreservationMode.PreserveValue));
+
+            return originalSolution
+                .WithDocumentSyntaxRoots(changedRoots)
+                .WithDocumentTexts(changedTexts);
         }
     }
 }

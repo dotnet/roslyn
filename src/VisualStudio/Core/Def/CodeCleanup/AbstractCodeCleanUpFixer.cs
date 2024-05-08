@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -218,7 +219,7 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
         progressTracker.AddItems(projects.Sum(static p => p.DocumentIds.Count));
 
         // Run in parallel across all projects.
-        return await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+        var changedRoots = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
             source: projects,
             produceItems: static async (project, callback, args, cancellationToken) =>
             {
@@ -245,17 +246,10 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
                         callback((document.Id, await fixedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
                     }).ConfigureAwait(false);
             },
-            consumeItems: static async (stream, args, cancellationToken) =>
-            {
-                // Now consume the changed documents, applying their new roots to the solution.
-                var currentSolution = args.solution;
-                await foreach (var (documentId, newRoot) in stream)
-                    currentSolution = currentSolution.WithDocumentSyntaxRoot(documentId, newRoot);
-
-                return currentSolution;
-            },
             args: (globalOptions, solution, enabledFixIds, progressTracker),
             cancellationToken).ConfigureAwait(false);
+
+        return solution.WithDocumentSyntaxRoots(changedRoots.SelectAsArray(t => (t.documentId, t.newRoot, PreservationMode.PreserveValue)));
     }
 
     private static async Task<Document> FixDocumentAsync(
