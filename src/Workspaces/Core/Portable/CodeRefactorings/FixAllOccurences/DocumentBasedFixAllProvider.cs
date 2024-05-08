@@ -8,8 +8,6 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -81,7 +79,7 @@ internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> 
     /// final cleanup pass for formatting/simplification/etc.  Text is returned for documents that don't support syntax.
     /// </summary>
     private async Task GetFixedDocumentsAsync(
-        FixAllContext fixAllContext, Action<(DocumentId documentId, (SyntaxNode? node, SourceText? text))> callback)
+        FixAllContext fixAllContext, Func<Document, Document?, ValueTask> onDocumentFixed)
     {
         Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
             or FixAllScope.ContainingMember or FixAllScope.ContainingType);
@@ -98,8 +96,7 @@ internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> 
             {
                 var (document, spans) = tuple;
                 var newDocument = await this.FixAllAsync(fixAllContext, document, spans).ConfigureAwait(false);
-                await DocumentBasedFixAllProviderHelpers.CleanDocumentSyntaxAsync(
-                    callback, document, newDocument, fixAllContext.State.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+                await onDocumentFixed(document, newDocument).ConfigureAwait(false);
             }).ConfigureAwait(false);
     }
 }

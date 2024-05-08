@@ -520,7 +520,12 @@ public abstract class CodeAction
 
     internal static async Task<Document> CleanupDocumentAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
     {
+        // First, do a syntax pass.  Ensuring that things are formatted correctly based on the original nodes and
+        // tokens. We want to do this prior to cleaning semantics as semantic cleanup can change the shape of the tree
+        // (for example, by removing tokens), which can then cause formatting to not work as expected.
         var document1 = await CleanupSyntaxAsync(document, options, cancellationToken).ConfigureAwait(false);
+
+        // Now, do the semantic cleaning pass.
         var document2 = await CleanupSemanticsAsync(document1, options, cancellationToken).ConfigureAwait(false);
         return document2;
     }
@@ -540,7 +545,12 @@ public abstract class CodeAction
         var document1 = await ImportAdder.AddImportsFromSymbolAnnotationAsync(document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
         var document2 = await Simplifier.ReduceAsync(document1, Simplifier.Annotation, options.SimplifierOptions, cancellationToken).ConfigureAwait(false);
         var document3 = await CaseCorrector.CaseCorrectAsync(document2, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
-        return document3;
+
+        // After doing the semantic cleanup, do another syntax cleanup pass to ensure that the tree is in a good state.
+        // The semantic cleanup passes may have introduced new nodes with elastic trivia that have to be cleaned.
+        var document4 = await CleanupSyntaxAsync(document3, options, cancellationToken).ConfigureAwait(false);
+
+        return document4;
     }
 
     #region Factories for standard code actions

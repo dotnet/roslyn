@@ -28,7 +28,7 @@ internal static class DocumentBasedFixAllProviderHelpers
         ImmutableArray<TFixAllContext> fixAllContexts,
         IProgress<CodeAnalysisProgress> progressTracker,
         string progressTrackerDescription,
-        Func<TFixAllContext, Action<(DocumentId documentId, (SyntaxNode? node, SourceText? text))>, Task> getFixedDocumentsAsync)
+        Func<TFixAllContext, Func<Document, Document?, ValueTask>, Task> getFixedDocumentsAsync)
         where TFixAllContext : IFixAllContext
     {
         var cancellationToken = originalFixAllContext.CancellationToken;
@@ -60,7 +60,9 @@ internal static class DocumentBasedFixAllProviderHelpers
                     Contract.ThrowIfFalse(
                         fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
-                    await args.getFixedDocumentsAsync(fixAllContext, callback).ConfigureAwait(false);
+                    await args.getFixedDocumentsAsync(fixAllContext,
+                        (originalDocument, newDocument) => CleanDocumentSyntaxAsync(
+                            callback, originalDocument, newDocument, fixAllContext.State.CodeActionOptionsProvider, cancellationToken)).ConfigureAwait(false);
                 },
                 consumeItems: static async (stream, args, cancellationToken) =>
                 {
@@ -150,10 +152,11 @@ internal static class DocumentBasedFixAllProviderHelpers
         if (newDocument == null || newDocument == document)
             return;
 
-        // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
-        // language that doesn't support that, then just grab the text.
         if (newDocument.SupportsSyntaxTree)
         {
+            // For documents that support syntax, grab the tree so that we can clean it. We do the formatting up front
+            // ensuring that we have well-formatted syntax trees in the solution to work with.  A later pass will do the
+            // semantic cleanup on all documents in parallel.
             var codeActionOptions = await newDocument.GetCodeCleanupOptionsAsync(codeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
             var cleanedDocument = await CodeAction.CleanupSyntaxAsync(newDocument, codeActionOptions, cancellationToken).ConfigureAwait(false);
             var node = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -162,6 +165,7 @@ internal static class DocumentBasedFixAllProviderHelpers
         }
         else
         {
+            // If it's a language that doesn't support that, then just grab the text.
             var text = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             callback((document.Id, (node: null, text)));
         }

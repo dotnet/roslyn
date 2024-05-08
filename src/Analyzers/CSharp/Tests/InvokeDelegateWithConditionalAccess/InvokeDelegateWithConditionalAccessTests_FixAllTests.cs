@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         a?.Invoke();
-
                         a?.Invoke();
                     }
                 }
@@ -86,7 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         a?.Invoke();
-
                         a?.Invoke();
                     }
                 }
@@ -126,7 +124,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         a?.Invoke();
-
                         a?.Invoke();
                     }
                 }
@@ -166,7 +163,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         a?.Invoke();
-
                         a?.Invoke();
                     }
                 }
@@ -206,7 +202,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         a?.Invoke();
-
                         a?.Invoke();
                     }
                 }
@@ -246,7 +241,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                     void Goo()
                     {
                         a?.Invoke();
-
                         a?.Invoke();
                     }
                 }
