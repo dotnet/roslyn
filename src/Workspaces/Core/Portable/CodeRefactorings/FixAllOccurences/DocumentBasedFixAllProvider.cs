@@ -28,18 +28,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 ///
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
-internal abstract class DocumentBasedFixAllProvider : FixAllProvider
+internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes) : FixAllProvider
 {
-    private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes;
+    private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes = supportedFixAllScopes;
 
     protected DocumentBasedFixAllProvider()
         : this(DefaultSupportedFixAllScopes)
     {
-    }
-
-    protected DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes)
-    {
-        _supportedFixAllScopes = supportedFixAllScopes;
     }
 
     /// <summary>
@@ -81,10 +76,9 @@ internal abstract class DocumentBasedFixAllProvider : FixAllProvider
             GetFixedDocumentsAsync);
 
     /// <summary>
-    /// Attempts to apply fix all operations returning, for each updated document, either
-    /// the new syntax root for that document or its new text.  Syntax roots are returned for documents that support
-    /// them, and are used to perform a final cleanup pass for formatting/simplication/etc.  Text is returned for
-    /// documents that don't support syntax.
+    /// Attempts to apply fix all operations returning, for each updated document, either the new syntax root for that
+    /// document or its new text.  Syntax roots are returned for documents that support them, and are used to perform a
+    /// final cleanup pass for formatting/simplification/etc.  Text is returned for documents that don't support syntax.
     /// </summary>
     private async Task GetFixedDocumentsAsync(
         FixAllContext fixAllContext, Action<(DocumentId documentId, (SyntaxNode? node, SourceText? text))> callback)
@@ -104,15 +98,8 @@ internal abstract class DocumentBasedFixAllProvider : FixAllProvider
             {
                 var (document, spans) = tuple;
                 var newDocument = await this.FixAllAsync(fixAllContext, document, spans).ConfigureAwait(false);
-                if (newDocument == null || newDocument == document)
-                    return;
-
-                // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
-                // language that doesn't support that, then just grab the text.
-                var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
-                var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-
-                callback((document.Id, (node, text)));
+                await DocumentBasedFixAllProviderHelpers.CleanDocumentSyntaxAsync(
+                    callback, document, newDocument, fixAllContext.State.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
             }).ConfigureAwait(false);
     }
 }
