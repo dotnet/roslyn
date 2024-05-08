@@ -679,18 +679,16 @@ public abstract class CodeAction
 
                 // Fetch the current state of the document from this fork of the solution.
                 var document = args.solution.GetRequiredDocument(documentId);
+                Contract.ThrowIfFalse(document.SupportsSyntaxTree, "GetDocumentIdsAndOptionsAsync should only be returning documents that support syntax");
 
-                if (document.SupportsSyntaxTree)
-                {
-                    // Now, perform the requested cleanup pass on it.
-                    var cleanedDocument = await args.cleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
-                    if (cleanedDocument is null || cleanedDocument == document)
-                        return;
+                // Now, perform the requested cleanup pass on it.
+                var cleanedDocument = await args.cleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+                if (cleanedDocument is null || cleanedDocument == document)
+                    return;
 
-                    // Now get the cleaned root and pass it back to the consumer.
-                    var newRoot = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    callback((documentId, newRoot));
-                }
+                // Now get the cleaned root and pass it back to the consumer.
+                var newRoot = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                callback((documentId, newRoot));
             },
             consumeItems: static async (stream, args, cancellationToken) =>
             {
