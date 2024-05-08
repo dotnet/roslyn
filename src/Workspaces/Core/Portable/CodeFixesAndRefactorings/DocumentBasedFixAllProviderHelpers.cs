@@ -124,11 +124,11 @@ internal static class DocumentBasedFixAllProviderHelpers
             // we can release both the original fixed tree, and the cleaned tree (both of which can be much more
             // expensive than just text).
             var finalSolution = dirtySolution;
-            foreach (var changedRootDocumentId in changedRootDocumentIds)
+            foreach (var (documentId, _) in documentIdsAndOptions)
             {
-                var cleanedDocument = solutionWithCleanedRoots.GetRequiredDocument(changedRootDocumentId);
+                var cleanedDocument = solutionWithCleanedRoots.GetRequiredDocument(documentId);
                 var cleanedText = await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                finalSolution = finalSolution.WithDocumentText(changedRootDocumentId, cleanedText);
+                finalSolution = finalSolution.WithDocumentText(documentId, cleanedText);
             }
 
             return finalSolution;
