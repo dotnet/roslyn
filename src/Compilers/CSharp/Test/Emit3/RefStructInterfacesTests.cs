@@ -23261,13 +23261,13 @@ ref struct C<T>
 public ref struct S1 : I1<S1>
 {
     public int P {get;set;}
-    public static S1 Create() => default;
+    public static S1 Create() => throw null;
 }
 
 public struct S2 : I1<S2>
 {
     public int P {get;set;}
-    public static S2 Create() => default;
+    public static S2 Create() => throw null;
 }
 
 public class C3 : I1<C3>
@@ -23293,8 +23293,7 @@ public interface I1<T>
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
                     Verification.FailsILVerify.WithILVerifyMessage(
 @"[get_PT]: Call not allowed on abstract methods. { Offset = 0x16 }
-[get_PT]: Missing callvirt following constrained prefix. { Offset = 0x16 }
-[Create]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }") :
+[get_PT]: Missing callvirt following constrained prefix. { Offset = 0x16 }") :
                     Verification.Skipped).VerifyDiagnostics();
 
             verifier.VerifyIL("C<T>.PT.get", @"
@@ -23383,6 +23382,44 @@ class C
                 //         s2 = (s1 ??= s2);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s1 ??= s2").WithArguments("s1").WithLocation(11, 15)
                 );
+        }
+
+        [Fact]
+        public void NullCoalescingAssignment_04()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    static T F<T>() where T : allows ref struct
+    {
+        scoped T s1 = default;
+        T s2 = default;
+        s2 ??= s1;
+        return s2;
+    }
+}
+", targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void NullCoalescingAssignment_05()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    static T F<T>() where T : allows ref struct
+    {
+        T s1 = default;
+        T s2 = default;
+        s2 ??= s1;
+        return s2;
+    }
+}
+", targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]
@@ -23527,13 +23564,13 @@ ref struct C<T>
 public ref struct S1 : I1<S1>
 {
     public int P {get;set;}
-    public static S1 Create() => default;
+    public static S1 Create() => throw null;
 }
 
 public struct S2 : I1<S2>
 {
     public int P {get;set;}
-    public static S2 Create() => default;
+    public static S2 Create() => throw null;
 }
 
 public class C3 : I1<C3>
@@ -23559,8 +23596,7 @@ public interface I1<T>
                     Verification.FailsILVerify.WithILVerifyMessage(
 @"[Test]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x20 }
 [get_PT]: Call not allowed on abstract methods. { Offset = 0x16 }
-[get_PT]: Missing callvirt following constrained prefix. { Offset = 0x16 }
-[Create]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }") :
+[get_PT]: Missing callvirt following constrained prefix. { Offset = 0x16 }") :
                     Verification.Skipped).VerifyDiagnostics();
         }
 
