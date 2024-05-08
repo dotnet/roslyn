@@ -1468,7 +1468,7 @@ internal sealed partial class SolutionCompilationState
             }
 
             // Now, add all missing documents per project.
-            currentState = currentState.AddDocumentsToMultipleProjects(
+            currentState = currentState.UpdateDocumentsInMultipleProjects(
                 // Do a SelectAsArray here to ensure that we realize the array once, and as such only call things like
                 // ToImmutableAndFree once per ArrayBuilder.
                 missingDocumentStates.SelectAsArray(kvp => (kvp.Key, kvp.Value.ToImmutableAndFree())),
@@ -1542,7 +1542,7 @@ internal sealed partial class SolutionCompilationState
 
         // The documents might be contributing to multiple different projects; split them by project and then we'll
         // process one project at a time.
-        return AddDocumentsToMultipleProjects(
+        return UpdateDocumentsInMultipleProjects(
             documentInfos.GroupBy(d => d.Id.ProjectId).Select(g =>
             {
                 var projectId = g.Key;
@@ -1553,17 +1553,9 @@ internal sealed partial class SolutionCompilationState
             addDocumentsToProjectState);
     }
 
-    private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
-        IEnumerable<(ProjectId projectId, ImmutableArray<TDocumentState> newDocumentStates)> projectIdAndNewDocuments,
-        Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> addDocumentsToProjectState)
-        where TDocumentState : TextDocumentState
-    {
-        return UpdateDocumentsInMultipleProjects(projectIdAndNewDocuments, addDocumentsToProjectState);
-    }
-
     private SolutionCompilationState UpdateDocumentsInMultipleProjects<TDocumentState>(
         IEnumerable<(ProjectId projectId, ImmutableArray<TDocumentState> updatedDocumentState)> projectIdAndUpdatedDocuments,
-        Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> updatedDocumentsToProjectState)
+        Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> getTranslationAction)
         where TDocumentState : TextDocumentState
     {
         var newCompilationState = this;
@@ -1571,7 +1563,7 @@ internal sealed partial class SolutionCompilationState
         foreach (var (projectId, newDocumentStates) in projectIdAndUpdatedDocuments)
         {
             var oldProjectState = newCompilationState.SolutionState.GetRequiredProjectState(projectId);
-            var compilationTranslationAction = updatedDocumentsToProjectState(oldProjectState, newDocumentStates);
+            var compilationTranslationAction = getTranslationAction(oldProjectState, newDocumentStates);
             var newProjectState = compilationTranslationAction.NewProjectState;
 
             var stateChange = newCompilationState.SolutionState.ForkProject(
