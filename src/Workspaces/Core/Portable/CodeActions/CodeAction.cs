@@ -521,20 +521,24 @@ public abstract class CodeAction
     internal static async Task<Document> CleanupDocumentAsync(
         Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
     {
-        document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-            document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
+        var document1 = await ImportAdder.AddImportsFromSymbolAnnotationAsync(document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
+        var document2 = await Simplifier.ReduceAsync(document1, Simplifier.Annotation, options.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+        var document3 = await CleanupSyntaxAsync(document2, options, cancellationToken).ConfigureAwait(false);
+        var document4 = await CaseCorrector.CaseCorrectAsync(document3, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
 
-        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, options.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+        return document4;
+    }
 
+    internal static async Task<Document> CleanupSyntaxAsync(
+        Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
+    {
         // format any node with explicit formatter annotation
-        document = await Formatter.FormatAsync(document, Formatter.Annotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
+        var document1 = await Formatter.FormatAsync(document, Formatter.Annotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
         // format any elastic whitespace
-        document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
+        var document2 = await Formatter.FormatAsync(document1, SyntaxAnnotation.ElasticAnnotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
-        document = await CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
-
-        return document;
+        return document2;
     }
 
     #region Factories for standard code actions

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CaseCorrection;
@@ -30,15 +31,15 @@ internal static class DocumentBasedFixAllProviderHelpers
 {
     private const string SimplifierAddImportsAnnotation = $"{nameof(Simplifier)}.{nameof(Simplifier.AddImportsAnnotation)}";
     private const string SimplifierAnnotation = $"{nameof(Simplifier)}.{nameof(Simplifier.Annotation)}";
-    private const string FormatterAnnotation = $"{nameof(Formatter)}.{nameof(Formatter.Annotation)}";
+    //private const string FormatterAnnotation = $"{nameof(Formatter)}.{nameof(Formatter.Annotation)}";
     private const string CaseCorrectorAnnotation = $"{nameof(CaseCorrector)}.{nameof(CaseCorrector.Annotation)}";
-    private const string SyntaxAnnotationElasticAnnotation = $"{nameof(SyntaxAnnotation)}.{nameof(SyntaxAnnotation.ElasticAnnotation)}";
+    //private const string SyntaxAnnotationElasticAnnotation = $"{nameof(SyntaxAnnotation)}.{nameof(SyntaxAnnotation.ElasticAnnotation)}";
 
     private static readonly IEnumerable<SyntaxAnnotation> s_singleSimplifierAddImportsAnnotation = [Simplifier.AddImportsAnnotation];
     private static readonly IEnumerable<SyntaxAnnotation> s_singleSimplifierAnnotation = [Simplifier.Annotation];
-    private static readonly IEnumerable<SyntaxAnnotation> s_singleFormatterAnnotation = [Formatter.Annotation];
+    // private static readonly IEnumerable<SyntaxAnnotation> s_singleFormatterAnnotation = [Formatter.Annotation];
     private static readonly IEnumerable<SyntaxAnnotation> s_singleCaseCorrectorAnnotation = [CaseCorrector.Annotation];
-    private static readonly IEnumerable<SyntaxAnnotation> s_singleSyntaxAnnotationElasticAnnotation = [SyntaxAnnotation.ElasticAnnotation];
+    // private static readonly IEnumerable<SyntaxAnnotation> s_singleSyntaxAnnotationElasticAnnotation = [SyntaxAnnotation.ElasticAnnotation];
 
     public static async Task<Solution?> FixAllContextsAsync<TFixAllContext>(
         TFixAllContext originalFixAllContext,
@@ -186,8 +187,8 @@ internal static class DocumentBasedFixAllProviderHelpers
 
         GetAnnotations(SimplifierAddImportsAnnotation, Simplifier.AddImportsAnnotation);
         GetAnnotations(SimplifierAnnotation, Simplifier.Annotation);
-        GetAnnotations(FormatterAnnotation, Formatter.Annotation);
-        GetAnnotations(SyntaxAnnotationElasticAnnotation, SyntaxAnnotation.ElasticAnnotation);
+        // GetAnnotations(FormatterAnnotation, Formatter.Annotation);
+        // GetAnnotations(SyntaxAnnotationElasticAnnotation, SyntaxAnnotation.ElasticAnnotation);
         GetAnnotations(CaseCorrectorAnnotation, CaseCorrector.Annotation);
 
         return (nodeAnnotations, tokenAnnotations);
@@ -257,9 +258,9 @@ internal static class DocumentBasedFixAllProviderHelpers
                 {
                     SimplifierAddImportsAnnotation => s_singleSimplifierAddImportsAnnotation,
                     SimplifierAnnotation => s_singleSimplifierAnnotation,
-                    FormatterAnnotation => s_singleFormatterAnnotation,
+                    // FormatterAnnotation => s_singleFormatterAnnotation,
                     CaseCorrectorAnnotation => s_singleCaseCorrectorAnnotation,
-                    SyntaxAnnotationElasticAnnotation => s_singleSyntaxAnnotationElasticAnnotation,
+                    // SyntaxAnnotationElasticAnnotation => s_singleSyntaxAnnotationElasticAnnotation,
                     _ => throw ExceptionUtilities.UnexpectedValue(kind),
                 };
             }
@@ -268,9 +269,9 @@ internal static class DocumentBasedFixAllProviderHelpers
             {
                 SimplifierAddImportsAnnotation => Simplifier.AddImportsAnnotation,
                 SimplifierAnnotation => Simplifier.Annotation,
-                FormatterAnnotation => Formatter.Annotation,
+                // FormatterAnnotation => Formatter.Annotation,
                 CaseCorrectorAnnotation => CaseCorrector.Annotation,
-                SyntaxAnnotationElasticAnnotation => SyntaxAnnotation.ElasticAnnotation,
+                // SyntaxAnnotationElasticAnnotation => SyntaxAnnotation.ElasticAnnotation,
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             });
         }
@@ -281,5 +282,34 @@ internal static class DocumentBasedFixAllProviderHelpers
     {
         var cleanedDocument = await CodeAction.CleanupDocumentAsync(dirtyDocument, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
         return await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public static async ValueTask ProcessFixedDocumentAsync(
+        Action<(DocumentId documentId, (SyntaxNode? node, SourceText? text))> callback,
+        Document document,
+        Document? newDocument,
+        CodeActionOptionsProvider codeActionOptionsProvider,
+        CancellationToken cancellationToken)
+    {
+        if (newDocument == null || newDocument == document)
+            return;
+
+        // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
+        // language that doesn't support that, then just grab the text.
+
+        if (!newDocument.SupportsSyntaxTree)
+        {
+            var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            callback((document.Id, (node: null, text: newText)));
+        }
+        else
+        {
+            var codeCleanupOptions = await document.GetCodeCleanupOptionsAsync(
+                codeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+
+            var syntaxCleanedDocument = await CodeAction.CleanupSyntaxAsync(newDocument, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
+            var node = await syntaxCleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            callback((document.Id, (node, text: null)));
+        }
     }
 }

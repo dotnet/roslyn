@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
@@ -93,15 +94,8 @@ public abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> su
                     return;
 
                 var newDocument = await this.FixAllAsync(fixAllContext, document, documentDiagnostics).ConfigureAwait(false);
-                if (newDocument == null || newDocument == document)
-                    return;
-
-                // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
-                // language that doesn't support that, then just grab the text.
-                var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
-                var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-
-                callback((document.Id, (node, text)));
+                await DocumentBasedFixAllProviderHelpers.ProcessFixedDocumentAsync(
+                    callback, document, newDocument, fixAllContext.State.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
             }).ConfigureAwait(false);
     }
 }
