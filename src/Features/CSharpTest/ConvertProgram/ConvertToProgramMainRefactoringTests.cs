@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertProgram;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram
 {
     using VerifyCS = CSharpCodeRefactoringVerifier<ConvertToProgramMainCodeRefactoringProvider>;
 
+    [UseExportProvider]
     public class ConvertToProgramMainRefactoringTests
     {
         [Fact]
