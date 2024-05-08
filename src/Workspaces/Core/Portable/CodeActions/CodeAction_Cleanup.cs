@@ -45,6 +45,18 @@ public abstract partial class CodeAction
         static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken),
     ];
 
+    private static async Task<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfFalse(document.SupportsSyntaxTree);
+
+        // format any node with explicit formatter annotation
+        var document1 = await Formatter.FormatAsync(document, Formatter.Annotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
+
+        // format any elastic whitespace
+        var document2 = await Formatter.FormatAsync(document1, SyntaxAnnotation.ElasticAnnotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
+        return document2;
+    }
+
     internal static ImmutableArray<DocumentId> GetAllChangedOrAddedDocumentIds(
         Solution originalSolution,
         Solution changedSolution)
@@ -69,7 +81,7 @@ public abstract partial class CodeAction
         var documentIdsAndOptionsToClean = await GetDocumentIdsAndOptionsToCleanAsync().ConfigureAwait(false);
 
         // Then do a pass where we cleanup semantics.
-        var cleanedSolution = await CleanupSyntaxAndSemanticsAsync(
+        var cleanedSolution = await RunAllCleanupPassesInOrderAsync(
             changedSolution, documentIdsAndOptionsToClean, progress, cancellationToken).ConfigureAwait(false);
 
         return cleanedSolution;
@@ -98,7 +110,7 @@ public abstract partial class CodeAction
         if (!document.SupportsSyntaxTree)
             return document;
 
-        var cleanedSolution = await CleanupSyntaxAndSemanticsAsync(
+        var cleanedSolution = await RunAllCleanupPassesInOrderAsync(
             document.Project.Solution,
             [(document.Id, options)],
             CodeAnalysisProgress.None,
@@ -107,20 +119,7 @@ public abstract partial class CodeAction
         return cleanedSolution.GetRequiredDocument(document.Id);
     }
 
-    private static async Task<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
-    {
-        if (!document.SupportsSyntaxTree)
-            return document;
-
-        // format any node with explicit formatter annotation
-        var document1 = await Formatter.FormatAsync(document, Formatter.Annotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
-
-        // format any elastic whitespace
-        var document2 = await Formatter.FormatAsync(document1, SyntaxAnnotation.ElasticAnnotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
-        return document2;
-    }
-
-    private static async Task<Solution> CleanupSyntaxAndSemanticsAsync(
+    private static async Task<Solution> RunAllCleanupPassesInOrderAsync(
         Solution solution,
         ImmutableArray<(DocumentId documentId, CodeCleanupOptions options)> documentIdsAndOptions,
         IProgress<CodeAnalysisProgress> progress,
@@ -131,58 +130,51 @@ public abstract partial class CodeAction
 
         var currentSolution = solution;
         foreach (var cleanupPass in s_cleanupPasses)
-        {
-            currentSolution = await RunParallelCleanupPassAsync(
-                currentSolution, documentIdsAndOptions, progress, cleanupPass, cancellationToken).ConfigureAwait(false);
-        }
+            currentSolution = await RunParallelCleanupPassAsync(currentSolution, cleanupPass).ConfigureAwait(false);
 
         return currentSolution;
-    }
 
-    private static async Task<Solution> RunParallelCleanupPassAsync(
-        Solution solution,
-        ImmutableArray<(DocumentId documentId, CodeCleanupOptions options)> documentIdsAndOptions,
-        IProgress<CodeAnalysisProgress> progress,
-        Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>> cleanupDocumentAsync,
-        CancellationToken cancellationToken)
-    {
-        // We're about to making a ton of calls to this new solution, including expensive oop calls to get up to
-        // date compilations, skeletons and SG docs.  Create and pin this solution so that all remote calls operate
-        // on the same fork and do not cause the forked solution to be created and dropped repeatedly.
-        using var _ = await RemoteKeepAliveSession.CreateAsync(solution, cancellationToken).ConfigureAwait(false);
+        async Task<Solution> RunParallelCleanupPassAsync(
+            Solution solution, Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>> cleanupDocumentAsync)
+        {
+            // We're about to making a ton of calls to this new solution, including expensive oop calls to get up to
+            // date compilations, skeletons and SG docs.  Create and pin this solution so that all remote calls operate
+            // on the same fork and do not cause the forked solution to be created and dropped repeatedly.
+            using var _ = await RemoteKeepAliveSession.CreateAsync(solution, cancellationToken).ConfigureAwait(false);
 
-        return await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
-            source: documentIdsAndOptions,
-            produceItems: static async (documentIdAndOptions, callback, args, cancellationToken) =>
-            {
-                // As we finish each document, update our progress.
-                using var _ = args.progress.ItemCompletedScope();
+            return await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+                source: documentIdsAndOptions,
+                produceItems: static async (documentIdAndOptions, callback, args, cancellationToken) =>
+                {
+                    // As we finish each document, update our progress.
+                    using var _ = args.progress.ItemCompletedScope();
 
-                var (documentId, options) = documentIdAndOptions;
+                    var (documentId, options) = documentIdAndOptions;
 
-                // Fetch the current state of the document from this fork of the solution.
-                var document = args.solution.GetRequiredDocument(documentId);
-                Contract.ThrowIfFalse(document.SupportsSyntaxTree, "GetDocumentIdsAndOptionsAsync should only be returning documents that support syntax");
+                    // Fetch the current state of the document from this fork of the solution.
+                    var document = args.solution.GetRequiredDocument(documentId);
+                    Contract.ThrowIfFalse(document.SupportsSyntaxTree, "GetDocumentIdsAndOptionsAsync should only be returning documents that support syntax");
 
-                // Now, perform the requested cleanup pass on it.
-                var cleanedDocument = await args.cleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
-                if (cleanedDocument is null || cleanedDocument == document)
-                    return;
+                    // Now, perform the requested cleanup pass on it.
+                    var cleanedDocument = await args.cleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+                    if (cleanedDocument is null || cleanedDocument == document)
+                        return;
 
-                // Now get the cleaned root and pass it back to the consumer.
-                var newRoot = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                callback((documentId, newRoot));
-            },
-            consumeItems: static async (stream, args, cancellationToken) =>
-            {
-                // Grab all the cleaned roots and produce the new solution snapshot from that.
-                var currentSolution = args.solution;
-                await foreach (var (documentId, newRoot) in stream)
-                    currentSolution = currentSolution.WithDocumentSyntaxRoot(documentId, newRoot);
+                    // Now get the cleaned root and pass it back to the consumer.
+                    var newRoot = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    callback((documentId, newRoot));
+                },
+                consumeItems: static async (stream, args, cancellationToken) =>
+                {
+                    // Grab all the cleaned roots and produce the new solution snapshot from that.
+                    var currentSolution = args.solution;
+                    await foreach (var (documentId, newRoot) in stream)
+                        currentSolution = currentSolution.WithDocumentSyntaxRoot(documentId, newRoot);
 
-                return currentSolution;
-            },
-            args: (solution, progress, cleanupDocumentAsync),
-            cancellationToken).ConfigureAwait(false);
+                    return currentSolution;
+                },
+                args: (solution, progress, cleanupDocumentAsync),
+                cancellationToken).ConfigureAwait(false);
+        }
     }
 }
