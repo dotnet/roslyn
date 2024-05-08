@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.CodeActionsInlineMethod)>
     Public Class VisualBasicInlineMethodTests
+        <UseExportProvider>
         Private Class TestVerifier
             Inherits VisualBasicCodeRefactoringVerifier(Of VisualBasicInlineMethodRefactoringProvider).Test
             Private Const Marker As String = "##"
