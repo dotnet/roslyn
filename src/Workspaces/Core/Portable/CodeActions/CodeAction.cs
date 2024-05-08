@@ -555,8 +555,11 @@ public abstract class CodeAction
         return document;
     }
 
-    internal static async Task<Document> CleanupDocumentAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
+    internal static async ValueTask<Document> CleanupDocumentAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
     {
+        if (!document.SupportsSyntaxTree)
+            return document;
+
         // First, do a syntax pass.  Ensuring that things are formatted correctly based on the original nodes and
         // tokens. We want to do this prior to cleaning semantics as semantic cleanup can change the shape of the tree
         // (for example, by removing tokens), which can then cause formatting to not work as expected.
@@ -567,8 +570,11 @@ public abstract class CodeAction
         return document2;
     }
 
-    internal static async Task<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
+    internal static async ValueTask<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
     {
+        if (!document.SupportsSyntaxTree)
+            return document;
+
         // format any node with explicit formatter annotation
         var document1 = await Formatter.FormatAsync(document, Formatter.Annotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
@@ -577,8 +583,11 @@ public abstract class CodeAction
         return document2;
     }
 
-    internal static async Task<Document> CleanupSemanticsAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
+    internal static async ValueTask<Document> CleanupSemanticsAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
     {
+        if (!document.SupportsSyntaxTree)
+            return document;
+
         var newSolution = await CleanupSemanticsAsync(
             document.Project.Solution, [(document.Id, options)], CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
         return newSolution.GetRequiredDocument(document.Id);
@@ -613,8 +622,8 @@ public abstract class CodeAction
         // good state. The semantic cleanup passes may have introduced new nodes with elastic trivia that have to be
         // cleaned.
         var solution4 = await RunParallelCleanupPassAsync(
-            solution3, static (document, options, cancellationToken) =>
-                CleanupSyntaxAsync(document, options, cancellationToken)).ConfigureAwait(false);
+            solution3, static async (document, options, cancellationToken) =>
+                await CleanupSyntaxAsync(document, options, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
 
         return solution4;
 
@@ -638,12 +647,15 @@ public abstract class CodeAction
                     // Fetch the current state of the document from this fork of the solution.
                     var document = args.solution.GetRequiredDocument(documentId);
 
-                    // Now, perform the requested cleanup pass on it.
-                    var cleanedDocument = await args.cleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+                    if (document.SupportsSyntaxTree)
+                    {
+                        // Now, perform the requested cleanup pass on it.
+                        var cleanedDocument = await args.cleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
 
-                    // Now get the cleaned root and pass it back to the consumer.
-                    var newRoot = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    callback((documentId, newRoot));
+                        // Now get the cleaned root and pass it back to the consumer.
+                        var newRoot = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        callback((documentId, newRoot));
+                    }
                 },
                 consumeItems: static async (stream, args, cancellationToken) =>
                 {
