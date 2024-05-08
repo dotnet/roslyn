@@ -114,17 +114,11 @@ internal static class DocumentBasedFixAllProviderHelpers
 
             // Next, go and semantically cleanup any trees we inserted. Do this in parallel across all the documents
             // that were fixed and resulted in a new tree (as opposed to new text).
-            var documentIdsAndOptions = new FixedSizeArrayBuilder<(DocumentId documentId, CodeCleanupOptions options)>(changedRootDocumentIds.Length);
-            foreach (var documentId in changedRootDocumentIds)
-            {
-                var document = dirtySolution.GetRequiredDocument(documentId);
-                var codeActionOptions = await document.GetCodeCleanupOptionsAsync(
-                    originalFixAllContext.State.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
-                documentIdsAndOptions.Add((documentId, codeActionOptions));
-            }
+            var documentIdsAndOptions = await CodeAction.GetDocumentIdsAndOptionsAsync(
+                dirtySolution, originalFixAllContext.State.CodeActionOptionsProvider, changedRootDocumentIds, cancellationToken).ConfigureAwait(false);
 
             var solutionWithCleanedRoots = await CodeAction.CleanupSemanticsAsync(
-                dirtySolution, documentIdsAndOptions.MoveToImmutable(), progressTracker, cancellationToken).ConfigureAwait(false);
+                dirtySolution, documentIdsAndOptions, progressTracker, cancellationToken).ConfigureAwait(false);
 
             // Once we clean the document, we get the text of it and insert that back into the final solution.  This way
             // we can release both the original fixed tree, and the cleaned tree (both of which can be much more
