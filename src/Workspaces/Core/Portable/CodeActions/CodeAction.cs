@@ -625,72 +625,84 @@ public abstract class CodeAction
 
         // First, add all missing imports to all changed documents.
         var solution1 = await RunParallelCleanupPassAsync(
-            solution, static (document, options, cancellationToken) =>
-                ImportAdder.AddImportsFromSymbolAnnotationAsync(document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken)).ConfigureAwait(false);
+            solution, documentIdsAndOptions, progress,
+            static (document, options, cancellationToken) =>
+                ImportAdder.AddImportsFromSymbolAnnotationAsync(document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
 
         // Then simplify any expanded constructs.
         var solution2 = await RunParallelCleanupPassAsync(
-            solution1, static (document, options, cancellationToken) =>
-                Simplifier.ReduceAsync(document, Simplifier.Annotation, options.SimplifierOptions, cancellationToken)).ConfigureAwait(false);
+            solution1, documentIdsAndOptions, progress,
+            static (document, options, cancellationToken) =>
+                Simplifier.ReduceAsync(document, Simplifier.Annotation, options.SimplifierOptions, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
 
         // Do any necessary case correction for VB files.
         var solution3 = await RunParallelCleanupPassAsync(
-            solution2, static (document, options, cancellationToken) =>
-                CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken)).ConfigureAwait(false);
+            solution2, documentIdsAndOptions, progress,
+            static (document, options, cancellationToken) =>
+                CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
 
         // Finally, after doing the semantic cleanup, do another syntax cleanup pass to ensure that the tree is in a
         // good state. The semantic cleanup passes may have introduced new nodes with elastic trivia that have to be
         // cleaned.
         var solution4 = await RunParallelCleanupPassAsync(
-            solution3, static async (document, options, cancellationToken) =>
-                await CleanupSyntaxAsync(document, options, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+            solution3, documentIdsAndOptions, progress,
+            static async (document, options, cancellationToken) =>
+                await CleanupSyntaxAsync(document, options, cancellationToken).ConfigureAwait(false),
+            cancellationToken).ConfigureAwait(false);
 
         return solution4;
+    }
 
-        async Task<Solution> RunParallelCleanupPassAsync(
-            Solution solution, Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>> cleanupDocumentAsync)
-        {
-            // We're about to making a ton of calls to this new solution, including expensive oop calls to get up to
-            // date compilations, skeletons and SG docs.  Create and pin this solution so that all remote calls operate
-            // on the same fork and do not cause the forked solution to be created and dropped repeatedly.
-            using var _ = await RemoteKeepAliveSession.CreateAsync(solution, cancellationToken).ConfigureAwait(false);
+    private static async Task<Solution> RunParallelCleanupPassAsync(
+        Solution solution,
+        ImmutableArray<(DocumentId documentId, CodeCleanupOptions options)> documentIdsAndOptions,
+        IProgress<CodeAnalysisProgress> progress,
+        Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>> cleanupDocumentAsync,
+        CancellationToken cancellationToken)
+    {
+        // We're about to making a ton of calls to this new solution, including expensive oop calls to get up to
+        // date compilations, skeletons and SG docs.  Create and pin this solution so that all remote calls operate
+        // on the same fork and do not cause the forked solution to be created and dropped repeatedly.
+        using var _ = await RemoteKeepAliveSession.CreateAsync(solution, cancellationToken).ConfigureAwait(false);
 
-            return await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
-                source: documentIdsAndOptions,
-                produceItems: static async (documentIdAndOptions, callback, args, cancellationToken) =>
+        return await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+            source: documentIdsAndOptions,
+            produceItems: static async (documentIdAndOptions, callback, args, cancellationToken) =>
+            {
+                // As we finish each document, update our progress.
+                using var _ = args.progress.ItemCompletedScope();
+
+                var (documentId, options) = documentIdAndOptions;
+
+                // Fetch the current state of the document from this fork of the solution.
+                var document = args.solution.GetRequiredDocument(documentId);
+
+                if (document.SupportsSyntaxTree)
                 {
-                    // As we finish each document, update our progress.
-                    using var _ = args.progress.ItemCompletedScope();
+                    // Now, perform the requested cleanup pass on it.
+                    var cleanedDocument = await args.cleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+                    if (cleanedDocument is null || cleanedDocument == document)
+                        return;
 
-                    var (documentId, options) = documentIdAndOptions;
+                    // Now get the cleaned root and pass it back to the consumer.
+                    var newRoot = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    callback((documentId, newRoot));
+                }
+            },
+            consumeItems: static async (stream, args, cancellationToken) =>
+            {
+                // Grab all the cleaned roots and produce the new solution snapshot from that.
+                var currentSolution = args.solution;
+                await foreach (var (documentId, newRoot) in stream)
+                    currentSolution = currentSolution.WithDocumentSyntaxRoot(documentId, newRoot);
 
-                    // Fetch the current state of the document from this fork of the solution.
-                    var document = args.solution.GetRequiredDocument(documentId);
-
-                    if (document.SupportsSyntaxTree)
-                    {
-                        // Now, perform the requested cleanup pass on it.
-                        var cleanedDocument = await args.cleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
-                        if (cleanedDocument is null || cleanedDocument == document)
-                            return;
-
-                        // Now get the cleaned root and pass it back to the consumer.
-                        var newRoot = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                        callback((documentId, newRoot));
-                    }
-                },
-                consumeItems: static async (stream, args, cancellationToken) =>
-                {
-                    // Grab all the cleaned roots and produce the new solution snapshot from that.
-                    var currentSolution = args.solution;
-                    await foreach (var (documentId, newRoot) in stream)
-                        currentSolution = currentSolution.WithDocumentSyntaxRoot(documentId, newRoot);
-
-                    return currentSolution;
-                },
-                args: (solution, progress, cleanupDocumentAsync),
-                cancellationToken).ConfigureAwait(false);
-        }
+                return currentSolution;
+            },
+            args: (solution, progress, cleanupDocumentAsync),
+            cancellationToken).ConfigureAwait(false);
     }
 
     #region Factories for standard code actions
