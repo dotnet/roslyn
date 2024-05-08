@@ -167,11 +167,12 @@ public abstract partial class CodeAction
                 consumeItems: static async (stream, args, cancellationToken) =>
                 {
                     // Grab all the cleaned roots and produce the new solution snapshot from that.
-                    var currentSolution = args.solution;
-                    await foreach (var (documentId, newRoot) in stream)
-                        currentSolution = currentSolution.WithDocumentSyntaxRoot(documentId, newRoot);
+                    using var _ = ArrayBuilder<(DocumentId documentId, SyntaxNode newRoot, PreservationMode mode)>.GetInstance(out var syntaxRoots);
 
-                    return currentSolution;
+                    await foreach (var (documentId, newRoot) in stream)
+                        syntaxRoots.Add((documentId, newRoot, PreservationMode.PreserveValue));
+
+                    return args.solution.WithDocumentSyntaxRoots(syntaxRoots.ToImmutableAndClear());
                 },
                 args: (solution, progress, cleanupDocumentAsync),
                 cancellationToken).ConfigureAwait(false);
