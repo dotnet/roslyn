@@ -259,10 +259,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 
                 x.ToString(); }
                 """,
-                       """
-                       { 
-                       3.ToString(); }
-                       """);
+                """
+                { 
+                    3.ToString(); }
+                """);
         }
 
         [Fact]
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
                     static void Main()
                     {
                         int x = 2;
-                        Bar(x < x, x > 1+2);
+                        Bar(x < x, x > 1 + 2);
                     }
 
                     static void Bar(object a, object b)
