@@ -4155,7 +4155,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
 
                 case BoundKind.AssignmentOperator:
+                    // PROTOTYPE(RefStructInterfaces): We do not have a test that demonstrates that the statement below makes a difference.
+                    //                                 If 'scopeOfTheContainingExpression' is always returned, not a single test fails.
+                    //                                 Same for the 'case BoundKind.NullCoalescingAssignmentOperator:' below.
                     return GetValEscape(((BoundAssignmentOperator)expr).Right, scopeOfTheContainingExpression);
+
+                case BoundKind.NullCoalescingAssignmentOperator:
+                    return GetValEscape(((BoundNullCoalescingAssignmentOperator)expr).RightOperand, scopeOfTheContainingExpression);
 
                 case BoundKind.IncrementOperator:
                     return GetValEscape(((BoundIncrementOperator)expr).Operand, scopeOfTheContainingExpression);
@@ -4267,7 +4273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.AsOperator:
                 case BoundKind.AwaitExpression:
-                case BoundKind.ConditionalAccess:
+                case BoundKind.ConditionalAccess: // PROTOTYPE(RefStructInterfaces): Conditional access is allowed on type parameters. Is current implementation correct for 'allows ref struct' case?
                 case BoundKind.ConditionalReceiver:
                 case BoundKind.ArrayAccess:
                     // only possible in error cases (if possible at all)
@@ -4847,6 +4853,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var assignment = (BoundAssignmentOperator)expr;
                     return CheckValEscape(node, assignment.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
+                case BoundKind.NullCoalescingAssignmentOperator:
+                    var nullCoalescingAssignment = (BoundNullCoalescingAssignmentOperator)expr;
+                    return CheckValEscape(node, nullCoalescingAssignment.LeftOperand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
                 case BoundKind.IncrementOperator:
                     var increment = (BoundIncrementOperator)expr;
                     return CheckValEscape(node, increment.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
@@ -5001,7 +5011,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //                case BoundKind.SizeOfOperator:
                     //                case BoundKind.DynamicMemberAccess:
                     //                case BoundKind.DynamicInvocation:
-                    //                case BoundKind.NewT:
                     //                case BoundKind.DelegateCreationExpression:
                     //                case BoundKind.ArrayCreation:
                     //                case BoundKind.AnonymousObjectCreationExpression:

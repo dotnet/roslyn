@@ -882,13 +882,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T, diagnostics, syntax: collectionExpr.Syntax);
-                        var unsafeAsMethod = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: collectionExpr.Syntax);
+                        _ = GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T, diagnostics, syntax: collectionExpr.Syntax);
 
-                        if (unsafeAsMethod is MethodSymbol { HasUnsupportedMetadata: false } method)
-                        {
-                            method.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(collectionExpr.Type), elementField.TypeWithAnnotations)).
-                                CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, collectionExpr.Syntax.GetLocation(), diagnostics));
-                        }
+                        CheckInlineArrayTypeIsSupported(collectionExpr.Syntax, collectionExpr.Type, elementField.Type, diagnostics);
                     }
 
                     return result;
