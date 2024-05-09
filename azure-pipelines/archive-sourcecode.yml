@@ -30,6 +30,7 @@ parameters:
 
 variables:
 - group: VS Core team # Expected to provide ManagerAlias, SourceCodeArchivalUri
+- template: GlobalVariables.yml
 
 extends:
   template: azure-pipelines/MicroBuild.1ES.Official.yml@MicroBuildTemplate
