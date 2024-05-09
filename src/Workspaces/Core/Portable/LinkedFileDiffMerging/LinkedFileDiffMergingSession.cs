@@ -54,10 +54,8 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
                 mergedText = await newSolution.GetDocument(linkedDocumentsWithChanges.Single()).GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            foreach (var documentId in allLinkedDocuments)
-            {
-                updatedSolution = updatedSolution.WithDocumentText(documentId, mergedText);
-            }
+            updatedSolution = updatedSolution.WithDocumentTexts(
+                allLinkedDocuments.SelectAsArray(documentId => (documentId, mergedText)));
         }
 
         return new LinkedFileMergeSessionResult(updatedSolution, linkedFileMergeResults);
