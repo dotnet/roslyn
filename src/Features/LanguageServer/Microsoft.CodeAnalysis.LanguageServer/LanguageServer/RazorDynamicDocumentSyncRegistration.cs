@@ -44,7 +44,6 @@ internal sealed class RazorDynamicDocumentSyncRegistration(IGlobalOptionService 
             // the contents.
             if (clientCapabilities.TextDocument?.Synchronization?.DynamicRegistration is true)
             {
-                //var globalOptions = context.GetRequiredService<IGlobalOptions>();
                 var languageServerManager = context.GetRequiredLspService<IClientLanguageServerManager>();
 
                 var documentFilters = new[] { new DocumentFilter() { Pattern = "**/*.razor" }, new DocumentFilter() { Pattern = "**/*.cshtml" } };
