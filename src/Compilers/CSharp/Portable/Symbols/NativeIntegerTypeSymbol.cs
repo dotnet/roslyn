@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsExtension => false;
         internal override bool IsExplicitExtension => false;
 
-        internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics => null;
+        internal sealed override TypeSymbol? GetExtendedTypeNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved) => null;
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
             => throw ExceptionUtilities.Unreachable();

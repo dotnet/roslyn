@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var extensionUnderlyingType = extension.ExtendedTypeNoUseSiteDiagnostics;
+            var extensionUnderlyingType = extension.GetExtendedTypeNoUseSiteDiagnostics(null);
             Debug.Assert(extensionUnderlyingType is not null);
             if (SourceExtensionTypeSymbol.CheckUnderspecifiedGenericExtension(extensionUnderlyingType, extension.TypeParameters,
                     BindingDiagnosticBag.Discarded, Location.None, extension))

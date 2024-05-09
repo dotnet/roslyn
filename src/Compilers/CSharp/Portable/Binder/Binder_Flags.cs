@@ -109,5 +109,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? this
                 : new Binder(this, (this.Flags & ~removed) | added);
         }
+
+        /// <summary>
+        /// PROTOTYPE(static) we currently disallow resolving extensions in using directives
+        /// </summary>
+        internal bool InUsingDirective
+        {
+            get { return this.Flags.Includes(BinderFlags.InUsingDirective); }
+        }
     }
 }

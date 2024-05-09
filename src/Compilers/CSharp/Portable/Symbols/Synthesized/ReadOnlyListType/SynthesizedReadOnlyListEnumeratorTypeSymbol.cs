@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExplicitExtension => false;
 
-        internal override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics => null;
+        internal override TypeSymbol? GetExtendedTypeNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved) => null;
 
         public override ImmutableArray<Symbol> GetMembers() => _members;
 

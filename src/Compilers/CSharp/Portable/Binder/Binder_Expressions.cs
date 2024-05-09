@@ -11000,7 +11000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var type = receiver.Type;
                         Debug.Assert(type is not null);
                         // Note: extension methods are not allowed to extend an extension type
-                        if (type.ExtendedTypeNoUseSiteDiagnostics is { } extendedType)
+                        if (type.GetExtendedTypeNoUseSiteDiagnostics(null) is { } extendedType)
                         {
                             type = extendedType;
                         }

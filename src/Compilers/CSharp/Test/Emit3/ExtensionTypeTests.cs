@@ -48,7 +48,7 @@ public class ExtensionTypeTests : CompilingTestBase
         Assert.True(type is T, $"Found type '{type.GetType()}'");
         Assert.False(type.IsExtension);
         Assert.False(type.IsExplicitExtension);
-        Assert.Null(type.ExtendedTypeNoUseSiteDiagnostics);
+        Assert.Null(type.GetExtendedTypeNoUseSiteDiagnostics(null));
         Assert.Empty(type.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(type.AllBaseExtensionsNoUseSiteDiagnostics);
     }
@@ -87,7 +87,7 @@ public class ExtensionTypeTests : CompilingTestBase
         Assert.False(namedType.IsInterfaceType());
         Assert.False(namedType.IsAbstract);
 
-        if (namedType.ExtendedTypeNoUseSiteDiagnostics is { } underlyingType)
+        if (namedType.GetExtendedTypeNoUseSiteDiagnostics(null) is { } underlyingType)
         {
             // PROTOTYPE consider whether we want to expose invalid underlying types
             // in context of public APIs
@@ -246,7 +246,7 @@ explicit extension R2 for UnderlyingClass : R { }
                 VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit);
             }
 
-            Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
 
@@ -371,7 +371,7 @@ class C<T>
             var c = module.GlobalNamespace.GetTypeMember("C");
             var r = c.GetTypeMember("R");
             Assert.Equal(1, r.Arity);
-            var underlyingType = (NamedTypeSymbol)r.ExtendedTypeNoUseSiteDiagnostics;
+            var underlyingType = (NamedTypeSymbol)r.GetExtendedTypeNoUseSiteDiagnostics(null);
             Assert.Equal("UnderlyingClass<T, U>", underlyingType.ToTestDisplayString());
             Assert.Equal(2, underlyingType.TypeArguments().Length);
             Assert.Same(c.TypeArguments().Single(), underlyingType.TypeArguments()[0]);
@@ -868,7 +868,7 @@ static explicit extension R for UnderlyingClass
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         AssertEx.Equal(new[]
@@ -2035,7 +2035,7 @@ explicit extension R for UnderlyingStruct
                 VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
             }
 
-            Assert.Equal("UnderlyingStruct", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("UnderlyingStruct", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.GetMembers());
@@ -2077,7 +2077,7 @@ interface I { }
                 VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit);
             }
 
-            Assert.Equal("T", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("T", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.GetMembers());
@@ -2119,7 +2119,7 @@ enum E { }
                 VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit);
             }
 
-            Assert.Equal("E", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("E", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.GetMembers());
@@ -2147,7 +2147,7 @@ explicit extension R for object
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("System.Object", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("System.Object", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.GetMembers());
@@ -2187,7 +2187,7 @@ explicit extension R<U> for C<U>
                 VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
             }
 
-            Assert.Equal("C<U>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("C<U>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.GetMembers());
@@ -2228,7 +2228,7 @@ explicit extension R for (int, int)
                 VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
             }
 
-            Assert.Equal("(System.Int32, System.Int32)", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.GetMembers());
@@ -2269,7 +2269,7 @@ explicit extension R for int[]
                 VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
             }
 
-            Assert.Equal("System.Int32[]", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("System.Int32[]", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.GetMembers());
@@ -2413,7 +2413,7 @@ static explicit extension R for UnderlyingClass
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.True(r.IsStatic);
         comp.VerifyDiagnostics();
     }
@@ -2430,7 +2430,7 @@ static explicit extension R for UnderlyingClass
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.True(r.IsStatic);
         comp.VerifyDiagnostics();
     }
@@ -2447,7 +2447,7 @@ explicit extension R for UnderlyingClass
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.False(r.IsStatic);
         comp.VerifyDiagnostics(
             // (2,26): error CS9306: Instance extension 'R' cannot extend type 'UnderlyingClass' because it is static.
@@ -2497,7 +2497,7 @@ public static explicit extension R4 for C : R1 { }
             );
 
         var r1 = (PENamedTypeSymbol)comp.GlobalNamespace.GetTypeMember("R1");
-        var r1ExtendedType = r1.ExtendedTypeNoUseSiteDiagnostics;
+        var r1ExtendedType = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("C", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
     }
@@ -2547,7 +2547,7 @@ public explicit extension E2 for C : E1 { }
         var e1 = (RetargetingNamedTypeSymbol)e2.BaseExtensionsNoUseSiteDiagnostics.Single();
         Assert.Equal("E1", e1.Name);
         AssertEx.Equal("error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
-            ((ErrorTypeSymbol)e1.ExtendedTypeNoUseSiteDiagnostics).ErrorInfo.ToString());
+            ((ErrorTypeSymbol)e1.GetExtendedTypeNoUseSiteDiagnostics(null)).ErrorInfo.ToString());
     }
 
     [Theory, CombinatorialData]
@@ -2622,7 +2622,7 @@ public explicit extension E4 for E0 : E2 { }
         var e2 = (RetargetingNamedTypeSymbol)comp.GlobalNamespace.GetTypeMember("E2");
 
         AssertEx.Equal("error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
-            ((ErrorTypeSymbol)e2.ExtendedTypeNoUseSiteDiagnostics).ErrorInfo.ToString());
+            ((ErrorTypeSymbol)e2.GetExtendedTypeNoUseSiteDiagnostics(null)).ErrorInfo.ToString());
 
         AssertEx.Equal("error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
             ((ErrorTypeSymbol)e2.BaseExtensionsNoUseSiteDiagnostics.Single()).ErrorInfo.ToString());
@@ -2640,7 +2640,7 @@ explicit extension R for UnderlyingClass
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.False(r.IsSealed);
         comp.VerifyDiagnostics();
     }
@@ -2658,7 +2658,7 @@ file explicit extension R for UnderlyingClass
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R@<tree 0>", r.ToTestDisplayString());
-        Assert.Equal("UnderlyingClass@<tree 0>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass@<tree 0>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -2677,7 +2677,7 @@ explicit extension R for UnderlyingClass
             Diagnostic(ErrorCode.ERR_FileTypeUnderlying, "R").WithArguments("UnderlyingClass", "R").WithLocation(2, 20)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.Equal("UnderlyingClass@<tree 0>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass@<tree 0>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -2700,7 +2700,7 @@ explicit extension R for Outer.UnderlyingClass
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        Assert.Equal("Outer@<tree 0>.UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("Outer@<tree 0>.UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -2722,7 +2722,7 @@ partial explicit extension R for Outer.UnderlyingClass { }
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        Assert.Equal("Outer@<tree 0>.UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("Outer@<tree 0>.UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -2758,10 +2758,10 @@ implicit extension R2 for UnderlyingClass2 { } // 5
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        Assert.Equal("UnderlyingClass1", r1.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass1", r1.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        Assert.Equal("UnderlyingClass1", r2.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass1", r2.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -3061,7 +3061,7 @@ explicit extension R for { }
             );
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.True(r.ExtendedTypeNoUseSiteDiagnostics.IsErrorType());
+        Assert.True(r.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
     }
 
     [Theory, CombinatorialData]
@@ -3096,7 +3096,7 @@ explicit extension R3 for System.IntPtr : R { }
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
             VerifyExtension<TypeSymbol>(r, isExplicit: true);
-            Assert.Equal("nint", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("nint", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         }
@@ -3138,7 +3138,7 @@ explicit extension R3 for System.IntPtr : R { }
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
             VerifyExtension<TypeSymbol>(r, isExplicit: true);
-            Assert.Equal("nint", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("nint", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         }
@@ -3182,7 +3182,7 @@ explicit extension R3 for C<System.IntPtr> : R { }
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
             VerifyExtension<TypeSymbol>(r, isExplicit: true);
-            Assert.Equal("C<nint>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("C<nint>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         }
@@ -3224,7 +3224,7 @@ explicit extension R3 for C<object> : R { }
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
             VerifyExtension<TypeSymbol>(r, isExplicit: true);
-            Assert.Equal("C<dynamic>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("C<dynamic>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         }
@@ -3281,7 +3281,7 @@ explicit extension R3 for C<object> : R { }
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
             VerifyExtension<TypeSymbol>(r, isExplicit: true);
-            Assert.Equal("C<System.Object?>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("C<System.Object?>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString(includeNonNullable: true));
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         }
@@ -3338,7 +3338,7 @@ explicit extension R3 for C<object> : R { }
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
             VerifyExtension<TypeSymbol>(r, isExplicit: true);
-            Assert.Equal("C<System.Object!>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("C<System.Object!>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString(includeNonNullable: true));
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         }
@@ -3398,7 +3398,7 @@ explicit extension R4 for (int a, int other) : R { }
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
             VerifyExtension<TypeSymbol>(r, isExplicit: true);
-            Assert.Equal("(System.Int32 a, System.Int32 b)", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("(System.Int32 a, System.Int32 b)", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
         }
@@ -3423,7 +3423,7 @@ unsafe explicit extension R for int*
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Null(r.ExtendedTypeNoUseSiteDiagnostics);
+        Assert.Null(r.GetExtendedTypeNoUseSiteDiagnostics(null));
         Assert.Empty(r.GetMembers());
     }
 
@@ -3443,7 +3443,7 @@ explicit extension R for ref int
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("System.Int32", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("System.Int32", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -3496,7 +3496,7 @@ implicit extension R2 for int* // 3, 4
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Null(r.ExtendedTypeNoUseSiteDiagnostics);
+        Assert.Null(r.GetExtendedTypeNoUseSiteDiagnostics(null));
     }
 
     [Fact]
@@ -3516,7 +3516,7 @@ unsafe explicit extension R for delegate*<void>
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Null(r.ExtendedTypeNoUseSiteDiagnostics);
+        Assert.Null(r.GetExtendedTypeNoUseSiteDiagnostics(null));
         Assert.Empty(r.GetMembers());
     }
 
@@ -3536,7 +3536,7 @@ explicit extension R for dynamic
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Null(r.ExtendedTypeNoUseSiteDiagnostics);
+        Assert.Null(r.GetExtendedTypeNoUseSiteDiagnostics(null));
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
     }
@@ -3613,7 +3613,7 @@ partial explicit extension R { }
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -3629,7 +3629,7 @@ partial explicit extension R for UnderlyingClass { }
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -3648,7 +3648,7 @@ partial explicit extension R for UnderlyingClass2 { }
             Diagnostic(ErrorCode.ERR_PartialMultipleUnderlyingTypes, "R").WithArguments("R").WithLocation(3, 28)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -3669,7 +3669,7 @@ partial explicit extension R for UnderlyingClass3 { }
             Diagnostic(ErrorCode.ERR_PartialMultipleUnderlyingTypes, "R").WithArguments("R").WithLocation(4, 28)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -3692,7 +3692,7 @@ partial explicit extension R for UnderlyingClass3 { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ErrorType").WithArguments("ErrorType").WithLocation(4, 34)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -3715,7 +3715,7 @@ partial explicit extension R for UnderlyingClass3 { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ErrorType").WithArguments("ErrorType").WithLocation(3, 34)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.Equal("ErrorType", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("ErrorType", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -3733,7 +3733,7 @@ partial explicit extension R for C<object> { }
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Equal("C<System.Object>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("C<System.Object>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -3753,8 +3753,8 @@ partial explicit extension R for C<dynamic> { }
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Equal("C<>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
-        Assert.True(r.ExtendedTypeNoUseSiteDiagnostics.IsErrorType());
+        Assert.Equal("C<>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+        Assert.True(r.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
     }
 
     [Fact]
@@ -3774,8 +3774,8 @@ partial explicit extension R for C<(int y, int b)> { }
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Equal("C<>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
-        Assert.True(r.ExtendedTypeNoUseSiteDiagnostics.IsErrorType());
+        Assert.Equal("C<>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+        Assert.True(r.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
     }
 
     [Fact]
@@ -3793,8 +3793,8 @@ partial explicit extension R for object? { }
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Equal("System.Object", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString(includeNonNullable: true));
-        Assert.False(r.ExtendedTypeNoUseSiteDiagnostics.IsErrorType());
+        Assert.Equal("System.Object", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString(includeNonNullable: true));
+        Assert.False(r.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
     }
 
     [Fact]
@@ -3816,8 +3816,8 @@ partial explicit extension R for C<object?> { }
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Equal("C<>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
-        Assert.True(r.ExtendedTypeNoUseSiteDiagnostics.IsErrorType());
+        Assert.Equal("C<>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+        Assert.True(r.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
     }
 
     [Fact]
@@ -3837,7 +3837,7 @@ partial explicit extension R for C<object?> { }
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Equal("C<System.Object?>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("C<System.Object?>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -3856,7 +3856,7 @@ partial explicit extension R for C<object> { }
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Equal("C<System.Object?>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("C<System.Object?>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -3890,8 +3890,8 @@ partial explicit extension R for C<
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Equal("C<, >", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
-        Assert.True(r.ExtendedTypeNoUseSiteDiagnostics.IsErrorType());
+        Assert.Equal("C<, >", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+        Assert.True(r.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
     }
 
     [Fact]
@@ -3914,7 +3914,7 @@ partial explicit extension R for UnderlyingClass { }
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Equal("Error", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("Error", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -3934,7 +3934,7 @@ partial explicit extension R for Error { }
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Theory, CombinatorialData]
@@ -3954,7 +3954,7 @@ partial {{keyword}} extension R { }
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Null(r.ExtendedTypeNoUseSiteDiagnostics);
+        Assert.Null(r.GetExtendedTypeNoUseSiteDiagnostics(null));
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
@@ -4131,7 +4131,7 @@ explicit extension R for error
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        var underlyingType = r.ExtendedTypeNoUseSiteDiagnostics;
+        var underlyingType = r.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("error", underlyingType.ToTestDisplayString());
         Assert.True(underlyingType.IsErrorType());
     }
@@ -4152,7 +4152,7 @@ explicit extension R for C<error>
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "error").WithArguments("error").WithLocation(2, 28)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        var underlyingType = r.ExtendedTypeNoUseSiteDiagnostics;
+        var underlyingType = r.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("C<error>", underlyingType.ToTestDisplayString());
     }
 
@@ -4176,13 +4176,12 @@ class C2 : C<UseSiteError> { }
 """;
         var comp = CreateCompilation(src, new[] { comp2.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (2, 27): error CS0012: The type 'MissingBase' is defined in an assembly that is not referenced.You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // (2,27): error CS0012: The type 'MissingBase' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // explicit extension R1 for UseSiteError { }
             Diagnostic(ErrorCode.ERR_NoTypeDef, "UseSiteError").WithArguments("MissingBase", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 27),
             // (4,12): error CS0012: The type 'MissingBase' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // class C1 : UseSiteError { }
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "UseSiteError").WithArguments("MissingBase", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 12)
-            );
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "UseSiteError").WithArguments("MissingBase", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 12));
     }
 
     [Fact]
@@ -4200,7 +4199,7 @@ explicit extension R for R { }
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Null(r.ExtendedTypeNoUseSiteDiagnostics);
+        Assert.Null(r.GetExtendedTypeNoUseSiteDiagnostics(null));
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
@@ -4234,7 +4233,7 @@ explicit extension R for R[] { }
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.Equal("R[]", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("R[]", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -4246,7 +4245,7 @@ explicit extension R for (R, R) { }
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.Equal("(R, R)", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("(R, R)", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -4259,7 +4258,7 @@ explicit extension R for S<R> { }
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.Equal("S<R>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("S<R>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -4276,8 +4275,8 @@ explicit extension R for S<R> { }
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.Equal("S<R>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
-        Assert.Equal("R", r.ExtendedTypeNoUseSiteDiagnostics.GetMember("field").GetTypeOrReturnType().ToTestDisplayString());
+        Assert.Equal("S<R>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+        Assert.Equal("R", r.GetExtendedTypeNoUseSiteDiagnostics(null).GetMember("field").GetTypeOrReturnType().ToTestDisplayString());
     }
 
     [Fact]
@@ -4292,7 +4291,7 @@ explicit extension R for C<R> { }
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Equal("C<R>", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("C<R>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
@@ -4421,13 +4420,13 @@ explicit extension R2 for object : R
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.True(r.IsExtension);
-        Assert.Equal("R2.Nested", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("R2.Nested", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
         Assert.True(r2.IsExtension);
-        Assert.Equal("System.Object", r2.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("System.Object", r2.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Equal(new[] { "R" }, r2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
         Assert.True(r2.BaseExtensionsNoUseSiteDiagnostics.Single().IsErrorType());
         Assert.Equal(new[] { "R" }, r2.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
@@ -4469,7 +4468,7 @@ public explicit extension R1 for R2 { }
 
         var r1 = comp5.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
-        var r2FromR1 = (ExtendedErrorTypeSymbol)r1.ExtendedTypeNoUseSiteDiagnostics;
+        var r2FromR1 = (ExtendedErrorTypeSymbol)r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("R2", r2FromR1.ToTestDisplayString());
         AssertEx.Equal("error CS9322: Extension marker method on type 'R1' is malformed.", r2FromR1.ErrorInfo.ToString());
 
@@ -4501,7 +4500,7 @@ public explicit extension R9 for R2 { }
 
         r1 = comp6.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<RetargetingNamedTypeSymbol>(r1, isExplicit: true);
-        r2FromR1 = (ExtendedErrorTypeSymbol)r1.ExtendedTypeNoUseSiteDiagnostics;
+        r2FromR1 = (ExtendedErrorTypeSymbol)r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.True(r2FromR1.IsErrorType());
         AssertEx.Equal("error CS8090: There is an error in a referenced assembly 'second, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
             r2FromR1.ErrorInfo.ToString());
@@ -4521,13 +4520,13 @@ explicit extension R2 for R2.Nested[] : R
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.True(r.IsExtension);
-        Assert.Equal("R2.Nested[]", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("R2.Nested[]", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
         Assert.True(r2.IsExtension);
-        Assert.Equal("R2.Nested[]", r2.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("R2.Nested[]", r2.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Equal(new[] { "R" }, r2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
         Assert.Equal(new[] { "R" }, r2.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
     }
@@ -4545,12 +4544,12 @@ explicit extension R2 for (R2.Nested, int) : R
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.Equal("(R2.Nested, System.Int32)", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("(R2.Nested, System.Int32)", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
         Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        Assert.Equal("(R2.Nested, System.Int32)", r2.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("(R2.Nested, System.Int32)", r2.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Equal(new[] { "R" }, r2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
         Assert.Equal(new[] { "R" }, r2.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
     }
@@ -4573,7 +4572,7 @@ explicit extension E2 for E2 : E2 { }
             );
         var e2 = comp.GlobalNamespace.GetTypeMember("E2");
         Assert.True(e2.IsExtension);
-        Assert.Null(e2.ExtendedTypeNoUseSiteDiagnostics);
+        Assert.Null(e2.GetExtendedTypeNoUseSiteDiagnostics(null));
         Assert.Equal("E2", e2.BaseExtensionsNoUseSiteDiagnostics.Single().ToTestDisplayString());
     }
 
@@ -4611,7 +4610,7 @@ public explicit extension R1 for R2.Nested2
 
         var r1 = comp1.GlobalNamespace.GetTypeMember("R1");
         Assert.True(r1.IsExtension);
-        Assert.Equal("R2.Nested2", r1.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("R2.Nested2", r1.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -4684,12 +4683,12 @@ public explicit extension R3 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        var r1ExtendedType = r1.ExtendedTypeNoUseSiteDiagnostics;
+        var r1ExtendedType = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("R2", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        var r2ExtendedType = r2.ExtendedTypeNoUseSiteDiagnostics;
+        var r2ExtendedType = r2.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("R1", r2ExtendedType.ToTestDisplayString());
         Assert.True(r2ExtendedType.IsErrorType());
     }
@@ -4972,12 +4971,12 @@ partial explicit extension R4 for C : R2 { }
         static void validate(ModuleSymbol module)
         {
             var r3 = module.GlobalNamespace.GetTypeMember("R3");
-            Assert.Equal("C", r3.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("C", r3.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Equal(new[] { "R1", "R2" }, r3.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
             Assert.Equal(new[] { "R1", "R2" }, r3.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
 
             var r4 = module.GlobalNamespace.GetTypeMember("R4");
-            Assert.Equal("C", r4.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("C", r4.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Equal(new[] { "R1", "R2" }, r4.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
             Assert.Equal(new[] { "R1", "R2" }, r4.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
         }
@@ -5011,13 +5010,13 @@ class D<U>
 
             var r3 = d.GetTypeMember("R3");
             Assert.Equal(1, r3.Arity);
-            Assert.Equal("C<U, V>", r3.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("C<U, V>", r3.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Equal(new[] { "D<U>.R1<U, V>", "D<U>.R2<U, V>" }, r3.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
             Assert.Equal(new[] { "D<U>.R1<U, V>", "D<U>.R2<U, V>" }, r3.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
 
             var r4 = d.GetTypeMember("R4");
             Assert.Equal(1, r4.Arity);
-            Assert.Equal("C<U, V>", r4.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal("C<U, V>", r4.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Equal(new[] { "D<U>.R1<U, V>", "D<U>.R2<U, V>" }, r4.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
             Assert.Equal(new[] { "D<U>.R1<U, V>", "D<U>.R2<U, V>" }, r4.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
 
@@ -5046,7 +5045,7 @@ explicit extension R for C : error
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
-        Assert.Equal("C", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("C", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         var baseExtensions = r.BaseExtensionsNoUseSiteDiagnostics;
         Assert.Equal(new[] { "error" }, baseExtensions.ToTestDisplayStrings());
         Assert.True(baseExtensions.Single().IsErrorType());
@@ -5146,7 +5145,7 @@ explicit extension R for UnderlyingClass : R1 { }
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Equal(new[] { "R1@<tree 0>" }, r.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
         Assert.Equal(new[] { "R1@<tree 0>" }, r.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
     }
@@ -5168,7 +5167,7 @@ explicit extension R for UnderlyingClass : R1, R2 { }
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Equal(new[] { "R1", "R2@<tree 0>" }, r.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
     }
 
@@ -5191,7 +5190,7 @@ explicit extension R for UnderlyingClass : R1, R2 { }
             Diagnostic(ErrorCode.ERR_FileTypeBase, "R").WithArguments("R2", "R").WithLocation(4, 20)
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Equal(new[] { "R1@<tree 0>", "R2@<tree 0>" }, r.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
     }
 
@@ -5555,12 +5554,12 @@ explicit extension R4<U> for C<U> : R3<U> { }
         comp.VerifyDiagnostics();
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        Assert.Equal("U", r2.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
-        Assert.Equal("U", r2.BaseExtensionsNoUseSiteDiagnostics.Single().ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("U", r2.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+        Assert.Equal("U", r2.BaseExtensionsNoUseSiteDiagnostics.Single().GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
 
         var r4 = comp.GlobalNamespace.GetTypeMember("R4");
-        Assert.Equal("C<U>", r4.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
-        Assert.Equal("C<U>", r4.BaseExtensionsNoUseSiteDiagnostics.Single().ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("C<U>", r4.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+        Assert.Equal("C<U>", r4.BaseExtensionsNoUseSiteDiagnostics.Single().GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
@@ -5711,7 +5710,7 @@ partial explicit extension R
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.False(r.IsStatic);
     }
 
@@ -5731,7 +5730,7 @@ explicit extension R for C { }
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("C", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("C", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -5751,7 +5750,7 @@ unsafe explicit extension R for UnderlyingClass
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.False(r.IsStatic);
     }
 
@@ -5768,7 +5767,7 @@ unsafe explicit extension R for UnderlyingClass
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.False(r.IsStatic);
         comp.VerifyDiagnostics();
     }
@@ -5793,7 +5792,7 @@ explicit extension DerivedExtension for UnderlyingClass : BaseExtension
         var r = comp.GlobalNamespace.GetTypeMember("DerivedExtension").GetTypeMember("R");
         Assert.Equal("DerivedExtension.R", r.ToTestDisplayString());
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("UnderlyingClass2", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass2", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         // PROTOTYPE verify hiding in usages/lookups
     }
 
@@ -6086,7 +6085,7 @@ internal internal explicit extension R for UnderlyingClass
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Equal(Accessibility.Internal, r.DeclaredAccessibility);
     }
 
@@ -6110,7 +6109,7 @@ public internal explicit extension R for UnderlyingClass
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Equal(Accessibility.Public, r.DeclaredAccessibility);
     }
 
@@ -6134,7 +6133,7 @@ internal public explicit extension R for UnderlyingClass
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Equal(Accessibility.Public, r.DeclaredAccessibility);
     }
 
@@ -6155,7 +6154,7 @@ abstract explicit extension R for UnderlyingClass
             );
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
-        Assert.Equal("UnderlyingClass", r.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -6744,7 +6743,7 @@ explicit extension E2 for int : E1 { }
 
         var e1 = comp2.GlobalNamespace.GetTypeMember("E1");
         VerifyExtension<RetargetingNamedTypeSymbol>(e1, isExplicit: isExplicit);
-        Assert.Equal("System.Int32", e1.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal("System.Int32", e1.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Equal(new[] { "E0" }, e1.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
     }
 
@@ -6760,7 +6759,7 @@ class C { }
         var comp2 = CreateCompilation("", references: new[] { comp1.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib46);
         var c = comp2.GlobalNamespace.GetTypeMember("C");
         VerifyNotExtension<RetargetingNamedTypeSymbol>(c);
-        Assert.Null(c.ExtendedTypeNoUseSiteDiagnostics);
+        Assert.Null(c.GetExtendedTypeNoUseSiteDiagnostics(null));
         Assert.Empty(c.BaseExtensionsNoUseSiteDiagnostics);
     }
 
@@ -7163,7 +7162,7 @@ public explicit extension R2 for object : R1 { }
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
-        var r1ExtendedType = r1.ExtendedTypeNoUseSiteDiagnostics;
+        var r1ExtendedType = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
 
@@ -7288,7 +7287,7 @@ public explicit extension R2 for object : R1 { }
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
-        var r1ExtendedType = r1.ExtendedTypeNoUseSiteDiagnostics;
+        var r1ExtendedType = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
 
@@ -7333,7 +7332,7 @@ public explicit extension R2 for object : R1 { }
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
-        var r1ExtendedType = (ExtendedErrorTypeSymbol)r1.ExtendedTypeNoUseSiteDiagnostics;
+        var r1ExtendedType = (ExtendedErrorTypeSymbol)r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
         AssertEx.Equal("error CS9322: Extension marker method on type 'R1' is malformed.", r1ExtendedType.ErrorInfo.ToString());
@@ -7678,7 +7677,7 @@ public explicit extension R2 for object : R1 { }
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
-        var r1Underyling = r1.ExtendedTypeNoUseSiteDiagnostics;
+        var r1Underyling = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("dynamic", r1Underyling.ToTestDisplayString());
         Assert.True(r1Underyling.IsErrorType());
         Assert.Empty(r1.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
@@ -7733,7 +7732,7 @@ public explicit extension R2 for object : R1 { }
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
-        var r1Underyling = (ExtendedErrorTypeSymbol)r1.ExtendedTypeNoUseSiteDiagnostics;
+        var r1Underyling = (ExtendedErrorTypeSymbol)r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("R0", r1Underyling.ToTestDisplayString());
         Assert.True(r1Underyling.IsErrorType());
         AssertEx.Equal("error CS9322: Extension marker method on type 'R1' is malformed.", r1Underyling.ErrorInfo.ToString());
@@ -7781,7 +7780,7 @@ public explicit extension R2 for object : R1 { }
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
-        var r1Underyling = r1.ExtendedTypeNoUseSiteDiagnostics;
+        var r1Underyling = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("R1", r1Underyling.ToTestDisplayString());
         Assert.True(r1Underyling.IsErrorType());
         Assert.Empty(r1.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
@@ -8268,7 +8267,7 @@ public explicit extension R2 for object : R1 { }
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
-        Assert.True(r1.ExtendedTypeNoUseSiteDiagnostics.IsErrorType());
+        Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -8310,7 +8309,7 @@ public explicit extension R2 for object : R1 { }
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
-        Assert.True(r1.ExtendedTypeNoUseSiteDiagnostics.IsErrorType());
+        Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -8352,7 +8351,7 @@ public explicit extension R2 for object : R1 { }
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
-        Assert.False(r1.ExtendedTypeNoUseSiteDiagnostics.IsErrorType());
+        Assert.False(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
         VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
@@ -8385,7 +8384,7 @@ public explicit extension R2 for object : R1 { }
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
-        Assert.True(r1.ExtendedTypeNoUseSiteDiagnostics.IsErrorType());
+        Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
         VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
@@ -8428,7 +8427,7 @@ public explicit extension R2 for object : R1 { }
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
-        Assert.True(r1.ExtendedTypeNoUseSiteDiagnostics.IsErrorType());
+        Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -11636,7 +11635,7 @@ _ = object.Type.M();
 {{(e1BeforeE2 ? e2 : e1)}}
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        if (e1BeforeE2)
+        if (!e1BeforeE2)
         {
             comp.VerifyEmitDiagnostics(
                 // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E2.Method()' and 'E1.Method()'
@@ -14225,7 +14224,7 @@ class C { }
 {{(e1BeforeE2 ? e2 : e1)}}
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        if (e1BeforeE2)
+        if (!e1BeforeE2)
         {
             comp.VerifyDiagnostics(
                 // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E2.Method()' and 'E1.Method()'
@@ -28247,9 +28246,9 @@ implicit extension E2 for C
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E2.Method()' and 'E1.Method()'
+            // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E1.Method()' and 'E2.Method()'
             // var x = C.Method;
-            Diagnostic(ErrorCode.ERR_AmbigCall, "C.Method").WithArguments("E2.Method()", "E1.Method()").WithLocation(1, 9)
+            Diagnostic(ErrorCode.ERR_AmbigCall, "C.Method").WithArguments("E1.Method()", "E2.Method()").WithLocation(1, 9)
             );
 
         var tree = comp.SyntaxTrees.Single();
@@ -30574,16 +30573,16 @@ implicit extension E2 for I2
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (1,25): error CS0121: The call is ambiguous between the following methods or properties: 'E2.M()' and 'E1Base.M()'
+            // (1,25): error CS0121: The call is ambiguous between the following methods or properties: 'E1Base.M()' and 'E2.M()'
             // System.Console.Write(I3.M());
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E2.M()", "E1Base.M()").WithLocation(1, 25));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1Base.M()", "E2.M()").WithLocation(1, 25));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "I3.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
 
-        Assert.Equal(["System.String E2.M()", "System.String E1Base.M()"],
+        Assert.Equal(["System.String E1Base.M()", "System.String E2.M()"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
@@ -30818,15 +30817,15 @@ implicit extension E<T> for I<T>
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,24): error CS0229: Ambiguity between 'E<string>.M' and 'E<int>.M'
+            // (1,24): error CS0229: Ambiguity between 'E<int>.M' and 'E<string>.M'
             // System.Console.Write(C.M);
-            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E<string>.M", "E<int>.M").WithLocation(1, 24));
+            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E<int>.M", "E<string>.M").WithLocation(1, 24));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["System.String E<System.String>.M", "System.String E<System.Int32>.M"],
+        Assert.Equal(["System.String E<System.Int32>.M", "System.String E<System.String>.M"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess));
 
@@ -30864,9 +30863,9 @@ implicit extension E<T> for I<T>
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E<string>.M()' and 'E<int>.M()'
+            // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E<int>.M()' and 'E<string>.M()'
             // var x = C.M;
-            Diagnostic(ErrorCode.ERR_AmbigCall, "C.M").WithArguments("E<string>.M()", "E<int>.M()").WithLocation(1, 9));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "C.M").WithArguments("E<int>.M()", "E<string>.M()").WithLocation(1, 9));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30893,16 +30892,16 @@ implicit extension E<T> for I<T>
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'E<string>.M()' and 'E<int>.M()'
+            // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'E<int>.M()' and 'E<string>.M()'
             // C.M();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E<string>.M()", "E<int>.M()").WithLocation(1, 3));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E<int>.M()", "E<string>.M()").WithLocation(1, 3));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
 
-        Assert.Equal(["void E<System.String>.M()", "void E<System.Int32>.M()"],
+        Assert.Equal(["void E<System.Int32>.M()", "void E<System.String>.M()"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
@@ -30924,16 +30923,16 @@ implicit extension E<T> for I<T>
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'E<string>.M<int>()' and 'E<int>.M<int>()'
+            // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'E<int>.M<int>()' and 'E<string>.M<int>()'
             // C.M<int>();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("E<string>.M<int>()", "E<int>.M<int>()").WithLocation(1, 3));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("E<int>.M<int>()", "E<string>.M<int>()").WithLocation(1, 3));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M<int>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
 
-        Assert.Equal(["void E<System.String>.M<System.Int32>()", "void E<System.Int32>.M<System.Int32>()"],
+        Assert.Equal(["void E<System.Int32>.M<System.Int32>()", "void E<System.String>.M<System.Int32>()"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
@@ -31133,7 +31132,7 @@ System.Console.Write(object.M());
 {{(e1BeforeE2 ? e2 : e1)}}
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        if (e1BeforeE2)
+        if (!e1BeforeE2)
         {
             comp.VerifyEmitDiagnostics(
                 // (1,29): error CS0121: The call is ambiguous between the following methods or properties: 'E2.M()' and 'E1.M()'
@@ -31339,9 +31338,8 @@ class C : I1, I2 { }
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        // PROTOTYPE(static) the sorting mechanism for more specific extension members to hide less specific ones is insufficient and needs to be revised
-        //Assert.Equal(["System.String E1.M", "System.String E2.M"],
-        //    model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["System.String E1.M", "System.String E2.M"],
+            model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
     }
 
@@ -31389,38 +31387,18 @@ class C : I1, I2 { }
 {{segments[third]}}
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        bool isE3beforeE4 = segmentIndex(2) < segmentIndex(1);
-        if (isE3beforeE4)
-        {
-            comp.VerifyEmitDiagnostics(
-                // (1,24): error CS0121: The call is ambiguous between the following methods or properties: 'E3.M()' and 'E4.M()'
-                // System.Console.Write(C.M());
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E3.M()", "E4.M()").WithLocation(1, 24));
-        }
-        else
-        {
-            comp.VerifyEmitDiagnostics(
-                // (1,24): error CS0121: The call is ambiguous between the following methods or properties: 'E4.M()' and 'E3.M()'
-                // System.Console.Write(C.M());
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E4.M()", "E3.M()").WithLocation(1, 24));
-        }
+        comp.VerifyEmitDiagnostics(
+            // (1,24): error CS0121: The call is ambiguous between the following methods or properties: 'E3.M()' and 'E4.M()'
+            // System.Console.Write(C.M());
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E3.M()", "E4.M()").WithLocation(1, 24));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        if (isE3beforeE4)
-        {
-            Assert.Equal(["System.String E3.M()", "System.String E4.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        }
-        else
-        {
-            Assert.Equal(["System.String E4.M()", "System.String E3.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        }
+        Assert.Equal(["System.String E3.M()", "System.String E4.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
-
-        int segmentIndex(int segment) => first == segment ? 0 : (second == segment ? 1 : 2);
     }
 
     [Theory, ClassData(typeof(ThreePermutationGenerator))]
@@ -31513,7 +31491,7 @@ class C { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         bool isE1beforeE2 = segmentIndex(0) < segmentIndex(1);
-        if (isE1beforeE2)
+        if (!isE1beforeE2)
         {
             comp.VerifyEmitDiagnostics(
                 // (1,24): error CS0121: The call is ambiguous between the following methods or properties: 'E2.M()' and 'E1.M()'
@@ -31532,7 +31510,7 @@ class C { }
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        if (isE1beforeE2)
+        if (!isE1beforeE2)
         {
             Assert.Equal(["System.String E2.M()", "System.String E1.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         }
@@ -35277,40 +35255,29 @@ implicit extension E for IBase
     {
         var source = """
 // we'll lookup here
+int.StaticMethod();
+
 public implicit extension E<T> for T where T : struct
 {
     public static int StaticField = 0;
     public static int StaticProperty => 0;
-    public static void StaticMethod() { }
+    public static void StaticMethod() { System.Console.Write("ran"); }
     public class Nested { }
     public static event System.Action StaticEvent { add { } remove { } }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE should warn about hiding
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
         AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o).ToTestDisplayStrings());
-
-        string[] eStaticSymbols = [
-            .. objectStaticSymbols,
-            "System.Int32 E<System.Object>.StaticProperty { get; }",
-            "void E<System.Object>.StaticMethod()",
-            "E<System.Object>.Nested",
-            "event System.Action E<System.Object>.StaticEvent",
-            "System.Int32 E<System.Object>.StaticField"];
-
-        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
         AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o, includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(eStaticSymbols, model.LookupStaticMembers(position: 0, o).ToTestDisplayStrings());
-
-        AssertSetStrictlyEqual(["E<System.Object>.Nested"], model.LookupNamespacesAndTypes(position: 0, o).ToTestDisplayStrings());
-        AssertSetStrictlyEqual(eStaticSymbols, model.LookupStaticMembers(position: 0, o).ToTestDisplayStrings());
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, o).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, o).ToTestDisplayStrings());
 
         var n = ((Compilation)comp).GetSpecialType(SpecialType.System_Nullable_T);
         string[] nullableInstanceSymbols = [
@@ -35335,20 +35302,21 @@ public implicit extension E<T> for T where T : struct
 
         AssertSetStrictlyEqual([.. nullableInstanceSymbols, .. nullableStaticSymbols], model.LookupSymbols(position: 0, n).ToTestDisplayStrings());
 
-        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
         AssertSetStrictlyEqual([.. nullableInstanceSymbols, .. nullableStaticSymbols],
             model.LookupSymbols(position: 0, n, includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual([
-            .. nullableStaticSymbols,
-            "System.Int32 E<T?>.StaticProperty { get; }",
-            "void E<T?>.StaticMethod()",
-            "E<T?>.Nested",
-            "event System.Action E<T?>.StaticEvent",
-            "System.Int32 E<T?>.StaticField"],
-            model.LookupStaticMembers(position: 0, n).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, n).ToTestDisplayStrings());
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, n).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["E<T?>.Nested"], model.LookupNamespacesAndTypes(position: 0, n).ToTestDisplayStrings());
+        var int32 = ((Compilation)comp).GetSpecialType(SpecialType.System_Int32);
+        AssertSetStrictlyEqual([
+            .. objectStaticSymbols,
+            "System.Int32 E<System.Int32>.StaticProperty { get; }",
+            "void E<System.Int32>.StaticMethod()",
+            "E<System.Int32>.Nested",
+            "event System.Action E<System.Int32>.StaticEvent",
+            "System.Int32 E<System.Int32>.StaticField"],
+            model.LookupStaticMembers(position: 0, int32).Where(m => m.ContainingType.Name != "Int32").ToTestDisplayStrings());
     }
 
     [Fact]
@@ -38767,5 +38735,777 @@ implicit extension E for object
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("void E.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Theory, ClassData(typeof(ThreePermutationGenerator))]
+    public void PreferMoreSpecific_Static_FieldAndLessSpecificFieldAndEmpty(int first, int second, int third)
+    {
+        string[] segments = [
+            """
+            implicit extension E1 for I1
+            {
+                public static string M = "ran";
+            }
+            """,
+            """
+            implicit extension E2 for I2 { }
+            """,
+            """
+            implicit extension E3 for I1Base
+            {
+                public static string M = null;
+            }
+            implicit extension E4 for I2Base { }
+            """];
+
+        var src = $$"""
+System.Console.Write(C.M);
+
+interface I1Base { }
+interface I1 : I1Base { }
+interface I2Base { }
+interface I2 : I2Base { }
+
+class C : I1, I2 { }
+
+{{segments[first]}}
+
+{{segments[second]}}
+
+{{segments[third]}}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("System.String E1.M", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Theory, ClassData(typeof(ThreePermutationGenerator))]
+    public void PreferMoreSpecific_Static_InterfaceAppearsTwice(int first, int second, int third)
+    {
+        string[] segments = [
+            """
+            implicit extension E1<T> for I1<T>
+            {
+                public static string M => null;
+            }
+            """,
+            """
+            implicit extension E2 for I2 { }
+            """,
+            """
+            implicit extension E3 for C { }
+            """];
+
+        var src = $$"""
+System.Console.Write(C.M);
+
+interface I1<T> { }
+interface I2 : I1<string> { }
+
+class C : I1<int>, I2 { }
+
+{{segments[first]}}
+
+{{segments[second]}}
+
+{{segments[third]}}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,24): error CS0229: Ambiguity between 'E1<int>.M' and 'E1<string>.M'
+            // System.Console.Write(C.M);
+            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E1<int>.M", "E1<string>.M").WithLocation(1, 24));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["System.String E1<System.Int32>.M { get; }", "System.String E1<System.String>.M { get; }"],
+            model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Theory, ClassData(typeof(ThreePermutationGenerator))]
+    public void PreferMoreSpecific_Static_InterfaceAppearsTwice_02(int first, int second, int third)
+    {
+        string[] segments = [
+            """
+            implicit extension E1<T> for I1<T>
+            {
+                public static string M => null;
+            }
+            """,
+            """
+            implicit extension E2 for Base { }
+            """,
+            """
+            implicit extension E3 for C { }
+            """];
+
+        var src = $$"""
+System.Console.Write(C.M);
+
+interface I1<T> { }
+class Base : I1<string> { }
+class C : Base, I1<int> { }
+
+{{segments[first]}}
+
+{{segments[second]}}
+
+{{segments[third]}}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,24): error CS0229: Ambiguity between 'E1<string>.M' and 'E1<int>.M'
+            // System.Console.Write(C.M);
+            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E1<string>.M", "E1<int>.M").WithLocation(1, 24));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["System.String E1<System.String>.M { get; }", "System.String E1<System.Int32>.M { get; }"],
+            model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Theory, ClassData(typeof(ThreePermutationGenerator))]
+    public void PreferMoreSpecific_Static_InterfaceAppearsTwice_03(int first, int second, int third)
+    {
+        string[] segments = [
+            """
+            implicit extension E1<T> for I1<T>
+            {
+                public static string M => null;
+            }
+            """,
+            """
+            implicit extension E2 for Base
+            {
+                public static string M => null;
+            }
+            """,
+            """
+            implicit extension E3 for C { }
+            """];
+
+        var src = $$"""
+System.Console.Write(C.M);
+
+interface I1<T> { }
+class Base : I1<string> { }
+class C : Base, I1<int> { }
+
+{{segments[first]}}
+
+{{segments[second]}}
+
+{{segments[third]}}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,24): error CS0229: Ambiguity between 'E1<int>.M' and 'E2.M'
+            // System.Console.Write(C.M);
+            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E1<int>.M", "E2.M").WithLocation(1, 24));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["System.String E1<System.Int32>.M { get; }", "System.String E2.M { get; }"],
+            model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Theory, ClassData(typeof(ThreePermutationGenerator))]
+    public void PreferMoreSpecific_Static_InterfaceAppearsTwice_04(int first, int second, int third)
+    {
+        string[] segments = [
+            """
+            implicit extension E1<T> for I1<T>
+            {
+                public static string M => "ran";
+            }
+            """,
+            """
+            implicit extension E2 for I2 { }
+            """,
+            """
+            implicit extension E3 for C { }
+            """];
+
+        var src = $$"""
+System.Console.Write(C.M);
+
+interface I1<T> { }
+interface I2 : I1<int> { }
+
+class C : I1<int>, I2 { }
+
+{{segments[first]}}
+
+{{segments[second]}}
+
+{{segments[third]}}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("System.String E1<System.Int32>.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_ForT_Static_Unconstrained()
+    {
+        var source = """
+// we'll lookup here
+int.StaticMethod();
+
+public implicit extension E<T> for T
+{
+    public static void StaticMethod() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var int32 = ((Compilation)comp).GetSpecialType(SpecialType.System_Int32);
+        AssertSetStrictlyEqual([
+            .. objectStaticSymbols,
+            "void E<System.Int32>.StaticMethod()",
+            "void E<System.ValueType>.StaticMethod()",
+            "void E<System.Object>.StaticMethod()",
+            "void E<System.IConvertible>.StaticMethod()",
+            "void E<System.IComparable>.StaticMethod()",
+            "void E<System.IComparable<System.Int32>>.StaticMethod()",
+            "void E<System.IEquatable<System.Int32>>.StaticMethod()",
+            "void E<System.ISpanFormattable>.StaticMethod()",
+            "void E<System.IFormattable>.StaticMethod()"],
+            model.LookupStaticMembers(position: 0, int32).Where(m => m.ContainingType.Name != "Int32").ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_ForT_Static_BrokenConstraint()
+    {
+        var source = """
+object.StaticMethod();
+
+public implicit extension E<T> for T where T : struct
+{
+    public static void StaticMethod() { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'StaticMethod'
+            // object.StaticMethod();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "StaticMethod").WithArguments("object", "StaticMethod").WithLocation(1, 8));
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_ForT_Instance_BrokenConstraint_Nullability()
+    {
+        var source = """
+#nullable enable
+bool b = true;
+var o = b ? null : new object();
+o.Method();
+
+public implicit extension E<T> for T where T : notnull
+{
+    public void Method() { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // o.Method();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(4, 1));
+        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.Method");
+        // PROTOTYPE(static) Updated nullability information should be reflected in the symbol
+        Assert.Equal("void E<System.Object>.Method()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact(Skip = "PROTOTYPE(static) hit assertion in NullableWalker")]
+    public void Lookup_ExtensionTypeMembers_Static_BrokenConstraint_Nullability()
+    {
+        var source = """
+#nullable enable
+C<object?>.StaticMethod();
+
+class C<T> { }
+
+public implicit extension E<T> for C<T> where T : notnull
+{
+    public static void StaticMethod() { System.Console.Write("ran"); }
+}
+""";
+        // PROTOTYPE(static) we should warn for nullability issues
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        //comp.VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_ForT_Static_NullableReferenceType()
+    {
+        var source = """
+#nullable enable
+object?.StaticMethod();
+
+public implicit extension E<T> for T
+{
+    public static void StaticMethod() { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,8): error CS1001: Identifier expected
+            // object?.StaticMethod();
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(2, 8),
+            // (2,8): error CS1003: Syntax error, ',' expected
+            // object?.StaticMethod();
+            Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(2, 8));
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_ForT_Static_NullableReferenceTypeParenthesized()
+    {
+        var source = """
+#nullable enable
+(object?).StaticMethod();
+
+public implicit extension E<T> for T
+{
+    public static void StaticMethod() { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,10): error CS1525: Invalid expression term '.'
+            // (object?).StaticMethod();
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments(".").WithLocation(2, 10));
+    }
+
+    [Fact]
+    public void UsingStatic_07()
+    {
+        var source = """
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal interface AnyEnum { }
+}
+""";
+        // In `GetInterfaceInfo` we call `SourceNamedTypeSymbol.BaseTypeNoUseSiteDiagnostics` which forces resolution on `ContainingType.BaseTypeNoUseSiteDiagnostics`
+        // This means that any lookup on `AnyEnum` causes the `using` directives to be resolved
+        var comp = CreateCompilationWithMscorlib45(source);
+        comp.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static MyNamespace.AnyClass.AnyEnum.Val;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(1, 1),
+            // (1,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+            // using static MyNamespace.AnyClass.AnyEnum.Val;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(1, 43),
+            // (5,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+            // internal class AnyClass : AnyBaseClass
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(5, 27));
+    }
+
+    [Fact]
+    public void UsingStatic_WithExtension_NoNestedType()
+    {
+        var source = """
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal interface AnyEnum { }
+}
+
+implicit extension E for AnyClass.AnyEnum { }
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static MyNamespace.AnyClass.AnyEnum.Val;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(1, 1),
+            // (1,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+            // using static MyNamespace.AnyClass.AnyEnum.Val;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(1, 43),
+            // (5,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+            // internal class AnyClass : AnyBaseClass
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(5, 27));
+    }
+
+    [Fact]
+    public void UsingStatic()
+    {
+        var source = """
+using static AnyClass.AnyEnum.Val;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal interface AnyEnum { }
+}
+
+implicit extension E for AnyClass.AnyEnum
+{
+    public class Val { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static AnyClass.AnyEnum.Val;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static AnyClass.AnyEnum.Val;").WithLocation(1, 1),
+            // (1,31): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+            // using static AnyClass.AnyEnum.Val;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "AnyClass.AnyEnum").WithLocation(1, 31),
+            // (3,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+            // internal class AnyClass : AnyBaseClass
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(3, 27));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "AnyClass.AnyEnum.Val");
+        // PROTOTYPE(static) consider blocking extension resolution in semantic model correspondingly with source
+        Assert.Equal("E.Val", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void UsingStatic_WithoutErrorBaseType()
+    {
+        var source = """
+using static C.Interface.Nested;
+
+internal class C
+{
+    internal interface Interface { }
+}
+
+implicit extension E for C.Interface
+{
+    public class Nested { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static C.Interface.Nested;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static C.Interface.Nested;").WithLocation(1, 1),
+            // (1,26): error CS0426: The type name 'Nested' does not exist in the type 'C.Interface'
+            // using static C.Interface.Nested;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C.Interface").WithLocation(1, 26));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C.Interface.Nested");
+        // PROTOTYPE(static) consider blocking extension resolution in semantic model correspondingly with source
+        Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AliasDirective()
+    {
+        var source = """
+using MyNested = C.Interface.Nested;
+
+MyNested.M();
+
+internal class C
+{
+    internal interface Interface { }
+}
+
+implicit extension E for C.Interface
+{
+    public class Nested { public static void M() { System.Console.Write("ran"); } }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,30): error CS0426: The type name 'Nested' does not exist in the type 'C.Interface'
+            // using MyNested = C.Interface.Nested;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C.Interface").WithLocation(1, 30));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C.Interface.Nested");
+        // PROTOTYPE(static) consider blocking extension resolution in semantic model correspondingly with source
+        Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void Circularity_ForType_NestedType()
+    {
+        var source = """
+implicit extension E for E.Nested
+{
+    public class Nested { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,20): error CS0146: Circular base type dependency involving 'E.Nested' and 'E'
+            // implicit extension E for E.Nested
+            Diagnostic(ErrorCode.ERR_CircularBase, "E").WithArguments("E.Nested", "E").WithLocation(1, 20));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "E.Nested");
+        Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AliasDirective_UsedInForType()
+    {
+        var source = """
+using InterfaceAlias = C.Interface;
+
+InterfaceAlias.M();
+
+internal class C
+{
+    internal interface Interface { }
+}
+
+implicit extension E for InterfaceAlias
+{
+    public static void M() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "InterfaceAlias.M");
+        Assert.Equal("void E.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AliasDirective_UsedInForType_GenericCycle()
+    {
+        var source = """
+using MyInterface = C<E.Interface>.Interface;
+
+class C<T> { }
+implicit extension E for C<MyInterface>
+{
+    public interface Interface { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,36): error CS0426: The type name 'Interface' does not exist in the type 'C<E.Interface>'
+            // using MyInterface = C<E.Interface>.Interface;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Interface").WithArguments("Interface", "C<E.Interface>").WithLocation(1, 36));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C<E.Interface>.Interface");
+        Assert.Null(model.GetSymbolInfo(qualifiedName).Symbol);
+    }
+
+    [Fact]
+    public void AliasDirective_Keyword()
+    {
+        var source = """
+using MyInterface = object.Interface;
+MyInterface.M();
+
+implicit extension E for object
+{
+    public interface Interface
+    {
+        public static void M() { System.Console.Write("ran "); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        // PROTOTYPE(static) We should be able to parse this using/alias directive
+        comp.VerifyEmitDiagnostics(
+            // (1,27): error CS1002: ; expected
+            // using MyInterface = object.Interface;
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ".").WithLocation(1, 27),
+            // (1,27): error CS1022: Type or namespace definition, or end-of-file expected
+            // using MyInterface = object.Interface;
+            Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(1, 27),
+            // (1,28): error CS0103: The name 'Interface' does not exist in the current context
+            // using MyInterface = object.Interface;
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "Interface").WithArguments("Interface").WithLocation(1, 28),
+            // (1,28): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+            // using MyInterface = object.Interface;
+            Diagnostic(ErrorCode.ERR_IllegalStatement, "Interface").WithLocation(1, 28),
+            // (2,13): error CS0117: 'object' does not contain a definition for 'M'
+            // MyInterface.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(2, 13));
+    }
+
+    [Fact]
+    public void ForAlias()
+    {
+        var source = """
+using Alias = C;
+
+Alias.M();
+
+class C { }
+
+implicit extension E for Alias
+{
+    public static void M() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Alias.M");
+        Assert.Equal("void E.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void UsingStatic_FromOuterScope()
+    {
+        var source = """
+internal class C
+{
+    internal interface Interface { }
+}
+
+implicit extension E for C.Interface
+{
+    public class Nested { }
+}
+
+namespace N
+{
+    using static C.Interface.Nested;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics(
+            // (13,5): hidden CS8019: Unnecessary using directive.
+            //     using static C.Interface.Nested;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static C.Interface.Nested;").WithLocation(13, 5),
+            // (13,30): error CS0426: The type name 'Nested' does not exist in the type 'C.Interface'
+            //     using static C.Interface.Nested;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C.Interface").WithLocation(13, 30));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C.Interface.Nested");
+        // PROTOTYPE(static) consider blocking extension resolution in semantic model correspondingly with source
+        Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AliasDirective_FromOuterScope()
+    {
+        var source = """
+internal class C
+{
+    internal interface Interface { }
+}
+
+implicit extension E for C.Interface
+{
+    public class Nested { public static void M() { System.Console.Write("ran"); } }
+}
+
+namespace N
+{
+    using MyNested = C.Interface.Nested;
+
+    class D
+    {
+        public static void Main()
+        {
+            MyNested.M();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (13,34): error CS0426: The type name 'Nested' does not exist in the type 'C.Interface'
+            //     using MyNested = C.Interface.Nested;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C.Interface").WithLocation(13, 34));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C.Interface.Nested");
+        // PROTOTYPE(static) consider blocking extension resolution in semantic model correspondingly with source
+        Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void UsingStatic_ExistingInterfacesScenario()
+    {
+        var source = """
+interface IBase
+{
+    class Val { }
+}
+
+namespace N
+{
+    using static Interface.INested.Val; // error
+
+    internal interface Interface : IBase
+    {
+        internal interface INested : Interface
+        {
+            void M(Interface.INested.Val x); // okay
+        }
+    }
+}
+""";
+        var comp = CreateCompilationWithMscorlib45(source);
+
+        comp.VerifyDiagnostics(
+            // (8,5): hidden CS8019: Unnecessary using directive.
+            //     using static Interface.INested.Val; // error
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static Interface.INested.Val;").WithLocation(8, 5),
+            // (8,36): error CS0426: The type name 'Val' does not exist in the type 'Interface.INested'
+            //     using static Interface.INested.Val; // error
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "N.Interface.INested").WithLocation(8, 36));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntaxes<QualifiedNameSyntax>(tree, "Interface.INested.Val").ToArray();
+        Assert.Equal("IBase.Val", model.GetSymbolInfo(qualifiedName[0]).Symbol.ToTestDisplayString());
+        Assert.Equal("IBase.Val", model.GetSymbolInfo(qualifiedName[1]).Symbol.ToTestDisplayString());
     }
 }

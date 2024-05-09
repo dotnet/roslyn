@@ -1834,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var baseType = BaseTypeNoUseSiteDiagnostics;
             var interfaces = GetInterfacesToEmit();
-            var extendedType = ExtendedTypeNoUseSiteDiagnostics;
+            var extendedType = GetExtendedTypeNoUseSiteDiagnostics(null);
 
             if (compilation.ShouldEmitNativeIntegerAttributes())
             {

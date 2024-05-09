@@ -670,14 +670,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics
+        internal sealed override TypeSymbol? GetExtendedTypeNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved)
         {
-            get
-            {
-                // Cycles are handled in `DecodeExtensionType` (where a bad extended type,
-                // such as one that is an extension type, would be replaced with an error type)
-                return GetDeclaredExtensionUnderlyingType();
-            }
+            // PROTOTYPE(static) consider handling basesBeingResolved through GetDeclaredExtensionUnderlyingType
+            // Cycles are handled in `DecodeExtensionType` (where a bad extended type,
+            // such as one that is an extension type, would be replaced with an error type)
+            return GetDeclaredExtensionUnderlyingType();
         }
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()

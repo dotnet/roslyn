@@ -875,7 +875,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
 
-            if (result.Kind != LookupResultKind.Viable && qualifierOpt is TypeSymbol typeSymbol)
+            // PROTOTYPE(static) we currently disallow resolving extensions in using directives
+            if (result.Kind != LookupResultKind.Viable && qualifierOpt is TypeSymbol typeSymbol && !InUsingDirective)
             {
                 Debug.Assert(result.Kind != LookupResultKind.Ambiguous);
                 this.LookupExtensionTypeMembersIfNeeded(result, typeSymbol, identifierValueText, arity: 0, basesBeingResolved, options, ref useSiteInfo);

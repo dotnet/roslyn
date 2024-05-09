@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExplicitExtension => false;
 
-        internal override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics => null;
+        internal override TypeSymbol? GetExtendedTypeNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved) => null;
 
         internal override TypeSymbol? GetDeclaredExtensionUnderlyingType()
             => throw ExceptionUtilities.Unreachable();
