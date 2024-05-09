@@ -2821,5 +2821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         // PROTOTYPE(partial-properties): test indexers incl parameters with attributes
         // PROTOTYPE(partial-properties): test merging property attributes
         // PROTOTYPE(partial-properties): [UnscopedRef]+scoped difference across partials
+        // PROTOTYPE(partial-properties): test that doc comments work consistently with partial methods (and probably spec it as well)
+        // PROTOTYPE(partial-properties): test CallerInfo attributes applied to either definition or implementation part
     }
 }
