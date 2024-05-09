@@ -16,8 +16,6 @@
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
     <ProjectReference Include="..\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
-
-    <PackageReference Include="System.Text.Json" VersionOverride="8.0.4" />
   </ItemGroup>
 
   <!--
