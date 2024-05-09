@@ -242,7 +242,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         var rewriter = new IntroduceParameterDocumentRewriter(this, originalDocument,
             expression, methodSymbol, containingMethod, selectedCodeAction, fallbackOptions, allOccurrences);
 
-        var changedRoots = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot, PreservationMode mode)>.RunParallelAsync(
+        var changedRoots = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
             source: methodCallSites.GroupBy(kvp => kvp.Key.Project),
             produceItems: static async (tuple, callback, rewriter, cancellationToken) =>
             {
@@ -255,7 +255,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
                     {
                         var (document, invocations) = tuple;
                         var newRoot = await rewriter.RewriteDocumentAsync(compilation, document, invocations, cancellationToken).ConfigureAwait(false);
-                        callback((document.Id, newRoot, PreservationMode.PreserveValue));
+                        callback((document.Id, newRoot));
                     }).ConfigureAwait(false);
             },
             args: rewriter,

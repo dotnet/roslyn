@@ -68,7 +68,7 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
         Project project, CodeActionPurpose purpose, CodeActionOptionsProvider fallbackOptions, IProgress<CodeAnalysisProgress> _, CancellationToken cancellationToken)
     {
         var solution = project.Solution;
-        var updatedDocumentRoots = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot, PreservationMode mode)>.RunParallelAsync(
+        var updatedDocumentRoots = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
             source: project.Documents,
             produceItems: static async (document, callback, fallbackOptions, cancellationToken) =>
             {
@@ -77,7 +77,7 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
 
                 var updatedDocumentRoot = await EnableNullableReferenceTypesAsync(
                     document, fallbackOptions, cancellationToken).ConfigureAwait(false);
-                callback((document.Id, updatedDocumentRoot, PreservationMode.PreserveValue));
+                callback((document.Id, updatedDocumentRoot));
             },
             args: fallbackOptions,
             cancellationToken).ConfigureAwait(false);

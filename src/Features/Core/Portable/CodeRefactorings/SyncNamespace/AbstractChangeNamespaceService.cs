@@ -488,7 +488,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         var refLocationGroups = refLocationsInSolution.GroupBy(loc => loc.Document.Id);
 
-        var fixedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot, PreservationMode preservationMode)>.RunParallelAsync(
+        var fixedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
             source: refLocationGroups,
             produceItems: static async (refInOneDocument, callback, args, cancellationToken) =>
             {
@@ -498,7 +498,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
                     args.newNamespace,
                     args.fallbackOptions,
                     cancellationToken).ConfigureAwait(false);
-                callback((result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false), PreservationMode.PreserveValue));
+                callback((result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
             },
             args: (solutionWithChangedNamespace, newNamespace, fallbackOptions),
             cancellationToken).ConfigureAwait(false);
@@ -780,7 +780,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             documentsToProcess.Add(document);
         }
 
-        var changedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot, PreservationMode preservationMode)>.RunParallelAsync(
+        var changedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
             source: documentsToProcess,
             produceItems: static async (doc, callback, args, cancellationToken) =>
             {
@@ -789,7 +789,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
                     CreateImports(doc, args.names, withFormatterAnnotation: false),
                     args.fallbackOptions,
                     cancellationToken).ConfigureAwait(false);
-                callback((result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false), PreservationMode.PreserveValue));
+                callback((result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
             },
             args: (names, fallbackOptions),
             cancellationToken).ConfigureAwait(false);

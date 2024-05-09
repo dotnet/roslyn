@@ -415,7 +415,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
         }
 
         // Update the documents using the updated syntax trees
-        var changedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot, PreservationMode mode)>.RunParallelAsync(
+        var changedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
             source: nodesToUpdate.Keys,
             produceItems: static async (docId, callback, args, cancellationToken) =>
             {
@@ -426,7 +426,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
                 var reducedDoc = await Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
                 var formattedDoc = await Formatter.FormatAsync(reducedDoc, SyntaxAnnotation.ElasticAnnotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
-                callback((formattedDoc.Id, await formattedDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false), PreservationMode.PreserveValue));
+                callback((formattedDoc.Id, await formattedDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
             },
             args: (currentSolution, updatedRoots, context),
             cancellationToken).ConfigureAwait(false);

@@ -1312,6 +1312,10 @@ public partial class Solution
         => WithDocumentSyntaxRoots([(documentId, root, mode)]);
 
     /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
+    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots)
+        => WithDocumentSyntaxRoots(syntaxRoots.SelectAsArray(t => (t.documentId, t.root, PreservationMode.PreserveValue)));
+
+    /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
     internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root, PreservationMode mode)> syntaxRoots)
     {
         foreach (var (documentId, root, mode) in syntaxRoots)

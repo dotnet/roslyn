@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var changes = newSolution.GetChangedDocuments(oldSolution);
             var final = newSolution;
 
-            var changedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot, PreservationMode mode)>.RunParallelAsync(
+            var changedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
                 source: changes,
                 produceItems: static async (docId, callback, args, cancellationToken) =>
                 {
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var cleaned = await CodeAction.CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
 
                     var cleanedRoot = await cleaned.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    callback((docId, cleanedRoot, PreservationMode.PreserveValue));
+                    callback((docId, cleanedRoot));
                 },
                 args: (newSolution, fallbackOptions),
                 cancellationToken).ConfigureAwait(false);

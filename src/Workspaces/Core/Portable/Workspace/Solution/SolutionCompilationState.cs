@@ -801,7 +801,7 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode));
     }
 
-    /// <inheritdoc cref="Solution.WithDocumentSyntaxRoots"/>
+    /// <inheritdoc cref="Solution.WithDocumentSyntaxRoots(ImmutableArray{ValueTuple{DocumentId, SyntaxNode, PreservationMode}})"/>
     public SolutionCompilationState WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root, PreservationMode mode)> syntaxRoots)
     {
         return WithDocumentContents(
