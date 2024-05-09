@@ -2248,7 +2248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileAndVerify(source, expectedOutput: "123");
             verifier.VerifyDiagnostics();
         }
 
