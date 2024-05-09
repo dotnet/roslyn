@@ -399,7 +399,7 @@
       </trans-unit>
       <trans-unit id="extension">
         <source>extension</source>
-        <target state="translated">拡張子</target>
+        <target state="translated">拡張</target>
         <note />
       </trans-unit>
       <trans-unit id="awaitable">
@@ -409,7 +409,7 @@
       </trans-unit>
       <trans-unit id="awaitable_extension">
         <source>awaitable, extension</source>
-        <target state="translated">待機可能、拡張子</target>
+        <target state="translated">待機可能、拡張</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_Usings">
