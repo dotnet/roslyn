@@ -407,8 +407,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                 if (capabilities.HasVisualStudioLspCapability())
                 {
+                    var expandedMessage = string.IsNullOrEmpty(diagnosticData.Description) ? null : diagnosticData.Description;
                     diagnostic.DiagnosticType = diagnosticData.Category;
-                    diagnostic.ExpandedMessage = diagnosticData.Description;
+                    diagnostic.ExpandedMessage = expandedMessage;
                     diagnostic.Projects =
                     [
                         new VSDiagnosticProjectInformation
