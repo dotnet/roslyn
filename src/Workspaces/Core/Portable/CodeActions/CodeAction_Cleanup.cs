@@ -168,7 +168,7 @@ public abstract partial class CodeAction
                 cancellationToken).ConfigureAwait(false);
 
             // Grab all the cleaned roots and produce the new solution snapshot from that.
-            return solution.WithDocumentSyntaxRoots(changedRoots.SelectAsArray(t => (t.documentId, t.newRoot, PreservationMode.PreserveValue)));
+            return solution.WithDocumentSyntaxRoots(changedRoots);
         }
     }
 }

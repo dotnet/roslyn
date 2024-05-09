@@ -1183,6 +1183,9 @@ public partial class Solution
     public Solution WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         => WithDocumentTexts([(documentId, text, mode)]);
 
+    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts)
+        => WithDocumentTexts(texts.SelectAsArray(t => (t.documentId, t.text, PreservationMode.PreserveValue)));
+
     internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
     {
         foreach (var (documentId, text, mode) in texts)
@@ -1310,6 +1313,10 @@ public partial class Solution
     /// </summary>
     public Solution WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
         => WithDocumentSyntaxRoots([(documentId, root, mode)]);
+
+    /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
+    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots)
+        => WithDocumentSyntaxRoots(syntaxRoots.SelectAsArray(t => (t.documentId, t.root, PreservationMode.PreserveValue)));
 
     /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
     internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root, PreservationMode mode)> syntaxRoots)

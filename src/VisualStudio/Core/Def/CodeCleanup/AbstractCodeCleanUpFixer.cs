@@ -249,7 +249,7 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
             args: (globalOptions, solution, enabledFixIds, progressTracker),
             cancellationToken).ConfigureAwait(false);
 
-        return solution.WithDocumentSyntaxRoots(changedRoots.SelectAsArray(t => (t.documentId, t.newRoot, PreservationMode.PreserveValue)));
+        return solution.WithDocumentSyntaxRoots(changedRoots);
     }
 
     private static async Task<Document> FixDocumentAsync(
