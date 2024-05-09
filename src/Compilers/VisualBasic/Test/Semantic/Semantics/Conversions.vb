@@ -5105,30 +5105,34 @@ End Module
         <file name="a.vb"><![CDATA[
 Module Program
     Sub Main()
-        System.Console.WriteLine(CType(CDbl(&H8000000000000000L), Long))
-        System.Console.WriteLine(CType(CDbl(&H8000000000000400L), Long))
-        System.Console.WriteLine(CType(-9.0E+18, Long))
-        System.Console.WriteLine(CType(CDbl(&H8FFFFFFFFFFFFC00L), Long))
-        System.Console.WriteLine(CType(CDbl(&H9000000000000000L), Long))
-        System.Console.WriteLine(CType(CDbl(&H7000000000000000L), Long))
-        System.Console.WriteLine(CType(CDbl(&H7000000000000400L), Long))
-        System.Console.WriteLine(CType(9.0E+18, Long))
-        System.Console.WriteLine(CType(CDbl(&H7FFFFFFFFFFFFC00L), Long))
+        System.Console.WriteLine(CType(CDbl(&H8000000000000000L), Long) = ConvertToLong(CDbl(&H8000000000000000L)))
+        System.Console.WriteLine(CType(CDbl(&H8000000000000400L), Long) = ConvertToLong(CDbl(&H8000000000000400L)))
+        System.Console.WriteLine(CType(-9.0E+18, Long) = ConvertToLong(-9.0E+18))
+        System.Console.WriteLine(CType(CDbl(&H8FFFFFFFFFFFFC00L), Long) = ConvertToLong(CDbl(&H8FFFFFFFFFFFFC00L)))
+        System.Console.WriteLine(CType(CDbl(&H9000000000000000L), Long) = ConvertToLong(CDbl(&H9000000000000000L)))
+        System.Console.WriteLine(CType(CDbl(&H7000000000000000L), Long) = ConvertToLong(CDbl(&H7000000000000000L)))
+        System.Console.WriteLine(CType(CDbl(&H7000000000000400L), Long) = ConvertToLong(CDbl(&H7000000000000400L)))
+        System.Console.WriteLine(CType(9.0E+18, Long) = ConvertToLong(9.0E+18))
+        System.Console.WriteLine(CType(CDbl(&H7FFFFFFFFFFFFC00L), Long) = ConvertToLong(CDbl(&H7FFFFFFFFFFFFC00L)))
     End Sub
+
+    Function ConvertToLong(x as Double) As Long
+        Return CType(x, Long)
+    End Function
 End Module
     ]]></file>
-    </compilation>, options:=TestOptions.ReleaseExe)
+    </compilation>, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
 
             Dim expectedOutput = <![CDATA[
--9223372036854775808
--9223372036854774784
--9000000000000000000
--8070450532247929856
--8070450532247928832
-8070450532247928832
-8070450532247929856
-9000000000000000000
-9223372036854774784
+True
+True
+True
+True
+True
+True
+True
+True
+True
 ]]>
 
             CompileAndVerify(compilation, expectedOutput:=expectedOutput).VerifyDiagnostics()
