@@ -52,17 +52,14 @@ internal static class DocumentBasedFixAllProviderHelpers
             progressTracker,
             cancellationToken).ConfigureAwait(false);
 
-        // Once we clean the document, we get the text of it and insert that back into the final solution.  This way
-        // we can release both the original fixed tree, and the cleaned tree (both of which can be much more
-        // expensive than just text).
-        var finalSolution = cleanedSolution;
-        foreach (var documentId in CodeAction.GetAllChangedOrAddedDocumentIds(originalSolution, finalSolution))
-        {
-            var cleanedDocument = finalSolution.GetRequiredDocument(documentId);
-            var cleanedText = await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            finalSolution = finalSolution.WithDocumentText(documentId, cleanedText);
-        }
+        // Once we clean the document, we get the text of it and insert that back into the final solution.  This way we
+        // can release both the original fixed tree, and the cleaned tree (both of which can be much more expensive than
+        // just text).
+        var cleanedTexts = await CodeAction.GetAllChangedOrAddedDocumentIds(originalSolution, cleanedSolution)
+            .SelectAsArrayAsync(async documentId => (documentId, await cleanedSolution.GetRequiredDocument(documentId).GetTextAsync(cancellationToken).ConfigureAwait(false)))
+            .ConfigureAwait(false);
 
+        var finalSolution = cleanedSolution.WithDocumentTexts(cleanedTexts);
         return finalSolution;
 
         async Task<Solution> GetInitialUncleanedSolutionAsync(Solution originalSolution)
