@@ -5,6 +5,7 @@
 #if !NETCOREAPP
 
 using System;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -28,8 +29,9 @@ namespace Microsoft.CodeAnalysis
     {
         private bool _hookedAssemblyResolve;
 
-        internal AnalyzerAssemblyLoader()
+        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
         {
+            _externalResolvers = externalResolvers;
         }
 
         public bool IsHostAssembly(Assembly assembly)
@@ -57,6 +59,10 @@ namespace Microsoft.CodeAnalysis
         private partial Assembly? Load(AssemblyName assemblyName, string assemblyOriginalPath)
         {
             EnsureResolvedHooked();
+            if (ResolveAssemblyExternally(assemblyName) is { } externallyResolvedAssembly)
+            {
+                return externallyResolvedAssembly;
+            }
 
             return AppDomain.CurrentDomain.Load(assemblyName);
         }
