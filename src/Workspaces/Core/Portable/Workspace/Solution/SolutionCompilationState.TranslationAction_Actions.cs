@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,24 +16,29 @@ internal partial class SolutionCompilationState
 {
     private abstract partial class TranslationAction
     {
-        internal sealed class TouchDocumentAction(
+        internal sealed class TouchDocumentsAction(
             ProjectState oldProjectState,
             ProjectState newProjectState,
-            DocumentState oldState,
-            DocumentState newState)
-            : TranslationAction(oldProjectState, newProjectState)
+            ImmutableArray<DocumentState> newStates) : TranslationAction(oldProjectState, newProjectState)
         {
-            private readonly DocumentState _oldState = oldState;
-            private readonly DocumentState _newState = newState;
+            private readonly ImmutableArray<DocumentState> _oldStates = newStates.SelectAsArray(s => oldProjectState.DocumentStates.GetRequiredState(s.Id));
+            private readonly ImmutableArray<DocumentState> _newStates = newStates;
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
-                return oldCompilation.ReplaceSyntaxTree(
-                    await _oldState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
-                    await _newState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-            }
+                var finalCompilation = oldCompilation;
+                for (int i = 0, n = _newStates.Length; i < n; i++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var newState = _newStates[i];
+                    var oldState = _oldStates[i];
+                    finalCompilation = finalCompilation.ReplaceSyntaxTree(
+                        await oldState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
+                        await newState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                }
 
-            public DocumentId DocumentId => _newState.Attributes.Id;
+                return finalCompilation;
+            }
 
             /// <summary>
             /// Replacing a single tree doesn't impact the generated trees in a compilation, so we can use this against
@@ -45,69 +51,16 @@ internal partial class SolutionCompilationState
 
             public override TranslationAction? TryMergeWithPrior(TranslationAction priorAction)
             {
-                if (priorAction is TouchDocumentAction priorTouchAction &&
-                    priorTouchAction._newState == _oldState)
+                if (priorAction is TouchDocumentsAction priorTouchAction &&
+                    priorTouchAction._newStates.SequenceEqual(_oldStates))
                 {
                     // As we're merging ourselves with the prior touch action, we want to keep the old project state
                     // that we are translating from.
-                    return new TouchDocumentAction(priorAction.OldProjectState, this.NewProjectState, priorTouchAction._oldState, _newState);
+                    return new TouchDocumentsAction(priorAction.OldProjectState, this.NewProjectState, _newStates);
                 }
 
                 return null;
             }
-        }
-
-        internal sealed class TouchDocumentsAction : TranslationAction
-        {
-            private readonly ImmutableArray<DocumentState> _newStates;
-
-            private TouchDocumentsAction(
-                ProjectState oldProjectState,
-                ProjectState newProjectState,
-                ImmutableArray<DocumentState> newStates)
-                : base(oldProjectState, newProjectState)
-            {
-                _newStates = newStates;
-            }
-
-            public static TranslationAction Create(
-                ProjectState oldProjectState,
-                ProjectState newProjectState,
-                ImmutableArray<DocumentState> newStates)
-            {
-                // Special case when we're only updating a single document.  This case can be optimized more, and
-                // corresponds to the common case of a single file being edited.
-                return newStates.Length == 1
-                    ? new TouchDocumentAction(oldProjectState, newProjectState, oldProjectState.DocumentStates.GetRequiredState(newStates[0].Id), newStates[0])
-                    : new TouchDocumentsAction(oldProjectState, newProjectState, newStates);
-            }
-
-            public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
-            {
-                var finalCompilation = oldCompilation;
-                for (int i = 0, n = _newStates.Length; i < n; i++)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var newState = _newStates[i];
-                    var oldState = this.OldProjectState.DocumentStates.GetRequiredState(newState.Id);
-                    finalCompilation = finalCompilation.ReplaceSyntaxTree(
-                        await oldState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
-                        await newState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-                }
-
-                return finalCompilation;
-            }
-
-            /// <inheritdoc cref="TouchDocumentAction.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput"/>
-            public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput
-                => true;
-
-            /// <inheritdoc cref="TouchDocumentAction.TransformGeneratorDriver"/>
-            public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
-                => generatorDriver;
-
-            public override TranslationAction? TryMergeWithPrior(TranslationAction priorAction)
-                => null;
         }
 
         internal sealed class TouchAdditionalDocumentAction(

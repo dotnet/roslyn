@@ -748,7 +748,7 @@ internal sealed partial class SolutionCompilationState
              }),
              static (projectState, newDocumentStates) =>
              {
-                 return TranslationAction.TouchDocumentsAction.Create(
+                 return new TranslationAction.TouchDocumentsAction(
                      projectState,
                      projectState.UpdateDocuments(newDocumentStates, contentChanged: true),
                      newDocumentStates);
@@ -885,10 +885,10 @@ internal sealed partial class SolutionCompilationState
                 // This function shouldn't have been called if the document has not changed
                 Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
 
-                var oldDocument = stateChange.OldProjectState.DocumentStates.GetRequiredState(documentId);
                 var newDocument = stateChange.NewProjectState.DocumentStates.GetRequiredState(documentId);
 
-                return new TranslationAction.TouchDocumentAction(stateChange.OldProjectState, stateChange.NewProjectState, oldDocument, newDocument);
+                return new TranslationAction.TouchDocumentsAction(
+                    stateChange.OldProjectState, stateChange.NewProjectState, [newDocument]);
             },
             forkTracker: true,
             arg: documentId);
