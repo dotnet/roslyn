@@ -902,7 +902,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveAsyncModifier
                 {
                     public void M1()
                     {
-                        Func<int, Task> foo = x => {
+                        Func<int, Task> foo = x =>
+                        {
                             if (System.DateTime.Now.Ticks > 0)
                             {
                                 return Task.CompletedTask;
@@ -1040,7 +1041,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveAsyncModifier
                 {
                     public void M1()
                     {
-                        Func<Task> foo = () => {
+                        Func<Task> foo = () =>
+                        {
                             if (System.DateTime.Now.Ticks > 0)
                             {
                                 return Task.CompletedTask;

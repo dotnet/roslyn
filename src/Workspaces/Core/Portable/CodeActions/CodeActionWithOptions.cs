@@ -44,7 +44,7 @@ public abstract class CodeActionWithOptions : CodeAction
 
         if (operations != null)
         {
-            operations = await this.PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
+            operations = await PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
         }
 
         return operations;

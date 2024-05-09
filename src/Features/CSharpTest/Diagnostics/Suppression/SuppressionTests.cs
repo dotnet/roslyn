@@ -445,8 +445,8 @@ class Class
                     var parameters = new TestParameters();
                     using var workspace = CreateWorkspaceFromOptions(source, parameters);
 
-                    var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer()));
-                    workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+                    var analyzerReference = new AnalyzerImageReference([new CSharpCompilerDiagnosticAnalyzer()]);
+                    workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
                     var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
                     var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);

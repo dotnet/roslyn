@@ -14,7 +14,4 @@ internal static class RazorUri
 
     public static string GetDocumentFilePathFromUri(Uri uri)
         => ProtocolConversions.GetDocumentFilePathFromUri(uri);
-
-    public static Uri CreateUri(this TextDocument document)
-        => document.GetURI();
 }
