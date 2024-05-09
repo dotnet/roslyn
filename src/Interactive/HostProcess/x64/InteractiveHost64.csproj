@@ -24,8 +24,6 @@
     <ProjectReference Include="..\..\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
     <Content Include="..\App.config" />
     <Compile Include="..\InteractiveHostEntryPoint.cs" />
-
-    <PackageReference Include="System.Text.Json" VersionOverride="8.0.4" />
   </ItemGroup>
 
   <Target Name="PublishProjectOutputGroup" DependsOnTargets="Publish" Returns="@(_PublishedFiles)">
