@@ -2421,22 +2421,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         }
 
         [Theory]
-        [InlineData("ref")]
-        [InlineData("out")]
-        public void RefKindDifference_IndexerParameter_05(string badRefKind)
+        [InlineData("in", "ref")]
+        [InlineData("in", "out")]
+        [InlineData("ref readonly", "ref")]
+        [InlineData("ref readonly", "out")]
+        public void RefKindDifference_IndexerParameter_05(string goodRefKind, string badRefKind)
         {
             // Show that errors occur when declarations differ between allowed vs. disallowed parameter ref kinds.
             var source = $$"""
                 partial class C1
                 {
-                    public partial int this[in int i] { get; set; }
+                    public partial int this[{{goodRefKind}} int i] { get; set; }
                     public partial int this[{{badRefKind}} int i] { get => i = 0; set => i = 0; }
                 }
 
                 partial class C2
                 {
                     public partial int this[{{badRefKind}} int i] { get; set; }
-                    public partial int this[in int i] { get => i; set { } }
+                    public partial int this[{{goodRefKind}} int i] { get => i; set { } }
                 }
                 """;
 
@@ -2444,7 +2446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             comp.VerifyEmitDiagnostics(
                 // (3,24): error CS9300: Partial property 'C1.this[in int]' must have an implementation part.
                 //     public partial int this[in int i] { get; set; }
-                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "this").WithArguments("C1.this[in int]").WithLocation(3, 24),
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "this").WithArguments($"C1.this[{goodRefKind} int]").WithLocation(3, 24),
                 // (4,24): error CS9301: Partial property 'C1.this[ref int]' must have a definition part.
                 //     public partial int this[ref int i] { get => i; set { } }
                 Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "this").WithArguments($"C1.this[{badRefKind} int]").WithLocation(4, 24),
@@ -2462,7 +2464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, badRefKind).WithLocation(9, 29),
                 // (10,24): error CS9301: Partial property 'C2.this[in int]' must have a definition part.
                 //     public partial int this[in int i] { get => i; set { } }
-                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "this").WithArguments("C2.this[in int]").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "this").WithArguments($"C2.this[{goodRefKind} int]").WithLocation(10, 24),
                 // (10,24): error CS0111: Type 'C2' already defines a member called 'this' with the same parameter types
                 //     public partial int this[in int i] { get => i; set { } }
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C2").WithLocation(10, 24));
