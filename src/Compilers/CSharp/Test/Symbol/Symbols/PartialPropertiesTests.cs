@@ -2420,6 +2420,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C2").WithLocation(10, 24));
         }
 
+        [Theory]
+        [InlineData("ref")]
+        [InlineData("out")]
+        public void RefKindDifference_IndexerParameter_05(string badRefKind)
+        {
+            // Show that errors occur when declarations differ between allowed vs. disallowed parameter ref kinds.
+            var source = $$"""
+                partial class C1
+                {
+                    public partial int this[in int i] { get; set; }
+                    public partial int this[{{badRefKind}} int i] { get => i = 0; set => i = 0; }
+                }
+
+                partial class C2
+                {
+                    public partial int this[{{badRefKind}} int i] { get; set; }
+                    public partial int this[in int i] { get => i; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,24): error CS9300: Partial property 'C1.this[in int]' must have an implementation part.
+                //     public partial int this[in int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "this").WithArguments("C1.this[in int]").WithLocation(3, 24),
+                // (4,24): error CS9301: Partial property 'C1.this[ref int]' must have a definition part.
+                //     public partial int this[ref int i] { get => i; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "this").WithArguments($"C1.this[{badRefKind} int]").WithLocation(4, 24),
+                // (4,24): error CS0111: Type 'C1' already defines a member called 'this' with the same parameter types
+                //     public partial int this[ref int i] { get => i; set { } }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C1").WithLocation(4, 24),
+                // (4,29): error CS0631: ref and out are not valid in this context
+                //     public partial int this[ref int i] { get => i; set { } }
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, badRefKind).WithLocation(4, 29),
+                // (9,24): error CS9300: Partial property 'C2.this[ref int]' must have an implementation part.
+                //     public partial int this[ref int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "this").WithArguments($"C2.this[{badRefKind} int]").WithLocation(9, 24),
+                // (9,29): error CS0631: ref and out are not valid in this context
+                //     public partial int this[ref int i] { get; set; }
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, badRefKind).WithLocation(9, 29),
+                // (10,24): error CS9301: Partial property 'C2.this[in int]' must have a definition part.
+                //     public partial int this[in int i] { get => i; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "this").WithArguments("C2.this[in int]").WithLocation(10, 24),
+                // (10,24): error CS0111: Type 'C2' already defines a member called 'this' with the same parameter types
+                //     public partial int this[in int i] { get => i; set { } }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C2").WithLocation(10, 24));
+        }
+
         [Fact]
         public void TypeDifference_IndexerParameter()
         {
@@ -2762,17 +2810,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         }
 
         [Fact]
-        public void OptionalParameters_OnImplementationPart()
+        public void OptionalParameters_OnImplementationPart_ResultsInAWarning()
         {
             // A warning is reported for optional parameters on implementation part, even if it matches the definition part.
             var source = """
                 partial class C
                 {
-                    public partial int this[int x, int y] { get; set; }
+                    public partial int this[int x, int y = 1] { get; set; }
                     public partial int this[int x, int y = 1] { get => y; set { } }
-
-                    public partial int this[int x, int y, int z = 1] { get; set; }
-                    public partial int this[int x, int y, int z = 1] { get => z; set { } }
                 }
                 """;
 
@@ -2780,10 +2825,70 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             comp.VerifyEmitDiagnostics(
                 // (4,40): warning CS1066: The default value specified for parameter 'y' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //     public partial int this[int x, int y = 1] { get => y; set { } }
-                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "y").WithArguments("y").WithLocation(4, 40),
-                // (7,47): warning CS1066: The default value specified for parameter 'z' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
-                //     public partial int this[int x, int y, int z = 1] { get => z; set { } }
-                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "z").WithArguments("z").WithLocation(7, 47));
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "y").WithArguments("y").WithLocation(4, 40));
+        }
+
+        [Fact]
+        public void OptionalParameters_OnImplementationPart_NotRespectedAtCallSite_Semantics()
+        {
+            var source = """
+                using System;
+
+                partial class C
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        Console.Write(c[0, 0]);
+                        Console.Write(c["a", 0]);
+                        Console.Write(c["a"]);
+                    }
+
+                    public partial int this[int x, int y] { get; set; }
+                    public partial int this[int x, int y = 1] { get => y; set { } }
+
+                    public partial int this[string x, int y = 1] { get; set; }
+                    public partial int this[string x, int y = 2] { get => y; set { } }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "001");
+            verifier.VerifyDiagnostics(
+                // (14,40): warning CS1066: The default value specified for parameter 'y' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     public partial int this[int x, int y = 1] { get => y; set { } }
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "y").WithArguments("y").WithLocation(14, 40),
+                // (17,43): warning CS1066: The default value specified for parameter 'y' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     public partial int this[string x, int y = 2] { get => y; set { } }
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "y").WithArguments("y").WithLocation(17, 43));
+        }
+
+        [Fact]
+        public void OptionalParameters_OnImplementationPart_NotRespectedAtCallSite()
+        {
+            var source = """
+                using System;
+
+                partial class C
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        Console.Write(c[0]);
+                    }
+
+                    public partial int this[int x, int y] { get; set; }
+                    public partial int this[int x, int y = 1] { get => y; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,23): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.this[int, int]'
+                //         Console.Write(c[0]);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[0]").WithArguments("y", "C.this[int, int]").WithLocation(8, 23),
+                // (12,40): warning CS1066: The default value specified for parameter 'y' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     public partial int this[int x, int y = 1] { get => y; set { } }
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "y").WithArguments("y").WithLocation(12, 40));
         }
 
         [Fact]
