@@ -9,27 +9,42 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.DevKit.EditAndContinue;
+namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 
 [ExportCSharpVisualBasicLspServiceFactory(typeof(OnInitialized)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DynamicDocumentSyncRegistration() : ILspServiceFactory
+internal sealed class RazorDynamicDocumentSyncRegistration(IGlobalOptionService globalOptionService) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new OnInitialized();
+        => new OnInitialized(globalOptionService);
 
     public class OnInitialized : IOnInitialized, ILspService
     {
+        private readonly IGlobalOptionService _globalOptionService;
+
+        public OnInitialized(IGlobalOptionService globalOptionService)
+        {
+            _globalOptionService = globalOptionService;
+        }
+
         public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
+            // Hot reload only works in devkit scenarios. Without, there is no need to register for dynamic document sync.
+            if (!_globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures))
+            {
+                return;
+            }
+
             // If dynamic registration for text document synchronization is supported, register for .razor and .cshtml files
             // so that they are up to date for hot reload scenarios rather than depending on the file watchers to update
             // the contents.
             if (clientCapabilities.TextDocument?.Synchronization?.DynamicRegistration is true)
             {
+                //var globalOptions = context.GetRequiredService<IGlobalOptions>();
                 var languageServerManager = context.GetRequiredLspService<IClientLanguageServerManager>();
 
                 var documentFilters = new[] { new DocumentFilter() { Pattern = "**/*.razor" }, new DocumentFilter() { Pattern = "**/*.cshtml" } };
