@@ -1481,6 +1481,37 @@ public class Program
         }
 
         [Fact]
+        public void AwaitAssignSpan()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                ReadOnlySpan<int> r = await M();
+                Console.Write(r[1]);
+
+                async Task<int[]> M()
+                {
+                    await Task.Yield();
+                    return new[] { 4, 5, 6 };
+                }
+                """;
+
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (4,1): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // ReadOnlySpan<int> r = await M();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ReadOnlySpan<int>").WithArguments("ref and unsafe in async and iterator methods").WithLocation(4, 1));
+
+            var expectedOutput = "5";
+
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateCompilationWithSpan(source);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void BaseMethods()
         {
             var text = @"

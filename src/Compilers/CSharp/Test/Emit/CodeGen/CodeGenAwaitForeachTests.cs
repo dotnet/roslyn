@@ -2062,7 +2062,7 @@ public ref struct S
         }
 
         [Fact]
-        public void TestWithPattern_RefStructEnumerator()
+        public void TestWithPattern_RefStructEnumerator_Async()
         {
             var source = """
                 using System.Threading.Tasks;
@@ -2096,7 +2096,206 @@ public ref struct S
         }
 
         [Fact]
-        public void TestWithPattern_RefStructCurrent()
+        public void TestWithPattern_RefStructEnumerator_AsyncIterator()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                public class C
+                {
+                    public static async IAsyncEnumerable<int> M()
+                    {
+                        await foreach (var x in new C())
+                        {
+                            yield return x;
+                        }
+                    }
+                    public Enumerator GetAsyncEnumerator() => new Enumerator();
+                    public ref struct Enumerator
+                    {
+                        public int Current => 0;
+                        public Task<bool> MoveNextAsync() => throw null;
+                    }
+                }
+                """ + s_IAsyncEnumerable;
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,15): error CS8344: foreach statement cannot operate on enumerators of type 'C.Enumerator' in async or iterator methods because 'C.Enumerator' is a ref struct.
+                //         await foreach (var x in new C())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C.Enumerator").WithLocation(7, 15)
+            };
+
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationWithTasksExtensions(source).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void TestWithPattern_RefStructEnumerator_Iterator()
+        {
+            var source = """
+                using System.Collections.Generic;
+                public class C
+                {
+                    public static IEnumerable<int> M()
+                    {
+                        foreach (var x in new C())
+                        {
+                            yield return x;
+                        }
+                    }
+                    public Enumerator GetEnumerator() => new Enumerator();
+                    public ref struct Enumerator
+                    {
+                        public int Current => 0;
+                        public bool MoveNext() => throw null;
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,9): error CS8344: foreach statement cannot operate on enumerators of type 'C.Enumerator' in async or iterator methods because 'C.Enumerator' is a ref struct.
+                //         foreach (var x in new C())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C.Enumerator").WithLocation(6, 9)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void TestWithPattern_RefStructEnumerable_Async()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                public class C
+                {
+                    public static async Task Main()
+                    {
+                        await foreach (var x in new Enumerable())
+                        {
+                            await Task.Yield();
+                            Console.Write($"{x} ");
+                        }
+                        Console.Write("Done");
+                    }
+                    public ref struct Enumerable
+                    {
+                        public Enumerator GetAsyncEnumerator() => new();
+                    }
+                    public class Enumerator
+                    {
+                        int i = 0;
+                        public int Current => i;
+                        public async Task<bool> MoveNextAsync()
+                        {
+                            i++;
+                            await Task.Yield();
+                            return i < 3;
+                        }
+                    }
+                }
+                """ + s_IAsyncEnumerable;
+            var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "1 2 Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestWithPattern_RefStructEnumerable_AsyncIterator()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                public class C
+                {
+                    public static async Task Main()
+                    {
+                        await foreach (var i in M())
+                        {
+                            Console.Write($"{i} ");
+                        }
+                        Console.Write("Done");
+                    }
+                    public static async IAsyncEnumerable<int> M()
+                    {
+                        await foreach (var x in new Enumerable())
+                        {
+                            await Task.Yield();
+                            yield return x * 2;
+                        }
+                        yield return -1;
+                    }
+                    public ref struct Enumerable
+                    {
+                        public Enumerator GetAsyncEnumerator() => new();
+                    }
+                    public class Enumerator
+                    {
+                        int i = 0;
+                        public int Current => i;
+                        public async Task<bool> MoveNextAsync()
+                        {
+                            i++;
+                            await Task.Yield();
+                            return i < 3;
+                        }
+                    }
+                }
+                """ + AsyncStreamsTypes;
+            var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "2 4 -1 Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestWithPattern_RefStructEnumerable_Iterator()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                public class C
+                {
+                    public static void Main()
+                    {
+                        foreach (var i in M())
+                        {
+                            Console.Write($"{i} ");
+                        }
+                        Console.Write("Done");
+                    }
+                    public static IEnumerable<int> M()
+                    {
+                        foreach (var x in new Enumerable())
+                        {
+                            yield return x * 2;
+                        }
+                        yield return -1;
+                    }
+                    public ref struct Enumerable
+                    {
+                        public Enumerator GetEnumerator() => new();
+                    }
+                    public class Enumerator
+                    {
+                        int i = 0;
+                        public int Current => i;
+                        public bool MoveNext()
+                        {
+                            i++;
+                            return i < 3;
+                        }
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "2 4 -1 Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestWithPattern_RefStructCurrent_Async()
         {
             var source = """
                 using System;
@@ -2119,7 +2318,8 @@ public ref struct S
                         public async Task<bool> MoveNextAsync()
                         {
                             i++;
-                            return await Task.FromResult(i < 3);
+                            await Task.Yield();
+                            return i < 3;
                         }
                         public async ValueTask DisposeAsync()
                         {
@@ -2157,7 +2357,132 @@ public ref struct S
         }
 
         [Fact]
-        public void TestWithPattern_RefReturningCurrent()
+        public void TestWithPattern_RefStructCurrent_AsyncIterator()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                public class C
+                {
+                    public static async Task Main()
+                    {
+                        await foreach (var s in M())
+                        {
+                            Console.Write($"M:{s} ");
+                        }
+                        Console.Write("MainDone");
+                    }
+                    public static async IAsyncEnumerable<string> M()
+                    {
+                        await foreach (var s in new C())
+                        {
+                            yield return s.ToString();
+                        }
+                        yield return "Done";
+                    }
+                    public Enumerator GetAsyncEnumerator() => new Enumerator();
+                    public sealed class Enumerator : IAsyncDisposable
+                    {
+                        int i = 0;
+                        public S Current => new S(i);
+                        public async Task<bool> MoveNextAsync()
+                        {
+                            i++;
+                            await Task.Yield();
+                            return i < 3;
+                        }
+                        public async ValueTask DisposeAsync()
+                        {
+                            await Task.Yield();
+                        }
+                    }
+                }
+                public ref struct S
+                {
+                    int i;
+                    public S(int i)
+                    {
+                        this.i = i;
+                    }
+                    public override string ToString() => i.ToString();
+                }
+                """ + AsyncStreamsTypes;
+
+            var expectedDiagnostics = new[]
+            {
+                // (16,24): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await foreach (var s in new C())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(16, 24)
+            };
+
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+
+            var expectedOutput = "M:1 M:2 M:Done MainDone";
+
+            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+
+            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestWithPattern_RefStructCurrent_Iterator()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                public class C
+                {
+                    public static void Main()
+                    {
+                        foreach (var s in M())
+                        {
+                            Console.Write($"M:{s} ");
+                        }
+                        Console.Write("MainDone");
+                    }
+                    public static IEnumerable<string> M()
+                    {
+                        foreach (var s in new C())
+                        {
+                            yield return s.ToString();
+                        }
+                        yield return "Done";
+                    }
+                    public Enumerator GetEnumerator() => new Enumerator();
+                    public sealed class Enumerator
+                    {
+                        int i = 0;
+                        public S Current => new S(i);
+                        public bool MoveNext()
+                        {
+                            i++;
+                            return i < 3;
+                        }
+                    }
+                }
+                public ref struct S
+                {
+                    int i;
+                    public S(int i)
+                    {
+                        this.i = i;
+                    }
+                    public override string ToString() => i.ToString();
+                }
+                """;
+
+            var expectedOutput = "M:1 M:2 M:Done MainDone";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestWithPattern_RefReturningCurrent_Async()
         {
             string source = @"
 using static System.Console;
@@ -2206,6 +2531,275 @@ public struct S
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2 3 Done", verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void TestWithPattern_RefReturningCurrent_Async_RefVariable()
+        {
+            string source = """
+                using System;
+                using System.Threading.Tasks;
+                public class C
+                {
+                    public static async Task Main()
+                    {
+                        await foreach (ref var s in new C())
+                        {
+                            Console.Write($"{s} ");
+                            s.F++;
+                        }
+                        Console.Write("Done");
+                    }
+                    public Enumerator GetAsyncEnumerator() => new Enumerator();
+                    public sealed class Enumerator
+                    {
+                        S _current;
+                        public ref S Current => ref _current;
+                        public async Task<bool> MoveNextAsync()
+                        {
+                            Current = new S(Current.F + 1);
+                            await Task.Yield();
+                            return Current.F < 4;
+                        }
+                    }
+                }
+                public struct S
+                {
+                    public int F;
+                    public S(int i)
+                    {
+                        this.F = i;
+                    }
+                    public override string ToString() => F.ToString();
+                }
+                """ + s_IAsyncEnumerable;
+
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (7,32): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await foreach (ref var s in new C())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 32));
+
+            var expectedOutput = "1 3 Done";
+
+            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestWithPattern_RefReturningCurrent_AsyncIterator_RefVariable_01()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                public class C
+                {
+                    public static async Task Main()
+                    {
+                        await foreach (var s in M())
+                        {
+                            Console.Write($"M:{s} ");
+                        }
+                        Console.Write("MainDone");
+                    }
+                    public static async IAsyncEnumerable<string> M()
+                    {
+                        await foreach (ref var s in new C())
+                        {
+                            s.F++;
+                            yield return s.ToString();
+                        }
+                        yield return "Done";
+                    }
+                    public Enumerator GetAsyncEnumerator() => new Enumerator();
+                    public sealed class Enumerator
+                    {
+                        S _current;
+                        public ref S Current => ref _current;
+                        public async Task<bool> MoveNextAsync()
+                        {
+                            Current = new S(Current.F + 1);
+                            await Task.Yield();
+                            return Current.F < 4;
+                        }
+                    }
+                }
+                public struct S
+                {
+                    public int F;
+                    public S(int i)
+                    {
+                        this.F = i;
+                    }
+                    public override string ToString() => F.ToString();
+                }
+                """ + AsyncStreamsTypes;
+
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (16,32): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await foreach (ref var s in new C())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s").WithArguments("ref and unsafe in async and iterator methods").WithLocation(16, 32));
+
+            var expectedOutput = "M:2 M:4 M:Done MainDone";
+
+            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestWithPattern_RefReturningCurrent_AsyncIterator_RefVariable_02()
+        {
+            string source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                public class C
+                {
+                    public static async IAsyncEnumerable<string> M()
+                    {
+                        await foreach (ref var s in new C())
+                        {
+                            yield return s.ToString();
+                            s.F++;
+                        }
+                        yield return "Done";
+                    }
+                    public Enumerator GetAsyncEnumerator() => new Enumerator();
+                    public sealed class Enumerator
+                    {
+                        public ref S Current => throw null;
+                        public Task<bool> MoveNextAsync() => throw null;
+                    }
+                }
+                public struct S
+                {
+                    public int F;
+                }
+                """ + AsyncStreamsTypes;
+
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (7,32): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await foreach (ref var s in new C())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 32));
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,13): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             s.F++;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "s.F").WithLocation(10, 13)
+            };
+
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void TestWithPattern_RefReturningCurrent_Iterator_RefVariable_01()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                public class C
+                {
+                    public static void Main()
+                    {
+                        foreach (var s in M())
+                        {
+                            Console.Write($"M:{s} ");
+                        }
+                        Console.Write("MainDone");
+                    }
+                    public static IEnumerable<string> M()
+                    {
+                        foreach (ref var s in new C())
+                        {
+                            s.F++;
+                            yield return s.ToString();
+                        }
+                        yield return "Done";
+                    }
+                    public Enumerator GetEnumerator() => new Enumerator();
+                    public sealed class Enumerator
+                    {
+                        S _current;
+                        public ref S Current => ref _current;
+                        public bool MoveNext()
+                        {
+                            Current = new S(Current.F + 1);
+                            return Current.F < 4;
+                        }
+                    }
+                }
+                public struct S
+                {
+                    public int F;
+                    public S(int i)
+                    {
+                        this.F = i;
+                    }
+                    public override string ToString() => F.ToString();
+                }
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (15,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref var s in new C())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s").WithArguments("ref and unsafe in async and iterator methods").WithLocation(15, 26));
+
+            var expectedOutput = "M:2 M:4 M:Done MainDone";
+
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestWithPattern_RefReturningCurrent_Iterator_RefVariable_02()
+        {
+            string source = """
+                using System.Collections.Generic;
+                public class C
+                {
+                    public static IEnumerable<string> M()
+                    {
+                        foreach (ref var s in new C())
+                        {
+                            yield return s.ToString();
+                            s.F++;
+                        }
+                        yield return "Done";
+                    }
+                    public Enumerator GetEnumerator() => new Enumerator();
+                    public sealed class Enumerator
+                    {
+                        public ref S Current => throw null;
+                        public bool MoveNext() => throw null;
+                    }
+                }
+                public struct S
+                {
+                    public int F;
+                }
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref var s in new C())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 26));
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,13): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             s.F++;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "s.F").WithLocation(9, 13)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

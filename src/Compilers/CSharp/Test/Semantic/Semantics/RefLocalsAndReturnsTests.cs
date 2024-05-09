@@ -3152,8 +3152,147 @@ class TestClass
         }
     }
 }";
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (8,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 17),
+                // (13,21): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             ref int z = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "z").WithArguments("ref and unsafe in async and iterator methods").WithLocation(13, 21));
 
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
             CreateCompilation(code).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void RefLocal_Iterator_LocalFunction_01()
+        {
+            var code = """
+                using System;
+                using System.Collections.Generic;
+
+                int x = 5;
+
+                foreach (var z in func())
+                {
+                    Console.Write(z);
+                    x++;
+                }
+
+                IEnumerable<int> func()
+                {
+                    ref int y = ref x;
+                    yield return y;
+                    y = ref x;
+                    yield return y;
+                }
+                """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (14,13): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(14, 13));
+
+            var expectedOutput = "56";
+
+            CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(code, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefLocal_Iterator_LocalFunction_02()
+        {
+            var code = """
+                using System.Collections.Generic;
+
+                int x = 5;
+
+                IEnumerable<int> func()
+                {
+                    ref int y = ref x;
+                    yield return y;
+                    yield return y;
+                }
+
+                func();
+                """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (7,13): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 13));
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,18): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //     yield return y;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(9, 18)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(code).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefStruct_Iterator_LocalFunction_01()
+        {
+            var code = """
+                using System;
+                using System.Collections.Generic;
+
+                int x = 5;
+
+                foreach (var z in func())
+                {
+                    Console.Write(z);
+                    x++;
+                }
+
+                IEnumerable<int> func()
+                {
+                    Span<int> y = new(ref x);
+                    yield return y[0];
+                    y = new(ref x);
+                    yield return y[0];
+                }
+                """;
+
+            var expectedOutput = ExecutionConditionUtil.IsDesktop ? null : "56";
+
+            CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net70, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net70, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(code, expectedOutput: expectedOutput, targetFramework: TargetFramework.Net70, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefStruct_Iterator_LocalFunction_02()
+        {
+            var code = """
+                using System;
+                using System.Collections.Generic;
+
+                int x = 5;
+
+                IEnumerable<int> func()
+                {
+                    Span<int> y = new(ref x);
+                    yield return y[0];
+                    yield return y[0];
+                }
+
+                func();
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,18): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //     yield return y[0];
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(10, 18)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
@@ -3174,7 +3313,152 @@ class TestClass
         });
     }
 }";
-            CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (8,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 17),
+                // (11,21): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             ref int z = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "z").WithArguments("ref and unsafe in async and iterator methods").WithLocation(11, 21));
+
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(code).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void RefLocal_Async_LocalFunction_01()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+
+                int x = 5;
+
+                await func();
+
+                async Task func()
+                {
+                    ref int y = ref x;
+                    Console.Write(y);
+                    await Task.Yield();
+                    y = ref x;
+                    Console.Write(y);
+                    await Task.Yield();
+                }
+                """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (10,13): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 13));
+
+            var expectedOutput = "55";
+
+            CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(code, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefLocal_Async_LocalFunction_02()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+
+                int x = 5;
+
+                async Task func()
+                {
+                    ref int y = ref x;
+                    await Task.Yield();
+                    Console.Write(y);
+                }
+
+                await func();
+                """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (8,13): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 13));
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,19): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //     Console.Write(y);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(10, 19)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(code).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefStruct_Async_LocalFunction_01()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+                
+                int x = 5;
+                
+                await func();
+                
+                async Task func()
+                {
+                    Span<int> y = new(ref x);
+                    Console.Write(y[0]);
+                    await Task.Yield();
+                    y = new(ref x);
+                    Console.Write(y[0]);
+                    await Task.Yield();
+                }
+                """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (10,5): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     Span<int> y = new(ref x);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Span<int>").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 5));
+
+            var expectedOutput = ExecutionConditionUtil.IsDesktop ? null : "55";
+
+            CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net70, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(code, expectedOutput: expectedOutput, targetFramework: TargetFramework.Net70, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefStruct_Async_LocalFunction_02()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+
+                int x = 5;
+
+                async Task func()
+                {
+                    Span<int> y = new(ref x);
+                    await Task.Yield();
+                    Console.Write(y[0]);
+                }
+
+                await func();
+                """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (8,5): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     Span<int> y = new(ref x);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Span<int>").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 5));
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,19): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //     Console.Write(y[0]);
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(10, 19)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]

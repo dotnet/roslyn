@@ -23106,5 +23106,35 @@ struct ThreeStringBuffer {
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void Initialization_RefStruct_Await()
+        {
+            var src = """
+                using System.Threading.Tasks;
+
+                var b = new Buffer();
+                b[0] = await GetInt();
+                b[1] = await GetInt();
+
+                static Task<int> GetInt() => Task.FromResult(42);
+                
+                [System.Runtime.CompilerServices.InlineArray(4)]
+                ref struct Buffer
+                {
+                    private int _element0;
+                }
+                """;
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (4,1): error CS0306: The type 'Buffer' may not be used as a type argument
+                // b[0] = await GetInt();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "b[0]").WithArguments("Buffer").WithLocation(4, 1),
+                // (5,1): error CS0306: The type 'Buffer' may not be used as a type argument
+                // b[1] = await GetInt();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "b[1]").WithArguments("Buffer").WithLocation(5, 1),
+                // (10,12): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                // ref struct Buffer
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "Buffer").WithLocation(10, 12));
+        }
     }
 }

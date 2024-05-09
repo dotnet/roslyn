@@ -938,7 +938,7 @@ unsafe class C
         }
 
         [Fact]
-        public void UnsafeContext_LocalFunctionInIterator_Unsafe()
+        public void UnsafeContext_LocalFunctionInIterator_BreakingChange()
         {
             var code = """
                 unsafe class C
@@ -966,7 +966,7 @@ unsafe class C
         }
 
         [Fact]
-        public void UnsafeContext_LocalFunctionInIterator_Unsafe_BreakingChangeWorkaround()
+        public void UnsafeContext_LocalFunctionInIterator_BreakingChangeWorkaround()
         {
             var code = """
                 unsafe class C
@@ -983,6 +983,129 @@ unsafe class C
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void UnsafeContext_LocalFunctionInIterator_BreakingChange_Property()
+        {
+            var code = """
+                unsafe class C
+                {
+                    System.Collections.Generic.IEnumerable<int> P
+                    {
+                        get
+                        {
+                            yield return 1;
+                            local();
+                            void local() { int* p = null; }
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //             void local() { int* p = null; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 28)
+            };
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void UnsafeContext_LocalFunctionInIterator_BreakingChange_Operator()
+        {
+            var code = """
+                unsafe class C
+                {
+                    public static System.Collections.Generic.IEnumerable<int> operator+(C c1, C c2)
+                    {
+                        yield return 1;
+                        local();
+                        void local() { int* p = null; }
+                    }
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,24): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         void local() { int* p = null; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 24)
+            };
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void UnsafeContext_LocalFunctionInIterator_BreakingChange_Nested_01()
+        {
+            var code = """
+                unsafe class C
+                {
+                    void M()
+                    {
+                        local1();
+                        System.Collections.Generic.IEnumerable<int> local1()
+                        {
+                            yield return 1;
+                            local2();
+                            void local2() { int* p = null; }
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //             void local2() { int* p = null; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 29)
+            };
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void UnsafeContext_LocalFunctionInIterator_BreakingChange_Nested_02()
+        {
+            var code = """
+                unsafe class C
+                {
+                    System.Collections.Generic.IEnumerable<int> M()
+                    {
+                        yield return 1;
+                        local1();
+                        void local1()
+                        {
+                            local2();
+                            void local2() { int* p = null; }
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //             void local2() { int* p = null; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 29)
+            };
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73280")]
@@ -1190,6 +1313,26 @@ unsafe class C
         }
 
         [Fact]
+        public void UnsafeContext_Method_Iterator_Body_CSharp12_Safe_NestedBlock()
+        {
+            var code = """
+                class C
+                {
+                    System.Collections.Generic.IEnumerable<int> M()
+                    {
+                        {
+                            yield return sizeof(nint);
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,26): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         yield return sizeof(nint);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(6, 26));
+        }
+
+        [Fact]
         public void UnsafeContext_Method_Iterator_Body_CSharp12_Unsafe()
         {
             var code = """
@@ -1198,6 +1341,24 @@ unsafe class C
                     System.Collections.Generic.IEnumerable<int> M()
                     {
                         yield return local();
+                        int local() => sizeof(nint);
+                    }
+                }
+                """;
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnsafeContext_Method_Iterator_Body_CSharp12_Unsafe_NestedBlock()
+        {
+            var code = """
+                unsafe class C
+                {
+                    System.Collections.Generic.IEnumerable<int> M()
+                    {
+                        {
+                            yield return local();
+                        }
                         int local() => sizeof(nint);
                     }
                 }
@@ -1223,6 +1384,32 @@ unsafe class C
                 // (5,22): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
                 //         yield return sizeof(nint);
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(5, 22)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Theory, CombinatorialData]
+        public void UnsafeContext_Method_Iterator_Body_CSharp13_NestedBlock(bool unsafeClass, bool unsafeMethod)
+        {
+            var code = $$"""
+                {{(unsafeClass ? "unsafe" : "")}} class C
+                {
+                    {{(unsafeMethod ? "unsafe" : "")}} System.Collections.Generic.IEnumerable<int> M()
+                    {
+                        {
+                            yield return sizeof(nint);
+                        }
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,26): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         yield return sizeof(nint);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(6, 26)
             };
 
             CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
@@ -2389,6 +2576,25 @@ unsafe class C
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void UnsafeBlock_InAsyncMethod()
+        {
+            var code = """
+                using System.Threading.Tasks;
+                class C
+                {
+                    async Task M(int x)
+                    {
+                        unsafe { x = sizeof(nint); }
+                        await Task.Yield();
+                    }
+                }
+                """;
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
         [Fact]
