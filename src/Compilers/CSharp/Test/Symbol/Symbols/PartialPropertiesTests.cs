@@ -2817,6 +2817,99 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "y").WithArguments("y").WithLocation(10, 44));
         }
 
+        [Fact]
+        public void Indexers_MissingOrUnexpectedDeclarations()
+        {
+            var source = """
+                partial class C
+                {
+                    public partial int this[int x] { get; set; } // missing impl
+
+                    public partial int this[int x, int y] { get => 1; set { } } // missing decl
+
+                    public partial int this[int x, int y, int z] { get; set; } // duplicate decl
+                    public partial int this[int x, int y, int z] { get; set; }
+                    public partial int this[int x, int y, int z] { get => 1; set { } }
+
+                    public partial int this[int x, int y, int z, int a] { get; set; } // duplicate impl
+                    public partial int this[int x, int y, int z, int a] { get => 1; set { } }
+                    public partial int this[int x, int y, int z, int a] { get => 1; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,24): error CS9300: Partial property 'C.this[int]' must have an implementation part.
+                //     public partial int this[int x] { get; set; } // missing impl
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "this").WithArguments("C.this[int]").WithLocation(3, 24),
+                // (5,24): error CS9301: Partial property 'C.this[int, int]' must have a definition part.
+                //     public partial int this[int x, int y] { get => 1; set { } } // missing decl
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "this").WithArguments("C.this[int, int]").WithLocation(5, 24),
+                // (8,24): error CS9302: A partial property may not have multiple defining declarations, and cannot be an auto-property.
+                //     public partial int this[int x, int y, int z] { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "this").WithLocation(8, 24),
+                // (8,24): error CS0111: Type 'C' already defines a member called 'this' with the same parameter types
+                //     public partial int this[int x, int y, int z] { get; set; }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C").WithLocation(8, 24),
+                // (13,24): error CS9303: A partial property may not have multiple implementing declarations
+                //     public partial int this[int x, int y, int z, int a] { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateImplementation, "this").WithLocation(13, 24),
+                // (13,24): error CS0111: Type 'C' already defines a member called 'this' with the same parameter types
+                //     public partial int this[int x, int y, int z, int a] { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C").WithLocation(13, 24));
+        }
+
+        [Fact]
+        public void Indexers_ReturnTypeDifference()
+        {
+            var source = """
+                partial class C
+                {
+                    public partial int[] this[int x] { get; set; }
+                    public partial string[] this[int x] { get => []; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,29): error CS9307: Both partial property declarations must have the same type.
+                //     public partial string[] this[int x] { get => []; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyTypeDifference, "this").WithLocation(4, 29));
+        }
+
+        [Fact]
+        public void Indexers_TupleElementNameDifference()
+        {
+            var source = """
+                partial class C
+                {
+                    // in return type
+                    public partial (int x, int y)[] this[int x] { get; set; }
+                    public partial (int a, int b)[] this[int x] { get => []; set { } }
+                    
+                    // in parameter type
+                    public partial int this[(int x, int y) pair] { get; set; }
+                    public partial int this[(int a, int b) pair] { get => 1; set { } }
+
+                    // in both return and parameter type
+                    public partial (int x, int y)[] this[(int x, int y, int z) pair] { get; set; }
+                    public partial (int a, int b)[] this[(int a, int b, int c) pair] { get => []; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,37): error CS8142: Both partial member declarations, 'C.this[int]' and 'C.this[int]', must use the same tuple element names.
+                //     public partial (int a, int b)[] this[int x] { get => []; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "this").WithArguments("C.this[int]", "C.this[int]").WithLocation(5, 37),
+                // (9,24): error CS8142: Both partial member declarations, 'C.this[(int x, int y)]' and 'C.this[(int a, int b)]', must use the same tuple element names.
+                //     public partial int this[(int a, int b) pair] { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "this").WithArguments("C.this[(int x, int y)]", "C.this[(int a, int b)]").WithLocation(9, 24),
+                // (13,37): error CS8142: Both partial member declarations, 'C.this[(int x, int y, int z)]' and 'C.this[(int a, int b, int c)]', must use the same tuple element names.
+                //     public partial (int a, int b)[] this[(int a, int b, int c) pair] { get => []; set { } }
+                Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "this").WithArguments("C.this[(int x, int y, int z)]", "C.this[(int a, int b, int c)]").WithLocation(13, 37));
+        }
+
         // PROTOTYPE(partial-properties): override partial property where base has modopt
         // PROTOTYPE(partial-properties): test indexers incl parameters with attributes
         // PROTOTYPE(partial-properties): test merging property attributes
