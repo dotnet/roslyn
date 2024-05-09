@@ -324,7 +324,7 @@
       </trans-unit>
       <trans-unit id="Awaitable_Extension">
         <source>Awaitable, Extension</source>
-        <target state="translated">待機可能、拡張子</target>
+        <target state="translated">待機可能、拡張</target>
         <note />
       </trans-unit>
       <trans-unit id="new_variable">
