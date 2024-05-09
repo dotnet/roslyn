@@ -288,8 +288,9 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         var formattedText = await formattedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var solution = formattedDocument.Project.Solution;
 
-        solution = solution.WithDocumentTexts(
+        var finalSolution = solution.WithDocumentTexts(
             formattedDocument.GetLinkedDocumentIds().SelectAsArray(id => (id, formattedText, PreservationMode.PreserveValue)));
+        return finalSolution;
     }
 
     private static string GetNewSymbolName(ISymbol symbol, string targetNamespace)
