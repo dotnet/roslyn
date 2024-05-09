@@ -289,7 +289,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         var solution = formattedDocument.Project.Solution;
 
         var finalSolution = solution.WithDocumentTexts(
-            formattedDocument.GetLinkedDocumentIds().SelectAsArray(id => (id, formattedText, PreservationMode.PreserveValue)));
+            formattedDocument.GetLinkedDocumentIds().SelectAsArray(id => (id, formattedText)));
         return finalSolution;
     }
 

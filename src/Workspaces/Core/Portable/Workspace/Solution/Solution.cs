@@ -1183,6 +1183,9 @@ public partial class Solution
     public Solution WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
         => WithDocumentTexts([(documentId, text, mode)]);
 
+    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts)
+        => WithDocumentTexts(texts.SelectAsArray(t => (t.documentId, t.text, PreservationMode.PreserveValue)));
+
     internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
     {
         foreach (var (documentId, text, mode) in texts)
