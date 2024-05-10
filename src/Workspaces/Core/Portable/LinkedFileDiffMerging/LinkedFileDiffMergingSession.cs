@@ -217,8 +217,8 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 
         using var _1 = ArrayBuilder<TextChange>.GetInstance(out var combinedChanges);
         using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var mergeConflictResolutionSpans);
-        var insertedMergeConflictCommentsAtAdjustedLocation = 0;
 
+        var insertedMergeConflictCommentsAtAdjustedLocation = 0;
         var commentChangeIndex = 0;
         var currentPositionDelta = 0;
 
