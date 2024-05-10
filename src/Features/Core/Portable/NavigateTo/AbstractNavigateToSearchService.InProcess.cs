@@ -188,6 +188,8 @@ internal abstract partial class AbstractNavigateToSearchService
             case DeclaredSymbolInfoKind.Class:
             case DeclaredSymbolInfoKind.Record:
                 return NavigateToItemKind.Class;
+            case DeclaredSymbolInfoKind.Extension:
+                return NavigateToItemKind.Extension;
             case DeclaredSymbolInfoKind.RecordStruct:
                 return NavigateToItemKind.Structure;
             case DeclaredSymbolInfoKind.Constant:
@@ -258,6 +260,7 @@ internal abstract partial class AbstractNavigateToSearchService
                         lookupTable[(int)DeclaredSymbolInfoKind.Class] = true;
                         lookupTable[(int)DeclaredSymbolInfoKind.Record] = true;
                         break;
+
                     case NavigateToItemKind.Constant:
                         lookupTable[(int)DeclaredSymbolInfoKind.Constant] = true;
                         break;
@@ -272,6 +275,10 @@ internal abstract partial class AbstractNavigateToSearchService
 
                     case NavigateToItemKind.EnumItem:
                         lookupTable[(int)DeclaredSymbolInfoKind.EnumMember] = true;
+                        break;
+
+                    case NavigateToItemKind.Extension:
+                        lookupTable[(int)DeclaredSymbolInfoKind.Extension] = true;
                         break;
 
                     case NavigateToItemKind.Event:

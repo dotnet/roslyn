@@ -182,12 +182,13 @@ internal readonly struct RoslynNavigateToItem(
             switch (item.DeclaredSymbolInfo.Kind)
             {
                 case DeclaredSymbolInfoKind.Class:
-                case DeclaredSymbolInfoKind.Record:
                 case DeclaredSymbolInfoKind.Enum:
+                case DeclaredSymbolInfoKind.Extension:
                 case DeclaredSymbolInfoKind.Interface:
                 case DeclaredSymbolInfoKind.Module:
-                case DeclaredSymbolInfoKind.Struct:
+                case DeclaredSymbolInfoKind.Record:
                 case DeclaredSymbolInfoKind.RecordStruct:
+                case DeclaredSymbolInfoKind.Struct:
                     return true;
                 default:
                     return false;
@@ -292,6 +293,7 @@ internal readonly struct RoslynNavigateToItem(
                 DeclaredSymbolInfoKind.Enum => Glyph.EnumPublic,
                 DeclaredSymbolInfoKind.EnumMember => Glyph.EnumMemberPublic,
                 DeclaredSymbolInfoKind.Event => Glyph.EventPublic,
+                DeclaredSymbolInfoKind.Extension => Glyph.ClassPublic,
                 DeclaredSymbolInfoKind.ExtensionMethod => Glyph.ExtensionMethodPublic,
                 DeclaredSymbolInfoKind.Field => Glyph.FieldPublic,
                 DeclaredSymbolInfoKind.Indexer => Glyph.PropertyPublic,
@@ -299,8 +301,8 @@ internal readonly struct RoslynNavigateToItem(
                 DeclaredSymbolInfoKind.Method => Glyph.MethodPublic,
                 DeclaredSymbolInfoKind.Module => Glyph.ModulePublic,
                 DeclaredSymbolInfoKind.Property => Glyph.PropertyPublic,
-                DeclaredSymbolInfoKind.Struct => Glyph.StructurePublic,
                 DeclaredSymbolInfoKind.RecordStruct => Glyph.StructurePublic,
+                DeclaredSymbolInfoKind.Struct => Glyph.StructurePublic,
                 _ => Glyph.ClassPublic,
             };
 

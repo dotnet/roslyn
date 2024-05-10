@@ -404,6 +404,7 @@ public partial class Project
                 case DeclaredSymbolInfoKind.Delegate:
                 case DeclaredSymbolInfoKind.Enum:
                 case DeclaredSymbolInfoKind.Interface:
+                case DeclaredSymbolInfoKind.Extension:
                 case DeclaredSymbolInfoKind.Module:
                 case DeclaredSymbolInfoKind.Record:
                 case DeclaredSymbolInfoKind.RecordStruct:

@@ -115,6 +115,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 NavigateToItemKind.Enum => CodeSearchResultType.Enum,
                 NavigateToItemKind.EnumItem => CodeSearchResultType.EnumItem,
                 NavigateToItemKind.Event => CodeSearchResultType.Event,
+                NavigateToItemKind.Extension => CodeSearchResultType.Class,
                 NavigateToItemKind.Field => CodeSearchResultType.Field,
                 NavigateToItemKind.Interface => CodeSearchResultType.Interface,
                 NavigateToItemKind.Method => CodeSearchResultType.Method,

@@ -230,6 +230,7 @@ internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolIn
             typeDeclaration.Kind() switch
             {
                 SyntaxKind.ClassDeclaration => DeclaredSymbolInfoKind.Class,
+                SyntaxKind.ExtensionDeclaration => DeclaredSymbolInfoKind.Extension,
                 SyntaxKind.InterfaceDeclaration => DeclaredSymbolInfoKind.Interface,
                 SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
                 SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
