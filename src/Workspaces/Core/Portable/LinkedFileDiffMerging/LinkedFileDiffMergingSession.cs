@@ -73,7 +73,8 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         // Automatically merge non-conflicting diffs while collecting the conflicting diffs
 
         var textDifferencingService = oldSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
-        var appliedChanges = await textDifferencingService.GetTextChangesAsync(oldSolution.GetDocument(linkedDocumentGroup.First()), newSolution.GetDocument(linkedDocumentGroup.First()), cancellationToken).ConfigureAwait(false);
+        var appliedChanges = await textDifferencingService.GetTextChangesAsync(
+            oldSolution.GetDocument(linkedDocumentGroup.First()), newSolution.GetDocument(linkedDocumentGroup.First()), TextDifferenceTypes.Line, cancellationToken).ConfigureAwait(false);
         var unmergedChanges = new List<UnmergedDocumentChanges>();
 
         foreach (var documentId in linkedDocumentGroup.Skip(1))
@@ -129,8 +130,9 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 
         var cumulativeChangeIndex = 0;
 
-        var textchanges = await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
-        foreach (var change in textchanges)
+        var textChanges = await textDiffService.GetTextChangesAsync(
+            oldDocument, newDocument, TextDifferenceTypes.Line, cancellationToken).ConfigureAwait(false);
+        foreach (var change in textChanges)
         {
             while (cumulativeChangeIndex < cumulativeChanges.Count && cumulativeChanges[cumulativeChangeIndex].Span.End < change.Span.Start)
             {
