@@ -12,36 +12,36 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 public class HandlerProviderTests
 {
     [Theory, CombinatorialData]
-    public void GetMethodHandler(bool supportsGetRegisteredServices)
+    public void GetMethodHandler(bool supportsMethodHandlerProvider)
     {
-        var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices);
+        var handlerProvider = GetHandlerProvider(supportsMethodHandlerProvider);
 
         var methodHandler = handlerProvider.GetMethodHandler(TestMethodHandler.Name, TestMethodHandler.RequestType, TestMethodHandler.ResponseType, LanguageServerConstants.DefaultLanguageName);
         Assert.Same(TestMethodHandler.Instance, methodHandler);
     }
 
     [Theory, CombinatorialData]
-    public void GetMethodHandler_Parameterless(bool supportsGetRegisteredServices)
+    public void GetMethodHandler_Parameterless(bool supportsMethodHandlerProvider)
     {
-        var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices);
+        var handlerProvider = GetHandlerProvider(supportsMethodHandlerProvider);
 
         var methodHandler = handlerProvider.GetMethodHandler(TestParameterlessMethodHandler.Name, requestType: null, TestParameterlessMethodHandler.ResponseType, LanguageServerConstants.DefaultLanguageName);
         Assert.Same(TestParameterlessMethodHandler.Instance, methodHandler);
     }
 
     [Theory, CombinatorialData]
-    public void GetMethodHandler_Notification(bool supportsGetRegisteredServices)
+    public void GetMethodHandler_Notification(bool supportsMethodHandlerProvider)
     {
-        var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices);
+        var handlerProvider = GetHandlerProvider(supportsMethodHandlerProvider);
 
         var methodHandler = handlerProvider.GetMethodHandler(TestNotificationHandler.Name, TestNotificationHandler.RequestType, responseType: null, LanguageServerConstants.DefaultLanguageName);
         Assert.Same(TestNotificationHandler.Instance, methodHandler);
     }
 
     [Theory, CombinatorialData]
-    public void GetMethodHandler_ParameterlessNotification(bool supportsGetRegisteredServices)
+    public void GetMethodHandler_ParameterlessNotification(bool supportsMethodHandlerProvider)
     {
-        var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices);
+        var handlerProvider = GetHandlerProvider(supportsMethodHandlerProvider);
 
         var methodHandler = handlerProvider.GetMethodHandler(TestParameterlessNotificationHandler.Name, requestType: null, responseType: null, LanguageServerConstants.DefaultLanguageName);
         Assert.Same(TestParameterlessNotificationHandler.Instance, methodHandler);
@@ -50,7 +50,7 @@ public class HandlerProviderTests
     [Fact]
     public void GetMethodHandler_WrongMethod_Throws()
     {
-        var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices: false);
+        var handlerProvider = GetHandlerProvider(supportsMethodHandlerProvider: false);
 
         Assert.Throws<InvalidOperationException>(() => handlerProvider.GetMethodHandler("UndefinedMethod", TestMethodHandler.RequestType, TestMethodHandler.ResponseType, LanguageServerConstants.DefaultLanguageName));
     }
@@ -58,15 +58,15 @@ public class HandlerProviderTests
     [Fact]
     public void GetMethodHandler_WrongResponseType_Throws()
     {
-        var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices: false);
+        var handlerProvider = GetHandlerProvider(supportsMethodHandlerProvider: false);
 
         Assert.Throws<InvalidOperationException>(() => handlerProvider.GetMethodHandler(TestMethodHandler.Name, TestMethodHandler.RequestType, responseType: typeof(long), LanguageServerConstants.DefaultLanguageName));
     }
 
     [Theory, CombinatorialData]
-    public void GetRegisteredMethods(bool supportsGetRegisteredServices)
+    public void GetRegisteredMethods(bool supportsMethodHandlerProvider)
     {
-        var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices);
+        var handlerProvider = GetHandlerProvider(supportsMethodHandlerProvider);
 
         var registeredMethods = handlerProvider.GetRegisteredMethods().OrderBy(m => m.MethodName);
 
@@ -92,10 +92,10 @@ public class HandlerProviderTests
         Assert.Equal(TestXamlLanguageHandler.Instance, xamlMethodHandler);
     }
 
-    private static HandlerProvider GetHandlerProvider(bool supportsGetRegisteredServices)
-        => new(GetLspServices(supportsGetRegisteredServices));
+    private static HandlerProvider GetHandlerProvider(bool supportsMethodHandlerProvider)
+        => new(GetLspServices(supportsMethodHandlerProvider));
 
-    private static TestLspServices GetLspServices(bool supportsGetRegisteredServices)
+    private static ILspServices GetLspServices(bool supportsMethodHandlerProvider)
     {
         var services = new List<(Type, object)>
         {
@@ -105,6 +105,6 @@ public class HandlerProviderTests
             (typeof(IMethodHandler), TestParameterlessNotificationHandler.Instance),
         };
 
-        return new TestLspServices(services, supportsGetRegisteredServices);
+        return TestLspServices.Create(services, supportsMethodHandlerProvider);
     }
 }

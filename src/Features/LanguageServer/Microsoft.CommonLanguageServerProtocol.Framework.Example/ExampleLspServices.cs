@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
@@ -54,15 +53,5 @@ internal class ExampleLspServices : ILspServices
         var services = _serviceProvider.GetServices<T>();
 
         return services;
-    }
-
-    public ImmutableArray<Type> GetRegisteredServices()
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool SupportsGetRegisteredServices()
-    {
-        return false;
     }
 }

@@ -38,10 +38,10 @@ public class RequestExecutionQueueTests
         return executionQueue;
     }
 
-    private static TestLspServices GetLspServices()
-        => new(
+    private static ILspServices GetLspServices()
+        => TestLspServices.Create(
             services: new[] { (typeof(AbstractRequestContextFactory<TestRequestContext>), (object)TestRequestContext.Factory.Instance) },
-            supportsGetRegisteredServices: false);
+            supportsMethodHandlerProvider: false);
 
     [Fact]
     public async Task ExecuteAsync_ThrowCompletes()

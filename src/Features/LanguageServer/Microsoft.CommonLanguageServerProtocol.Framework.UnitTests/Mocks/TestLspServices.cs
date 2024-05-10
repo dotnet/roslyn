@@ -9,23 +9,20 @@ using System.Linq;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
-internal class TestLspServices : ILspServices
+internal abstract class TestLspServices(IEnumerable<(Type type, object instance)> services) : ILspServices
 {
-    private readonly bool _supportsGetRegisteredServices;
-    private readonly IEnumerable<(Type type, object instance)> _services;
+    protected readonly IEnumerable<(Type type, object instance)> Services = services;
 
-    public TestLspServices(IEnumerable<(Type type, object instance)> services, bool supportsGetRegisteredServices)
+    public static ILspServices Create(IEnumerable<(Type type, object instance)> services, bool supportsMethodHandlerProvider)
     {
-        _services = services;
-        _supportsGetRegisteredServices = supportsGetRegisteredServices;
+        return supportsMethodHandlerProvider
+            ? new Default(services)
+            : new WithMethodHandlerProvider(services);
     }
 
     public void Dispose()
     {
     }
-
-    public ImmutableArray<Type> GetRegisteredServices()
-        => _services.Select(s => s.instance.GetType()).ToImmutableArray();
 
     public T? GetService<T>() where T : notnull
         => (T?)TryGetService(typeof(T));
@@ -33,12 +30,27 @@ internal class TestLspServices : ILspServices
     public T GetRequiredService<T>() where T : notnull
         => (T?)TryGetService(typeof(T)) ?? throw new InvalidOperationException($"{typeof(T).Name} did not have a service");
 
-    public IEnumerable<T> GetRequiredServices<T>()
-        => _supportsGetRegisteredServices ? Array.Empty<T>() : _services.Where(s => s.instance is T).Select(s => (T)s.instance);
+    public virtual IEnumerable<T> GetRequiredServices<T>()
+        => Services.Where(s => s.instance is T).Select(s => (T)s.instance);
 
-    public bool SupportsGetRegisteredServices()
-        => _supportsGetRegisteredServices;
+    public virtual object? TryGetService(Type type)
+        => Services.FirstOrDefault(s => s.type == type).instance;
 
-    public object? TryGetService(Type type)
-        => _services.FirstOrDefault(s => (_supportsGetRegisteredServices ? s.instance.GetType() : s.type) == type).instance;
+    private sealed class Default(IEnumerable<(Type type, object instance)> services) : TestLspServices(services)
+    {
+    }
+
+    private sealed class WithMethodHandlerProvider(IEnumerable<(Type type, object instance)> services)
+        : TestLspServices(services), IMethodHandlerProvider
+    {
+        public ImmutableArray<Type> GetMethodHandlers()
+            => Services.Select(s => s.instance.GetType())
+                       .Where(t => typeof(IMethodHandler).IsAssignableFrom(t))
+                       .ToImmutableArray();
+
+        public override IEnumerable<T> GetRequiredServices<T>() => [];
+
+        public override object? TryGetService(Type type)
+            => Services.FirstOrDefault(s => s.instance.GetType() == type).instance;
+    }
 }

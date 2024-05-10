@@ -117,14 +117,6 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         return lspService;
     }
 
-    public ImmutableArray<Type> GetRegisteredServices()
-        => _lazyMefLspServices.Values.SelectAsArray(lazyService => lazyService.Metadata.Type);
-
-    public bool SupportsGetRegisteredServices()
-    {
-        return true;
-    }
-
     public ImmutableArray<Type> GetMethodHandlers()
         => _lazyMefLspServices.Values
             .Where(lazyService => lazyService.Metadata.IsMethodHandler)
