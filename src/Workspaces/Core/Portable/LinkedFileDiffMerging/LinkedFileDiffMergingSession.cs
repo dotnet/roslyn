@@ -121,18 +121,19 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         // Add comments in source explaining diffs that could not be merged
 
         ImmutableArray<TextChange> allChanges;
-        var mergeConflictResolutionSpan = new List<TextSpan>();
+        ImmutableArray<TextSpan> mergeConflictResolutionSpans;
 
         if (unmergedChanges.Count != 0)
         {
             mergeConflictHandler ??= firstOldDocument.GetRequiredLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
             var mergeConflictTextEdits = mergeConflictHandler.CreateEdits(firstOldSourceText, unmergedChanges);
 
-            allChanges = MergeChangesWithMergeFailComments(appliedChanges, mergeConflictTextEdits, mergeConflictResolutionSpan, groupSessionInfo);
+            (allChanges, mergeConflictResolutionSpans) = MergeChangesWithMergeFailComments(appliedChanges, mergeConflictTextEdits, groupSessionInfo);
         }
         else
         {
             allChanges = appliedChanges;
+            mergeConflictResolutionSpans = [];
         }
 
         var linkedDocuments = oldSolution.GetRelatedDocumentIds(firstOldDocument.Id);
@@ -142,7 +143,8 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 
         return new LinkedFileMergeResult(
             linkedDocuments,
-            firstOldSourceText.WithChanges(allChanges), mergeConflictResolutionSpan);
+            firstOldSourceText.WithChanges(allChanges),
+            mergeConflictResolutionSpans);
     }
 
     private static async Task<ImmutableArray<TextChange>> AddDocumentMergeChangesAsync(
@@ -238,16 +240,16 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         return successfullyMergedChanges.ToImmutableAndClear();
     }
 
-    private static ImmutableArray<TextChange> MergeChangesWithMergeFailComments(
+    private static (ImmutableArray<TextChange> mergeChanges, ImmutableArray<TextSpan> mergeConflictResolutionSpans) MergeChangesWithMergeFailComments(
         ImmutableArray<TextChange> mergedChanges,
         ImmutableArray<TextChange> commentChanges,
-        List<TextSpan> mergeConflictResolutionSpans,
         LinkedFileGroupSessionInfo groupSessionInfo)
     {
         var mergedChangesList = NormalizeChanges(mergedChanges);
         var commentChangesList = NormalizeChanges(commentChanges);
 
-        using var _ = ArrayBuilder<TextChange>.GetInstance(out var combinedChanges);
+        using var _1 = ArrayBuilder<TextChange>.GetInstance(out var combinedChanges);
+        using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var mergeConflictResolutionSpans);
         var insertedMergeConflictCommentsAtAdjustedLocation = 0;
 
         var commentChangeIndex = 0;
@@ -301,7 +303,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         groupSessionInfo.InsertedMergeConflictComments = commentChanges.Length;
         groupSessionInfo.InsertedMergeConflictCommentsAtAdjustedLocation = insertedMergeConflictCommentsAtAdjustedLocation;
 
-        return NormalizeChanges(combinedChanges.ToImmutableAndClear());
+        return (NormalizeChanges(combinedChanges.ToImmutableAndClear()), mergeConflictResolutionSpans.ToImmutableAndClear());
     }
 
     private static ImmutableArray<TextChange> NormalizeChanges(ImmutableArray<TextChange> changes)
