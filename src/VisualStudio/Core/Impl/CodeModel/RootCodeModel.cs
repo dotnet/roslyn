@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     throw Exceptions.ThrowEInvalidArg();
 
                 return MetadataNameHelpers.GetMetadataName(typeSymbol);
-            };
+            });
 
         public EnvDTE.CodeElement ElementFromID(string id)
             => throw Exceptions.ThrowENotImpl();
