@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed class UnmergedDocumentChanges(ImmutableArray<TextChange> unmergedChanges, string projectName, DocumentId documentId)
+internal readonly struct UnmergedDocumentChanges(ImmutableArray<TextChange> unmergedChanges, string projectName, DocumentId documentId)
 {
     public ImmutableArray<TextChange> UnmergedChanges { get; } = unmergedChanges;
     public string ProjectName { get; } = projectName;
