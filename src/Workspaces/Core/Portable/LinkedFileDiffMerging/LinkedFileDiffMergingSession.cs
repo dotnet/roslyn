@@ -309,11 +309,11 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         if (changes.Length <= 1)
             return changes;
 
-        var orderedChanges = changes.OrderBy(c => c.Span.Start).ToList();
+        var orderedChanges = changes.OrderBy(c => c.Span.Start).ToImmutableArray();
         using var _ = ArrayBuilder<TextChange>.GetInstance(changes.Length, out var normalizedChanges);
 
-        var currentChange = changes.First();
-        foreach (var nextChange in changes.Skip(1))
+        var currentChange = changes[0];
+        foreach (var nextChange in changes.AsSpan()[1..])
         {
             if (nextChange.Span.Start == currentChange.Span.End)
             {
