@@ -38,18 +38,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         private static readonly ImmutableDictionary<string, string> s_pureLspDirectTypeMap = s_vsDirectTypeMap.Concat(new Dictionary<string, string>
         {
             [ClassificationTypeNames.ClassName] = SemanticTokenTypes.Class,
-            [ClassificationTypeNames.StructName] = SemanticTokenTypes.Struct,
-            [ClassificationTypeNames.NamespaceName] = SemanticTokenTypes.Namespace,
-            [ClassificationTypeNames.EnumName] = SemanticTokenTypes.Enum,
-            [ClassificationTypeNames.InterfaceName] = SemanticTokenTypes.Interface,
-            [ClassificationTypeNames.TypeParameterName] = SemanticTokenTypes.TypeParameter,
-            [ClassificationTypeNames.ParameterName] = SemanticTokenTypes.Parameter,
-            [ClassificationTypeNames.LocalName] = SemanticTokenTypes.Variable,
-            [ClassificationTypeNames.PropertyName] = SemanticTokenTypes.Property,
-            [ClassificationTypeNames.MethodName] = SemanticTokenTypes.Method,
             [ClassificationTypeNames.EnumMemberName] = SemanticTokenTypes.EnumMember,
+            [ClassificationTypeNames.EnumName] = SemanticTokenTypes.Enum,
             [ClassificationTypeNames.EventName] = SemanticTokenTypes.Event,
+            [ClassificationTypeNames.InterfaceName] = SemanticTokenTypes.Interface,
+            [ClassificationTypeNames.LocalName] = SemanticTokenTypes.Variable,
+            [ClassificationTypeNames.MethodName] = SemanticTokenTypes.Method,
+            [ClassificationTypeNames.NamespaceName] = SemanticTokenTypes.Namespace,
+            [ClassificationTypeNames.ParameterName] = SemanticTokenTypes.Parameter,
             [ClassificationTypeNames.PreprocessorKeyword] = SemanticTokenTypes.Macro,
+            [ClassificationTypeNames.PropertyName] = SemanticTokenTypes.Property,
+            [ClassificationTypeNames.StructName] = SemanticTokenTypes.Struct,
+            [ClassificationTypeNames.TypeParameterName] = SemanticTokenTypes.TypeParameter,
             // in https://code.visualstudio.com/api/language-extensions/semantic-highlight-guide#standard-token-types-and-modifiers
             [ClassificationTypeNames.LabelName] = "label",
         }).ToImmutableDictionary();

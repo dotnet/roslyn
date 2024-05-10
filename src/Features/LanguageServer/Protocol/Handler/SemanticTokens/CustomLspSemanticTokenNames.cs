@@ -9,30 +9,30 @@ using Microsoft.CodeAnalysis.Classification;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 
 /// <summary>
-/// Maps <see cref="ClassificationTypeNames"/> to LSP compatible semantic token names.
-/// Since these token names are effectively a public contract that users can directly interact with,
-/// we need these names to be nicely formatted and compatible with LSP client rules.
-/// All classification names must be explicitly mapped to an LSP semantic token type or
-/// a custom token type name defined here.
+/// Maps <see cref="ClassificationTypeNames"/> to LSP compatible semantic token names. Since these token names are
+/// effectively a public contract that users can directly interact with, we need these names to be nicely formatted and
+/// compatible with LSP client rules. All classification names must be explicitly mapped to an LSP semantic token type
+/// or a custom token type name defined here.
 /// </summary>
 internal class CustomLspSemanticTokenNames
 {
+    public const string ConstantName = "constant";
+    public const string DelegateName = "delegate";
     public const string ExcludedCode = "excludedCode";
+    public const string ExtensionName = "extension";
+    public const string ExtensionMethodName = "extensionMethod";
+    public const string FieldName = "field";
     public const string KeywordControl = "controlKeyword";
+    public const string ModuleName = "module";
     public const string OperatorOverloaded = "operatorOverloaded";
-    public const string Whitespace = "whitespace";
-    public const string Text = "text";
     public const string PreprocessorText = "preprocessorText";
     public const string Punctuation = "punctuation";
-    public const string StringVerbatim = "stringVerbatim";
-    public const string StringEscapeCharacter = "stringEscapeCharacter";
     public const string RecordClassName = "recordClass";
-    public const string DelegateName = "delegate";
-    public const string ModuleName = "module";
     public const string RecordStructName = "recordStruct";
-    public const string FieldName = "field";
-    public const string ConstantName = "constant";
-    public const string ExtensionMethodName = "extensionMethod";
+    public const string StringEscapeCharacter = "stringEscapeCharacter";
+    public const string StringVerbatim = "stringVerbatim";
+    public const string Text = "text";
+    public const string Whitespace = "whitespace";
 
     public const string XmlDocCommentAttributeName = "xmlDocCommentAttributeName";
     public const string XmlDocCommentAttributeQuotes = "xmlDocCommentAttributeQuotes";
@@ -83,22 +83,23 @@ internal class CustomLspSemanticTokenNames
 
     public static ImmutableDictionary<string, string> ClassificationTypeNameToCustomTokenName = new Dictionary<string, string>
     {
-        [ClassificationTypeNames.ExcludedCode] = ExcludedCode,
+        [ClassificationTypeNames.ConstantName] = ConstantName,
         [ClassificationTypeNames.ControlKeyword] = KeywordControl,
+        [ClassificationTypeNames.DelegateName] = DelegateName,
+        [ClassificationTypeNames.ExcludedCode] = ExcludedCode,
+        [ClassificationTypeNames.ExtensionName] = ExtensionName,
+        [ClassificationTypeNames.ExtensionMethodName] = ExtensionMethodName,
+        [ClassificationTypeNames.FieldName] = FieldName,
+        [ClassificationTypeNames.ModuleName] = ModuleName,
         [ClassificationTypeNames.OperatorOverloaded] = OperatorOverloaded,
-        [ClassificationTypeNames.WhiteSpace] = Whitespace,
-        [ClassificationTypeNames.Text] = Text,
         [ClassificationTypeNames.PreprocessorText] = PreprocessorText,
         [ClassificationTypeNames.Punctuation] = Punctuation,
-        [ClassificationTypeNames.VerbatimStringLiteral] = StringVerbatim,
-        [ClassificationTypeNames.StringEscapeCharacter] = StringEscapeCharacter,
         [ClassificationTypeNames.RecordClassName] = RecordClassName,
-        [ClassificationTypeNames.DelegateName] = DelegateName,
-        [ClassificationTypeNames.ModuleName] = ModuleName,
         [ClassificationTypeNames.RecordStructName] = RecordStructName,
-        [ClassificationTypeNames.FieldName] = FieldName,
-        [ClassificationTypeNames.ConstantName] = ConstantName,
-        [ClassificationTypeNames.ExtensionMethodName] = ExtensionMethodName,
+        [ClassificationTypeNames.StringEscapeCharacter] = StringEscapeCharacter,
+        [ClassificationTypeNames.Text] = Text,
+        [ClassificationTypeNames.VerbatimStringLiteral] = StringVerbatim,
+        [ClassificationTypeNames.WhiteSpace] = Whitespace,
 
         [ClassificationTypeNames.XmlDocCommentAttributeName] = XmlDocCommentAttributeName,
         [ClassificationTypeNames.XmlDocCommentAttributeQuotes] = XmlDocCommentAttributeQuotes,
