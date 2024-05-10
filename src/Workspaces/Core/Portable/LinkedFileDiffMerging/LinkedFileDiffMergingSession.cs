@@ -123,28 +123,16 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 
         // Add comments in source explaining diffs that could not be merged
 
-        ImmutableArray<TextChange> allChanges;
-        ImmutableArray<TextSpan> mergeConflictResolutionSpans;
-
-        if (unmergedChanges.Count != 0)
-        {
-            mergeConflictHandler ??= firstOldDocument.GetRequiredLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
-            var mergeConflictTextEdits = mergeConflictHandler.CreateEdits(firstOldSourceText, unmergedChanges);
-
-            (allChanges, mergeConflictResolutionSpans) = MergeChangesWithMergeFailComments(appliedChanges, mergeConflictTextEdits);
-        }
-        else
-        {
-            allChanges = appliedChanges;
-            mergeConflictResolutionSpans = [];
-        }
-
         var linkedDocuments = oldSolution.GetRelatedDocumentIds(firstOldDocument.Id);
 
-        return new LinkedFileMergeResult(
-            linkedDocuments,
-            firstOldSourceText.WithChanges(allChanges),
-            mergeConflictResolutionSpans);
+        if (unmergedChanges.Count == 0)
+            return new LinkedFileMergeResult(linkedDocuments, firstOldSourceText.WithChanges(appliedChanges), []);
+
+        mergeConflictHandler ??= firstOldDocument.GetRequiredLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
+        var mergeConflictTextEdits = mergeConflictHandler.CreateEdits(firstOldSourceText, unmergedChanges);
+
+        var (allChanges, mergeConflictResolutionSpans) = MergeChangesWithMergeFailComments(appliedChanges, mergeConflictTextEdits);
+        return new LinkedFileMergeResult(linkedDocuments, firstOldSourceText.WithChanges(allChanges), mergeConflictResolutionSpans);
     }
 
     private static async Task<ImmutableArray<TextChange>> AddDocumentMergeChangesAsync(
