@@ -86,8 +86,7 @@ give it a try.
 ### Deploying with command-line (recommended method)
 
 You can build and deploy with the following command:
-`.\Restore.cmd -Configuration Release` followed by
-`.\Build.cmd -Configuration Release -deployExtensions -launch`.
+`.\Build.cmd -Restore -Configuration Release -deployExtensions -launch`.
 
 Then you can launch the `RoslynDev` hive with `devenv /rootSuffix RoslynDev`.
 
