@@ -309,7 +309,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         if (changes.Length <= 1)
             return changes;
 
-        var orderedChanges = changes.OrderBy(c => c.Span.Start).ToImmutableArray();
+        var orderedChanges = changes.Sort(static (c1, c2) => c1.Span.Start - c2.Span.Start);
         using var _ = ArrayBuilder<TextChange>.GetInstance(changes.Length, out var normalizedChanges);
 
         var currentChange = changes[0];
