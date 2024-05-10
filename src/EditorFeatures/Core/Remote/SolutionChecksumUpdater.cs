@@ -226,6 +226,8 @@ internal sealed class SolutionChecksumUpdater
 
             // Avoid allocating text before seeing if we can bail out.
             var changeRanges = newText.GetChangeRanges(oldText).AsImmutable();
+            if (changeRanges.Length == 0)
+                return;
 
             // no benefit here. pulling from remote host is more efficient
             if (changeRanges is [{ Span.Length: var singleChangeLength }] && singleChangeLength == oldText.Length)
