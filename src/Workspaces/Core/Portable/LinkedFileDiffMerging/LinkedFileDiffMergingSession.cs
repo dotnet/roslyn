@@ -301,7 +301,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         return normalizedChanges;
     }
 
-    internal class LinkedFileDiffMergingSessionInfo
+    internal sealed class LinkedFileDiffMergingSessionInfo
     {
         public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = [];
 
