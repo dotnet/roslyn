@@ -16,73 +16,83 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
+using DocumentAndHashBuilder = ArrayBuilder<(Document newDocument, ImmutableArray<byte> newContentHash)>;
+
 internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solution newSolution, SolutionChanges solutionChanges)
 {
     internal async Task<LinkedFileMergeSessionResult> MergeDiffsAsync(IMergeConflictHandler? mergeConflictHandler, CancellationToken cancellationToken)
     {
         var sessionInfo = new LinkedFileDiffMergingSessionInfo();
 
-        using var _1 = PooledDictionary<string, List<(Document newDocument, ImmutableArray<byte> newContentHash)>>.GetInstance(out var filePathToNewDocumentsAndHashes);
-        foreach (var documentId in solutionChanges.GetProjectChanges().SelectMany(p => p.GetChangedDocuments()))
+        using var _1 = PooledDictionary<string, DocumentAndHashBuilder>.GetInstance(out var filePathToNewDocumentsAndHashes);
+        try
         {
-            // Don't need to do any merging whatsoever for documents that are not linked files.
-            var newDocument = newSolution.GetRequiredDocument(documentId);
-            var relatedDocumentIds = newSolution.GetRelatedDocumentIds(newDocument.Id);
-            if (relatedDocumentIds.Length == 1)
-                continue;
+            foreach (var documentId in solutionChanges.GetProjectChanges().SelectMany(p => p.GetChangedDocuments()))
+            {
+                // Don't need to do any merging whatsoever for documents that are not linked files.
+                var newDocument = newSolution.GetRequiredDocument(documentId);
+                var relatedDocumentIds = newSolution.GetRelatedDocumentIds(newDocument.Id);
+                if (relatedDocumentIds.Length == 1)
+                    continue;
 
-            var filePath = newDocument.FilePath;
-            Contract.ThrowIfNull(filePath);
+                var filePath = newDocument.FilePath;
+                Contract.ThrowIfNull(filePath);
 
-            var newDocumentsAndHashes = filePathToNewDocumentsAndHashes.GetOrAdd(filePath, static (_, capacity) => new(capacity), relatedDocumentIds.Length);
+                var newDocumentsAndHashes = filePathToNewDocumentsAndHashes.GetOrAdd(filePath, static (_, capacity) => DocumentAndHashBuilder.GetInstance(capacity), relatedDocumentIds.Length);
 
-            var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            var newContentHash = newText.GetContentHash();
-            // Ignore any linked documents that we have the same contents as.  
-            if (newDocumentsAndHashes.Any(t => t.newContentHash.SequenceEqual(newContentHash)))
-                continue;
+                var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var newContentHash = newText.GetContentHash();
+                // Ignore any linked documents that we have the same contents as.  
+                if (newDocumentsAndHashes.Any(t => t.newContentHash.SequenceEqual(newContentHash)))
+                    continue;
 
-            newDocumentsAndHashes.Add((newDocument, newContentHash));
+                newDocumentsAndHashes.Add((newDocument, newContentHash));
+            }
+
+            var updatedSolution = newSolution;
+            using var _ = ArrayBuilder<LinkedFileMergeResult>.GetInstance(
+                filePathToNewDocumentsAndHashes.Count(static kvp => kvp.Value.Count > 1),
+                out var linkedFileMergeResults);
+
+            foreach (var (filePath, newDocumentsAndHashes) in filePathToNewDocumentsAndHashes)
+            {
+                Contract.ThrowIfTrue(newDocumentsAndHashes.Count == 0);
+
+                // Don't need to do anything if this document has no linked siblings.
+                var firstNewDocument = newDocumentsAndHashes[0].newDocument;
+
+                var relatedDocuments = newSolution.GetRelatedDocumentIds(firstNewDocument.Id);
+                Contract.ThrowIfTrue(relatedDocuments.Length == 1, "We should have skipped non-linked files in the prior loop.");
+
+                if (newDocumentsAndHashes.Count == 1)
+                {
+                    // The file has linked siblings, but we collapsed down to only one actual document change.  Ensure that
+                    // any linked files have that same content as well.
+                    var firstSourceText = await firstNewDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                    updatedSolution = updatedSolution.WithDocumentTexts(
+                        relatedDocuments.SelectAsArray(d => (d, firstSourceText)));
+                }
+                else
+                {
+                    // Otherwise, merge the changes and set all the linked files to that merged content.
+                    var mergeGroupResult = await MergeLinkedDocumentGroupAsync(newDocumentsAndHashes, sessionInfo, mergeConflictHandler, cancellationToken).ConfigureAwait(false);
+                    linkedFileMergeResults.Add(mergeGroupResult);
+                    updatedSolution = updatedSolution.WithDocumentTexts(
+                        relatedDocuments.SelectAsArray(d => (d, mergeGroupResult.MergedSourceText)));
+                }
+            }
+
+            return new LinkedFileMergeSessionResult(updatedSolution, linkedFileMergeResults);
         }
-
-        var updatedSolution = newSolution;
-        using var _ = ArrayBuilder<LinkedFileMergeResult>.GetInstance(
-            filePathToNewDocumentsAndHashes.Count(static kvp => kvp.Value.Count > 1),
-            out var linkedFileMergeResults);
-
-        foreach (var (filePath, newDocumentsAndHashes) in filePathToNewDocumentsAndHashes)
+        finally
         {
-            Contract.ThrowIfTrue(newDocumentsAndHashes.Count == 0);
-
-            // Don't need to do anything if this document has no linked siblings.
-            var firstNewDocument = newDocumentsAndHashes[0].newDocument;
-
-            var relatedDocuments = newSolution.GetRelatedDocumentIds(firstNewDocument.Id);
-            Contract.ThrowIfTrue(relatedDocuments.Length == 1, "We should have skipped non-linked files in the prior loop.");
-
-            if (newDocumentsAndHashes.Count == 1)
-            {
-                // The file has linked siblings, but we collapsed down to only one actual document change.  Ensure that
-                // any linked files have that same content as well.
-                var firstSourceText = await firstNewDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                updatedSolution = updatedSolution.WithDocumentTexts(
-                    relatedDocuments.SelectAsArray(d => (d, firstSourceText)));
-            }
-            else
-            {
-                // Otherwise, merge the changes and set all the linked files to that merged content.
-                var mergeGroupResult = await MergeLinkedDocumentGroupAsync(newDocumentsAndHashes, sessionInfo, mergeConflictHandler, cancellationToken).ConfigureAwait(false);
-                linkedFileMergeResults.Add(mergeGroupResult);
-                updatedSolution = updatedSolution.WithDocumentTexts(
-                    relatedDocuments.SelectAsArray(d => (d, mergeGroupResult.MergedSourceText)));
-            }
+            foreach (var (_, newDocumentsAndHashes) in filePathToNewDocumentsAndHashes)
+                newDocumentsAndHashes.Free();
         }
-
-        return new LinkedFileMergeSessionResult(updatedSolution, linkedFileMergeResults);
     }
 
     private async Task<LinkedFileMergeResult> MergeLinkedDocumentGroupAsync(
-        List<(Document newDocument, ImmutableArray<byte> newContentHash)> newDocumentsAndHashes,
+        DocumentAndHashBuilder newDocumentsAndHashes,
         LinkedFileDiffMergingSessionInfo sessionInfo,
         IMergeConflictHandler? mergeConflictHandler,
         CancellationToken cancellationToken)
