@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -101,7 +102,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         var appliedChanges = await textDifferencingService.GetTextChangesAsync(
             firstOldDocument, firstNewDocument, TextDifferenceTypes.Line, cancellationToken).ConfigureAwait(false);
 
-        var unmergedChanges = new List<UnmergedDocumentChanges>();
+        using var _ = ArrayBuilder<UnmergedDocumentChanges>.GetInstance(out var unmergedChanges);
         for (int i = 1, n = newDocumentsAndHashes.Count; i < n; i++)
         {
             var siblingNewDocument = newDocumentsAndHashes[i].newDocument;
@@ -148,7 +149,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         Document oldDocument,
         Document newDocument,
         ImmutableArray<TextChange> cumulativeChanges,
-        List<UnmergedDocumentChanges> unmergedChanges,
+        ArrayBuilder<UnmergedDocumentChanges> unmergedChanges,
         LinkedFileGroupSessionInfo groupSessionInfo,
         IDocumentTextDifferencingService textDiffService,
         CancellationToken cancellationToken)
@@ -239,14 +240,14 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 
     private static ImmutableArray<TextChange> MergeChangesWithMergeFailComments(
         ImmutableArray<TextChange> mergedChanges,
-        List<TextChange> commentChanges,
+        ImmutableArray<TextChange> commentChanges,
         List<TextSpan> mergeConflictResolutionSpans,
         LinkedFileGroupSessionInfo groupSessionInfo)
     {
         var mergedChangesList = NormalizeChanges(mergedChanges);
         var commentChangesList = NormalizeChanges(commentChanges);
 
-        var combinedChanges = new List<TextChange>();
+        using var _ = ArrayBuilder<TextChange>.GetInstance(out var combinedChanges);
         var insertedMergeConflictCommentsAtAdjustedLocation = 0;
 
         var commentChangeIndex = 0;
@@ -254,7 +255,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 
         foreach (var mergedChange in mergedChangesList)
         {
-            while (commentChangeIndex < commentChangesList.Count && commentChangesList[commentChangeIndex].Span.End <= mergedChange.Span.Start)
+            while (commentChangeIndex < commentChangesList.Length && commentChangesList[commentChangeIndex].Span.End <= mergedChange.Span.Start)
             {
                 // Add a comment change that does not conflict with any merge change
                 combinedChanges.Add(commentChangesList[commentChangeIndex]);
@@ -263,7 +264,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
                 commentChangeIndex++;
             }
 
-            if (commentChangeIndex >= commentChangesList.Count || mergedChange.Span.End <= commentChangesList[commentChangeIndex].Span.Start)
+            if (commentChangeIndex >= commentChangesList.Length || mergedChange.Span.End <= commentChangesList[commentChangeIndex].Span.Start)
             {
                 // Add a merge change that does not conflict with any comment change
                 combinedChanges.Add(mergedChange);
@@ -273,7 +274,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 
             // The current comment insertion location conflicts with a merge diff location. Add the comment before the diff.
             var conflictingCommentInsertionLocation = new TextSpan(mergedChange.Span.Start, 0);
-            while (commentChangeIndex < commentChangesList.Count && commentChangesList[commentChangeIndex].Span.Start < mergedChange.Span.End)
+            while (commentChangeIndex < commentChangesList.Length && commentChangesList[commentChangeIndex].Span.Start < mergedChange.Span.End)
             {
                 combinedChanges.Add(new TextChange(conflictingCommentInsertionLocation, commentChangesList[commentChangeIndex].NewText!));
                 mergeConflictResolutionSpans.Add(new TextSpan(commentChangesList[commentChangeIndex].Span.Start + currentPositionDelta, commentChangesList[commentChangeIndex].NewText!.Length));
@@ -287,7 +288,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             currentPositionDelta += (mergedChange.NewText!.Length - mergedChange.Span.Length);
         }
 
-        while (commentChangeIndex < commentChangesList.Count)
+        while (commentChangeIndex < commentChangesList.Length)
         {
             // Add a comment change that does not conflict with any merge change
             combinedChanges.Add(commentChangesList[commentChangeIndex]);
@@ -297,19 +298,19 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             commentChangeIndex++;
         }
 
-        groupSessionInfo.InsertedMergeConflictComments = commentChanges.Count();
+        groupSessionInfo.InsertedMergeConflictComments = commentChanges.Length;
         groupSessionInfo.InsertedMergeConflictCommentsAtAdjustedLocation = insertedMergeConflictCommentsAtAdjustedLocation;
 
-        return NormalizeChanges(combinedChanges).ToImmutableArray();
+        return NormalizeChanges(combinedChanges.ToImmutableAndClear());
     }
 
-    private static IList<TextChange> NormalizeChanges(IList<TextChange> changes)
+    private static ImmutableArray<TextChange> NormalizeChanges(ImmutableArray<TextChange> changes)
     {
-        if (changes.Count <= 1)
+        if (changes.Length <= 1)
             return changes;
 
         var orderedChanges = changes.OrderBy(c => c.Span.Start).ToList();
-        var normalizedChanges = new List<TextChange>();
+        using var _ = ArrayBuilder<TextChange>.GetInstance(changes.Length, out var normalizedChanges);
 
         var currentChange = changes.First();
         foreach (var nextChange in changes.Skip(1))
@@ -326,7 +327,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         }
 
         normalizedChanges.Add(currentChange);
-        return normalizedChanges;
+        return normalizedChanges.ToImmutableAndClear();
     }
 
     internal sealed class LinkedFileDiffMergingSessionInfo
