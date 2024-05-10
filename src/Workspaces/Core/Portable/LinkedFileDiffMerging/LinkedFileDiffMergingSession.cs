@@ -62,7 +62,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
     }
 
     private async Task<LinkedFileMergeResult> MergeLinkedDocumentGroupAsync(
-        IEnumerable<DocumentId> allLinkedDocuments,
+        ImmutableArray<DocumentId> allLinkedDocuments,
         IEnumerable<DocumentId> linkedDocumentGroup,
         LinkedFileDiffMergingSessionInfo sessionInfo,
         IMergeConflictHandler mergeConflictHandler,
