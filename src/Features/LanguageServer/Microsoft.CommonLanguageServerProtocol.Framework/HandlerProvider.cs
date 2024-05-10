@@ -64,7 +64,7 @@ internal class HandlerProvider : AbstractHandlerProvider
 
             foreach (var handlerType in requestHandlerTypes)
             {
-                var requestResponseTypes = ConvertHandlerTypeToRequestResponseTypes(handlerType);
+                var requestResponseTypes = HandlerTypes.ConvertHandlerTypeToRequestResponseTypes(handlerType);
                 foreach (var requestResponseType in requestResponseTypes)
                 {
                     var (method, languages) = GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContext, requestResponseType.ResponseType);
@@ -95,7 +95,7 @@ internal class HandlerProvider : AbstractHandlerProvider
         foreach (var handler in handlers)
         {
             var handlerType = handler.GetType();
-            var requestResponseTypes = ConvertHandlerTypeToRequestResponseTypes(handlerType);
+            var requestResponseTypes = HandlerTypes.ConvertHandlerTypeToRequestResponseTypes(handlerType);
             foreach (var requestResponseType in requestResponseTypes)
             {
                 var (method, languages) = GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContext, requestResponseType.ResponseType);
@@ -216,59 +216,4 @@ internal class HandlerProvider : AbstractHandlerProvider
     }
 
     private static readonly IReadOnlyList<string> RequiredMethods = new List<string> { "initialize", "initialized", "shutdown", "exit" };
-
-    private record HandlerTypes(Type? RequestType, Type? ResponseType, Type RequestContext);
-
-    /// <summary>
-    /// Retrieves the generic argument information from the request handler type without instantiating it.
-    /// </summary>
-    private static List<HandlerTypes> ConvertHandlerTypeToRequestResponseTypes(Type handlerType)
-    {
-        var handlerList = new List<HandlerTypes>();
-
-        foreach (var interfaceType in handlerType.GetInterfaces())
-        {
-            if (!interfaceType.IsGenericType)
-            {
-                continue;
-            }
-
-            var genericDefinition = interfaceType.GetGenericTypeDefinition();
-
-            HandlerTypes types;
-            if (genericDefinition == typeof(IRequestHandler<,,>))
-            {
-                var genericArguments = interfaceType.GetGenericArguments();
-                types = new HandlerTypes(RequestType: genericArguments[0], ResponseType: genericArguments[1], RequestContext: genericArguments[2]);
-            }
-            else if (genericDefinition == typeof(IRequestHandler<,>))
-            {
-                var genericArguments = interfaceType.GetGenericArguments();
-                types = new HandlerTypes(RequestType: null, ResponseType: genericArguments[0], RequestContext: genericArguments[1]);
-            }
-            else if (genericDefinition == typeof(INotificationHandler<,>))
-            {
-                var genericArguments = interfaceType.GetGenericArguments();
-                types = new HandlerTypes(RequestType: genericArguments[0], ResponseType: null, RequestContext: genericArguments[1]);
-            }
-            else if (genericDefinition == typeof(INotificationHandler<>))
-            {
-                var genericArguments = interfaceType.GetGenericArguments();
-                types = new HandlerTypes(RequestType: null, ResponseType: null, RequestContext: genericArguments[0]);
-            }
-            else
-            {
-                continue;
-            }
-
-            handlerList.Add(types);
-        }
-
-        if (handlerList.Count == 0)
-        {
-            throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not implement {nameof(IMethodHandler)}");
-        }
-
-        return handlerList;
-    }
 }
