@@ -41,6 +41,7 @@ public static class TextTags
     public const string TypeParameter = nameof(TypeParameter);
     public const string RangeVariable = nameof(RangeVariable);
     public const string EnumMember = nameof(EnumMember);
+    internal const string Extension = nameof(Extension);
     public const string ExtensionMethod = nameof(ExtensionMethod);
     public const string Constant = nameof(Constant);
     public const string Record = nameof(Record);

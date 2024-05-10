@@ -349,11 +349,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
+                            <Node Id="(@3 Type=&lt;invalid-global-code&gt; Member=Item)" Category="CodeSchema_Property" CodeSchemaProperty_IsPrivate="True" CommonLabel="this" Icon="Microsoft.VisualStudio.Property.Private" Label="this"/>
                         </Nodes>
-                        <Links/>
+                        <Links>
+                            <Link Source="(@1 @2)" Target="(@3 Type=&lt;invalid-global-code&gt; Member=Item)" Category="Contains"/>
+                        </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
+                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using

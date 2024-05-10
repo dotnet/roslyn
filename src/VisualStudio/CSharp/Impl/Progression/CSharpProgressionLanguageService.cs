@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host;
@@ -66,16 +67,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
                 {
                     if (!cancellationToken.IsCancellationRequested)
                     {
-                        if (node.Kind() is SyntaxKind.ClassDeclaration or
-                            SyntaxKind.RecordDeclaration or
-                            SyntaxKind.RecordStructDeclaration or
-                            SyntaxKind.DelegateDeclaration or
-                            SyntaxKind.EnumDeclaration or
-                            SyntaxKind.InterfaceDeclaration or
-                            SyntaxKind.StructDeclaration or
-                            SyntaxKind.VariableDeclarator or
-                            SyntaxKind.MethodDeclaration or
-                            SyntaxKind.PropertyDeclaration)
+                        if (node is BaseTypeDeclarationSyntax
+                                or DelegateDeclarationSyntax
+                                or VariableDeclaratorSyntax
+                                or BaseMethodDeclarationSyntax
+                                or BasePropertyDeclarationSyntax)
                         {
                             yield return node;
                         }

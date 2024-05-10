@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             NavigateToItemKind.Enum,
             NavigateToItemKind.EnumItem,
             NavigateToItemKind.Event,
+            NavigateToItemKind.Extension,
             NavigateToItemKind.Field,
             NavigateToItemKind.Interface,
             NavigateToItemKind.Method,

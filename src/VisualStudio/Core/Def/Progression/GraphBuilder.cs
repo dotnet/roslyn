@@ -582,6 +582,11 @@ internal sealed partial class GraphBuilder
                 iconGroupName = "Enum";
                 break;
 
+            case TypeKind.Extension:
+                node.AddCategory(CodeNodeCategories.Class);
+                iconGroupName = "Class";
+                break;
+
             case TypeKind.Interface:
                 node.AddCategory(CodeNodeCategories.Interface);
                 iconGroupName = "Interface";
@@ -723,12 +728,13 @@ internal sealed partial class GraphBuilder
             NavigateToItemKind.Class => CodeNodeCategories.Class,
             NavigateToItemKind.Delegate => CodeNodeCategories.Delegate,
             NavigateToItemKind.Enum => CodeNodeCategories.Enum,
-            NavigateToItemKind.Interface => CodeNodeCategories.Interface,
-            NavigateToItemKind.Module => CodeNodeCategories.Module,
-            NavigateToItemKind.Structure => CodeNodeCategories.Struct,
-            NavigateToItemKind.Method => CodeNodeCategories.Method,
-            NavigateToItemKind.Property => CodeNodeCategories.Property,
             NavigateToItemKind.Event => CodeNodeCategories.Event,
+            NavigateToItemKind.Extension => CodeNodeCategories.Class,
+            NavigateToItemKind.Interface => CodeNodeCategories.Interface,
+            NavigateToItemKind.Method => CodeNodeCategories.Method,
+            NavigateToItemKind.Module => CodeNodeCategories.Module,
+            NavigateToItemKind.Property => CodeNodeCategories.Property,
+            NavigateToItemKind.Structure => CodeNodeCategories.Struct,
             NavigateToItemKind.Constant or
             NavigateToItemKind.EnumItem or
             NavigateToItemKind.Field => CodeNodeCategories.Field,

@@ -11,11 +11,14 @@ using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
+// using Microsoft.VisualStudio.Search.Data;
 using Microsoft.VisualStudio.Text.PatternMatching;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
+    using VSNavigateToItemKind = VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind;
+
     internal partial class NavigateToItemProvider
     {
         private class NavigateToItemProviderCallback : INavigateToSearchCallback
@@ -58,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     var project = _solution.GetRequiredProject(result.NavigableItem.Document.Project.Id);
                     var navigateToItem = new NavigateToItem(
                         result.Name,
-                        result.Kind,
+                        GetResultType(result.Kind),
                         GetNavigateToLanguage(project.Language),
                         result.SecondarySort,
                         result,
@@ -80,6 +83,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
                 return Task.CompletedTask;
             }
+
+            private static string GetResultType(string kind)
+                => kind switch
+                {
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Class => VSNavigateToItemKind.Class,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Constant => VSNavigateToItemKind.Constant,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Delegate => VSNavigateToItemKind.Delegate,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Enum => VSNavigateToItemKind.Enum,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.EnumItem => VSNavigateToItemKind.EnumItem,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Event => VSNavigateToItemKind.Event,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Extension => VSNavigateToItemKind.Class,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Field => VSNavigateToItemKind.Field,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Interface => VSNavigateToItemKind.Interface,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Method => VSNavigateToItemKind.Method,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Module => VSNavigateToItemKind.Module,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.OtherSymbol => VSNavigateToItemKind.OtherSymbol,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Property => VSNavigateToItemKind.Property,
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.Structure => VSNavigateToItemKind.Structure,
+                    _ => kind
+                };
 
             public void ReportProgress(int current, int maximum)
             {

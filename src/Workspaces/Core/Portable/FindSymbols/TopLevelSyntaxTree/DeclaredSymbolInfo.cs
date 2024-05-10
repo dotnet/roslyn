@@ -24,6 +24,7 @@ internal enum DeclaredSymbolInfoKind : byte
     Enum,
     EnumMember,
     Event,
+    Extension,
     ExtensionMethod,
     Field,
     Indexer,

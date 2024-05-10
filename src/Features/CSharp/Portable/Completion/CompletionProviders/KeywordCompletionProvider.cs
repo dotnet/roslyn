@@ -66,6 +66,7 @@ internal class KeywordCompletionProvider : AbstractKeywordCompletionProvider<CSh
             new ErrorKeywordRecommender(),
             new EventKeywordRecommender(),
             new ExplicitKeywordRecommender(),
+            new ExtensionKeywordRecommender(),
             new ExternKeywordRecommender(),
             new FalseKeywordRecommender(),
             new FieldKeywordRecommender(),

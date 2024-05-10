@@ -2007,6 +2007,30 @@ record Goo(int Member)
                 Assert.Single(items, i => i.SecondarySort.StartsWith("0003") && IsFromFile(i, "File2.cs"));
             });
         }
+
+        [Theory, CombinatorialData]
+        public async Task FindExtension(
+            TestHost testHost,
+            Composition composition,
+            bool isImplicit)
+        {
+            var content = XElement.Parse($$"""
+                <Workspace>
+                    <Project Language="C#"  LanguageVersion="preview" CommonReferences="true">
+                        <Document FilePath="File1.cs">
+                {{(isImplicit ? "implicit" : "explicit")}} extension Goo
+                {
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """);
+            await TestAsync(testHost, composition, content, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
+            });
+        }
     }
 }
 #pragma warning restore CS0618 // MatchKind is obsolete
