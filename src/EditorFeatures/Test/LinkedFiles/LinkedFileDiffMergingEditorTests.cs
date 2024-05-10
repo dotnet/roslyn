@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles;
 
-public partial class LinkedFileDiffMergingEditorTests : AbstractCodeActionTest
+public sealed class LinkedFileDiffMergingEditorTests : AbstractCodeActionTest
 {
     private const string WorkspaceXml = """
         <Workspace>
@@ -95,7 +95,7 @@ public partial class LinkedFileDiffMergingEditorTests : AbstractCodeActionTest
     protected override ParseOptions GetScriptOptions()
         => throw new NotSupportedException();
 
-    private class TestCodeRefactoringProvider : CodeRefactoringProvider
+    private sealed class TestCodeRefactoringProvider : CodeRefactoringProvider
     {
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -108,9 +108,7 @@ public partial class LinkedFileDiffMergingEditorTests : AbstractCodeActionTest
                 .WithDocumentText(document.Id, (await document.GetTextAsync()).Replace(textString.IndexOf("public"), "public".Length, "internal"))
                 .WithDocumentText(linkedDocument.Id, sourceText.Replace(textString.LastIndexOf("public"), "public".Length, "private"));
 
-#pragma warning disable RS0005
-            context.RegisterRefactoring(CodeAction.Create("Description", (ct) => Task.FromResult(newSolution)), context.Span);
-#pragma warning restore RS0005
+            context.RegisterRefactoring(CodeAction.Create("Description", _ => Task.FromResult(newSolution)), context.Span);
         }
     }
 }
