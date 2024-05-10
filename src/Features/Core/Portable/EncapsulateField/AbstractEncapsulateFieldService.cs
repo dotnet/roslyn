@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField;
 internal abstract partial class AbstractEncapsulateFieldService : ILanguageService
 {
     private static readonly CultureInfo EnUSCultureInfo = new("en-US");
-    private static SymbolRenameOptions s_symbolRenameOptions = new(
+    private static readonly SymbolRenameOptions s_symbolRenameOptions = new(
         RenameOverloads: false,
         RenameInStrings: false,
         RenameInComments: false,
