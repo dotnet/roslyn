@@ -198,10 +198,10 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             groupSessionInfo.IsolatedDiffs++;
         }
 
-        if (unmergedDocumentChanges.Any())
+        if (unmergedDocumentChanges.Count != 0)
         {
             unmergedChanges.Add(new UnmergedDocumentChanges(
-                unmergedDocumentChanges.AsEnumerable(),
+                unmergedDocumentChanges,
                 oldDocument.Project.Name,
                 oldDocument.Id));
         }
@@ -210,7 +210,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
     }
 
     private static IEnumerable<TextChange> MergeChangesWithMergeFailComments(
-        IEnumerable<TextChange> mergedChanges,
+        ImmutableArray<TextChange> mergedChanges,
         IEnumerable<TextChange> commentChanges,
         List<TextSpan> mergeConflictResolutionSpans,
         LinkedFileGroupSessionInfo groupSessionInfo)
