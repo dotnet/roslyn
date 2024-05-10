@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis;
 
 internal readonly struct UnmergedDocumentChanges(ImmutableArray<TextChange> unmergedChanges, string projectName, DocumentId documentId)
 {
-    public ImmutableArray<TextChange> UnmergedChanges { get; } = unmergedChanges;
-    public string ProjectName { get; } = projectName;
-    public DocumentId DocumentId { get; } = documentId;
+    public readonly ImmutableArray<TextChange> UnmergedChanges = unmergedChanges;
+    public readonly string ProjectName = projectName;
+    public readonly DocumentId DocumentId = documentId;
 }
