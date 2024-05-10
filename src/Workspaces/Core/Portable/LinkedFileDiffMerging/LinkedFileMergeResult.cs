@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed class LinkedFileMergeResult(ImmutableArray<DocumentId> documentIds, SourceText mergedSourceText, ImmutableArray<TextSpan> mergeConflictResolutionSpans)
+internal readonly struct LinkedFileMergeResult(ImmutableArray<DocumentId> documentIds, SourceText mergedSourceText, ImmutableArray<TextSpan> mergeConflictResolutionSpans)
 {
-    public ImmutableArray<DocumentId> DocumentIds => documentIds;
-    public SourceText MergedSourceText => mergedSourceText;
-    public ImmutableArray<TextSpan> MergeConflictResolutionSpans => mergeConflictResolutionSpans;
+    public readonly ImmutableArray<DocumentId> DocumentIds = documentIds;
+    public readonly SourceText MergedSourceText = mergedSourceText;
+    public readonly ImmutableArray<TextSpan> MergeConflictResolutionSpans = mergeConflictResolutionSpans;
     public bool HasMergeConflicts => !MergeConflictResolutionSpans.IsEmpty;
 }
