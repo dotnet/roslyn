@@ -143,8 +143,8 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         IDocumentTextDifferencingService textDiffService,
         CancellationToken cancellationToken)
     {
-        var unmergedDocumentChanges = new List<TextChange>();
-        using var _ = ArrayBuilder<TextChange>.GetInstance(out var successfullyMergedChanges);
+        using var _1 = ArrayBuilder<TextChange>.GetInstance(out var unmergedDocumentChanges);
+        using var _2 = ArrayBuilder<TextChange>.GetInstance(out var successfullyMergedChanges);
 
         var cumulativeChangeIndex = 0;
 
@@ -200,7 +200,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         if (unmergedDocumentChanges.Count != 0)
         {
             unmergedChanges.Add(new UnmergedDocumentChanges(
-                unmergedDocumentChanges,
+                unmergedDocumentChanges.ToImmutableAndClear(),
                 oldDocument.Project.Name,
                 oldDocument.Id));
         }
