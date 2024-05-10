@@ -21,7 +21,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
     {
         var sessionInfo = new LinkedFileDiffMergingSessionInfo();
 
-        using var _ = PooledDictionary<string, List<(Document newDocument, ImmutableArray<byte> newContentHash)>>.GetInstance(out var filePathToNewDocumentsAndHashes);
+        using var _1 = PooledDictionary<string, List<(Document newDocument, ImmutableArray<byte> newContentHash)>>.GetInstance(out var filePathToNewDocumentsAndHashes);
         foreach (var documentId in solutionChanges.GetProjectChanges().SelectMany(p => p.GetChangedDocuments()))
         {
             // Don't need to do any merging whatsoever for documents that are not linked files.
@@ -45,7 +45,9 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         }
 
         var updatedSolution = newSolution;
-        var linkedFileMergeResults = new List<LinkedFileMergeResult>();
+        using var _ = ArrayBuilder<LinkedFileMergeResult>.GetInstance(
+            filePathToNewDocumentsAndHashes.Count(static kvp => kvp.Value.Count > 1),
+            out var linkedFileMergeResults);
 
         foreach (var (filePath, newDocumentsAndHashes) in filePathToNewDocumentsAndHashes)
         {

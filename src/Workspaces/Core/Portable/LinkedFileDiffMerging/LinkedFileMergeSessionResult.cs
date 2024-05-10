@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis;
@@ -13,7 +14,7 @@ internal sealed class LinkedFileMergeSessionResult
 
     public readonly Dictionary<DocumentId, List<TextSpan>> MergeConflictCommentSpans = [];
 
-    public LinkedFileMergeSessionResult(Solution mergedSolution, List<LinkedFileMergeResult> fileMergeResults)
+    public LinkedFileMergeSessionResult(Solution mergedSolution, ArrayBuilder<LinkedFileMergeResult> fileMergeResults)
     {
         this.MergedSolution = mergedSolution;
 
