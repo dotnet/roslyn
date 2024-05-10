@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField;
 
 internal abstract partial class AbstractEncapsulateFieldService : ILanguageService
 {
+    private static readonly CultureInfo EnUSCultureInfo = new("en-US");
+
     protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
     protected abstract Task<ImmutableArray<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
     protected abstract IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType);
@@ -44,7 +46,7 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         return new EncapsulateFieldResult(
             firstField.ToDisplayString(),
             firstField.GetGlyph(),
-            c => EncapsulateFieldsAsync(document, fields, fallbackOptions, useDefaultBehavior, c));
+            cancellationToken => EncapsulateFieldsAsync(document, fields, fallbackOptions, useDefaultBehavior, cancellationToken));
     }
 
     public async Task<ImmutableArray<CodeAction>> GetEncapsulateFieldCodeActionsAsync(Document document, TextSpan span, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
@@ -77,11 +79,11 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         => [
             CodeAction.Create(
                 FeaturesResources.Encapsulate_fields_and_use_property,
-                c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c),
+                cancellationToken => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, cancellationToken),
                 nameof(FeaturesResources.Encapsulate_fields_and_use_property)),
             CodeAction.Create(
                 FeaturesResources.Encapsulate_fields_but_still_use_field,
-                c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c),
+                cancellationToken => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, cancellationToken),
                 nameof(FeaturesResources.Encapsulate_fields_but_still_use_field)),
         ];
 
@@ -92,11 +94,11 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         [
             CodeAction.Create(
                 string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, field.Name),
-                c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c),
+                cancellationToken => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, cancellationToken),
                 nameof(FeaturesResources.Encapsulate_field_colon_0_and_use_property) + "_" + field.Name),
             CodeAction.Create(
                 string.Format(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field, field.Name),
-                c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c),
+                cancellationToken => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, cancellationToken),
                 nameof(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field) + "_" + field.Name),
         ];
     }
@@ -437,6 +439,4 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         var firstCharacter = EnUSCultureInfo.TextInfo.ToUpper(baseName[0]);
         return firstCharacter.ToString() + baseName[1..];
     }
-
-    private static readonly CultureInfo EnUSCultureInfo = new("en-US");
 }
