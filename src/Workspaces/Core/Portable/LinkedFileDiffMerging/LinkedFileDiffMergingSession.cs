@@ -120,8 +120,6 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
                 cancellationToken).ConfigureAwait(false);
         }
 
-        // Add comments in source explaining diffs that could not be merged
-
         var linkedDocuments = oldSolution.GetRelatedDocumentIds(firstOldDocument.Id);
 
         if (unmergedChanges.Count == 0)
@@ -130,6 +128,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         mergeConflictHandler ??= firstOldDocument.GetRequiredLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
         var mergeConflictTextEdits = mergeConflictHandler.CreateEdits(firstOldSourceText, unmergedChanges);
 
+        // Add comments in source explaining diffs that could not be merged
         var (allChanges, mergeConflictResolutionSpans) = MergeChangesWithMergeFailComments(allTextChangesAcrossLinkedFiles, mergeConflictTextEdits);
         return new LinkedFileMergeResult(linkedDocuments, firstOldSourceText.WithChanges(allChanges), mergeConflictResolutionSpans);
     }
