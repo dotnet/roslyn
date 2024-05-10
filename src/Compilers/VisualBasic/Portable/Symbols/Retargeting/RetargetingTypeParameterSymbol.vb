@@ -98,6 +98,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AllowsByRefLike As Boolean
+            Get
+                Return _underlyingTypeParameter.AllowsByRefLike
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Variance As VarianceKind
             Get
                 Return _underlyingTypeParameter.Variance

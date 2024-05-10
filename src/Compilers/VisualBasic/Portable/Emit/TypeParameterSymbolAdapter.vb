@@ -235,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IGenericParameterAllowByRefLike As Boolean Implements IGenericParameter.AllowByRefLike
             Get
-                Return False ' PROTOTYPE(RefStructInterfaces): Implement for real
+                Return AdaptedTypeParameterSymbol.AllowsByRefLike
             End Get
         End Property
 

@@ -64,6 +64,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AllowsByRefLike As Boolean
+            Get
+                Return _sourceTypeParameterSymbol.AllowsByRefLike
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Throw ExceptionUtilities.Unreachable
