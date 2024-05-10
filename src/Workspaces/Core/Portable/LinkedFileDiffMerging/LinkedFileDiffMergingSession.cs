@@ -55,7 +55,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             var firstNewDocument = newDocumentsAndHashes[0].newDocument;
 
             var relatedDocuments = newSolution.GetRelatedDocumentIds(firstNewDocument.Id);
-            Contract.ThrowIfTrue(relatedDocuments.Length == 1, "We should have skipped non-linked files in the prior loop.")
+            Contract.ThrowIfTrue(relatedDocuments.Length == 1, "We should have skipped non-linked files in the prior loop.");
 
             if (newDocumentsAndHashes.Count == 1)
             {
