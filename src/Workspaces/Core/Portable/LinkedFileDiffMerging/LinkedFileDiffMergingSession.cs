@@ -24,7 +24,11 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         using var _ = PooledDictionary<string, List<(Document newDocument, ImmutableArray<byte> newContentHash)>>.GetInstance(out var filePathToNewDocumentsAndHashes);
         foreach (var documentId in solutionChanges.GetProjectChanges().SelectMany(p => p.GetChangedDocuments()))
         {
+            // Don't need to do any merging whatsoever for documents that are not linked files.
             var newDocument = newSolution.GetRequiredDocument(documentId);
+            if (newSolution.GetRelatedDocumentIds(newDocument.Id).Length == 1)
+                continue;
+
             var filePath = newDocument.FilePath;
             Contract.ThrowIfNull(filePath);
 
@@ -48,9 +52,9 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 
             // Don't need to do anything if this document has no linked siblings.
             var firstNewDocument = newDocumentsAndHashes[0].newDocument;
+
             var relatedDocuments = newSolution.GetRelatedDocumentIds(firstNewDocument.Id);
-            if (relatedDocuments.Length == 1)
-                continue;
+            Contract.ThrowIfTrue(relatedDocuments.Length == 1, "We should have skipped non-linked files in the prior loop.")
 
             if (newDocumentsAndHashes.Count == 1)
             {
