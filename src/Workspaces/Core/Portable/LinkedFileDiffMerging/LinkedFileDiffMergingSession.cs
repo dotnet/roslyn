@@ -103,7 +103,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         var firstOldDocument = oldSolution.GetRequiredDocument(firstNewDocument.Id);
         var firstOldSourceText = await firstOldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
-        var appliedChanges = await textDifferencingService.GetTextChangesAsync(
+        var allTextChangesAcrossLinkedFiles = await textDifferencingService.GetTextChangesAsync(
             firstOldDocument, firstNewDocument, TextDifferenceTypes.Line, cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<UnmergedDocumentChanges>.GetInstance(out var unmergedChanges);
@@ -112,10 +112,10 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             var siblingNewDocument = newDocumentsAndHashes[i].newDocument;
             var siblingOldDocument = oldSolution.GetRequiredDocument(siblingNewDocument.Id);
 
-            appliedChanges = await AddDocumentMergeChangesAsync(
+            allTextChangesAcrossLinkedFiles = await AddDocumentMergeChangesAsync(
                 siblingOldDocument,
                 siblingNewDocument,
-                appliedChanges,
+                allTextChangesAcrossLinkedFiles,
                 unmergedChanges,
                 textDifferencingService,
                 cancellationToken).ConfigureAwait(false);
@@ -126,12 +126,12 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         var linkedDocuments = oldSolution.GetRelatedDocumentIds(firstOldDocument.Id);
 
         if (unmergedChanges.Count == 0)
-            return new LinkedFileMergeResult(linkedDocuments, firstOldSourceText.WithChanges(appliedChanges), []);
+            return new LinkedFileMergeResult(linkedDocuments, firstOldSourceText.WithChanges(allTextChangesAcrossLinkedFiles), []);
 
         mergeConflictHandler ??= firstOldDocument.GetRequiredLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
         var mergeConflictTextEdits = mergeConflictHandler.CreateEdits(firstOldSourceText, unmergedChanges);
 
-        var (allChanges, mergeConflictResolutionSpans) = MergeChangesWithMergeFailComments(appliedChanges, mergeConflictTextEdits);
+        var (allChanges, mergeConflictResolutionSpans) = MergeChangesWithMergeFailComments(allTextChangesAcrossLinkedFiles, mergeConflictTextEdits);
         return new LinkedFileMergeResult(linkedDocuments, firstOldSourceText.WithChanges(allChanges), mergeConflictResolutionSpans);
     }
 
