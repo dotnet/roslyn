@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,13 +18,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
     public partial class LinkedFileDiffMergingEditorTests : AbstractCodeActionTest
     {
         private const string WorkspaceXml = @"<Workspace>
-                    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj"" PreprocessorSymbols=""Proj1"">
-                        <Document FilePath = ""C.cs""><![CDATA[public class [|C|] { }]]></Document>
-                    </Project>
-                    <Project Language = ""C#"" CommonReferences=""true"" PreprocessorSymbols=""Proj2"">
-                        <Document IsLinkFile = ""true"" LinkAssemblyName=""CSProj"" LinkFilePath=""C.cs""/>
-                    </Project>
-                </Workspace>";
+            <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj"" PreprocessorSymbols=""Proj1"">
+                <Document FilePath = ""C.cs""><![CDATA[public class [|C|]
+{
+    public class D
+    {
+    }
+}]]></Document>
+            </Project>
+            <Project Language = ""C#"" CommonReferences=""true"" PreprocessorSymbols=""Proj2"">
+                <Document IsLinkFile = ""true"" LinkAssemblyName=""CSProj"" LinkFilePath=""C.cs""/>
+            </Project>
+        </Workspace>";
+
+        private const string s_expectedCode = """
+            internal class C
+            {
+                private class D
+                {
+                }
+            }
+            """;
 
         protected internal override string GetLanguage()
             => LanguageNames.CSharp;
@@ -40,13 +53,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             using var workspace = EditorTestWorkspace.Create(WorkspaceXml, composition: EditorTestCompositions.EditorFeaturesWpf);
             var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, new TestParameters());
 
-            var expectedCode = "private class D { }";
-
             await TestActionOnLinkedFiles(
                 workspace,
-                expectedText: expectedCode,
+                expectedText: s_expectedCode,
                 action: codeIssueOrRefactoring.CodeActions[0].action,
-                expectedPreviewContents: expectedCode);
+                expectedPreviewContents: s_expectedCode);
         }
 
         [Fact]
@@ -56,35 +67,38 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             var solution = workspace.CurrentSolution;
 
             var documentId = workspace.Documents.Single(d => !d.IsLinkFile).Id;
-            var text = await workspace.CurrentSolution.GetDocument(documentId).GetTextAsync();
+            var text = await workspace.CurrentSolution.GetRequiredDocument(documentId).GetTextAsync();
 
             var linkedDocumentId = workspace.Documents.Single(d => d.IsLinkFile).Id;
-            var linkedText = await workspace.CurrentSolution.GetDocument(linkedDocumentId).GetTextAsync();
+            var linkedText = await workspace.CurrentSolution.GetRequiredDocument(linkedDocumentId).GetTextAsync();
+
+            var textString = linkedText.ToString();
 
             var newSolution = solution
-                .WithDocumentText(documentId, text.Replace(13, 1, "D"))
-                .WithDocumentText(linkedDocumentId, linkedText.Replace(0, 6, "private"));
+                .WithDocumentText(documentId, text.Replace(textString.IndexOf("public"), "public".Length, "internal"))
+                .WithDocumentText(linkedDocumentId, linkedText.Replace(textString.LastIndexOf("public"), "public".Length, "private"));
 
             workspace.TryApplyChanges(newSolution);
 
-            var expectedMergedText = "private class D { }";
-            Assert.Equal(expectedMergedText, (await workspace.CurrentSolution.GetDocument(documentId).GetTextAsync()).ToString());
-            Assert.Equal(expectedMergedText, (await workspace.CurrentSolution.GetDocument(linkedDocumentId).GetTextAsync()).ToString());
+            Assert.Equal(s_expectedCode, (await workspace.CurrentSolution.GetRequiredDocument(documentId).GetTextAsync()).ToString());
+            Assert.Equal(s_expectedCode, (await workspace.CurrentSolution.GetRequiredDocument(linkedDocumentId).GetTextAsync()).ToString());
         }
 
         protected override ParseOptions GetScriptOptions()
             => throw new NotSupportedException();
 
-        private class TestCodeRefactoringProvider : CodeRefactorings.CodeRefactoringProvider
+        private class TestCodeRefactoringProvider : CodeRefactoringProvider
         {
             public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
                 var document = context.Document;
                 var linkedDocument = document.Project.Solution.Projects.Single(p => p != document.Project).Documents.Single();
+                var sourceText = await linkedDocument.GetTextAsync();
+                var textString = sourceText.ToString();
 
                 var newSolution = document.Project.Solution
-                    .WithDocumentText(document.Id, (await document.GetTextAsync()).Replace(13, 1, "D"))
-                    .WithDocumentText(linkedDocument.Id, (await linkedDocument.GetTextAsync()).Replace(0, 6, "private"));
+                    .WithDocumentText(document.Id, (await document.GetTextAsync()).Replace(textString.IndexOf("public"), "public".Length, "internal"))
+                    .WithDocumentText(linkedDocument.Id, sourceText.Replace(textString.LastIndexOf("public"), "public".Length, "private"));
 
 #pragma warning disable RS0005
                 context.RegisterRefactoring(CodeAction.Create("Description", (ct) => Task.FromResult(newSolution)), context.Span);
