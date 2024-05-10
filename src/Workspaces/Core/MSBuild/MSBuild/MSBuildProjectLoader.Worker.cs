@@ -14,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 

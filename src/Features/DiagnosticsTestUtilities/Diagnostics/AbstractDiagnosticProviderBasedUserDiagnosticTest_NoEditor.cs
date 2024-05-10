@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestWorkspace workspace, TestParameters parameters)
         {
             var (analyzer, _) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
-            AddAnalyzerToWorkspace(workspace, analyzer, parameters);
+            AddAnalyzerToWorkspace(workspace, analyzer);
 
             var document = GetDocumentAndSelectSpan(workspace, out var span);
             var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestWorkspace workspace, TestParameters parameters)
         {
             var (analyzer, fixer) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
-            AddAnalyzerToWorkspace(workspace, analyzer, parameters);
+            AddAnalyzerToWorkspace(workspace, analyzer);
 
             GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
 

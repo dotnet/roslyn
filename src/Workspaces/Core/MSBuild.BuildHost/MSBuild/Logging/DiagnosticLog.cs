@@ -7,7 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Logging
+namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class DiagnosticLog : IEnumerable<DiagnosticLogItem>
     {

@@ -79,14 +79,8 @@ internal static partial class FixAllContextHelper
                         source: projectsToFix,
                         produceItems: static async (projectToFix, callback, args, cancellationToken) =>
                         {
-                            try
-                            {
-                                callback(await args.fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false));
-                            }
-                            finally
-                            {
-                                args.progressTracker.ItemCompleted();
-                            }
+                            using var _ = args.progressTracker.ItemCompletedScope();
+                            callback(await args.fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false));
                         },
                         consumeItems: static async (results, args, cancellationToken) =>
                         {

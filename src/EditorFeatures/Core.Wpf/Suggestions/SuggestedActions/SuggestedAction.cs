@@ -165,6 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // Clear the progress we showed while computing the action.
                 // We'll now show progress as we apply the action.
                 progressTracker.Report(CodeAnalysisProgress.Clear());
+                progressTracker.Report(CodeAnalysisProgress.Description(EditorFeaturesResources.Applying_changes));
 
                 using (Logger.LogBlock(
                     FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))

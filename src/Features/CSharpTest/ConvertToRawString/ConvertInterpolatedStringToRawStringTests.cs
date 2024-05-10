@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString;
 using VerifyCS = CSharpCodeRefactoringVerifier<
     ConvertStringToRawStringCodeRefactoringProvider>;
 
+[UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRawString)]
 public class ConvertInterpolatedStringToRawStringTests
 {

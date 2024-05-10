@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateDefaultConstruc
     using VerifyRefactoring = CSharpCodeRefactoringVerifier<
         GenerateDefaultConstructorsCodeRefactoringProvider>;
 
+    [UseExportProvider]
     public class GenerateDefaultConstructorsTests
     {
         private static async Task TestRefactoringAsync(string source, string fixedSource, int index = 0)
