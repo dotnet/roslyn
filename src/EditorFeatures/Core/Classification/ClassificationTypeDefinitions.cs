@@ -51,6 +51,12 @@ internal sealed class ClassificationTypeDefinitions
     [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
     internal readonly ClassificationTypeDefinition UserTypeClassesTypeDefinition;
     #endregion
+    #region User Types - Extensions
+    [Export]
+    [Name(ClassificationTypeNames.ExtensionName)]
+    [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+    internal readonly ClassificationTypeDefinition UserTypeExtensionTypeDefinition;
+    #endregion
     #region User Types - Records
     [Export]
     [Name(ClassificationTypeNames.RecordClassName)]

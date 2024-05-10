@@ -223,6 +223,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
         }
         #endregion
+        #region User Types - Extensions
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ExtensionName)]
+        [Name(ClassificationTypeNames.ExtensionName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserTypeExtensionsFormatDefinition : ClassificationFormatDefinition
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public UserTypeExtensionsFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Types_Extensions;
+                this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+            }
+        }
+        #endregion
         #region User Types - Records
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RecordClassName)]

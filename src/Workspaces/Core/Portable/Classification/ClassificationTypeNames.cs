@@ -140,6 +140,7 @@ public static class ClassificationTypeNames
     public const string LocalName = "local name";
     public const string ParameterName = "parameter name";
     public const string MethodName = "method name";
+    internal const string ExtensionName = "extension name";
     public const string ExtensionMethodName = "extension method name";
     public const string PropertyName = "property name";
     public const string EventName = "event name";

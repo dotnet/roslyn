@@ -950,4 +950,7 @@ Do you want to proceed?</value>
   <data name="An_error_occurred_while_generating_documentation_for_this_code" xml:space="preserve">
     <value>An error occurred while generating documentation for this code.</value>
   </data>
+  <data name="User_Types_Extensions" xml:space="preserve">
+    <value>User Types - Extensions</value>
+  </data>
 </root>

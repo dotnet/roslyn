@@ -66,6 +66,7 @@ internal static class SymbolDisplayPartKindTags
             SymbolDisplayPartKind.TypeParameterName => TextTags.TypeParameter,
             SymbolDisplayPartKind.RangeVariableName => TextTags.RangeVariable,
             SymbolDisplayPartKind.EnumMemberName => TextTags.EnumMember,
+            SymbolDisplayPartKind.ExtensionName => TextTags.Extension,
             SymbolDisplayPartKind.ExtensionMethodName => TextTags.ExtensionMethod,
             SymbolDisplayPartKind.ConstantName => TextTags.Constant,
             SymbolDisplayPartKind.RecordClassName => TextTags.Record,
