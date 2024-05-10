@@ -16,7 +16,7 @@ internal sealed class LinkedFileMergeSessionResult
     private readonly Dictionary<DocumentId, IEnumerable<TextSpan>> _mergeConflictCommentSpans = [];
     public Dictionary<DocumentId, IEnumerable<TextSpan>> MergeConflictCommentSpans => _mergeConflictCommentSpans;
 
-    public LinkedFileMergeSessionResult(Solution mergedSolution, IEnumerable<LinkedFileMergeResult> fileMergeResults)
+    public LinkedFileMergeSessionResult(Solution mergedSolution, List<LinkedFileMergeResult> fileMergeResults)
     {
         this.MergedSolution = mergedSolution;
 

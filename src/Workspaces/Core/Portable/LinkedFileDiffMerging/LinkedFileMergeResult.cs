@@ -9,10 +9,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed class LinkedFileMergeResult(ImmutableArray<DocumentId> documentIds, SourceText mergedSourceText, IEnumerable<TextSpan> mergeConflictResolutionSpans)
+internal sealed class LinkedFileMergeResult(ImmutableArray<DocumentId> documentIds, SourceText mergedSourceText, List<TextSpan> mergeConflictResolutionSpans)
 {
     public ImmutableArray<DocumentId> DocumentIds => documentIds;
     public SourceText MergedSourceText => mergedSourceText;
-    public IEnumerable<TextSpan> MergeConflictResolutionSpans => mergeConflictResolutionSpans;
-    public bool HasMergeConflicts => MergeConflictResolutionSpans.Any();
+    public List<TextSpan> MergeConflictResolutionSpans => mergeConflictResolutionSpans;
+    public bool HasMergeConflicts => MergeConflictResolutionSpans.Count != 0;
 }
