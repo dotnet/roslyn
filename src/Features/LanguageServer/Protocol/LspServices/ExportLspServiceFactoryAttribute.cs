@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal class ExportLspServiceFactoryAttribute : ExportAttribute
 {
     /// <summary>
-    /// The type of the service being exported.  Used during retrieval to find the matching service.
+    /// The assembly-qualified type name of the service being exported.
     /// </summary>
-    public Type Type { get; }
+    public string AssemblyQualifiedName { get; }
 
     /// <summary>
     /// The LSP server for which this service applies to.  If null, this service applies to any server
@@ -39,7 +39,9 @@ internal class ExportLspServiceFactoryAttribute : ExportAttribute
     public ExportLspServiceFactoryAttribute(Type type, string contractName, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any) : base(contractName, typeof(ILspServiceFactory))
     {
         Contract.ThrowIfFalse(type.GetInterfaces().Contains(typeof(ILspService)), $"{type.Name} does not inherit from {nameof(ILspService)}");
-        Type = type;
+        Contract.ThrowIfNull(type.AssemblyQualifiedName);
+
+        AssemblyQualifiedName = type.AssemblyQualifiedName;
         ServerKind = serverKind;
     }
 }

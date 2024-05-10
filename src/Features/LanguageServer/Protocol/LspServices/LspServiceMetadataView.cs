@@ -4,12 +4,29 @@
 
 using System;
 using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class LspServiceMetadataView
 {
-    public Type Type { get; set; }
+    private Type? _type;
+
+    public Type Type
+    {
+        get
+        {
+            return _type ??= InterlockedOperations.Initialize(ref _type, LoadType, AssemblyQualifiedName);
+
+            static Type LoadType(string assemblyQualifiedName)
+            {
+                return Type.GetType(assemblyQualifiedName)
+                    ?? throw new InvalidOperationException($"Could not load type: '{assemblyQualifiedName}'");
+            }
+        }
+    }
+
+    public string AssemblyQualifiedName { get; set; }
 
     public WellKnownLspServerKinds ServerKind { get; set; }
 
@@ -17,16 +34,17 @@ internal sealed class LspServiceMetadataView
 
     public LspServiceMetadataView(IDictionary<string, object> metadata)
     {
-        var handlerMetadata = (Type)metadata[nameof(Type)];
-        Type = handlerMetadata;
-
+        AssemblyQualifiedName = (string)metadata[nameof(AssemblyQualifiedName)];
         ServerKind = (WellKnownLspServerKinds)metadata[nameof(ServerKind)];
         IsStateless = (bool)metadata[nameof(IsStateless)];
     }
 
     public LspServiceMetadataView(Type type)
     {
-        Type = type;
+        Contract.ThrowIfNull(type.FullName);
+
+        _type = type;
+        AssemblyQualifiedName = type.FullName;
         ServerKind = WellKnownLspServerKinds.Any;
         IsStateless = false;
     }
