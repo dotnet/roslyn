@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Linq;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -31,17 +32,24 @@ internal class ExportLspServiceFactoryAttribute : ExportAttribute
     public WellKnownLspServerKinds ServerKind { get; }
 
     /// <summary>
-    /// Services MEF exported as <see cref="ILspServiceFactory"/> are statefull as <see cref="LspServices"/>
+    /// Services MEF exported as <see cref="ILspServiceFactory"/> are stateful as <see cref="LspServices"/>
     /// creates a new instance for each server instance.
     /// </summary>
     public bool IsStateless { get; } = false;
 
-    public ExportLspServiceFactoryAttribute(Type type, string contractName, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any) : base(contractName, typeof(ILspServiceFactory))
+    /// <summary>
+    /// Returns <see langword="true"/> if this service implements <see cref="IMethodHandler"/>.
+    /// </summary>
+    public bool IsMethodHandler { get; }
+
+    public ExportLspServiceFactoryAttribute(Type type, string contractName, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any)
+        : base(contractName, typeof(ILspServiceFactory))
     {
         Contract.ThrowIfFalse(type.GetInterfaces().Contains(typeof(ILspService)), $"{type.Name} does not inherit from {nameof(ILspService)}");
         Contract.ThrowIfNull(type.AssemblyQualifiedName);
 
         AssemblyQualifiedName = type.AssemblyQualifiedName;
         ServerKind = serverKind;
+        IsMethodHandler = typeof(IMethodHandler).IsAssignableFrom(type);
     }
 }

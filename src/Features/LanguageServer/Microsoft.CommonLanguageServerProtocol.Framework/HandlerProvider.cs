@@ -58,9 +58,10 @@ internal class HandlerProvider : AbstractHandlerProvider
 
         var methodHash = new HashSet<(string methodName, string language)>();
 
-        if (lspServices.SupportsGetRegisteredServices())
+        // First, see if the ILspServices provides a special path for retrieving method handlers.
+        if (lspServices is IMethodHandlerProvider methodHandlerProvider)
         {
-            var requestHandlerTypes = lspServices.GetRegisteredServices().Where(type => typeof(IMethodHandler).IsAssignableFrom(type));
+            var requestHandlerTypes = methodHandlerProvider.GetMethodHandlers();
 
             foreach (var handlerType in requestHandlerTypes)
             {

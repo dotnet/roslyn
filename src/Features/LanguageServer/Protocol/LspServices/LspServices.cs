@@ -13,7 +13,7 @@ using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal sealed class LspServices : ILspServices
+internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 {
     private readonly ImmutableDictionary<string, Lazy<ILspService, LspServiceMetadataView>> _lazyMefLspServices;
 
@@ -124,6 +124,11 @@ internal sealed class LspServices : ILspServices
     {
         return true;
     }
+
+    public ImmutableArray<Type> GetMethodHandlers()
+        => _lazyMefLspServices.Values
+            .Where(lazyService => lazyService.Metadata.IsMethodHandler)
+            .SelectAsArray(lazyService => lazyService.Metadata.Type);
 
     private IEnumerable<T> GetBaseServices<T>()
     {

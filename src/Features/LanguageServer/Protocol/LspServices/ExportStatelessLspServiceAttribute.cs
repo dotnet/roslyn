@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Linq;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -36,6 +37,11 @@ internal class ExportStatelessLspServiceAttribute : ExportAttribute
     /// </summary>
     public bool IsStateless { get; } = true;
 
+    /// <summary>
+    /// Returns <see langword="true"/> if this service implements <see cref="IMethodHandler"/>.
+    /// </summary>
+    public bool IsMethodHandler { get; }
+
     public ExportStatelessLspServiceAttribute(Type type, string contractName, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any) : base(contractName, typeof(ILspService))
     {
         Contract.ThrowIfFalse(type.GetInterfaces().Contains(typeof(ILspService)), $"{type.Name} does not inherit from {nameof(ILspService)}");
@@ -43,5 +49,6 @@ internal class ExportStatelessLspServiceAttribute : ExportAttribute
 
         AssemblyQualifiedName = type.AssemblyQualifiedName;
         ServerKind = serverKind;
+        IsMethodHandler = typeof(IMethodHandler).IsAssignableFrom(type);
     }
 }

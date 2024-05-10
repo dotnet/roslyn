@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ILspLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ILspServices.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IMethodHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IMethodHandlerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)INotificationHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IQueueItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRequestExecutionQueue.cs" />

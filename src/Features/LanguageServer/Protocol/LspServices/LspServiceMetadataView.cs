@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -32,11 +33,14 @@ internal sealed class LspServiceMetadataView
 
     public bool IsStateless { get; set; }
 
+    public bool IsMethodHandler { get; set; }
+
     public LspServiceMetadataView(IDictionary<string, object> metadata)
     {
         AssemblyQualifiedName = (string)metadata[nameof(AssemblyQualifiedName)];
         ServerKind = (WellKnownLspServerKinds)metadata[nameof(ServerKind)];
         IsStateless = (bool)metadata[nameof(IsStateless)];
+        IsMethodHandler = (bool)metadata[nameof(IsMethodHandler)];
     }
 
     public LspServiceMetadataView(Type type)
@@ -47,5 +51,6 @@ internal sealed class LspServiceMetadataView
         AssemblyQualifiedName = type.FullName;
         ServerKind = WellKnownLspServerKinds.Any;
         IsStateless = false;
+        IsMethodHandler = typeof(IMethodHandler).IsAssignableFrom(type);
     }
 }
