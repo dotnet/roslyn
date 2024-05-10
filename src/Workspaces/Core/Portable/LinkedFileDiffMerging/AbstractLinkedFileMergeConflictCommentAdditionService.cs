@@ -5,8 +5,10 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -16,9 +18,9 @@ internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : 
 {
     internal abstract string GetConflictCommentText(string header, string beforeString, string afterString);
 
-    public List<TextChange> CreateEdits(SourceText originalSourceText, List<UnmergedDocumentChanges> unmergedChanges)
+    public ImmutableArray<TextChange> CreateEdits(SourceText originalSourceText, ArrayBuilder<UnmergedDocumentChanges> unmergedChanges)
     {
-        var commentChanges = new List<TextChange>();
+        using var _ = ArrayBuilder<TextChange>.GetInstance(out var commentChanges);
 
         foreach (var documentWithChanges in unmergedChanges)
         {
@@ -28,7 +30,7 @@ internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : 
             commentChanges.AddRange(comments);
         }
 
-        return commentChanges;
+        return commentChanges.ToImmutableAndClear();
     }
 
     private static List<List<TextChange>> PartitionChangesForDocument(IEnumerable<TextChange> changes, SourceText originalSourceText)

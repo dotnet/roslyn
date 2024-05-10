@@ -454,7 +454,7 @@ internal partial class InlineRenameSession
                     // Show merge conflicts comments as unresolvable conflicts, and do not
                     // show any other rename-related spans that overlap a merge conflict comment.
                     mergeResult.MergeConflictCommentSpans.TryGetValue(document.Id, out var mergeConflictComments);
-                    mergeConflictComments ??= [];
+                    mergeConflictComments = mergeConflictComments.NullToEmpty();
 
                     foreach (var conflict in mergeConflictComments)
                     {
