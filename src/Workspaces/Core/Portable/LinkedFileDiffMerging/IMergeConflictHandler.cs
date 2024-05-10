@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 
@@ -11,5 +9,5 @@ namespace Microsoft.CodeAnalysis;
 
 internal interface IMergeConflictHandler
 {
-    IEnumerable<TextChange> CreateEdits(SourceText originalSourceText, IEnumerable<UnmergedDocumentChanges> unmergedChanges);
+    List<TextChange> CreateEdits(SourceText originalSourceText, List<UnmergedDocumentChanges> unmergedChanges);
 }

@@ -16,7 +16,7 @@ internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : 
 {
     internal abstract string GetConflictCommentText(string header, string beforeString, string afterString);
 
-    public IEnumerable<TextChange> CreateEdits(SourceText originalSourceText, IEnumerable<UnmergedDocumentChanges> unmergedChanges)
+    public List<TextChange> CreateEdits(SourceText originalSourceText, IEnumerable<UnmergedDocumentChanges> unmergedChanges)
     {
         var commentChanges = new List<TextChange>();
 

@@ -94,7 +94,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 
         // Add comments in source explaining diffs that could not be merged
 
-        IEnumerable<TextChange> allChanges;
+        ImmutableArray<TextChange> allChanges;
         var mergeConflictResolutionSpan = new List<TextSpan>();
 
         if (unmergedChanges.Count != 0)
@@ -209,14 +209,14 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         return successfullyMergedChanges.ToImmutable();
     }
 
-    private static IEnumerable<TextChange> MergeChangesWithMergeFailComments(
+    private static ImmutableArray<TextChange> MergeChangesWithMergeFailComments(
         ImmutableArray<TextChange> mergedChanges,
-        IEnumerable<TextChange> commentChanges,
+        List<TextChange> commentChanges,
         List<TextSpan> mergeConflictResolutionSpans,
         LinkedFileGroupSessionInfo groupSessionInfo)
     {
-        var mergedChangesList = NormalizeChanges(mergedChanges).ToList();
-        var commentChangesList = NormalizeChanges(commentChanges).ToList();
+        var mergedChangesList = NormalizeChanges(mergedChanges);
+        var commentChangesList = NormalizeChanges(commentChanges);
 
         var combinedChanges = new List<TextChange>();
         var insertedMergeConflictCommentsAtAdjustedLocation = 0;
@@ -272,17 +272,15 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         groupSessionInfo.InsertedMergeConflictComments = commentChanges.Count();
         groupSessionInfo.InsertedMergeConflictCommentsAtAdjustedLocation = insertedMergeConflictCommentsAtAdjustedLocation;
 
-        return NormalizeChanges(combinedChanges);
+        return NormalizeChanges(combinedChanges).ToImmutableArray();
     }
 
-    private static IEnumerable<TextChange> NormalizeChanges(IEnumerable<TextChange> changes)
+    private static IList<TextChange> NormalizeChanges(IList<TextChange> changes)
     {
-        if (changes.Count() <= 1)
-        {
+        if (changes.Count <= 1)
             return changes;
-        }
 
-        changes = changes.OrderBy(c => c.Span.Start);
+        var orderedChanges = changes.OrderBy(c => c.Span.Start).ToList();
         var normalizedChanges = new List<TextChange>();
 
         var currentChange = changes.First();
