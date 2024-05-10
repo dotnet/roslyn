@@ -582,6 +582,11 @@ internal sealed partial class GraphBuilder
                 iconGroupName = "Enum";
                 break;
 
+            case TypeKind.Extension:
+                node.AddCategory(CodeNodeCategories.Class);
+                iconGroupName = "Class";
+                break;
+
             case TypeKind.Interface:
                 node.AddCategory(CodeNodeCategories.Interface);
                 iconGroupName = "Interface";
