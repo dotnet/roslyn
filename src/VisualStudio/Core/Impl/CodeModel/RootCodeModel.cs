@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public EnvDTE.CodeType CodeTypeFromFullName(string name)
             => this.State.ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var compilation = await GetCompilationAsync().ConfigureAwait(false);
+                var compilation = await GetCompilationAsync().ConfigureAwait(true);
                 var typeSymbol = CodeModelService.GetTypeSymbolFromFullName(name, compilation);
                 if (typeSymbol == null ||
                     typeSymbol.TypeKind is TypeKind.Error or TypeKind.Unknown)
@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public string DotNetNameFromLanguageSpecific(string languageName)
             => this.State.ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var compilation = await GetCompilationAsync().ConfigureAwait(false);
+                var compilation = await GetCompilationAsync().ConfigureAwait(true);
                 var typeSymbol = CodeModelService.GetTypeSymbolFromFullName(languageName, compilation);
                 if (typeSymbol == null)
                     throw Exceptions.ThrowEInvalidArg();
