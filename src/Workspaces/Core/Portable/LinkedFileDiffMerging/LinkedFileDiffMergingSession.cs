@@ -126,7 +126,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         CancellationToken cancellationToken)
     {
         var unmergedDocumentChanges = new List<TextChange>();
-        var successfullyMergedChanges = ArrayBuilder<TextChange>.GetInstance();
+        using var _ = ArrayBuilder<TextChange>.GetInstance(out var successfullyMergedChanges);
 
         var cumulativeChangeIndex = 0;
 
@@ -206,7 +206,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
                 oldDocument.Id));
         }
 
-        return successfullyMergedChanges.ToImmutableAndFree();
+        return successfullyMergedChanges.ToImmutable();
     }
 
     private static IEnumerable<TextChange> MergeChangesWithMergeFailComments(
