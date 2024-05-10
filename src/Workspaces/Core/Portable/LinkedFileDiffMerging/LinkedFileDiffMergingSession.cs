@@ -22,8 +22,6 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 {
     internal async Task<LinkedFileMergeSessionResult> MergeDiffsAsync(IMergeConflictHandler? mergeConflictHandler, CancellationToken cancellationToken)
     {
-        var sessionInfo = new LinkedFileDiffMergingSessionInfo();
-
         using var _1 = PooledDictionary<string, DocumentAndHashBuilder>.GetInstance(out var filePathToNewDocumentsAndHashes);
         try
         {
@@ -75,7 +73,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
                 else
                 {
                     // Otherwise, merge the changes and set all the linked files to that merged content.
-                    var mergeGroupResult = await MergeLinkedDocumentGroupAsync(newDocumentsAndHashes, sessionInfo, mergeConflictHandler, cancellationToken).ConfigureAwait(false);
+                    var mergeGroupResult = await MergeLinkedDocumentGroupAsync(newDocumentsAndHashes, mergeConflictHandler, cancellationToken).ConfigureAwait(false);
                     linkedFileMergeResults.Add(mergeGroupResult);
                     updatedSolution = updatedSolution.WithDocumentTexts(
                         relatedDocuments.SelectAsArray(d => (d, mergeGroupResult.MergedSourceText)));
@@ -93,13 +91,10 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 
     private async Task<LinkedFileMergeResult> MergeLinkedDocumentGroupAsync(
         DocumentAndHashBuilder newDocumentsAndHashes,
-        LinkedFileDiffMergingSessionInfo sessionInfo,
         IMergeConflictHandler? mergeConflictHandler,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(newDocumentsAndHashes.Count < 2);
-
-        var groupSessionInfo = new LinkedFileGroupSessionInfo();
 
         // Automatically merge non-conflicting diffs while collecting the conflicting diffs
 
@@ -123,7 +118,6 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
                 siblingNewDocument,
                 appliedChanges,
                 unmergedChanges,
-                groupSessionInfo,
                 textDifferencingService,
                 cancellationToken).ConfigureAwait(false);
         }
@@ -138,7 +132,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             mergeConflictHandler ??= firstOldDocument.GetRequiredLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
             var mergeConflictTextEdits = mergeConflictHandler.CreateEdits(firstOldSourceText, unmergedChanges);
 
-            (allChanges, mergeConflictResolutionSpans) = MergeChangesWithMergeFailComments(appliedChanges, mergeConflictTextEdits, groupSessionInfo);
+            (allChanges, mergeConflictResolutionSpans) = MergeChangesWithMergeFailComments(appliedChanges, mergeConflictTextEdits);
         }
         else
         {
@@ -147,9 +141,6 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         }
 
         var linkedDocuments = oldSolution.GetRelatedDocumentIds(firstOldDocument.Id);
-        groupSessionInfo.LinkedDocuments = linkedDocuments.Length;
-        groupSessionInfo.DocumentsWithChanges = newDocumentsAndHashes.Count;
-        sessionInfo.LogLinkedFileResult(groupSessionInfo);
 
         return new LinkedFileMergeResult(
             linkedDocuments,
@@ -162,7 +153,6 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         Document newDocument,
         ImmutableArray<TextChange> cumulativeChanges,
         ArrayBuilder<UnmergedDocumentChanges> unmergedChanges,
-        LinkedFileGroupSessionInfo groupSessionInfo,
         IDocumentTextDifferencingService textDiffService,
         CancellationToken cancellationToken)
     {
@@ -180,8 +170,6 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
                 // Existing change that does not overlap with the current change in consideration
                 successfullyMergedChanges.Add(cumulativeChanges[cumulativeChangeIndex]);
                 cumulativeChangeIndex++;
-
-                groupSessionInfo.IsolatedDiffs++;
             }
 
             if (cumulativeChangeIndex < cumulativeChanges.Length)
@@ -191,8 +179,6 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
                 {
                     // The current change in consideration does not intersect with any existing change
                     successfullyMergedChanges.Add(change);
-
-                    groupSessionInfo.IsolatedDiffs++;
                 }
                 else
                 {
@@ -201,24 +187,12 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
                         // The current change in consideration overlaps an existing change but
                         // the changes are not identical. 
                         unmergedDocumentChanges.Add(change);
-
-                        groupSessionInfo.OverlappingDistinctDiffs++;
-                        if (change.Span == cumulativeChange.Span)
-                        {
-                            groupSessionInfo.OverlappingDistinctDiffsWithSameSpan++;
-                            if (change.NewText!.Contains(cumulativeChange.NewText!) || cumulativeChange.NewText!.Contains(change.NewText))
-                            {
-                                groupSessionInfo.OverlappingDistinctDiffsWithSameSpanAndSubstringRelation++;
-                            }
-                        }
                     }
                     else
                     {
                         // The current change in consideration is identical to an existing change
                         successfullyMergedChanges.Add(change);
                         cumulativeChangeIndex++;
-
-                        groupSessionInfo.IdenticalDiffs++;
                     }
                 }
             }
@@ -226,8 +200,6 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             {
                 // The current change in consideration does not intersect with any existing change
                 successfullyMergedChanges.Add(change);
-
-                groupSessionInfo.IsolatedDiffs++;
             }
         }
 
@@ -236,7 +208,6 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             // Existing change that does not overlap with the current change in consideration
             successfullyMergedChanges.Add(cumulativeChanges[cumulativeChangeIndex]);
             cumulativeChangeIndex++;
-            groupSessionInfo.IsolatedDiffs++;
         }
 
         if (unmergedDocumentChanges.Count != 0)
@@ -252,8 +223,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 
     private static (ImmutableArray<TextChange> mergeChanges, ImmutableArray<TextSpan> mergeConflictResolutionSpans) MergeChangesWithMergeFailComments(
         ImmutableArray<TextChange> mergedChanges,
-        ImmutableArray<TextChange> commentChanges,
-        LinkedFileGroupSessionInfo groupSessionInfo)
+        ImmutableArray<TextChange> commentChanges)
     {
         var mergedChangesList = NormalizeChanges(mergedChanges);
         var commentChangesList = NormalizeChanges(commentChanges);
@@ -310,9 +280,6 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             commentChangeIndex++;
         }
 
-        groupSessionInfo.InsertedMergeConflictComments = commentChanges.Length;
-        groupSessionInfo.InsertedMergeConflictCommentsAtAdjustedLocation = insertedMergeConflictCommentsAtAdjustedLocation;
-
         return (NormalizeChanges(combinedChanges.ToImmutableAndClear()), mergeConflictResolutionSpans.ToImmutableAndClear());
     }
 
@@ -344,26 +311,5 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             return orderedChanges;
 
         return normalizedChanges.ToImmutableAndClear();
-    }
-
-    internal sealed class LinkedFileDiffMergingSessionInfo
-    {
-        public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = [];
-
-        public void LogLinkedFileResult(LinkedFileGroupSessionInfo info)
-            => LinkedFileGroups.Add(info);
-    }
-
-    internal sealed class LinkedFileGroupSessionInfo
-    {
-        public int LinkedDocuments;
-        public int DocumentsWithChanges;
-        public int IsolatedDiffs;
-        public int IdenticalDiffs;
-        public int OverlappingDistinctDiffs;
-        public int OverlappingDistinctDiffsWithSameSpan;
-        public int OverlappingDistinctDiffsWithSameSpanAndSubstringRelation;
-        public int InsertedMergeConflictComments;
-        public int InsertedMergeConflictCommentsAtAdjustedLocation;
     }
 }
