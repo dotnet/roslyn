@@ -33,10 +33,11 @@ internal static partial class MemberDeclarationSyntaxExtensions
                 case SyntaxKind.EnumDeclaration:
                     return ((EnumDeclarationSyntax)member).Identifier;
                 case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.ExtensionDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.StructDeclaration:
                     return ((TypeDeclarationSyntax)member).Identifier;
                 case SyntaxKind.DelegateDeclaration:
                     return ((DelegateDeclarationSyntax)member).Identifier;
