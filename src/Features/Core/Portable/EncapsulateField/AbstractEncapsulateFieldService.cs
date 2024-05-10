@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.EncapsulateField;
 internal abstract partial class AbstractEncapsulateFieldService : ILanguageService
 {
     private static readonly CultureInfo EnUSCultureInfo = new("en-US");
+    private static SymbolRenameOptions s_symbolRenameOptions = new(
+        RenameOverloads: false,
+        RenameInStrings: false,
+        RenameInComments: false,
+        RenameFile: false);
 
     protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
     protected abstract Task<ImmutableArray<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
@@ -125,9 +130,7 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
-                {
                     return solution;
-                }
 
                 return await RemoteUtilities.UpdateSolutionAsync(
                     solution, result.Value, cancellationToken).ConfigureAwait(false);
@@ -282,14 +285,8 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         Func<DocumentId, TextSpan, bool> filter,
         CancellationToken cancellationToken)
     {
-        var options = new SymbolRenameOptions(
-            RenameOverloads: false,
-            RenameInStrings: false,
-            RenameInComments: false,
-            RenameFile: false);
-
         var initialLocations = await Renamer.FindRenameLocationsAsync(
-            solution, field, options, cancellationToken).ConfigureAwait(false);
+            solution, field, s_symbolRenameOptions, cancellationToken).ConfigureAwait(false);
 
         // Ensure we don't update any files in projects linked to us.  That will be taken care of automatically when we
         // edit the files in the current project
