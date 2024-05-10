@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 var compilation = await GetCompilationAsync().ConfigureAwait(true);
 
-                // Need to ensure we're on the UI thread to make the ExternalCodeNamespace.  It creates  UI thread bound
+                // Need to ensure we're on the UI thread to make the ExternalCodeNamespace.  It creates UI thread bound
                 // com aggregates.
                 await this.State.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
                 var rootNamespace = ExternalCodeNamespace.Create(this.State, _projectId, compilation.GlobalNamespace);
