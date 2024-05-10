@@ -72,7 +72,7 @@ public sealed class ExtensionParsingTests : ParsingTests
         }
         EOF();
 
-        UsingTree(text, options: TestOptions.Regular11,
+        UsingTree(text, options: TestOptions.Regular12,
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // implicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
             Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": BaseExtension1, BaseExtension2").WithArguments("base extensions").WithLocation(1, 41));
@@ -196,7 +196,7 @@ public sealed class ExtensionParsingTests : ParsingTests
         }
         EOF();
 
-        UsingTree(text, options: TestOptions.Regular11,
+        UsingTree(text, options: TestOptions.Regular12,
             // (1,13): error CS1003: Syntax error, ',' expected
             // extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
             Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(1, 13),
@@ -298,7 +298,7 @@ public sealed class ExtensionParsingTests : ParsingTests
         }
         EOF();
 
-        UsingTree(text, options: TestOptions.Regular11);
+        UsingTree(text, options: TestOptions.Regular12);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -370,7 +370,7 @@ public sealed class ExtensionParsingTests : ParsingTests
         }
         EOF();
 
-        UsingTree(text, options: TestOptions.Regular11,
+        UsingTree(text, options: TestOptions.Regular12,
             // (1,1): error CS1031: Type expected
             // partial extension C for UnderlyingType { }
             Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 1),
@@ -444,7 +444,7 @@ public sealed class ExtensionParsingTests : ParsingTests
         }
         EOF();
 
-        UsingTree(text, options: TestOptions.Regular11);
+        UsingTree(text, options: TestOptions.Regular12);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1351,7 +1351,7 @@ using
         }
         EOF();
 
-        UsingTree(text, options: TestOptions.Regular11,
+        UsingTree(text, options: TestOptions.Regular12,
             // (1,6): error CS1041: Identifier expected; 'implicit' is a keyword
             // using
             Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", isExplicit ? "explicit" : "implicit").WithLocation(1, 6));
@@ -1434,7 +1434,7 @@ using Type
         }
         EOF();
 
-        UsingTree(text, options: TestOptions.Regular11,
+        UsingTree(text, options: TestOptions.Regular12,
             // (1,11): error CS1002: ; expected
             // using Type
             Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11));
@@ -1531,7 +1531,7 @@ partial {{keyword}} extension R for U { }
         }
         EOF();
 
-        UsingTree(text, options: TestOptions.Regular11,
+        UsingTree(text, options: TestOptions.Regular12,
             // (1,11): error CS1525: Invalid expression term 'partial'
             // using Type
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 11),

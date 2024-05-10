@@ -1302,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if (token.ContextualKind == SyntaxKind.RecordKeyword)
                 {
-                    return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureRecords);
+                    return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
                 }
 
                 return false;
@@ -1441,7 +1441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (nextToken.ContextualKind == SyntaxKind.RecordKeyword)
             {
-                return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureRecords);
+                return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
             }
 
             if (nextToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword &&
@@ -2238,7 +2238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.IdentifierToken:
                     if (CurrentToken.ContextualKind == SyntaxKind.RecordKeyword)
                     {
-                        return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureRecords);
+                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
                     }
 
                     return false;
