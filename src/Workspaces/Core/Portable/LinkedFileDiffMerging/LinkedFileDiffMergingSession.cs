@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -229,7 +228,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
                 // Add a comment change that does not conflict with any merge change
                 combinedChanges.Add(commentChangesList[commentChangeIndex]);
                 mergeConflictResolutionSpans.Add(new TextSpan(commentChangesList[commentChangeIndex].Span.Start + currentPositionDelta, commentChangesList[commentChangeIndex].NewText!.Length));
-                currentPositionDelta += (commentChangesList[commentChangeIndex].NewText!.Length - commentChangesList[commentChangeIndex].Span.Length);
+                currentPositionDelta += commentChangesList[commentChangeIndex].NewText!.Length - commentChangesList[commentChangeIndex].Span.Length;
                 commentChangeIndex++;
             }
 
@@ -237,7 +236,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             {
                 // Add a merge change that does not conflict with any comment change
                 combinedChanges.Add(mergedChange);
-                currentPositionDelta += (mergedChange.NewText!.Length - mergedChange.Span.Length);
+                currentPositionDelta += mergedChange.NewText!.Length - mergedChange.Span.Length;
                 continue;
             }
 
@@ -254,7 +253,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             }
 
             combinedChanges.Add(mergedChange);
-            currentPositionDelta += (mergedChange.NewText!.Length - mergedChange.Span.Length);
+            currentPositionDelta += mergedChange.NewText!.Length - mergedChange.Span.Length;
         }
 
         while (commentChangeIndex < commentChangesList.Length)
@@ -263,7 +262,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             combinedChanges.Add(commentChangesList[commentChangeIndex]);
             mergeConflictResolutionSpans.Add(new TextSpan(commentChangesList[commentChangeIndex].Span.Start + currentPositionDelta, commentChangesList[commentChangeIndex].NewText!.Length));
 
-            currentPositionDelta += (commentChangesList[commentChangeIndex].NewText!.Length - commentChangesList[commentChangeIndex].Span.Length);
+            currentPositionDelta += commentChangesList[commentChangeIndex].NewText!.Length - commentChangesList[commentChangeIndex].Span.Length;
             commentChangeIndex++;
         }
 
