@@ -21,6 +21,11 @@ internal class ExampleLspServices : ILspServices
         _serviceProvider = serviceProvider;
     }
 
+    public T? GetService<T>() where T : notnull
+    {
+        return (T?)TryGetService(typeof(T));
+    }
+
     public T GetRequiredService<T>() where T : notnull
     {
         var service = _serviceProvider.GetRequiredService<T>();

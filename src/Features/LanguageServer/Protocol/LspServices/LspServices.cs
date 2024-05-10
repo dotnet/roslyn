@@ -61,7 +61,7 @@ internal sealed class LspServices : ILspServices
         return service;
     }
 
-    public T? GetService<T>()
+    public T? GetService<T>() where T : notnull
         => (T?)TryGetService(typeof(T));
 
     public IEnumerable<T> GetRequiredServices<T>()
@@ -77,6 +77,11 @@ internal sealed class LspServices : ILspServices
         var assemblyQualifiedName = type.AssemblyQualifiedName;
         Contract.ThrowIfNull(assemblyQualifiedName);
 
+        return TryGetService(assemblyQualifiedName);
+    }
+
+    private object? TryGetService(string assemblyQualifiedName)
+    {
         object? lspService;
 
         // Check the base services first
@@ -139,20 +144,23 @@ internal sealed class LspServices : ILspServices
             yield break;
         }
 
-        var allServices = GetRegisteredServices();
-        foreach (var service in allServices)
+        // Note: This will realize all of the registered services, which will potentially load assemblies.
+
+        foreach (var (assemblyQualifiedName, lazyService) in _lazyMefLspServices)
         {
-            var @interface = service.GetInterface(typeof(T).Name);
-            if (@interface is not null)
+            var serviceType = lazyService.Metadata.Type;
+            var interfaceType = serviceType.GetInterface(typeof(T).Name);
+
+            if (interfaceType is not null)
             {
-                var instance = TryGetService(service);
-                if (instance is not null)
+                var serviceInstance = TryGetService(assemblyQualifiedName);
+                if (serviceInstance is not null)
                 {
-                    yield return (T)instance;
+                    yield return (T)serviceInstance;
                 }
                 else
                 {
-                    throw new Exception("Service failed to construct");
+                    throw new InvalidOperationException($"Could not construct service: {assemblyQualifiedName}");
                 }
             }
         }

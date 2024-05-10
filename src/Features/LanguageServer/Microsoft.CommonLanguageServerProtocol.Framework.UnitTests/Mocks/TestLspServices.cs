@@ -27,6 +27,9 @@ internal class TestLspServices : ILspServices
     public ImmutableArray<Type> GetRegisteredServices()
         => _services.Select(s => s.instance.GetType()).ToImmutableArray();
 
+    public T? GetService<T>() where T : notnull
+        => (T?)TryGetService(typeof(T));
+
     public T GetRequiredService<T>() where T : notnull
         => (T?)TryGetService(typeof(T)) ?? throw new InvalidOperationException($"{typeof(T).Name} did not have a service");
 

@@ -11,6 +11,6 @@ internal readonly struct CompilerDeveloperSdkLspServices(LspServices lspServices
     public T GetRequiredService<T>() where T : notnull
         => lspServices.GetRequiredService<T>();
 
-    public T? GetService<T>()
+    public T? GetService<T>() where T : notnull
         => lspServices.GetService<T>();
 }

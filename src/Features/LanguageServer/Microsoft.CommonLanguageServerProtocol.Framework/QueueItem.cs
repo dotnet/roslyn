@@ -62,7 +62,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         MethodName = methodName;
         Language = language;
 
-        var telemetryService = lspServices.GetRequiredServices<AbstractTelemetryService>().FirstOrDefault();
+        var telemetryService = lspServices.GetService<AbstractTelemetryService>();
 
         _requestTelemetryScope = telemetryService?.CreateRequestScope(methodName);
     }
