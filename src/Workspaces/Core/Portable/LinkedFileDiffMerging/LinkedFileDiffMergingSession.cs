@@ -309,7 +309,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             => LinkedFileGroups.Add(info);
     }
 
-    internal class LinkedFileGroupSessionInfo
+    internal sealed class LinkedFileGroupSessionInfo
     {
         public int LinkedDocuments;
         public int DocumentsWithChanges;

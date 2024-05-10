@@ -11,7 +11,7 @@ internal sealed class LinkedFileMergeSessionResult
 {
     public Solution MergedSolution { get; }
 
-    private readonly Dictionary<DocumentId, List<TextSpan>> MergeConflictCommentSpans = [];
+    public readonly Dictionary<DocumentId, List<TextSpan>> MergeConflictCommentSpans = [];
 
     public LinkedFileMergeSessionResult(Solution mergedSolution, List<LinkedFileMergeResult> fileMergeResults)
     {
