@@ -26,13 +26,14 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         {
             // Don't need to do any merging whatsoever for documents that are not linked files.
             var newDocument = newSolution.GetRequiredDocument(documentId);
-            if (newSolution.GetRelatedDocumentIds(newDocument.Id).Length == 1)
+            var relatedDocumentIds = newSolution.GetRelatedDocumentIds(newDocument.Id);
+            if (relatedDocumentIds.Length == 1)
                 continue;
 
             var filePath = newDocument.FilePath;
             Contract.ThrowIfNull(filePath);
 
-            var newDocumentsAndHashes = filePathToNewDocumentsAndHashes.GetOrAdd(filePath, static _ => []);
+            var newDocumentsAndHashes = filePathToNewDocumentsAndHashes.GetOrAdd(filePath, static (_, capacity) => new(capacity), relatedDocumentIds.Length);
 
             var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newContentHash = newText.GetContentHash();
