@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private FieldSymbol? UnderlyingInstanceField
+        internal FieldSymbol? UnderlyingInstanceField
         {
             get
             {

@@ -3,14 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.CodeGen;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -379,6 +378,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     firstRewrittenArgument = rewrittenReceiver;
                     rewrittenReceiver = null;
                 }
+
+                rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, method);
 
                 ArrayBuilder<LocalSymbol>? temps = null;
                 var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
@@ -904,6 +905,81 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return false;
             }
+        }
+
+        [return: NotNullIfNotNull(nameof(receiver))]
+        BoundExpression? AdjustReceiverForExtensionsIfNeeded(BoundExpression? receiver, Symbol member)
+        {
+            if (receiver is null)
+            {
+                return receiver;
+            }
+
+            Debug.Assert(member is not null);
+            if (receiver is BoundTypeExpression)
+            {
+                return receiver;
+            }
+
+            if (receiver is BoundThisReference)
+            {
+                // PROTOTYPE this was only minimally tested to observe side-effects but needs more work (in CheckValue for instance)
+                // In an extension type, `this.UnderlyingTypeMember` is replaced with `this.<UnderlyingInstanceField>$.UnderlyingTypeMember`
+                Debug.Assert(receiver.Type is not null);
+                if (receiver.Type.IsExtension && !member.ContainingType.IsExtension)
+                {
+                    var thisExtensionType = (SourceExtensionTypeSymbol)receiver.Type;
+                    Debug.Assert(thisExtensionType.UnderlyingInstanceField is not null);
+                    Debug.Assert(thisExtensionType.UnderlyingInstanceField.Type.Equals(member.ContainingType, TypeCompareKind.AllIgnoreOptions));
+
+                    return _factory.Field(receiver, thisExtensionType.UnderlyingInstanceField);
+                }
+            }
+
+            if (member.ContainingType is not { IsExtension: true } memberExtensionType)
+            {
+                return receiver;
+            }
+
+            Debug.Assert(receiver.Type is not null);
+            if (receiver.Type.IsExtension)
+            {
+                return receiver;
+            }
+
+            ArrayBuilder<LocalSymbol>? temps = ArrayBuilder<LocalSymbol>.GetInstance();
+            ArrayBuilder<BoundExpression>? effects = ArrayBuilder<BoundExpression>.GetInstance();
+            if (receiver.Type.IsReferenceType)
+            {
+                receiver = MakeTemp(receiver, temps, effects);
+            }
+            else if (receiver.Type.IsValueType)
+            {
+                receiver = MakeTemp(receiver, temps, effects, RefKind.Ref);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(receiver.Type);
+            }
+
+            Debug.Assert(receiver.Type is not null);
+            var oldSyntax = _factory.Syntax;
+            _factory.Syntax = receiver.Syntax;
+
+            var call = _factory.Call(null,
+                            _factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T)
+                                .Construct(ImmutableArray.Create<TypeSymbol>(receiver.Type, memberExtensionType)),
+                            receiver);
+
+            _factory.Syntax = oldSyntax;
+
+            if (temps is null)
+            {
+                return call;
+            }
+
+            Debug.Assert(effects is not null);
+            return _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), call);
         }
 
         private void ReferToTempIfReferenceTypeReceiver(BoundLocal receiverTemp, ref BoundAssignmentOperator assignmentToTemp, out BoundAssignmentOperator? extraRefInitialization, ArrayBuilder<LocalSymbol> temps)

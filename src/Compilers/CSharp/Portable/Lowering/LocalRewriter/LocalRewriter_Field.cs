@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+            rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, node.FieldSymbol);
+
             return MakeFieldAccess(node.Syntax, rewrittenReceiver, node.FieldSymbol, node.ConstantValueOpt, node.ResultKind, node.Type, node);
         }
 

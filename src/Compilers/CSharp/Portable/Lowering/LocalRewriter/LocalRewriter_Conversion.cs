@@ -571,6 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
 
+                        receiver = AdjustReceiverForExtensionsIfNeeded(receiver, method);
                         var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
                                                                                         isExtensionMethod: oldNodeOpt.IsExtensionMethod, wasTargetTyped: false, type: rewrittenType);
 

@@ -108,6 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundIndexerAccess? oldNodeOpt,
             bool isLeftOfAssignment)
         {
+            rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, indexer);
+
             if (isLeftOfAssignment && indexer.RefKind == RefKind.None)
             {
                 TypeSymbol type = indexer.Type;

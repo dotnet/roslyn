@@ -4,13 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.RuntimeMembers;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -19,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
             BoundExpression? rewrittenReceiverOpt = VisitExpression(node.ReceiverOpt);
+            rewrittenReceiverOpt = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiverOpt, node.Event);
+
             BoundExpression rewrittenArgument = VisitExpression(node.Argument);
 
             if (rewrittenReceiverOpt != null && node.Event.ContainingAssembly.IsLinked && node.Event.ContainingType.IsInterfaceType())
@@ -224,6 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             TypeSymbol type)
         {
+            Debug.Assert(AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, eventSymbol) == rewrittenReceiver); // We don't need to adjust
             Debug.Assert(eventSymbol.HasAssociatedField);
 
             FieldSymbol? fieldSymbol = eventSymbol.AssociatedField;

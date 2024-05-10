@@ -413,9 +413,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundLocal MakeTemp(BoundExpression loweredExpression, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
+        private BoundLocal MakeTemp(BoundExpression loweredExpression, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects, RefKind refKind = RefKind.None)
         {
-            BoundLocal temp = _factory.StoreToTemp(loweredExpression, out BoundAssignmentOperator assignmentToTemp);
+            BoundLocal temp = _factory.StoreToTemp(loweredExpression, out BoundAssignmentOperator assignmentToTemp, refKind);
             effects.Add(assignmentToTemp);
             temps.Add(temp.LocalSymbol);
             return temp;

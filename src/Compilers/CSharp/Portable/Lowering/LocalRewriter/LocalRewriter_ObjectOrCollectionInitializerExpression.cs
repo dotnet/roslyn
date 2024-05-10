@@ -139,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //                  ~                               ~~~~~~~~
         private BoundExpression? MakeCollectionInitializer(BoundExpression? rewrittenReceiver, BoundCollectionElementInitializer initializer)
         {
+            // PROTOTYPE(instance) can we get here with an Add method from an extension type?
             MethodSymbol addMethod = initializer.AddMethod;
 
             Debug.Assert(addMethod.Name == "Add");
@@ -663,7 +664,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            Debug.Assert(_compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType, isChecked: false, ref discardedUseSiteInfo).IsImplicit);
+            // PROTOTYPE update assertion to account for extension properties/indexers
+            //Debug.Assert(_compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType, isChecked: false, ref discardedUseSiteInfo).IsImplicit);
             // It is possible there are use site diagnostics from the above, but none that we need report as we aren't generating code for the conversion
 #endif
 

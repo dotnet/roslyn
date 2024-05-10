@@ -9240,7 +9240,7 @@ public implicit extension E for object
         }
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit type references to extensions 
     public void MemberLookup_Instance()
     {
         var src = """
@@ -9274,7 +9274,7 @@ public explicit extension E for object
             // void M(E e)
             Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(1, 6)
             );
-        // PROTOTYPE execute once instance invocation is implemented
+        // PROTOTYPE(instance) execute once we can emit type references to extensions
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -10193,7 +10193,7 @@ public explicit extension A for object { }
         Assert.Empty(model.GetMemberGroup(typeInvocation));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) execute once we can emit type references to extensions
     public void MemberLookup_MethodsFromObject_Instance()
     {
         var src = """
@@ -10211,7 +10211,7 @@ public explicit extension E for object
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        // PROTOTYPE(instance) execute once we can emit type references to extensions
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -13489,9 +13489,22 @@ implicit extension E for object
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "indexer");
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("indexer"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  newobj     "object..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<object, E>(ref object)"
+  IL_000d:  ldc.i4.s   42
+  IL_000f:  call       "int E.this[int].get"
+  IL_0014:  pop
+  IL_0015:  ret
+}
+""");
 
         string expectedOperationTree = """
 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = o[42]')
@@ -13536,9 +13549,22 @@ implicit extension E for object
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "indexer");
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("indexer"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       22 (0x16)
+  .maxstack  3
+  .locals init (object V_0)
+  IL_0000:  newobj     "object..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<object, E>(ref object)"
+  IL_000d:  ldc.i4.s   42
+  IL_000f:  ldc.i4.0
+  IL_0010:  call       "void E.this[int].set"
+  IL_0015:  ret
+}
+""");
 
         string expectedOperationTree = """
 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'o[42] = 0')
@@ -13565,7 +13591,7 @@ Right:
     {
         var src = """
 object o = new object();
-_ = o.Property;
+System.Console.Write(o.Property);
 
 implicit extension E for object
 {
@@ -13574,16 +13600,27 @@ implicit extension E for object
         get
         {
             System.Console.Write("Property ");
-            return 0;
+            return 42;
         }
     }
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        // PROTOTYPE Revisit when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "Property");
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Property 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       24 (0x18)
+  .maxstack  1
+  .locals init (object V_0)
+  IL_0000:  newobj     "object..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<object, E>(ref object)"
+  IL_000d:  call       "int E.Property.get"
+  IL_0012:  call       "void System.Console.Write(int)"
+  IL_0017:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -13609,10 +13646,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        // PROTOTYPE Revisit when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "Method");
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -13649,9 +13683,8 @@ implicit extension E for object
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o2").WithLocation(4, 5)
             );
 
-        // PROTOTYPE What is the expected runtime behavior? NRE? The nullability checks should be adjusted correspondingly.
-        // PROTOTYPE Revisit when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "Property");
+        // PROTOTYPE Add test for accessing `this` in extension logic
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Property"), verify: Verification.FailsPEVerify);
     }
 
     [Fact]
@@ -13678,9 +13711,8 @@ implicit extension E for object
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(4, 1)
             );
 
-        // PROTOTYPE What is the expected runtime behavior? NRE? The nullability checks should be adjusted correspondingly.
-        // PROTOTYPE Revisit when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "Method");
+        // PROTOTYPE Add test for accessing `this` in extension logic
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method"), verify: Verification.FailsPEVerify);
     }
 
     [Fact]
@@ -13782,13 +13814,15 @@ implicit extension E for object
         Assert.Empty(model.GetMemberGroup(method));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
+    [Fact]
     public void ExtensionMemberLookup_ColorColor_Property()
     {
         var src = """
+C.M(new C());
+
 class C
 {
-    static void M(C C)
+    public static void M(C C)
     {
         C.Property = 42;
     }
@@ -13806,9 +13840,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "Property");
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Property"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -13821,9 +13853,11 @@ implicit extension E for C
     public void ExtensionMemberLookup_ColorColor_Method()
     {
         var src = """
+C.M(new C());
+
 class C
 {
-    static void M(C C)
+    public static void M(C C)
     {
         C.Method();
     }
@@ -13833,14 +13867,12 @@ implicit extension E for C
 {
     public void Method()
     {
-        System.Console.Write("Method ");
+        System.Console.Write("Method");
     }
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "Method");
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -14070,9 +14102,7 @@ implicit extension E3 for string
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "M(int) M(long) M(string)");
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("M(int) M(long) M(string)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -14135,9 +14165,8 @@ implicit extension E3 for string
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "Property(int) Property(long) Property(string)");
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Property(int) Property(long) Property(string)"), verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -14734,30 +14763,50 @@ implicit extension E for C
         Assert.Equal("? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
+    [Fact]
     public void ExtensionMemberLookup_AsFunctionType_InstanceMethod()
     {
         var src = """
+new C().M();
+
 class C
 {
-    void M()
+    public void M()
     {
         var x = this.Method;
+        x();
     }
 }
 
 implicit extension E for C
 {
-    public string Method() => throw null;
+    public void Method() { System.Console.Write("ran"); }
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", """
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_0009:  ldobj      "E"
+  IL_000e:  box        "E"
+  IL_0013:  ldftn      "void E.Method()"
+  IL_0019:  newobj     "System.Action..ctor(object, nint)"
+  IL_001e:  callvirt   "void System.Action.Invoke()"
+  IL_0023:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
-        Assert.Equal("System.Func<System.String> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+        Assert.Equal("System.Action x", model.GetDeclaredSymbol(x).ToTestDisplayString());
     }
 
     [Fact]
@@ -15082,7 +15131,6 @@ implicit extension E2 for D
             // foreach (var x in new C())
             Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(1, 19)
             );
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "42");
 
         var tree = comp.SyntaxTrees.Single();
@@ -15213,9 +15261,120 @@ implicit extension E for C
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         // PROTOTYPE confirm when spec'ing pattern-based deconstruction
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "(42, 43)");
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("(42, 43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (int V_0, //y
+                int V_1,
+                int V_2,
+                C V_3)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.3
+  IL_0006:  ldloca.s   V_3
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  ldloca.s   V_2
+  IL_0011:  call       "void E.Deconstruct(out int, out int)"
+  IL_0016:  ldloc.1
+  IL_0017:  ldloc.2
+  IL_0018:  stloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+  IL_001f:  box        "System.ValueTuple<int, int>"
+  IL_0024:  call       "void System.Console.Write(object)"
+  IL_0029:  ret
+}
+""");
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
+
+        Assert.Equal("void E.Deconstruct(out System.Int32 i, out System.Int32 j)",
+            model.GetDeconstructionInfo(deconstruction).Method.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_NoMethod_ValueType()
+    {
+        var src = """
+var s = new S(42);
+var (x, y) = s;
+System.Console.Write((x, y, s.field));
+
+struct S
+{
+    public S(int i) { field = i; }
+    public int field;
+    public void Increment() { field++; }
+}
+
+implicit extension E for S
+{
+    public void Deconstruct(out int i, out int j)
+    {
+        i = this.field;
+        this.Increment();
+        j = this.field;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE confirm when spec'ing pattern-based deconstruction
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("(42, 43, 42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       54 (0x36)
+  .maxstack  3
+  .locals init (S V_0, //s
+                int V_1, //y
+                S V_2,
+                int V_3,
+                int V_4)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.s   42
+  IL_0004:  call       "S..ctor(int)"
+  IL_0009:  ldloc.0
+  IL_000a:  stloc.2
+  IL_000b:  ldloca.s   V_2
+  IL_000d:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_0012:  ldloca.s   V_3
+  IL_0014:  ldloca.s   V_4
+  IL_0016:  call       "void E.Deconstruct(out int, out int)"
+  IL_001b:  ldloc.3
+  IL_001c:  ldloc.s    V_4
+  IL_001e:  stloc.1
+  IL_001f:  ldloc.1
+  IL_0020:  ldloc.0
+  IL_0021:  ldfld      "int S.field"
+  IL_0026:  newobj     "System.ValueTuple<int, int, int>..ctor(int, int, int)"
+  IL_002b:  box        "System.ValueTuple<int, int, int>"
+  IL_0030:  call       "void System.Console.Write(object)"
+  IL_0035:  ret
+}
+""");
+        verifier.VerifyIL("E.Deconstruct", """
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     "S E.<UnderlyingInstance>$"
+  IL_0007:  ldfld      "int S.field"
+  IL_000c:  stind.i4
+  IL_000d:  ldarg.0
+  IL_000e:  ldflda     "S E.<UnderlyingInstance>$"
+  IL_0013:  call       "void S.Increment()"
+  IL_0018:  ldarg.2
+  IL_0019:  ldarg.0
+  IL_001a:  ldflda     "S E.<UnderlyingInstance>$"
+  IL_001f:  ldfld      "int S.field"
+  IL_0024:  stind.i4
+  IL_0025:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -15252,9 +15411,7 @@ public static class E2
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         // PROTOTYPE confirm when spec'ing pattern-based deconstruction
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "(42, 43)");
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("(42, 43)")).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -15269,6 +15426,7 @@ public static class E2
     {
         var src = """
 var (x, y) = new C();
+System.Console.Write((x, y));
 
 class C { }
 
@@ -15276,14 +15434,37 @@ delegate void D(out int i, out int j);
 
 implicit extension E for C
 {
-    public D Deconstruct => throw null;
+    public D Deconstruct => (out int i, out int j) => { i = 42; j = 43; };
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE revisit pattern-based deconstruction
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "(42, 43)");
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("(42, 43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       47 (0x2f)
+  .maxstack  3
+  .locals init (int V_0, //y
+                int V_1,
+                int V_2,
+                C V_3)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.3
+  IL_0006:  ldloca.s   V_3
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000d:  call       "D E.Deconstruct.get"
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  ldloca.s   V_2
+  IL_0016:  callvirt   "void D.Invoke(out int, out int)"
+  IL_001b:  ldloc.1
+  IL_001c:  ldloc.2
+  IL_001d:  stloc.0
+  IL_001e:  ldloc.0
+  IL_001f:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+  IL_0024:  box        "System.ValueTuple<int, int>"
+  IL_0029:  call       "void System.Console.Write(object)"
+  IL_002e:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -15352,9 +15533,32 @@ implicit extension E for C
 """;
         // PROTOTYPE confirm when spec'ing pattern-based deconstruction
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "(42, 43)");
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("(42, 43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (int V_0, //y
+                int V_1,
+                int V_2,
+                C V_3)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.3
+  IL_0006:  ldloca.s   V_3
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  ldloca.s   V_2
+  IL_0011:  call       "void E.Deconstruct(out int, out int)"
+  IL_0016:  ldloc.1
+  IL_0017:  ldloc.2
+  IL_0018:  stloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+  IL_001f:  box        "System.ValueTuple<int, int>"
+  IL_0024:  call       "void System.Console.Write(object)"
+  IL_0029:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -15388,8 +15592,130 @@ implicit extension E for C
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         // PROTOTYPE confirm when spec'ing pattern-based disposal
         comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "RAN");
+        // PROTOTYPE missing re-interpretation of the disposal operand as the extension type
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("RAN"), verify: Verification.Fails).VerifyDiagnostics();
+        verifier.VerifyIL("Program.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      243 (0xf3)
+  .maxstack  3
+  .locals init (int V_0,
+                C V_1, //x
+                object V_2,
+                System.Runtime.CompilerServices.TaskAwaiter V_3,
+                int V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int Program.<<Main>$>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_006c
+    IL_000a:  newobj     "C..ctor()"
+    IL_000f:  stloc.1
+    IL_0010:  ldarg.0
+    IL_0011:  ldnull
+    IL_0012:  stfld      "object Program.<<Main>$>d__0.<>7__wrap1"
+    IL_0017:  ldarg.0
+    IL_0018:  ldc.i4.0
+    IL_0019:  stfld      "int Program.<<Main>$>d__0.<>7__wrap2"
+    .try
+    {
+      IL_001e:  ldarg.0
+      IL_001f:  ldc.i4.1
+      IL_0020:  stfld      "int Program.<<Main>$>d__0.<>7__wrap2"
+      IL_0025:  leave.s    IL_0031
+    }
+    catch object
+    {
+      IL_0027:  stloc.2
+      IL_0028:  ldarg.0
+      IL_0029:  ldloc.2
+      IL_002a:  stfld      "object Program.<<Main>$>d__0.<>7__wrap1"
+      IL_002f:  leave.s    IL_0031
+    }
+    IL_0031:  ldloc.1
+    IL_0032:  brfalse.s  IL_008f
+    IL_0034:  ldloc.1
+    IL_0035:  callvirt   "System.Threading.Tasks.Task E.DisposeAsync()"
+    IL_003a:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_003f:  stloc.3
+    IL_0040:  ldloca.s   V_3
+    IL_0042:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_0047:  brtrue.s   IL_0088
+    IL_0049:  ldarg.0
+    IL_004a:  ldc.i4.0
+    IL_004b:  dup
+    IL_004c:  stloc.0
+    IL_004d:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+    IL_0052:  ldarg.0
+    IL_0053:  ldloc.3
+    IL_0054:  stfld      "System.Runtime.CompilerServices.TaskAwaiter Program.<<Main>$>d__0.<>u__1"
+    IL_0059:  ldarg.0
+    IL_005a:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+    IL_005f:  ldloca.s   V_3
+    IL_0061:  ldarg.0
+    IL_0062:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref Program.<<Main>$>d__0)"
+    IL_0067:  leave      IL_00f2
+    IL_006c:  ldarg.0
+    IL_006d:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter Program.<<Main>$>d__0.<>u__1"
+    IL_0072:  stloc.3
+    IL_0073:  ldarg.0
+    IL_0074:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter Program.<<Main>$>d__0.<>u__1"
+    IL_0079:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_007f:  ldarg.0
+    IL_0080:  ldc.i4.m1
+    IL_0081:  dup
+    IL_0082:  stloc.0
+    IL_0083:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+    IL_0088:  ldloca.s   V_3
+    IL_008a:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_008f:  ldarg.0
+    IL_0090:  ldfld      "object Program.<<Main>$>d__0.<>7__wrap1"
+    IL_0095:  stloc.2
+    IL_0096:  ldloc.2
+    IL_0097:  brfalse.s  IL_00ae
+    IL_0099:  ldloc.2
+    IL_009a:  isinst     "System.Exception"
+    IL_009f:  dup
+    IL_00a0:  brtrue.s   IL_00a4
+    IL_00a2:  ldloc.2
+    IL_00a3:  throw
+    IL_00a4:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+    IL_00a9:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+    IL_00ae:  ldarg.0
+    IL_00af:  ldfld      "int Program.<<Main>$>d__0.<>7__wrap2"
+    IL_00b4:  stloc.s    V_4
+    IL_00b6:  ldloc.s    V_4
+    IL_00b8:  ldc.i4.1
+    IL_00b9:  bne.un.s   IL_00bd
+    IL_00bb:  leave.s    IL_00df
+    IL_00bd:  ldarg.0
+    IL_00be:  ldnull
+    IL_00bf:  stfld      "object Program.<<Main>$>d__0.<>7__wrap1"
+    IL_00c4:  leave.s    IL_00df
+  }
+  catch System.Exception
+  {
+    IL_00c6:  stloc.s    V_5
+    IL_00c8:  ldarg.0
+    IL_00c9:  ldc.i4.s   -2
+    IL_00cb:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+    IL_00d0:  ldarg.0
+    IL_00d1:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+    IL_00d6:  ldloc.s    V_5
+    IL_00d8:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00dd:  leave.s    IL_00f2
+  }
+  IL_00df:  ldarg.0
+  IL_00e0:  ldc.i4.s   -2
+  IL_00e2:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+  IL_00e7:  ldarg.0
+  IL_00e8:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+  IL_00ed:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00f2:  ret
+}
+""");
 
         //        string expectedOperationTree = """
         //IUsingDeclarationOperation(IsAsynchronous: True, DisposeMethod: System.Threading.Tasks.Task E.DisposeAsync()) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
@@ -16182,8 +16508,30 @@ implicit extension E for C
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "property");
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("property"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (C V_0, //c
+                C V_1)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  brfalse.s  IL_001d
+  IL_0009:  ldloc.0
+  IL_000a:  stloc.1
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_0012:  call       "int E.Property.get"
+  IL_0017:  ldc.i4.s   42
+  IL_0019:  ceq
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldc.i4.0
+  IL_001e:  pop
+  IL_001f:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -16698,8 +17046,30 @@ implicit extension E for C
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
 
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "hello");
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hello"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       55 (0x37)
+  .maxstack  3
+  .locals init (C V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000d:  ldsfld     "System.Func<C, C> Program.<>c.<>9__0_0"
+  IL_0012:  dup
+  IL_0013:  brtrue.s   IL_002c
+  IL_0015:  pop
+  IL_0016:  ldsfld     "Program.<>c Program.<>c.<>9"
+  IL_001b:  ldftn      "C Program.<>c.<<Main>$>b__0_0(C)"
+  IL_0021:  newobj     "System.Func<C, C>..ctor(object, nint)"
+  IL_0026:  dup
+  IL_0027:  stsfld     "System.Func<C, C> Program.<>c.<>9__0_0"
+  IL_002c:  call       "string E.Select(System.Func<C, C>)"
+  IL_0031:  call       "void System.Console.Write(string)"
+  IL_0036:  ret
+}
+""");
 
         //        string expectedOperationTree = """
         //IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'string quer ... ) select x;')
@@ -17141,8 +17511,21 @@ implicit extension E for C
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
 
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "E.M", verify: Verification.FailsPEVerify);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E.M"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000d:  ldc.i4.s   42
+  IL_000f:  call       "void E.M(int)"
+  IL_0014:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17151,7 +17534,7 @@ implicit extension E for C
         Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE handle or disallow extension tree scenarios")]
     public void ExtensionInvocation_InstanceReceiver_Simple_ExpressionTree()
     {
         // PROTOTYPE decide whether to allow expression tree scenarios. Verify shape of the tree if we decide to allow
@@ -17300,9 +17683,21 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "E.M(42)", verify: Verification.FailsPEVerify);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E.M(42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000d:  ldc.i4.s   42
+  IL_000f:  call       "void E.M(int)"
+  IL_0014:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17386,8 +17781,21 @@ namespace N
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
 
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "E2.M(42)", verify: Verification.FailsPEVerify);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E2.M(42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref N.E2 System.Runtime.CompilerServices.Unsafe.As<C, N.E2>(ref C)"
+  IL_000d:  ldc.i4.s   42
+  IL_000f:  call       "void N.E2.M(int)"
+  IL_0014:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17418,13 +17826,26 @@ implicit extension E1 for C
 
 static class E2
 {
-    public void M(this C c, int i) => throw null;
+    public static void M(this C c, int i) => throw null;
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
 
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "E1.M(42)", verify: Verification.FailsPEVerify);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E1.M(42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<C, E1>(ref C)"
+  IL_000d:  ldc.i4.s   42
+  IL_000f:  call       "void E1.M(int)"
+  IL_0014:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17685,7 +18106,7 @@ implicit extension E for C
         Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable once we can lower/emit for non-static scenarios
+    [Fact]
     public void ExtensionInvocation_OnlyEventExists()
     {
         var source = """
@@ -17832,8 +18253,7 @@ implicit extension E2 for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18049,7 +18469,7 @@ static class E2
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
+    [Fact]
     public void ExtensionProperty_Instance_AmbiguityWithExtensionOnBaseType_PreferMoreSpecific()
     {
         var source = """
@@ -18069,11 +18489,26 @@ implicit extension E2 for C
     public int P => 42;
 }
 """;
-        // PROTOTYPE E2 might be a better choice because it extends a more specific type. we have rules around receiver types for regular extension methods.
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "42");
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       32 (0x20)
+  .maxstack  1
+  .locals init (C V_0,
+                int V_1)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E2 System.Runtime.CompilerServices.Unsafe.As<C, E2>(ref C)"
+  IL_000d:  call       "int E2.P.get"
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  call       "string int.ToString()"
+  IL_001a:  call       "void System.Console.Write(string)"
+  IL_001f:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18103,7 +18538,6 @@ implicit extension E2 for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -18166,23 +18600,23 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E.M"),
-            verify: Verification.Fails with { ILVerifyMessage = "[<Main>$]: Unrecognized arguments for delegate .ctor. { Offset = 0xb }" });
-
-        verifier.VerifyDiagnostics();
-
-        // PROTOTYPE Fix when adding support for emitting non-static members
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E.M"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       24 (0x18)
+  // Code size       42 (0x2a)
   .maxstack  2
+  .locals init (C V_0)
   IL_0000:  newobj     "C..ctor()"
-  IL_0005:  ldftn      "void E.M(int)"
-  IL_000b:  newobj     "D..ctor(object, nint)"
-  IL_0010:  ldc.i4.s   42
-  IL_0012:  callvirt   "void D.Invoke(int)"
-  IL_0017:  ret
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000d:  ldobj      "E"
+  IL_0012:  box        "E"
+  IL_0017:  ldftn      "void E.M(int)"
+  IL_001d:  newobj     "D..ctor(object, nint)"
+  IL_0022:  ldc.i4.s   42
+  IL_0024:  callvirt   "void D.Invoke(int)"
+  IL_0029:  ret
 }
 """);
 
@@ -18191,6 +18625,57 @@ implicit extension E for C
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void E.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal(new[] { "void C.M()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void DelegateConversion_InstanceReceiver_ValueType()
+    {
+        var source = """
+var s = new S();
+D d = s.M;
+d(42);
+System.Console.Write(s.field);
+
+delegate void D(int i);
+
+struct S
+{
+    public int field;
+    public void Increment() { field++; }
+}
+
+implicit extension E for S
+{
+    public void M(int i)
+    {
+        this.Increment();
+        System.Console.Write($"ran({i}) ");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran(42) 0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (S V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  ldobj      "E"
+  IL_0014:  box        "E"
+  IL_0019:  ldftn      "void E.M(int)"
+  IL_001f:  newobj     "D..ctor(object, nint)"
+  IL_0024:  ldc.i4.s   42
+  IL_0026:  callvirt   "void D.Invoke(int)"
+  IL_002b:  ldloc.0
+  IL_002c:  ldfld      "int S.field"
+  IL_0031:  call       "void System.Console.Write(int)"
+  IL_0036:  ret
+}
+""");
     }
 
     [Fact]
@@ -18276,9 +18761,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18344,8 +18827,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18417,8 +18899,7 @@ implicit extension E2 for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18489,7 +18970,7 @@ namespace N
     {
         public void M(int i)
         {
-            System.Console.Write("ran");
+            System.Console.Write("ran ");
         }
     }
 }
@@ -18500,9 +18981,7 @@ implicit extension E2 for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18579,7 +19058,7 @@ namespace N
     {
         public void M(int i)
         {
-            System.Console.Write("ran ran");
+            System.Console.Write("ran ");
         }
     }
 }
@@ -18590,9 +19069,7 @@ implicit extension E2 for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18695,8 +19172,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify);
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18861,8 +19337,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "M(42)", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "M(42)", verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19717,8 +20192,7 @@ implicit extension E for C
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19756,26 +20230,27 @@ implicit extension E for C
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"),
-            verify: Verification.Fails with { ILVerifyMessage = "[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0x11 }" });
-
-        verifier.VerifyDiagnostics();
-
-        // PROTOTYPE Fix when adding support for emitting non-static members
         verifier.VerifyIL("D.Main", """
 {
-  // Code size       29 (0x1d)
+  // Code size       47 (0x2f)
   .maxstack  3
-  .locals init (int V_0) //i
+  .locals init (int V_0, //i
+                C V_1)
   IL_0000:  nop
   IL_0001:  newobj     "D..ctor()"
   IL_0006:  newobj     "C..ctor()"
-  IL_000b:  ldftn      "int E.M()"
-  IL_0011:  newobj     "System.Func<int>..ctor(object, nint)"
-  IL_0016:  call       "int D.Select<int>(System.Func<int>)"
-  IL_001b:  stloc.0
-  IL_001c:  ret
+  IL_000b:  stloc.1
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_0013:  ldobj      "E"
+  IL_0018:  box        "E"
+  IL_001d:  ldftn      "int E.M()"
+  IL_0023:  newobj     "System.Func<int>..ctor(object, nint)"
+  IL_0028:  call       "int D.Select<int>(System.Func<int>)"
+  IL_002d:  stloc.0
+  IL_002e:  ret
 }
 """);
 
@@ -19892,9 +20367,7 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "ran ran ran");
+        CompileAndVerify(comp, expectedOutput: "ran ran ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19993,8 +20466,7 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20027,25 +20499,21 @@ public static class E2
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("not-invocation invocation"),
-            verify: Verification.Fails with { ILVerifyMessage = """
-                [<Main>$]: Callvirt on a value type method. { Offset = 0x6 }
-                [<Main>$]: Unexpected type on the stack. { Offset = 0x6, Found = ref 'object', Expected = address of 'E1' }
-                """ });
-        verifier.VerifyDiagnostics();
-        // PROTOTYPE Fix IL when adding support for emitting non-static members
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("not-invocation invocation"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       22 (0x16)
+  // Code size       30 (0x1e)
   .maxstack  2
+  .locals init (object V_0)
   IL_0000:  newobj     "object..ctor()"
   IL_0005:  dup
-  IL_0006:  callvirt   "string E1.Member.get"
-  IL_000b:  call       "void System.Console.Write(string)"
-  IL_0010:  call       "void E2.Member(object)"
-  IL_0015:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<object, E1>(ref object)"
+  IL_000e:  call       "string E1.Member.get"
+  IL_0013:  call       "void System.Console.Write(string)"
+  IL_0018:  call       "void E2.Member(object)"
+  IL_001d:  ret
 }
 """);
 
@@ -20118,23 +20586,21 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("not-invocation invocation"),
-           verify: Verification.Fails with { ILVerifyMessage = """
-                [<Main>$]: Callvirt on a value type method. { Offset = 0x6 }
-                [<Main>$]: Unexpected type on the stack. { Offset = 0x6, Found = ref 'object', Expected = address of 'N.E1' }
-                """ });
-        verifier.VerifyDiagnostics();
-        // PROTOTYPE Fix IL when adding support for emitting non-static members
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("not-invocation invocation"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
-    {
-  // Code size       22 (0x16)
+{
+  // Code size       30 (0x1e)
   .maxstack  2
+  .locals init (object V_0)
   IL_0000:  newobj     "object..ctor()"
   IL_0005:  dup
-  IL_0006:  callvirt   "string N.E1.Member.get"
-  IL_000b:  call       "void System.Console.Write(string)"
-  IL_0010:  call       "void N.E2.Member(object)"
-  IL_0015:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "ref N.E1 System.Runtime.CompilerServices.Unsafe.As<object, N.E1>(ref object)"
+  IL_000e:  call       "string N.E1.Member.get"
+  IL_0013:  call       "void System.Console.Write(string)"
+  IL_0018:  call       "void N.E2.Member(object)"
+  IL_001d:  ret
 }
 """);
 
@@ -20225,8 +20691,7 @@ namespace N2
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics();
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran ran"), verify: Verification.FailsPEVerify);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         verifier.VerifyIL("N1.C.Main", """
 {
@@ -20300,7 +20765,28 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.Fails).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       29 (0x1d)
+  .maxstack  1
+  .locals init (C<int> V_0, //c
+                int V_1, //i
+                C<int> V_2)
+  IL_0000:  newobj     "C<int>..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  stloc.2
+  IL_0008:  ldloca.s   V_2
+  IL_000a:  call       "ref N.E2 System.Runtime.CompilerServices.Unsafe.As<C<int>, N.E2>(ref C<int>)"
+  IL_000f:  call       "int N.E2.Member.get"
+  IL_0014:  stloc.1
+  IL_0015:  ldloc.1
+  IL_0016:  call       "void System.Console.Write(int)"
+  IL_001b:  nop
+  IL_001c:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20425,25 +20911,7 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //        var verifier = CompileAndVerify(comp, expectedOutput: "ran");
-
-        //        verifier.VerifyIL("N.C.Main", """
-        //{
-        //  // Code size       15 (0xf)
-        //  .maxstack  1
-        //  .locals init (object V_0, //o
-        //                int V_1) //x
-        //  IL_0000:  nop
-        //  IL_0001:  newobj     "object..ctor()"
-        //  IL_0006:  stloc.0
-        //  IL_0007:  ldloc.0
-        //  IL_0008:  callvirt   "int E1.Member.get"
-        //  IL_000d:  stloc.1
-        //  IL_000e:  ret
-        //}
-        //""");
+        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20479,7 +20947,7 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22265,11 +22733,22 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify)
-        //    .VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000d:  ldc.i4.s   42
+  IL_000f:  call       "int E.this[int].get"
+  IL_0014:  call       "void System.Console.Write(int)"
+  IL_0019:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22292,11 +22771,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "[42] = 43", verify: Verification.FailsPEVerify)
-        //    .VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "[42] = 43", verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22305,7 +22780,7 @@ implicit extension E for C
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE handle or disallow extension tree scenarios")]
     public void ExtensionIndexerAccess_Simple_Getter_ExpressionTree()
     {
         // PROTOTYPE decide whether to allow expression tree scenarios. Verify shape of the tree if we decide to allow
@@ -22377,11 +22852,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify)
-        //    .VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22446,9 +22917,7 @@ implicit extension E2 for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) implement indexer access on receiver of extension type
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.Fails).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22473,11 +22942,7 @@ implicit extension E for Base
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify)
-        //    .VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22676,23 +23141,23 @@ implicit extension E for C
     public void ExtensionIndexerAccess_ColorColorReceiver()
     {
         var source = """
+new C().M(new C());
+
 class C
 {
-    void M(C C)
+    public void M(C C)
     {
-        _ = C[1];
+        System.Console.Write(C[1]);
     }
 }
 
 implicit extension E for C
 {
-    public string this[int i] => throw null;
+    public string this[int i] => "ran";
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22705,19 +23170,17 @@ implicit extension E for C
     public void ExtensionIndexerAccess_ParameterNames()
     {
         var source = """
-_ = new C()[i: 1, 2];
+System.Console.Write(new C()[i: 1, 2]);
 
 class C { }
 
 implicit extension E for C
 {
-    public string this[int i, int j] => throw null;
+    public string this[int i, int j] => "ran";
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22730,19 +23193,17 @@ implicit extension E for C
     public void ExtensionIndexerAccess_ParameterNames_OutOfOrder()
     {
         var source = """
-_ = new C()[j: 2, i: 1];
+System.Console.Write(new C()[j: 2, i: 1]);
 
 class C { }
 
 implicit extension E for C
 {
-    public string this[int i, int j] => throw null;
+    public string this[int i, int j] => "ran";
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22964,9 +23425,44 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get(1) set(2) get(3) set(3)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       78 (0x4e)
+  .maxstack  4
+  .locals init (C V_0,
+                E V_1)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000d:  ldc.i4.1
+  IL_000e:  call       "int E.this[int].get"
+  IL_0013:  pop
+  IL_0014:  newobj     "C..ctor()"
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_0021:  ldc.i4.2
+  IL_0022:  ldc.i4.2
+  IL_0023:  call       "void E.this[int].set"
+  IL_0028:  newobj     "C..ctor()"
+  IL_002d:  stloc.0
+  IL_002e:  ldloca.s   V_0
+  IL_0030:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_0035:  ldobj      "E"
+  IL_003a:  stloc.1
+  IL_003b:  ldloca.s   V_1
+  IL_003d:  ldc.i4.3
+  IL_003e:  ldloca.s   V_1
+  IL_0040:  ldc.i4.3
+  IL_0041:  call       "int E.this[int].get"
+  IL_0046:  ldc.i4.3
+  IL_0047:  add
+  IL_0048:  call       "void E.this[int].set"
+  IL_004d:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -23069,9 +23565,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("1 2 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -23094,9 +23588,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("1 2 42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -29003,7 +29495,6 @@ implicit extension E2 for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -30091,7 +30582,25 @@ static class E2
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.Fails).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<C, E1>(ref C)"
+  IL_000d:  ldobj      "E1"
+  IL_0012:  box        "E1"
+  IL_0017:  ldftn      "string E1.Method()"
+  IL_001d:  newobj     "System.Func<string>..ctor(object, nint)"
+  IL_0022:  callvirt   "string System.Func<string>.Invoke()"
+  IL_0027:  call       "void System.Console.Write(string)"
+  IL_002c:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30123,8 +30632,7 @@ static class E2
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30166,7 +30674,6 @@ static class E2
             // (6,17): error CS1113: Extension method 'E2.Method<E>(E)' defined on value type 'E' cannot be used to create delegates
             //         var x = e.Method;
             Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "e.Method").WithArguments("E2.Method<E>(E)", "E").WithLocation(6, 17));
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30328,9 +30835,11 @@ implicit extension E2 for object
     public void PreferMoreSpecific_Instance_PropertyAndMoreSpecificProperty_OnArray()
     {
         var src = """
+new C().M(new int[] { });
+
 class C
 {
-    void M(int[] i)
+    public void M(int[] i)
     {
         System.Console.Write(i.M);
     }
@@ -30347,8 +30856,7 @@ implicit extension E2 for int[]
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30375,7 +30883,6 @@ implicit extension E2 for S
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -30492,8 +30999,7 @@ implicit extension E2 for int[]
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30523,7 +31029,6 @@ implicit extension E2 for C
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30955,8 +31460,7 @@ implicit extension E2 for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32920,7 +33424,6 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -32955,9 +33458,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32991,9 +33492,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33038,9 +33537,7 @@ implicit extension E for int
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33238,8 +33735,7 @@ implicit extension E for string
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33264,9 +33760,7 @@ implicit extension E for string
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33291,9 +33785,7 @@ implicit extension E for string
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33318,9 +33810,7 @@ implicit extension E for string
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33411,9 +33901,7 @@ implicit extension E for (int, int)
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33535,9 +34023,7 @@ implicit extension E for string
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33590,9 +34076,7 @@ implicit extension E for string
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33720,7 +34204,7 @@ implicit extension E for object
             Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "new object().Property").WithArguments("E.Property").WithLocation(1, 1));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
+    [Fact]
     public void PropertyAccess_InitOnlyProperty_Instance_ObjectInitializer()
     {
         var src = """
@@ -33728,12 +34212,12 @@ _ = new object() { Property = 1 };
 
 implicit extension E for object
 {
-    public int Property { init => throw null; }
+    public int Property { init { System.Console.Write("ran"); } }
 }
 """;
         // PROTOTYPE(instance) confirm whether init-only accessors should be allowed in extensions
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -33877,7 +34361,6 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -33908,7 +34391,6 @@ implicit extension E for int
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -34018,7 +34500,6 @@ implicit extension E for int
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -34361,7 +34842,6 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugExe);
-        comp.VerifyEmitDiagnostics();
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.Fails).VerifyDiagnostics();
         verifier.VerifyIL("C.Main", """
 {
@@ -34415,7 +34895,6 @@ static class D
 }
 """;
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugExe);
-        comp.VerifyEmitDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.Fails).VerifyDiagnostics();
         verifier.VerifyIL("C.Main", """
 {
@@ -37341,9 +37820,20 @@ public class MyCollection : IEnumerable<int>
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        // PROTOTYPE missing re-interpretation of the receiver as the extension type
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.Fails).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       15 (0xf)
+  .maxstack  3
+  IL_0000:  newobj     "MyCollection..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldc.i4.s   42
+  IL_0008:  callvirt   "void E.Add(int)"
+  IL_000d:  pop
+  IL_000e:  ret
+}
+""");
     }
 
     [Fact]
@@ -37428,7 +37918,7 @@ public implicit extension E for object
     {
         var source = """
 var x = new C() { f = object.M };
-System.Console.Write(x.f.ToString());
+System.Console.Write(x.f);
 
 class C
 {
@@ -37441,7 +37931,6 @@ public implicit extension E for object
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -37483,9 +37972,7 @@ public implicit extension E for object
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        // CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37507,9 +37994,7 @@ public implicit extension E for object
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        // CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37598,7 +38083,6 @@ public implicit extension E for object
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -37656,7 +38140,6 @@ public implicit extension E for object
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -37682,7 +38165,6 @@ public implicit extension E for object
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -38168,7 +38650,6 @@ public implicit extension E for object
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -38306,7 +38787,7 @@ public static class E2
         Assert.Equal("System.String E1.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
+    [Fact]
     public void ResolveAll_Lambda_Instance_MethodGroupWithMultipleOverloads()
     {
         var src = """
@@ -38320,9 +38801,7 @@ public implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38637,9 +39116,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38674,9 +39151,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38712,7 +39187,6 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -38749,9 +39223,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38939,9 +39411,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38961,6 +39431,7 @@ namespace N
         public static void Main()
         {
             System.Action x = new object().M;
+            x();
         }
     }
 
@@ -38976,9 +39447,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38998,6 +39467,7 @@ namespace N
         public static void Main()
         {
             System.Action x = new object().M;
+            x();
         }
     }
 
@@ -39013,9 +39483,7 @@ implicit extension E for object
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -40337,5 +40805,1174 @@ object.M();
         var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_ObjectCreation_ReferenceType()
+    {
+        var source = """
+new object().M();
+
+implicit extension E for object
+{
+    public void M() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (object V_0)
+  IL_0000:  newobj     "object..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<object, E>(ref object)"
+  IL_000d:  call       "void E.M()"
+  IL_0012:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_ObjectCreation_ValueType()
+    {
+        var source = """
+new S().M();
+
+struct S { }
+
+implicit extension E for S
+{
+    public void M() { System.Console.Write("ran"); }
+}
+""";
+        // PROTOTYPE(instance) Verify mutation
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  dup
+  IL_0003:  initobj    "S"
+  IL_0009:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000e:  call       "void E.M()"
+  IL_0013:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_ObjectCreation_MissingUnsafeAs()
+    {
+        var source = """
+new object().M();
+
+implicit extension E for object
+{
+    public void M() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.As'
+            // new object().M();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new object()").WithArguments("System.Runtime.CompilerServices.Unsafe", "As").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_Local_ReferenceType()
+    {
+        var source = $$"""
+C c = new C();
+c.M(c.Increment());
+System.Console.Write(" ");
+System.Console.Write(c.field);
+
+class C
+{
+    public int field;
+    public int Increment() => field += 1;
+}
+
+implicit extension E for C
+{
+    public void M(int i) { System.Console.Write(this.field); System.Console.Write(" "); System.Console.Write(i); this.Increment(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("1 1 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       48 (0x30)
+  .maxstack  2
+  .locals init (C V_0, //c
+                C V_1)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000f:  ldloc.0
+  IL_0010:  callvirt   "int C.Increment()"
+  IL_0015:  call       "void E.M(int)"
+  IL_001a:  ldstr      " "
+  IL_001f:  call       "void System.Console.Write(string)"
+  IL_0024:  ldloc.0
+  IL_0025:  ldfld      "int C.field"
+  IL_002a:  call       "void System.Console.Write(int)"
+  IL_002f:  ret
+}
+""");
+        verifier.VerifyIL("E.M", """
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "C E.<UnderlyingInstance>$"
+  IL_0006:  ldfld      "int C.field"
+  IL_000b:  call       "void System.Console.Write(int)"
+  IL_0010:  ldstr      " "
+  IL_0015:  call       "void System.Console.Write(string)"
+  IL_001a:  ldarg.1
+  IL_001b:  call       "void System.Console.Write(int)"
+  IL_0020:  ldarg.0
+  IL_0021:  ldfld      "C E.<UnderlyingInstance>$"
+  IL_0026:  callvirt   "int C.Increment()"
+  IL_002b:  pop
+  IL_002c:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_Local_ValueType()
+    {
+        var source = $$"""
+S s = new S();
+s.M(s.Increment());
+System.Console.Write(" ");
+System.Console.Write(s.field);
+
+struct S
+{
+    public int field;
+    public int Increment() => field += 1;
+}
+
+implicit extension E for S
+{
+    public void M(int i) { System.Console.Write(this.field); System.Console.Write(" "); System.Console.Write(i); this.Increment(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("1 1 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("E.M", """
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "S E.<UnderlyingInstance>$"
+  IL_0006:  ldfld      "int S.field"
+  IL_000b:  call       "void System.Console.Write(int)"
+  IL_0010:  ldstr      " "
+  IL_0015:  call       "void System.Console.Write(string)"
+  IL_001a:  ldarg.1
+  IL_001b:  call       "void System.Console.Write(int)"
+  IL_0020:  ldarg.0
+  IL_0021:  ldflda     "S E.<UnderlyingInstance>$"
+  IL_0026:  call       "int S.Increment()"
+  IL_002b:  pop
+  IL_002c:  ret
+}
+""");
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (S V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       "int S.Increment()"
+  IL_0016:  call       "void E.M(int)"
+  IL_001b:  ldstr      " "
+  IL_0020:  call       "void System.Console.Write(string)"
+  IL_0025:  ldloc.0
+  IL_0026:  ldfld      "int S.field"
+  IL_002b:  call       "void System.Console.Write(int)"
+  IL_0030:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_RefLocal_ReferenceType()
+    {
+        var source = $$"""
+C c = new C();
+ref C c2 = ref c;
+c2.M(c2.Increment());
+System.Console.Write(" ");
+System.Console.Write(c.field);
+
+class C
+{
+    public int field;
+    public int Increment() => field += 1;
+}
+
+implicit extension E for C
+{
+    public void M(int i) { System.Console.Write(this.field); System.Console.Write(" "); System.Console.Write(i); this.Increment(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("1 1 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       53 (0x35)
+  .maxstack  2
+  .locals init (C V_0, //c
+                C& V_1, //c2
+                C V_2)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.1
+  IL_000a:  ldind.ref
+  IL_000b:  stloc.2
+  IL_000c:  ldloca.s   V_2
+  IL_000e:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_0013:  ldloc.1
+  IL_0014:  ldind.ref
+  IL_0015:  callvirt   "int C.Increment()"
+  IL_001a:  call       "void E.M(int)"
+  IL_001f:  ldstr      " "
+  IL_0024:  call       "void System.Console.Write(string)"
+  IL_0029:  ldloc.0
+  IL_002a:  ldfld      "int C.field"
+  IL_002f:  call       "void System.Console.Write(int)"
+  IL_0034:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_RefLocal_ValueType()
+    {
+        var source = $$"""
+S s = new S();
+ref S s2 = ref s;
+s2.M(s2.Increment());
+System.Console.Write(" ");
+System.Console.Write(s.field);
+
+struct S
+{
+    public int field;
+    public int Increment() => field += 1;
+}
+
+implicit extension E for S
+{
+    public void M(int i) { System.Console.Write(this.field); System.Console.Write(" "); System.Console.Write(i); this.Increment(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("1 1 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (S V_0, //s
+                S& V_1) //s2
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.1
+  IL_000c:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_0011:  ldloc.1
+  IL_0012:  call       "int S.Increment()"
+  IL_0017:  call       "void E.M(int)"
+  IL_001c:  ldstr      " "
+  IL_0021:  call       "void System.Console.Write(string)"
+  IL_0026:  ldloc.0
+  IL_0027:  ldfld      "int S.field"
+  IL_002c:  call       "void System.Console.Write(int)"
+  IL_0031:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_Chained_ReferenceType()
+    {
+        var source = $$"""
+new C().M1().M2();
+
+class C { }
+
+implicit extension E1 for C
+{
+    public C M1() { System.Console.Write("ran1 "); return new C(); }
+}
+
+implicit extension E2 for C
+{
+    public void M2() { System.Console.Write("ran2"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran1 ran2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       32 (0x20)
+  .maxstack  1
+  .locals init (C V_0,
+                C V_1)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<C, E1>(ref C)"
+  IL_000d:  call       "C E1.M1()"
+  IL_0012:  stloc.0
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  call       "ref E2 System.Runtime.CompilerServices.Unsafe.As<C, E2>(ref C)"
+  IL_001a:  call       "void E2.M2()"
+  IL_001f:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_Chained_ValueType()
+    {
+        var source = $$"""
+new S().M1().M2();
+
+struct S { }
+
+implicit extension E1 for S
+{
+    public S M1() { System.Console.Write("ran1 "); return new S(); }
+}
+
+implicit extension E2 for S
+{
+    public void M2() { System.Console.Write("ran2"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran1 ran2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .locals init (S V_0,
+                S V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  dup
+  IL_0003:  initobj    "S"
+  IL_0009:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<S, E1>(ref S)"
+  IL_000e:  call       "S E1.M1()"
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       "ref E2 System.Runtime.CompilerServices.Unsafe.As<S, E2>(ref S)"
+  IL_001b:  call       "void E2.M2()"
+  IL_0020:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_ChainedTwice_ValueType()
+    {
+        var source = $$"""
+new S().M1().M1().M2();
+
+struct S { }
+
+implicit extension E1 for S
+{
+    public S M1() { System.Console.Write("ran1 "); return new S(); }
+    public void M2() { System.Console.Write("ran2"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran1 ran1 ran2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (S V_0,
+                S V_1,
+                S V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  dup
+  IL_0003:  initobj    "S"
+  IL_0009:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<S, E1>(ref S)"
+  IL_000e:  call       "S E1.M1()"
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<S, E1>(ref S)"
+  IL_001b:  call       "S E1.M1()"
+  IL_0020:  stloc.2
+  IL_0021:  ldloca.s   V_2
+  IL_0023:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<S, E1>(ref S)"
+  IL_0028:  call       "void E1.M2()"
+  IL_002d:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_This_ReferenceType()
+    {
+        var source = $$"""
+var c = new C();
+c.Method();
+System.Console.Write(c.field);
+
+class C
+{
+    public int field;
+    public void Increment() { this.field++; }
+
+    public void Method()
+    {
+        this.M();
+    }
+}
+
+implicit extension E for C
+{
+    public void M() { this.Increment(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("C.Method", """
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_0009:  call       "void E.M()"
+  IL_000e:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_This_ValueType()
+    {
+        var source = $$"""
+var s = new S();
+s.Method();
+System.Console.Write(s.field);
+
+struct S
+{
+    public int field;
+    public void Increment() { this.field++; }
+
+    public void Method()
+    {
+        this.M();
+    }
+}
+
+implicit extension E for S
+{
+    public void M() { this.Increment(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("S.Method", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_0006:  call       "void E.M()"
+  IL_000b:  ret
+}
+""");
+    }
+
+    [Theory]
+    [InlineData("int")]
+    [InlineData("object")]
+    public void InstanceCodeGen_Invocation_Constant(string forType)
+    {
+        var source = $$"""
+42.M();
+
+implicit extension E for {{forType}}
+{
+    public void M() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<int, E>(ref int)"
+  IL_000a:  call       "void E.M()"
+  IL_000f:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_Parameter()
+    {
+        var source = """
+var s = new S();
+C.Method(s);
+
+class C
+{
+    public static void Method(S s)
+    {
+        s.M();
+    }
+}
+
+struct S { }
+implicit extension E for S
+{
+    public void M() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("C.Method", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_0007:  call       "void E.M()"
+  IL_000c:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_ArrayAccess()
+    {
+        var source = """
+var s = new S[] { new S() };
+C.Method(s);
+
+class C
+{
+    public static void Method(S[] s)
+    {
+        s[0].M();
+    }
+}
+
+struct S { }
+
+implicit extension E for S
+{
+    public void M() { System.Console.Write("ran"); }
+}
+""";
+        // PROTOTYPE(instance) Verify mutation
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("C.Method", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "S"
+  IL_0007:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000c:  call       "void E.M()"
+  IL_0011:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_ThisReference()
+    {
+        var source = """
+var s = new S();
+s.Method();
+
+struct S
+{
+    public void Method()
+    {
+        this.M();
+    }
+}
+
+implicit extension E for S
+{
+    public void M() { System.Console.Write("ran"); }
+}
+""";
+        // PROTOTYPE(instance) Verify mutation
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("S.Method", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_0006:  call       "void E.M()"
+  IL_000b:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_Invocation_Deconstruction()
+    {
+        var source = """
+var s = new S();
+var (x, y) = s;
+System.Console.Write((x, s.field));
+
+struct S
+{
+    public int field;
+    public void Increment() { field++; }
+}
+
+implicit extension E for S
+{
+    public void Deconstruct(out int i, out int j) { i = 42; j = 43; System.Console.Write("ran "); this.Increment(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran (42, 0)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       49 (0x31)
+  .maxstack  3
+  .locals init (S V_0, //s
+                S V_1,
+                int V_2,
+                int V_3)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_0011:  ldloca.s   V_2
+  IL_0013:  ldloca.s   V_3
+  IL_0015:  call       "void E.Deconstruct(out int, out int)"
+  IL_001a:  ldloc.2
+  IL_001b:  ldloc.0
+  IL_001c:  ldfld      "int S.field"
+  IL_0021:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+  IL_0026:  box        "System.ValueTuple<int, int>"
+  IL_002b:  call       "void System.Console.Write(object)"
+  IL_0030:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_PropertyAccess()
+    {
+        var source = """
+S s = new S();
+System.Console.Write(s.P);
+s.P = 1;
+
+struct S { }
+
+implicit extension E for S
+{
+    public int P
+    {
+        get { System.Console.Write("get "); return 42; }
+        set { System.Console.Write($" set({value})"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get 42 set(1)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (S V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  call       "int E.P.get"
+  IL_0014:  call       "void System.Console.Write(int)"
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_0020:  ldc.i4.1
+  IL_0021:  call       "void E.P.set"
+  IL_0026:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_PropertyAccess_Compound_Local()
+    {
+        var source = """
+S s = new S();
+s.P += 1;
+
+struct S { }
+
+implicit extension E for S
+{
+    public int P
+    {
+        get { System.Console.Write("get "); return 42; }
+        set { System.Console.Write($"set({value})"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       38 (0x26)
+  .maxstack  3
+  .locals init (S V_0, //s
+                E V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  ldobj      "E"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "int E.P.get"
+  IL_001e:  ldc.i4.1
+  IL_001f:  add
+  IL_0020:  call       "void E.P.set"
+  IL_0025:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_PropertyAccess_Compound_Constant()
+    {
+        var source = """
+"".P += 1;
+
+implicit extension E for string
+{
+    public int P
+    {
+        get { System.Console.Write("get "); return 42; }
+        set { System.Console.Write($"set({value})"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (E V_0,
+                string V_1)
+  IL_0000:  ldstr      ""
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<string, E>(ref string)"
+  IL_000d:  ldobj      "E"
+  IL_0012:  stloc.0
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       "int E.P.get"
+  IL_001c:  ldc.i4.1
+  IL_001d:  add
+  IL_001e:  call       "void E.P.set"
+  IL_0023:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_PropertyAccess_Compound_Local_RefProperty()
+    {
+        var source = """
+S s = new S();
+System.Console.Write(s.P += 1);
+
+struct S { }
+
+implicit extension E for S
+{
+    static int field = 42;
+    public ref int P
+    {
+        get { System.Console.Write("get "); return ref field; }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get 43"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  .locals init (S V_0, //s
+                int V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  call       "ref int E.P.get"
+  IL_0014:  dup
+  IL_0015:  ldind.i4
+  IL_0016:  ldc.i4.1
+  IL_0017:  add
+  IL_0018:  dup
+  IL_0019:  stloc.1
+  IL_001a:  stind.i4
+  IL_001b:  ldloc.1
+  IL_001c:  call       "void System.Console.Write(int)"
+  IL_0021:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_PropertyAccess_PropertyPattern()
+    {
+        var src = """
+var s = new S();
+if (s is { Property: 42 })
+{
+    System.Console.Write(s.field);
+}
+
+struct S
+{
+    public int field;
+    public void Increment() { field++; }
+}
+
+implicit extension E for S
+{
+    public int Property { get { System.Console.Write("ran "); this.Increment(); return 42; } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran 1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (S V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  call       "int E.Property.get"
+  IL_0014:  ldc.i4.s   42
+  IL_0016:  bne.un.s   IL_0023
+  IL_0018:  ldloc.0
+  IL_0019:  ldfld      "int S.field"
+  IL_001e:  call       "void System.Console.Write(int)"
+  IL_0023:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_PropertyAccess_ObjectInitializer()
+    {
+        var src = """
+_ = new object() { Property = 1 };
+
+implicit extension E for object
+{
+    public int Property { set { System.Console.Write("ran"); } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  newobj     "object..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<object, E>(ref object)"
+  IL_000d:  ldc.i4.1
+  IL_000e:  call       "void E.Property.set"
+  IL_0013:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_PropertyAccess_ObjectInitializer_ValueType()
+    {
+        var src = """
+var s = new S() { Property = 1 };
+System.Console.Write(s.field);
+
+struct S
+{
+    public int field;
+    public void Increment() { field++; }
+}
+
+implicit extension E for S
+{
+    public int Property { set { System.Console.Write("ran "); this.Increment(); } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran 1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  ldc.i4.1
+  IL_0010:  call       "void E.Property.set"
+  IL_0015:  ldloc.0
+  IL_0016:  ldfld      "int S.field"
+  IL_001b:  call       "void System.Console.Write(int)"
+  IL_0020:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_IndexerAccess_ObjectInitializer_ValueType()
+    {
+        var src = """
+var s = new S() { [42] = 43 };
+System.Console.Write(s.field);
+
+struct S
+{
+    public int field;
+    public void Increment() { field++; }
+}
+
+implicit extension E for S
+{
+    public int this[int i] { set { System.Console.Write($"ran({i}, {value}) "); this.Increment(); } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran(42, 43) 1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  ldc.i4.s   42
+  IL_0011:  ldc.i4.s   43
+  IL_0013:  call       "void E.this[int].set"
+  IL_0018:  ldloc.0
+  IL_0019:  ldfld      "int S.field"
+  IL_001e:  call       "void System.Console.Write(int)"
+  IL_0023:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_PropertyAccess_WithInitializer_ValueType()
+    {
+        var src = """
+var s = new S();
+var s2 = s with { Property = 1 };
+System.Console.Write(s2.field);
+
+struct S
+{
+    public int field;
+    public void Increment() { field++; }
+}
+
+implicit extension E for S
+{
+    public int Property { set { System.Console.Write("ran "); this.Increment(); } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran 1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_0011:  ldc.i4.1
+  IL_0012:  call       "void E.Property.set"
+  IL_0017:  ldloc.0
+  IL_0018:  ldfld      "int S.field"
+  IL_001d:  call       "void System.Console.Write(int)"
+  IL_0022:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_IndexerAccess_Compound_Local()
+    {
+        var source = """
+S s = new S();
+s[10] += 1;
+
+struct S { }
+
+implicit extension E for S
+{
+    public int this[int i]
+    {
+        get { System.Console.Write("get "); return 42; }
+        set { System.Console.Write($"set({value})"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       42 (0x2a)
+  .maxstack  4
+  .locals init (S V_0, //s
+                E V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  ldobj      "E"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  ldc.i4.s   10
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  ldc.i4.s   10
+  IL_001d:  call       "int E.this[int].get"
+  IL_0022:  ldc.i4.1
+  IL_0023:  add
+  IL_0024:  call       "void E.this[int].set"
+  IL_0029:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void InstanceCodeGen_EventAssignment()
+    {
+        var source = """
+class C
+{
+    public static void Main()
+    {
+        S s = new S();
+        System.Action a = () => { System.Console.Write("ran2 "); };
+        Add(s, a);
+        Remove(s, a);
+    }
+
+    public static void Add(S s, System.Action a)
+    {
+        s.Event += a;
+    }
+
+    public static void Remove(S s, System.Action a)
+    {
+        s.Event -= a;
+    }
+}
+
+struct S { }
+
+implicit extension E for S
+{
+    public event System.Action Event
+    {
+        add { System.Console.Write("ran1 "); value(); }
+        remove { System.Console.Write("ran3"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran1 ran2 ran3"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("C.Add", """
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_0008:  ldarg.1
+  IL_0009:  call       "void E.Event.add"
+  IL_000e:  nop
+  IL_000f:  ret
+}
+""");
+        verifier.VerifyIL("C.Remove", """
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_0008:  ldarg.1
+  IL_0009:  call       "void E.Event.remove"
+  IL_000e:  nop
+  IL_000f:  ret
+}
+""");
     }
 }
