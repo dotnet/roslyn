@@ -329,6 +329,10 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         }
 
         normalizedChanges.Add(currentChange);
+
+        if (normalizedChanges.Count == orderedChanges.Length)
+            return orderedChanges;
+
         return normalizedChanges.ToImmutableAndClear();
     }
 
