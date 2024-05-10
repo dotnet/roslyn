@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<RequestContext>, IOnInitialized
     {
         private readonly AbstractLspServiceProvider _lspServiceProvider;
-        private readonly ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> _baseServices;
+        private readonly ImmutableDictionary<string, ImmutableArray<Func<ILspServices, object>>> _baseServices;
         private readonly WellKnownLspServerKinds _serverKind;
 
         public RoslynLanguageServer(
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return provider.CreateRequestExecutionQueue(this, Logger, HandlerProvider);
         }
 
-        private ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> GetBaseServices(
+        private ImmutableDictionary<string, ImmutableArray<Func<ILspServices, object>>> GetBaseServices(
             JsonRpc jsonRpc,
             AbstractLspLogger logger,
             ICapabilitiesProvider capabilitiesProvider,
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             WellKnownLspServerKinds serverKind,
             ImmutableArray<string> supportedLanguages)
         {
-            var baseServices = new Dictionary<Type, ImmutableArray<Func<ILspServices, object>>>();
+            var baseServices = new Dictionary<string, ImmutableArray<Func<ILspServices, object>>>();
             var clientLanguageServerManager = new ClientLanguageServerManager(jsonRpc);
             var lifeCycleManager = new LspServiceLifeCycleManager(clientLanguageServerManager);
 
@@ -106,8 +106,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             void AddBaseServiceFromFunc<T>(Func<ILspServices, object> creatorFunc)
             {
-                var added = baseServices.GetValueOrDefault(typeof(T), []).Add(creatorFunc);
-                baseServices[typeof(T)] = added;
+                var assemblyQualifiedName = typeof(T).AssemblyQualifiedName;
+                Contract.ThrowIfNull(assemblyQualifiedName);
+                var added = baseServices.GetValueOrDefault(assemblyQualifiedName, []).Add(creatorFunc);
+                baseServices[assemblyQualifiedName] = added;
             }
         }
 

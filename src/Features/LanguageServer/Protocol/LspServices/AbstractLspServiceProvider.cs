@@ -22,7 +22,7 @@ internal class AbstractLspServiceProvider
         _lspServiceFactories = specificLspServiceFactories.ToImmutableArray();
     }
 
-    public LspServices CreateServices(WellKnownLspServerKinds serverKind, ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> baseServices)
+    public LspServices CreateServices(WellKnownLspServerKinds serverKind, ImmutableDictionary<string, ImmutableArray<Func<ILspServices, object>>> baseServices)
     {
         var lspServices = new LspServices(_lspServices, _lspServiceFactories, serverKind, baseServices);
 

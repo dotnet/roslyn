@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class LspServices : ILspServices
 {
-    private readonly ImmutableDictionary<Type, Lazy<ILspService, LspServiceMetadataView>> _lazyMefLspServices;
+    private readonly ImmutableDictionary<string, Lazy<ILspService, LspServiceMetadataView>> _lazyMefLspServices;
 
     /// <summary>
     /// A set of base services that apply to all roslyn lsp services.
@@ -23,7 +23,7 @@ internal sealed class LspServices : ILspServices
     /// so these are manually created in <see cref="RoslynLanguageServer"/>.
     /// TODO - cleanup once https://github.com/dotnet/roslyn/issues/63555 is resolved.
     /// </summary>
-    private readonly ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> _baseServices;
+    private readonly ImmutableDictionary<string, ImmutableArray<Func<ILspServices, object>>> _baseServices;
 
     /// <summary>
     /// Gates access to <see cref="_servicesToDispose"/>.
@@ -35,7 +35,7 @@ internal sealed class LspServices : ILspServices
         ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> mefLspServices,
         ImmutableArray<Lazy<ILspServiceFactory, LspServiceMetadataView>> mefLspServiceFactories,
         WellKnownLspServerKinds serverKind,
-        ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> baseServices)
+        ImmutableDictionary<string, ImmutableArray<Func<ILspServices, object>>> baseServices)
     {
         // Convert MEF exported service factories to the lazy LSP services that they create.
         var servicesFromFactories = mefLspServiceFactories.Select(lz => new Lazy<ILspService, LspServiceMetadataView>(() => lz.Value.CreateILspService(this, serverKind), lz.Metadata));
@@ -46,10 +46,12 @@ internal sealed class LspServices : ILspServices
         services = services.Where(lazyService => lazyService.Metadata.ServerKind == serverKind || lazyService.Metadata.ServerKind == WellKnownLspServerKinds.Any);
 
         // This will throw if the same service is registered twice
-        _lazyMefLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.Type, lazyService => lazyService);
+        _lazyMefLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.AssemblyQualifiedName, lazyService => lazyService);
 
         // Bit cheaky, but lets make an this ILspService available on the base services to make constructors that take an ILspServices instance possible.
-        _baseServices = baseServices.Add(typeof(ILspServices), [(_) => this]);
+        var lspServicesAssemblyQualifiedName = typeof(ILspServices).AssemblyQualifiedName;
+        Contract.ThrowIfNull(lspServicesAssemblyQualifiedName);
+        _baseServices = baseServices.Add(lspServicesAssemblyQualifiedName, [(_) => this]);
     }
 
     public T GetRequiredService<T>() where T : notnull
@@ -72,10 +74,13 @@ internal sealed class LspServices : ILspServices
 
     public object? TryGetService(Type type)
     {
+        var assemblyQualifiedName = type.AssemblyQualifiedName;
+        Contract.ThrowIfNull(assemblyQualifiedName);
+
         object? lspService;
 
         // Check the base services first
-        if (_baseServices.TryGetValue(type, out var baseServices))
+        if (_baseServices.TryGetValue(assemblyQualifiedName, out var baseServices))
         {
             lspService = baseServices.Select(creatorFunc => creatorFunc(this)).SingleOrDefault();
             if (lspService is not null)
@@ -84,7 +89,7 @@ internal sealed class LspServices : ILspServices
             }
         }
 
-        if (_lazyMefLspServices.TryGetValue(type, out var lazyService))
+        if (_lazyMefLspServices.TryGetValue(assemblyQualifiedName, out var lazyService))
         {
             // If we are creating a stateful LSP service for the first time, we need to check
             // if it is disposable after creation and keep it around to dispose of on shutdown.
@@ -108,7 +113,7 @@ internal sealed class LspServices : ILspServices
     }
 
     public ImmutableArray<Type> GetRegisteredServices()
-        => _lazyMefLspServices.Keys.ToImmutableArray();
+        => _lazyMefLspServices.Values.SelectAsArray(lazyService => lazyService.Metadata.Type);
 
     public bool SupportsGetRegisteredServices()
     {
@@ -116,9 +121,14 @@ internal sealed class LspServices : ILspServices
     }
 
     private IEnumerable<T> GetBaseServices<T>()
-        => _baseServices.TryGetValue(typeof(T), out var baseServices)
-            ? baseServices.Select(creatorFunc => (T)creatorFunc(this)).ToImmutableArray()
+    {
+        var assemblyQualifiedName = typeof(T).AssemblyQualifiedName;
+        Contract.ThrowIfNull(assemblyQualifiedName);
+
+        return _baseServices.TryGetValue(assemblyQualifiedName, out var baseServices)
+            ? baseServices.SelectAsArray(creatorFunc => (T)creatorFunc(this))
             : (IEnumerable<T>)[];
+    }
 
     private IEnumerable<T> GetMefServices<T>()
     {
