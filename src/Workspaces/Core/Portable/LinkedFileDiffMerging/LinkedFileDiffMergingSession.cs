@@ -28,11 +28,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             var filePath = newDocument.FilePath;
             Contract.ThrowIfNull(filePath);
 
-            if (!filePathToNewDocumentsAndHashes.TryGetValue(filePath, out var newDocumentsAndHashes))
-            {
-                newDocumentsAndHashes = [];
-                filePathToNewDocumentsAndHashes.Add(filePath, newDocumentsAndHashes);
-            }
+            var newDocumentsAndHashes = filePathToNewDocumentsAndHashes.GetOrAdd(filePath, static _ => []);
 
             var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newContentHash = newText.GetContentHash();
