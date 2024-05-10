@@ -206,7 +206,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
                 oldDocument.Id));
         }
 
-        return successfullyMergedChanges.ToImmutable();
+        return successfullyMergedChanges.ToImmutableAndClear();
     }
 
     private static ImmutableArray<TextChange> MergeChangesWithMergeFailComments(
