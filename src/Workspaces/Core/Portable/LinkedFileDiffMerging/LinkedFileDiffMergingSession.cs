@@ -294,6 +294,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 
         normalizedChanges.Add(currentChange);
 
+        // If we didn't merge anything, can just return the original ordered changes.
         if (normalizedChanges.Count == orderedChanges.Length)
             return orderedChanges;
 
