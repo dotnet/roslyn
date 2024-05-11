@@ -1627,6 +1627,11 @@
         <target state="new">A partial member must be declared within a partial type</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberParamsDifference">
+        <source>Both partial member declarations must use a params parameter or neither may use a params parameter</source>
+        <target state="new">Both partial member declarations must use a params parameter or neither may use a params parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberReadOnlyDifference">
         <source>Both partial member declarations must be readonly or neither may be readonly</source>
         <target state="new">Both partial member declarations must be readonly or neither may be readonly</target>
@@ -1693,8 +1698,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingDefinition">
-        <source>Partial property '{0}' must have an definition part.</source>
-        <target state="new">Partial property '{0}' must have an definition part.</target>
+        <source>Partial property '{0}' must have a definition part.</source>
+        <target state="new">Partial property '{0}' must have a definition part.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingImplementation">
@@ -1963,8 +1968,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
-        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="translated">매개 변수 '{0}'의 '범위 지정' 한정자가 부분 메서드 선언과 일치하지 않습니다.</target>
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
+        <target state="needs-review-translation">매개 변수 '{0}'의 '범위 지정' 한정자가 부분 메서드 선언과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -4765,12 +4770,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="translated">'{0}' 매개 변수 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드(Partial Method) 선언과 일치하지 않습니다.</target>
+        <target state="needs-review-translation">'{0}' 매개 변수 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드(Partial Method) 선언과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial_Title">
         <source>Nullability of reference types in type of parameter doesn't match partial method declaration.</source>
-        <target state="translated">매개 변수 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드(Partial Method) 선언과 일치하지 않습니다.</target>
+        <target state="needs-review-translation">매개 변수 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드(Partial Method) 선언과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
@@ -4815,12 +4820,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="translated">반환 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드 선언과 일치하지 않습니다.</target>
+        <target state="needs-review-translation">반환 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드 선언과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="translated">반환 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드 선언과 일치하지 않습니다.</target>
+        <target state="needs-review-translation">반환 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드 선언과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
@@ -8155,11 +8160,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_PartialMethodOnlyOneActual">
         <source>A partial method may not have multiple implementing declarations</source>
         <target state="translated">부분 메서드(Partial Method)에는 하나의 구현 선언만 사용할 수 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodParamsDifference">
-        <source>Both partial method declarations must use a params parameter or neither may use a params parameter</source>
-        <target state="translated">두 부분 메서드(Partial Method) 선언 모두 params 매개 변수를 사용하거나 params 매개 변수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodMustHaveLatent">

@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodExtensionDifference = 755,
         ERR_PartialMethodOnlyOneLatent = 756,
         ERR_PartialMethodOnlyOneActual = 757,
-        ERR_PartialMethodParamsDifference = 758,
+        ERR_PartialMemberParamsDifference = 758,
         ERR_PartialMethodMustHaveLatent = 759,
         ERR_PartialMethodInconsistentConstraints = 761,
         ERR_PartialMethodToDelegate = 762,

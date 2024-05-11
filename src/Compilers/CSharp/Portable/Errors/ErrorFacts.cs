@@ -1078,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialMethodExtensionDifference
                 or ErrorCode.ERR_PartialMethodOnlyOneLatent
                 or ErrorCode.ERR_PartialMethodOnlyOneActual
-                or ErrorCode.ERR_PartialMethodParamsDifference
+                or ErrorCode.ERR_PartialMemberParamsDifference
                 or ErrorCode.ERR_PartialMethodMustHaveLatent
                 or ErrorCode.ERR_PartialMethodInconsistentConstraints
                 or ErrorCode.ERR_PartialMethodToDelegate

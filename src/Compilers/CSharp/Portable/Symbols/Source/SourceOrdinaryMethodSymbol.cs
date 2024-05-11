@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (definition.IsParams() != implementation.IsParams())
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodParamsDifference, implementation.GetFirstLocation());
+                diagnostics.Add(ErrorCode.ERR_PartialMemberParamsDifference, implementation.GetFirstLocation());
             }
 
             if (definition.HasExplicitAccessModifier != implementation.HasExplicitAccessModifier
