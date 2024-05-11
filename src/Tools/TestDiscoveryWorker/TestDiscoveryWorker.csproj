@@ -5,15 +5,14 @@
     <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="xunit.abstractions" />
     <PackageReference Include="xunit.runner.utility" />
     <PackageReference Include="xunit.extensibility.execution" />
     <PackageReference Include="System.Private.Uri" />
-    <PackageReference Include="System.Net.Http" />
   </ItemGroup>
-    
+
   <ItemGroup Condition="'$(TargetFramework)'=='net472'">
     <PackageReference Include="System.Threading.Channels" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />

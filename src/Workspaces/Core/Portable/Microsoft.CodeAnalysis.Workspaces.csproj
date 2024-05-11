@@ -29,8 +29,8 @@
          since it's now automatic, and Source Build will ensure we get a proper one automatically if we do nothing; if we reference the older version
          then source build may only give us a reference assembly would fail if we then try to actually run that output. -->
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
-    <PackageReference Include="System.IO.Pipelines" />
-    <PackageReference Include="System.Threading.Channels" />
+    <PackageReference Include="System.IO.Pipelines" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+    <PackageReference Include="System.Threading.Channels" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Remove="Storage\SQLite\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />

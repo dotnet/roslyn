@@ -10,7 +10,7 @@
     <AutoGenerateAssemblyVersion>true</AutoGenerateAssemblyVersion>
 
     <!--
-      Prevent the generation of binding redirects as they are not respected by 
+      Prevent the generation of binding redirects as they are not respected by
       MSBuild. At the moment it's on by default due to arcade settings that we
       need to override here
 
@@ -66,8 +66,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="Runtime" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" ExcludeAssets="Runtime" />
-    <PackageReference Include="System.Memory" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <PackageReference Include="System.Memory" Condition="'$(TargetFrameworkIdentifier)' == 'net472'" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Condition="'$(TargetFrameworkIdentifier)' == 'net472'" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
