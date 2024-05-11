@@ -408,16 +408,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (BaseFieldDeclarationSyntax)declarator.Parent.Parent;
         }
 
-        protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
+        protected override OneOrMany<SyntaxList<AttributeListSyntax>> AttributeDeclarationLists
         {
             get
             {
                 if (this.containingType.AnyMemberHasAttributes)
                 {
-                    return GetFieldDeclaration(this.SyntaxNode).AttributeLists;
+                    return OneOrMany.Create(GetFieldDeclaration(this.SyntaxNode).AttributeLists);
                 }
 
-                return default(SyntaxList<AttributeListSyntax>);
+                return OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
             }
         }
 

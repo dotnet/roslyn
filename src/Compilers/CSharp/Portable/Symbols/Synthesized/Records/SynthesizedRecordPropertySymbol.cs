@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -42,13 +43,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BackingParameter = (SourceParameterSymbol)backingParameter;
         }
 
+        protected override SourcePropertySymbolBase? BoundAttributesSource => null;
+
         public override IAttributeTargetSymbol AttributesOwner => BackingParameter as IAttributeTargetSymbol ?? this;
 
         protected override Location TypeLocation
             => ((ParameterSyntax)CSharpSyntaxNode).Type!.Location;
 
-        public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-            => BackingParameter.AttributeDeclarationList;
+        public override OneOrMany<SyntaxList<AttributeListSyntax>> AttributeDeclarationLists
+            => OneOrMany.Create(BackingParameter.AttributeDeclarationList);
 
         protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {

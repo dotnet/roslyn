@@ -3017,11 +3017,879 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "this").WithArguments("C.this[(int x, int y, int z)]", "C.this[(int a, int b, int c)]").WithLocation(13, 37));
         }
 
+        [Theory]
+        [InlineData("A(1)", "B(2)")]
+        [InlineData("B(2)", "A(1)")]
+        public void Attributes_Property_01(string declAttribute, string implAttribute)
+        {
+            // Name or arguments to attributes doesn't affect order of emit.
+            // Attributes on the declaration part precede attributes on the implementation part.
+            var source = $$"""
+                #pragma warning disable CS9113 // Primary constructor parameter is unread
+
+                using System;
+                
+                class A(int i) : Attribute { }
+                class B(int i) : Attribute { }
+
+                partial class C
+                {
+                    [{{declAttribute}}]
+                    public partial int P { get; set; }
+
+                    [{{implAttribute}}]
+                    public partial int P { get => 1; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var property = comp.GetMember<SourcePropertySymbol>("C.P");
+            AssertEx.Equal([declAttribute, implAttribute], property.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal([declAttribute, implAttribute], property.PartialImplementationPart!.GetAttributes().SelectAsArray(a => a.ToString()));
+        }
+
+        [Theory]
+        [InlineData("A(1)", "B(2)")]
+        [InlineData("B(2)", "A(1)")]
+        public void Attributes_Property_02(string declAttribute, string implAttribute)
+        {
+            // Lexical order of the partial declarations themselves doesn't affect order that attributes are emitted.
+            var source = $$"""            
+                #pragma warning disable CS9113 // Primary constructor parameter is unread
+
+                using System;
+                
+                class A(int i) : Attribute { }
+                class B(int i) : Attribute { }
+
+                partial class C
+                {
+                    [{{implAttribute}}]
+                    public partial int P { get => 1; set { } }
+
+                    [{{declAttribute}}]
+                    public partial int P { get; set; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var property = comp.GetMember<SourcePropertySymbol>("C.P");
+            AssertEx.Equal([declAttribute, implAttribute], property.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal([declAttribute, implAttribute], property.PartialImplementationPart!.GetAttributes().SelectAsArray(a => a.ToString()));
+        }
+
+        [Fact]
+        public void Attributes_Property_03()
+        {
+            // Order of attributes within a part is preserved.
+            var source = """
+                #pragma warning disable CS9113 // Primary constructor parameter is unread
+
+                using System;
+                
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                class A(int i) : Attribute { }
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                class B(int i) : Attribute { }
+
+                partial class C
+                {
+                    [A(2), B(2)]
+                    public partial int P { get => 1; set { } }
+
+                    [A(1), B(1)]
+                    public partial int P { get; set; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var property = comp.GetMember<SourcePropertySymbol>("C.P");
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], property.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], property.PartialImplementationPart!.GetAttributes().SelectAsArray(a => a.ToString()));
+        }
+
+        [Fact]
+        public void Attributes_GetAccessor()
+        {
+            // Order of attributes within a part is preserved.
+            var source = """
+                #pragma warning disable CS9113 // Primary constructor parameter is unread
+
+                using System;
+                
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                class A(int i) : Attribute { }
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                class B(int i) : Attribute { }
+
+                partial class C
+                {
+                    public partial int P
+                    {
+                        [A(2), B(2)]
+                        get => 1;
+                        set { }
+                    }
+
+                    public partial int P
+                    {
+                        [A(1), B(1)]
+                        get;
+                        set;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var accessor = comp.GetMember<MethodSymbol>("C.get_P");
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], accessor.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], accessor.PartialImplementationPart!.GetAttributes().SelectAsArray(a => a.ToString()));
+        }
+
+        [Fact]
+        public void Attributes_SetAccessor()
+        {
+            var source = """
+                #pragma warning disable CS9113 // Primary constructor parameter is unread
+
+                using System;
+                
+                
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                class A(int i) : Attribute { }
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                class B(int i) : Attribute { }
+
+                partial class C
+                {
+                    public partial int P
+                    {
+                        get => 1;
+                        [A(2), B(2)]
+                        set { }
+                    }
+
+                    public partial int P
+                    {
+                        get;
+                        [A(1), B(1)]
+                        set;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var accessor = comp.GetMember<MethodSymbol>("C.set_P");
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], accessor.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], accessor.PartialImplementationPart!.GetAttributes().SelectAsArray(a => a.ToString()));
+        }
+
+        [Fact]
+        public void Attributes_SetValueParam()
+        {
+            // Just as with parameter attributes on partial methods,
+            // the implementation part attributes are emitted before the definition part attributes.
+            var source = """
+                #pragma warning disable CS9113 // Primary constructor parameter is unread
+
+                using System;
+                
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                class A(int i) : Attribute { }
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                class B(int i) : Attribute { }
+
+                partial class C
+                {
+                    public partial int P
+                    {
+                        get => 1;
+                        [param: A(2), B(2)]
+                        set { }
+                    }
+
+                    public partial int P
+                    {
+                        get;
+                        [param: A(1), B(1)]
+                        set;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var accessor = comp.GetMember<MethodSymbol>("C.set_P");
+            AssertEx.Equal([], accessor.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal([], accessor.PartialImplementationPart.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["A(2)", "B(2)", "A(1)", "B(1)"], accessor.Parameters.Single().GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["A(2)", "B(2)", "A(1)", "B(1)"], accessor.PartialImplementationPart!.Parameters.Single().GetAttributes().SelectAsArray(a => a.ToString()));
+        }
+
+        [Fact]
+        public void Attributes_Indexer()
+        {
+            var source = """
+                #pragma warning disable CS9113 // Primary constructor parameter is unread
+
+                using System;
+                
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                class A(int i) : Attribute { }
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                class B(int i) : Attribute { }
+
+                partial class C
+                {
+                    [A(2), B(2)]
+                    public partial int this[int i] { get => 1; set { } }
+
+                    [A(1), B(1)]
+                    public partial int this[int i] { get; set; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var indexer = (SourcePropertySymbol)comp.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], indexer.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], indexer.PartialImplementationPart!.GetAttributes().SelectAsArray(a => a.ToString()));
+        }
+
+        [Fact]
+        public void Attributes_IndexerParameter()
+        {
+            // Unlike other symbol kinds, for parameters, the implementation part attributes are emitted first, then the definition part attributes.
+            // This is consistent with partial methods.
+            var source = """
+                #pragma warning disable CS9113 // Primary constructor parameter is unread
+
+                using System;
+                
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                class A(int i) : Attribute { }
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                class B(int i) : Attribute { }
+
+                partial class C
+                {
+                    public partial int this[[A(2), B(2)] int i] { get => 1; set { } }
+
+                    public partial int this[[A(1), B(1)] int i] { get; set; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var indexer = (SourcePropertySymbol)comp.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+
+            verify(indexer.Parameters.Single());
+            verify(indexer.GetMethod!.Parameters.Single());
+            verify(indexer.SetMethod!.Parameters[0]);
+
+            verify(indexer.PartialImplementationPart!.Parameters.Single());
+            verify(indexer.PartialImplementationPart!.GetMethod!.Parameters.Single());
+            verify(indexer.PartialImplementationPart!.SetMethod!.Parameters[0]);
+
+            void verify(ParameterSymbol param)
+            {
+                AssertEx.Equal(["A(2)", "B(2)", "A(1)", "B(1)"], param.GetAttributes().SelectAsArray(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void Attributes_Property_DisallowedDuplicates()
+        {
+            var source = """
+                using System;
+
+                class Attr : Attribute { }
+
+                partial class C
+                {
+                    [Attr]
+                    public partial int P { [Attr] get; [Attr] [param: Attr] set; } // 1 (param)
+
+                    [Attr] // 2
+                    public partial int P { [Attr] get => 1; [Attr] [param: Attr] set { } } // 3, 4 (accessors)
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,55): error CS0579: Duplicate 'Attr' attribute
+                //     public partial int P { [Attr] get; [Attr] [param: Attr] set; } // 1 (param)
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(8, 55),
+                // (10,6): error CS0579: Duplicate 'Attr' attribute
+                //     [Attr] // 2
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(10, 6),
+                // (11,29): error CS0579: Duplicate 'Attr' attribute
+                //     public partial int P { [Attr] get => 1; [Attr] [param: Attr] set { } } // 3, 4 (accessors)
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(11, 29),
+                // (11,46): error CS0579: Duplicate 'Attr' attribute
+                //     public partial int P { [Attr] get => 1; [Attr] [param: Attr] set { } } // 3, 4 (accessors)
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(11, 46));
+
+            var property = comp.GetMember<SourcePropertySymbol>("C.P");
+            AssertEx.Equal(["Attr", "Attr"], property.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["Attr", "Attr"], property.GetMethod!.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.Parameters.Single().GetAttributes().SelectAsArray(a => a.ToString()));
+        }
+
+        [Fact]
+        public void Attributes_Indexer_DisallowedDuplicates()
+        {
+            var source = """
+                using System;
+
+                class Attr : Attribute { }
+
+                partial class C
+                {
+                    [Attr]
+                    public partial int this[[Attr] int x, [Attr] int y] { [Attr] get; [Attr] [param: Attr] set; } // 1, 2, 3 (param)
+
+                    [Attr] // 4
+                    public partial int this[[Attr] int x, [Attr] int y] { [Attr] get => 1; [Attr] [param: Attr] set { } } // 5, 6 (accessor)
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,30): error CS0579: Duplicate 'Attr' attribute
+                //     public partial int this[[Attr] int x, [Attr] int y] { [Attr] get; [Attr] [param: Attr] set; } // 1, 2, 3 (param)
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(8, 30),
+                // (8,44): error CS0579: Duplicate 'Attr' attribute
+                //     public partial int this[[Attr] int x, [Attr] int y] { [Attr] get; [Attr] [param: Attr] set; } // 1, 2, 3 (param)
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(8, 44),
+                // (8,86): error CS0579: Duplicate 'Attr' attribute
+                //     public partial int this[[Attr] int x, [Attr] int y] { [Attr] get; [Attr] [param: Attr] set; } // 1, 2, 3 (param)
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(8, 86),
+                // (10,6): error CS0579: Duplicate 'Attr' attribute
+                //     [Attr] // 4
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(10, 6),
+                // (11,60): error CS0579: Duplicate 'Attr' attribute
+                //     public partial int this[[Attr] int x, [Attr] int y] { [Attr] get => 1; [Attr] [param: Attr] set { } } // 5, 6 (accessor)
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(11, 60),
+                // (11,77): error CS0579: Duplicate 'Attr' attribute
+                //     public partial int this[[Attr] int x, [Attr] int y] { [Attr] get => 1; [Attr] [param: Attr] set { } } // 5, 6 (accessor)
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(11, 77));
+
+            var property = (SourcePropertySymbol)comp.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+            AssertEx.Equal(["Attr", "Attr"], property.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["Attr", "Attr"], property.GetMethod!.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["Attr", "Attr"], property.GetMethod!.Parameters[0].GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["Attr", "Attr"], property.GetMethod!.Parameters[1].GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.Parameters[0].GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.Parameters[1].GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.Parameters[2].GetAttributes().SelectAsArray(a => a.ToString()));
+        }
+
+        [Fact]
+        public void Attributes_Property_BackingField()
+        {
+            var source = """
+                using System;
+
+                class Attr : Attribute { }
+
+                partial class C
+                {
+                    [field: Attr]
+                    public partial int P { get; set; }
+
+                    [field: Attr]
+                    public partial int P { get => 1; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: Attr]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(7, 6),
+                // (10,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: Attr]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(10, 6));
+
+            var property = comp.GetMember<SourcePropertySymbol>("C.P");
+            AssertEx.Equal([], property.GetAttributes().SelectAsArray(a => a.ToString()));
+        }
+
+        [Theory]
+        [InlineData("", "[UnscopedRef] ")]
+        [InlineData("[UnscopedRef] ", "")]
+        public void Attributes_UnscopedRef(string defAttrs, string implAttrs)
+        {
+            // There aren't many interesting scenarios to test with UnscopedRef because:
+            // - no out parameters (so no removing the implicit 'scoped' from them)
+            // - no ref parameters either (so no interesting differences in ref safety analysis for ref readonlys marked with `[UnscopedRef]`)
+            var source = $$"""
+                #pragma warning disable CS9113 // Primary constructor parameter is unread
+
+                using System.Diagnostics.CodeAnalysis;
+
+                public ref struct RS([UnscopedRef] ref readonly int ri) { }
+
+                partial class C
+                {
+                    public partial RS this[{{defAttrs}}ref readonly int i] { get; }
+                    public partial RS this[{{implAttrs}}ref readonly int i]
+                    {
+                        get => new RS(in i);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, UnscopedRefAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+
+            var indexer = (SourcePropertySymbol)comp.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+            Assert.True(indexer.Parameters[0].HasUnscopedRefAttribute);
+            Assert.True(indexer.PartialImplementationPart!.Parameters[0].HasUnscopedRefAttribute);
+            Assert.True(indexer.GetMethod!.Parameters[0].HasUnscopedRefAttribute);
+            Assert.True(indexer.GetMethod!.PartialImplementationPart!.Parameters[0].HasUnscopedRefAttribute);
+        }
+
+        [Fact]
+        public void Attributes_CallerLineNumber_OnDefinition()
+        {
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                #line 1
+                        Console.Write(c[2]);
+                    }
+
+                    public partial int this[int x, [CallerLineNumber] int lineNumber = 0] { get; }
+                    public partial int this[int x, int lineNumber]
+                    {
+                        get
+                        {
+                            Console.Write(lineNumber);
+                            return x;
+                        }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "12", symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+                
+            void verify(ModuleSymbol module)
+            {
+                var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerLineNumberAttribute"], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+            }
+        }
+
+        [Fact]
+        public void Attributes_CallerLineNumber_OnImplementation()
+        {
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                #line 1
+                        Console.Write(c[2]);
+                    }
+
+                    public partial int this[int x, int lineNumber = 0] { get; }
+                    public partial int this[int x, [CallerLineNumber] int lineNumber]
+                    {
+                        get
+                        {
+                            Console.Write(lineNumber);
+                            return x;
+                        }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "02", symbolValidator: verify);
+            verifier.VerifyDiagnostics(
+                // (5,37): warning CS4024: The CallerLineNumberAttribute applied to parameter 'lineNumber' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     public partial int this[int x, [CallerLineNumber] int lineNumber]
+                Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("lineNumber").WithLocation(5, 37));
+                
+            void verify(ModuleSymbol module)
+            {
+                // https://github.com/dotnet/roslyn/issues/73482
+                // The attribute is still written out to metadata even though it is ignored in source.
+                // We could consider changing this for both properties and methods.
+                var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerLineNumberAttribute"], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+            }
+        }
+
+        [Fact]
+        public void Attributes_CallerFilePath_OnDefinition()
+        {
+            var source = ($$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        Console.Write(c[2]);
+                    }
+
+                    public partial int this[int x, [CallerFilePath] string filePath = "0"] { get; }
+                    public partial int this[int x, string filePath]
+                    {
+                        get
+                        {
+                            Console.Write(filePath);
+                            return x;
+                        }
+                    }
+                }
+                """, filePath: "Program.cs");
+            var verifier = CompileAndVerify(source, expectedOutput: "Program.cs2", symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            void verify(ModuleSymbol module)
+            {
+                var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerFilePathAttribute"], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+            }
+        }
+
+        [Fact]
+        public void Attributes_CallerFilePath_OnImplementation()
+        {
+            var source = ($$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        Console.Write(c[2]);
+                    }
+
+                    public partial int this[int x, string filePath = "0"] { get; }
+                    public partial int this[int x, [CallerFilePath] string filePath]
+                    {
+                        get
+                        {
+                            Console.Write(filePath);
+                            return x;
+                        }
+                    }
+                }
+                """, filePath: "Program.cs");
+            var verifier = CompileAndVerify(source, expectedOutput: "02", symbolValidator: verify);
+            verifier.VerifyDiagnostics(
+                // Program.cs(13,37): warning CS4025: The CallerFilePathAttribute applied to parameter 'filePath' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     public partial int this[int x, [CallerFilePath] string filePath]
+                Diagnostic(ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation, "CallerFilePath").WithArguments("filePath").WithLocation(13, 37));
+
+            void verify(ModuleSymbol module)
+            {
+                // https://github.com/dotnet/roslyn/issues/73482
+                // The attribute is still written out to metadata even though it is ignored in source.
+                // We could consider changing this for both properties and methods.
+                var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerFilePathAttribute"], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+            }
+        }
+
+        [Fact]
+        public void Attributes_CallerMemberName_OnDefinition()
+        {
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        Console.Write(c[2]);
+                    }
+
+                    public partial int this[int x, [CallerMemberName] string filePath = "0"] { get; }
+                    public partial int this[int x, string filePath]
+                    {
+                        get
+                        {
+                            Console.Write(filePath);
+                            return x;
+                        }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "Main2", symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            void verify(ModuleSymbol module)
+            {
+                var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerMemberNameAttribute"], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+            }
+        }
+
+        [Fact]
+        public void Attributes_CallerMemberName_OnImplementation()
+        {
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        Console.Write(c[2]);
+                    }
+
+                    public partial int this[int x, string filePath = "0"] { get; }
+                    public partial int this[int x, [CallerMemberName] string filePath]
+                    {
+                        get
+                        {
+                            Console.Write(filePath);
+                            return x;
+                        }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "02", symbolValidator: verify);
+            verifier.VerifyDiagnostics(
+                // (13,37): warning CS4026: The CallerMemberNameAttribute applied to parameter 'filePath' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     public partial int this[int x, [CallerMemberName] string filePath]
+                Diagnostic(ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation, "CallerMemberName").WithArguments("filePath").WithLocation(13, 37));
+
+            void verify(ModuleSymbol module)
+            {
+                // https://github.com/dotnet/roslyn/issues/73482
+                // The attribute is still written out to metadata even though it is ignored in source.
+                // We could consider changing this for both properties and methods.
+                var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerMemberNameAttribute"], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+            }
+        }
+
+        [Fact]
+        public void Attributes_CallerArgumentExpression_OnDefinition()
+        {
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                namespace System.Runtime.CompilerServices
+                {
+                    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true, Inherited = false)]
+                    public sealed class CallerArgumentExpressionAttribute : Attribute
+                    {
+                        public CallerArgumentExpressionAttribute(string parameterName)
+                        {
+                            ParameterName = parameterName;
+                        }
+                        public string ParameterName { get; }
+                    }
+                }
+
+                partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        Console.Write(c[GetNumber()]);
+                    }
+
+                    public static int GetNumber() => 2;
+
+                    public partial int this[int x, [CallerArgumentExpression("x")] string argumentExpression = "0"] { get; }
+                    public partial int this[int x, string argumentExpression]
+                    {
+                        get
+                        {
+                            Console.Write(argumentExpression);
+                            return x;
+                        }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "GetNumber()2", symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            void verify(ModuleSymbol module)
+            {
+                var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                AssertEx.Equal(["""System.Runtime.CompilerServices.CallerArgumentExpressionAttribute("x")"""], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+            }
+        }
+
+        [Fact]
+        public void Attributes_CallerArgumentExpression_OnImplementation()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                namespace System.Runtime.CompilerServices
+                {
+                    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true, Inherited = false)]
+                    public sealed class CallerArgumentExpressionAttribute : Attribute
+                    {
+                        public CallerArgumentExpressionAttribute(string parameterName)
+                        {
+                            ParameterName = parameterName;
+                        }
+                        public string ParameterName { get; }
+                    }
+                }
+
+                partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        Console.Write(c[GetNumber()]);
+                    }
+
+                    public static int GetNumber() => 2;
+
+                    public partial int this[int x, string argumentExpression = "0"] { get; }
+                    public partial int this[int x, [CallerArgumentExpression("x")] string argumentExpression]
+                    {
+                        get
+                        {
+                            Console.Write(argumentExpression);
+                            return x;
+                        }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "02", symbolValidator: verify);
+            verifier.VerifyDiagnostics(
+                // (28,37): warning CS8966: The CallerArgumentExpressionAttribute applied to parameter 'argumentExpression' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     public partial int this[int x, [CallerArgumentExpression("x")] string argumentExpression]
+                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation, "CallerArgumentExpression").WithArguments("argumentExpression").WithLocation(28, 37));
+
+            void verify(ModuleSymbol module)
+            {
+                // https://github.com/dotnet/roslyn/issues/73482
+                // The attribute is still written out to metadata even though it is ignored in source.
+                // We could consider changing this for both properties and methods.
+                var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                AssertEx.Equal(["""System.Runtime.CompilerServices.CallerArgumentExpressionAttribute("x")"""], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CallerMemberName_SetterValueParam_ImplementationPart()
+        {
+            // Counterpart to test 'AttributeTests_CallerInfoAttributes.CallerMemberName_SetterValueParam'
+            // There is no way in C# to call a setter without passing an argument for the value, so the CallerMemberName effectively does nothing.
+            // It would be reasonable to also warn here about the CallerInfo attribute on implementation,
+            // but this is a corner case that clearly won't work regardless of which part the attribute is on, so it's not a big deal that the warning is missing.
+            // Verify that our checks for caller-info attributes on implementation part parameters behave gracefully here.
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c[1] = "1";
+                    }
+
+                    public partial string this[int x] { set; }
+                    public partial string this[int x]
+                    {
+                        [param: Optional, DefaultParameterValue("0")]
+                        [param: CallerMemberName]
+                        set
+                        {
+                            Console.Write(value);
+                        }
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("[AllowNull] ", "")]
+        [InlineData("", "[AllowNull] ")]
+        public void AllowNull(string defAttrs, string implAttrs)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        try
+                        {
+                            _ = c[null]; // no warning
+                        }
+                        catch
+                        {
+                            Console.Write(1);
+                        }
+                    }
+
+                    public partial string this[{{defAttrs}}string s] { get; }
+                    public partial string this[{{implAttrs}}string s]
+                    {
+                        get
+                        {
+                            return s.ToString(); // https://github.com/dotnet/roslyn/issues/73484: missing a warning here
+                        }
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, AllowNullAttributeDefinition], expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+
         // PROTOTYPE(partial-properties): override partial property where base has modopt
-        // PROTOTYPE(partial-properties): test indexers incl parameters with attributes
-        // PROTOTYPE(partial-properties): test merging property attributes
-        // PROTOTYPE(partial-properties): [UnscopedRef]+scoped difference across partials
         // PROTOTYPE(partial-properties): test that doc comments work consistently with partial methods (and probably spec it as well)
-        // PROTOTYPE(partial-properties): test CallerInfo attributes applied to either definition or implementation part
     }
 }

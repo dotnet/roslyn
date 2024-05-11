@@ -631,16 +631,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            var syntax = this.GetSyntax();
-            switch (syntax.Kind())
+            if (PartialImplementationPart is { } implementation)
             {
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.InitAccessorDeclaration:
-                    return OneOrMany.Create(((AccessorDeclarationSyntax)syntax).AttributeLists);
+                return OneOrMany.Create(AttributeDeclarationList, ((SourcePropertyAccessorSymbol)implementation).AttributeDeclarationList);
             }
 
-            return base.GetAttributeDeclarations();
+            // If we are asking this question on a partial implementation symbol,
+            // it must be from a context which prefers to order implementation attributes before definition attributes.
+            // For example, the 'value' parameter of a set accessor.
+            if (PartialDefinitionPart is { } definition)
+            {
+                return OneOrMany.Create(AttributeDeclarationList, ((SourcePropertyAccessorSymbol)definition).AttributeDeclarationList);
+            }
+
+            return OneOrMany.Create(AttributeDeclarationList);
+        }
+
+        internal SyntaxList<AttributeListSyntax> AttributeDeclarationList
+        {
+            get
+            {
+                var syntax = this.GetSyntax();
+                switch (syntax.Kind())
+                {
+                    case SyntaxKind.GetAccessorDeclaration:
+                    case SyntaxKind.SetAccessorDeclaration:
+                    case SyntaxKind.InitAccessorDeclaration:
+                        return ((AccessorDeclarationSyntax)syntax).AttributeLists;
+                }
+
+                return default;
+            }
         }
 
 #nullable enable
@@ -805,6 +826,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
+        protected sealed override SourceMemberMethodSymbol? BoundAttributesSource => (SourceMemberMethodSymbol?)PartialDefinitionPart;
+
         public sealed override MethodSymbol? PartialImplementationPart => _property is SourcePropertySymbol { IsPartialDefinition: true, OtherPartOfPartial: { } other }
             ? (MethodKind == MethodKind.PropertyGet ? other.GetMethod : other.SetMethod)
             : null;

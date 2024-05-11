@@ -401,6 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
+            Debug.Assert(PartialDefinitionPart is null);
             if ((object)this.SourcePartialImplementation != null)
             {
                 return OneOrMany.Create(ImmutableArray.Create(AttributeDeclarationSyntaxList, this.SourcePartialImplementation.AttributeDeclarationSyntaxList));
