@@ -2,22 +2,25 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.InvertIf
+Imports Microsoft.CodeAnalysis.Testing
+Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
+    Microsoft.CodeAnalysis.VisualBasic.InvertIf.VisualBasicInvertMultiLineIfCodeRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
-    <Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
     Public Class InvertMultiLineIfTests
-        Inherits AbstractVisualBasicCodeActionTest_NoEditor
-
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicInvertMultiLineIfCodeRefactoringProvider()
+        Private Shared Async Function TestInsideSubAsync(initial As String, expected As String, Optional languageVersion As LanguageVersion = LanguageVersion.Latest) As Task
+            Await TestAsync(CreateTreeText(initial), CreateTreeText(expected), languageVersion)
         End Function
 
-        Public Async Function TestFixOneAsync(initial As String, expected As String, Optional parseOptions As ParseOptions = Nothing) As Task
-            Await TestInRegularAndScriptAsync(CreateTreeText(initial), CreateTreeText(expected), parseOptions:=parseOptions)
+        Private Shared Async Function TestAsync(initial As String, expected As String, Optional languageVersion As LanguageVersion = LanguageVersion.Latest) As Task
+            Await New VerifyVB.Test With
+            {
+                .TestCode = initial,
+                .FixedCode = expected,
+                .LanguageVersion = languageVersion,
+                .CompilerDiagnostics = CompilerDiagnostics.None
+            }.RunAsync()
         End Function
 
         Public Shared Function CreateTreeText(initial As String) As String
@@ -55,7 +58,7 @@ End Module
 
         <Fact>
         Public Async Function TestMultiLineIdentifier() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If a Then
             aMethod()
@@ -74,7 +77,7 @@ End Module
 
         <Fact>
         Public Async Function TestElseIf() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Dim markup =
 "
 Sub Main()
         If a Then
@@ -85,12 +88,14 @@ Sub Main()
             cMethod()
         End If
     End Sub
-End Module")
+End Module"
+
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact>
         Public Async Function TestKeepElseIfKeyword() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Dim markup =
 "Module Program
     Sub Main()
         If a Then
@@ -101,12 +106,14 @@ End Module")
             cMethod()
         End If
     End Sub
-End Module")
+End Module"
+
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact>
         Public Async Function TestMissingOnIfElseIfElse() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Dim markup =
 "Module Program
     Sub Main()
         I[||]f a Then
@@ -117,12 +124,14 @@ End Module")
             cMethod()
         End If
     End Sub
-End Module")
+End Module"
+
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestSelection() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [|If a Then
             aMethod()
@@ -141,7 +150,7 @@ End Module")
 
         <Fact>
         Public Async Function TestDoesNotOverlapHiddenPosition1() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main()
 #End ExternalSource
@@ -170,7 +179,7 @@ End Module")
 
         <Fact>
         Public Async Function TestDoesNotOverlapHiddenPosition2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main()
 #ExternalSource File.vb 1 
@@ -197,7 +206,7 @@ End Module")
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition1() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Dim markup =
 "Module Program
     Sub Main()
         [||]If a Then
@@ -208,12 +217,14 @@ End Module")
             bMethod()
         End If
     End Sub
-End Module")
+End Module"
+
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition2() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Dim markup =
 "Module Program
     Sub Main()
         If a Then
@@ -226,12 +237,14 @@ End Module")
             cMethod()
         End If
     End Sub
-End Module")
+End Module"
+
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact>
         Public Async Function TestMissingOnOverlapsHiddenPosition3() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Dim markup =
 "Module Program
     Sub Main()
         [||]If a Then
@@ -244,12 +257,14 @@ End Module")
             cMethod()
         End If
     End Sub
-End Module")
+End Module"
+
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition4() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Dim markup =
 "Module Program
     Sub Main()
         [||]If a Then
@@ -260,12 +275,14 @@ End Module")
 #End ExternalSource
         End If
     End Sub
-End Module")
+End Module"
+
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition5() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Dim markup =
 "Module Program
     Sub Main()
         [||]If a Then
@@ -276,12 +293,14 @@ End Module")
 #End ExternalSource
         End If
     End Sub
-End Module")
+End Module"
+
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition6() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Dim markup =
 "Module Program
     Sub Main()
         [||]If a Then
@@ -292,12 +311,14 @@ End Module")
             bMethod()
         End If
     End Sub
-End Module")
+End Module"
+
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact>
         Public Async Function TestMultipleStatementsMultiLineIfBlock() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main()
         [||]If a Then
@@ -324,7 +345,7 @@ End Module")
 
         <Fact>
         Public Async Function TestTriviaAfterMultiLineIfBlock() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main()
         [||]If a Then
@@ -347,7 +368,7 @@ End Module")
 
         <Fact>
         Public Async Function TestKeepExplicitLineContinuationTriviaMethod() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main()
         I[||]f a And b _
@@ -372,7 +393,7 @@ End Module")
 
         <Fact>
         Public Async Function TestKeepTriviaInStatementsInMultiLineIfBlock() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main()
         [||]If a Then
@@ -400,7 +421,7 @@ End Module")
 
         <Fact>
         Public Async Function TestSimplifyToLengthEqualsZero() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main(args As String())
         Dim x As String
@@ -425,7 +446,7 @@ End Module")
 
         <Fact>
         Public Async Function TestSimplifyToLengthEqualsZero2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main(args As String())
         Dim x() As String
@@ -450,7 +471,7 @@ End Module")
 
         <Fact>
         Public Async Function TestSimplifyToLengthEqualsZero4() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main(args As String())
         Dim x() As String
@@ -475,7 +496,7 @@ End Module")
 
         <Fact>
         Public Async Function TestSimplifyToLengthEqualsZero5() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main(args As String())
         Dim x As String
@@ -500,7 +521,7 @@ End Module")
 
         <Fact>
         Public Async Function TestDoesNotSimplifyToLengthEqualsZero() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main(args As String())
         Dim x As String
@@ -525,7 +546,7 @@ End Module")
 
         <Fact>
         Public Async Function TestDoesNotSimplifyToLengthEqualsZero2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main(args As String())
         Dim x As String
@@ -552,7 +573,7 @@ End Module")
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530593")>
         <Fact(Skip:="Bug 530593")>
         Public Async Function TestColonAfterSingleLineIfWithEmptyElse() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main()
         ' Invert If 
@@ -570,7 +591,7 @@ End Module")
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         Public Async Function TestOnlyOnElseIf() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Dim markup =
 "Module Program
     Sub Main(args As String())
         If False Then
@@ -581,12 +602,14 @@ End Module")
             Console.WriteLine(""a"")
         End If
     End Sub
-End Module")
+End Module"
+
+            Await TestAsync(markup, markup)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         Public Async Function TestOnConditionOfMultiLineIfStatement() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "Module Program
     Sub Main(args As String())
         If [||]False Then
@@ -611,12 +634,12 @@ End Module")
         <Fact(Skip:="531474")>
         Public Async Function TestDoNotRemoveTypeCharactersDuringComplexification() As Task
             Dim markup =
-<File>
+"
 Imports System
     Module Program
         Sub Main()
             Goo(Function(take)
-                    [||]If True Then Console.WriteLine("true") Else Console.WriteLine("false")
+                    [||]If True Then Console.WriteLine(""true"") Else Console.WriteLine(""false"")
                     take$.ToString()
                     Return Function() 1
                 End Function)
@@ -626,15 +649,15 @@ Imports System
         Sub Goo(Of T)(x As Func(Of Integer, T))
         End Sub
     End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Imports System
     Module Program
         Sub Main()
             Goo(Function(take)
-                    If False Then Console.WriteLine("false") Else Console.WriteLine("true")
+                    If False Then Console.WriteLine(""false"") Else Console.WriteLine(""true"")
                     take$.ToString()
                     Return Function() 1
                 End Function)
@@ -644,14 +667,14 @@ Imports System
         Sub Goo(Of T)(x As Func(Of Integer, T))
         End Sub
     End Module
-</File>
+"
 
             Await TestAsync(markup, expected)
         End Function
 
         <Fact>
         Public Async Function InvertIfWithoutStatements() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "class C
     sub M(x as String)
         [||]If x = ""a"" Then
@@ -677,7 +700,7 @@ end class")
 
         <Fact>
         Public Async Function InvertIfWithOnlyComment() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "class C
     sub M(x as String)
         [||]If x = ""a"" Then
@@ -706,7 +729,7 @@ end class")
 
         <Fact>
         Public Async Function InvertIfWithoutElse() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
 "class C
     sub M(x as String)
         [||]If x = ""a"" Then
@@ -730,7 +753,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIs_VB12() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If TypeOf a Is String Then
             aMethod()
@@ -744,12 +767,12 @@ end class")
         Else
             aMethod()
         End If
-", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+", LanguageVersion.VisualBasic12)
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIs_VB14() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If TypeOf a Is String Then
             aMethod()
@@ -763,12 +786,12 @@ end class")
         Else
             aMethod()
         End If
-", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14))
+", LanguageVersion.VisualBasic14)
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIsNot() As Task
-            Await TestFixOneAsync(
+            Await TestInsideSubAsync(
 "
         [||]If TypeOf a IsNot String Then
             aMethod()
@@ -788,7 +811,7 @@ end class")
         <Fact>
         <WorkItem("https://github.com/dotnet/roslyn/issues/42715")>
         Public Async Function PreserveSpace() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
                "
 class C
     sub M(s as string)
@@ -819,7 +842,7 @@ end class")
         <Fact>
         <WorkItem("https://github.com/dotnet/roslyn/issues/42715")>
         Public Async Function PreserveSpace_WithComments() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
                "
 class C
     sub M(s as string)
@@ -858,7 +881,7 @@ end class")
         <Fact>
         <WorkItem("https://github.com/dotnet/roslyn/issues/42715")>
         Public Async Function PreserveSpace_NoTrivia() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestAsync(
                "
 class C
     sub M(s as string)
