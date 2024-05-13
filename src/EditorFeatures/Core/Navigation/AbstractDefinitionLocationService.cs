@@ -140,8 +140,7 @@ internal abstract class AbstractDefinitionLocationService : IDefinitionLocationS
 
         if (containingTypeDeclaration != null)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            Debug.Assert(semanticModel != null);
+            var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Allow third parties to navigate to all symbols except types/constructors
             // if we are navigating from the corresponding type.

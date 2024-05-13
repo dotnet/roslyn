@@ -25,7 +25,8 @@ internal abstract class AbstractGoToDefinitionSymbolService : IGoToDefinitionSym
         var project = document.Project;
         var services = document.Project.Solution.Services;
 
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        // We don't need nullable information to compute the symbol.  So avoid expensive work computing this.
+        var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(semanticModel, position, services, cancellationToken).ConfigureAwait(false);
 
         // Prefer references to declarations. It's more likely that the user is attempting to 
@@ -72,7 +73,8 @@ internal abstract class AbstractGoToDefinitionSymbolService : IGoToDefinitionSym
         if (token == default)
             return default;
 
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        // We don't need nullable information to compute control flow targets.  So avoid expensive work computing this.
+        var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         return (GetTargetPositionIfControlFlow(semanticModel, token), token.Span);
     }
