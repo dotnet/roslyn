@@ -228,8 +228,6 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
                 candidates.Push((currentNode, firstTime: false));
 
-                // only if left's maxVal overlaps with interval's start, we should consider 
-                // left subtree
                 if (ShouldExamineLeft(start, currentNode, in introspector, out var left))
                     candidates.Push((left, firstTime: true));
             }
