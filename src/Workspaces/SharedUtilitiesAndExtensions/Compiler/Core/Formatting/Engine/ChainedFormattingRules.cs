@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
@@ -43,7 +44,7 @@ internal class ChainedFormattingRules
         _getAdjustSpacesOperationRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.GetAdjustSpacesOperation));
     }
 
-    public void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode currentNode)
+    public void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode currentNode)
     {
         var action = new NextSuppressOperationAction(_addSuppressOperationsRules, index: 0, currentNode, list);
         action.Invoke();

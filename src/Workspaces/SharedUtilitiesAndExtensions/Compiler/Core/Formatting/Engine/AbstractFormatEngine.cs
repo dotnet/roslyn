@@ -133,10 +133,10 @@ internal abstract partial class AbstractFormatEngine
 
         var nodeOperations = new NodeOperations();
 
-        var indentBlockOperation = new List<IndentBlockOperation>();
-        var suppressOperation = new List<SuppressOperation>();
-        var alignmentOperation = new List<AlignTokensOperation>();
-        var anchorIndentationOperations = new List<AnchorIndentationOperation>();
+        var indentBlockOperationScratch = new List<IndentBlockOperation>();
+        var alignmentOperationScratch = new List<AlignTokensOperation>();
+        var anchorIndentationOperationsScratch = new List<AnchorIndentationOperation>();
+        using var _ = ArrayBuilder<SuppressOperation>.GetInstance(out var suppressOperationScratch);
 
         // Cache delegates out here to avoid allocation overhead.
 
@@ -150,19 +150,33 @@ internal abstract partial class AbstractFormatEngine
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            AddOperations(nodeOperations.IndentBlockOperation, indentBlockOperation, node, addIndentBlockOperations);
-            AddOperations(nodeOperations.SuppressOperation, suppressOperation, node, addSuppressOperation);
-            AddOperations(nodeOperations.AlignmentOperation, alignmentOperation, node, addAlignTokensOperations);
-            AddOperations(nodeOperations.AnchorIndentationOperations, anchorIndentationOperations, node, addAnchorIndentationOperations);
+            AddOperations(nodeOperations.IndentBlockOperation, indentBlockOperationScratch, node, addIndentBlockOperations);
+            AddOperations(nodeOperations.SuppressOperation, suppressOperationScratch, node, addSuppressOperation);
+            AddOperations(nodeOperations.AlignmentOperation, alignmentOperationScratch, node, addAlignTokensOperations);
+            AddOperations(nodeOperations.AnchorIndentationOperations, anchorIndentationOperationsScratch, node, addAnchorIndentationOperations);
         }
 
         // make sure we order align operation from left to right
-        alignmentOperation.Sort(static (o1, o2) => o1.BaseToken.Span.CompareTo(o2.BaseToken.Span));
+        nodeOperations.AlignmentOperation.Sort(static (o1, o2) => o1.BaseToken.Span.CompareTo(o2.BaseToken.Span));
 
         return nodeOperations;
     }
 
     private static void AddOperations<T>(SegmentedList<T> operations, List<T> scratch, SyntaxNode node, Action<List<T>, SyntaxNode> addOperations)
+    {
+        Debug.Assert(scratch.Count == 0);
+
+        addOperations(scratch, node);
+        foreach (var operation in scratch)
+        {
+            if (operation is not null)
+                operations.Add(operation);
+        }
+
+        scratch.Clear();
+    }
+
+    private static void AddOperations<T>(SegmentedList<T> operations, ArrayBuilder<T> scratch, SyntaxNode node, Action<ArrayBuilder<T>, SyntaxNode> addOperations)
     {
         Debug.Assert(scratch.Count == 0);
 
