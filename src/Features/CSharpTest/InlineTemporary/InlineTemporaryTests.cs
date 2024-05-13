@@ -5745,7 +5745,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
                     {
                         public void Bar()
                         {
-                            var target = new List&lt;object;gt>();
+                            var target = new List&lt;object&gt;();
                             var [||]newItems = new List&lt;Goo&gt;();
                             target.AddRange(newItems);
                         }
@@ -5769,7 +5769,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
                     {
                         public void Bar()
                         {
-                            var target = new List&lt;object;gt>();
+                            var target = new List&lt;object&gt;();
                             target.AddRange(new List&lt;Goo&gt;());
                         }
                     }

@@ -6,7 +6,7 @@ using System.Diagnostics;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Logging
+namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class MSBuildDiagnosticLogger : MSB.Framework.ILogger
     {

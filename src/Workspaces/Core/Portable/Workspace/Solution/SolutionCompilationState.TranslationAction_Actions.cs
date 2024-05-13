@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -17,27 +16,34 @@ internal partial class SolutionCompilationState
 {
     private abstract partial class TranslationAction
     {
-        internal sealed class TouchDocumentAction(
+        internal sealed class TouchDocumentsAction(
             ProjectState oldProjectState,
             ProjectState newProjectState,
-            DocumentState oldState,
-            DocumentState newState)
-            : TranslationAction(oldProjectState, newProjectState)
+            ImmutableArray<DocumentState> newStates) : TranslationAction(oldProjectState, newProjectState)
         {
-            private readonly DocumentState _oldState = oldState;
-            private readonly DocumentState _newState = newState;
+            private readonly ImmutableArray<DocumentState> _oldStates = newStates.SelectAsArray(s => oldProjectState.DocumentStates.GetRequiredState(s.Id));
+            private readonly ImmutableArray<DocumentState> _newStates = newStates;
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
-                return oldCompilation.ReplaceSyntaxTree(
-                    await _oldState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
-                    await _newState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                var finalCompilation = oldCompilation;
+                for (int i = 0, n = _newStates.Length; i < n; i++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var newState = _newStates[i];
+                    var oldState = _oldStates[i];
+                    finalCompilation = finalCompilation.ReplaceSyntaxTree(
+                        await oldState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
+                        await newState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                }
+
+                return finalCompilation;
             }
 
-            public DocumentId DocumentId => _newState.Attributes.Id;
-
-            // Replacing a single tree doesn't impact the generated trees in a compilation, so we can use this against
-            // compilations that have generated trees.
+            /// <summary>
+            /// Replacing a single tree doesn't impact the generated trees in a compilation, so we can use this against
+            /// compilations that have generated trees.
+            /// </summary>
             public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
 
             public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
@@ -45,12 +51,12 @@ internal partial class SolutionCompilationState
 
             public override TranslationAction? TryMergeWithPrior(TranslationAction priorAction)
             {
-                if (priorAction is TouchDocumentAction priorTouchAction &&
-                    priorTouchAction._newState == _oldState)
+                if (priorAction is TouchDocumentsAction priorTouchAction &&
+                    priorTouchAction._newStates.SequenceEqual(_oldStates))
                 {
                     // As we're merging ourselves with the prior touch action, we want to keep the old project state
                     // that we are translating from.
-                    return new TouchDocumentAction(priorAction.OldProjectState, this.NewProjectState, priorTouchAction._oldState, _newState);
+                    return new TouchDocumentsAction(priorAction.OldProjectState, this.NewProjectState, _newStates);
                 }
 
                 return null;

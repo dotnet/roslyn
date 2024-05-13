@@ -17,7 +17,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -3116,7 +3115,6 @@ class C { }";
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
             using var workspace = CreateMSBuildWorkspace();
-            var loader = new CSharpProjectFileLoader();
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
@@ -3127,7 +3125,7 @@ class C { }";
             var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
 
             var commandLineParser = workspace.Services
-                .GetLanguageServices(loader.Language)
+                .GetLanguageServices(LanguageNames.CSharp)
                 .GetRequiredService<ICommandLineParserService>();
 
             var projectDirectory = Path.GetDirectoryName(projectFilePath);
