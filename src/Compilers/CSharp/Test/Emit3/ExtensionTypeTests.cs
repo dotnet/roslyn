@@ -57,7 +57,7 @@ public class ExtensionTypeTests : CompilingTestBase
     }
 
     // Verify things that are common for all extension types
-    private static void VerifyExtension<T>(TypeSymbol type, bool? isExplicit, SpecialType specialType = SpecialType.None, string fieldType = null) where T : TypeSymbol
+    private static void VerifyExtension<T>(TypeSymbol type, bool? isExplicit, SpecialType specialType = SpecialType.None) where T : TypeSymbol
     {
         var namedType = (NamedTypeSymbol)type;
         Assert.True(namedType is T);
@@ -140,15 +140,13 @@ public class ExtensionTypeTests : CompilingTestBase
             // Static extensions don't have this field, but non-static extensions have it
             Assert.Equal(fieldDefHandle.IsNil, type.IsStatic);
 
-            if (!type.IsStatic)
+            if (!type.IsStatic
+                && namedType.GetExtendedTypeNoUseSiteDiagnostics(null) is { } underlyingType2
+                && !underlyingType2.IsErrorType())
             {
-                var fieldDef = reader.GetFieldDefinition(fieldDefHandle);
-                var blob = reader.GetBlobReader(fieldDef.Signature);
-                var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
-                var fieldTypeDisplay = decoder.DecodeFieldSignature(ref blob);
-
                 // The instance value field has the expected type
-                Assert.Equal(fieldType, fieldTypeDisplay);
+                var peField = new PEFieldSymbol(module, peType, fieldDefHandle);
+                Assert.True(underlyingType2.Equals(peField.Type, TypeCompareKind.CLRSignatureCompareOptions));
             }
         }
 
@@ -268,7 +266,7 @@ explicit extension R2 for UnderlyingClass : R { }
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit, fieldType: "UnderlyingClass");
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit);
             }
 
             Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -670,7 +668,7 @@ explicit extension R for UnderlyingClass
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true, fieldType: "UnderlyingClass");
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
             }
 
             AssertEx.Equal(new[]
@@ -2058,7 +2056,7 @@ explicit extension R for UnderlyingStruct
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true, fieldType: "UnderlyingStruct");
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
             }
 
             Assert.Equal("UnderlyingStruct", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -2100,7 +2098,7 @@ interface I { }
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit, fieldType: "!0");
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit);
             }
 
             Assert.Equal("T", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -2142,7 +2140,7 @@ enum E { }
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit, fieldType: "E");
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: isExplicit);
             }
 
             Assert.Equal("E", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -2210,7 +2208,7 @@ explicit extension R<U> for C<U>
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true, fieldType: "C`1{!0}");
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
             }
 
             Assert.Equal("C<U>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -2251,7 +2249,7 @@ explicit extension R for (int, int)
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true, fieldType: "System.ValueTuple`2{Int32, Int32}");
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
             }
 
             Assert.Equal("(System.Int32, System.Int32)", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -2292,7 +2290,7 @@ explicit extension R for int[]
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true, fieldType: "Int32[]");
+                VerifyExtension<PENamedTypeSymbol>(r, isExplicit: true);
             }
 
             Assert.Equal("System.Int32[]", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -3121,7 +3119,7 @@ explicit extension R3 for System.IntPtr : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r, isExplicit: true, fieldType: "IntPtr");
+            VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("nint", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
@@ -3163,7 +3161,7 @@ explicit extension R3 for System.IntPtr : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r, isExplicit: true, fieldType: "IntPtr");
+            VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("nint", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
@@ -3207,7 +3205,7 @@ explicit extension R3 for C<System.IntPtr> : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r, isExplicit: true, fieldType: "C`1{IntPtr}");
+            VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("C<nint>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
@@ -3287,7 +3285,7 @@ explicit extension R3 for C<object> : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r, isExplicit: true, fieldType: "C`1{Object}");
+            VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("C<dynamic>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
@@ -3344,7 +3342,7 @@ explicit extension R3 for C<object> : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r, isExplicit: true, fieldType: "C`1{Object}");
+            VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("C<System.Object?>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString(includeNonNullable: true));
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
@@ -3401,7 +3399,7 @@ explicit extension R3 for C<object> : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r, isExplicit: true, fieldType: "C`1{Object}");
+            VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("C<System.Object!>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString(includeNonNullable: true));
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
@@ -3461,7 +3459,7 @@ explicit extension R4 for (int a, int other) : R { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            VerifyExtension<TypeSymbol>(r, isExplicit: true, fieldType: "System.ValueTuple`2{Int32, Int32}");
+            VerifyExtension<TypeSymbol>(r, isExplicit: true);
             Assert.Equal("(System.Int32 a, System.Int32 b)", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
             Assert.Empty(r.BaseExtensionsNoUseSiteDiagnostics);
             Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
@@ -4531,7 +4529,7 @@ public explicit extension R1 for R2 { }
         comp5.VerifyDiagnostics();
 
         var r1 = comp5.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true, fieldType: "R2");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
         var r2FromR1 = (ExtendedErrorTypeSymbol)r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("R2", r2FromR1.ToTestDisplayString());
         AssertEx.Equal("error CS9322: Extension marker method on type 'R1' is malformed.", r2FromR1.ErrorInfo.ToString());
@@ -6643,7 +6641,7 @@ class C
         Assert.True(comp.GetSpecialType(SpecialType.System_IntPtr).IsErrorType());
 
         var intPtr = comp.GetTypeByMetadataName("System.IntPtr");
-        VerifyExtension<SourceExtensionTypeSymbol>(intPtr, isExplicit: true, SpecialType.System_IntPtr);
+        VerifyExtension<SourceExtensionTypeSymbol>(intPtr, isExplicit: true, specialType: SpecialType.System_IntPtr);
     }
 
     [Fact]
@@ -6783,8 +6781,8 @@ explicit extension E2 for int : E1<object> { }
         void validate(ModuleSymbol module)
         {
             var e2 = module.GlobalNamespace.GetTypeMember("E1").GetTypeMember("E2");
-            VerifyExtension<NamedTypeSymbol>(e2.ContainingType, isExplicit: isExplicit, fieldType: "Int32");
-            VerifyExtension<NamedTypeSymbol>(e2, isExplicit: isExplicit2, fieldType: "Int32");
+            VerifyExtension<NamedTypeSymbol>(e2.ContainingType, isExplicit: isExplicit);
+            VerifyExtension<NamedTypeSymbol>(e2, isExplicit: isExplicit2);
         }
     }
 
@@ -7194,7 +7192,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
         VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
@@ -7241,7 +7239,7 @@ object.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8));
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: false, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: false);
         Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
     }
 
@@ -7272,7 +7270,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         var r1ExtendedType = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
@@ -7318,7 +7316,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -7360,7 +7358,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -7400,7 +7398,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         var r1ExtendedType = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
@@ -7452,7 +7450,7 @@ object.M();
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "modopt(Object) Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         var r1ExtendedType = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
@@ -7486,7 +7484,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         var r1ExtendedType = (ExtendedErrorTypeSymbol)r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
@@ -7543,7 +7541,7 @@ public explicit extension R3 for object : R2 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -7774,7 +7772,7 @@ static class OtherExtension
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
         VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
@@ -7807,7 +7805,7 @@ public explicit extension R2 for object : R1 { }
             Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
             );
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
     }
 
     [Theory, CombinatorialData]
@@ -7839,7 +7837,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         var r1Underyling = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("dynamic", r1Underyling.ToTestDisplayString());
         Assert.True(r1Underyling.IsErrorType());
@@ -7896,7 +7894,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "R0");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         var r1Underyling = (ExtendedErrorTypeSymbol)r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("R0", r1Underyling.ToTestDisplayString());
         Assert.True(r1Underyling.IsErrorType());
@@ -7945,7 +7943,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true, fieldType: "R1");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
         var r1Underyling = r1.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("R1", r1Underyling.ToTestDisplayString());
         Assert.True(r1Underyling.IsErrorType());
@@ -8084,11 +8082,11 @@ public explicit extension R3 for object : R2 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
         Assert.Empty(r1.BaseExtensionsNoUseSiteDiagnostics);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<PENamedTypeSymbol>(r2, isExplicit: true, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r2, isExplicit: true);
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -8137,7 +8135,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -8439,7 +8437,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         if (new NoBaseExtensions().ShouldSkip) return;
@@ -8482,7 +8480,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         if (new NoBaseExtensions().ShouldSkip) return;
@@ -8525,7 +8523,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
         Assert.False(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
@@ -8559,7 +8557,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
@@ -8603,7 +8601,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         if (new NoBaseExtensions().ShouldSkip) return;
@@ -8646,7 +8644,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
         Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         if (new NoBaseExtensions().ShouldSkip) return;
@@ -8659,7 +8657,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true, fieldType: "Object");
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
@@ -12541,7 +12539,7 @@ class D<T> where T : System.Object.Nested<string>
             Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<string>").WithArguments("Nested<>", "object").WithLocation(5, 36));
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
-        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -39720,7 +39718,7 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
             }
             else
             {
-                VerifyExtension<PENamedTypeSymbol>(e, isExplicit: isExplicit, fieldType: "C");
+                VerifyExtension<PENamedTypeSymbol>(e, isExplicit: isExplicit);
             }
         }
     }
@@ -39762,7 +39760,7 @@ object.M();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
-        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
         var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.False(r1ExtendedType.IsErrorType());
@@ -39809,7 +39807,7 @@ object.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8));
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
-        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
         var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
@@ -39941,7 +39939,7 @@ object.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8));
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
-        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "String");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
         var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
@@ -39987,7 +39985,7 @@ object.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8));
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
-        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "Object&");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
         var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
@@ -40032,7 +40030,7 @@ object.M();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
-        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
         var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.False(r1ExtendedType.IsErrorType());
@@ -40078,7 +40076,7 @@ object.M();
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
-        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
         var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.False(r1ExtendedType.IsErrorType());
@@ -40138,7 +40136,7 @@ C<object>.M();
 
         // PROTOTYPE what should we do about the top-level annotation in marker method?
         var e = comp.GlobalNamespace.GetTypeMember("E");
-        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "C`1{Object}");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
         var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("C<System.Object?>", r1ExtendedType.ToTestDisplayString());
         Assert.False(r1ExtendedType.IsErrorType());
@@ -40184,7 +40182,7 @@ object.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8));
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
-        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "modopt(Object) Object");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
         var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());
@@ -40230,7 +40228,7 @@ object.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8));
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
-        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false, fieldType: "Object");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
         var r1ExtendedType = e.GetExtendedTypeNoUseSiteDiagnostics(null);
         Assert.Equal("System.Object", r1ExtendedType.ToTestDisplayString());
         Assert.True(r1ExtendedType.IsErrorType());

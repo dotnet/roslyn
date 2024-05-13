@@ -402,7 +402,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        internal sealed class ConstantSignatureVisualizer : ISignatureTypeProvider<string, object>
+        private sealed class ConstantSignatureVisualizer : ISignatureTypeProvider<string, object>
         {
             public static readonly ConstantSignatureVisualizer Instance = new ConstantSignatureVisualizer();
 

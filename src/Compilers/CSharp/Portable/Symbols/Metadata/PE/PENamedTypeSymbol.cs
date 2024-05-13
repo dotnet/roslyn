@@ -1933,7 +1933,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             return default;
                         }
 
-                        Debug.Assert(foundUnderlyingInstanceField.IsNil);
+                        if (!foundUnderlyingInstanceField.IsNil)
+                        {
+                            return default;
+                        }
+
                         foundUnderlyingInstanceField = field;
                     }
                     else if ((module.GetFieldDefFlagsOrThrow(field) & FieldAttributes.Static) == 0)
@@ -2042,7 +2046,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (paramInfo.IsByRef || !paramInfo.CustomModifiers.IsDefault)
                     {
                         var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this); // PROTOTYPE need to report use-site diagnostic
-                        type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
+                        underlyingType = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
+                        return false;
                     }
 
                     if (i == 0)
@@ -2063,18 +2068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         }
                         else
                         {
-                            // Validate instance field
-                            if (!underlyingInstanceField.IsNil
-                                && !validateUnderlyingInstanceField(underlyingInstanceField, moduleSymbol, type))
-                            {
-                                var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this); // PROTOTYPE need to report use-site diagnostic
-                                underlyingType = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
-                                return false;
-                            }
-                            else
-                            {
-                                underlyingType = type;
-                            }
+                            underlyingType = type;
                         }
                     }
                     else
@@ -2084,6 +2078,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 Debug.Assert(underlyingType is not null);
+
+                if (!underlyingInstanceField.IsNil
+                    && !validateUnderlyingInstanceField(underlyingInstanceField, moduleSymbol, underlyingType))
+                {
+                    var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this); // PROTOTYPE need to report use-site diagnostic
+                    underlyingType = new ExtendedErrorTypeSymbol(underlyingType, LookupResultKind.NotReferencable, info, unreported: true);
+                    return false;
+                }
+
                 return true;
             }
 
@@ -2246,14 +2249,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            var underlyingInstanceField = TryGetExtensionInfo().UnderlyingInstanceField;
             try
             {
                 foreach (var fieldRid in module.GetFieldsOfTypeOrThrow(_handle))
                 {
                     try
                     {
-                        if (!underlyingInstanceField.IsNil && fieldRid == underlyingInstanceField)
+                        if (this.IsExtension
+                            && (module.GetFieldDefFlagsOrThrow(fieldRid) & FieldAttributes.Static) == 0)
                         {
                             continue;
                         }
