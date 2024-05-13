@@ -27,8 +27,11 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     private delegate bool TestInterval<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>;
 
-    private static readonly ObjectPool<Stack<(Node? node, bool firstTime)>> s_stackPool
-        = SharedPools.Default<Stack<(Node? node, bool firstTime)>>();
+    private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool
+        = SharedPools.Default<Stack<(Node node, bool firstTime)>>();
+
+    private static readonly ObjectPool<Stack<Node>> s_nodePool
+        = SharedPools.Default<Stack<Node>>();
 
     public IntervalTree()
     {
@@ -139,9 +142,41 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     private bool Any<TIntrospector>(int start, int length, TestInterval<TIntrospector> testInterval, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        using var result = TemporaryArray<T>.Empty;
-        var matches = FillWithIntervalsThatMatch(start, length, testInterval, ref result.AsRef(), in introspector, stopAfterFirst: true);
-        return matches > 0;
+        // Inlined version of FillWithIntervalsThatMatch, optimized to do less work and stop once it finds a match.
+        if (root is null)
+            return false;
+
+        using var pooledObject = s_nodePool.GetPooledObject();
+        var candidates = pooledObject.Object;
+
+        var end = start + length;
+
+        candidates.Push(root);
+
+        while (candidates.TryPop(out var currentNode))
+        {
+            // Check the nodes as we go down.  That way we can stop immediately when we find something that matches,
+            // instead of having to do an entire in-order walk, which might end up hitting a lot of nodes we don't care
+            // about and placing a lot into the stack.
+            if (testInterval(currentNode.Value, start, length, in introspector))
+                return true;
+
+            // right children's starts will never be to the left of the parent's start so we should consider right
+            // subtree only if root's start overlaps with interval's End, 
+            if (introspector.GetStart(currentNode.Value) <= end)
+            {
+                var right = currentNode.Right;
+                if (right != null && GetEnd(right.MaxEndNode.Value, in introspector) >= start)
+                    candidates.Push(right);
+            }
+
+            // only if left's maxVal overlaps with interval's start, we should consider left subtree
+            var left = currentNode.Left;
+            if (left != null && GetEnd(left.MaxEndNode.Value, in introspector) >= start)
+                candidates.Push(left);
+        }
+
+        return false;
     }
 
     private ImmutableArray<T> GetIntervalsThatMatch<TIntrospector>(
@@ -161,28 +196,11 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         if (root == null)
-        {
             return 0;
-        }
 
         using var pooledObject = s_stackPool.GetPooledObject();
         var candidates = pooledObject.Object;
 
-        var matches = FillWithIntervalsThatMatch(
-            start, length, testInterval,
-            ref builder, in introspector,
-            stopAfterFirst, candidates);
-
-        return matches;
-    }
-
-    /// <returns>The number of matching intervals found by the method.</returns>
-    private int FillWithIntervalsThatMatch<TIntrospector>(
-        int start, int length, TestInterval<TIntrospector> testInterval,
-        ref TemporaryArray<T> builder, in TIntrospector introspector,
-        bool stopAfterFirst, Stack<(Node? node, bool firstTime)> candidates)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-    {
         var matches = 0;
         var end = start + length;
 
