@@ -33,7 +33,7 @@ internal abstract partial class AbstractGenerateEqualsAndGetHashCodeService : IG
 
         var formattedDocument = await Formatter.FormatAsync(
             document, s_specializedFormattingAnnotation,
-            options, rules, cancellationToken).ConfigureAwait(false);
+            options, rules.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
         return formattedDocument;
     }
 
