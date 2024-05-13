@@ -202,9 +202,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
             var currentNode = currentTuple.node;
             RoslynDebug.Assert(currentNode != null);
 
-            var firstTime = currentTuple.firstTime;
-
-            if (!firstTime)
+            if (!currentTuple.firstTime)
             {
                 // We're seeing this node for the second time (as we walk back up the left
                 // side of it).  Now see if it matches our test, and if so return it out.
