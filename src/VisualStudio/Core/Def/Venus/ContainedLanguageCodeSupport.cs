@@ -228,7 +228,7 @@ internal static class ContainedLanguageCodeSupport
         newRoot = Simplifier.ReduceAsync(
             targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, options.CleanupOptions.SimplifierOptions, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
 
-        var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
+        ImmutableArray<AbstractFormattingRule> formattingRules = [additionalFormattingRule, .. Formatter.GetDefaultFormattingRules(targetDocument)];
 
         newRoot = Formatter.Format(
             newRoot,

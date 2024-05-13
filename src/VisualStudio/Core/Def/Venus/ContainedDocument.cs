@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -804,7 +805,7 @@ internal sealed partial class ContainedDocument : IContainedDocument
         venusFormattingRules.Add(baseIndentationRule);
         venusFormattingRules.Add(ContainedDocumentPreserveFormattingRule.Instance);
 
-        var formattingRules = venusFormattingRules.Concat(Formatter.GetDefaultFormattingRules(document));
+        ImmutableArray<AbstractFormattingRule> formattingRules = [.. venusFormattingRules, .. Formatter.GetDefaultFormattingRules(document)];
 
         var services = document.Project.Solution.Services;
         var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
