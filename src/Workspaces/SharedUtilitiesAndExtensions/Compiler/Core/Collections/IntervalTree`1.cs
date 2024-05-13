@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -27,12 +28,13 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     private delegate bool TestInterval<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>;
 
-    private static readonly ObjectPool<Stack<(Node? node, bool firstTime)>> s_stackPool
-        = SharedPools.Default<Stack<(Node? node, bool firstTime)>>();
-
-    public IntervalTree()
-    {
-    }
+    /// <summary>
+    /// Use segmented lists here so we don't go on the large object heap.  Also, do not trim when freeing so we avoid
+    /// expensive reallocs when processing large trees.  It's ok for our pooled interval tree walkers to be on the
+    /// larger side so we can walk large trees efficiently.
+    /// </summary>
+    private static readonly ObjectPool<SegmentedList<(Node? node, bool firstTime)>> s_stackPool
+        = new(static () => [], trimOnFree: false);
 
     public static IntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T> values)
         where TIntrospector : struct, IIntervalIntrospector<T>
@@ -165,13 +167,12 @@ internal partial class IntervalTree<T> : IEnumerable<T>
             return 0;
         }
 
-        using var pooledObject = s_stackPool.GetPooledObject();
-        var candidates = pooledObject.Object;
+        using var candidateStack = s_stackPool.GetPooledObject();
 
         var matches = FillWithIntervalsThatMatch(
             start, length, testInterval,
             ref builder, in introspector,
-            stopAfterFirst, candidates);
+            stopAfterFirst, candidateStack.Object);
 
         return matches;
     }
@@ -179,17 +180,23 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     /// <returns>The number of matching intervals found by the method.</returns>
     private int FillWithIntervalsThatMatch<TIntrospector>(
         int start, int length, TestInterval<TIntrospector> testInterval,
-        ref TemporaryArray<T> builder, in TIntrospector introspector,
-        bool stopAfterFirst, Stack<(Node? node, bool firstTime)> candidates)
+        ref TemporaryArray<T> builder,
+        in TIntrospector introspector,
+        bool stopAfterFirst,
+        SegmentedList<(Node? node, bool firstTime)> candidateStack)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var matches = 0;
         var end = start + length;
 
-        candidates.Push((root, firstTime: true));
+        candidateStack.Add((root, firstTime: true));
 
-        while (candidates.TryPop(out var currentTuple))
+        while (candidateStack.Count > 0)
         {
+            var lastIndex = candidateStack.Count - 1;
+            var currentTuple = candidateStack[lastIndex];
+            candidateStack.RemoveAt(lastIndex);
+
             var currentNode = currentTuple.node;
             RoslynDebug.Assert(currentNode != null);
 
@@ -225,18 +232,18 @@ internal partial class IntervalTree<T> : IEnumerable<T>
                     var right = currentNode.Right;
                     if (right != null && GetEnd(right.MaxEndNode.Value, in introspector) >= start)
                     {
-                        candidates.Push((right, firstTime: true));
+                        candidateStack.Add((right, firstTime: true));
                     }
                 }
 
-                candidates.Push((currentNode, firstTime: false));
+                candidateStack.Add((currentNode, firstTime: false));
 
                 // only if left's maxVal overlaps with interval's start, we should consider 
                 // left subtree
                 var left = currentNode.Left;
                 if (left != null && GetEnd(left.MaxEndNode.Value, in introspector) >= start)
                 {
-                    candidates.Push((left, firstTime: true));
+                    candidateStack.Add((left, firstTime: true));
                 }
             }
         }
