@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -22,20 +23,18 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 {
     public static readonly IntervalTree<T> Empty = new();
 
-    protected Node? root;
+    private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool
+        = SharedPools.Default<Stack<(Node node, bool firstTime)>>();
+
+    /// <summary>
+    /// Keep around a fair number of these as we often use them in parallel algorithms.
+    /// </summary>
+    private static readonly ObjectPool<Stack<Node>> s_nodePool = new(() => new(), 1024);
 
     private delegate bool TestInterval<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>;
 
-    private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool
-        = SharedPools.Default<Stack<(Node node, bool firstTime)>>();
-
-    private static readonly ObjectPool<Stack<Node>> s_nodePool
-        = SharedPools.Default<Stack<Node>>();
-
-    public IntervalTree()
-    {
-    }
+    protected Node? root;
 
     public static IntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T> values)
         where TIntrospector : struct, IIntervalIntrospector<T>
@@ -161,18 +160,10 @@ internal partial class IntervalTree<T> : IEnumerable<T>
             if (testInterval(currentNode.Value, start, length, in introspector))
                 return true;
 
-            // right children's starts will never be to the left of the parent's start so we should consider right
-            // subtree only if root's start overlaps with interval's End, 
-            if (introspector.GetStart(currentNode.Value) <= end)
-            {
-                var right = currentNode.Right;
-                if (right != null && GetEnd(right.MaxEndNode.Value, in introspector) >= start)
-                    candidates.Push(right);
-            }
+            if (ShouldExamineRight(start, end, currentNode, in introspector, out var right))
+                candidates.Push(right);
 
-            // only if left's maxVal overlaps with interval's start, we should consider left subtree
-            var left = currentNode.Left;
-            if (left != null && GetEnd(left.MaxEndNode.Value, in introspector) >= start)
+            if (ShouldExamineLeft(start, currentNode, in introspector, out var left))
                 candidates.Push(left);
         }
 
@@ -223,43 +214,62 @@ internal partial class IntervalTree<T> : IEnumerable<T>
                     builder.Add(currentNode.Value);
 
                     if (stopAfterFirst)
-                    {
                         return 1;
-                    }
                 }
             }
             else
             {
-                // First time we're seeing this node.  In order to see the node 'in-order',
-                // we push the right side, then the node again, then the left side.  This 
-                // time we mark the current node with 'false' to indicate that it's the
-                // second time we're seeing it the next time it comes around.
+                // First time we're seeing this node.  In order to see the node 'in-order', we push the right side, then
+                // the node again, then the left side.  This time we mark the current node with 'false' to indicate that
+                // it's the second time we're seeing it the next time it comes around.
 
-                // right children's starts will never be to the left of the parent's start
-                // so we should consider right subtree only if root's start overlaps with
-                // interval's End, 
-                if (introspector.GetStart(currentNode.Value) <= end)
-                {
-                    var right = currentNode.Right;
-                    if (right != null && GetEnd(right.MaxEndNode.Value, in introspector) >= start)
-                    {
-                        candidates.Push((right, firstTime: true));
-                    }
-                }
+                if (ShouldExamineRight(start, end, currentNode, in introspector, out var right))
+                    candidates.Push((right, firstTime: true));
 
                 candidates.Push((currentNode, firstTime: false));
 
                 // only if left's maxVal overlaps with interval's start, we should consider 
                 // left subtree
-                var left = currentNode.Left;
-                if (left != null && GetEnd(left.MaxEndNode.Value, in introspector) >= start)
-                {
+                if (ShouldExamineLeft(start, currentNode, in introspector, out var left))
                     candidates.Push((left, firstTime: true));
-                }
             }
         }
 
         return matches;
+    }
+
+    private static bool ShouldExamineRight<TIntrospector>(
+        int start, int end,
+        Node currentNode,
+        in TIntrospector introspector,
+        [NotNullWhen(true)] out Node? right) where TIntrospector : struct, IIntervalIntrospector<T>
+    {
+        // right children's starts will never be to the left of the parent's start so we should consider right
+        // subtree only if root's start overlaps with interval's End, 
+        if (introspector.GetStart(currentNode.Value) <= end)
+        {
+            right = currentNode.Right;
+            if (right != null && GetEnd(right.MaxEndNode.Value, in introspector) >= start)
+                return true;
+        }
+
+        right = null;
+        return false;
+    }
+
+    private static bool ShouldExamineLeft<TIntrospector>(
+        int start,
+        Node currentNode,
+        in TIntrospector introspector,
+        [NotNullWhen(true)] out Node? left) where TIntrospector : struct, IIntervalIntrospector<T>
+    {
+        // only if left's maxVal overlaps with interval's start, we should consider 
+        // left subtree
+        left = currentNode.Left;
+        if (left != null && GetEnd(left.MaxEndNode.Value, in introspector) >= start)
+            return true;
+
+        return false;
     }
 
     public bool IsEmpty() => this.root == null;
