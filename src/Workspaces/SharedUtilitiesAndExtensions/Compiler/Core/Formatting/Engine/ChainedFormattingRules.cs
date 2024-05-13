@@ -32,7 +32,7 @@ internal class ChainedFormattingRules
     {
         Contract.ThrowIfNull(formattingRules);
 
-        _formattingRules = formattingRules.Select(rule => rule.WithOptions(options)).ToImmutableArray();
+        _formattingRules = formattingRules.SelectAsArray(rule => rule.WithOptions(options));
         _options = options;
 
         _addSuppressOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddSuppressOperations));
@@ -81,7 +81,7 @@ internal class ChainedFormattingRules
 
     private static ImmutableArray<AbstractFormattingRule> FilterToRulesImplementingMethod(ImmutableArray<AbstractFormattingRule> rules, string name)
     {
-        return rules.Where(rule =>
+        return rules.WhereAsArray(rule =>
         {
             var type = GetTypeImplementingMethod(rule, name);
             if (type == typeof(AbstractFormattingRule))
@@ -99,7 +99,7 @@ internal class ChainedFormattingRules
             }
 
             return true;
-        }).ToImmutableArray();
+        });
     }
 
     private static Type? GetTypeImplementingMethod(object obj, string name)
