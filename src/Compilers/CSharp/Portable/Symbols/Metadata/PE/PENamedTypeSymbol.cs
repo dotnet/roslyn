@@ -2092,6 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             bool validateUnderlyingInstanceField(FieldDefinitionHandle underlyingInstanceFieldHandle, PEModuleSymbol moduleSymbol, TypeSymbol underlyingType)
             {
+                // PROTOTYPE consider validating field layout too
                 var fieldSymbol = new PEFieldSymbol(moduleSymbol, this, underlyingInstanceFieldHandle);
 
                 if (fieldSymbol.DeclaredAccessibility != Accessibility.Private
