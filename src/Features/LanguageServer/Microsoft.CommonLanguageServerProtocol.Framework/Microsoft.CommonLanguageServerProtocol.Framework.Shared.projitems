@@ -16,6 +16,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AbstractRequestScope.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractTelemetryService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HandlerProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HandlerReflection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Handlers\InitializedHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Handlers\InitializeHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HandlerTypes.cs" />
@@ -32,6 +33,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)ITextDocumentIdentifierHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServerConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServerEndpointAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LazyType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MethodHandlerDescriptor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewtonsoftLanguageServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)QueueItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RequestExecutionQueue.cs" />

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal record HandlerTypes(Type? RequestType, Type? ResponseType, Type RequestContext)
+internal record HandlerTypes(Type? RequestType, Type? ResponseType, Type RequestContextType)
 {
     /// <summary>
     /// Retrieves the generic argument information from the request handler type without instantiating it.
@@ -29,22 +29,22 @@ internal record HandlerTypes(Type? RequestType, Type? ResponseType, Type Request
             if (genericDefinition == typeof(IRequestHandler<,,>))
             {
                 var genericArguments = interfaceType.GetGenericArguments();
-                types = new HandlerTypes(RequestType: genericArguments[0], ResponseType: genericArguments[1], RequestContext: genericArguments[2]);
+                types = new HandlerTypes(RequestType: genericArguments[0], ResponseType: genericArguments[1], RequestContextType: genericArguments[2]);
             }
             else if (genericDefinition == typeof(IRequestHandler<,>))
             {
                 var genericArguments = interfaceType.GetGenericArguments();
-                types = new HandlerTypes(RequestType: null, ResponseType: genericArguments[0], RequestContext: genericArguments[1]);
+                types = new HandlerTypes(RequestType: null, ResponseType: genericArguments[0], RequestContextType: genericArguments[1]);
             }
             else if (genericDefinition == typeof(INotificationHandler<,>))
             {
                 var genericArguments = interfaceType.GetGenericArguments();
-                types = new HandlerTypes(RequestType: genericArguments[0], ResponseType: null, RequestContext: genericArguments[1]);
+                types = new HandlerTypes(RequestType: genericArguments[0], ResponseType: null, RequestContextType: genericArguments[1]);
             }
             else if (genericDefinition == typeof(INotificationHandler<>))
             {
                 var genericArguments = interfaceType.GetGenericArguments();
-                types = new HandlerTypes(RequestType: null, ResponseType: null, RequestContext: genericArguments[0]);
+                types = new HandlerTypes(RequestType: null, ResponseType: null, RequestContextType: genericArguments[0]);
             }
             else
             {

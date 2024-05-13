@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
 
@@ -23,7 +24,7 @@ internal class ExportLspServiceFactoryAttribute : ExportAttribute
     /// <summary>
     /// The assembly-qualified type name of the service being exported.
     /// </summary>
-    public string AssemblyQualifiedName { get; }
+    public string TypeName { get; }
 
     /// <summary>
     /// The LSP server for which this service applies to.  If null, this service applies to any server
@@ -37,10 +38,13 @@ internal class ExportLspServiceFactoryAttribute : ExportAttribute
     /// </summary>
     public bool IsStateless { get; } = false;
 
+    private readonly Lazy<byte[]>? _lazyMethodHandlerDescriptorData;
+
     /// <summary>
-    /// Returns <see langword="true"/> if this service implements <see cref="IMethodHandler"/>.
+    /// If this this service implements <see cref="IMethodHandler"/>, returns a blob of binary data
+    /// that encodes an array of <see cref="MethodHandlerDescriptor"/>s; otherwise <see langword="null"/>.
     /// </summary>
-    public bool IsMethodHandler { get; }
+    public byte[]? MethodHandlerDescriptorData => _lazyMethodHandlerDescriptorData?.Value;
 
     public ExportLspServiceFactoryAttribute(Type type, string contractName, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any)
         : base(contractName, typeof(ILspServiceFactory))
@@ -48,8 +52,11 @@ internal class ExportLspServiceFactoryAttribute : ExportAttribute
         Contract.ThrowIfFalse(type.GetInterfaces().Contains(typeof(ILspService)), $"{type.Name} does not inherit from {nameof(ILspService)}");
         Contract.ThrowIfNull(type.AssemblyQualifiedName);
 
-        AssemblyQualifiedName = type.AssemblyQualifiedName;
+        TypeName = type.AssemblyQualifiedName;
         ServerKind = serverKind;
-        IsMethodHandler = typeof(IMethodHandler).IsAssignableFrom(type);
+
+        _lazyMethodHandlerDescriptorData = typeof(IMethodHandler).IsAssignableFrom(type)
+            ? new Lazy<byte[]>(() => MefSerialization.Serialize(MethodHandlerDescriptor.From(type)))
+            : null;
     }
 }

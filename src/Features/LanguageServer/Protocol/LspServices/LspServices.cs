@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
@@ -46,9 +47,9 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         services = services.Where(lazyService => lazyService.Metadata.ServerKind == serverKind || lazyService.Metadata.ServerKind == WellKnownLspServerKinds.Any);
 
         // This will throw if the same service is registered twice
-        _lazyMefLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.AssemblyQualifiedName, lazyService => lazyService);
+        _lazyMefLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.TypeName, lazyService => lazyService);
 
-        // Bit cheaky, but lets make an this ILspService available on the base services to make constructors that take an ILspServices instance possible.
+        // Bit cheeky, but lets make an this ILspService available on the base services to make constructors that take an ILspServices instance possible.
         var lspServicesAssemblyQualifiedName = typeof(ILspServices).AssemblyQualifiedName;
         Contract.ThrowIfNull(lspServicesAssemblyQualifiedName);
         _baseServices = baseServices.Add(lspServicesAssemblyQualifiedName, [(_) => this]);
@@ -80,12 +81,12 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         return TryGetService(assemblyQualifiedName);
     }
 
-    private object? TryGetService(string assemblyQualifiedName)
+    private object? TryGetService(string typeName)
     {
         object? lspService;
 
         // Check the base services first
-        if (_baseServices.TryGetValue(assemblyQualifiedName, out var baseServices))
+        if (_baseServices.TryGetValue(typeName, out var baseServices))
         {
             lspService = baseServices.Select(creatorFunc => creatorFunc(this)).SingleOrDefault();
             if (lspService is not null)
@@ -94,7 +95,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
             }
         }
 
-        if (_lazyMefLspServices.TryGetValue(assemblyQualifiedName, out var lazyService))
+        if (_lazyMefLspServices.TryGetValue(typeName, out var lazyService))
         {
             // If we are creating a stateful LSP service for the first time, we need to check
             // if it is disposable after creation and keep it around to dispose of on shutdown.
@@ -117,17 +118,29 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         return lspService;
     }
 
-    public ImmutableArray<Type> GetMethodHandlers()
-        => _lazyMefLspServices.Values
-            .Where(lazyService => lazyService.Metadata.IsMethodHandler)
-            .SelectAsArray(lazyService => lazyService.Metadata.Type);
+    public ImmutableArray<(LazyType HandlerType, ImmutableArray<MethodHandlerDescriptor> Descriptors)> GetMethodHandlers()
+    {
+        using var _ = ArrayBuilder<(LazyType, ImmutableArray<MethodHandlerDescriptor>)>.GetInstance(out var builder);
+
+        foreach (var lazyService in _lazyMefLspServices.Values)
+        {
+            var metadata = lazyService.Metadata;
+
+            if (metadata.MethodHandlers is { } methodHandlers)
+            {
+                builder.Add((new(metadata.TypeName), methodHandlers));
+            }
+        }
+
+        return builder.ToImmutableAndClear();
+    }
 
     private IEnumerable<T> GetBaseServices<T>()
     {
-        var assemblyQualifiedName = typeof(T).AssemblyQualifiedName;
-        Contract.ThrowIfNull(assemblyQualifiedName);
+        var typeName = typeof(T).AssemblyQualifiedName;
+        Contract.ThrowIfNull(typeName);
 
-        return _baseServices.TryGetValue(assemblyQualifiedName, out var baseServices)
+        return _baseServices.TryGetValue(typeName, out var baseServices)
             ? baseServices.SelectAsArray(creatorFunc => (T)creatorFunc(this))
             : (IEnumerable<T>)[];
     }
@@ -143,21 +156,21 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 
         // Note: This will realize all of the registered services, which will potentially load assemblies.
 
-        foreach (var (assemblyQualifiedName, lazyService) in _lazyMefLspServices)
+        foreach (var (typeName, lazyService) in _lazyMefLspServices)
         {
             var serviceType = lazyService.Metadata.Type;
             var interfaceType = serviceType.GetInterface(typeof(T).Name);
 
             if (interfaceType is not null)
             {
-                var serviceInstance = TryGetService(assemblyQualifiedName);
+                var serviceInstance = TryGetService(typeName);
                 if (serviceInstance is not null)
                 {
                     yield return (T)serviceInstance;
                 }
                 else
                 {
-                    throw new InvalidOperationException($"Could not construct service: {assemblyQualifiedName}");
+                    throw new InvalidOperationException($"Could not construct service: {typeName}");
                 }
             }
         }

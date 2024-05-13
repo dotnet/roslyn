@@ -4,53 +4,34 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class LspServiceMetadataView
 {
-    private Type? _type;
+    private readonly LazyType _lazyType;
 
-    public Type Type
-    {
-        get
-        {
-            return _type ??= InterlockedOperations.Initialize(ref _type, LoadType, AssemblyQualifiedName);
+    public string TypeName { get; }
+    public WellKnownLspServerKinds ServerKind { get; }
+    public bool IsStateless { get; }
+    public ImmutableArray<MethodHandlerDescriptor>? MethodHandlers { get; }
 
-            static Type LoadType(string assemblyQualifiedName)
-            {
-                return Type.GetType(assemblyQualifiedName)
-                    ?? throw new InvalidOperationException($"Could not load type: '{assemblyQualifiedName}'");
-            }
-        }
-    }
-
-    public string AssemblyQualifiedName { get; set; }
-
-    public WellKnownLspServerKinds ServerKind { get; set; }
-
-    public bool IsStateless { get; set; }
-
-    public bool IsMethodHandler { get; set; }
+    public Type Type => _lazyType.Value;
 
     public LspServiceMetadataView(IDictionary<string, object> metadata)
     {
-        AssemblyQualifiedName = (string)metadata[nameof(AssemblyQualifiedName)];
+        TypeName = (string)metadata[nameof(TypeName)];
         ServerKind = (WellKnownLspServerKinds)metadata[nameof(ServerKind)];
         IsStateless = (bool)metadata[nameof(IsStateless)];
-        IsMethodHandler = (bool)metadata[nameof(IsMethodHandler)];
-    }
 
-    public LspServiceMetadataView(Type type)
-    {
-        Contract.ThrowIfNull(type.FullName);
+        var methodHandlerDescriptorData = (byte[]?)metadata["MethodHandlerDescriptorData"];
 
-        _type = type;
-        AssemblyQualifiedName = type.FullName;
-        ServerKind = WellKnownLspServerKinds.Any;
-        IsStateless = false;
-        IsMethodHandler = typeof(IMethodHandler).IsAssignableFrom(type);
+        MethodHandlers = methodHandlerDescriptorData is not null
+            ? MefSerialization.DeserializeMethodHandlers(methodHandlerDescriptorData)
+            : null;
+
+        _lazyType = new(TypeName);
     }
 }

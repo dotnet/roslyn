@@ -9,8 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
-using System.Threading;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -61,24 +59,19 @@ internal class HandlerProvider : AbstractHandlerProvider
         // First, see if the ILspServices provides a special path for retrieving method handlers.
         if (lspServices is IMethodHandlerProvider methodHandlerProvider)
         {
-            var requestHandlerTypes = methodHandlerProvider.GetMethodHandlers();
-
-            foreach (var handlerType in requestHandlerTypes)
+            foreach (var (handlerType, descriptors) in methodHandlerProvider.GetMethodHandlers())
             {
-                var requestResponseTypes = HandlerTypes.ConvertHandlerTypeToRequestResponseTypes(handlerType);
-                foreach (var requestResponseType in requestResponseTypes)
+                foreach (var descriptor in descriptors)
                 {
-                    var (method, languages) = GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContext, requestResponseType.ResponseType);
+                    CheckForDuplicates(descriptor.MethodName, descriptor.Language, methodHash);
 
-                    foreach (var language in languages)
-                    {
-                        CheckForDuplicates(method, language, methodHash);
-
-                        // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
-                        // and then lookup the correct handler for the specified method.
-                        requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestResponseType.RequestType, requestResponseType.ResponseType, language), new Lazy<IMethodHandler>(() =>
+                    // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
+                    // and then lookup the correct handler for the specified method.
+                    requestHandlerDictionary.Add(
+                        new RequestHandlerMetadata(descriptor.MethodName, descriptor.RequestType, descriptor.ResponseType, descriptor.Language),
+                        new Lazy<IMethodHandler>(() =>
                         {
-                            var lspService = lspServices.TryGetService(handlerType);
+                            var lspService = lspServices.TryGetService(handlerType.Value);
                             if (lspService is null)
                             {
                                 throw new InvalidOperationException($"{handlerType} could not be retrieved from service");
@@ -86,7 +79,6 @@ internal class HandlerProvider : AbstractHandlerProvider
 
                             return (IMethodHandler)lspService;
                         }));
-                    }
                 }
             }
         }
@@ -99,7 +91,7 @@ internal class HandlerProvider : AbstractHandlerProvider
             var requestResponseTypes = HandlerTypes.ConvertHandlerTypeToRequestResponseTypes(handlerType);
             foreach (var requestResponseType in requestResponseTypes)
             {
-                var (method, languages) = GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContext, requestResponseType.ResponseType);
+                var (method, languages) = HandlerReflection.GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContextType, requestResponseType.ResponseType);
 
                 foreach (var language in languages)
                 {
@@ -119,90 +111,6 @@ internal class HandlerProvider : AbstractHandlerProvider
             if (!existingMethods.Add((methodName, language)))
             {
                 throw new InvalidOperationException($"Method {methodName} was implemented more than once.");
-            }
-        }
-
-        static (string name, IEnumerable<string> languages) GetRequestHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
-        {
-            // Get the LSP method name from the handler's method name attribute.
-            var methodAttribute = GetMethodAttributeFromClassOrInterface(handlerType);
-            if (methodAttribute is null)
-            {
-                methodAttribute = GetMethodAttributeFromHandlerMethod(handlerType, requestType, contextType, responseType);
-
-                if (methodAttribute is null)
-                {
-                    throw new InvalidOperationException($"{handlerType.FullName} is missing {nameof(LanguageServerEndpointAttribute)}");
-                }
-            }
-
-            return (methodAttribute.Method, methodAttribute.Languages);
-
-            static LanguageServerEndpointAttribute? GetMethodAttributeFromHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
-            {
-                const string handleRequestName = nameof(IRequestHandler<object, object, object>.HandleRequestAsync);
-                const string handleNotificationName = nameof(INotificationHandler<object, object>.HandleNotificationAsync);
-
-                foreach (var methodInfo in handlerType.GetRuntimeMethods())
-                {
-                    if (MethodInfoMatches(methodInfo))
-                        return methodInfo.GetCustomAttribute<LanguageServerEndpointAttribute>();
-                }
-
-                throw new InvalidOperationException("Somehow we are missing the method for our registered handler");
-
-                bool MethodInfoMatches(MethodInfo methodInfo)
-                {
-                    switch (requestType != null, responseType != null)
-                    {
-                        case (true, true):
-                            return (methodInfo.Name == handleRequestName || methodInfo.Name.EndsWith("." + handleRequestName)) &&
-                                TypesMatch(methodInfo, [requestType!, contextType, typeof(CancellationToken)]);
-                        case (false, true):
-                            return (methodInfo.Name == handleRequestName || methodInfo.Name.EndsWith("." + handleRequestName)) &&
-                                TypesMatch(methodInfo, [contextType, typeof(CancellationToken)]);
-                        case (true, false):
-                            return (methodInfo.Name == handleNotificationName || methodInfo.Name.EndsWith("." + handleNotificationName)) &&
-                                TypesMatch(methodInfo, [requestType!, contextType, typeof(CancellationToken)]);
-                        case (false, false):
-                            return (methodInfo.Name == handleNotificationName || methodInfo.Name.EndsWith("." + handleNotificationName)) &&
-                                TypesMatch(methodInfo, [contextType, typeof(CancellationToken)]);
-                    }
-                }
-
-                bool TypesMatch(MethodInfo methodInfo, Type[] types)
-                {
-                    var parameters = methodInfo.GetParameters();
-                    if (parameters.Length != types.Length)
-                        return false;
-
-                    for (int i = 0, n = parameters.Length; i < n; i++)
-                    {
-                        if (!Equals(types[i], parameters[i].ParameterType))
-                            return false;
-                    }
-
-                    return true;
-                }
-            }
-
-            static LanguageServerEndpointAttribute? GetMethodAttributeFromClassOrInterface(Type type)
-            {
-                var attribute = Attribute.GetCustomAttribute(type, typeof(LanguageServerEndpointAttribute)) as LanguageServerEndpointAttribute;
-                if (attribute is null)
-                {
-                    var interfaces = type.GetInterfaces();
-                    foreach (var @interface in interfaces)
-                    {
-                        attribute = GetMethodAttributeFromClassOrInterface(@interface);
-                        if (attribute is not null)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                return attribute;
             }
         }
 
