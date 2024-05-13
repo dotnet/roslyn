@@ -200,7 +200,6 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         while (candidates.TryPop(out var currentTuple))
         {
             var currentNode = currentTuple.node;
-            RoslynDebug.Assert(currentNode != null);
 
             if (!currentTuple.firstTime)
             {
