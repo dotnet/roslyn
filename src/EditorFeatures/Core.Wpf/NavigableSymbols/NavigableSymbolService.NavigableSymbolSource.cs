@@ -41,30 +41,19 @@ internal partial class NavigableSymbolService
             if (definitionLocationService == null)
                 return null;
 
+            var definitionLocation = await definitionLocationService.GetDefinitionLocationAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
+            if (definitionLocation == null)
+                return null;
+
             var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
 
-            // We want to compute this as quickly as possible so that the symbol be squiggled and navigated to.  We
-            // don't want to wait on expensive operations like computing source-generators or skeletons if we can avoid
-            // it.  So first try with a frozen document, then fallback to a normal document.  This mirrors how go-to-def
-            // works as well.
-            return
-                await GetNavigableSymbolWorkerAsync(document.WithFrozenPartialSemantics(cancellationToken)).ConfigureAwait(false) ??
-                await GetNavigableSymbolWorkerAsync(document).ConfigureAwait(false);
-
-            async Task<INavigableSymbol?> GetNavigableSymbolWorkerAsync(Document document)
-            {
-                var definitionLocation = await definitionLocationService.GetDefinitionLocationAsync(
-                    document, position, cancellationToken).ConfigureAwait(false);
-                if (definitionLocation == null)
-                    return null;
-
-                return new NavigableSymbol(
-                    service,
-                    textView,
-                    definitionLocation.Location,
-                    snapshot.GetSpan(definitionLocation.Span.SourceSpan.ToSpan()),
-                    indicatorFactory);
-            }
+            return new NavigableSymbol(
+                service,
+                textView,
+                definitionLocation.Location,
+                snapshot.GetSpan(definitionLocation.Span.SourceSpan.ToSpan()),
+                indicatorFactory);
         }
     }
 }
