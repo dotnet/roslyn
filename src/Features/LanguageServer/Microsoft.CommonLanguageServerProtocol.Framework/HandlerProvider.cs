@@ -23,10 +23,10 @@ internal class HandlerProvider : AbstractHandlerProvider
         _lspServices = lspServices;
     }
 
-    public IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType)
+    public IMethodHandler GetMethodHandler(string method, LazyType? requestType, LazyType? responseType)
         => GetMethodHandler(method, requestType, responseType, LanguageServerConstants.DefaultLanguageName);
 
-    public override IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType, string language)
+    public override IMethodHandler GetMethodHandler(string method, LazyType? requestType, LazyType? responseType, string language)
     {
         var requestHandlerMetadata = new RequestHandlerMetadata(method, requestType, responseType, language);
         var defaultHandlerMetadata = new RequestHandlerMetadata(method, requestType, responseType, LanguageServerConstants.DefaultLanguageName);
@@ -68,7 +68,7 @@ internal class HandlerProvider : AbstractHandlerProvider
                     // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
                     // and then lookup the correct handler for the specified method.
                     requestHandlerDictionary.Add(
-                        new RequestHandlerMetadata(descriptor.MethodName, descriptor.RequestType, descriptor.ResponseType, descriptor.Language),
+                        new RequestHandlerMetadata(descriptor.MethodName, LazyType.FromOrNull(descriptor.RequestTypeName), LazyType.FromOrNull(descriptor.ResponseTypeName), descriptor.Language),
                         new Lazy<IMethodHandler>(() =>
                         {
                             var lspService = lspServices.TryGetService(handlerType.Value);
@@ -83,20 +83,20 @@ internal class HandlerProvider : AbstractHandlerProvider
             }
         }
 
+        // No fast path was provided, so we must realize all of of the services.
         var handlers = lspServices.GetRequiredServices<IMethodHandler>();
 
         foreach (var handler in handlers)
         {
             var handlerType = handler.GetType();
-            var requestResponseTypes = HandlerTypes.ConvertHandlerTypeToRequestResponseTypes(handlerType);
-            foreach (var requestResponseType in requestResponseTypes)
+            var handlerTypes = HandlerTypes.ConvertHandlerTypeToRequestResponseTypes(handlerType);
+            foreach (var requestResponseType in handlerTypes)
             {
                 var (method, languages) = HandlerReflection.GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContextType, requestResponseType.ResponseType);
 
                 foreach (var language in languages)
                 {
                     CheckForDuplicates(method, language, methodHash);
-
                     requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestResponseType.RequestType, requestResponseType.ResponseType, language), new Lazy<IMethodHandler>(() => handler));
                 }
             }

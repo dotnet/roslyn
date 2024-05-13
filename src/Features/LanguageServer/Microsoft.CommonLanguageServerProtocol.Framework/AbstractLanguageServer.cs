@@ -132,7 +132,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             _jsonRpc.AddLocalRpcMethod(entryPoint, delegatingEntryPoint, methodAttribute);
         }
 
-        static bool AllTypesMatch(IEnumerable<Type?> types)
+        static bool AllTypesMatch(IEnumerable<LazyType?> types)
         {
             if (types.All(r => r is null))
             {
@@ -191,8 +191,8 @@ internal abstract class AbstractLanguageServer<TRequestContext>
                 var handlerEntryPoints = new Dictionary<string, (MethodInfo, RequestHandlerMetadata)>();
                 foreach (var metadata in handlersForMethod)
                 {
-                    var requestType = metadata.RequestType ?? NoValue.Instance.GetType();
-                    var responseType = metadata.ResponseType ?? NoValue.Instance.GetType();
+                    var requestType = metadata.RequestType?.Value ?? NoValue.Instance.GetType();
+                    var responseType = metadata.ResponseType?.Value ?? NoValue.Instance.GetType();
                     var methodInfo = s_queueExecuteAsyncMethod.MakeGenericMethod(requestType, responseType);
                     handlerEntryPoints[metadata.Language] = (methodInfo, metadata);
                 }

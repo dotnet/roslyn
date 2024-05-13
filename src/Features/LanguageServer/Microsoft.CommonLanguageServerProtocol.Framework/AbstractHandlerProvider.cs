@@ -32,5 +32,5 @@ internal abstract class AbstractHandlerProvider
     /// If the handler for the given language is not found, the default handler is returned.
     /// If the default handler is not found, an exception is thrown.
     /// </remarks>
-    public abstract IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType, string language);
+    public abstract IMethodHandler GetMethodHandler(string method, LazyType? requestType, LazyType? responseType, string language);
 }

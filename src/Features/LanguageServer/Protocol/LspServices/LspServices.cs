@@ -22,7 +22,6 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
     /// A set of base services that apply to all roslyn lsp services.
     /// Unfortunately MEF doesn't provide a good way to export something for multiple contracts with metadata
     /// so these are manually created in <see cref="RoslynLanguageServer"/>.
-    /// TODO - cleanup once https://github.com/dotnet/roslyn/issues/63555 is resolved.
     /// </summary>
     private readonly ImmutableDictionary<string, ImmutableArray<Func<ILspServices, object>>> _baseServices;
 
@@ -47,12 +46,12 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         services = services.Where(lazyService => lazyService.Metadata.ServerKind == serverKind || lazyService.Metadata.ServerKind == WellKnownLspServerKinds.Any);
 
         // This will throw if the same service is registered twice
-        _lazyMefLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.TypeName, lazyService => lazyService);
+        _lazyMefLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.Type.TypeName, lazyService => lazyService);
 
         // Bit cheeky, but lets make an this ILspService available on the base services to make constructors that take an ILspServices instance possible.
-        var lspServicesAssemblyQualifiedName = typeof(ILspServices).AssemblyQualifiedName;
-        Contract.ThrowIfNull(lspServicesAssemblyQualifiedName);
-        _baseServices = baseServices.Add(lspServicesAssemblyQualifiedName, [(_) => this]);
+        var lspServicesTypeName = typeof(ILspServices).AssemblyQualifiedName;
+        Contract.ThrowIfNull(lspServicesTypeName);
+        _baseServices = baseServices.Add(lspServicesTypeName, [(_) => this]);
     }
 
     public T GetRequiredService<T>() where T : notnull
@@ -75,10 +74,10 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 
     public object? TryGetService(Type type)
     {
-        var assemblyQualifiedName = type.AssemblyQualifiedName;
-        Contract.ThrowIfNull(assemblyQualifiedName);
+        var typeName = type.AssemblyQualifiedName;
+        Contract.ThrowIfNull(typeName);
 
-        return TryGetService(assemblyQualifiedName);
+        return TryGetService(typeName);
     }
 
     private object? TryGetService(string typeName)
@@ -128,7 +127,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 
             if (metadata.MethodHandlers is { } methodHandlers)
             {
-                builder.Add((new(metadata.TypeName), methodHandlers));
+                builder.Add((metadata.Type, methodHandlers));
             }
         }
 
@@ -158,7 +157,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 
         foreach (var (typeName, lazyService) in _lazyMefLspServices)
         {
-            var serviceType = lazyService.Metadata.Type;
+            var serviceType = lazyService.Metadata.Type.Value;
             var interfaceType = serviceType.GetInterface(typeof(T).Name);
 
             if (interfaceType is not null)

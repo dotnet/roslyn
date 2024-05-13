@@ -16,8 +16,8 @@ internal abstract class TestLspServices(IEnumerable<(Type type, object instance)
     public static ILspServices Create(IEnumerable<(Type type, object instance)> services, bool supportsMethodHandlerProvider)
     {
         return supportsMethodHandlerProvider
-            ? new Default(services)
-            : new WithMethodHandlerProvider(services);
+            ? new WithMethodHandlerProvider(services)
+            : new Default(services);
     }
 
     public void Dispose()
@@ -46,7 +46,7 @@ internal abstract class TestLspServices(IEnumerable<(Type type, object instance)
         public ImmutableArray<(LazyType HandlerType, ImmutableArray<MethodHandlerDescriptor> Descriptors)> GetMethodHandlers()
             => Services.Select(s => s.instance.GetType())
                        .Where(t => typeof(IMethodHandler).IsAssignableFrom(t))
-                       .Select(t => (new LazyType(t.AssemblyQualifiedName), ImmutableArray<MethodHandlerDescriptor>.Empty))
+                       .Select(t => (LazyType.From(t.AssemblyQualifiedName), MethodHandlerDescriptor.From(t)))
                        .ToImmutableArray();
 
         public override IEnumerable<T> GetRequiredServices<T>() => [];

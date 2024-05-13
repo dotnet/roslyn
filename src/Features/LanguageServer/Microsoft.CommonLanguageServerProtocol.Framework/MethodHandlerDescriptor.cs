@@ -12,14 +12,6 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 internal sealed record MethodHandlerDescriptor(string MethodName, string Language, string? RequestTypeName, string? ResponseTypeName, string RequestContextTypeName)
 {
-    private readonly LazyType? _lazyRequestType = RequestTypeName is not null ? new(RequestTypeName) : null;
-    private readonly LazyType? _lazyResponseType = ResponseTypeName is not null ? new(ResponseTypeName) : null;
-    private readonly LazyType _lazyRequestContextType = new(RequestContextTypeName);
-
-    public Type? RequestType => _lazyRequestType?.Value;
-    public Type? ResponseType => _lazyResponseType?.Value;
-    public Type RequestContextType => _lazyRequestContextType.Value;
-
     public static ImmutableArray<MethodHandlerDescriptor> From(Type type)
     {
         var allHandlerTypes = HandlerTypes.ConvertHandlerTypeToRequestResponseTypes(type);

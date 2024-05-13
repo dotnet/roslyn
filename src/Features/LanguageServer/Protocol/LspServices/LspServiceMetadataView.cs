@@ -11,18 +11,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class LspServiceMetadataView
 {
-    private readonly LazyType _lazyType;
-
-    public string TypeName { get; }
+    public LazyType Type { get; }
     public WellKnownLspServerKinds ServerKind { get; }
     public bool IsStateless { get; }
     public ImmutableArray<MethodHandlerDescriptor>? MethodHandlers { get; }
 
-    public Type Type => _lazyType.Value;
-
     public LspServiceMetadataView(IDictionary<string, object> metadata)
     {
-        TypeName = (string)metadata[nameof(TypeName)];
+        var typeName = (string)metadata["TypeName"];
+        Type = LazyType.From(typeName);
+
         ServerKind = (WellKnownLspServerKinds)metadata[nameof(ServerKind)];
         IsStateless = (bool)metadata[nameof(IsStateless)];
 
@@ -31,7 +29,5 @@ internal sealed class LspServiceMetadataView
         MethodHandlers = methodHandlerDescriptorData is not null
             ? MefSerialization.DeserializeMethodHandlers(methodHandlerDescriptorData)
             : null;
-
-        _lazyType = new(TypeName);
     }
 }

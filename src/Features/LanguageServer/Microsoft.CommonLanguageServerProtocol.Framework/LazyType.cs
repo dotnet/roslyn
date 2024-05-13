@@ -6,32 +6,84 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
+/// <summary>
+/// Helper that avoids loading a <see cref="Type"/> by its full assembly-qualified name until needed.
+/// </summary>
 internal sealed record LazyType
 {
+    private static readonly Dictionary<string, LazyType> s_typeNameToLazyTypeMap = [];
+
+    /// <summary>
+    /// Returns the full assembly-qualified name of this type.
+    /// </summary>
     public string TypeName { get; init; }
 
-    private readonly Lazy<Type> _lazyValue;
+    // May be a Lazy<Type> or Type.
+    private readonly object _value;
 
-    public Type Value => _lazyValue.Value;
+    /// <summary>
+    /// Returns the underlying <see cref="Type"/>, potentially loading its assembly.
+    /// </summary>
+    public Type Value => _value is Lazy<Type> lazyType
+        ? lazyType.Value
+        : (Type)_value;
 
-    public LazyType(string typeName)
+    private LazyType(string typeName, object value)
     {
         TypeName = typeName;
-        _lazyValue = new(LoadType(typeName));
+        _value = value;
     }
 
-    public LazyType(Type type)
+    private static LazyType GetOrCreate(string typeName, Func<string, LazyType> creator)
     {
-        TypeName = type.AssemblyQualifiedName!;
-        _lazyValue = new(() => type);
+        lock (s_typeNameToLazyTypeMap)
+        {
+            if (!s_typeNameToLazyTypeMap.TryGetValue(typeName, out var result))
+            {
+                result = creator(typeName);
+                s_typeNameToLazyTypeMap.Add(typeName, result);
+            }
+
+            return result;
+        }
     }
 
-    private static Func<Type> LoadType(string typeName)
-        => () => Type.GetType(typeName)
-              ?? throw new InvalidOperationException($"Could not load type: '{typeName}'");
+    private static LazyType GetOrCreate(Type type, Func<string, Type, LazyType> creator)
+    {
+        lock (s_typeNameToLazyTypeMap)
+        {
+            var typeName = type.AssemblyQualifiedName!;
+
+            if (!s_typeNameToLazyTypeMap.TryGetValue(typeName, out var result))
+            {
+                result = creator(typeName, type);
+                s_typeNameToLazyTypeMap.Add(typeName, result);
+            }
+
+            return result;
+        }
+    }
+
+    public static LazyType From(string typeName)
+    {
+        return GetOrCreate(typeName, static typeName => new(typeName, new Lazy<Type>(LoadType(typeName))));
+
+        static Func<Type> LoadType(string typeName)
+            => () => Type.GetType(typeName)
+                  ?? throw new InvalidOperationException($"Could not load type: '{typeName}'");
+    }
+
+    public static LazyType? FromOrNull(string? typeName)
+        => typeName is not null ? From(typeName) : null;
+
+    public static LazyType From(Type type)
+        => GetOrCreate(type, static (typeName, type) => new(typeName, type));
+
+    public static LazyType Of<T>() => From(typeof(T));
 
     public bool Equals(LazyType? other)
         => other is not null && TypeName == other.TypeName;
@@ -41,4 +93,7 @@ internal sealed record LazyType
 
     public override string ToString()
         => $"{{{nameof(TypeName)} = {TypeName}}}";
+
+    public static implicit operator LazyType?(Type? type)
+        => type is not null ? From(type) : null;
 }

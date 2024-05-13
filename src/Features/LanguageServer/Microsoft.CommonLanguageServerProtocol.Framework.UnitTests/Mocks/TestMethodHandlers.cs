@@ -16,8 +16,8 @@ internal class TestMethodHandler : IRequestHandler<int, string, TestRequestConte
     public static readonly IMethodHandler Instance = new TestMethodHandler();
 
     public bool MutatesSolutionState => true;
-    public static Type RequestType = typeof(int);
-    public static Type ResponseType = typeof(string);
+    public static LazyType RequestType = LazyType.Of<int>();
+    public static LazyType ResponseType = LazyType.Of<string>();
     public static RequestHandlerMetadata Metadata = new(Name, RequestType, ResponseType, LanguageServerConstants.DefaultLanguageName);
 
     public Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
@@ -32,7 +32,7 @@ internal class TestParameterlessMethodHandler : IRequestHandler<bool, TestReques
 
     public bool MutatesSolutionState => true;
 
-    public static Type ResponseType = typeof(bool);
+    public static LazyType ResponseType = LazyType.Of<bool>();
     public static RequestHandlerMetadata Metadata = new(Name, RequestType: null, ResponseType, LanguageServerConstants.DefaultLanguageName);
 
     public Task<bool> HandleRequestAsync(TestRequestContext context, CancellationToken cancellationToken)
@@ -46,7 +46,7 @@ internal class TestNotificationHandler : INotificationHandler<bool, TestRequestC
     public static readonly IMethodHandler Instance = new TestNotificationHandler();
 
     public bool MutatesSolutionState => true;
-    public static Type RequestType = typeof(bool);
+    public static LazyType RequestType = LazyType.Of<bool>();
     public static readonly RequestHandlerMetadata Metadata = new(Name, RequestType, ResponseType: null, LanguageServerConstants.DefaultLanguageName);
 
     public Task HandleNotificationAsync(bool request, TestRequestContext context, CancellationToken cancellationToken)
@@ -81,7 +81,7 @@ internal class MutatingHandler : IRequestHandler<int, string, TestRequestContext
 {
     public const string Name = "MutatingMethod";
     public static readonly IMethodHandler Instance = new MutatingHandler();
-    public static readonly RequestHandlerMetadata Metadata = new(Name, RequestType: typeof(int), ResponseType: typeof(string), LanguageServerConstants.DefaultLanguageName);
+    public static readonly RequestHandlerMetadata Metadata = new(Name, RequestType: LazyType.Of<int>(), ResponseType: LazyType.Of<string>(), LanguageServerConstants.DefaultLanguageName);
 
     public MutatingHandler()
     {
@@ -100,7 +100,7 @@ internal class CompletingHandler : IRequestHandler<int, string, TestRequestConte
 {
     public const string Name = "CompletingMethod";
     public static readonly IMethodHandler Instance = new CompletingHandler();
-    public static readonly RequestHandlerMetadata Metadata = new(Name, RequestType: typeof(int), ResponseType: typeof(string), LanguageServerConstants.DefaultLanguageName);
+    public static readonly RequestHandlerMetadata Metadata = new(Name, RequestType: LazyType.Of<int>(), ResponseType: LazyType.Of<string>(), LanguageServerConstants.DefaultLanguageName);
 
     public bool MutatesSolutionState => false;
 
@@ -122,7 +122,7 @@ internal class CancellingHandler : IRequestHandler<int, string, TestRequestConte
 {
     public const string Name = "CancellingMethod";
     public static readonly IMethodHandler Instance = new CancellingHandler();
-    public static readonly RequestHandlerMetadata Metadata = new(Name, RequestType: typeof(int), ResponseType: typeof(string), LanguageServerConstants.DefaultLanguageName);
+    public static readonly RequestHandlerMetadata Metadata = new(Name, RequestType: LazyType.Of<int>(), ResponseType: LazyType.Of<string>(), LanguageServerConstants.DefaultLanguageName);
 
     public bool MutatesSolutionState => false;
 
@@ -141,7 +141,7 @@ internal class ThrowingHandler : IRequestHandler<int, string, TestRequestContext
 {
     public const string Name = "ThrowingMethod";
     public static readonly IMethodHandler Instance = new ThrowingHandler();
-    public static readonly RequestHandlerMetadata Metadata = new(Name, RequestType: typeof(int), ResponseType: typeof(string), LanguageServerConstants.DefaultLanguageName);
+    public static readonly RequestHandlerMetadata Metadata = new(Name, RequestType: LazyType.Of<int>(), ResponseType: LazyType.Of<string>(), LanguageServerConstants.DefaultLanguageName);
 
     public bool MutatesSolutionState => false;
 
@@ -158,8 +158,8 @@ internal class TestDefaultLanguageHandler : IRequestHandler<int, string, TestReq
     public static readonly IMethodHandler Instance = new TestDefaultLanguageHandler();
 
     public bool MutatesSolutionState => true;
-    public static Type RequestType = typeof(int);
-    public static Type ResponseType = typeof(string);
+    public static LazyType RequestType = LazyType.Of<int>();
+    public static LazyType ResponseType = LazyType.Of<string>();
     public static RequestHandlerMetadata Metadata = new(Name, RequestType, ResponseType, LanguageServerConstants.DefaultLanguageName);
 
     public Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
@@ -174,8 +174,8 @@ internal class TestXamlLanguageHandler : IRequestHandler<int, string, TestReques
     public static readonly IMethodHandler Instance = new TestXamlLanguageHandler();
 
     public bool MutatesSolutionState => true;
-    public static Type RequestType = typeof(int);
-    public static Type ResponseType = typeof(string);
+    public static LazyType RequestType = LazyType.Of<int>();
+    public static LazyType ResponseType = LazyType.Of<string>();
     public static RequestHandlerMetadata Metadata = new(Name, RequestType, ResponseType, Language);
 
     public Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
