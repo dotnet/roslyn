@@ -3,8 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
         Inherits VisualBasicInvertIfCodeRefactoringProvider(Of SingleLineIfStatementSyntax)
 
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

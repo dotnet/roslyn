@@ -142,7 +142,7 @@ public abstract partial class CodeAction
             // on the same fork and do not cause the forked solution to be created and dropped repeatedly.
             using var _ = await RemoteKeepAliveSession.CreateAsync(solution, cancellationToken).ConfigureAwait(false);
 
-            return await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+            var changedRoots = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
                 source: documentIdsAndOptions,
                 produceItems: static async (documentIdAndOptions, callback, args, cancellationToken) =>
                 {
@@ -164,17 +164,11 @@ public abstract partial class CodeAction
                     var newRoot = await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     callback((documentId, newRoot));
                 },
-                consumeItems: static async (stream, args, cancellationToken) =>
-                {
-                    // Grab all the cleaned roots and produce the new solution snapshot from that.
-                    var currentSolution = args.solution;
-                    await foreach (var (documentId, newRoot) in stream)
-                        currentSolution = currentSolution.WithDocumentSyntaxRoot(documentId, newRoot);
-
-                    return currentSolution;
-                },
                 args: (solution, progress, cleanupDocumentAsync),
                 cancellationToken).ConfigureAwait(false);
+
+            // Grab all the cleaned roots and produce the new solution snapshot from that.
+            return solution.WithDocumentSyntaxRoots(changedRoots);
         }
     }
 }
