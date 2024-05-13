@@ -51,8 +51,11 @@ internal abstract partial class AbstractFormatEngine
     /// options. To help with that, cache the last set of ChainedFormattingRules that was produced, as it is not a cheap
     /// type to create.
     /// </summary>
-    private static readonly object s_gate = new();
-    private static (ImmutableArray<AbstractFormattingRule> formattingRules, SyntaxFormattingOptions options, ChainedFormattingRules chainedRules) s_lastRulesAndOptions;
+    /// <remarks>
+    /// Stored as a <see cref="Tuple{T1, T2, T3}"/> instead of a <see cref="ValueTuple{T1, T2, T3}"/> so we don't have
+    /// to worry about torn write concerns.
+    /// </remarks>
+    private static Tuple<ImmutableArray<AbstractFormattingRule>, SyntaxFormattingOptions, ChainedFormattingRules>? s_lastRulesAndOptions;
 
     public AbstractFormatEngine(
         TreeData treeData,
@@ -71,13 +74,14 @@ internal abstract partial class AbstractFormatEngine
 
     private static ChainedFormattingRules GetChainedFormattingRules(ImmutableArray<AbstractFormattingRule> formattingRules, SyntaxFormattingOptions options)
     {
-        lock (s_gate)
+        var lastRulesAndOptions = s_lastRulesAndOptions;
+        if (formattingRules != lastRulesAndOptions?.Item1 || options != s_lastRulesAndOptions?.Item2)
         {
-            if (formattingRules != s_lastRulesAndOptions.formattingRules || options != s_lastRulesAndOptions.options)
-                s_lastRulesAndOptions = (formattingRules, options, new ChainedFormattingRules(formattingRules, options));
-
-            return s_lastRulesAndOptions.chainedRules;
+            lastRulesAndOptions = Tuple.Create(formattingRules, options, new ChainedFormattingRules(formattingRules, options));
+            s_lastRulesAndOptions = lastRulesAndOptions;
         }
+
+        return lastRulesAndOptions.Item3;
     }
 
     internal AbstractFormatEngine(
