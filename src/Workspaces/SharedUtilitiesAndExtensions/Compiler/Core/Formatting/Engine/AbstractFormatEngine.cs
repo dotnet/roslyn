@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
@@ -45,19 +46,33 @@ internal abstract partial class AbstractFormatEngine
     internal readonly SyntaxFormattingOptions Options;
     internal readonly TreeData TreeData;
 
+    private static readonly object s_gate = new();
+    private static (ImmutableArray<AbstractFormattingRule> formattingRules, SyntaxFormattingOptions options, ChainedFormattingRules chainedRules) s_lastRulesAndOptions;
+
     public AbstractFormatEngine(
         TreeData treeData,
         SyntaxFormattingOptions options,
-        IEnumerable<AbstractFormattingRule> formattingRules,
+        ImmutableArray<AbstractFormattingRule> formattingRules,
         SyntaxToken startToken,
         SyntaxToken endToken)
         : this(
               treeData,
               options,
-              new ChainedFormattingRules(formattingRules, options),
+              GetChainedFormattingRules(formattingRules, options),
               startToken,
               endToken)
     {
+    }
+
+    private static ChainedFormattingRules GetChainedFormattingRules(ImmutableArray<AbstractFormattingRule> formattingRules, SyntaxFormattingOptions options)
+    {
+        lock (s_gate)
+        {
+            if (formattingRules != s_lastRulesAndOptions.formattingRules || options != s_lastRulesAndOptions.options)
+                s_lastRulesAndOptions = (formattingRules, options, new ChainedFormattingRules(formattingRules, options));
+
+            return s_lastRulesAndOptions.chainedRules;
+        }
     }
 
     internal AbstractFormatEngine(
