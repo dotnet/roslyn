@@ -2029,7 +2029,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ParamInfo<TypeSymbol>[] paramInfos = new MetadataDecoder(moduleSymbol, context: this)
                     .GetSignatureForMethod(markerMethod, out signatureHeader, out mrEx);
 
-                if (mrEx is not null || signatureHeader.IsGeneric || paramInfos.Length <= 1)
+                if (mrEx is not null
+                    || signatureHeader.IsGeneric
+                    || paramInfos.Length <= 1
+                    || this.Layout is not { Kind: LayoutKind.Sequential, Alignment: 0, Size: 0 })
                 {
                     return false;
                 }
@@ -2092,10 +2095,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             bool validateUnderlyingInstanceField(FieldDefinitionHandle underlyingInstanceFieldHandle, PEModuleSymbol moduleSymbol, TypeSymbol underlyingType)
             {
-                // PROTOTYPE consider validating field layout too
                 var fieldSymbol = new PEFieldSymbol(moduleSymbol, this, underlyingInstanceFieldHandle);
 
-                if (fieldSymbol.DeclaredAccessibility != Accessibility.Private
+                if (fieldSymbol.TypeLayoutOffset != null
+                    || fieldSymbol.DeclaredAccessibility != Accessibility.Private
                     || fieldSymbol.RefKind != RefKind.None
                     || fieldSymbol.IsReadOnly)
                 {

@@ -7193,6 +7193,95 @@ public explicit extension R2 for object : R1 { }
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        Assert.False(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
+
+        var r2 = comp.GlobalNamespace.GetTypeMember("R2");
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
+    }
+
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_Layout_PackNotZero(bool isExplicit)
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit R1
+    extends [mscorlib]System.ValueType
+{
+    .pack 1
+    .size 0
+
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
+}
+""";
+
+        var src = """
+public explicit extension R2 for object : R1 { }
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
+
+        var r1 = comp.GlobalNamespace.GetTypeMember("R1");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
+
+        var r2 = comp.GlobalNamespace.GetTypeMember("R2");
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
+    }
+
+    [Theory, CombinatorialData]
+    public void ExtensionMarkerMethod_Layout_SizeNotZero(bool isExplicit)
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit R1
+    extends [mscorlib]System.ValueType
+{
+    .pack 0
+    .size 1
+
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
+}
+""";
+
+        var src = """
+public explicit extension R2 for object : R1 { }
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
+
+        var r1 = comp.GlobalNamespace.GetTypeMember("R1");
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
         VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
