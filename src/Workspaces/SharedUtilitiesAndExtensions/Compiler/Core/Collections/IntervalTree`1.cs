@@ -29,7 +29,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     /// <summary>
     /// Keep around a fair number of these as we often use them in parallel algorithms.
     /// </summary>
-    private static readonly ObjectPool<Stack<Node>> s_nodePool = new(() => new(), 1024);
+    private static readonly ObjectPool<Stack<Node>> s_nodePool = new(() => new(), 128);
 
     private delegate bool TestInterval<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>;
