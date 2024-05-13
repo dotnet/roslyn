@@ -9,7 +9,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -20,7 +19,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.MetadataReaderUtils;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
@@ -147,6 +145,11 @@ public class ExtensionTypeTests : CompilingTestBase
                 // The instance value field has the expected type
                 var peField = new PEFieldSymbol(module, peType, fieldDefHandle);
                 Assert.True(underlyingType2.Equals(peField.Type, TypeCompareKind.CLRSignatureCompareOptions));
+
+                Assert.Equal(Accessibility.Private, peField.DeclaredAccessibility);
+                Assert.False(peField.IsStatic);
+                Assert.False(peField.IsReadOnly);
+                Assert.Equal(RefKind.None, peField.RefKind);
             }
         }
 
