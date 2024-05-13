@@ -202,7 +202,7 @@
     <PackageVersion Include="System.Security.Principal" Version="4.3.0" />
     <PackageVersion Include="System.Text.Encoding.CodePages" Version="7.0.0" />
     <PackageVersion Include="System.Text.Encoding.Extensions" Version="4.3.0" />
-    <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="8.0.0" />
+    <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <PackageVersion Include="System.Windows.Extensions" Version="$(SystemWindowsExtensionsVersion)" />
 
