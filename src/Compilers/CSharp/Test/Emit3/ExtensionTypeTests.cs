@@ -150,6 +150,9 @@ public class ExtensionTypeTests : CompilingTestBase
                 Assert.False(peField.IsStatic);
                 Assert.False(peField.IsReadOnly);
                 Assert.Equal(RefKind.None, peField.RefKind);
+
+                Assert.True(namedType.Layout is { Kind: System.Runtime.InteropServices.LayoutKind.Sequential, Alignment: 0, Size: 0 });
+                Assert.Null(peField.TypeLayoutOffset);
             }
         }
 
@@ -7239,7 +7242,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: false);
         Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
@@ -7283,7 +7286,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: false);
         Assert.True(r1.GetExtendedTypeNoUseSiteDiagnostics(null).IsErrorType());
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");

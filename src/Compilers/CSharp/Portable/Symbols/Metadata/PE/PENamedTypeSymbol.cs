@@ -1984,6 +1984,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // PROTOTYPE consider optimizing/caching
 
             TypeSymbol? foundUnderlyingType;
+            if (!this.IsStatic
+                && this.Layout is not { Kind: LayoutKind.Sequential, Alignment: 0, Size: 0 })
+            {
+                isExplicit = false;
+                underlyingType = ErrorTypeSymbol.UnknownResultType;
+                return;
+            }
+
             if (!tryDecodeExtensionType(out isExplicit, out foundUnderlyingType))
             {
                 if (foundUnderlyingType is null)
@@ -2031,8 +2039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (mrEx is not null
                     || signatureHeader.IsGeneric
-                    || paramInfos.Length <= 1
-                    || this.Layout is not { Kind: LayoutKind.Sequential, Alignment: 0, Size: 0 })
+                    || paramInfos.Length <= 1)
                 {
                     return false;
                 }
