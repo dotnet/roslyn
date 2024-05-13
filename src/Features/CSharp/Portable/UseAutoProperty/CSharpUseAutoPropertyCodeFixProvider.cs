@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -84,13 +85,8 @@ internal class CSharpUseAutoPropertyCodeFixProvider
         return updatedProperty.WithTrailingTrivia(trailingTrivia).WithAdditionalAnnotations(SpecializedFormattingAnnotation);
     }
 
-    protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
-    {
-        var rules = new List<AbstractFormattingRule> { new SingleLinePropertyFormattingRule() };
-        rules.AddRange(Formatter.GetDefaultFormattingRules(document));
-
-        return rules;
-    }
+    protected override ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
+        => [new SingleLinePropertyFormattingRule(), .. Formatter.GetDefaultFormattingRules(document)];
 
     private class SingleLinePropertyFormattingRule : AbstractFormattingRule
     {
