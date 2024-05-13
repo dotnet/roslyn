@@ -16,7 +16,7 @@ internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : 
 {
     internal abstract string GetConflictCommentText(string header, string beforeString, string afterString);
 
-    public IEnumerable<TextChange> CreateEdits(SourceText originalSourceText, IEnumerable<UnmergedDocumentChanges> unmergedChanges)
+    public List<TextChange> CreateEdits(SourceText originalSourceText, List<UnmergedDocumentChanges> unmergedChanges)
     {
         var commentChanges = new List<TextChange>();
 
@@ -31,9 +31,9 @@ internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : 
         return commentChanges;
     }
 
-    private static IEnumerable<IEnumerable<TextChange>> PartitionChangesForDocument(IEnumerable<TextChange> changes, SourceText originalSourceText)
+    private static List<List<TextChange>> PartitionChangesForDocument(IEnumerable<TextChange> changes, SourceText originalSourceText)
     {
-        var partitionedChanges = new List<IEnumerable<TextChange>>();
+        var partitionedChanges = new List<List<TextChange>>();
         var currentPartition = new List<TextChange>
         {
             changes.First()

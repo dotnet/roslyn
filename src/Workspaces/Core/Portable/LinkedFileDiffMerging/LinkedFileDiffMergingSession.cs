@@ -62,8 +62,8 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
     }
 
     private async Task<LinkedFileMergeResult> MergeLinkedDocumentGroupAsync(
-        IEnumerable<DocumentId> allLinkedDocuments,
-        IEnumerable<DocumentId> linkedDocumentGroup,
+        ImmutableArray<DocumentId> allLinkedDocuments,
+        IGrouping<string, DocumentId> linkedDocumentGroup,
         LinkedFileDiffMergingSessionInfo sessionInfo,
         IMergeConflictHandler mergeConflictHandler,
         CancellationToken cancellationToken)
@@ -73,7 +73,8 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         // Automatically merge non-conflicting diffs while collecting the conflicting diffs
 
         var textDifferencingService = oldSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
-        var appliedChanges = await textDifferencingService.GetTextChangesAsync(oldSolution.GetDocument(linkedDocumentGroup.First()), newSolution.GetDocument(linkedDocumentGroup.First()), cancellationToken).ConfigureAwait(false);
+        var appliedChanges = await textDifferencingService.GetTextChangesAsync(
+            oldSolution.GetDocument(linkedDocumentGroup.First()), newSolution.GetDocument(linkedDocumentGroup.First()), TextDifferenceTypes.Line, cancellationToken).ConfigureAwait(false);
         var unmergedChanges = new List<UnmergedDocumentChanges>();
 
         foreach (var documentId in linkedDocumentGroup.Skip(1))
@@ -93,10 +94,10 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 
         // Add comments in source explaining diffs that could not be merged
 
-        IEnumerable<TextChange> allChanges;
-        IList<TextSpan> mergeConflictResolutionSpan = [];
+        ImmutableArray<TextChange> allChanges;
+        var mergeConflictResolutionSpan = new List<TextSpan>();
 
-        if (unmergedChanges.Any())
+        if (unmergedChanges.Count != 0)
         {
             mergeConflictHandler ??= oldSolution.GetDocument(linkedDocumentGroup.First()).GetLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
             var mergeConflictTextEdits = mergeConflictHandler.CreateEdits(originalSourceText, unmergedChanges);
@@ -125,12 +126,13 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         CancellationToken cancellationToken)
     {
         var unmergedDocumentChanges = new List<TextChange>();
-        var successfullyMergedChanges = ArrayBuilder<TextChange>.GetInstance();
+        using var _ = ArrayBuilder<TextChange>.GetInstance(out var successfullyMergedChanges);
 
         var cumulativeChangeIndex = 0;
 
-        var textchanges = await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
-        foreach (var change in textchanges)
+        var textChanges = await textDiffService.GetTextChangesAsync(
+            oldDocument, newDocument, TextDifferenceTypes.Line, cancellationToken).ConfigureAwait(false);
+        foreach (var change in textChanges)
         {
             while (cumulativeChangeIndex < cumulativeChanges.Count && cumulativeChanges[cumulativeChangeIndex].Span.End < change.Span.Start)
             {
@@ -196,25 +198,25 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             groupSessionInfo.IsolatedDiffs++;
         }
 
-        if (unmergedDocumentChanges.Any())
+        if (unmergedDocumentChanges.Count != 0)
         {
             unmergedChanges.Add(new UnmergedDocumentChanges(
-                unmergedDocumentChanges.AsEnumerable(),
+                unmergedDocumentChanges,
                 oldDocument.Project.Name,
                 oldDocument.Id));
         }
 
-        return successfullyMergedChanges.ToImmutableAndFree();
+        return successfullyMergedChanges.ToImmutableAndClear();
     }
 
-    private static IEnumerable<TextChange> MergeChangesWithMergeFailComments(
-        IEnumerable<TextChange> mergedChanges,
-        IEnumerable<TextChange> commentChanges,
-        IList<TextSpan> mergeConflictResolutionSpans,
+    private static ImmutableArray<TextChange> MergeChangesWithMergeFailComments(
+        ImmutableArray<TextChange> mergedChanges,
+        List<TextChange> commentChanges,
+        List<TextSpan> mergeConflictResolutionSpans,
         LinkedFileGroupSessionInfo groupSessionInfo)
     {
-        var mergedChangesList = NormalizeChanges(mergedChanges).ToList();
-        var commentChangesList = NormalizeChanges(commentChanges).ToList();
+        var mergedChangesList = NormalizeChanges(mergedChanges);
+        var commentChangesList = NormalizeChanges(commentChanges);
 
         var combinedChanges = new List<TextChange>();
         var insertedMergeConflictCommentsAtAdjustedLocation = 0;
@@ -270,17 +272,15 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         groupSessionInfo.InsertedMergeConflictComments = commentChanges.Count();
         groupSessionInfo.InsertedMergeConflictCommentsAtAdjustedLocation = insertedMergeConflictCommentsAtAdjustedLocation;
 
-        return NormalizeChanges(combinedChanges);
+        return NormalizeChanges(combinedChanges).ToImmutableArray();
     }
 
-    private static IEnumerable<TextChange> NormalizeChanges(IEnumerable<TextChange> changes)
+    private static IList<TextChange> NormalizeChanges(IList<TextChange> changes)
     {
-        if (changes.Count() <= 1)
-        {
+        if (changes.Count <= 1)
             return changes;
-        }
 
-        changes = changes.OrderBy(c => c.Span.Start);
+        var orderedChanges = changes.OrderBy(c => c.Span.Start).ToList();
         var normalizedChanges = new List<TextChange>();
 
         var currentChange = changes.First();
@@ -301,7 +301,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         return normalizedChanges;
     }
 
-    internal class LinkedFileDiffMergingSessionInfo
+    internal sealed class LinkedFileDiffMergingSessionInfo
     {
         public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = [];
 
@@ -309,7 +309,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
             => LinkedFileGroups.Add(info);
     }
 
-    internal class LinkedFileGroupSessionInfo
+    internal sealed class LinkedFileGroupSessionInfo
     {
         public int LinkedDocuments;
         public int DocumentsWithChanges;
