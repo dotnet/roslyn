@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -265,11 +266,11 @@ internal class CurlyBraceCompletionService : AbstractCurlyBraceOrBracketCompleti
             }
         }
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             base.AddSuppressOperations(list, node, in nextOperation);
 
-            // not sure exactly what is happening here, but removing the bellow causesthe indentation to be wrong.
+            // not sure exactly what is happening here, but removing the bellow causes the indentation to be wrong.
 
             // remove suppression rules for array and collection initializer
             if (node.IsInitializerForArrayOrCollectionCreationExpression())
