@@ -150,10 +150,7 @@ internal partial class SolutionCompilationState
                 // sorting below.
                 using var _ = PooledDictionary<DocumentState, int>.GetInstance(out var documentToIndex);
                 foreach (var document in this.Documents)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
                     documentToIndex.Add(document, documentToIndex.Count);
-                }
 
                 var documentsAndTrees = await ProducerConsumer<(DocumentState document, SyntaxTree tree)>.RunParallelAsync(
                     source: this.Documents,
