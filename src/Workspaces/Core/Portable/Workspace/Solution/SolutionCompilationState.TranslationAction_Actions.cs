@@ -135,28 +135,27 @@ internal partial class SolutionCompilationState
             ImmutableArray<DocumentState> documents)
             : TranslationAction(oldProjectState, newProjectState)
         {
-            /// <summary>
-            /// Amount to break batches of documents into.  That allows us to process things in parallel, without also
-            /// creating too many individual actions that then need to be processed.
-            /// </summary>
-            public const int AddDocumentsBatchSize = 32;
-
             public readonly ImmutableArray<DocumentState> Documents = documents;
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
-                await RoslynParallel.ForEachAsync(
-                    this.Documents,
-                    cancellationToken,
-                    static async (document, cancellationToken) =>
-                        await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
-
-                using var _2 = ArrayBuilder<SyntaxTree>.GetInstance(this.Documents.Length, out var trees);
-
+                using var _ = PooledDictionary<DocumentState, int>.GetInstance(out var documentToIndex);
                 foreach (var document in this.Documents)
-                    trees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    documentToIndex.Add(document, documentToIndex.Count);
+                }
 
-                return oldCompilation.AddSyntaxTrees(trees);
+                var documentsAndTrees = await ProducerConsumer<(DocumentState document, SyntaxTree tree)>.RunParallelAsync(
+                    source: this.Documents,
+                    produceItems: static async (document, callback, _, cancellationToken) =>
+                        callback((document, await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))),
+                    args: default(VoidResult),
+                    cancellationToken).ConfigureAwait(false);
+
+                return oldCompilation.AddSyntaxTrees(documentsAndTrees
+                    .Sort((dt1, dt2) => documentToIndex[dt1.document] - documentToIndex[dt2.document])
+                    .Select(static dt => dt.tree));
             }
 
             // This action adds the specified trees, but leaves the generated trees untouched.
