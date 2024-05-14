@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -137,18 +138,34 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
         var connection = client.CreateConnection<IRemoteEditAndContinueService>(
             callbackTarget: new DebuggingSessionCallback(debuggerService, sourceTextProvider));
 
-        var sessionIdOpt = await connection.TryInvokeAsync(
-            solution,
-            async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false),
-            cancellationToken).ConfigureAwait(false);
-
-        if (sessionIdOpt.HasValue)
+        Optional<DebuggingSessionId> sessionIdOpt;
+        try
         {
-            return new RemoteDebuggingSessionProxy(solution.Services, connection, sessionIdOpt.Value);
+            sessionIdOpt = await connection.TryInvokeAsync(
+                solution,
+                async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false),
+                cancellationToken).ConfigureAwait(false);
+        }
+        // Ensure that if we fail to start the session we dispose the connection.
+        catch when (DisposeConnection(connection))
+        {
+            throw ExceptionUtilities.Unreachable();
         }
 
-        connection.Dispose();
-        return null;
+        // Remote call didn't throw, but also didn't succeed.  Ensure we dispose the connection.
+        if (!sessionIdOpt.HasValue)
+        {
+            connection.Dispose();
+            return null;
+        }
+
+        return new RemoteDebuggingSessionProxy(solution.Services, connection, sessionIdOpt.Value);
+
+        static bool DisposeConnection(RemoteServiceConnection<IRemoteEditAndContinueService> connection)
+        {
+            connection.Dispose();
+            return false;
+        }
     }
 
     public async ValueTask<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
