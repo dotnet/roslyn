@@ -193,10 +193,10 @@ namespace Microsoft.CodeAnalysis
                 if (!PathUtilities.IsUnixLikePlatform
                     && section.Name.Length > 2
                     && normalizedPath.Length > 2
-                    && PathUtilities.IsDirectorySeparator(normalizedPath[1])
-                    && PathUtilities.IsDirectorySeparator(section.Name[1])
+                    && normalizedPath[1] == PathUtilities.VolumeSeparatorChar
+                    && section.Name[1] == PathUtilities.VolumeSeparatorChar
                     && char.ToUpperInvariant(normalizedPath[0]) == char.ToUpperInvariant(section.Name[0])
-                    && PathUtilities.PathsEqual(normalizedPath[2..], normalizedPath[2..]))
+                    && normalizedPath[2..].Equals(section.Name[2..], Section.NameComparer))
                 {
                     sectionKey.Add(section);
                     break;
