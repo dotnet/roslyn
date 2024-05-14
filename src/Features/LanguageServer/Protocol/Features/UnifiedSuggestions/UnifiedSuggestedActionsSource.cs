@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         {
             var originalSolution = document.Project.Solution;
 
-            // Intentionally switch to a threadpool thread to compute fixes.  We do not want to accidentally
-            // run any of this on the UI thread and potentially allow any code to take a dependency on that.
+            // Intentionally switch to a threadpool thread to compute fixes.  We do not want to accidentally run any of
+            // this on the UI thread and potentially allow any code to take a dependency on that.
             await TaskScheduler.Default;
             var fixes = await codeFixService.GetFixesAsync(
                 document,
@@ -445,14 +445,12 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             bool filterOutsideSelection,
             CancellationToken cancellationToken)
         {
-            // It may seem strange that we kick off a task, but then immediately 'Wait' on
-            // it. However, it's deliberate.  We want to make sure that the code runs on
-            // the background so that no one takes an accidentally dependency on running on
-            // the UI thread.
-            var refactorings = await Task.Run(
-                () => codeRefactoringService.GetRefactoringsAsync(
-                    document, selection, priority, options, addOperationScope,
-                    cancellationToken), cancellationToken).ConfigureAwait(false);
+            // Intentionally switch to a threadpool thread to compute fixes.  We do not want to accidentally run any of
+            // this on the UI thread and potentially allow any code to take a dependency on that.
+            await TaskScheduler.Default;
+            var refactorings = await codeRefactoringService.GetRefactoringsAsync(
+                document, selection, priority, options, addOperationScope,
+                cancellationToken).ConfigureAwait(false);
 
             var filteredRefactorings = FilterOnAnyThread(refactorings, selection, filterOutsideSelection);
 
