@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 AppendDiagnostics(diagnostics);
             }
 
-            protected void AppendDiagnostics(ImmutableArray<DiagnosticData> items)
+            private void AppendDiagnostics(ImmutableArray<DiagnosticData> items)
             {
                 Debug.Assert(!items.IsDefault);
 
