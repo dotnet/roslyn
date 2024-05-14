@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
 
@@ -70,15 +71,27 @@ internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedSer
 
     public void Dispose()
     {
-        ISymbolSearchUpdateEngine? updateEngine;
-        using (_gate.DisposableWait())
-        {
-            // Once we're disposed, swap out our engine with a no-op one so we don't try to do any more work.
-            updateEngine = _lazyUpdateEngine;
-            _lazyUpdateEngine = SymbolSearchUpdateNoOpEngine.Instance;
-        }
+        // Once we're disposed, swap out our engine with a no-op one so we don't try to do any more work, and dispose of
+        // our connection to the OOP server so it can be cleaned up.
+        //
+        // Kick off a Task for this so we don't block MEF from proceeding (as it will be calling us on the UI thread).
+        _ = DisposeAsync();
+        return;
 
-        updateEngine?.Dispose();
+        async Task DisposeAsync()
+        {
+            // Make sure we get off the UI thread so that Dispose can return immediately.
+            await TaskScheduler.Default;
+
+            ISymbolSearchUpdateEngine? updateEngine;
+            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
+            {
+                updateEngine = _lazyUpdateEngine;
+                _lazyUpdateEngine = SymbolSearchUpdateNoOpEngine.Instance;
+            }
+
+            updateEngine?.Dispose();
+        }
     }
 
     protected override async Task EnableServiceAsync(CancellationToken cancellationToken)
