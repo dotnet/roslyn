@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -159,23 +160,18 @@ internal sealed class LanguageServerProjectSystem
 
         try
         {
-            var tasks = new List<Task>();
-
             var projectsThatNeedRestore = new ConcurrentSet<string>();
-            foreach (var projectToLoad in projectPathsToLoadOrReload)
-            {
-                tasks.Add(Task.Run(async () =>
+            await RoslynParallel.ForEachAsync(
+                projectPathsToLoadOrReload,
+                cancellationToken,
+                async (projectToLoad, cancellationToken) =>
                 {
                     var projectNeedsRestore = await LoadOrReloadProjectAsync(projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
 
                     if (projectNeedsRestore)
-                    {
                         projectsThatNeedRestore.Add(projectToLoad.Path);
-                    }
-                }, cancellationToken));
-            }
-
-            await Task.WhenAll(tasks);
+                }).ConfigureAwait(false);
+            var tasks = new List<Task>();
 
             if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
