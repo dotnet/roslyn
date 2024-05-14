@@ -66,9 +66,6 @@ internal readonly record struct TokenData : IComparable<TokenData>
         if (this.IndexInStream >= 0 && other.IndexInStream >= 0)
             return this.IndexInStream - other.IndexInStream;
 
-        if (this.Token == other.Token)
-            return 0;
-
         var start = this.Token.SpanStart - other.Token.SpanStart;
         if (start != 0)
             return start;
