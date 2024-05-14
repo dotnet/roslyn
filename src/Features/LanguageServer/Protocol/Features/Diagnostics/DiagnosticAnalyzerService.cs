@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void RequestDiagnosticRefresh()
             => _diagnosticsRefresher?.RequestWorkspaceRefresh();
 
-        public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
+        public async Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
             TextDocument document,
             TextSpan range,
             Func<string, bool>? shouldIncludeDiagnostic,
@@ -82,17 +82,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzer = CreateIncrementalAnalyzer(document.Project.Solution.Workspace);
 
             // always make sure that analyzer is called on background thread.
-            return Task.Run(async () =>
-            {
-                priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
+            await TaskScheduler.Default;
+            priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
 
-                using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
-                var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
-                    document, range, diagnostics, shouldIncludeDiagnostic,
-                    includeSuppressedDiagnostics, true, priorityProvider, blockForData: false,
-                    addOperationScope: null, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
-                return (diagnostics.ToImmutable(), upToDate);
-            }, cancellationToken);
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
+            var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
+                document, range, diagnostics, shouldIncludeDiagnostic,
+                includeSuppressedDiagnostics, true, priorityProvider, blockForData: false,
+                addOperationScope: null, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
+            return (diagnostics.ToImmutable(), upToDate);
         }
 
         public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
