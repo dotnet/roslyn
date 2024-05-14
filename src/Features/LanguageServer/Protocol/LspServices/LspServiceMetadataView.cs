@@ -17,13 +17,13 @@ internal sealed class LspServiceMetadataView
 
     public LspServiceMetadataView(IDictionary<string, object> metadata)
     {
-        var typeName = (string)metadata["TypeName"];
+        var typeName = (string)metadata[nameof(AbstractExportLspServiceAttribute.TypeName)];
         TypeRef = TypeRef.From(typeName);
 
         ServerKind = (WellKnownLspServerKinds)metadata[nameof(ServerKind)];
         IsStateless = (bool)metadata[nameof(IsStateless)];
 
-        var methodHandlerDescriptorData = (byte[]?)metadata["MethodHandlerDescriptorData"];
+        var methodHandlerDescriptorData = (byte[]?)metadata[nameof(AbstractExportLspServiceAttribute.MethodHandlerDescriptorData)];
 
         MethodHandlers = methodHandlerDescriptorData is not null
             ? MefSerialization.DeserializeMethodHandlers(methodHandlerDescriptorData)

@@ -4,10 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Linq;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CommonLanguageServerProtocol.Framework;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -19,44 +15,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// when the LSP server instance shuts down.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false), MetadataAttribute]
-internal class ExportLspServiceFactoryAttribute : ExportAttribute
+internal class ExportLspServiceFactoryAttribute : AbstractExportLspServiceAttribute
 {
-    /// <summary>
-    /// The assembly-qualified type name of the service being exported.
-    /// </summary>
-    public string TypeName { get; }
-
-    /// <summary>
-    /// The LSP server for which this service applies to.  If null, this service applies to any server
-    /// with the matching contract name.
-    /// </summary>
-    public WellKnownLspServerKinds ServerKind { get; }
-
-    /// <summary>
-    /// Services MEF exported as <see cref="ILspServiceFactory"/> are stateful as <see cref="LspServices"/>
-    /// creates a new instance for each server instance.
-    /// </summary>
-    public bool IsStateless { get; } = false;
-
-    private readonly Lazy<byte[]>? _lazyMethodHandlerDescriptorData;
-
-    /// <summary>
-    /// If this this service implements <see cref="IMethodHandler"/>, returns a blob of binary data
-    /// that encodes an array of <see cref="MethodHandlerDescriptor"/>s; otherwise <see langword="null"/>.
-    /// </summary>
-    public byte[]? MethodHandlerDescriptorData => _lazyMethodHandlerDescriptorData?.Value;
-
-    public ExportLspServiceFactoryAttribute(Type type, string contractName, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any)
-        : base(contractName, typeof(ILspServiceFactory))
+    public ExportLspServiceFactoryAttribute(
+        Type serviceType, string contractName, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any)
+        : base(serviceType, contractName, contractType: typeof(ILspServiceFactory), isStateless: false, serverKind)
     {
-        Contract.ThrowIfFalse(type.GetInterfaces().Contains(typeof(ILspService)), $"{type.Name} does not inherit from {nameof(ILspService)}");
-        Contract.ThrowIfNull(type.AssemblyQualifiedName);
-
-        TypeName = type.AssemblyQualifiedName;
-        ServerKind = serverKind;
-
-        _lazyMethodHandlerDescriptorData = typeof(IMethodHandler).IsAssignableFrom(type)
-            ? new Lazy<byte[]>(() => MefSerialization.Serialize(HandlerReflection.GetMethodHandlers(type)))
-            : null;
     }
 }
