@@ -135,6 +135,12 @@ internal partial class SolutionCompilationState
             ImmutableArray<DocumentState> documents)
             : TranslationAction(oldProjectState, newProjectState)
         {
+            /// <summary>
+            /// Amount to break batches of documents into.  That allows us to process things in parallel, without also
+            /// creating too many individual actions that then need to be processed.
+            /// </summary>
+            public const int AddDocumentsBatchSize = 32;
+
             public readonly ImmutableArray<DocumentState> Documents = documents;
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
