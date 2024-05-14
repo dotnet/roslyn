@@ -104,7 +104,6 @@ internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TE
         // Create a simple interval tree for simplification spans.
         var spansTree = new TextSpanIntervalTree(spans);
 
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var root = (TCompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         // prep namespace imports marked for simplification 
@@ -116,7 +115,6 @@ internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TE
         if (hasImportsToSimplify)
         {
             document = document.WithSyntaxRoot(root);
-            semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             root = (TCompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         }
 
@@ -141,7 +139,7 @@ internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TE
             // Reduce all the nodesAndTokensToReduce using the given reducers/rewriters and
             // store the reduced nodes and/or tokens in the reduced nodes/tokens maps.
             // Note that this method doesn't update the original syntax tree.
-            await this.ReduceAsync(document, root, nodesAndTokensToReduce, reducers, options, semanticModel, reducedNodesMap, reducedTokensMap, cancellationToken).ConfigureAwait(false);
+            await this.ReduceAsync(document, root, nodesAndTokensToReduce, reducers, options, reducedNodesMap, reducedTokensMap, cancellationToken).ConfigureAwait(false);
 
             if (reducedNodesMap.Any() || reducedTokensMap.Any())
             {
@@ -176,7 +174,6 @@ internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TE
         ImmutableArray<NodeOrTokenToReduce> nodesAndTokensToReduce,
         ImmutableArray<AbstractReducer> reducers,
         SimplifierOptions options,
-        SemanticModel semanticModel,
         ConcurrentDictionary<SyntaxNode, SyntaxNode> reducedNodesMap,
         ConcurrentDictionary<SyntaxToken, SyntaxToken> reducedTokensMap,
         CancellationToken cancellationToken)
@@ -188,6 +185,8 @@ internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TE
 
         // Reduce each node or token in the given list by running it through each reducer.
         var simplifyTasks = new Task[nodesAndTokensToReduce.Length];
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
         for (var i = 0; i < nodesAndTokensToReduce.Length; i++)
         {
             var nodeOrTokenToReduce = nodesAndTokensToReduce[i];
