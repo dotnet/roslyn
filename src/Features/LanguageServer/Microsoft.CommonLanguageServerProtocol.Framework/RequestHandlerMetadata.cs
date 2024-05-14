@@ -9,7 +9,7 @@ using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal record RequestHandlerMetadata(string MethodName, LazyType? RequestType, LazyType? ResponseType, string Language)
+internal record RequestHandlerMetadata(string MethodName, TypeRef? RequestTypeRef, TypeRef? ResponseTypeRef, string Language)
 {
     internal string HandlerDescription { get; } = $"{MethodName} ({Language})";
 }

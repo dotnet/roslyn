@@ -46,7 +46,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         services = services.Where(lazyService => lazyService.Metadata.ServerKind == serverKind || lazyService.Metadata.ServerKind == WellKnownLspServerKinds.Any);
 
         // This will throw if the same service is registered twice
-        _lazyMefLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.Type.TypeName, lazyService => lazyService);
+        _lazyMefLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.TypeRef.TypeName, lazyService => lazyService);
 
         // Bit cheeky, but lets make an this ILspService available on the base services to make constructors that take an ILspServices instance possible.
         var lspServicesTypeName = typeof(ILspServices).AssemblyQualifiedName;
@@ -117,9 +117,9 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         return lspService;
     }
 
-    public ImmutableArray<(LazyType HandlerType, ImmutableArray<MethodHandlerDescriptor> Descriptors)> GetMethodHandlers()
+    public ImmutableArray<(TypeRef HandlerTypeRef, ImmutableArray<MethodHandlerDescriptor> Descriptors)> GetMethodHandlers()
     {
-        using var _ = ArrayBuilder<(LazyType, ImmutableArray<MethodHandlerDescriptor>)>.GetInstance(out var builder);
+        using var _ = ArrayBuilder<(TypeRef, ImmutableArray<MethodHandlerDescriptor>)>.GetInstance(out var builder);
 
         foreach (var lazyService in _lazyMefLspServices.Values)
         {
@@ -127,7 +127,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 
             if (metadata.MethodHandlers is { } methodHandlers)
             {
-                builder.Add((metadata.Type, methodHandlers));
+                builder.Add((metadata.TypeRef, methodHandlers));
             }
         }
 
@@ -157,7 +157,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 
         foreach (var (typeName, lazyService) in _lazyMefLspServices)
         {
-            var serviceType = lazyService.Metadata.Type.Value;
+            var serviceType = lazyService.Metadata.TypeRef.GetResolvedType();
             var interfaceType = serviceType.GetInterface(typeof(T).Name);
 
             if (interfaceType is not null)

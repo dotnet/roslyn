@@ -16,7 +16,7 @@ internal class TestHandlerProvider : AbstractHandlerProvider
     public TestHandlerProvider(IEnumerable<(RequestHandlerMetadata metadata, IMethodHandler provider)> providers)
         => _providers = providers;
 
-    public override IMethodHandler GetMethodHandler(string method, LazyType? requestType, LazyType? responseType, string language)
+    public override IMethodHandler GetMethodHandler(string method, TypeRef? requestType, TypeRef? responseType, string language)
         => _providers.Single(p => p.metadata.MethodName == method && p.metadata.Language == language).provider;
 
     public override ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()

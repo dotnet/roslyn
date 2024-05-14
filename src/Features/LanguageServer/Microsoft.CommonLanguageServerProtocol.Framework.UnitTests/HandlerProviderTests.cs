@@ -25,7 +25,7 @@ public class HandlerProviderTests
     {
         var handlerProvider = GetHandlerProvider(supportsMethodHandlerProvider);
 
-        var methodHandler = handlerProvider.GetMethodHandler(TestParameterlessMethodHandler.Name, requestType: null, TestParameterlessMethodHandler.ResponseType, LanguageServerConstants.DefaultLanguageName);
+        var methodHandler = handlerProvider.GetMethodHandler(TestParameterlessMethodHandler.Name, requestTypeRef: null, TestParameterlessMethodHandler.ResponseTypeRef, LanguageServerConstants.DefaultLanguageName);
         Assert.Same(TestParameterlessMethodHandler.Instance, methodHandler);
     }
 
@@ -34,7 +34,7 @@ public class HandlerProviderTests
     {
         var handlerProvider = GetHandlerProvider(supportsMethodHandlerProvider);
 
-        var methodHandler = handlerProvider.GetMethodHandler(TestNotificationHandler.Name, TestNotificationHandler.RequestType, responseType: null, LanguageServerConstants.DefaultLanguageName);
+        var methodHandler = handlerProvider.GetMethodHandler(TestNotificationHandler.Name, TestNotificationHandler.RequestTypeRef, responseTypeRef: null, LanguageServerConstants.DefaultLanguageName);
         Assert.Same(TestNotificationHandler.Instance, methodHandler);
     }
 
@@ -43,7 +43,7 @@ public class HandlerProviderTests
     {
         var handlerProvider = GetHandlerProvider(supportsMethodHandlerProvider);
 
-        var methodHandler = handlerProvider.GetMethodHandler(TestParameterlessNotificationHandler.Name, requestType: null, responseType: null, LanguageServerConstants.DefaultLanguageName);
+        var methodHandler = handlerProvider.GetMethodHandler(TestParameterlessNotificationHandler.Name, requestTypeRef: null, responseTypeRef: null, LanguageServerConstants.DefaultLanguageName);
         Assert.Same(TestParameterlessNotificationHandler.Instance, methodHandler);
     }
 
@@ -60,7 +60,7 @@ public class HandlerProviderTests
     {
         var handlerProvider = GetHandlerProvider(supportsMethodHandlerProvider: false);
 
-        Assert.Throws<InvalidOperationException>(() => handlerProvider.GetMethodHandler(TestMethodHandler.Name, TestMethodHandler.RequestType, responseType: typeof(long), LanguageServerConstants.DefaultLanguageName));
+        Assert.Throws<InvalidOperationException>(() => handlerProvider.GetMethodHandler(TestMethodHandler.Name, TestMethodHandler.RequestType, responseTypeRef: typeof(long), LanguageServerConstants.DefaultLanguageName));
     }
 
     [Theory, CombinatorialData]

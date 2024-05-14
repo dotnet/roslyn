@@ -7,44 +7,45 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <summary>
 /// Helper that avoids loading a <see cref="Type"/> by its full assembly-qualified name until needed.
 /// </summary>
-internal sealed record LazyType
+internal abstract partial class TypeRef : IEquatable<TypeRef>
 {
-    private static readonly Dictionary<string, LazyType> s_typeNameToLazyTypeMap = [];
+    private static readonly Dictionary<string, TypeRef> s_typeNameToLazyTypeMap = [];
 
     /// <summary>
     /// Returns the full assembly-qualified name of this type.
     /// </summary>
-    public string TypeName { get; init; }
-
-    // May be a Lazy<Type> or Type.
-    private readonly object _value;
+    public string TypeName { get; }
 
     /// <summary>
     /// Returns the underlying <see cref="Type"/>, potentially loading its assembly.
     /// </summary>
-    public Type Value => _value is Lazy<Type> lazyType
-        ? lazyType.Value
-        : (Type)_value;
+    public abstract Type GetResolvedType();
 
-    private LazyType(string typeName, object value)
+    private TypeRef(string typeName)
     {
-        TypeName = typeName;
-        _value = value;
+        TypeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
     }
 
-    private static LazyType GetOrCreate(string typeName, Func<string, LazyType> creator)
+    [return: NotNullIfNotNull(nameof(typeName))]
+    public static TypeRef? From(string? typeName)
     {
+        if (typeName is null)
+        {
+            return null;
+        }
+
         lock (s_typeNameToLazyTypeMap)
         {
             if (!s_typeNameToLazyTypeMap.TryGetValue(typeName, out var result))
             {
-                result = creator(typeName);
+                result = new LazyTypeRef(typeName);
                 s_typeNameToLazyTypeMap.Add(typeName, result);
             }
 
@@ -52,15 +53,21 @@ internal sealed record LazyType
         }
     }
 
-    private static LazyType GetOrCreate(Type type, Func<string, Type, LazyType> creator)
+    [return: NotNullIfNotNull(nameof(type))]
+    public static TypeRef? From(Type? type)
     {
+        if (type is null)
+        {
+            return null;
+        }
+
         lock (s_typeNameToLazyTypeMap)
         {
             var typeName = type.AssemblyQualifiedName!;
 
             if (!s_typeNameToLazyTypeMap.TryGetValue(typeName, out var result))
             {
-                result = creator(typeName, type);
+                result = new ConcreteTypeRef(type);
                 s_typeNameToLazyTypeMap.Add(typeName, result);
             }
 
@@ -68,24 +75,12 @@ internal sealed record LazyType
         }
     }
 
-    public static LazyType From(string typeName)
-    {
-        return GetOrCreate(typeName, static typeName => new(typeName, new Lazy<Type>(LoadType(typeName))));
+    public static TypeRef Of<T>() => From(typeof(T));
 
-        static Func<Type> LoadType(string typeName)
-            => () => Type.GetType(typeName)
-                  ?? throw new InvalidOperationException($"Could not load type: '{typeName}'");
-    }
+    public override bool Equals(object? obj)
+        => Equals(obj as TypeRef);
 
-    public static LazyType? FromOrNull(string? typeName)
-        => typeName is not null ? From(typeName) : null;
-
-    public static LazyType From(Type type)
-        => GetOrCreate(type, static (typeName, type) => new(typeName, type));
-
-    public static LazyType Of<T>() => From(typeof(T));
-
-    public bool Equals(LazyType? other)
+    public bool Equals(TypeRef? other)
         => other is not null && TypeName == other.TypeName;
 
     public override int GetHashCode()
@@ -94,6 +89,12 @@ internal sealed record LazyType
     public override string ToString()
         => $"{{{nameof(TypeName)} = {TypeName}}}";
 
-    public static implicit operator LazyType?(Type? type)
+    public static bool operator ==(TypeRef? x, TypeRef? y)
+        => EqualityComparer<TypeRef?>.Default.Equals(x, y);
+
+    public static bool operator !=(TypeRef? x, TypeRef? y)
+        => !(x == y);
+
+    public static implicit operator TypeRef?(Type? type)
         => type is not null ? From(type) : null;
 }

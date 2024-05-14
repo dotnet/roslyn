@@ -23,13 +23,13 @@ internal class HandlerProvider : AbstractHandlerProvider
         _lspServices = lspServices;
     }
 
-    public IMethodHandler GetMethodHandler(string method, LazyType? requestType, LazyType? responseType)
-        => GetMethodHandler(method, requestType, responseType, LanguageServerConstants.DefaultLanguageName);
+    public IMethodHandler GetMethodHandler(string method, TypeRef? requestTypeRef, TypeRef? responseTypeRef)
+        => GetMethodHandler(method, requestTypeRef, responseTypeRef, LanguageServerConstants.DefaultLanguageName);
 
-    public override IMethodHandler GetMethodHandler(string method, LazyType? requestType, LazyType? responseType, string language)
+    public override IMethodHandler GetMethodHandler(string method, TypeRef? requestTypeRef, TypeRef? responseTypeRef, string language)
     {
-        var requestHandlerMetadata = new RequestHandlerMetadata(method, requestType, responseType, language);
-        var defaultHandlerMetadata = new RequestHandlerMetadata(method, requestType, responseType, LanguageServerConstants.DefaultLanguageName);
+        var requestHandlerMetadata = new RequestHandlerMetadata(method, requestTypeRef, responseTypeRef, language);
+        var defaultHandlerMetadata = new RequestHandlerMetadata(method, requestTypeRef, responseTypeRef, LanguageServerConstants.DefaultLanguageName);
 
         var requestHandlers = GetRequestHandlers();
         if (!requestHandlers.TryGetValue(requestHandlerMetadata, out var lazyHandler) &&
@@ -68,10 +68,10 @@ internal class HandlerProvider : AbstractHandlerProvider
                     // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
                     // and then lookup the correct handler for the specified method.
                     requestHandlerDictionary.Add(
-                        new RequestHandlerMetadata(descriptor.MethodName, LazyType.FromOrNull(descriptor.RequestTypeName), LazyType.FromOrNull(descriptor.ResponseTypeName), descriptor.Language),
+                        new RequestHandlerMetadata(descriptor.MethodName, TypeRef.From(descriptor.RequestTypeName), TypeRef.From(descriptor.ResponseTypeName), descriptor.Language),
                         new Lazy<IMethodHandler>(() =>
                         {
-                            var lspService = lspServices.TryGetService(handlerType.Value);
+                            var lspService = lspServices.TryGetService(handlerType.GetResolvedType());
                             if (lspService is null)
                             {
                                 throw new InvalidOperationException($"{handlerType} could not be retrieved from service");

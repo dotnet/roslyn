@@ -10,7 +10,12 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal sealed record MethodHandlerDescriptor(string MethodName, string Language, string? RequestTypeName, string? ResponseTypeName, string RequestContextTypeName)
+internal sealed record MethodHandlerDescriptor(
+    string MethodName,
+    string Language,
+    string? RequestTypeName,
+    string? ResponseTypeName,
+    string RequestContextTypeName)
 {
     public static ImmutableArray<MethodHandlerDescriptor> From(Type type)
     {

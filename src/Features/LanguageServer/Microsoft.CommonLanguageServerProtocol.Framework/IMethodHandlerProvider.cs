@@ -5,7 +5,6 @@
 // This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
@@ -16,5 +15,5 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// </summary>
 internal interface IMethodHandlerProvider
 {
-    ImmutableArray<(LazyType HandlerType, ImmutableArray<MethodHandlerDescriptor> Descriptors)> GetMethodHandlers();
+    ImmutableArray<(TypeRef HandlerTypeRef, ImmutableArray<MethodHandlerDescriptor> Descriptors)> GetMethodHandlers();
 }

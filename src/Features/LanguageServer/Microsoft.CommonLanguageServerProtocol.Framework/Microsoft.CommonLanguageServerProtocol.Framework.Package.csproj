@@ -27,6 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="NullableAttributes.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="contentFiles\.editorconfig" />

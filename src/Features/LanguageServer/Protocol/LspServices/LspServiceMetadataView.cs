@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -11,7 +10,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class LspServiceMetadataView
 {
-    public LazyType Type { get; }
+    public TypeRef TypeRef { get; }
     public WellKnownLspServerKinds ServerKind { get; }
     public bool IsStateless { get; }
     public ImmutableArray<MethodHandlerDescriptor>? MethodHandlers { get; }
@@ -19,7 +18,7 @@ internal sealed class LspServiceMetadataView
     public LspServiceMetadataView(IDictionary<string, object> metadata)
     {
         var typeName = (string)metadata["TypeName"];
-        Type = LazyType.From(typeName);
+        TypeRef = TypeRef.From(typeName);
 
         ServerKind = (WellKnownLspServerKinds)metadata[nameof(ServerKind)];
         IsStateless = (bool)metadata[nameof(IsStateless)];

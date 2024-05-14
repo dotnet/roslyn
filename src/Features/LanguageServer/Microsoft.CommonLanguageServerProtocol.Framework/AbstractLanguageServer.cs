@@ -108,8 +108,8 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
             // Verify that we are not mixing different numbers of request parameters and responses between different language handlers
             // e.g. it is not allowed to have a method have both a parameterless and regular parameter handler.
-            var requestTypes = methodGroup.Select(m => m.RequestType);
-            var responseTypes = methodGroup.Select(m => m.ResponseType);
+            var requestTypes = methodGroup.Select(m => m.RequestTypeRef);
+            var responseTypes = methodGroup.Select(m => m.ResponseTypeRef);
             if (!AllTypesMatch(requestTypes))
             {
                 throw new InvalidOperationException($"Language specific handlers for {methodGroup.Key} have mis-matched number of parameters:{Environment.NewLine}{string.Join(Environment.NewLine, methodGroup)}");
@@ -132,14 +132,14 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             _jsonRpc.AddLocalRpcMethod(entryPoint, delegatingEntryPoint, methodAttribute);
         }
 
-        static bool AllTypesMatch(IEnumerable<LazyType?> types)
+        static bool AllTypesMatch(IEnumerable<TypeRef?> typeRefs)
         {
-            if (types.All(r => r is null))
+            if (typeRefs.All(r => r is null))
             {
                 return true;
             }
 
-            if (types.All(r => r is not null))
+            if (typeRefs.All(r => r is not null))
             {
                 return true;
             }
@@ -191,8 +191,8 @@ internal abstract class AbstractLanguageServer<TRequestContext>
                 var handlerEntryPoints = new Dictionary<string, (MethodInfo, RequestHandlerMetadata)>();
                 foreach (var metadata in handlersForMethod)
                 {
-                    var requestType = metadata.RequestType?.Value ?? NoValue.Instance.GetType();
-                    var responseType = metadata.ResponseType?.Value ?? NoValue.Instance.GetType();
+                    var requestType = metadata.RequestTypeRef?.GetResolvedType() ?? NoValue.Instance.GetType();
+                    var responseType = metadata.ResponseTypeRef?.GetResolvedType() ?? NoValue.Instance.GetType();
                     var methodInfo = s_queueExecuteAsyncMethod.MakeGenericMethod(requestType, responseType);
                     handlerEntryPoints[metadata.Language] = (methodInfo, metadata);
                 }
