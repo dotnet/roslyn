@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -159,23 +160,18 @@ internal sealed class LanguageServerProjectSystem
 
         try
         {
-            var tasks = new List<Task>();
-
-            var projectsThatNeedRestore = new ConcurrentSet<string>();
-            foreach (var projectToLoad in projectPathsToLoadOrReload)
-            {
-                tasks.Add(Task.Run(async () =>
+            var projectsThatNeedRestore = await ProducerConsumer<string>.RunParallelAsync(
+                source: projectPathsToLoadOrReload,
+                produceItems: static async (projectToLoad, callback, args, cancellationToken) =>
                 {
-                    var projectNeedsRestore = await LoadOrReloadProjectAsync(projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
+                    var projectNeedsRestore = await args.@this.LoadOrReloadProjectAsync(
+                        projectToLoad, args.toastErrorReporter, args.buildHostProcessManager, cancellationToken);
 
                     if (projectNeedsRestore)
-                    {
-                        projectsThatNeedRestore.Add(projectToLoad.Path);
-                    }
-                }, cancellationToken));
-            }
-
-            await Task.WhenAll(tasks);
+                        callback(projectToLoad.Path);
+                },
+                args: (@this: this, toastErrorReporter, buildHostProcessManager),
+                cancellationToken).ConfigureAwait(false);
 
             if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
@@ -184,7 +180,7 @@ internal sealed class LanguageServerProjectSystem
                 // Tracking: https://github.com/dotnet/vscode-csharp/issues/6675
                 //
                 // The request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.RestoreProjectsAsync([.. projectsThatNeedRestore], cancellationToken);
+                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore, cancellationToken);
             }
         }
         finally
