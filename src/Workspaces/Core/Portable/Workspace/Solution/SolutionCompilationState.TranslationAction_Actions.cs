@@ -139,6 +139,9 @@ internal partial class SolutionCompilationState
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
+                // TODO(cyrusn): Do we need to ensure that the syntax trees we add to the compilation are in the same
+                // order as the documents array we have added to the project?  If not, we can remove this map and the
+                // sorting below.
                 using var _ = PooledDictionary<DocumentState, int>.GetInstance(out var documentToIndex);
                 foreach (var document in this.Documents)
                 {
