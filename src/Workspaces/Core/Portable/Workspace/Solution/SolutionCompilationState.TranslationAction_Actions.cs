@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -144,30 +145,11 @@ internal partial class SolutionCompilationState
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
-#if NETSTANDARD
-                using var _1 = ArrayBuilder<Task>.GetInstance(this.Documents.Length, out var tasks);
-
-                // We want to parse in parallel.  But we don't want to have too many parses going on at the same time.
-                // So we use a semaphore here to only allow that many in at a time.  Once we hit that amount, it will
-                // block further parallel work.  However, as the semaphore is released, new work will be let in.
-                var semaphore = new SemaphoreSlim(initialCount: AddDocumentsBatchSize);
-                foreach (var document in this.Documents)
-                {
-                    tasks.Add(Task.Run(async () =>
-                    {
-                        using (await semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                            await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken));
-                }
-
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-#else
-                await Parallel.ForEachAsync(
+                await RoslynParallel.ForEachAsync(
                     this.Documents,
                     cancellationToken,
                     static async (document, cancellationToken) =>
                         await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
-#endif
 
                 using var _2 = ArrayBuilder<SyntaxTree>.GetInstance(this.Documents.Length, out var trees);
 
