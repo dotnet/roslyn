@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using CodeFixGroupKey = System.Tuple<Microsoft.CodeAnalysis.Diagnostics.DiagnosticData, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority?>;
@@ -45,13 +46,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
             // Intentionally switch to a threadpool thread to compute fixes.  We do not want to accidentally
             // run any of this on the UI thread and potentially allow any code to take a dependency on that.
-            var fixes = await Task.Run(() => codeFixService.GetFixesAsync(
+            await TaskScheduler.Default;
+            var fixes = await codeFixService.GetFixesAsync(
                 document,
                 selection,
                 priorityProvider,
                 fallbackOptions,
                 addOperationScope,
-                cancellationToken), cancellationToken).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
 
             var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
