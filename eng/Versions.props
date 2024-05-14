@@ -34,6 +34,7 @@
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <SystemTextEncodingsWebVersion>8.0.0</SystemTextEncodingsWebVersion>
     <SystemTextJsonVersion>8.0.0</SystemTextJsonVersion>
+    <SystemThreadingTasksDataflowVersion>8.0.0</SystemThreadingTasksDataflowVersion>
     <SystemWindowsExtensionsVersion>8.0.0</SystemWindowsExtensionsVersion>
     <MicrosoftBclAsyncInterfacesVersion>8.0.0</MicrosoftBclAsyncInterfacesVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.4</MicrosoftCodeAnalysisAnalyzersVersion>
