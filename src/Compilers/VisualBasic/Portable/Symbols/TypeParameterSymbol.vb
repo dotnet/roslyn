@@ -317,11 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public MustOverride ReadOnly Property HasValueTypeConstraint As Boolean Implements ITypeParameterSymbol.HasValueTypeConstraint
 
-        Public ReadOnly Property AllowsByRefLike As Boolean Implements ITypeParameterSymbol.AllowsByRefLike
-            Get
-                Return False ' PROTOTYPE(RefStructInterfaces): Implement for real
-            End Get
-        End Property
+        Public MustOverride ReadOnly Property AllowsByRefLike As Boolean Implements ITypeParameterSymbol.AllowsByRefLike
 
         Private ReadOnly Property HasUnmanagedTypeConstraint As Boolean Implements ITypeParameterSymbol.HasUnmanagedTypeConstraint
             Get

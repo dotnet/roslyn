@@ -4377,6 +4377,7 @@ public class C<T>
                 Assert.False(t.HasNotNullConstraint);
                 Assert.True(t.AllowsByRefLike);
                 Assert.True(t.GetPublicSymbol().AllowsByRefLike);
+                AssertEx.Equal("C<T> where T : allows ref struct", t.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             }
 
             comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
@@ -5085,6 +5086,7 @@ public class C<T>
             Assert.False(t.HasNotNullConstraint);
             Assert.True(t.HasConstructorConstraint);
             Assert.True(t.AllowsByRefLike);
+            AssertEx.Equal("C<T> where T : new(), allows ref struct", t.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
         }
 
         [Fact]
@@ -5108,6 +5110,7 @@ public class C<T>
             Assert.False(t.HasNotNullConstraint);
             Assert.True(t.HasConstructorConstraint);
             Assert.True(t.AllowsByRefLike);
+            AssertEx.Equal("C<T> where T : new(), allows ref struct", t.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
         }
 
         [Fact]
@@ -5754,6 +5757,7 @@ public class C<T>
                 Assert.False(t.HasNotNullConstraint);
                 Assert.False(t.AllowsByRefLike);
                 Assert.False(t.GetPublicSymbol().AllowsByRefLike);
+                AssertEx.Equal("C<T>", t.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             }
         }
 
@@ -23917,6 +23921,68 @@ namespace System
                 comp,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123 246" : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NoPiaEmbedding()
+        {
+            string pia = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58278"")]
+public interface ITest29
+{
+    void M21<T1>() where T1 : allows ref struct;
+}
+";
+
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, assemblyName: "Pia", targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            string consumer = @"
+class UsePia
+{
+    public static void Main()
+    {
+    }
+}
+
+interface UsePia5 : ITest29
+{
+}
+";
+
+            var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
+                references: [piaCompilation.ToMetadataReference(embedInteropTypes: true)],
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            var compilation2 = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
+                references: [piaCompilation.EmitToImageReference(embedInteropTypes: true)],
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            System.Action<ModuleSymbol> metadataValidator =
+                delegate (ModuleSymbol module)
+                {
+                    ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
+
+                    var itest29 = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("ITest29").Single();
+                    Assert.Equal(TypeKind.Interface, itest29.TypeKind);
+
+                    var m21 = (PEMethodSymbol)itest29.GetMembers("M21").Single();
+
+                    var t1 = m21.TypeParameters[0];
+                    Assert.Equal("T1", t1.Name);
+                    Assert.True(t1.AllowsByRefLike);
+                    AssertEx.Equal("void ITest29.M21<T1>() where T1 : allows ref struct", m21.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                };
+
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.Skipped).VerifyDiagnostics();
+
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.Skipped).VerifyDiagnostics();
         }
     }
 }

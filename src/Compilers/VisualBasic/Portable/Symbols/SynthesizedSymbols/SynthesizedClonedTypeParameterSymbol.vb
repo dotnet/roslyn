@@ -100,6 +100,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AllowsByRefLike As Boolean
+            Get
+                Return _correspondingMethodTypeParameter.AllowsByRefLike
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return _correspondingMethodTypeParameter.Locations

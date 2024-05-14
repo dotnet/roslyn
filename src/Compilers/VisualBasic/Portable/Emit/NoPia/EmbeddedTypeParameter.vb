@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Protected Overrides ReadOnly Property AllowByRefLike As Boolean
             Get
-                Return False ' PROTOTYPE(RefStructInterfaces): Implement for real
+                Return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.AllowsByRefLike
             End Get
         End Property
 
