@@ -35,9 +35,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property AllowByRefLike As Boolean
+        Protected Overrides ReadOnly Property AllowsRefLikeType As Boolean
             Get
-                Return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.AllowsByRefLike
+                Return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.AllowsRefLikeType
             End Get
         End Property
 

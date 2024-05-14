@@ -98,9 +98,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AllowsByRefLike As Boolean
+        Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
             Get
-                Return _underlyingTypeParameter.AllowsByRefLike
+                Return _underlyingTypeParameter.AllowsRefLikeType
             End Get
         End Property
 

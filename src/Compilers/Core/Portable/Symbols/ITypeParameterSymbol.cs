@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if the 'allows ref struct' constraint was specified for the type parameter.
         /// </summary>
-        bool AllowsByRefLike { get; }
+        bool AllowsRefLikeType { get; }
 
         /// <summary>
         /// True if the value type constraint (<c>unmanaged</c>) was specified for the type parameter.

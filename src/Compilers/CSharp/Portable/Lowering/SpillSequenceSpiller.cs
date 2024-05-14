@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
 
                     case BoundKind.Sequence:
-                        if (refKind != RefKind.None || expression.Type?.IsRefLikeTypeOrAllowsByRefLike() == true)
+                        if (refKind != RefKind.None || expression.Type?.IsRefLikeOrAllowsRefLikeType() == true)
                         {
                             var sequence = (BoundSequence)expression;
 

@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool IsValidUnscopedRefAttributeTarget()
         {
-            return UseUpdatedEscapeRules && (RefKind != RefKind.None || (HasParamsModifier && Type.IsRefLikeTypeOrAllowsByRefLike()));
+            return UseUpdatedEscapeRules && (RefKind != RefKind.None || (HasParamsModifier && Type.IsRefLikeOrAllowsRefLikeType()));
         }
 
         private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(CSharpAttributeData attribute)
@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     validateParamsType(diagnostics);
                 }
 
-                if (DeclaredScope == ScopedKind.ScopedValue && !Type.IsErrorTypeOrIsRefLikeTypeOrAllowsByRefLike())
+                if (DeclaredScope == ScopedKind.ScopedValue && !Type.IsErrorOrRefLikeOrAllowsRefLikeType())
                 {
                     Debug.Assert(ParameterSyntax is not null);
                     diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, ParameterSyntax);

@@ -2046,7 +2046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    Debug.Assert(parameter.Type.IsRefLikeTypeOrAllowsByRefLike());
+                                    Debug.Assert(parameter.Type.IsRefLikeOrAllowsRefLikeType());
                                     Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseRefLike, node, parameter.Name);
                                 }
                             }
@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
                                     else
                                     {
-                                        Debug.Assert(parameter.Type.IsRefLikeTypeOrAllowsByRefLike());
+                                        Debug.Assert(parameter.Type.IsRefLikeOrAllowsRefLikeType());
                                         Error(diagnostics, ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, node, parameter.Name);
                                     }
                                 }
@@ -3126,7 +3126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
 
-                if (localSymbol.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorTypeOrIsRefLikeTypeOrAllowsByRefLike())
+                if (localSymbol.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorOrRefLikeOrAllowsRefLikeType())
                 {
                     diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
                 }
@@ -8673,7 +8673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (receiverOpt is { Type: TypeParameterSymbol { AllowsByRefLike: true } } &&
+                if (receiverOpt is { Type: TypeParameterSymbol { AllowsRefLikeType: true } } &&
                     isNotImplementableInstanceMember(symbol))
                 {
                     Error(diagnostics, ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, node);

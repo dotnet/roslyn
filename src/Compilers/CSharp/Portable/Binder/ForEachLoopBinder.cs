@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
 
-                        if (local.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorTypeOrIsRefLikeTypeOrAllowsByRefLike())
+                        if (local.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorOrRefLikeOrAllowsRefLikeType())
                         {
                             diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
                         }
@@ -1066,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol collectionType = (NamedTypeSymbol)builder.CollectionType;
 
-            if (unwrappedCollectionExprType.IsRefLikeTypeOrAllowsByRefLike())
+            if (unwrappedCollectionExprType.IsRefLikeOrAllowsRefLikeType())
             {
                 builder.CollectionType = unwrappedCollectionExprType;
             }
@@ -1241,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(!enumeratorType.IsRefLikeType); // Ref like types are supposed to be structs, therefore, sealed.
 
-                if (enumeratorType is TypeParameterSymbol { AllowsByRefLike: true })
+                if (enumeratorType is TypeParameterSymbol { AllowsRefLikeType: true })
                 {
                     Error(diagnostics, ErrorCode.ERR_BadAllowByRefLikeEnumerator, expr.Syntax, enumeratorType);
                 }

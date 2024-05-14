@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return !typeParam.ConstraintTypes.IsEmpty || typeParam.HasConstructorConstraint ||
                 typeParam.HasReferenceTypeConstraint || typeParam.HasValueTypeConstraint ||
-                typeParam.HasNotNullConstraint || typeParam.AllowsByRefLike;
+                typeParam.HasNotNullConstraint || typeParam.AllowsRefLikeType;
         }
 
         private void AddTypeParameterConstraints(ImmutableArray<ITypeSymbol> typeArguments)
@@ -932,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 needComma = true;
                             }
 
-                            if (typeParam.AllowsByRefLike)
+                            if (typeParam.AllowsRefLikeType)
                             {
                                 if (needComma)
                                 {

@@ -3570,20 +3570,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   a restricted type cannot be boxed or unboxed into.
                     if (targetType.IsRestrictedType() || operandType.IsRestrictedType())
                     {
-                        if (targetType is TypeParameterSymbol { AllowsByRefLike: true })
+                        if (targetType is TypeParameterSymbol { AllowsRefLikeType: true })
                         {
                             if (!operandType.IsRefLikeType && operandType is not TypeParameterSymbol)
                             {
                                 return null;
                             }
                         }
-                        else if (operandType is not TypeParameterSymbol { AllowsByRefLike: true })
+                        else if (operandType is not TypeParameterSymbol { AllowsRefLikeType: true })
                         {
                             if (targetType.IsRefLikeType)
                             {
                                 if (operandType is TypeParameterSymbol)
                                 {
-                                    Debug.Assert(operandType is TypeParameterSymbol { AllowsByRefLike: false });
+                                    Debug.Assert(operandType is TypeParameterSymbol { AllowsRefLikeType: false });
                                     return ConstantValue.False;
                                 }
                             }
@@ -3591,7 +3591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 if (targetType is TypeParameterSymbol)
                                 {
-                                    Debug.Assert(targetType is TypeParameterSymbol { AllowsByRefLike: false });
+                                    Debug.Assert(targetType is TypeParameterSymbol { AllowsRefLikeType: false });
                                     return ConstantValue.False;
                                 }
                             }

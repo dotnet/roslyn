@@ -45,11 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             }
         }
 
-        protected override bool AllowByRefLike
+        protected override bool AllowsRefLikeType
         {
             get
             {
-                return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.AllowsByRefLike;
+                return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.AllowsRefLikeType;
             }
         }
 

@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         {
                             if (!constant.IsFloating)
                             {
-                                if (comparand is BoundConversion { Type.SpecialType: SpecialType.System_Object, ConversionKind: ConversionKind.Boxing, Operand.Type: TypeParameterSymbol { AllowsByRefLike: true } } &&
+                                if (comparand is BoundConversion { Type.SpecialType: SpecialType.System_Object, ConversionKind: ConversionKind.Boxing, Operand.Type: TypeParameterSymbol { AllowsRefLikeType: true } } &&
                                     constant.IsNull)
                                 {
                                     // Boxing is not supported for ref like type parameters, therefore the code that we usually emit 'box; ldnull; ceq/cgt'

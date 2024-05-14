@@ -4375,8 +4375,8 @@ public class C<T>
                 Assert.False(t.HasValueTypeConstraint);
                 Assert.False(t.HasUnmanagedTypeConstraint);
                 Assert.False(t.HasNotNullConstraint);
-                Assert.True(t.AllowsByRefLike);
-                Assert.True(t.GetPublicSymbol().AllowsByRefLike);
+                Assert.True(t.AllowsRefLikeType);
+                Assert.True(t.GetPublicSymbol().AllowsRefLikeType);
                 AssertEx.Equal("C<T> where T : allows ref struct", t.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             }
 
@@ -4421,7 +4421,7 @@ public class C
                 Assert.False(t.HasValueTypeConstraint);
                 Assert.False(t.HasUnmanagedTypeConstraint);
                 Assert.False(t.HasNotNullConstraint);
-                Assert.True(t.AllowsByRefLike);
+                Assert.True(t.AllowsRefLikeType);
             }
 
             CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
@@ -4474,7 +4474,7 @@ public class D<T>
             Assert.False(t.HasValueTypeConstraint);
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
 
             var d = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
             var dt = d.TypeParameters.Single();
@@ -4482,7 +4482,7 @@ public class D<T>
             Assert.False(dt.HasValueTypeConstraint);
             Assert.False(dt.HasUnmanagedTypeConstraint);
             Assert.False(dt.HasNotNullConstraint);
-            Assert.True(dt.AllowsByRefLike);
+            Assert.True(dt.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4508,7 +4508,7 @@ public class C<T>
             Assert.False(ct.HasValueTypeConstraint);
             Assert.False(ct.HasUnmanagedTypeConstraint);
             Assert.False(ct.HasNotNullConstraint);
-            Assert.True(ct.AllowsByRefLike);
+            Assert.True(ct.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4537,7 +4537,7 @@ public class C<T>
             Assert.True(t.HasValueTypeConstraint);
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4559,7 +4559,7 @@ public class C<T>
             Assert.True(t.HasValueTypeConstraint);
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4591,7 +4591,7 @@ public class C<T>
             Assert.False(t.HasValueTypeConstraint);
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4617,7 +4617,7 @@ public class C<T>
             Assert.False(t.HasValueTypeConstraint);
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4649,7 +4649,7 @@ public class C<T>
             Assert.False(t.HasValueTypeConstraint);
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4684,7 +4684,7 @@ public class C
             Assert.False(t.HasValueTypeConstraint);
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4721,7 +4721,7 @@ public class B
             Assert.False(t.HasValueTypeConstraint);
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4747,7 +4747,7 @@ public class C<T>
             Assert.False(t.HasValueTypeConstraint);
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4776,7 +4776,7 @@ public class C
             Assert.False(t.HasValueTypeConstraint);
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4813,7 +4813,7 @@ public class B
             Assert.False(t.HasValueTypeConstraint);
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4842,7 +4842,7 @@ public class C<T>
             Assert.False(t.HasValueTypeConstraint);
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4864,7 +4864,7 @@ public class C<T>
             Assert.True(t.HasValueTypeConstraint);
             Assert.True(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4893,7 +4893,7 @@ public class C<T>
             Assert.False(t.HasValueTypeConstraint);
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.True(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4915,7 +4915,7 @@ public class C<T>
             Assert.False(t.HasValueTypeConstraint);
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.True(t.HasNotNullConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4946,7 +4946,7 @@ public interface I1 {}
 
             Assert.Equal("I1", t.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString());
 
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -4973,7 +4973,7 @@ public interface I1 {}
 
             Assert.Equal("I1", t.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString());
 
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -5004,7 +5004,7 @@ public class C1 {}
 
             Assert.Equal("C1", t.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString());
 
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -5033,7 +5033,7 @@ public class C<T>
 
             Assert.Empty(t.ConstraintTypesNoUseSiteDiagnostics);
 
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -5058,7 +5058,7 @@ public class C<T>
 
             Assert.Equal("System.Enum", t.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString());
 
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -5085,7 +5085,7 @@ public class C<T>
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
             Assert.True(t.HasConstructorConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
             AssertEx.Equal("C<T> where T : new(), allows ref struct", t.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
         }
 
@@ -5109,7 +5109,7 @@ public class C<T>
             Assert.False(t.HasUnmanagedTypeConstraint);
             Assert.False(t.HasNotNullConstraint);
             Assert.True(t.HasConstructorConstraint);
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
             AssertEx.Equal("C<T> where T : new(), allows ref struct", t.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
         }
 
@@ -5131,7 +5131,7 @@ partial class C<T> where T : allows ref struct
 
             var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var t = c.TypeParameters.Single();
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -5152,7 +5152,7 @@ partial class C<T> where T : allows ref struct
 
             var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var t = c.TypeParameters.Single();
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -5173,7 +5173,7 @@ partial class C<T>
 
             var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var t = c.TypeParameters.Single();
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -5198,7 +5198,7 @@ partial class C<T> where T : struct, allows ref struct
 
             var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var t = c.TypeParameters.Single();
-            Assert.False(t.AllowsByRefLike);
+            Assert.False(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -5223,7 +5223,7 @@ partial class C<T> where T : struct
 
             var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var t = c.TypeParameters.Single();
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -5248,7 +5248,7 @@ partial class C
 
             var method = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
             var t = method.TypeParameters.Single();
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -5277,7 +5277,7 @@ partial class C
 
             var method = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
             var t = method.TypeParameters.Single();
-            Assert.False(t.AllowsByRefLike);
+            Assert.False(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -5306,7 +5306,7 @@ partial class C
 
             var method = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
             var t = method.TypeParameters.Single();
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -5335,7 +5335,7 @@ partial class C
 
             var method = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
             var t = method.TypeParameters.Single();
-            Assert.False(t.AllowsByRefLike);
+            Assert.False(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -5364,7 +5364,7 @@ partial class C
 
             var method = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
             var t = method.TypeParameters.Single();
-            Assert.True(t.AllowsByRefLike);
+            Assert.True(t.AllowsRefLikeType);
         }
 
         [Fact]
@@ -5408,7 +5408,7 @@ class C3 : C1
 
             var method1 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.M1");
             var t1 = method1.TypeParameters.Single();
-            Assert.True(t1.AllowsByRefLike);
+            Assert.True(t1.AllowsRefLikeType);
 
             var method2 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C3.M2");
             var t2 = method2.TypeParameters.Single();
@@ -5447,7 +5447,7 @@ class C2 : C1
 
             var method1 = comp1.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.M1");
             var t1 = method1.TypeParameters.Single();
-            Assert.True(t1.AllowsByRefLike);
+            Assert.True(t1.AllowsRefLikeType);
 
             var method2 = comp1.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.M2");
             var t2 = method2.TypeParameters.Single();
@@ -5502,7 +5502,7 @@ class C {}
 
             var method1 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.M1");
             var t1 = method1.TypeParameters.Single();
-            Assert.True(t1.AllowsByRefLike);
+            Assert.True(t1.AllowsRefLikeType);
             Assert.Equal("C", t1.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString());
 
             var method2 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.M2");
@@ -5545,7 +5545,7 @@ class C2 : C1
 
             var method1 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.C1.M1");
             var t1 = method1.TypeParameters.Single();
-            Assert.True(t1.AllowsByRefLike);
+            Assert.True(t1.AllowsRefLikeType);
 
             var method2 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.C1.M2");
             var t2 = method2.TypeParameters.Single();
@@ -5580,7 +5580,7 @@ class C2 : C1
 
             var method1 = comp1.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.C1.M1");
             var t1 = method1.TypeParameters.Single();
-            Assert.True(t1.AllowsByRefLike);
+            Assert.True(t1.AllowsRefLikeType);
 
             var method2 = comp1.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.C1.M2");
             var t2 = method2.TypeParameters.Single();
@@ -5631,7 +5631,7 @@ class C {}
 
             var method1 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.C1<C>.M1");
             var t1 = method1.TypeParameters.Single();
-            Assert.True(t1.AllowsByRefLike);
+            Assert.True(t1.AllowsRefLikeType);
             Assert.Equal("C", t1.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString());
 
             var method2 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.C1<C>.M2");
@@ -5755,8 +5755,8 @@ public class C<T>
                 Assert.False(t.HasValueTypeConstraint);
                 Assert.False(t.HasUnmanagedTypeConstraint);
                 Assert.False(t.HasNotNullConstraint);
-                Assert.False(t.AllowsByRefLike);
-                Assert.False(t.GetPublicSymbol().AllowsByRefLike);
+                Assert.False(t.AllowsRefLikeType);
+                Assert.False(t.GetPublicSymbol().AllowsRefLikeType);
                 AssertEx.Equal("C<T>", t.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             }
         }
@@ -5783,14 +5783,14 @@ class C<T, U>
                 Assert.False(t.HasValueTypeConstraint);
                 Assert.False(t.HasUnmanagedTypeConstraint);
                 Assert.False(t.HasNotNullConstraint);
-                Assert.True(t.AllowsByRefLike);
+                Assert.True(t.AllowsRefLikeType);
 
                 var u = c.TypeParameters[1];
                 Assert.False(u.HasReferenceTypeConstraint);
                 Assert.False(u.HasValueTypeConstraint);
                 Assert.False(u.HasUnmanagedTypeConstraint);
                 Assert.False(u.HasNotNullConstraint);
-                Assert.True(u.AllowsByRefLike);
+                Assert.True(u.AllowsRefLikeType);
             }
         }
 
@@ -5816,14 +5816,14 @@ class C<T, U>
                 Assert.False(t.HasValueTypeConstraint);
                 Assert.False(t.HasUnmanagedTypeConstraint);
                 Assert.False(t.HasNotNullConstraint);
-                Assert.True(t.AllowsByRefLike);
+                Assert.True(t.AllowsRefLikeType);
 
                 var u = c.TypeParameters[1];
                 Assert.False(u.HasReferenceTypeConstraint);
                 Assert.False(u.HasValueTypeConstraint);
                 Assert.False(u.HasUnmanagedTypeConstraint);
                 Assert.False(u.HasNotNullConstraint);
-                Assert.False(u.AllowsByRefLike);
+                Assert.False(u.AllowsRefLikeType);
             }
         }
 
@@ -18710,7 +18710,7 @@ namespace System
                 {
                     foreach (var tp in m.ContainingAssembly.GetTypeByMetadataName("<>A`2").TypeParameters)
                     {
-                        Assert.True(tp.AllowsByRefLike);
+                        Assert.True(tp.AllowsRefLikeType);
                     }
                 }
                 ).VerifyDiagnostics();
@@ -18766,7 +18766,7 @@ namespace System
                 {
                     foreach (var tp in m.ContainingAssembly.GetTypeByMetadataName("<>F`2").TypeParameters)
                     {
-                        Assert.True(tp.AllowsByRefLike);
+                        Assert.True(tp.AllowsRefLikeType);
                     }
                 }
                 ).VerifyDiagnostics();
@@ -18913,7 +18913,7 @@ namespace System
                 {
                     foreach (var tp in m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate0`1").TypeParameters)
                     {
-                        Assert.True(tp.AllowsByRefLike);
+                        Assert.True(tp.AllowsRefLikeType);
                     }
                 }
                 ).VerifyDiagnostics();
@@ -18962,7 +18962,7 @@ ref struct S2 {}
                 {
                     foreach (var tp in m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate0`1").TypeParameters)
                     {
-                        Assert.False(tp.AllowsByRefLike);
+                        Assert.False(tp.AllowsRefLikeType);
                     }
                 }
                 ).VerifyDiagnostics();
@@ -23976,7 +23976,7 @@ interface UsePia5 : ITest29
 
                     var t1 = m21.TypeParameters[0];
                     Assert.Equal("T1", t1.Name);
-                    Assert.True(t1.AllowsByRefLike);
+                    Assert.True(t1.AllowsRefLikeType);
                     AssertEx.Equal("void ITest29.M21<T1>() where T1 : allows ref struct", m21.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 };
 

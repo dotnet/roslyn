@@ -49,9 +49,9 @@ namespace Microsoft.Cci
             get { return _parentParameter.MustBeValueType; }
         }
 
-        public bool AllowByRefLike
+        public bool AllowsRefLikeType
         {
-            get { return _parentParameter.AllowByRefLike; }
+            get { return _parentParameter.AllowsRefLikeType; }
         }
 
         public bool MustHaveDefaultConstructor

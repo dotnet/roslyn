@@ -876,7 +876,7 @@ namespace Microsoft.Cci
                 result |= GenericParameterAttributes.NotNullableValueTypeConstraint;
             }
 
-            if (genPar.AllowByRefLike)
+            if (genPar.AllowsRefLikeType)
             {
                 result |= MetadataHelpers.GenericParameterAttributesAllowByRefLike;
             }

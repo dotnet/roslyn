@@ -62,19 +62,19 @@ End Class
 
             Dim a = comp1.GetTypeByMetadataName("A`1")
             AssertEx.Equal("A(Of T)", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints))
-            Assert.False(a.TypeParameters.Single().AllowsByRefLike)
+            Assert.False(a.TypeParameters.Single().AllowsRefLikeType)
 
             Dim b = comp1.GetTypeByMetadataName("B`1")
             AssertEx.Equal("B(Of S)", b.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints))
-            Assert.False(b.TypeParameters.Single().AllowsByRefLike)
+            Assert.False(b.TypeParameters.Single().AllowsRefLikeType)
 
             Dim c = comp1.GetTypeByMetadataName("C`1")
             AssertEx.Equal("C(Of T)", c.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints))
-            Assert.True(c.TypeParameters.Single().AllowsByRefLike)
+            Assert.True(c.TypeParameters.Single().AllowsRefLikeType)
 
             c = b.BaseTypeNoUseSiteDiagnostics
             AssertEx.Equal("C(Of S)", c.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints))
-            Assert.True(c.TypeParameters.Single().AllowsByRefLike)
+            Assert.True(c.TypeParameters.Single().AllowsRefLikeType)
 
             CompileAndVerify(
                 comp1,
@@ -115,8 +115,8 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=s_targetFrameworkSupportingByRefLikeGenerics, references:={csCompilation})
 
             Dim m = comp1.GetMember(Of MethodSymbol)("B.M")
-            Assert.False(m.TypeParameters.Single().AllowsByRefLike)
-            Assert.True(m.OverriddenMethod.TypeParameters.Single().AllowsByRefLike)
+            Assert.False(m.TypeParameters.Single().AllowsRefLikeType)
+            Assert.True(m.OverriddenMethod.TypeParameters.Single().AllowsRefLikeType)
 
             comp1.AssertTheseDiagnostics(
 <expected>
@@ -163,8 +163,8 @@ BC32078: 'Public Sub M(Of T)()' cannot implement 'IC.Sub M(Of T)()' because they
 </expected>)
 
             Dim m = comp1.GetMember(Of MethodSymbol)("B.M")
-            Assert.False(m.TypeParameters.Single().AllowsByRefLike)
-            Assert.True(m.ExplicitInterfaceImplementations.Single().TypeParameters.Single().AllowsByRefLike)
+            Assert.False(m.TypeParameters.Single().AllowsRefLikeType)
+            Assert.True(m.ExplicitInterfaceImplementations.Single().TypeParameters.Single().AllowsRefLikeType)
         End Sub
 
         <Fact()>
@@ -208,7 +208,7 @@ End Interface
                                                            Dim tp = method.TypeParameters
                                                            Dim t1 = tp(0)
                                                            Assert.Equal("T1", t1.Name)
-                                                           Assert.True(t1.AllowsByRefLike)
+                                                           Assert.True(t1.AllowsRefLikeType)
                                                        End Sub
 
             Dim compilation1 = CreateCompilation(

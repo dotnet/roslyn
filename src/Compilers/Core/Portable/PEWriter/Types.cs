@@ -151,7 +151,7 @@ namespace Microsoft.Cci
             // ^ ensures result ==> !this.MustBeReferenceType;
         }
 
-        bool AllowByRefLike
+        bool AllowsRefLikeType
         {
             get;
         }
