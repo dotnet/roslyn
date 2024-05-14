@@ -116,6 +116,7 @@ End Class
 
             Dim m = comp1.GetMember(Of MethodSymbol)("B.M")
             Assert.False(m.TypeParameters.Single().AllowsByRefLike)
+            Assert.True(m.OverriddenMethod.TypeParameters.Single().AllowsByRefLike)
 
             comp1.AssertTheseDiagnostics(
 <expected>
@@ -163,6 +164,7 @@ BC32078: 'Public Sub M(Of T)()' cannot implement 'IC.Sub M(Of T)()' because they
 
             Dim m = comp1.GetMember(Of MethodSymbol)("B.M")
             Assert.False(m.TypeParameters.Single().AllowsByRefLike)
+            Assert.True(m.ExplicitInterfaceImplementations.Single().TypeParameters.Single().AllowsByRefLike)
         End Sub
 
         <Fact()>
