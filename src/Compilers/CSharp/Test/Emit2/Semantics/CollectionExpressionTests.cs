@@ -21258,7 +21258,7 @@ partial class Program
                   IL_0000:  ldarg.0
                   IL_0001:  stloc.1
                   IL_0002:  ldloca.s   V_1
-                  IL_0004:  newobj     "System.ReadOnlySpan<int>..ctor(in int)"
+                  IL_0004:  newobj     "System.ReadOnlySpan<int>..ctor(ref readonly int)"
                   IL_0009:  stloc.0
                   IL_000a:  ldarg.0
                   IL_000b:  ldc.i4.1
@@ -21355,7 +21355,7 @@ partial class Program
                       IL_0015:  ldc.i4.2
                       IL_0016:  call       "int?..ctor(int)"
                       IL_001b:  ldloca.s   V_1
-                      IL_001d:  newobj     "System.ReadOnlySpan<int?>..ctor(in int?)"
+                      IL_001d:  newobj     "System.ReadOnlySpan<int?>..ctor(ref readonly int?)"
                       IL_0022:  call       "void Program.F2<int?>(System.ReadOnlySpan<int?>)"
                       IL_0027:  ldloca.s   V_2
                       IL_0029:  ldc.i4.3
@@ -21369,7 +21369,7 @@ partial class Program
                       IL_0040:  box        "int"
                       IL_0045:  stloc.3
                       IL_0046:  ldloca.s   V_3
-                      IL_0048:  newobj     "System.ReadOnlySpan<object>..ctor(in object)"
+                      IL_0048:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
                       IL_004d:  stloc.s    V_5
                       IL_004f:  ldloca.s   V_5
                       IL_0051:  call       "void Program.F4<object>(in System.ReadOnlySpan<object>)"
@@ -21657,14 +21657,14 @@ partial class Program
                   IL_000c:  ldc.i4.1
                   IL_000d:  call       "int?..ctor(int)"
                   IL_0012:  ldloca.s   V_3
-                  IL_0014:  newobj     "System.ReadOnlySpan<int?>..ctor(in int?)"
+                  IL_0014:  newobj     "System.ReadOnlySpan<int?>..ctor(ref readonly int?)"
                   IL_0019:  call       "void S.M(System.ReadOnlySpan<int?>)"
                   IL_001e:  ldloca.s   V_0
                   IL_0020:  ldloca.s   V_4
                   IL_0022:  ldc.i4.2
                   IL_0023:  call       "int?..ctor(int)"
                   IL_0028:  ldloca.s   V_4
-                  IL_002a:  newobj     "System.ReadOnlySpan<int?>..ctor(in int?)"
+                  IL_002a:  newobj     "System.ReadOnlySpan<int?>..ctor(ref readonly int?)"
                   IL_002f:  ldnull
                   IL_0030:  call       "void S.this[System.ReadOnlySpan<int?>].set"
                   IL_0035:  ldloca.s   V_1
@@ -21674,14 +21674,14 @@ partial class Program
                   IL_0041:  ldc.i4.3
                   IL_0042:  call       "int?..ctor(int)"
                   IL_0047:  ldloca.s   V_5
-                  IL_0049:  newobj     "System.ReadOnlySpan<int?>..ctor(in int?)"
+                  IL_0049:  newobj     "System.ReadOnlySpan<int?>..ctor(ref readonly int?)"
                   IL_004e:  call       "void R1.M(System.ReadOnlySpan<int?>)"
                   IL_0053:  ldloca.s   V_1
                   IL_0055:  ldloca.s   V_6
                   IL_0057:  ldc.i4.4
                   IL_0058:  call       "int?..ctor(int)"
                   IL_005d:  ldloca.s   V_6
-                  IL_005f:  newobj     "System.ReadOnlySpan<int?>..ctor(in int?)"
+                  IL_005f:  newobj     "System.ReadOnlySpan<int?>..ctor(ref readonly int?)"
                   IL_0064:  ldnull
                   IL_0065:  call       "void R1.this[System.ReadOnlySpan<int?>].set"
                   IL_006a:  ldloca.s   V_2
@@ -21691,14 +21691,14 @@ partial class Program
                   IL_0076:  ldc.i4.5
                   IL_0077:  call       "int?..ctor(int)"
                   IL_007c:  ldloca.s   V_7
-                  IL_007e:  newobj     "System.ReadOnlySpan<int?>..ctor(in int?)"
+                  IL_007e:  newobj     "System.ReadOnlySpan<int?>..ctor(ref readonly int?)"
                   IL_0083:  call       "void R2.M(scoped System.ReadOnlySpan<int?>)"
                   IL_0088:  ldloca.s   V_2
                   IL_008a:  ldloca.s   V_8
                   IL_008c:  ldc.i4.6
                   IL_008d:  call       "int?..ctor(int)"
                   IL_0092:  ldloca.s   V_8
-                  IL_0094:  newobj     "System.ReadOnlySpan<int?>..ctor(in int?)"
+                  IL_0094:  newobj     "System.ReadOnlySpan<int?>..ctor(ref readonly int?)"
                   IL_0099:  ldnull
                   IL_009a:  call       "void R2.this[scoped System.ReadOnlySpan<int?>].set"
                   IL_009f:  ret
@@ -21756,14 +21756,14 @@ partial class Program
                   IL_000c:  ldc.i4.3
                   IL_000d:  call       "int?..ctor(int)"
                   IL_0012:  ldloca.s   V_2
-                  IL_0014:  newobj     "System.ReadOnlySpan<int?>..ctor(in int?)"
+                  IL_0014:  newobj     "System.ReadOnlySpan<int?>..ctor(ref readonly int?)"
                   IL_0019:  call       "void R1.M(System.ReadOnlySpan<int?>)"
                   IL_001e:  ldloca.s   V_0
                   IL_0020:  ldloca.s   V_3
                   IL_0022:  ldc.i4.4
                   IL_0023:  call       "int?..ctor(int)"
                   IL_0028:  ldloca.s   V_3
-                  IL_002a:  newobj     "System.ReadOnlySpan<int?>..ctor(in int?)"
+                  IL_002a:  newobj     "System.ReadOnlySpan<int?>..ctor(ref readonly int?)"
                   IL_002f:  call       "object R1.this[System.ReadOnlySpan<int?>].get"
                   IL_0034:  pop
                   IL_0035:  ldloca.s   V_1
@@ -21773,14 +21773,14 @@ partial class Program
                   IL_0041:  ldc.i4.5
                   IL_0042:  call       "int?..ctor(int)"
                   IL_0047:  ldloca.s   V_4
-                  IL_0049:  newobj     "System.ReadOnlySpan<int?>..ctor(in int?)"
+                  IL_0049:  newobj     "System.ReadOnlySpan<int?>..ctor(ref readonly int?)"
                   IL_004e:  call       "readonly void R2.M(System.ReadOnlySpan<int?>)"
                   IL_0053:  ldloca.s   V_1
                   IL_0055:  ldloca.s   V_5
                   IL_0057:  ldc.i4.6
                   IL_0058:  call       "int?..ctor(int)"
                   IL_005d:  ldloca.s   V_5
-                  IL_005f:  newobj     "System.ReadOnlySpan<int?>..ctor(in int?)"
+                  IL_005f:  newobj     "System.ReadOnlySpan<int?>..ctor(ref readonly int?)"
                   IL_0064:  call       "readonly object R2.this[System.ReadOnlySpan<int?>].get"
                   IL_0069:  pop
                   IL_006a:  ret
@@ -21835,7 +21835,7 @@ partial class Program
                   IL_002e:  add
                   IL_002f:  stloc.2
                   IL_0030:  ldloca.s   V_2
-                  IL_0032:  newobj     "System.ReadOnlySpan<int>..ctor(in int)"
+                  IL_0032:  newobj     "System.ReadOnlySpan<int>..ctor(ref readonly int)"
                   IL_0037:  call       "int Program.F2<int>(System.ReadOnlySpan<int>)"
                   IL_003c:  pop
                   IL_003d:  ret
@@ -21902,13 +21902,13 @@ partial class Program
                   IL_0027:  box        "int"
                   IL_002c:  stloc.2
                   IL_002d:  ldloca.s   V_2
-                  IL_002f:  newobj     "System.ReadOnlySpan<object>..ctor(in object)"
+                  IL_002f:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
                   IL_0034:  stloc.s    V_5
                   IL_0036:  ldc.i4.4
                   IL_0037:  box        "int"
                   IL_003c:  stloc.3
                   IL_003d:  ldloca.s   V_3
-                  IL_003f:  newobj     "System.ReadOnlySpan<object>..ctor(in object)"
+                  IL_003f:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
                   IL_0044:  ldloc.s    V_5
                   IL_0046:  call       "System.ReadOnlySpan<object> Program.F2<object>(scoped System.ReadOnlySpan<object>, System.ReadOnlySpan<object>)"
                   IL_004b:  pop
@@ -22191,7 +22191,7 @@ partial class Program
                   IL_0001:  box        "int"
                   IL_0006:  stloc.1
                   IL_0007:  ldloca.s   V_1
-                  IL_0009:  newobj     "System.ReadOnlySpan<object>..ctor(in object)"
+                  IL_0009:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
                   IL_000e:  stloc.0
                   IL_000f:  ldloca.s   V_0
                   IL_0011:  call       "object[] System.ReadOnlySpan<object>.ToArray()"
@@ -22244,7 +22244,7 @@ partial class Program
                       IL_0010:  box        "int"
                       IL_0015:  stloc.3
                       IL_0016:  ldloca.s   V_3
-                      IL_0018:  newobj     "System.ReadOnlySpan<object>..ctor(in object)"
+                      IL_0018:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
                       IL_001d:  stloc.1
                       IL_001e:  ldloca.s   V_0
                       IL_0020:  call       "void CollectionExtensions.Report<object>(in System.Span<object>)"
@@ -22359,14 +22359,14 @@ partial class Program
                   IL_0013:  box        "int"
                   IL_0018:  stloc.2
                   IL_0019:  ldloca.s   V_2
-                  IL_001b:  newobj     "System.ReadOnlySpan<object>..ctor(in object)"
+                  IL_001b:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
                   IL_0020:  stfld      "System.ReadOnlySpan<object> R<object>.F"
                   IL_0025:  ldloca.s   V_1
                   IL_0027:  ldc.i4.2
                   IL_0028:  box        "int"
                   IL_002d:  stloc.3
                   IL_002e:  ldloca.s   V_3
-                  IL_0030:  newobj     "System.ReadOnlySpan<object>..ctor(in object)"
+                  IL_0030:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
                   IL_0035:  stfld      "System.ReadOnlySpan<object> R<object>.F"
                   IL_003a:  ldloca.s   V_0
                   IL_003c:  ldflda     "System.ReadOnlySpan<object> R<object>.F"
@@ -22644,7 +22644,7 @@ partial class Program
                       IL_0001:  box        "int"
                       IL_0006:  stloc.0
                       IL_0007:  ldloca.s   V_0
-                      IL_0009:  newobj     "System.ReadOnlySpan<object>..ctor(in object)"
+                      IL_0009:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
                       IL_000e:  pop
                       IL_000f:  ldarg.0
                       IL_0010:  brfalse.s  IL_0023
@@ -22652,20 +22652,20 @@ partial class Program
                       IL_0013:  box        "int"
                       IL_0018:  stloc.1
                       IL_0019:  ldloca.s   V_1
-                      IL_001b:  newobj     "System.ReadOnlySpan<object>..ctor(in object)"
+                      IL_001b:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
                       IL_0020:  pop
                       IL_0021:  br.s       IL_0032
                       IL_0023:  ldc.i4.3
                       IL_0024:  box        "int"
                       IL_0029:  stloc.2
                       IL_002a:  ldloca.s   V_2
-                      IL_002c:  newobj     "System.ReadOnlySpan<object>..ctor(in object)"
+                      IL_002c:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
                       IL_0031:  pop
                       IL_0032:  ldc.i4.4
                       IL_0033:  box        "int"
                       IL_0038:  stloc.3
                       IL_0039:  ldloca.s   V_3
-                      IL_003b:  newobj     "System.ReadOnlySpan<object>..ctor(in object)"
+                      IL_003b:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
                       IL_0040:  pop
                       IL_0041:  ret
                     }
@@ -22997,7 +22997,7 @@ partial class Program
                   IL_0025:  ldarg.1
                   IL_0026:  stloc.1
                   IL_0027:  ldloca.s   V_1
-                  IL_0029:  newobj     "System.ReadOnlySpan<T>..ctor(in T)"
+                  IL_0029:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
                   IL_002e:  stloc.0
                   IL_002f:  ldloca.s   V_0
                   IL_0031:  call       "void CollectionExtensions.Report<T>(in System.ReadOnlySpan<T>)"
@@ -23045,7 +23045,7 @@ partial class Program
                   IL_0001:  box        "int"
                   IL_0006:  stloc.3
                   IL_0007:  ldloca.s   V_3
-                  IL_0009:  newobj     "System.ReadOnlySpan<object>..ctor(in object)"
+                  IL_0009:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
                   IL_000e:  stloc.0
                   IL_000f:  newobj     "Disposable..ctor()"
                   IL_0014:  stloc.1
@@ -23055,7 +23055,7 @@ partial class Program
                     IL_0016:  box        "int"
                     IL_001b:  stloc.s    V_4
                     IL_001d:  ldloca.s   V_4
-                    IL_001f:  newobj     "System.ReadOnlySpan<object>..ctor(in object)"
+                    IL_001f:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
                     IL_0024:  stloc.2
                     IL_0025:  ldloca.s   V_0
                     IL_0027:  call       "void CollectionExtensions.Report<object>(in System.ReadOnlySpan<object>)"
@@ -23470,24 +23470,24 @@ partial class Program
                   IL_0000:  ldstr      "1"
                   IL_0005:  stloc.0
                   IL_0006:  ldloca.s   V_0
-                  IL_0008:  newobj     "System.ReadOnlySpan<object>..ctor(in object)"
+                  IL_0008:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
                   IL_000d:  call       "void Program.Report<object>(System.ReadOnlySpan<object>)"
                   IL_0012:  ldstr      "2"
                   IL_0017:  stloc.1
                   IL_0018:  ldloca.s   V_1
-                  IL_001a:  newobj     "System.ReadOnlySpan<string>..ctor(in string)"
+                  IL_001a:  newobj     "System.ReadOnlySpan<string>..ctor(ref readonly string)"
                   IL_001f:  call       "void Program.Report<string>(System.ReadOnlySpan<string>)"
                   IL_0024:  ldc.i4.3
                   IL_0025:  conv.i
                   IL_0026:  stloc.2
                   IL_0027:  ldloca.s   V_2
-                  IL_0029:  newobj     "System.ReadOnlySpan<nint>..ctor(in nint)"
+                  IL_0029:  newobj     "System.ReadOnlySpan<nint>..ctor(ref readonly nint)"
                   IL_002e:  call       "void Program.Report<nint>(System.ReadOnlySpan<nint>)"
                   IL_0033:  ldc.i4.4
                   IL_0034:  conv.i
                   IL_0035:  stloc.3
                   IL_0036:  ldloca.s   V_3
-                  IL_0038:  newobj     "System.ReadOnlySpan<nuint>..ctor(in nuint)"
+                  IL_0038:  newobj     "System.ReadOnlySpan<nuint>..ctor(ref readonly nuint)"
                   IL_003d:  call       "void Program.Report<nuint>(System.ReadOnlySpan<nuint>)"
                   IL_0042:  ret
                 }
@@ -31695,12 +31695,12 @@ partial class Program
                   IL_0000:  newobj     "D..ctor()"
                   IL_0005:  stloc.1
                   IL_0006:  ldloca.s   V_1
-                  IL_0008:  newobj     "System.ReadOnlySpan<D>..ctor(in D)"
+                  IL_0008:  newobj     "System.ReadOnlySpan<D>..ctor(ref readonly D)"
                   IL_000d:  stloc.0
                   IL_000e:  newobj     "D..ctor()"
                   IL_0013:  stloc.2
                   IL_0014:  ldloca.s   V_2
-                  IL_0016:  newobj     "System.ReadOnlySpan<D>..ctor(in D)"
+                  IL_0016:  newobj     "System.ReadOnlySpan<D>..ctor(ref readonly D)"
                   IL_001b:  ldloc.0
                   IL_001c:  stloc.3
                   IL_001d:  stloc.s    V_4
