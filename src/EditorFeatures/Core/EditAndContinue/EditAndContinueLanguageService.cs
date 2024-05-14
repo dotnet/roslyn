@@ -260,6 +260,7 @@ internal sealed class EditAndContinueLanguageService(
         UpdateApplyChangesDiagnostics([]);
 
         sourceTextProvider.Deactivate();
+        _debuggingSession?.Dispose();
         _debuggingSession = null;
         _committedDesignTimeSolution = null;
         _pendingUpdatedDesignTimeSolution = null;
