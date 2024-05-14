@@ -131,41 +131,28 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
         if (client == null)
         {
             var sessionId = await GetLocalService().StartDebuggingSessionAsync(solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
-            return new RemoteDebuggingSessionProxy(solution.Services, LocalConnection.Instance, sessionId);
+            using var disposable = new ReferenceCountedDisposable<IDisposable>(LocalConnection.Instance);
+            // RemoteDebuggingSessionProxy will add its own refcount to 'disposable'.
+            return new RemoteDebuggingSessionProxy(solution.Services, disposable, sessionId);
         }
 
         // need to keep the providers alive until the session ends:
-        var connection = client.CreateConnection<IRemoteEditAndContinueService>(
-            callbackTarget: new DebuggingSessionCallback(debuggerService, sourceTextProvider));
+        //
+        // Wrap with a ref-counted-disposable here to ensure we clean this up properly if we don't transfer ownership to the RemoteDebuggingSessionProxy.
+        using var connection = new ReferenceCountedDisposable<RemoteServiceConnection<IRemoteEditAndContinueService>>(
+            client.CreateConnection<IRemoteEditAndContinueService>(
+                callbackTarget: new DebuggingSessionCallback(debuggerService, sourceTextProvider)));
 
-        Optional<DebuggingSessionId> sessionIdOpt;
-        try
-        {
-            sessionIdOpt = await connection.TryInvokeAsync(
-                solution,
-                async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false),
-                cancellationToken).ConfigureAwait(false);
-        }
-        // Ensure that if we fail to start the session we dispose the connection.
-        catch when (DisposeConnection(connection))
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
+        var sessionIdOpt = await connection.Target.TryInvokeAsync(
+            solution,
+            async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false),
+            cancellationToken).ConfigureAwait(false);
 
-        // Remote call didn't throw, but also didn't succeed.  Ensure we dispose the connection.
         if (!sessionIdOpt.HasValue)
-        {
-            connection.Dispose();
             return null;
-        }
 
+        // Pass the connection to the RemoteDebuggingSessionProxy which will add its own refcount to it.
         return new RemoteDebuggingSessionProxy(solution.Services, connection, sessionIdOpt.Value);
-
-        static bool DisposeConnection(RemoteServiceConnection<IRemoteEditAndContinueService> connection)
-        {
-            connection.Dispose();
-            return false;
-        }
     }
 
     public async ValueTask<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
