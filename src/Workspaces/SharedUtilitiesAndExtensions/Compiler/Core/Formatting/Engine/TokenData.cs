@@ -77,7 +77,34 @@ internal readonly record struct TokenData : IComparable<TokenData>
         if (end != 0)
             return end;
 
-        return 0;
+        // this is expansive check. but there is no other way to check.
+        var commonRoot = this.Token.GetCommonRoot(other.Token);
+        RoslynDebug.Assert(commonRoot != null);
+
+        using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
+        stack.Push(commonRoot);
+
+        // Do a DFS walk to see which of the two tokens comes first.
+        while (stack.TryPop(out var current))
+        {
+            if (current.IsNode)
+            {
+                // Push children in reverse order to ensure a DFS walk.
+                foreach (var child in current.AsNode()!.ChildNodesAndTokens().Reverse())
+                    stack.Push(child);
+            }
+            else if (current.IsToken)
+            {
+                var currentToken = current.AsToken();
+
+                if (currentToken == this.Token)
+                    return -1;
+                else if (currentToken == other.Token)
+                    return 1;
+            }
+        }
+
+        throw ExceptionUtilities.Unreachable();
     }
 
     public static bool operator <(TokenData left, TokenData right)
