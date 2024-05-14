@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -11,6 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal sealed class LspServiceMetadataView
 {
     public TypeRef TypeRef { get; }
+    public FrozenSet<string> InterfaceNames { get; }
     public WellKnownLspServerKinds ServerKind { get; }
     public bool IsStateless { get; }
 
@@ -24,8 +27,11 @@ internal sealed class LspServiceMetadataView
         var typeName = (string)metadata[nameof(AbstractExportLspServiceAttribute.TypeName)];
         TypeRef = TypeRef.From(typeName);
 
-        ServerKind = (WellKnownLspServerKinds)metadata[nameof(ServerKind)];
-        IsStateless = (bool)metadata[nameof(IsStateless)];
+        var interfaceNames = (string[])metadata[nameof(AbstractExportLspServiceAttribute.InterfaceNames)];
+        InterfaceNames = FrozenSet.ToFrozenSet(interfaceNames);
+
+        ServerKind = (WellKnownLspServerKinds)metadata[nameof(AbstractExportLspServiceAttribute.ServerKind)];
+        IsStateless = (bool)metadata[nameof(AbstractExportLspServiceAttribute.IsStateless)];
 
         var handlerMethodData = (byte[]?)metadata[nameof(AbstractExportLspServiceAttribute.HandlerMethodData)];
 

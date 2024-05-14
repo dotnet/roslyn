@@ -19,7 +19,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
     private readonly ImmutableDictionary<string, Lazy<ILspService, LspServiceMetadataView>> _lazyMefLspServices;
 
     /// <summary>
-    /// A set of base services that apply to all roslyn lsp services.
+    /// A set of base services that apply to all Roslyn lsp services.
     /// Unfortunately MEF doesn't provide a good way to export something for multiple contracts with metadata
     /// so these are manually created in <see cref="RoslynLanguageServer"/>.
     /// </summary>
@@ -153,14 +153,9 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
             yield break;
         }
 
-        // Note: This will realize all of the registered services, which will potentially load assemblies.
-
         foreach (var (typeName, lazyService) in _lazyMefLspServices)
         {
-            var serviceType = lazyService.Metadata.TypeRef.GetResolvedType();
-            var interfaceType = serviceType.GetInterface(typeof(T).Name);
-
-            if (interfaceType is not null)
+            if (lazyService.Metadata.InterfaceNames.Contains(typeof(T).AssemblyQualifiedName!))
             {
                 var serviceInstance = TryGetService(typeName);
                 if (serviceInstance is not null)

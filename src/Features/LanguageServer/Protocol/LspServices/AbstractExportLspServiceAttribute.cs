@@ -29,6 +29,11 @@ internal abstract class AbstractExportLspServiceAttribute : ExportAttribute
     /// </summary>
     public bool IsStateless { get; }
 
+    /// <summary>
+    /// The full assembly-qualified type names of the interfaces the service implements.
+    /// </summary>
+    public string[] InterfaceNames { get; }
+
     private readonly Lazy<byte[]>? _lazyHandlerMethodData;
 
     /// <summary>
@@ -47,6 +52,8 @@ internal abstract class AbstractExportLspServiceAttribute : ExportAttribute
         TypeName = serviceType.AssemblyQualifiedName;
         IsStateless = isStateless;
         ServerKind = serverKind;
+
+        InterfaceNames = Array.ConvertAll(serviceType.GetInterfaces(), t => t.AssemblyQualifiedName!);
 
         _lazyHandlerMethodData = typeof(IMethodHandler).IsAssignableFrom(serviceType)
             ? new(() => MefSerialization.Serialize(HandlerReflection.GetHandlerMethodDetails(serviceType)))
