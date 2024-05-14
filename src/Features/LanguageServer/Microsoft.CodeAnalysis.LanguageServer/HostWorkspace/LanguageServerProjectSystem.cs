@@ -160,18 +160,18 @@ internal sealed class LanguageServerProjectSystem
 
         try
         {
-            var projectsThatNeedRestore = new ConcurrentSet<string>();
-            await RoslynParallel.ForEachAsync(
-                projectPathsToLoadOrReload,
-                cancellationToken,
-                async (projectToLoad, cancellationToken) =>
+            var projectsThatNeedRestore = await ProducerConsumer<string>.RunParallelAsync(
+                source: projectPathsToLoadOrReload,
+                produceItems: static async (projectToLoad, callback, args, cancellationToken) =>
                 {
-                    var projectNeedsRestore = await LoadOrReloadProjectAsync(projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
+                    var projectNeedsRestore = await args.@this.LoadOrReloadProjectAsync(
+                        projectToLoad, args.toastErrorReporter, args.buildHostProcessManager, cancellationToken);
 
                     if (projectNeedsRestore)
-                        projectsThatNeedRestore.Add(projectToLoad.Path);
-                }).ConfigureAwait(false);
-            var tasks = new List<Task>();
+                        callback(projectToLoad.Path);
+                },
+                args: (@this: this, toastErrorReporter, buildHostProcessManager),
+                cancellationToken).ConfigureAwait(false);
 
             if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
