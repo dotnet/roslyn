@@ -132,18 +132,18 @@ public class ExtensionTypeTests : CompilingTestBase
         {
             var module = (PEModuleSymbol)type.ContainingModule;
             var reader = module.Module.GetMetadataReader();
-            var fieldDefHandle = reader.GetTypeDefinition(peType.Handle).GetFields()
+            var instanceFieldDefHandle = reader.GetTypeDefinition(peType.Handle).GetFields()
                 .Where(f => reader.GetString(reader.GetFieldDefinition(f).Name) == WellKnownMemberNames.ExtensionFieldName).SingleOrDefault();
 
             // Static extensions don't have this field, but non-static extensions have it
-            Assert.Equal(fieldDefHandle.IsNil, type.IsStatic);
+            Assert.Equal(instanceFieldDefHandle.IsNil, type.IsStatic);
 
             if (!type.IsStatic
                 && namedType.GetExtendedTypeNoUseSiteDiagnostics(null) is { } underlyingType2
                 && !underlyingType2.IsErrorType())
             {
                 // The instance value field has the expected type
-                var peField = new PEFieldSymbol(module, peType, fieldDefHandle);
+                var peField = new PEFieldSymbol(module, peType, instanceFieldDefHandle);
                 Assert.True(underlyingType2.Equals(peField.Type, TypeCompareKind.CLRSignatureCompareOptions));
 
                 Assert.Equal(Accessibility.Private, peField.DeclaredAccessibility);
@@ -153,6 +153,16 @@ public class ExtensionTypeTests : CompilingTestBase
 
                 Assert.True(namedType.Layout is { Kind: System.Runtime.InteropServices.LayoutKind.Sequential, Alignment: 0, Size: 0 });
                 Assert.Null(peField.TypeLayoutOffset);
+            }
+
+            // Aside from the known instance field, all fields are static
+            var fields = reader.GetTypeDefinition(peType.Handle).GetFields();
+            foreach (var field in fields)
+            {
+                if (field == instanceFieldDefHandle) continue;
+
+                var flags = reader.GetFieldDefinition(field).Attributes;
+                Assert.True((flags & System.Reflection.FieldAttributes.Static) != 0);
             }
         }
 
