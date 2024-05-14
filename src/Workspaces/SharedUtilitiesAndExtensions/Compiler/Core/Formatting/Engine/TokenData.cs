@@ -77,14 +77,15 @@ internal readonly record struct TokenData : IComparable<TokenData>
         if (end != 0)
             return end;
 
-        // this is expansive check. but there is no other way to check.
+        // We have two different tokens, which are at the same location.  This can happen with things like empty/missing
+        // tokens.  In order to give a strict ordering, we need to walk up the tree to find the first common ancestor
+        // and see which token we hit first in that ancestor.
         var commonRoot = this.Token.GetCommonRoot(other.Token);
         RoslynDebug.Assert(commonRoot != null);
 
         using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
         stack.Push(commonRoot);
 
-        // Do a DFS walk to see which of the two tokens comes first.
         while (stack.TryPop(out var current))
         {
             if (current.IsNode)
