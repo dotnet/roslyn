@@ -117,17 +117,17 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         return lspService;
     }
 
-    public ImmutableArray<(TypeRef HandlerTypeRef, ImmutableArray<MethodHandlerDescriptor> Descriptors)> GetMethodHandlers()
+    public ImmutableArray<(TypeRef HandlerTypeRef, ImmutableArray<HandlerMethodDetails> Methods)> GetMethodHandlers()
     {
-        using var _ = ArrayBuilder<(TypeRef, ImmutableArray<MethodHandlerDescriptor>)>.GetInstance(out var builder);
+        using var _ = ArrayBuilder<(TypeRef, ImmutableArray<HandlerMethodDetails>)>.GetInstance(out var builder);
 
         foreach (var lazyService in _lazyMefLspServices.Values)
         {
             var metadata = lazyService.Metadata;
 
-            if (metadata.MethodHandlers is { } methodHandlers)
+            if (metadata.HandlerMethods is { } handlerMethods)
             {
-                builder.Add((metadata.TypeRef, methodHandlers));
+                builder.Add((metadata.TypeRef, handlerMethods));
             }
         }
 

@@ -7,7 +7,7 @@
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal sealed record MethodHandlerDescriptor(
+internal sealed record HandlerMethodDetails(
     string MethodName,
     string Language,
     TypeRef? RequestTypeRef,

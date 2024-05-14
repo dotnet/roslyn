@@ -15,5 +15,5 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// </summary>
 internal interface IMethodHandlerProvider
 {
-    ImmutableArray<(TypeRef HandlerTypeRef, ImmutableArray<MethodHandlerDescriptor> Descriptors)> GetMethodHandlers();
+    ImmutableArray<(TypeRef HandlerTypeRef, ImmutableArray<HandlerMethodDetails> Methods)> GetMethodHandlers();
 }

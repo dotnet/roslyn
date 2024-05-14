@@ -62,16 +62,16 @@ internal static class HandlerReflection
             throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not implement {nameof(IMethodHandler)}");
         }
 
-        return builder.ToImmutable();
+        return builder.DrainToImmutable();
     }
 
-    public static ImmutableArray<MethodHandlerDescriptor> GetMethodHandlers(Type handlerType)
+    public static ImmutableArray<HandlerMethodDetails> GetHandlerMethodDetails(Type handlerType)
     {
-        var allHandlerDetails = GetHandlerDetails(handlerType);
+        var handlerDetails = GetHandlerDetails(handlerType);
 
-        var builder = ImmutableArray.CreateBuilder<MethodHandlerDescriptor>(initialCapacity: allHandlerDetails.Length);
+        var builder = ImmutableArray.CreateBuilder<HandlerMethodDetails>(initialCapacity: handlerDetails.Length);
 
-        foreach (var (requestType, responseType, requestContextType) in allHandlerDetails)
+        foreach (var (requestType, responseType, requestContextType) in handlerDetails)
         {
             var (method, languages) = GetRequestHandlerMethod(handlerType, requestType, requestContextType, responseType);
 

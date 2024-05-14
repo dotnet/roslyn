@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// </summary>
 internal static class MefSerialization
 {
-    public static byte[] Serialize(ImmutableArray<MethodHandlerDescriptor> descriptors)
+    public static byte[] Serialize(ImmutableArray<HandlerMethodDetails> handlerMethods)
     {
         using var stream = SerializableBytes.CreateWritableStream();
         using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
-            writer.WriteArray(descriptors, (writer, value) =>
+            writer.WriteArray(handlerMethods, (writer, value) =>
             {
                 writer.WriteString(value.MethodName);
                 writer.WriteString(value.Language);
@@ -34,7 +34,7 @@ internal static class MefSerialization
         return stream.ToArray();
     }
 
-    public static ImmutableArray<MethodHandlerDescriptor> DeserializeMethodHandlers(byte[] bytes)
+    public static ImmutableArray<HandlerMethodDetails> DeserializeHandlerMethods(byte[] bytes)
     {
         using var stream = SerializableBytes.CreateReadableStream(bytes);
         using var reader = ObjectReader.TryGetReader(stream);
@@ -44,7 +44,7 @@ internal static class MefSerialization
             return [];
         }
 
-        return reader.ReadArray<MethodHandlerDescriptor>(reader =>
+        return reader.ReadArray<HandlerMethodDetails>(reader =>
         {
             var methodName = reader.ReadRequiredString();
             var language = reader.ReadRequiredString();

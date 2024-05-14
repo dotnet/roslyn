@@ -29,13 +29,13 @@ internal abstract class AbstractExportLspServiceAttribute : ExportAttribute
     /// </summary>
     public bool IsStateless { get; }
 
-    private readonly Lazy<byte[]>? _lazyMethodHandlerDescriptorData;
+    private readonly Lazy<byte[]>? _lazyHandlerMethodData;
 
     /// <summary>
     /// If this this service implements <see cref="IMethodHandler"/>, returns a blob of binary data
-    /// that encodes an array of <see cref="MethodHandlerDescriptor"/>s; otherwise <see langword="null"/>.
+    /// that encodes an array of <see cref="HandlerMethodDetails"/>s; otherwise <see langword="null"/>.
     /// </summary>
-    public byte[]? MethodHandlerDescriptorData => _lazyMethodHandlerDescriptorData?.Value;
+    public byte[]? HandlerMethodData => _lazyHandlerMethodData?.Value;
 
     protected AbstractExportLspServiceAttribute(
         Type serviceType, string contractName, Type contractType, bool isStateless, WellKnownLspServerKinds serverKind)
@@ -48,8 +48,8 @@ internal abstract class AbstractExportLspServiceAttribute : ExportAttribute
         IsStateless = isStateless;
         ServerKind = serverKind;
 
-        _lazyMethodHandlerDescriptorData = typeof(IMethodHandler).IsAssignableFrom(serviceType)
-            ? new(() => MefSerialization.Serialize(HandlerReflection.GetMethodHandlers(serviceType)))
+        _lazyHandlerMethodData = typeof(IMethodHandler).IsAssignableFrom(serviceType)
+            ? new(() => MefSerialization.Serialize(HandlerReflection.GetHandlerMethodDetails(serviceType)))
             : null;
     }
 }

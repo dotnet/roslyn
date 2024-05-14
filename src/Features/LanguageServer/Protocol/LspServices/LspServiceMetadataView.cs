@@ -13,7 +13,11 @@ internal sealed class LspServiceMetadataView
     public TypeRef TypeRef { get; }
     public WellKnownLspServerKinds ServerKind { get; }
     public bool IsStateless { get; }
-    public ImmutableArray<MethodHandlerDescriptor>? MethodHandlers { get; }
+
+    /// <summary>
+    /// Returns an array of request handler method details if this services is an <see cref="IMethodHandler"/>.
+    /// </summary>
+    public ImmutableArray<HandlerMethodDetails>? HandlerMethods { get; }
 
     public LspServiceMetadataView(IDictionary<string, object> metadata)
     {
@@ -23,10 +27,10 @@ internal sealed class LspServiceMetadataView
         ServerKind = (WellKnownLspServerKinds)metadata[nameof(ServerKind)];
         IsStateless = (bool)metadata[nameof(IsStateless)];
 
-        var methodHandlerDescriptorData = (byte[]?)metadata[nameof(AbstractExportLspServiceAttribute.MethodHandlerDescriptorData)];
+        var handlerMethodData = (byte[]?)metadata[nameof(AbstractExportLspServiceAttribute.HandlerMethodData)];
 
-        MethodHandlers = methodHandlerDescriptorData is not null
-            ? MefSerialization.DeserializeMethodHandlers(methodHandlerDescriptorData)
+        HandlerMethods = handlerMethodData is not null
+            ? MefSerialization.DeserializeHandlerMethods(handlerMethodData)
             : null;
     }
 }
