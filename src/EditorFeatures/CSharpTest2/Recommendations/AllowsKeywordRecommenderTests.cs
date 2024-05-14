@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact]
         public async Task TestNotAtRoot()
         {
-            await VerifyAbsenceAsync(
-@"$$");
+            await VerifyAbsenceAsync("$$");
         }
 
         [Fact]
@@ -53,29 +52,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Goo = $$");
+                """
+                using Goo = $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInGlobalUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"global using Goo = $$");
+                """
+                global using Goo = $$
+                """);
         }
 
         [Theory]
         [CombinatorialData]
         public async Task TestNotEmptyStatement(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+            await VerifyAbsenceAsync(AddInsideMethod("$$", topLevelStatement: topLevelStatement));
         }
 
         [Fact]
         public async Task TestAfterNewTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
-@"class C<T> where T : $$");
+                """
+                class C<T> where T : $$
+                """);
         }
 
         [Fact]
@@ -116,28 +120,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClassTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : class, $$");
+                """
+                class C<T> where T : class, $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterStructTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
-@"class C<T> where T : struct, $$");
+                """
+                class C<T> where T : struct, $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterSimpleTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
-@"class C<T> where T : IGoo, $$");
+                """
+                class C<T> where T : IGoo, $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterConstructorTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
-@"class C<T> where T : new(), $$");
+                """
+                class C<T> where T : new(), $$
+                """);
         }
 
         [Fact]
@@ -153,6 +165,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
         [Fact]
         public async Task TestNotAfterClass()
-            => await VerifyAbsenceAsync(@"class $$");
+            => await VerifyAbsenceAsync("class $$");
     }
 }

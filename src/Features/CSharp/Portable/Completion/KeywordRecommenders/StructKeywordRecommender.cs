@@ -39,10 +39,10 @@ internal class StructKeywordRecommender : AbstractSyntacticSingleKeywordRecommen
                 canBePartial: true,
                 cancellationToken: cancellationToken) ||
             context.IsRecordDeclarationContext(s_validModifiers, cancellationToken) ||
-            IsAllowsRefStructConstraintContext(context);
+            IsConstraintContext(context);
     }
 
-    private static bool IsAllowsRefStructConstraintContext(CSharpSyntaxContext context)
+    private static bool IsConstraintContext(CSharpSyntaxContext context)
     {
         //    where T : |
         if (context.SyntaxTree.IsTypeParameterConstraintStartContext(context.Position, context.LeftToken))

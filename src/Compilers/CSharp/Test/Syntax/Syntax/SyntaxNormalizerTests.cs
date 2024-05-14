@@ -5996,6 +5996,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                 ref
                 struct
                 ;
+                class C6<T, S> where T:allows   ref   struct        where S:struct     ;
                 """, """
                 class C1<T>
                   where T : allows ref struct;
@@ -6007,6 +6008,8 @@ $"  ///  </summary>{Environment.NewLine}" +
                   where T : new(), allows ref struct;
                 class C5<T>
                   where T : allows ref struct;
+                class C6<T, S>
+                  where T : allows ref struct where S : struct;
                 """);
         }
 
@@ -6029,6 +6032,7 @@ $"  ///  </summary>{Environment.NewLine}" +
                     struct
                     {
                     }
+                    void M6<T, S>() where T:allows   ref   struct       where S:struct     {}
                 }
                 """, """
                 class C
@@ -6055,6 +6059,11 @@ $"  ///  </summary>{Environment.NewLine}" +
 
                   void M5<T>()
                     where T : allows ref struct
+                  {
+                  }
+
+                  void M6<T, S>()
+                    where T : allows ref struct where S : struct
                   {
                   }
                 }

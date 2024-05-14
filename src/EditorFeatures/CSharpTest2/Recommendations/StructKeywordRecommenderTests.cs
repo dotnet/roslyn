@@ -526,7 +526,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterAllowsRefInTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
-@"class C<T> where T : allows ref $$");
+                """
+                class C<T> where T : allows ref $$
+                """);
         }
 
         [Fact]
@@ -567,35 +569,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterAllowsRefAfterClassTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
-@"class C<T> where T : class, allows ref $$");
+                """
+                class C<T> where T : class, allows ref $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterStructTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
-@"class C<T> where T : struct, allows ref $$");
+                """
+                class C<T> where T : struct, allows ref $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterSimpleTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
-@"class C<T> where T : IGoo, allows ref $$");
+                """
+                class C<T> where T : IGoo, allows ref $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterConstructorTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
-@"class C<T> where T : new(), allows ref $$");
+                """
+                class C<T> where T : new(), allows ref $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterStructInTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : allows ref struct $$");
+                """
+                class C<T> where T : allows ref struct $$
+                """);
         }
 
         [Fact]
@@ -613,35 +625,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterStructAfterClassTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : class, allows ref struct $$");
+                """
+                class C<T> where T : class, allows ref struct $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterStructAfterStructTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : struct, allows ref struct $$");
+                """
+                class C<T> where T : struct, allows ref struct $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterStructAfterSimpleTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : IGoo, allows ref struct $$");
+                """
+                class C<T> where T : IGoo, allows ref struct $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterStructAfterConstructorTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : new(), allows ref struct $$");
+                """
+                class C<T> where T : new(), allows ref struct $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterAllowsInTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : allows $$");
+                """
+                class C<T> where T : allows $$
+                """);
         }
 
         [Fact]
@@ -682,7 +704,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterAllowsAfterClassTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : class, allows $$");
+                """
+                class C<T> where T : class, allows $$
+                """);
         }
     }
 }

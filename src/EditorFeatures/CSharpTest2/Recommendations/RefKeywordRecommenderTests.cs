@@ -1220,7 +1220,9 @@ class C
         public async Task TestAfterAllowsInTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
-@"class C<T> where T : allows $$");
+                """
+                class C<T> where T : allows $$
+                """);
         }
 
         [Fact]
@@ -1261,35 +1263,45 @@ class C
         public async Task TestNotAfterClassTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : class, allows $$");
+                """
+                class C<T> where T : class, allows $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterStructTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
-@"class C<T> where T : struct, allows $$");
+                """
+                class C<T> where T : struct, allows $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterSimpleTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
-@"class C<T> where T : IGoo, allows $$");
+                """
+                class C<T> where T : IGoo, allows $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterConstructorTypeParameterConstraint()
         {
             await VerifyKeywordAsync(
-@"class C<T> where T : new(), allows $$");
+                """
+                class C<T> where T : new(), allows $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGenericNameInTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : allows<int> $$");
+                """
+                class C<T> where T : allows<int> $$
+                """);
         }
 
         [Fact]
@@ -1307,35 +1319,45 @@ class C
         public async Task TestNotAfterGenericNameAfterClassTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : class, allows<int> $$");
+                """
+                class C<T> where T : class, allows<int> $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGenericNameAfterStructTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : struct, allows<int> $$");
+                """
+                class C<T> where T : struct, allows<int> $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGenericNameAfterSimpleTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : IGoo, allows<int> $$");
+                """
+                class C<T> where T : IGoo, allows<int> $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGenericNameAfterConstructorTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : new(), allows<int> $$");
+                """
+                class C<T> where T : new(), allows<int> $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterRefInTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : allows ref $$");
+                """
+                class C<T> where T : allows ref $$
+                """);
         }
 
         [Fact]
@@ -1353,28 +1375,36 @@ class C
         public async Task TestNotAfterRefAfterClassTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : class, allows ref $$");
+                """
+                class C<T> where T : class, allows ref $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterRefAfterStructTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : struct, allows ref $$");
+                """
+                class C<T> where T : struct, allows ref $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterRefAfterSimpleTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : IGoo, allows ref $$");
+                """
+                class C<T> where T : IGoo, allows ref $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterRefAfterConstructorTypeParameterConstraint()
         {
             await VerifyAbsenceAsync(
-@"class C<T> where T : new(), allows ref $$");
+                """
+                class C<T> where T : new(), allows ref $$
+                """);
         }
     }
 }
