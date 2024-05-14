@@ -27,7 +27,6 @@ using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GoToDefinition;
 
@@ -106,7 +105,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         if (service == null)
             return false;
 
-        Contract.ThrowIfNull(document);
+        Roslyn.Utilities.Contract.ThrowIfNull(document);
 
         // cancel any prior find-refs that might be in progress.
         _cancellationTokenSource.Cancel();
@@ -173,7 +172,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
         var cancellationToken = cancellationTokenSource.Token;
         var delayTask = DelayAsync(cancellationToken);
-        var findTask = Task.Run(() => FindResultsAsync(findContext, document, position, cancellationToken), cancellationToken);
+        var findTask = FindResultsAsync(findContext, document, position, cancellationToken);
 
         var firstFinishedTask = await Task.WhenAny(delayTask, findTask).ConfigureAwait(false);
         if (cancellationToken.IsCancellationRequested)
@@ -253,6 +252,9 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     private async Task FindResultsAsync(
         IFindUsagesContext findContext, Document document, int position, CancellationToken cancellationToken)
     {
+        // Ensure that we relinquish the thread so that the caller can proceed with their work.
+        await Task.Yield().ConfigureAwait(false);
+
         using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
         {
             await findContext.SetSearchTitleAsync(DisplayName, cancellationToken).ConfigureAwait(false);

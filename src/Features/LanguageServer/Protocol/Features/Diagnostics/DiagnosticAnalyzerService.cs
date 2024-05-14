@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }, cancellationToken);
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
+        public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
             TextDocument document,
             TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
@@ -110,9 +111,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
 
             // always make sure that analyzer is called on background thread.
-            return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(
+            await TaskScheduler.Default;
+            return await analyzer.GetDiagnosticsForSpanAsync(
                 document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
-                priorityProvider, blockForData: true, addOperationScope, diagnosticKinds, isExplicit, cancellationToken), cancellationToken);
+                priorityProvider, blockForData: true, addOperationScope, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
