@@ -10,13 +10,19 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDisposable? connection, DebuggingSessionId sessionId) : IActiveStatementSpanFactory, IDisposable
+internal sealed class RemoteDebuggingSessionProxy(
+    SolutionServices services,
+    IReferenceCountedDisposable<IDisposable> connection,
+    DebuggingSessionId sessionId) : IActiveStatementSpanFactory, IDisposable
 {
+    private readonly IReferenceCountedDisposable<IDisposable> _connection = connection.TryAddReference() ?? throw ExceptionUtilities.Unreachable();
+
     public void Dispose()
-        => connection?.Dispose();
+        => _connection.Dispose();
 
     private IEditAndContinueService GetLocalService()
         => services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
