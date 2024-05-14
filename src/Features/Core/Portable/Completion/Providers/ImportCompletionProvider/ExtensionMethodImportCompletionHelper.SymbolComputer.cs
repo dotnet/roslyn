@@ -90,14 +90,14 @@ internal static partial class ExtensionMethodImportCompletionHelper
                 // Find applicable symbols in parallel
                 var peReferenceMethodSymbolsTask = ProducerConsumer<IMethodSymbol?>.RunParallelAsync(
                     source: GetAllRelevantPeReferences(_originatingDocument.Project),
-                    produceItems: (peReference, callback, args, cancellationToken) =>
+                    produceItems: static (peReference, callback, args, cancellationToken) =>
                         args.@this.GetExtensionMethodSymbolsFromPeReferenceAsync(peReference, callback, args.forceCacheCreation, cancellationToken),
                     args: (@this: this, forceCacheCreation),
                     cancellationToken);
 
                 var projectMethodSymbolsTask = ProducerConsumer<IMethodSymbol?>.RunParallelAsync(
                     source: GetAllRelevantProjects(_originatingDocument.Project),
-                    produceItems: (project, callback, args, cancellationToken) =>
+                    produceItems: static (project, callback, args, cancellationToken) =>
                         args.@this.GetExtensionMethodSymbolsFromProjectAsync(project, callback, args.forceCacheCreation, cancellationToken),
                     args: (@this: this, forceCacheCreation),
                     cancellationToken);

@@ -139,22 +139,23 @@ internal sealed class BatchFixAllProvider : FixAllProvider
     private static async Task<ImmutableArray<Document>> GetAllChangedDocumentsInDiagnosticsOrderAsync(
         FixAllContext fixAllContext, ImmutableArray<Diagnostic> orderedDiagnostics)
     {
-        var solution = fixAllContext.Solution;
         var cancellationToken = fixAllContext.CancellationToken;
 
-        // Process each diagnostic, determine the code actions to fix it, then figure out the document changes
-        // produced by that code action.
-        using var _1 = ArrayBuilder<Task<ImmutableArray<Document>>>.GetInstance(out var tasks);
-        foreach (var diagnostic in orderedDiagnostics)
-        {
-            var document = solution.GetRequiredDocument(diagnostic.Location.SourceTree!);
-
-            cancellationToken.ThrowIfCancellationRequested();
-            tasks.Add(Task.Run(async () =>
+        // Process each diagnostic, determine the code actions to fix it, then figure out the document changes produced
+        // by that code action.
+        return await ProducerConsumer<Document>.RunParallelAsync(
+            source: orderedDiagnostics,
+            produceItems: static async (diagnostic, callback, args, cancellationToken) =>
             {
+                var fixAllContext = args.fixAllContext;
+                var solution = fixAllContext.Solution;
+
+                var document = solution.GetRequiredDocument(diagnostic.Location.SourceTree!);
+
                 // Create a context that will add the reported code actions into this
-                using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
-                var action = GetRegisterCodeFixAction(fixAllContext.CodeActionEquivalenceKey, codeActions);
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
+
+                var action = GetRegisterCodeFixAction(args.fixAllContext.CodeActionEquivalenceKey, codeActions);
                 var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, [diagnostic], action, fixAllContext.State.CodeActionOptionsProvider, cancellationToken);
 
                 // Wait for the all the code actions to be reported for this diagnostic.
@@ -162,7 +163,6 @@ internal sealed class BatchFixAllProvider : FixAllProvider
                 await registerTask.ConfigureAwait(false);
 
                 // Now, process each code action and find out all the document changes caused by it.
-                using var _3 = ArrayBuilder<Document>.GetInstance(out var changedDocuments);
 
                 foreach (var codeAction in codeActions)
                 {
@@ -171,24 +171,13 @@ internal sealed class BatchFixAllProvider : FixAllProvider
                     if (changedSolution != null)
                     {
                         var changedDocumentIds = new SolutionChanges(changedSolution, solution).GetProjectChanges().SelectMany(p => p.GetChangedDocuments());
-                        changedDocuments.AddRange(changedDocumentIds.Select(id => changedSolution.GetRequiredDocument(id)));
+                        foreach (var changedDocumentId in changedDocumentIds)
+                            callback(changedSolution.GetRequiredDocument(changedDocumentId));
                     }
                 }
-
-                return changedDocuments.ToImmutableAndClear();
-            }, cancellationToken));
-        }
-
-        // Wait for all that work to finish.
-        await Task.WhenAll(tasks).ConfigureAwait(false);
-
-        // Flatten the set of changed documents.  These will naturally still be ordered by the diagnostic that
-        // caused the change.
-        using var _4 = ArrayBuilder<Document>.GetInstance(out var result);
-        foreach (var task in tasks)
-            result.AddRange(await task.ConfigureAwait(false));
-
-        return result.ToImmutableAndClear();
+            },
+            args: (fixAllContext, true),
+            cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
