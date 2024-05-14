@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -179,17 +180,13 @@ internal abstract class AbstractSimplificationService<TExpressionSyntax, TStatem
         ConcurrentDictionary<SyntaxToken, SyntaxToken> reducedTokensMap,
         CancellationToken cancellationToken)
     {
-        // Debug flag to help processing things serially instead of parallel.
-        var executeSerially = Debugger.IsAttached;
-
         Contract.ThrowIfFalse(nodesAndTokensToReduce.Any());
 
         // Reduce each node or token in the given list by running it through each reducer.
-        var simplifyTasks = new Task[nodesAndTokensToReduce.Length];
-        for (var i = 0; i < nodesAndTokensToReduce.Length; i++)
-        {
-            var nodeOrTokenToReduce = nodesAndTokensToReduce[i];
-            simplifyTasks[i] = Task.Run(async () =>
+        await RoslynParallel.ForEachAsync(
+            source: nodesAndTokensToReduce,
+            cancellationToken,
+            async (nodeOrTokenToReduce, cancellationToken) =>
             {
                 var nodeOrToken = nodeOrTokenToReduce.OriginalNodeOrToken;
                 var simplifyAllDescendants = nodeOrTokenToReduce.SimplifyAllDescendants;
@@ -273,13 +270,7 @@ internal abstract class AbstractSimplificationService<TExpressionSyntax, TStatem
                         reducedTokensMap[nodeOrToken.AsToken()] = currentNodeOrToken.AsToken();
                     }
                 }
-            }, cancellationToken);
-
-            if (executeSerially)
-                await simplifyTasks[i].ConfigureAwait(false);
-        }
-
-        await Task.WhenAll(simplifyTasks).ConfigureAwait(false);
+            }).ConfigureAwait(false);
     }
 
     // find any namespace imports / using directives marked for simplification in the specified spans
