@@ -184,10 +184,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     public async Task InitializeUIAffinitizedServicesAsync(IAsyncServiceProvider asyncServiceProvider)
     {
         // Yield the thread, so the caller can proceed and return immediately.
-        await Task.Yield();
-
         // Create services that are bound to the UI thread
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _threadingContext.DisposalToken);
 
         // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
         // the background thread then we will experience hangs like we see in this bug:
