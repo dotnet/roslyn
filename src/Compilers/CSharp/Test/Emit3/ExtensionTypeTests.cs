@@ -3230,7 +3230,7 @@ public explicit extension R for C<dynamic> { }
 
         var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
         // Note: we don't emit a DynamicAttribute on synthesized field
-        verifier.VerifyTypeIL("R", """
+        verifier.VerifyTypeIL("R", $$"""
 .class public sequential ansi sealed beforefieldinit R
 	extends [System.Runtime]System.ValueType
 {
@@ -3246,7 +3246,7 @@ public explicit extension R for C<dynamic> { }
 		73 00 00
 	)
 	// Fields
-	.field private class C`1<object> '<UnderlyingInstance>$'
+	.field private class C`1<object> '{{WellKnownMemberNames.ExtensionFieldName}}'
 	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)

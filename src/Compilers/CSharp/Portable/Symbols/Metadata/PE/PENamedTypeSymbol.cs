@@ -1983,7 +1983,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // PROTOTYPE consider optimizing/caching
 
-            TypeSymbol? foundUnderlyingType;
             if (!this.IsStatic
                 && this.Layout is not { Kind: LayoutKind.Sequential, Alignment: 0, Size: 0 })
             {
@@ -1992,6 +1991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return;
             }
 
+            TypeSymbol? foundUnderlyingType;
             if (!tryDecodeExtensionType(out isExplicit, out foundUnderlyingType))
             {
                 if (foundUnderlyingType is null)
