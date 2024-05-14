@@ -260,7 +260,7 @@ internal sealed class EditAndContinueLanguageService(
         UpdateApplyChangesDiagnostics([]);
 
         sourceTextProvider.Deactivate();
-        _debuggingSession?.Dispose();
+        // We don't need to Dispose _debuggingSession.  That is done in EndDebuggingSessionAsync
         _debuggingSession = null;
         _committedDesignTimeSolution = null;
         _pendingUpdatedDesignTimeSolution = null;
