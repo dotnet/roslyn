@@ -173,7 +173,6 @@ internal sealed class LanguageServerProjectSystem
                 args: (@this: this, toastErrorReporter, buildHostProcessManager),
                 cancellationToken).ConfigureAwait(false);
 
-            projectsThatNeedRestore = projectsThatNeedRestore.Distinct();
             if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
                 // Tell the client to restore any projects with unresolved dependencies.

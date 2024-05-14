@@ -125,11 +125,12 @@ internal static class ProjectDependencyHelper
         if (projectPaths.IsEmpty)
             return;
 
-        Contract.ThrowIfTrue(projectPaths.Distinct().Length != projectPaths.Length, "Duplicate project paths are not allowed.");
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
 
         var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
-        var unresolvedParams = new UnresolvedDependenciesParams([.. projectPaths]);
+
+        // Ensure we only pass unique paths back to be restored.
+        var unresolvedParams = new UnresolvedDependenciesParams([.. projectPaths.Distinct()]);
         await languageServerManager.SendRequestAsync(ProjectNeedsRestoreName, unresolvedParams, cancellationToken);
     }
 
