@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -67,9 +68,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             protected virtual bool ShouldIncludeDiagnostic(DiagnosticData diagnostic) => true;
 
             protected ImmutableArray<DiagnosticData> GetDiagnosticData()
-                => (_lazyDataBuilder != null) ? _lazyDataBuilder.ToImmutableArray() : [];
+                => _lazyDataBuilder != null ? _lazyDataBuilder.ToImmutableArray() : [];
 
-            protected abstract ValueTask AppendDiagnosticsAsync(Project project, IReadOnlyList<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken);
+            protected abstract Task ProduceDiagnosticsAsync(
+                Project project, IReadOnlyList<DocumentId> documentIds, bool includeProjectNonLocalResult, Action<DiagnosticData> callback, CancellationToken cancellationToken);
 
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(CancellationToken cancellationToken)
             {
@@ -81,27 +83,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return GetDiagnosticData();
                     }
 
-                    var documentIds = _getDocuments(project, DocumentId);
-
                     // return diagnostics specific to one project or document
                     var includeProjectNonLocalResult = DocumentId == null;
-                    await AppendDiagnosticsAsync(project, documentIds, includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
+                    await ProduceProjectDiagnosticsAsync(
+                        [project], project => _getDocuments(project, DocumentId), includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
+
                     return GetDiagnosticData();
                 }
 
-                await AppendDiagnosticsAsync(Solution, cancellationToken).ConfigureAwait(false);
+                await ProduceSolutionDiagnosticsAsync(Solution, cancellationToken).ConfigureAwait(false);
                 return GetDiagnosticData();
             }
 
-            protected async Task AppendDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
+            protected Task ProduceSolutionDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
+                => ProduceProjectDiagnosticsAsync(solution.Projects, static project => project.DocumentIds, includeProjectNonLocalResult: true, cancellationToken);
+
+            protected async Task ProduceProjectDiagnosticsAsync(
+                IEnumerable<Project> projects, Func<Project, IReadOnlyList<DocumentId>> getDocumentIds,
+                bool includeProjectNonLocalResult, CancellationToken cancellationToken)
             {
                 // PERF: run projects in parallel rather than running CompilationWithAnalyzer with concurrency == true.
                 // We do this to not get into thread starvation causing hundreds of threads to be spawned.
-                await RoslynParallel.ForEachAsync(
-                    solution.Projects,
-                    cancellationToken,
-                    (project, cancellationToken) => AppendDiagnosticsAsync(
-                        project, project.DocumentIds, includeProjectNonLocalResult: true, cancellationToken)).ConfigureAwait(false);
+                var diagnostics = await ProducerConsumer<DiagnosticData>.RunParallelAsync(
+                    source: projects,
+                    produceItems: static (project, callback, args, cancellationToken) => args.@this.ProduceDiagnosticsAsync(
+                        project, args.getDocumentIds(project), args.includeProjectNonLocalResult, callback, cancellationToken),
+                    args: (@this: this, getDocumentIds, includeProjectNonLocalResult),
+                    cancellationToken).ConfigureAwait(false);
+
+                AppendDiagnostics(diagnostics);
             }
 
             protected void AppendDiagnostics(ImmutableArray<DiagnosticData> items)
@@ -109,13 +119,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Debug.Assert(!items.IsDefault);
 
                 if (_lazyDataBuilder == null)
-                {
                     Interlocked.CompareExchange(ref _lazyDataBuilder, ImmutableArray.CreateBuilder<DiagnosticData>(), null);
-                }
 
                 lock (_lazyDataBuilder)
+                    _lazyDataBuilder.AddRange(items);
+            }
+
+            protected void InvokeCallback(Action<DiagnosticData> callback, ImmutableArray<DiagnosticData> diagnostics)
+            {
+                foreach (var diagnostic in diagnostics)
                 {
-                    _lazyDataBuilder.AddRange(items.Where(ShouldIncludeSuppressedDiagnostic).Where(ShouldIncludeDiagnostic));
+                    if (ShouldIncludeSuppressedDiagnostic(diagnostic) && ShouldIncludeDiagnostic(diagnostic))
+                        callback(diagnostic);
                 }
             }
 
@@ -130,8 +145,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
             }
 
-            protected override async ValueTask AppendDiagnosticsAsync(
-                Project project, IReadOnlyList<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken)
+            protected override async Task ProduceDiagnosticsAsync(
+                Project project, IReadOnlyList<DocumentId> documentIds, bool includeProjectNonLocalResult,
+                Action<DiagnosticData> callback, CancellationToken cancellationToken)
             {
                 foreach (var stateSet in StateManager.GetStateSets(project.Id))
                 {
@@ -139,18 +155,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         if (IncludeLocalDocumentDiagnostics)
                         {
-                            AppendDiagnostics(await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false));
-                            AppendDiagnostics(await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false));
+                            InvokeCallback(callback, await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false));
+                            InvokeCallback(callback, await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false));
                         }
 
                         if (IncludeNonLocalDocumentDiagnostics)
-                            AppendDiagnostics(await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.NonLocal, cancellationToken).ConfigureAwait(false));
+                            InvokeCallback(callback, await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.NonLocal, cancellationToken).ConfigureAwait(false));
                     }
 
                     if (includeProjectNonLocalResult)
                     {
                         // include project diagnostics if there is no target document
-                        AppendDiagnostics(await GetProjectStateDiagnosticsAsync(stateSet, project, documentId: null, AnalysisKind.NonLocal, cancellationToken).ConfigureAwait(false));
+                        InvokeCallback(callback, await GetProjectStateDiagnosticsAsync(stateSet, project, documentId: null, AnalysisKind.NonLocal, cancellationToken).ConfigureAwait(false));
                     }
                 }
             }
@@ -242,21 +258,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var project = Solution.GetProject(ProjectId);
                     if (project != null)
                     {
-                        await AppendDiagnosticsAsync(project, documentIds: [], includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
+                        await ProduceProjectDiagnosticsAsync(
+                            [project], static _ => [], includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
                     }
 
                     return GetDiagnosticData();
                 }
 
-                await AppendDiagnosticsAsync(Solution, cancellationToken).ConfigureAwait(false);
+                await ProduceSolutionDiagnosticsAsync(Solution, cancellationToken).ConfigureAwait(false);
                 return GetDiagnosticData();
             }
 
             protected override bool ShouldIncludeDiagnostic(DiagnosticData diagnostic)
                 => _diagnosticIds == null || _diagnosticIds.Contains(diagnostic.Id);
 
-            protected override async ValueTask AppendDiagnosticsAsync(
-                Project project, IReadOnlyList<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken)
+            protected override async Task ProduceDiagnosticsAsync(
+                Project project, IReadOnlyList<DocumentId> documentIds, bool includeProjectNonLocalResult,
+                Action<DiagnosticData> callback, CancellationToken cancellationToken)
             {
                 // get analyzers that are not suppressed.
                 var stateSets = StateManager.GetOrCreateStateSets(project).Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
@@ -276,18 +294,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         if (IncludeLocalDocumentDiagnostics)
                         {
-                            AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Syntax));
-                            AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Semantic));
+                            InvokeCallback(callback, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Syntax));
+                            InvokeCallback(callback, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Semantic));
                         }
 
                         if (IncludeNonLocalDocumentDiagnostics)
-                            AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal));
+                            InvokeCallback(callback, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal));
                     }
 
                     if (includeProjectNonLocalResult)
                     {
                         // include project diagnostics if there is no target document
-                        AppendDiagnostics(analysisResult.GetOtherDiagnostics());
+                        InvokeCallback(callback, analysisResult.GetOtherDiagnostics());
                     }
                 }
             }
