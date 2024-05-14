@@ -232,10 +232,7 @@ internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TE
                         // However, the reduced nodes haven't been parented yet, so do the required parenting using the original node's parent.
                         if (currentNodeOrToken.Parent == null &&
                             nodeOrToken.Parent != null &&
-                            (currentNodeOrToken.IsToken ||
-                            currentNodeOrToken.AsNode() is TExpressionSyntax ||
-                            currentNodeOrToken.AsNode() is TStatementSyntax ||
-                            currentNodeOrToken.AsNode() is TCrefSyntax))
+                            (currentNodeOrToken.IsToken || currentNodeOrToken.AsNode() is TExpressionSyntax or TStatementSyntax or TCrefSyntax))
                         {
                             var annotation = new SyntaxAnnotation();
                             currentNodeOrToken = currentNodeOrToken.WithAdditionalAnnotations(annotation);
