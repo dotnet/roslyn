@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.ServiceHub.Client;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.Win32.SafeHandles;
@@ -44,25 +45,32 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly SolutionAssetStorage _solutionAssetStorage;
 
         private readonly ServiceDescriptor _serviceDescriptor;
-        private readonly ServiceBrokerClient _serviceBrokerClient;
-        private readonly RemoteServiceCallbackDispatcher.Handle _callbackHandle;
         private readonly IRemoteServiceCallbackDispatcher? _callbackDispatcher;
         private readonly Process? _remoteProcess;
         private readonly SafeProcessHandle? _remoteProcessHandle;
+
+        // Data to be disposed when we are disposed.
+
+        private readonly ReferenceCountedDisposable<HubClient>? _hubClient;
+        private readonly ReferenceCountedDisposable<ServiceBrokerClient> _serviceBrokerClient;
+        private readonly RemoteServiceCallbackDispatcher.Handle _callbackHandle;
 
         public BrokeredServiceConnection(
             ServiceDescriptor serviceDescriptor,
             object? callbackTarget,
             IRemoteServiceCallbackDispatcher? callbackDispatcher,
-            ServiceBrokerClient serviceBrokerClient,
+            ReferenceCountedDisposable<HubClient>? hubClient,
+            ReferenceCountedDisposable<ServiceBrokerClient> serviceBrokerClient,
             SolutionAssetStorage solutionAssetStorage,
             IErrorReportingService? errorReportingService,
             IRemoteHostClientShutdownCancellationService? shutdownCancellationService,
             Process? remoteProcess)
         {
             Contract.ThrowIfFalse((callbackDispatcher == null) == (serviceDescriptor.ClientInterface == null));
+            Contract.ThrowIfNull(serviceBrokerClient.Target);
 
             _serviceDescriptor = serviceDescriptor;
+            _hubClient = hubClient;
             _serviceBrokerClient = serviceBrokerClient;
             _solutionAssetStorage = solutionAssetStorage;
             _errorReportingService = errorReportingService;
@@ -76,6 +84,8 @@ namespace Microsoft.CodeAnalysis.Remote
         public override void Dispose()
         {
             _callbackHandle.Dispose();
+            _serviceBrokerClient.Dispose();
+            _hubClient?.Dispose();
         }
 
         private async ValueTask<Rental> RentServiceAsync(CancellationToken cancellationToken)
@@ -88,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 ClientRpcTarget = _callbackDispatcher
             };
 
-            var proxyRental = await _serviceBrokerClient.GetProxyAsync<TService>(_serviceDescriptor, options, cancellationToken).ConfigureAwait(false);
+            var proxyRental = await _serviceBrokerClient.Target.GetProxyAsync<TService>(_serviceDescriptor, options, cancellationToken).ConfigureAwait(false);
             var service = proxyRental.Proxy;
             Contract.ThrowIfNull(service);
             return new Rental(proxyRental, service);

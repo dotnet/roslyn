@@ -4,24 +4,16 @@
 
 using System;
 using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Client;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -29,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private readonly SolutionServices _services;
         private readonly SolutionAssetStorage _assetStorage;
-        private readonly HubClient _hubClient;
-        private readonly ServiceBrokerClient _serviceBrokerClient;
+        private readonly ReferenceCountedDisposable<HubClient> _hubClient;
+        private readonly ReferenceCountedDisposable<ServiceBrokerClient> _serviceBrokerClient;
         private readonly IErrorReportingService? _errorReportingService;
         private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
         private readonly IRemoteServiceCallbackDispatcherProvider _callbackDispatcherProvider;
@@ -42,16 +34,16 @@ namespace Microsoft.CodeAnalysis.Remote
         private ServiceHubRemoteHostClient(
             SolutionServices services,
             RemoteProcessConfiguration configuration,
-            ServiceBrokerClient serviceBrokerClient,
-            HubClient hubClient,
+            ReferenceCountedDisposable<ServiceBrokerClient> serviceBrokerClient,
+            ReferenceCountedDisposable<HubClient> hubClient,
             IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider)
         {
             // use the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
-            services.GetService<IWorkspaceTelemetryService>()?.RegisterUnexpectedExceptionLogger(hubClient.Logger);
+            services.GetService<IWorkspaceTelemetryService>()?.RegisterUnexpectedExceptionLogger(hubClient.Target.Logger);
 
             _services = services;
-            _serviceBrokerClient = serviceBrokerClient;
-            _hubClient = hubClient;
+            _serviceBrokerClient = serviceBrokerClient.TryAddReference() ?? throw ExceptionUtilities.Unreachable();
+            _hubClient = hubClient.TryAddReference() ?? throw ExceptionUtilities.Unreachable();
             _callbackDispatcherProvider = callbackDispatcherProvider;
 
             _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
@@ -60,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Configuration = configuration;
         }
 
-        public static async Task<RemoteHostClient> CreateAsync(
+        public static async Task<ReferenceCountedDisposable<RemoteHostClient>> CreateAsync(
             SolutionServices services,
             RemoteProcessConfiguration configuration,
             AsynchronousOperationListenerProvider listenerProvider,
@@ -70,18 +62,24 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, KeyValueLogMessage.NoProperty, cancellationToken))
             {
+                // Create the ServiceBrokerClient and HubClient used to communicate with the remote process.  Initially,
+                // both have a ref-count of 1, and will be disposed if we return out of this method unsuccessfully.  If
+                // we are able to successfully create a RemoteHostClient, we will add its own ref-counts to those
+                // objects ensuring they stay alive as long as the RemoteHostClient is alive.
+
 #pragma warning disable ISB001    // Dispose of proxies
 #pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
-                var serviceBrokerClient = new ServiceBrokerClient(serviceBroker);
+                using var serviceBrokerClient = new ReferenceCountedDisposable<ServiceBrokerClient>(new(serviceBroker));
 #pragma warning restore
 
-                var hubClient = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
+                using var hubClient = new ReferenceCountedDisposable<HubClient>(new("ManagedLanguage.IDE.RemoteHostClient"));
 
-                var client = new ServiceHubRemoteHostClient(services, configuration, serviceBrokerClient, hubClient, callbackDispatchers);
+                // Now, also create the client.  Ensuring that it gets cleaned up if any of the code below failed.
+                using var client = new ReferenceCountedDisposable<RemoteHostClient>(new ServiceHubRemoteHostClient(services, configuration, serviceBrokerClient, hubClient, callbackDispatchers));
 
                 var workspaceConfigurationService = services.GetRequiredService<IWorkspaceConfigurationService>();
 
-                var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
+                var remoteProcessId = await client.Target.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
                     (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
@@ -89,23 +87,25 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     try
                     {
-                        client._remoteProcess = Process.GetProcessById(remoteProcessId.Value);
+                        ((ServiceHubRemoteHostClient)client.Target)._remoteProcess = Process.GetProcessById(remoteProcessId.Value);
                     }
                     catch (Exception e)
                     {
-                        hubClient.Logger.TraceEvent(TraceEventType.Error, 1, $"Unable to find Roslyn ServiceHub process: {e.Message}");
+                        hubClient.Target.Logger.TraceEvent(TraceEventType.Error, 1, $"Unable to find Roslyn ServiceHub process: {e.Message}");
                     }
                 }
                 else
                 {
-                    hubClient.Logger.TraceEvent(TraceEventType.Error, 1, "Roslyn ServiceHub process initialization failed.");
+                    hubClient.Target.Logger.TraceEvent(TraceEventType.Error, 1, "Roslyn ServiceHub process initialization failed.");
                 }
 
-                await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
+                await client.Target.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
                     (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                return client;
+                // We've succeeded in fully creating the RemoteHostClient.  Ensure we have an extra ref-count to offset
+                // the refcount+Dispose we setup above.
+                return client.TryAddReference() ?? throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -123,11 +123,23 @@ namespace Microsoft.CodeAnalysis.Remote
             var descriptor = descriptors.GetServiceDescriptor(typeof(T), Configuration);
             var callbackDispatcher = (descriptor.ClientInterface != null) ? callbackDispatcherProvider.GetDispatcher(typeof(T)) : null;
 
+            // Add additional refs to the client and service broker so they stay alive as long as the connection is
+            // alive.  When the last connection is disposed and we are disposed, these will finally get truly disposed.
+            using var hubClient = _hubClient.TryAddReference();
+            using var serviceBrokerClient = _serviceBrokerClient.TryAddReference();
+
+            // We've been disposed.  Just return a connection that fails on every operation. All code that calls into
+            // the client or connections already has to be written to handle failures on oop calls, so they should
+            // already be fine with this.
+            if (hubClient is null || serviceBrokerClient is null)
+                return NoOpRemoteServiceConnection<T>.Instance;
+
             return new BrokeredServiceConnection<T>(
                 descriptor,
                 callbackTarget,
                 callbackDispatcher,
-                _serviceBrokerClient,
+                hubClient,
+                serviceBrokerClient,
                 _assetStorage,
                 _errorReportingService,
                 _shutdownCancellationService,
@@ -136,9 +148,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public override void Dispose()
         {
-            _services.GetService<IWorkspaceTelemetryService>()?.UnregisterUnexpectedExceptionLogger(_hubClient.Logger);
-            _hubClient.Dispose();
+            _services.GetService<IWorkspaceTelemetryService>()?.UnregisterUnexpectedExceptionLogger(_hubClient.Target.Logger);
 
+            _hubClient.Dispose();
             _serviceBrokerClient.Dispose();
         }
     }

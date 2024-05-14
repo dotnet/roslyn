@@ -64,7 +64,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 descriptor,
                 callbackTarget,
                 callbackDispatcher,
-                _inprocServices.ServiceBrokerClient,
+                hubClient: null,
+                _inprocServices.ServiceBrokerClient.TryAddReference() ?? throw ExceptionUtilities.Unreachable(),
                 _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage,
                 _workspaceServices.GetRequiredService<IErrorReportingService>(),
                 shutdownCancellationService: null,
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             private readonly Dictionary<ServiceMoniker, BrokeredServiceBase.IFactory> _remoteBrokeredServicesMap = [];
 
             public readonly IServiceBroker ServiceBroker;
-            public readonly ServiceBrokerClient ServiceBrokerClient;
+            public readonly ReferenceCountedDisposable<ServiceBrokerClient> ServiceBrokerClient;
 
             public InProcRemoteServices(SolutionServices workspaceServices, TraceListener? traceListener, RemoteHostTestData testData)
             {
@@ -174,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
                 ServiceBroker = new InProcServiceBroker(this);
 #pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
-                ServiceBrokerClient = new ServiceBrokerClient(ServiceBroker);
+                ServiceBrokerClient = new(new ServiceBrokerClient(ServiceBroker));
 #pragma warning restore
 
                 RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices));
@@ -213,7 +214,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             }
 
             public void Dispose()
-                => ServiceBrokerClient.Dispose();
+            {
+                this.ServiceBrokerClient.Dispose();
+            }
 
             public RemoteHostTestData TestData => ServiceProvider.TestData;
 

@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 using VSThreading = Microsoft.VisualStudio.Threading;
@@ -128,7 +127,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // proffer in-proc brokered services:
                 _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(Services)));
 
-                return client;
+                // Note: this is not ideal.  We are letting the client be created and returned without wrapping it in a
+                // ReferenceCountedDisposable.  This is because the client is created in a way that it will be disposed
+                // when VisualStudioWorkspaceServiceHubConnector.StopListening is called.  In the future we should consider
+                // having the client always be wrapped in a ReferenceCountedDisposable.
+                return client.Target;
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
