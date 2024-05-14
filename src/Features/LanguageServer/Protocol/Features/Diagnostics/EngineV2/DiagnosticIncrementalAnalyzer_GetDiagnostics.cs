@@ -5,11 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -39,8 +37,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private readonly Func<Project, DocumentId?, IReadOnlyList<DocumentId>> _getDocuments;
 
-            private ImmutableArray<DiagnosticData>.Builder? _lazyDataBuilder;
-
             public DiagnosticGetter(
                 DiagnosticIncrementalAnalyzer owner,
                 Solution solution,
@@ -67,9 +63,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             protected virtual bool ShouldIncludeDiagnostic(DiagnosticData diagnostic) => true;
 
-            protected ImmutableArray<DiagnosticData> GetDiagnosticData()
-                => _lazyDataBuilder != null ? _lazyDataBuilder.ToImmutableArray() : [];
-
             protected abstract Task ProduceDiagnosticsAsync(
                 Project project, IReadOnlyList<DocumentId> documentIds, bool includeProjectNonLocalResult, Action<DiagnosticData> callback, CancellationToken cancellationToken);
 
@@ -79,50 +72,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var project = Solution.GetProject(ProjectId);
                     if (project == null)
-                    {
-                        return GetDiagnosticData();
-                    }
+                        return [];
 
                     // return diagnostics specific to one project or document
                     var includeProjectNonLocalResult = DocumentId == null;
-                    await ProduceProjectDiagnosticsAsync(
+                    return await ProduceProjectDiagnosticsAsync(
                         [project], project => _getDocuments(project, DocumentId), includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
-
-                    return GetDiagnosticData();
                 }
 
-                await ProduceSolutionDiagnosticsAsync(Solution, cancellationToken).ConfigureAwait(false);
-                return GetDiagnosticData();
+                return await ProduceSolutionDiagnosticsAsync(Solution, cancellationToken).ConfigureAwait(false);
             }
 
-            protected Task ProduceSolutionDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
+            protected Task<ImmutableArray<DiagnosticData>> ProduceSolutionDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
                 => ProduceProjectDiagnosticsAsync(solution.Projects, static project => project.DocumentIds, includeProjectNonLocalResult: true, cancellationToken);
 
-            protected async Task ProduceProjectDiagnosticsAsync(
+            protected async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
                 IEnumerable<Project> projects, Func<Project, IReadOnlyList<DocumentId>> getDocumentIds,
                 bool includeProjectNonLocalResult, CancellationToken cancellationToken)
             {
                 // PERF: run projects in parallel rather than running CompilationWithAnalyzer with concurrency == true.
                 // We do this to not get into thread starvation causing hundreds of threads to be spawned.
-                var diagnostics = await ProducerConsumer<DiagnosticData>.RunParallelAsync(
+                return await ProducerConsumer<DiagnosticData>.RunParallelAsync(
                     source: projects,
                     produceItems: static (project, callback, args, cancellationToken) => args.@this.ProduceDiagnosticsAsync(
                         project, args.getDocumentIds(project), args.includeProjectNonLocalResult, callback, cancellationToken),
                     args: (@this: this, getDocumentIds, includeProjectNonLocalResult),
                     cancellationToken).ConfigureAwait(false);
-
-                AppendDiagnostics(diagnostics);
-            }
-
-            private void AppendDiagnostics(ImmutableArray<DiagnosticData> items)
-            {
-                Debug.Assert(!items.IsDefault);
-
-                if (_lazyDataBuilder == null)
-                    Interlocked.CompareExchange(ref _lazyDataBuilder, ImmutableArray.CreateBuilder<DiagnosticData>(), null);
-
-                lock (_lazyDataBuilder)
-                    _lazyDataBuilder.AddRange(items);
             }
 
             protected void InvokeCallback(Action<DiagnosticData> callback, ImmutableArray<DiagnosticData> diagnostics)
@@ -256,17 +231,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (ProjectId != null)
                 {
                     var project = Solution.GetProject(ProjectId);
-                    if (project != null)
-                    {
-                        await ProduceProjectDiagnosticsAsync(
-                            [project], static _ => [], includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
-                    }
+                    if (project is null)
+                        return [];
 
-                    return GetDiagnosticData();
+                    return await ProduceProjectDiagnosticsAsync(
+                        [project], static _ => [], includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
                 }
 
-                await ProduceSolutionDiagnosticsAsync(Solution, cancellationToken).ConfigureAwait(false);
-                return GetDiagnosticData();
+                return await ProduceSolutionDiagnosticsAsync(Solution, cancellationToken).ConfigureAwait(false);
             }
 
             protected override bool ShouldIncludeDiagnostic(DiagnosticData diagnostic)
