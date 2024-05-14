@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -63,50 +64,20 @@ internal readonly record struct TokenData : IComparable<TokenData>
         Contract.ThrowIfFalse(this.TokenStream == other.TokenStream);
 
         if (this.IndexInStream >= 0 && other.IndexInStream >= 0)
-        {
             return this.IndexInStream - other.IndexInStream;
-        }
+
+        if (this.Token == other.Token)
+            return 0;
 
         var start = this.Token.SpanStart - other.Token.SpanStart;
         if (start != 0)
-        {
             return start;
-        }
 
         var end = this.Token.Span.End - other.Token.Span.End;
         if (end != 0)
-        {
             return end;
-        }
 
-        // this is expansive check. but there is no other way to check.
-        var commonRoot = this.Token.GetCommonRoot(other.Token);
-        RoslynDebug.Assert(commonRoot != null);
-
-        var tokens = commonRoot.DescendantTokens();
-
-        var index1 = Index(tokens, this.Token);
-        var index2 = Index(tokens, other.Token);
-        Contract.ThrowIfFalse(index1 >= 0 && index2 >= 0);
-
-        return index1 - index2;
-    }
-
-    private static int Index(IEnumerable<SyntaxToken> tokens, SyntaxToken token)
-    {
-        var index = 0;
-
-        foreach (var current in tokens)
-        {
-            if (current == token)
-            {
-                return index;
-            }
-
-            index++;
-        }
-
-        return -1;
+        return 0;
     }
 
     public static bool operator <(TokenData left, TokenData right)
