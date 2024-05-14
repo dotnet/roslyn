@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             protected ImmutableArray<DiagnosticData> GetDiagnosticData()
                 => (_lazyDataBuilder != null) ? _lazyDataBuilder.ToImmutableArray() : [];
 
-            protected abstract Task AppendDiagnosticsAsync(Project project, IEnumerable<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken);
+            protected abstract ValueTask AppendDiagnosticsAsync(Project project, IReadOnlyList<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken);
 
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(CancellationToken cancellationToken)
             {
@@ -96,19 +97,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // PERF: run projects in parallel rather than running CompilationWithAnalyzer with concurrency == true.
                 // We do this to not get into thread starvation causing hundreds of threads to be spawned.
-                var includeProjectNonLocalResult = true;
-
-                var tasks = new Task[solution.ProjectIds.Count];
-                var index = 0;
-                foreach (var project in solution.Projects)
-                {
-                    var localProject = project;
-                    tasks[index++] = Task.Run(
-                        () => AppendDiagnosticsAsync(
-                            localProject, localProject.DocumentIds, includeProjectNonLocalResult, cancellationToken), cancellationToken);
-                }
-
-                await Task.WhenAll(tasks).ConfigureAwait(false);
+                await RoslynParallel.ForEachAsync(
+                    solution.Projects,
+                    cancellationToken,
+                    (project, cancellationToken) => AppendDiagnosticsAsync(
+                        project, project.DocumentIds, includeProjectNonLocalResult: true, cancellationToken)).ConfigureAwait(false);
             }
 
             protected void AppendDiagnostics(ImmutableArray<DiagnosticData> items)
@@ -137,7 +130,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
             }
 
-            protected override async Task AppendDiagnosticsAsync(Project project, IEnumerable<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken)
+            protected override async ValueTask AppendDiagnosticsAsync(
+                Project project, IReadOnlyList<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken)
             {
                 foreach (var stateSet in StateManager.GetStateSets(project.Id))
                 {
@@ -261,7 +255,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             protected override bool ShouldIncludeDiagnostic(DiagnosticData diagnostic)
                 => _diagnosticIds == null || _diagnosticIds.Contains(diagnostic.Id);
 
-            protected override async Task AppendDiagnosticsAsync(Project project, IEnumerable<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken)
+            protected override async ValueTask AppendDiagnosticsAsync(
+                Project project, IReadOnlyList<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken)
             {
                 // get analyzers that are not suppressed.
                 var stateSets = StateManager.GetOrCreateStateSets(project).Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
