@@ -120,14 +120,14 @@ internal static class ProjectDependencyHelper
         }
     }
 
-    internal static async Task RestoreProjectsAsync(ImmutableHashSet<string> projectPaths, CancellationToken cancellationToken)
+    internal static async Task RestoreProjectsAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
     {
         if (projectPaths.IsEmpty)
-        {
             return;
-        }
 
+        Contract.ThrowIfTrue(projectPaths.Distinct().Length != projectPaths.Length, "Duplicate project paths are not allowed.");
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
+
         var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
         var unresolvedParams = new UnresolvedDependenciesParams([.. projectPaths]);
         await languageServerManager.SendRequestAsync(ProjectNeedsRestoreName, unresolvedParams, cancellationToken);

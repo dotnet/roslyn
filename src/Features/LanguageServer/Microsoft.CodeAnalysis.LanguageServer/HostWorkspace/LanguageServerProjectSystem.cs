@@ -173,6 +173,7 @@ internal sealed class LanguageServerProjectSystem
                 args: (@this: this, toastErrorReporter, buildHostProcessManager),
                 cancellationToken).ConfigureAwait(false);
 
+            projectsThatNeedRestore = projectsThatNeedRestore.Distinct();
             if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
                 // Tell the client to restore any projects with unresolved dependencies.
@@ -180,7 +181,7 @@ internal sealed class LanguageServerProjectSystem
                 // Tracking: https://github.com/dotnet/vscode-csharp/issues/6675
                 //
                 // The request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.RestoreProjectsAsync([.. projectsThatNeedRestore], cancellationToken);
+                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore, cancellationToken);
             }
         }
         finally
