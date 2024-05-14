@@ -58,7 +58,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
         LineFormattingOptionsProvider fallbackOptions,
         CancellationToken cancellationToken);
 
-    protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
+    protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document);
 
     protected abstract T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument) where T : SyntaxNode;
 

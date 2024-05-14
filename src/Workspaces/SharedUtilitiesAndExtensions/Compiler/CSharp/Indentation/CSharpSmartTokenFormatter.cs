@@ -104,7 +104,7 @@ internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
             }
         }
 
-        var smartTokenformattingRules = new SmartTokenFormattingRule().Concat(_formattingRules);
+        ImmutableArray<AbstractFormattingRule> smartTokenFormattingRules = [new SmartTokenFormattingRule(), .. _formattingRules];
         var adjustedStartPosition = previousToken.SpanStart;
         if (token.IsKind(SyntaxKind.OpenBraceToken) &&
             _options.IndentStyle != FormattingOptions2.IndentStyle.Smart)
@@ -118,7 +118,7 @@ internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
 
         var formatter = CSharpSyntaxFormatting.Instance;
         var result = formatter.GetFormattingResult(
-            _root, [TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition)], _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
+            _root, [TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition)], _options.FormattingOptions, smartTokenFormattingRules, cancellationToken);
         return result.GetTextChanges(cancellationToken);
     }
 
