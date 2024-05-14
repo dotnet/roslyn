@@ -232,8 +232,6 @@ internal sealed class RoslynPackage : AbstractPackage
         await this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
         await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
-        await this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
-
         await this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
         await this.ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
         await this.ComponentModel.GetService<SyncNamespacesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);

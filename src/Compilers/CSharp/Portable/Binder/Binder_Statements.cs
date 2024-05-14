@@ -1429,10 +1429,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isRef)
                 MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, node.Right.GetFirstToken());
 
-            var op1 = BindValue(node.Left, diagnostics, lhsKind, dynamificationOfAssignmentResultIsHandled: true);
+            var op1 = BindValue(node.Left, diagnostics, lhsKind);
             ReportSuppressionIfNeeded(op1, diagnostics);
-
-            op1 = AdjustAssignmentTargetForDynamic(op1, out bool forceDynamicResult);
 
             var rhsKind = isRef ? GetRequiredRHSValueKindForRefAssignment(op1) : BindValueKind.RValue;
             var op2 = BindValue(rhsExpr, diagnostics, rhsKind);
@@ -1444,10 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 op1 = InferTypeForDiscardAssignment((BoundDiscardExpression)op1, op2, diagnostics);
             }
 
-            BoundAssignmentOperator result = BindAssignment(node, op1, op2, isRef, diagnostics);
-            result = result.Update(result.Left, result.Right, result.IsRef, AdjustAssignmentTypeToDynamicIfNecessary(result.Type, forceDynamicResult));
-
-            return result;
+            return BindAssignment(node, op1, op2, isRef, diagnostics);
         }
 
         private static BindValueKind GetRequiredRHSValueKindForRefAssignment(BoundExpression boundLeft)

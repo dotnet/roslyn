@@ -267,5 +267,14 @@ internal sealed class SolutionAssetCache
             Object = @object;
         }
     }
+
+    public TestAccessor GetTestAccessor()
+        => new(this);
+
+    public readonly struct TestAccessor(SolutionAssetCache cache)
+    {
+        public void Clear()
+            => cache._assets.Clear();
+    }
 }
 

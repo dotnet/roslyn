@@ -8,6 +8,7 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.AddConstructorParametersFromMembers.AddConstructorParametersFromMembersCodeRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddConstructorParametersFromMembers
+    <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
     Public Class AddConstructorParametersFromMembersTests
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>

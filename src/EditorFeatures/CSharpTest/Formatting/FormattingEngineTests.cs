@@ -441,7 +441,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
         var syntaxRoot = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
         var options = CSharpSyntaxFormattingOptions.Default;
-        var node = Formatter.Format(syntaxRoot, spans, workspace.Services.SolutionServices, options, rules: null, CancellationToken.None);
+        var node = Formatter.Format(syntaxRoot, spans, workspace.Services.SolutionServices, options, rules: default, CancellationToken.None);
         Assert.Equal(expected, node.ToFullString());
     }
 

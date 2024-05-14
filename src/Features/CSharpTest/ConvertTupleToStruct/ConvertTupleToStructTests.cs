@@ -10,12 +10,10 @@ using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Remote.Testing;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             string? equivalenceKey = null,
             LanguageVersion languageVersion = LanguageVersion.CSharp9,
             OptionsCollection? options = null,
-            TestHost testHost = TestHost.InProcess,
+            TestHost testHost = TestHost.OutOfProcess,
             string[]? actions = null)
         {
             if (index != 0)

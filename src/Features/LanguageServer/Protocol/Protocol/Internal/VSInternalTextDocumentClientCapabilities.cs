@@ -10,6 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Text document capabilities specific to Visual Studio.
     /// </summary>
+    [DataContract]
     internal class VSInternalTextDocumentClientCapabilities : TextDocumentClientCapabilities
     {
         /// <summary>

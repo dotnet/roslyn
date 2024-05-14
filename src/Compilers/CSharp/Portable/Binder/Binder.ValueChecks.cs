@@ -310,19 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        /// <param name="dynamificationOfAssignmentResultIsHandled">
-        /// When an indexer is accessed with dynamic argument is resolved statically,
-        /// in some scenarios its result type is set to 'dynamic' type.
-        /// Assignments to such indexers should be bound statically as well, reverting back
-        /// to the indexer's type for the target and setting result type of the assignment to 'dynamic' type.
-        /// This flag and the assertion below help catch any new assignment scenarios and
-        /// make them aware of this subtlety.
-        /// The flag itself doesn't affect semantic analysis beyond the assertion.
-        /// </param>
-        private BoundIndexerAccess BindIndexerDefaultArgumentsAndParamsCollection(BoundIndexerAccess indexerAccess, BindValueKind valueKind, BindingDiagnosticBag diagnostics, bool dynamificationOfAssignmentResultIsHandled = false)
+        private BoundIndexerAccess BindIndexerDefaultArgumentsAndParamsCollection(BoundIndexerAccess indexerAccess, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert((valueKind & BindValueKind.Assignable) == 0 || (valueKind & BindValueKind.RefersToLocation) != 0 || dynamificationOfAssignmentResultIsHandled);
-
             var useSetAccessor = valueKind == BindValueKind.Assignable && !indexerAccess.Indexer.ReturnsByRef;
             var accessorForDefaultArguments = useSetAccessor
                 ? indexerAccess.Indexer.GetOwnOrInheritedSetMethod()
@@ -415,26 +404,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// method returns a BoundBadExpression node. The method returns the original
         /// expression without generating any error if the expression has errors.
         /// </summary>
-        /// <param name="dynamificationOfAssignmentResultIsHandled">
-        /// When an indexer is accessed with dynamic argument is resolved statically,
-        /// in some scenarios its result type is set to 'dynamic' type.
-        /// Assignments to such indexers should be bound statically as well, reverting back
-        /// to the indexer's type for the target and setting result type of the assignment to 'dynamic' type.
-        /// This flag and the assertion below help catch any new assignment scenarios and
-        /// make them aware of this subtlety.
-        /// The flag itself doesn't affect semantic analysis beyond the assertion.
-        /// </param>
-        private BoundExpression CheckValue(BoundExpression expr, BindValueKind valueKind, BindingDiagnosticBag diagnostics, bool dynamificationOfAssignmentResultIsHandled = false)
+        private BoundExpression CheckValue(BoundExpression expr, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert((valueKind & BindValueKind.Assignable) == 0 || (valueKind & BindValueKind.RefersToLocation) != 0 || dynamificationOfAssignmentResultIsHandled);
-
             switch (expr.Kind)
             {
                 case BoundKind.PropertyGroup:
                     expr = BindIndexedPropertyAccess((BoundPropertyGroup)expr, mustHaveAllOptionalParameters: false, diagnostics: diagnostics);
                     if (expr is BoundIndexerAccess indexerAccess)
                     {
-                        expr = BindIndexerDefaultArgumentsAndParamsCollection(indexerAccess, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: dynamificationOfAssignmentResultIsHandled);
+                        expr = BindIndexerDefaultArgumentsAndParamsCollection(indexerAccess, valueKind, diagnostics);
                     }
                     break;
 
@@ -452,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expr;
 
                 case BoundKind.IndexerAccess:
-                    expr = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)expr, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: dynamificationOfAssignmentResultIsHandled);
+                    expr = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)expr, valueKind, diagnostics);
                     break;
 
                 case BoundKind.UnconvertedObjectCreationExpression:

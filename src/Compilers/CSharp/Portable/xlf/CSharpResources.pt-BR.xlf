@@ -397,11 +397,6 @@
         <target state="translated">Não é possível converter {0} para o tipo '{1}' porque o tipo de retorno não corresponde ao tipo de retorno delegado</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
-        <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
-        <target state="translated">Os argumentos de tipo para o método '{0}' não podem ser inferidos a partir do uso porque um argumento com tipo dinâmico é usado e o método tem um parâmetro de coleção de params que não é uma matriz. Tente especificar explicitamente os argumentos de tipo.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist não pode ter um argumento passado por 'in' ou 'out'</target>
@@ -605,6 +600,11 @@
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="translated">Não é possível especificar modificadores 'readonly' em ambos os acessadores de propriedade ou de indexador '{0}'. Nesse caso, coloque um modificador 'readonly' na própria propriedade.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DynamicDispatchToParamsCollection">
+        <source>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</source>
+        <target state="new">'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">

@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultExtensionMethodImportCompletionCacheServiceFactory(IAsynchronousOperationListenerProvider listenerProvider)
-            : AbstractImportCompletionCacheServiceFactory<ExtensionMethodImportCompletionCacheEntry, object>(listenerProvider, ExtensionMethodImportCompletionHelper.BatchUpdateCacheAsync, CancellationToken.None)
+    : AbstractImportCompletionCacheServiceFactory<ExtensionMethodImportCompletionCacheEntry, object>(listenerProvider, ExtensionMethodImportCompletionHelper.BatchUpdateCacheAsync, CancellationToken.None)
 {
 }

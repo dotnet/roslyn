@@ -253,15 +253,10 @@ internal sealed class BatchFixAllProvider : FixAllProvider
 
     private static async Task<Solution> ApplyChangesAsync(
         Solution currentSolution,
-        ImmutableArray<(DocumentId, TextChangeMerger)> docIdsAndMerger,
+        ImmutableArray<(DocumentId documentId, TextChangeMerger merger)> docIdsAndMerger,
         CancellationToken cancellationToken)
     {
-        foreach (var (documentId, textMerger) in docIdsAndMerger)
-        {
-            var newText = await textMerger.GetFinalMergedTextAsync(cancellationToken).ConfigureAwait(false);
-            currentSolution = currentSolution.WithDocumentText(documentId, newText);
-        }
-
-        return currentSolution;
+        var docIdsAndTexts = await docIdsAndMerger.SelectAsArrayAsync(async t => (t.documentId, await t.merger.GetFinalMergedTextAsync(cancellationToken).ConfigureAwait(false))).ConfigureAwait(false);
+        return currentSolution.WithDocumentTexts(docIdsAndTexts);
     }
 }

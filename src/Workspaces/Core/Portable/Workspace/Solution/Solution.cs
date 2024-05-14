@@ -194,6 +194,14 @@ public partial class Solution
     internal Project? GetOriginatingProject(ISymbol symbol)
         => GetProject(GetOriginatingProjectId(symbol));
 
+    /// <inheritdoc cref="GetOriginatingProjectId"/>
+    /// <remarks>
+    /// Returns the <see cref="Compilation"/> that produced the symbol.  In the case of a symbol that was retargetted
+    /// this will be the compilation it was retargtted into, not the original compilation that it was retargetted from.
+    /// </remarks>
+    internal Compilation? GetOriginatingCompilation(ISymbol symbol)
+        => _compilationState.GetOriginatingProjectInfo(symbol)?.Compilation;
+
     /// <summary>
     /// True if the solution contains the document in one of its projects
     /// </summary>
@@ -1173,20 +1181,25 @@ public partial class Solution
     /// specified.
     /// </summary>
     public Solution WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        => WithDocumentTexts([(documentId, text, mode)]);
+
+    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts)
+        => WithDocumentTexts(texts.SelectAsArray(t => (t.documentId, t.text, PreservationMode.PreserveValue)));
+
+    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
     {
-        CheckContainsDocument(documentId);
-
-        if (text == null)
+        foreach (var (documentId, text, mode) in texts)
         {
-            throw new ArgumentNullException(nameof(text));
+            CheckContainsDocument(documentId);
+
+            if (text == null)
+                throw new ArgumentNullException(nameof(text));
+
+            if (!mode.IsValid())
+                throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        if (!mode.IsValid())
-        {
-            throw new ArgumentOutOfRangeException(nameof(mode));
-        }
-
-        return WithCompilationState(_compilationState.WithDocumentText(documentId, text, mode));
+        return WithCompilationState(_compilationState.WithDocumentTexts(texts));
     }
 
     /// <summary>
@@ -1299,20 +1312,27 @@ public partial class Solution
     /// rooted by the specified syntax node.
     /// </summary>
     public Solution WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
+        => WithDocumentSyntaxRoots([(documentId, root, mode)]);
+
+    /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
+    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots)
+        => WithDocumentSyntaxRoots(syntaxRoots.SelectAsArray(t => (t.documentId, t.root, PreservationMode.PreserveValue)));
+
+    /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
+    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root, PreservationMode mode)> syntaxRoots)
     {
-        CheckContainsDocument(documentId);
-
-        if (root == null)
+        foreach (var (documentId, root, mode) in syntaxRoots)
         {
-            throw new ArgumentNullException(nameof(root));
+            CheckContainsDocument(documentId);
+
+            if (root == null)
+                throw new ArgumentNullException(nameof(root));
+
+            if (!mode.IsValid())
+                throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        if (!mode.IsValid())
-        {
-            throw new ArgumentOutOfRangeException(nameof(mode));
-        }
-
-        return WithCompilationState(_compilationState.WithDocumentSyntaxRoot(documentId, root, mode));
+        return WithCompilationState(_compilationState.WithDocumentSyntaxRoots(syntaxRoots));
     }
 
     internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)

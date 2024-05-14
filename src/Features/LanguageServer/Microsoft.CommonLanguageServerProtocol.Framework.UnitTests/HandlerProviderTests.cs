@@ -11,8 +11,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
 public class HandlerProviderTests
 {
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public void GetMethodHandler(bool supportsGetRegisteredServices)
     {
         var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices);
@@ -21,8 +20,7 @@ public class HandlerProviderTests
         Assert.Same(TestMethodHandler.Instance, methodHandler);
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public void GetMethodHandler_Parameterless(bool supportsGetRegisteredServices)
     {
         var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices);
@@ -31,8 +29,7 @@ public class HandlerProviderTests
         Assert.Same(TestParameterlessMethodHandler.Instance, methodHandler);
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public void GetMethodHandler_Notification(bool supportsGetRegisteredServices)
     {
         var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices);
@@ -41,8 +38,7 @@ public class HandlerProviderTests
         Assert.Same(TestNotificationHandler.Instance, methodHandler);
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public void GetMethodHandler_ParameterlessNotification(bool supportsGetRegisteredServices)
     {
         var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices);
@@ -67,8 +63,7 @@ public class HandlerProviderTests
         Assert.Throws<InvalidOperationException>(() => handlerProvider.GetMethodHandler(TestMethodHandler.Name, TestMethodHandler.RequestType, responseType: typeof(long), LanguageServerConstants.DefaultLanguageName));
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public void GetRegisteredMethods(bool supportsGetRegisteredServices)
     {
         var handlerProvider = GetHandlerProvider(supportsGetRegisteredServices);
