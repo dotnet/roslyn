@@ -55,7 +55,7 @@ internal class ExportStatelessLspServiceAttribute : ExportAttribute
         ServerKind = serverKind;
 
         _lazyMethodHandlerDescriptorData = typeof(IMethodHandler).IsAssignableFrom(type)
-            ? new Lazy<byte[]>(() => MefSerialization.Serialize(MethodHandlerDescriptor.From(type)))
+            ? new Lazy<byte[]>(() => MefSerialization.Serialize(HandlerReflection.GetMethodHandlers(type)))
             : null;
     }
 }

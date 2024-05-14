@@ -13,15 +13,10 @@ using System.Linq;
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <inheritdoc/>
-internal class HandlerProvider : AbstractHandlerProvider
+internal class HandlerProvider(ILspServices lspServices) : AbstractHandlerProvider
 {
-    private readonly ILspServices _lspServices;
+    private readonly ILspServices _lspServices = lspServices;
     private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>? _requestHandlers;
-
-    public HandlerProvider(ILspServices lspServices)
-    {
-        _lspServices = lspServices;
-    }
 
     public IMethodHandler GetMethodHandler(string method, TypeRef? requestTypeRef, TypeRef? responseTypeRef)
         => GetMethodHandler(method, requestTypeRef, responseTypeRef, LanguageServerConstants.DefaultLanguageName);
@@ -52,7 +47,7 @@ internal class HandlerProvider : AbstractHandlerProvider
 
     private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> CreateMethodToHandlerMap(ILspServices lspServices)
     {
-        var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IMethodHandler>>();
+        var builder = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IMethodHandler>>();
 
         var methodHash = new HashSet<(string methodName, string language)>();
 
@@ -61,14 +56,14 @@ internal class HandlerProvider : AbstractHandlerProvider
         {
             foreach (var (handlerType, descriptors) in methodHandlerProvider.GetMethodHandlers())
             {
-                foreach (var descriptor in descriptors)
+                foreach (var (methodName, language, requestTypeRef, responseTypeRef, _) in descriptors)
                 {
-                    CheckForDuplicates(descriptor.MethodName, descriptor.Language, methodHash);
+                    CheckForDuplicates(methodName, language, methodHash);
 
                     // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
                     // and then lookup the correct handler for the specified method.
-                    requestHandlerDictionary.Add(
-                        new RequestHandlerMetadata(descriptor.MethodName, TypeRef.From(descriptor.RequestTypeName), TypeRef.From(descriptor.ResponseTypeName), descriptor.Language),
+                    builder.Add(
+                        new RequestHandlerMetadata(methodName, requestTypeRef, responseTypeRef, language),
                         new Lazy<IMethodHandler>(() =>
                         {
                             var lspService = lspServices.TryGetService(handlerType.GetResolvedType());
@@ -89,22 +84,26 @@ internal class HandlerProvider : AbstractHandlerProvider
         foreach (var handler in handlers)
         {
             var handlerType = handler.GetType();
-            var handlerTypes = HandlerTypes.ConvertHandlerTypeToRequestResponseTypes(handlerType);
-            foreach (var requestResponseType in handlerTypes)
+            var handlerDetails = HandlerReflection.GetHandlerDetails(handlerType);
+
+            foreach (var (requestType, responseType, requestContextType) in handlerDetails)
             {
-                var (method, languages) = HandlerReflection.GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContextType, requestResponseType.ResponseType);
+                var (method, languages) = HandlerReflection.GetRequestHandlerMethod(handlerType, requestType, requestContextType, responseType);
 
                 foreach (var language in languages)
                 {
                     CheckForDuplicates(method, language, methodHash);
-                    requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestResponseType.RequestType, requestResponseType.ResponseType, language), new Lazy<IMethodHandler>(() => handler));
+
+                    builder.Add(
+                        new RequestHandlerMetadata(method, requestType, responseType, language),
+                        new Lazy<IMethodHandler>(() => handler));
                 }
             }
         }
 
-        VerifyHandlers(requestHandlerDictionary.Keys);
+        VerifyHandlers(builder.Keys);
 
-        return requestHandlerDictionary.ToImmutable();
+        return builder.ToImmutable();
 
         static void CheckForDuplicates(string methodName, string language, HashSet<(string methodName, string language)> existingMethods)
         {

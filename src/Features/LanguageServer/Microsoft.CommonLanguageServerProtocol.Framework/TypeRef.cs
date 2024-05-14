@@ -95,6 +95,7 @@ internal abstract partial class TypeRef : IEquatable<TypeRef>
     public static bool operator !=(TypeRef? x, TypeRef? y)
         => !(x == y);
 
+    [return: NotNullIfNotNull(nameof(type))]
     public static implicit operator TypeRef?(Type? type)
         => type is not null ? From(type) : null;
 }

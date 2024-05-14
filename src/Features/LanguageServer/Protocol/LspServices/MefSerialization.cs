@@ -23,9 +23,9 @@ internal static class MefSerialization
             {
                 writer.WriteString(value.MethodName);
                 writer.WriteString(value.Language);
-                writer.WriteString(value.RequestTypeName);
-                writer.WriteString(value.ResponseTypeName);
-                writer.WriteString(value.RequestContextTypeName);
+                writer.WriteString(value.RequestTypeRef?.TypeName);
+                writer.WriteString(value.ResponseTypeRef?.TypeName);
+                writer.WriteString(value.RequestContextTypeRef.TypeName);
             });
         }
 
@@ -52,7 +52,12 @@ internal static class MefSerialization
             var responseTypeName = reader.ReadString();
             var requestContextTypeName = reader.ReadRequiredString();
 
-            return new(methodName, language, requestTypeName, responseTypeName, requestContextTypeName);
+            return new(
+                methodName,
+                language,
+                TypeRef.From(requestTypeName),
+                TypeRef.From(responseTypeName),
+                TypeRef.From(requestContextTypeName));
         });
     }
 }

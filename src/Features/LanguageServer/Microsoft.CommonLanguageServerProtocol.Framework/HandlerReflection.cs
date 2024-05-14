@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
 
@@ -11,6 +12,78 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 internal static class HandlerReflection
 {
+    /// <summary>
+    /// Retrieves the generic argument information from the request handler type without instantiating it.
+    /// </summary>
+    public static ImmutableArray<HandlerDetails> GetHandlerDetails(Type handlerType)
+    {
+        var builder = ImmutableArray.CreateBuilder<HandlerDetails>();
+
+        foreach (var interfaceType in handlerType.GetInterfaces())
+        {
+            if (!interfaceType.IsGenericType)
+            {
+                continue;
+            }
+
+            var genericDefinition = interfaceType.GetGenericTypeDefinition();
+
+            HandlerDetails details;
+            if (genericDefinition == typeof(IRequestHandler<,,>))
+            {
+                var genericArguments = interfaceType.GetGenericArguments();
+                details = new HandlerDetails(RequestType: genericArguments[0], ResponseType: genericArguments[1], RequestContextType: genericArguments[2]);
+            }
+            else if (genericDefinition == typeof(IRequestHandler<,>))
+            {
+                var genericArguments = interfaceType.GetGenericArguments();
+                details = new HandlerDetails(RequestType: null, ResponseType: genericArguments[0], RequestContextType: genericArguments[1]);
+            }
+            else if (genericDefinition == typeof(INotificationHandler<,>))
+            {
+                var genericArguments = interfaceType.GetGenericArguments();
+                details = new HandlerDetails(RequestType: genericArguments[0], ResponseType: null, RequestContextType: genericArguments[1]);
+            }
+            else if (genericDefinition == typeof(INotificationHandler<>))
+            {
+                var genericArguments = interfaceType.GetGenericArguments();
+                details = new HandlerDetails(RequestType: null, ResponseType: null, RequestContextType: genericArguments[0]);
+            }
+            else
+            {
+                continue;
+            }
+
+            builder.Add(details);
+        }
+
+        if (builder.Count == 0)
+        {
+            throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not implement {nameof(IMethodHandler)}");
+        }
+
+        return builder.ToImmutable();
+    }
+
+    public static ImmutableArray<MethodHandlerDescriptor> GetMethodHandlers(Type handlerType)
+    {
+        var allHandlerDetails = GetHandlerDetails(handlerType);
+
+        var builder = ImmutableArray.CreateBuilder<MethodHandlerDescriptor>(initialCapacity: allHandlerDetails.Length);
+
+        foreach (var (requestType, responseType, requestContextType) in allHandlerDetails)
+        {
+            var (method, languages) = GetRequestHandlerMethod(handlerType, requestType, requestContextType, responseType);
+
+            foreach (var language in languages)
+            {
+                builder.Add(new(method, language, requestType, responseType, requestContextType));
+            }
+        }
+
+        return builder.DrainToImmutable();
+    }
+
     public static (string name, IEnumerable<string> languages) GetRequestHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
     {
         // Get the LSP method name from the handler's method name attribute.
