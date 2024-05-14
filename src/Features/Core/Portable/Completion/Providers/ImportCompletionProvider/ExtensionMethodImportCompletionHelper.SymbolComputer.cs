@@ -107,17 +107,18 @@ internal static partial class ExtensionMethodImportCompletionHelper
                 var isPartialResult = false;
 
                 using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(results[0].Length + results[1].Length, out var symbols);
-                foreach (var result in results)
+                foreach (var methodArray in results)
                 {
                     // `null` indicates we don't have the index ready for the corresponding project/PE.
                     // returns what we have even it means we only show partial results.
-                    if (result.Any(static s => s is null))
+                    if (methodArray is [null])
                     {
                         isPartialResult = true;
                         continue;
                     }
 
-                    symbols.AddRange(result!);
+                    foreach (var method in methodArray)
+                        symbols.AddIfNotNull(method);
                 }
 
                 var browsableSymbols = symbols
