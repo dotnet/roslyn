@@ -19620,6 +19620,68 @@ class Program
         }
 
         [Fact]
+        public void ConditionalAccess_05()
+        {
+            var src = @"
+class Helper1<T>
+    where T : I1<T>, allows ref struct
+{
+    void Test(out T y)
+    {
+        T x = T.Create(stackalloc int[2]);
+        if (x?.M(out y) == true)
+        {
+            return;
+        }
+
+        y = default;
+    }
+}
+
+interface I1<S> where S : I1<S>, allows ref struct
+{
+    bool M(out S x);
+    static abstract S Create(System.Span<int> x);
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (8,15): error CS8350: This combination of arguments to 'I1<T>.M(out T)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
+                //         if (x?.M(out y) == true)
+                Diagnostic(ErrorCode.ERR_CallArgMixing, ".M(out y)").WithArguments("I1<T>.M(out T)", "this").WithLocation(8, 15)
+                );
+        }
+
+        [Fact]
+        public void ConditionalAccess_06()
+        {
+            var src = @"
+class Helper1<T>
+    where T : I1<T>, allows ref struct
+{
+    void Test(T y)
+    {
+        T x = T.Create(stackalloc int[2]);
+        if (x?.M(y) == true)
+        {
+            return;
+        }
+    }
+}
+
+interface I1<S> where S : I1<S>, allows ref struct
+{
+    bool M(S x);
+    static abstract S Create(System.Span<int> x);
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void DynamicAccess_01()
         {
             var src = @"
