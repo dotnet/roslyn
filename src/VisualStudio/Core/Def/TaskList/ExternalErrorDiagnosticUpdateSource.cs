@@ -98,6 +98,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     {
         lock (_gate)
         {
+            // Only called when the MEF catalog is disposed on shutdown.
             _diagnosticManagerService?.Dispose();
         }
     }
@@ -119,6 +120,9 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         });
     }
 
+    /// <summary>
+    /// Called serially in response to the sln build UI context.
+    /// </summary>
     internal void OnSolutionBuildStarted()
     {
         _ = GetOrCreateInProgressState();
@@ -129,6 +133,9 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         });
     }
 
+    /// <summary>
+    /// Called serially in response to the sln build UI context completing.
+    /// </summary>
     internal void OnSolutionBuildCompleted()
     {
         _ = ClearInProgressState();
@@ -166,6 +173,9 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         var diagnosticManagerService = await GetOrCreateDiagnosticManagerAsync(cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<DiagnosticCollection>.GetInstance(out var collections);
+        // The client API asks us to pass in diagnostics grouped by the file they are in.
+        // Note - linked file diagnostics will be 'duplicated' for each project - the document collection
+        // will contain a separate diagnostic for each project the file is linked to (with the corresponding project field set).
         var groupedDiagnostics = diagnostics.GroupBy(d => d.DataLocation.UnmappedFileSpan.Path);
         foreach (var group in groupedDiagnostics)
         {
@@ -193,6 +203,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         ImmutableArray<ProjectIdentifier> projects = project is not null ? [project.Value] : [];
 
         var range = GetRange(diagnostic);
+        var description = string.IsNullOrEmpty(diagnostic.Description) ? null : diagnostic.Description;
         return new Microsoft.VisualStudio.RpcContracts.DiagnosticManagement.Diagnostic(
             message: diagnostic.Message ?? string.Empty,
             code: diagnostic.Id,
@@ -200,7 +211,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             range: GetRange(diagnostic),
             tags: RpcContracts.DiagnosticManagement.DiagnosticTags.BuildError,
             relatedInformation: null,
-            expandedMessage: diagnostic.Description,
+            expandedMessage: description,
             // Intentionally the same as diagnosticType, matches what we used to report.
             source: diagnostic.Category,
             helpLink: diagnostic.HelpLink,

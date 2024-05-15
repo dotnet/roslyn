@@ -112,7 +112,7 @@ internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IV
                 AnalyzerInfoCache));
         }
 
-        DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, allDiagnostics.ToImmutable());
+        DiagnosticProvider.AddNewErrors(_projectId, _projectHierarchyGuid, allDiagnostics.ToImmutableAndClear());
         return VSConstants.S_OK;
     }
 

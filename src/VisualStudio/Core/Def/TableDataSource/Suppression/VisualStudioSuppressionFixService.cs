@@ -106,7 +106,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
 
         // Apply suppressions fix in global suppressions file for non-compiler diagnostics and
         // in source only for compiler diagnostics.
-        var diagnosticsToFix = GetDiagnosticsToFix(shouldFixInProject, selectedEntriesOnly: false, isAddSuppression: true);
+        var diagnosticsToFix = GetDiagnosticsToFix(selectedEntriesOnly: false, isAddSuppression: true);
         if (!ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics: false, isAddSuppression: true, isSuppressionInSource: false, onlyCompilerDiagnostics: false, showPreviewChangesDialog: false))
         {
             return false;
@@ -158,7 +158,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
     private static string GetWaitDialogMessage(bool isAddSuppression)
         => isAddSuppression ? ServicesVSResources.Computing_suppressions_fix : ServicesVSResources.Computing_remove_suppressions_fix;
 
-    private IEnumerable<DiagnosticData>? GetDiagnosticsToFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression)
+    private IEnumerable<DiagnosticData>? GetDiagnosticsToFix(bool selectedEntriesOnly, bool isAddSuppression)
     {
         var diagnosticsToFix = ImmutableHashSet<DiagnosticData>.Empty;
         void computeDiagnosticsToFix(IUIThreadOperationContext context)
@@ -189,7 +189,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
 
     private bool ApplySuppressionFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
     {
-        var diagnosticsToFix = GetDiagnosticsToFix(shouldFixInProject, selectedEntriesOnly, isAddSuppression);
+        var diagnosticsToFix = GetDiagnosticsToFix(selectedEntriesOnly, isAddSuppression);
         return ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, selectedEntriesOnly, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog);
     }
 
