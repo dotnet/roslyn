@@ -168,7 +168,7 @@ internal static partial class DependentProjectsFinder
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var dependentProjects = new HashSet<(Project, bool hasInternalsAccess)>();
+            using var _ = PooledHashSet<(Project, bool hasInternalsAccess)>.GetInstance(out var dependentProjects);
 
             // If a symbol was defined in source, then it is always visible to the project it
             // was defined in.
