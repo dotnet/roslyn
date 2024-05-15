@@ -7,28 +7,29 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
-internal sealed partial class CSharpSyntaxTreeFactoryService(ITextFactoryService textFactoryService) : AbstractSyntaxTreeFactoryService
+[ExportLanguageService(typeof(ISyntaxTreeFactoryService), LanguageNames.CSharp), Shared]
+internal partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
 {
-    [ExportLanguageServiceFactory(typeof(ISyntaxTreeFactoryService), LanguageNames.CSharp), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private sealed class Factory() : ILanguageServiceFactory
-    {
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpSyntaxTreeFactoryService(languageServices.WorkspaceServices.GetRequiredService<ITextFactoryService>());
-    }
-
     private static readonly CSharpParseOptions _parseOptionWithLatestLanguageVersion = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
 
-    private readonly ITextFactoryService _textFactoryService = textFactoryService;
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpSyntaxTreeFactoryService()
+    {
+    }
 
     public override ParseOptions GetDefaultParseOptions()
         => CSharpParseOptions.Default;
@@ -62,8 +63,7 @@ internal sealed partial class CSharpSyntaxTreeFactoryService(ITextFactoryService
     public override SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, SyntaxNode root)
     {
         options ??= GetDefaultParseOptions();
-        return new ParsedSyntaxTree(
-            lazyText: null, (CSharpSyntaxNode)root, (CSharpParseOptions)options, filePath, encoding, checksumAlgorithm, _textFactoryService);
+        return new ParsedSyntaxTree(lazyText: null, (CSharpSyntaxNode)root, (CSharpParseOptions)options, filePath, encoding, checksumAlgorithm);
     }
 
     public override SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken)
