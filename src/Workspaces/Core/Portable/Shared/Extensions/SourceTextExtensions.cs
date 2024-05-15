@@ -287,7 +287,7 @@ internal static partial class SourceTextExtensions
         /// <summary>
         /// Public so that caller can assert that writing out the text actually wrote out the full text of the node.
         /// </summary>
-        public int Position;
+        public int Position { get; private set; }
 
         public override Encoding Encoding { get; } = encoding;
 
@@ -325,7 +325,7 @@ internal static partial class SourceTextExtensions
         /// <summary>
         /// Public so that the caller can assert that the new SourceText read all the way to the end of this successfully.
         /// </summary>
-        public int Position;
+        public int Position { get; private set; }
 
         public static TextReader CreateFromObjectReader(ObjectReader reader)
         {
