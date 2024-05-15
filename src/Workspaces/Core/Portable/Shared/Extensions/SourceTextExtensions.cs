@@ -254,6 +254,9 @@ internal static partial class SourceTextExtensions
 
         // Call into the text service to make us a SourceText from the chunks.  Disposal of this reader will free all
         // the intermediary chunks we allocated.
+
+        Contract.ThrowIfTrue(chunks.Any(static (c, s) => c.Length != s, CharArrayLength));
+
         using var chunkReader = new CharArrayChunkTextReader(chunks, totalLength);
         var result = SourceText.From(chunkReader, totalLength, encoding, checksumAlgorithm);
         Contract.ThrowIfTrue(totalLength != chunkReader.Position);
@@ -314,23 +317,15 @@ internal static partial class SourceTextExtensions
         }
     }
 
-    private sealed class CharArrayChunkTextReader : TextReaderWithLength
+    private sealed class CharArrayChunkTextReader(ImmutableArray<char[]> chunks, int length) : TextReaderWithLength(length)
     {
-        private readonly ImmutableArray<char[]> _chunks;
-        private bool _disposed;
+        private readonly ImmutableArray<char[]> _chunks = chunks;
+        private bool _disposed = false;
 
         /// <summary>
         /// Public so that the caller can assert that the new SourceText read all the way to the end of this successfully.
         /// </summary>
         public int Position;
-
-        public CharArrayChunkTextReader(ImmutableArray<char[]> chunks, int length)
-            : base(length)
-        {
-            _chunks = chunks;
-            _disposed = false;
-            Contract.ThrowIfTrue(chunks.Any(static (c, s) => c.Length != s, CharArrayLength));
-        }
 
         public static TextReader CreateFromObjectReader(ObjectReader reader)
         {
@@ -369,7 +364,11 @@ internal static partial class SourceTextExtensions
             }
 
             Contract.ThrowIfFalse(offset == length);
-            return new CharArrayChunkTextReader(chunks.MoveToImmutable(), length);
+
+            var chunksArray = chunks.MoveToImmutable();
+            Contract.ThrowIfTrue(chunksArray.Any(static (c, s) => c.Length != s, CharArrayLength));
+
+            return new CharArrayChunkTextReader(chunksArray, length);
         }
 
         protected override void Dispose(bool disposing)
