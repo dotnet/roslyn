@@ -3851,7 +3851,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Theory]
         [InlineData("[AllowNull] ", "")]
         [InlineData("", "[AllowNull] ")]
-        public void AllowNull(string defAttrs, string implAttrs)
+        public void AllowNull_Property(string defAttrs, string implAttrs)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        try
+                        {
+                            c.Prop = null; // no warning
+                        }
+                        catch
+                        {
+                            Console.Write(1);
+                        }
+                    }
+
+                    {{defAttrs}}
+                    public partial string Prop { get; set; }
+
+                    {{implAttrs}}
+                    public partial string Prop
+                    {
+                        get => "";
+                        set
+                        {
+                            value.ToString(); // warning
+                        }
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, AllowNullAttributeDefinition], expectedOutput: "1");
+            verifier.VerifyDiagnostics(
+                // (30,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(30, 13));
+        }
+
+        [Theory]
+        [InlineData("[AllowNull] ", "")]
+        [InlineData("", "[AllowNull] ")]
+        public void AllowNull_IndexerParam(string defAttrs, string implAttrs)
         {
             var source = $$"""
                 #nullable enable
