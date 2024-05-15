@@ -198,7 +198,7 @@ internal static partial class DependentProjectsFinder
         if (sourceProject?.IsSubmission != true)
             return;
 
-        var projectIdsToReferencingSubmissionIds = new Dictionary<ProjectId, List<ProjectId>>();
+        using var _1 = PooledDictionary<ProjectId, List<ProjectId>>.GetInstance(out var projectIdsToReferencingSubmissionIds);
 
         // search only submission project
         foreach (var projectId in solution.ProjectIds)
@@ -217,15 +217,7 @@ internal static partial class DependentProjectsFinder
                 {
                     var referencedProject = solution.GetProject(previous.Assembly, cancellationToken);
                     if (referencedProject != null)
-                    {
-                        if (!projectIdsToReferencingSubmissionIds.TryGetValue(referencedProject.Id, out var referencingSubmissions))
-                        {
-                            referencingSubmissions = [];
-                            projectIdsToReferencingSubmissionIds.Add(referencedProject.Id, referencingSubmissions);
-                        }
-
-                        referencingSubmissions.Add(project.Id);
-                    }
+                        projectIdsToReferencingSubmissionIds.MultiAdd(referencedProject.Id, project.Id);
                 }
             }
         }
@@ -235,7 +227,7 @@ internal static partial class DependentProjectsFinder
         // and 2, even though 2 doesn't have a direct reference to 1. Hence we need to take
         // our current set of projects and find the transitive closure over backwards
         // submission previous references.
-        using var _ = ArrayBuilder<ProjectId>.GetInstance(out var projectIdsToProcess);
+        using var _2 = ArrayBuilder<ProjectId>.GetInstance(out var projectIdsToProcess);
         foreach (var dependentProject in dependentProjects.Select(dp => dp.project.Id))
             projectIdsToProcess.Push(dependentProject);
 
