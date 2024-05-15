@@ -19,11 +19,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class SourceTextExtensions
 {
-    private const int SegmentShift = 12;
-    private const int SegmentMask = 0b_1111_1111_1111;
-
-    // char segment: 4k characters. 4K * 256 * 2 (bytes per char) = 2MB
-    private const int CharSegmentLength = 1 << SegmentShift;
+    // char segment: 4k characters. 4K * 256 * 2 (bytes per char) = 4MB
+    private const int CharSegmentLength = 4096;
 
     // 16k characters. Equivalent to 32KB in memory. comes from SourceText char buffer size and less than large object size
     public const int SourceTextLengthThreshold = 32 * 1024 / sizeof(char);
@@ -253,9 +250,11 @@ internal static partial class SourceTextExtensions
         node.WriteTo(chunkWriter);
         Contract.ThrowIfTrue(totalLength != chunkWriter.Position);
 
-        using var chunkReader = new CharArrayChunkTextReader(chunks, CharSegmentLength, totalLength);
+        using var chunkReader = new CharArrayChunkTextReader(chunks, totalLength);
         var result = textService.CreateText(chunkReader, encoding, checksumAlgorithm, cancellationToken);
+        Contract.ThrowIfTrue(totalLength != chunkReader.Position);
 
+        return result;
 
         static ImmutableArray<char[]> CreateChunks(int totalLength)
         {
@@ -267,6 +266,9 @@ internal static partial class SourceTextExtensions
             return buffer.MoveToImmutable();
         }
     }
+
+    private static int GetIndexFromPosition(int position) => position / CharSegmentLength;
+    private static int GetColumnFromPosition(int position) => position % CharSegmentLength;
 
     private sealed class CharArrayChunkTextWriter(int totalLength, ImmutableArray<char[]> chunks, Encoding encoding) : TextWriter
     {
@@ -283,44 +285,36 @@ internal static partial class SourceTextExtensions
             var valueSpan = value.AsSpan();
             while (valueSpan.Length > 0)
             {
-                var chunk = _chunks[Position >> SegmentShift];
+                var chunk = _chunks[GetIndexFromPosition(Position)];
+                Contract.ThrowIfTrue(chunk.Length != CharSegmentLength);
 
-                var chunkIndex = Position & SegmentMask;
+                var chunkIndex = GetColumnFromPosition(Position);
                 Contract.ThrowIfTrue(chunkIndex >= CharSegmentLength);
 
                 var count = Math.Min(valueSpan.Length, CharSegmentLength - chunkIndex);
-                valueSpan.Slice(0, count).CopyTo(chunk.AsSpan().Slice(chunkIndex, count));
+                valueSpan[..count].CopyTo(chunk.AsSpan().Slice(chunkIndex, count));
 
                 Position += count;
-                valueSpan = valueSpan.Slice(count);
+                valueSpan = valueSpan[count..];
             }
 
             Contract.ThrowIfTrue(Position > _totalLength);
         }
     }
 
-    //public static SourceText ReadFromChunks(ImmutableArray<char[]> chunks, int totalLength)
-    //{
-    //    Debug.Assert(chunks.All(static c => c.Length == CharSegmentLength));
-    //    return SourceText.From(new ObjectReaderTextReader(chunks, CharSegmentLength, totalLength));
-    //}
-
     private sealed class CharArrayChunkTextReader : TextReaderWithLength
     {
         private readonly ImmutableArray<char[]> _chunks;
-        private readonly int _chunkSize;
         private bool _disposed;
 
         public int Position;
 
-        public CharArrayChunkTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length)
+        public CharArrayChunkTextReader(ImmutableArray<char[]> chunks, int length)
             : base(length)
         {
             _chunks = chunks;
-            _chunkSize = chunkSize;
             _disposed = false;
-            Contract.ThrowIfTrue(chunkSize != CharSegmentLength);
-            Contract.ThrowIfTrue(chunks.Any(static (c, s) => c.Length != s, chunkSize));
+            Contract.ThrowIfTrue(chunks.Any(static (c, s) => c.Length != s, CharSegmentLength));
         }
 
         public static TextReader CreateFromObjectReader(ObjectReader reader)
@@ -360,7 +354,7 @@ internal static partial class SourceTextExtensions
             }
 
             Contract.ThrowIfFalse(offset == length);
-            return new CharArrayChunkTextReader(chunks.MoveToImmutable(), chunkSize, length);
+            return new CharArrayChunkTextReader(chunks.MoveToImmutable(), length);
         }
 
         protected override void Dispose(bool disposing)
@@ -456,8 +450,5 @@ internal static partial class SourceTextExtensions
 
             return _chunks[chunkIndex][chunkColumn];
         }
-
-        private int GetIndexFromPosition(int position) => position / _chunkSize;
-        private int GetColumnFromPosition(int position) => position % _chunkSize;
     }
 }
