@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 internal static partial class SourceTextExtensions
 {
     // char array length: 4k characters. 4K * 256 * 2 (bytes per char) = 4MB
-    private const int CharArrayLength = 4096;
+    private const int CharArrayLength = 4 * 1024;
 
     // 16k characters. Equivalent to 32KB in memory. comes from SourceText char buffer size and less than large object size
     public const int SourceTextLengthThreshold = 32 * 1024 / sizeof(char);
