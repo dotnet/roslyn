@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,42 +15,43 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
-// TODO: This class is now an empty container just to hold onto the nested type. Renaming that is an invasive change that will be it's own commit.
-internal static class VisualStudioMetadataReference
+internal partial class VisualStudioMetadataReferenceManager
 {
     /// <summary>
-    /// Represents a metadata reference corresponding to a specific version of a file.
-    /// If a file changes in future this reference will still refer to the original version.
+    /// Represents a metadata reference corresponding to a specific version of a file. If a file changes in future this
+    /// reference will still refer to the original version.
     /// </summary>
     /// <remarks>
-    /// The compiler observes the metadata content a reference refers to by calling <see cref="PortableExecutableReference.GetMetadataImpl()"/>
-    /// and the observed metadata is memoized by the compilation. However we drop compilations to decrease memory consumption. 
-    /// When the compilation is recreated for a solution the compiler asks for metadata again and we need to provide the original content,
-    /// not read the file again. Therefore we need to save the timestamp on the <see cref="Snapshot"/>.
-    /// 
-    /// When the VS observes a change in a metadata reference file the project version is advanced and a new instance of 
-    /// <see cref="Snapshot"/> is created for the corresponding reference.
+    /// The compiler observes the metadata content a reference refers to by calling <see
+    /// cref="PortableExecutableReference.GetMetadataImpl()"/> and the observed metadata is memoized by the compilation.
+    /// <para/> When the VS observes a change in a metadata reference file the project version is advanced and a new
+    /// instance of <see cref="VisualStudioPortableExecutableReference"/> is created for the corresponding reference.
     /// </remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal sealed class Snapshot : PortableExecutableReference, ISupportTemporaryStorage
+    private sealed class VisualStudioPortableExecutableReference : PortableExecutableReference, ISupportTemporaryStorage
     {
         private readonly VisualStudioMetadataReferenceManager _provider;
         private readonly Lazy<DateTime> _timestamp;
-        private Exception _error;
-        private readonly FileChangeTracker _fileChangeTrackerOpt;
+        private readonly FileChangeTracker? _fileChangeTracker;
 
-        internal Snapshot(VisualStudioMetadataReferenceManager provider, MetadataReferenceProperties properties, string fullPath, FileChangeTracker fileChangeTrackerOpt)
+        private Exception? _error;
+
+        internal VisualStudioPortableExecutableReference(
+            VisualStudioMetadataReferenceManager provider,
+            MetadataReferenceProperties properties,
+            string fullPath,
+            FileChangeTracker? fileChangeTracker)
             : base(properties, fullPath)
         {
             Debug.Assert(Properties.Kind == MetadataImageKind.Assembly);
             _provider = provider;
-            _fileChangeTrackerOpt = fileChangeTrackerOpt;
+            _fileChangeTracker = fileChangeTracker;
 
             _timestamp = new Lazy<DateTime>(() =>
             {
                 try
                 {
-                    _fileChangeTrackerOpt?.EnsureSubscription();
+                    _fileChangeTracker?.EnsureSubscription();
 
                     return FileUtilities.GetFileTimeStamp(this.FilePath);
                 }
@@ -69,15 +68,15 @@ internal static class VisualStudioMetadataReference
             }, LazyThreadSafetyMode.PublicationOnly);
         }
 
+        private new string FilePath => base.FilePath!;
+
         protected override Metadata GetMetadataImpl()
         {
             // Fetch the timestamp first, so as to populate _error if needed
             var timestamp = _timestamp.Value;
 
             if (_error != null)
-            {
                 throw _error;
-            }
 
             try
             {
@@ -87,30 +86,28 @@ internal static class VisualStudioMetadataReference
             {
                 throw ExceptionUtilities.Unreachable();
             }
-        }
 
-        private bool SaveMetadataReadingException(Exception e)
-        {
-            // Save metadata reading failure so that future compilations created 
-            // with this reference snapshot fail consistently in the same way.
-            if (e is IOException or BadImageFormatException)
+            bool SaveMetadataReadingException(Exception e)
             {
-                _error = e;
-            }
+                // Save metadata reading failure so that future compilations created 
+                // with this reference snapshot fail consistently in the same way.
+                if (e is IOException or BadImageFormatException)
+                    _error = e;
 
-            return false;
+                return false;
+            }
         }
 
         protected override DocumentationProvider CreateDocumentationProvider()
-            => new VisualStudioDocumentationProvider(this.FilePath, _provider.XmlMemberIndexService);
+            => new VisualStudioDocumentationProvider(this.FilePath, _provider._xmlMemberIndexService);
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            => new Snapshot(_provider, properties, this.FilePath, _fileChangeTrackerOpt);
+            => new VisualStudioPortableExecutableReference(_provider, properties, this.FilePath, _fileChangeTracker);
 
         private string GetDebuggerDisplay()
             => "Metadata File: " + FilePath;
 
-        public IReadOnlyList<ITemporaryStorageStreamHandle> StorageHandles
+        public IReadOnlyList<ITemporaryStorageStreamHandle>? StorageHandles
             => _provider.GetStorageHandles(this.FilePath, _timestamp.Value);
     }
 }

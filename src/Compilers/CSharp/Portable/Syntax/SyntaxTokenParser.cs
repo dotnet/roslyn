@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// <para />
 /// This type is not thread safe.
 /// </remarks>
+[Experimental(RoslynExperiments.SyntaxTokenParser, UrlFormat = RoslynExperiments.SyntaxTokenParser_Url)]
 public sealed class SyntaxTokenParser : IDisposable
 {
     private InternalSyntax.Lexer _lexer;
@@ -52,6 +54,36 @@ public sealed class SyntaxTokenParser : IDisposable
         var startingPosition = _lexer.TextWindow.Position;
         var token = _lexer.Lex(InternalSyntax.LexerMode.Syntax);
         return new Result(new SyntaxToken(parent: null, token, startingPosition, index: 0), startingDirectiveStack);
+    }
+
+    /// <summary>
+    /// Parse the leading trivia of the next token from the input at the current position. This will advance the internal position of the
+    /// token parser to the end of the leading trivia of the next token. The returned result will have a token with <see cref="CSharpExtensions.Kind(SyntaxToken)"/>
+    /// of <see cref="SyntaxKind.None"/>, <see cref="SyntaxToken.IsMissing"/> set to <see langword="true"/>, and a parent of <see langword="null"/>. The
+    /// parsed trivia will be set as the <see cref="SyntaxToken.LeadingTrivia"/> of the token.
+    /// </summary>
+    public Result ParseLeadingTrivia()
+    {
+        var startingDirectiveStack = _lexer.Directives;
+        var startingPosition = _lexer.TextWindow.Position;
+        var leadingTrivia = _lexer.LexSyntaxLeadingTrivia();
+        var containingToken = InternalSyntax.SyntaxFactory.MissingToken(leading: leadingTrivia.Node, SyntaxKind.None, trailing: null);
+        return new Result(new SyntaxToken(parent: null, containingToken, startingPosition, index: 0), startingDirectiveStack);
+    }
+
+    /// <summary>
+    /// Parse syntax trivia from the current position, according to the rules of trailing syntax trivia. This will advance the internal position of the
+    /// token parser to the end of the trailing trivia from the current location. The returned result will have a token with <see cref="CSharpExtensions.Kind(SyntaxToken)"/>
+    /// of <see cref="SyntaxKind.None"/>, <see cref="SyntaxToken.IsMissing"/> set to <see langword="true"/>, and a parent of <see langword="null"/>. The
+    /// parsed trivia will be set as the <see cref="SyntaxToken.TrailingTrivia"/> of the token.
+    /// </summary>
+    public Result ParseTrailingTrivia()
+    {
+        var startingDirectiveStack = _lexer.Directives;
+        var startingPosition = _lexer.TextWindow.Position;
+        var trailingTrivia = _lexer.LexSyntaxTrailingTrivia();
+        var containingToken = InternalSyntax.SyntaxFactory.MissingToken(leading: null, SyntaxKind.None, trailing: trailingTrivia.Node);
+        return new Result(new SyntaxToken(parent: null, containingToken, startingPosition, index: 0), startingDirectiveStack);
     }
 
     /// <summary>

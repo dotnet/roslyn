@@ -85,7 +85,7 @@ class C
             Assert.Equal("C", semanticInfo.Type.Name);
             Assert.Equal("C..ctor(out dynamic x, dynamic y)", semanticInfo.Symbol.ToTestDisplayString());
 
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -227,9 +227,9 @@ class C
 
             Assert.True(semanticInfo.Type.IsDynamic());
             Assert.Equal("C C.Create(System.Int32 arg)", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+            Assert.Equal(1, semanticInfo.MethodGroup.Length);
             Assert.False(semanticInfo.IsCompileTimeConstant);
 
             string sourceCode2 = @"
@@ -552,7 +552,7 @@ class C
             Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
             Assert.Equal("System.Int32 C.this[System.Int32 a] { get; set; }", semanticInfo.Symbol.ToTestDisplayString());
 

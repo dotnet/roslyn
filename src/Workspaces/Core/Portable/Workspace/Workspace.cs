@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -1466,6 +1467,7 @@ public abstract partial class Workspace : IDisposable
 
             foreach (var projectChanges in projectChangesList)
             {
+                progressTracker.Report(CodeAnalysisProgress.Description(string.Format(WorkspacesResources.Applying_changes_to_0, projectChanges.NewProject.Name)));
                 this.ApplyProjectChanges(projectChanges);
                 progressTracker.ItemCompleted();
             }

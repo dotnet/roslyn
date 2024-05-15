@@ -219,7 +219,15 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         //   (null)    -> null
         //   (default) -> default;
         //   (1)       -> 1
-        if (expression.IsAnyLiteralExpression())
+        if (expression is LiteralExpressionSyntax)
+            return true;
+
+        // (typeof(int)) -> typeof(int)
+        // (default(int)) -> default(int)
+        // (checked(1)) -> checked(1)
+        // (unchecked(1)) -> unchecked(1)
+        // (sizeof(int)) -> sizeof(int)
+        if (expression is TypeOfExpressionSyntax or DefaultExpressionSyntax or CheckedExpressionSyntax or SizeOfExpressionSyntax)
             return true;
 
         // (this)   -> this

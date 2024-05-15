@@ -4156,10 +4156,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
                         return /*30*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
                        /*31*//* 6 */
                        (from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
-                                  /* 14 */// 15
-                                  /* 16 *//* 17 */
-                              let y /* 18 */ = /* 19 */ x + 1/* 20 *///21
-                              select y)/* 24 *//*27*///28
+                            /* 14 */// 15
+                            /* 16 *//* 17 */
+                        let y /* 18 */ = /* 19 */ x + 1/* 20 *///21
+                        select y)/* 24 *//*27*///28
                 .ToList()/* 22 *//* 23 *//* 25 *///26
                 ; //32
                     }
@@ -4205,7 +4205,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
                  /*25*//* 14 */// 15
                  /* 6 */
                  (from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
-                        select x + 1)/* 18 *//*21*///22
+                  select x + 1)/* 18 *//*21*///22
                 .ToList()/* 16 *//* 17 *//* 19 *///20
                 ; //26
                     }
@@ -4223,7 +4223,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
                     {
                         /*23*/
                         return /*24*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
-                /*25*/nums /* 12 */.Select(
+                /*25*/
+                nums /* 12 */.Select(
                 /* 6 *//* 7 *//* 14 */// 15
                 /* 9 */x /* 10 */ => x + 1/* 18 *//*21*///22
                 /* 8 *//* 11 */// 13
@@ -4268,7 +4269,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
                  /*23*//* 14 */// 15
                  /* 6 */
                  (from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
-                        select x)/* 10 *//*19*///20
+                  select x)/* 10 *//*19*///20
                 .Count()/* 16 *//* 17 *///18
                 ; //24
                     }
@@ -4286,7 +4287,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
                     {
                         /*21*/
                         return /*22*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
-                /*23*/nums /* 12 *//* 6 *//* 7 *//* 14 */// 15
+                /*23*/
+                nums /* 12 *//* 6 *//* 7 *//* 14 */// 15
                 /* 9 *//* 10 *//* 10 *//*19*///20
                 /* 8 *//* 11 */// 13
                 .Count()/* 16 *//* 17 *///18
@@ -4328,11 +4330,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
                     {
                         foreach (var (a /* 12 */ , b /*16*/ ) in
                 /* 1 */from/* 2 */int /* 3 */ n1 /* 4 */in/* 5 */nums/* 6 */// 7
-                                                                           /* 8*/// 9
-                                                                           /* 10 *//* 11 */
-                                                                       let a /* 12 */ = /* 13 */ n1 + n1/* 14*//* 15 */
-                                                                       let b /*16*/ = /*17*/ n1 * n1/*18*///19
-                                                                       select (a /* 12 */ , b /*16*/ )/*22*//*23*/)
+                           /* 8*/// 9
+                           /* 10 *//* 11 */
+                       let a /* 12 */ = /* 13 */ n1 + n1/* 14*//* 15 */
+                       let b /*16*/ = /*17*/ n1 * n1/*18*///19
+                       select (a /* 12 */ , b /*16*/ )/*22*//*23*/)
                         {
                             /*20*/
                             Console.WriteLine(a + b);//21
@@ -4384,7 +4386,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
                                    /* 10 */
                                where/* 11 *//* 12 */n1 /* 13 */ > /* 14 */ 0/* 15 */// 16
                                select n1/* 4 *//* 21 */// 22
-                        /*23*//*24*/
+                                    /*23*//*24*/
                                     )
                         {
                             /*19*/

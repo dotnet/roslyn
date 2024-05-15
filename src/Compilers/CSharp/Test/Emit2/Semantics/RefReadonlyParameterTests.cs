@@ -5704,42 +5704,45 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 void M2(dynamic p) => M(p);
             }
             """;
-        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "12");
+        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "exception2");
 
-        verifier.VerifyDiagnostics(
-            // (10,17): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
-            //             c.M(d);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "d").WithArguments("1").WithLocation(10, 17),
-            // (21,29): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
-            //     void M2(dynamic p) => M(p);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "p").WithArguments("1").WithLocation(21, 29)
-            );
+        verifier.VerifyDiagnostics();
 
         verifier.VerifyIL("C.M2", """
             {
-              // Code size       74 (0x4a)
-              .maxstack  4
-              .locals init (int V_0)
-              IL_0000:  ldarg.0
-              IL_0001:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
-              IL_0006:  brtrue.s   IL_002c
-              IL_0008:  ldc.i4.0
-              IL_0009:  ldtoken    "int"
-              IL_000e:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-              IL_0013:  ldtoken    "C"
-              IL_0018:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-              IL_001d:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-              IL_0022:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-              IL_0027:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
-              IL_002c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
-              IL_0031:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target"
-              IL_0036:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
-              IL_003b:  ldarg.1
-              IL_003c:  callvirt   "int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-              IL_0041:  stloc.0
-              IL_0042:  ldloca.s   V_0
-              IL_0044:  call       "void C.M(ref readonly int)"
-              IL_0049:  ret
+              // Code size       92 (0x5c)
+              .maxstack  9
+              IL_0000:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> C.<>o__2.<>p__0"
+              IL_0005:  brtrue.s   IL_0045
+              IL_0007:  ldc.i4     0x102
+              IL_000c:  ldstr      "M"
+              IL_0011:  ldnull
+              IL_0012:  ldtoken    "C"
+              IL_0017:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+              IL_001c:  ldc.i4.2
+              IL_001d:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+              IL_0022:  dup
+              IL_0023:  ldc.i4.0
+              IL_0024:  ldc.i4.1
+              IL_0025:  ldnull
+              IL_0026:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+              IL_002b:  stelem.ref
+              IL_002c:  dup
+              IL_002d:  ldc.i4.1
+              IL_002e:  ldc.i4.0
+              IL_002f:  ldnull
+              IL_0030:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+              IL_0035:  stelem.ref
+              IL_0036:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+              IL_003b:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+              IL_0040:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> C.<>o__2.<>p__0"
+              IL_0045:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> C.<>o__2.<>p__0"
+              IL_004a:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>>.Target"
+              IL_004f:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> C.<>o__2.<>p__0"
+              IL_0054:  ldarg.0
+              IL_0055:  ldarg.1
+              IL_0056:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, C, dynamic)"
+              IL_005b:  ret
             }
             """);
     }

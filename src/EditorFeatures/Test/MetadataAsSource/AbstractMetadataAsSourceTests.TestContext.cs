@@ -168,14 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
             public void Dispose()
             {
-                try
-                {
-                    _metadataAsSourceService.CleanupGeneratedFiles();
-                }
-                finally
-                {
-                    Workspace.Dispose();
-                }
+                Workspace.Dispose();
             }
 
             public async Task<ISymbol?> ResolveSymbolAsync(string symbolMetadataName, Compilation? compilation = null)

@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
@@ -21,6 +22,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrows
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using IServiceProvider = System.IServiceProvider;
 using Task = System.Threading.Tasks.Task;
@@ -519,11 +521,9 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
 
             try
             {
-                // Kick off the work to do the actual finding on a BG thread.  That way we don'
-                // t block the calling (UI) thread too long if we happen to do our work on this
-                // thread.
-                await Task.Run(
-                    () => FindReferencesAsync(symbolListItem, project, context, classificationOptions, cancellationToken), cancellationToken).ConfigureAwait(false);
+                // Switch to teh background so we don't block the calling thread (the UI thread) while we're doing this work.
+                await TaskScheduler.Default;
+                await FindReferencesAsync(symbolListItem, project, context, classificationOptions, cancellationToken).ConfigureAwait(false);
             }
             finally
             {

@@ -154,7 +154,7 @@ internal abstract class AbstractCommentSelectionBase<TCommand>
 
                 var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
                 var formattingSpans = trackingSnapshotSpans.Select(change => CommonFormattingHelpers.GetFormattingSpan(newRoot, change.Span.ToTextSpan()));
-                var formattedChanges = Formatter.GetFormattedTextChanges(newRoot, formattingSpans, document.Project.Solution.Services, formattingOptions, rules: null, cancellationToken);
+                var formattedChanges = Formatter.GetFormattedTextChanges(newRoot, formattingSpans, document.Project.Solution.Services, formattingOptions, rules: default, cancellationToken);
 
                 subjectBuffer.ApplyChanges(formattedChanges);
 
