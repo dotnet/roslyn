@@ -378,6 +378,8 @@ internal static partial class DependentProjectsFinder
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Attempt to get the assembly name for this pe-reference.  If we fail, we still want to add that info into
+            // the dictionary (by mapping us to 'null').  That way we don't keep trying to compute it over and over.
             var name = compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol { Name: string metadataAssemblyName }
                 ? metadataAssemblyName
                 : null;
