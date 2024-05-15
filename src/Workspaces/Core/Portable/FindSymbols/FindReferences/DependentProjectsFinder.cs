@@ -29,7 +29,7 @@ internal static partial class DependentProjectsFinder
     /// Cache from the <see cref="MetadataId"/> for a particular <see cref="PortableExecutableReference"/> to the
     /// name of the <see cref="IAssemblySymbol"/> defined by it.
     /// </summary>
-    private static readonly Dictionary<MetadataId, string> s_metadataIdToAssemblyName = new();
+    private static readonly Dictionary<MetadataId, string?> s_metadataIdToAssemblyName = new();
     private static readonly SemaphoreSlim s_metadataIdToAssemblyNameGate = new(initialCount: 1);
 
     private static readonly ConditionalWeakTable<
@@ -385,6 +385,15 @@ internal static partial class DependentProjectsFinder
                     s_metadataIdToAssemblyName.TryAdd(metadataId, metadataAssemblyName);
                     if (metadataAssemblyName == assemblyName)
                         return true;
+                }
+            }
+            else
+            {
+                using (await s_metadataIdToAssemblyNameGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    // Explicitly store that we don't know the name of this pe-reference's assembly.  That way we don't
+                    // try to recompute it in the future every time we see it.
+                    s_metadataIdToAssemblyName.TryAdd(metadataId, null);
                 }
             }
         }
