@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Private ReadOnly _lineContinuations(s_lineContinuationCacheSize) As LineContinuationTrivia
 
-        Public Sub New(treeInfo As TreeData, options As SyntaxFormattingOptions)
+        Public Sub New(treeInfo As TreeData, options As LineFormattingOptions)
             MyBase.New(treeInfo, options)
         End Sub
 
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             If result.LineBreaks = 0 AndAlso result.Tab > 0 Then
                 ' calculate actual space size from tab
                 Dim spaces = CalculateSpaces(token1, token2)
-                Return New ModifiedWhitespace(Me.Options, result.LineBreaks, indentation:=spaces, elastic:=result.TreatAsElastic, language:=LanguageNames.VisualBasic)
+                Return New ModifiedWhitespace(Me.Options, result.LineBreaks, indentation:=spaces, elastic:=result.TreatAsElastic)
             End If
 
             ' check whether we can cache trivia info for current indentation
