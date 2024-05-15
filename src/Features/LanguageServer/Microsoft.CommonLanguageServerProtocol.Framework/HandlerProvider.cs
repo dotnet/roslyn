@@ -67,8 +67,7 @@ internal class HandlerProvider(ILspServices lspServices) : AbstractHandlerProvid
                         new RequestHandlerMetadata(methodName, requestTypeRef, responseTypeRef, language),
                         new Lazy<IMethodHandler>(() =>
                         {
-                            var lspService = lspServices.TryGetService(handlerType.GetResolvedType());
-                            if (lspService is null)
+                            if (!lspServices.TryGetService(handlerType.GetResolvedType(), out var lspService))
                             {
                                 throw new InvalidOperationException($"{handlerType} could not be retrieved from service");
                             }

@@ -20,4 +20,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CommonLanguageServerProtocol.Framework.UnitTests" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="NullableAttributes.cs" />
+  </ItemGroup>
 </Project>

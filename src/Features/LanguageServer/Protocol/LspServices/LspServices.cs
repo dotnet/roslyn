@@ -6,6 +6,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -73,7 +74,11 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
     }
 
     public T? GetService<T>() where T : notnull
-        => (T?)TryGetService(typeof(T));
+    {
+        return TryGetService(typeof(T), out var service)
+            ? (T)service
+            : default;
+    }
 
     public IEnumerable<T> GetRequiredServices<T>()
     {
@@ -94,15 +99,16 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         }
     }
 
-    public object? TryGetService(Type type)
+    public bool TryGetService(Type type, [NotNullWhen(true)] out object? service)
     {
         var typeName = type.AssemblyQualifiedName;
         Contract.ThrowIfNull(typeName);
 
-        return TryGetService(typeName);
+        service = GetService(typeName);
+        return service is not null;
     }
 
-    private object? TryGetService(string typeName)
+    private object? GetService(string typeName)
     {
         // We provide this ILspServices instance as a service.
         if (typeName == typeof(ILspServices).AssemblyQualifiedName)
@@ -185,7 +191,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         {
             if (lazyService.Metadata.InterfaceNames.Contains(typeof(T).AssemblyQualifiedName!))
             {
-                var serviceInstance = TryGetService(typeName);
+                var serviceInstance = GetService(typeName);
                 if (serviceInstance is not null)
                 {
                     yield return (T)serviceInstance;

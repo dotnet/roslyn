@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
@@ -25,16 +26,19 @@ internal abstract class TestLspServices(IEnumerable<(Type type, object instance)
     }
 
     public T? GetService<T>() where T : notnull
-        => (T?)TryGetService(typeof(T));
+        => TryGetService(typeof(T), out var service) ? (T)service : default;
 
     public T GetRequiredService<T>() where T : notnull
-        => (T?)TryGetService(typeof(T)) ?? throw new InvalidOperationException($"{typeof(T).Name} did not have a service");
+        => TryGetService(typeof(T), out var service) ? (T)service : throw new InvalidOperationException($"{typeof(T).Name} did not have a service");
 
     public virtual IEnumerable<T> GetRequiredServices<T>()
         => Services.Where(s => s.instance is T).Select(s => (T)s.instance);
 
-    public virtual object? TryGetService(Type type)
-        => Services.FirstOrDefault(s => s.type == type).instance;
+    public virtual bool TryGetService(Type type, [NotNullWhen(true)] out object? service)
+    {
+        service = Services.FirstOrDefault(s => s.type == type).instance;
+        return service is not null;
+    }
 
     private sealed class Default(IEnumerable<(Type type, object instance)> services) : TestLspServices(services)
     {
@@ -51,7 +55,10 @@ internal abstract class TestLspServices(IEnumerable<(Type type, object instance)
 
         public override IEnumerable<T> GetRequiredServices<T>() => [];
 
-        public override object? TryGetService(Type type)
-            => Services.FirstOrDefault(s => s.instance.GetType() == type).instance;
+        public override bool TryGetService(Type type, [NotNullWhen(true)] out object? service)
+        {
+            service = Services.FirstOrDefault(s => s.instance.GetType() == type).instance;
+            return service is not null;
+        }
     }
 }

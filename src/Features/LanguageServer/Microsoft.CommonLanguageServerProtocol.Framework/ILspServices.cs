@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -15,7 +16,7 @@ internal interface ILspServices : IDisposable
     T? GetService<T>() where T : notnull;
     T GetRequiredService<T>() where T : notnull;
 
-    object? TryGetService(Type @type);
+    bool TryGetService(Type type, [NotNullWhen(true)] out object? service);
 
     IEnumerable<T> GetRequiredServices<T>();
 }

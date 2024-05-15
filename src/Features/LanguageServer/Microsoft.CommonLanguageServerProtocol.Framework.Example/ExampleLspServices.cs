@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
@@ -22,7 +23,9 @@ internal class ExampleLspServices : ILspServices
 
     public T? GetService<T>() where T : notnull
     {
-        return (T?)TryGetService(typeof(T));
+        return TryGetService(typeof(T), out var service)
+            ? (T)service
+            : default;
     }
 
     public T GetRequiredService<T>() where T : notnull
@@ -32,11 +35,11 @@ internal class ExampleLspServices : ILspServices
         return service;
     }
 
-    public object? TryGetService(Type type)
+    public bool TryGetService(Type type, [NotNullWhen(true)] out object? service)
     {
-        var obj = _serviceProvider.GetService(type);
+        service = _serviceProvider.GetService(type);
 
-        return obj;
+        return service is not null;
     }
 
     public IEnumerable<TService> GetServices<TService>()
