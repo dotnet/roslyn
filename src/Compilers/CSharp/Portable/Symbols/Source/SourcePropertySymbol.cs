@@ -173,7 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
+            // If this symbol has a non-null PartialDefinitionPart, we should have accessed this method through that definition symbol instead
             Debug.Assert(PartialDefinitionPart is null);
+
             if (PartialImplementationPart is { } implementationPart)
             {
                 return OneOrMany.Create(

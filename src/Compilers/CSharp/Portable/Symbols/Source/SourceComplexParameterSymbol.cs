@@ -520,7 +520,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
+            // If this symbol has a non-null PartialImplementationPart, we should have accessed this method through that implementation symbol instead
             Debug.Assert(PartialImplementationPart is null);
+
             if (PartialDefinitionPart is { } definitionPart)
             {
                 return OneOrMany.Create(
