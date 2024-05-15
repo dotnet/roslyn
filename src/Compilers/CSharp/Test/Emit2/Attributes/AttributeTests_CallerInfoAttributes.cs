@@ -3231,7 +3231,7 @@ partial class D
                 // (14,10): warning CS4025: The CallerFilePathAttribute applied to parameter 'path' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //         [CallerFilePath] string path) { }
                 Diagnostic(ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation, "CallerFilePath").WithArguments("path"));
-            
+
             CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: verify);
 
             void verify(ModuleSymbol module)
