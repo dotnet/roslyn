@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup.Providers;
 
-internal sealed class FormatCodeCleanupProvider(IEnumerable<AbstractFormattingRule>? rules = null) : ICodeCleanupProvider
+internal sealed class FormatCodeCleanupProvider(ImmutableArray<AbstractFormattingRule> rules = default) : ICodeCleanupProvider
 {
     public string Name => PredefinedCodeCleanupProviderNames.Format;
 

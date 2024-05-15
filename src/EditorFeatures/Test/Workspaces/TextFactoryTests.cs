@@ -85,13 +85,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             var text = SourceText.From("Hello, World!");
 
-            // Create a temporary storage location
-            var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
             // Write text into it
-            await temporaryStorage.WriteTextAsync(text);
+            var handle = await temporaryStorageService.WriteToTemporaryStorageAsync(text, CancellationToken.None);
 
             // Read text back from it
-            var text2 = await temporaryStorage.ReadTextAsync();
+            var text2 = await handle.ReadFromTemporaryStorageAsync(CancellationToken.None);
 
             Assert.NotSame(text, text2);
             Assert.Equal(text.ToString(), text2.ToString());
@@ -107,13 +105,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             var text = SourceText.From("Hello, World!", Encoding.ASCII);
 
-            // Create a temporary storage location
-            var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
             // Write text into it
-            await temporaryStorage.WriteTextAsync(text);
+            var handle = await temporaryStorageService.WriteToTemporaryStorageAsync(text, CancellationToken.None);
 
             // Read text back from it
-            var text2 = await temporaryStorage.ReadTextAsync();
+            var text2 = await handle.ReadFromTemporaryStorageAsync(CancellationToken.None);
 
             Assert.NotSame(text, text2);
             Assert.Equal(text.ToString(), text2.ToString());

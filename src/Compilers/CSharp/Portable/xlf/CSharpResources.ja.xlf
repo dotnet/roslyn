@@ -397,11 +397,6 @@
         <target state="translated">戻り値の型がデリゲート戻り値の型と一致しないため、{0} を型 '{1}' に変換できません</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
-        <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
-        <target state="translated">メソッド '{0}' の型引数を使用法から推論できません。これは動的型のある引数が使用され、メソッドに配列以外の params コレクション パラメーターがあるためです。型引数を明示的に指定してみてください。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist では、'in' や 'out' で引数を渡すことができません</target>
@@ -605,6 +600,11 @@
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="translated">プロパティまたはインデクサー '{0}' の両方のアクセサーで 'readonly' 修飾子を指定することはできません。代わりに、プロパティ自体に 'readonly' 修飾子を指定してください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DynamicDispatchToParamsCollection">
+        <source>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</source>
+        <target state="new">'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">

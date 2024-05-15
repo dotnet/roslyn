@@ -1227,8 +1227,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOptions(ProjectId.CreateNewId(), options));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void WithProjectCompilationOptionsReplacesSyntaxTreeOptionProvider([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
             var projectId = ProjectId.CreateNewId();
@@ -2639,11 +2638,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-#if NETCOREAPP
-        [SupportedOSPlatform("windows")]
-#endif
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
         public void TestDocumentChangedOnDiskIsNotObserved()
         {
             var text1 = "public class A {}";
@@ -2669,17 +2665,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text2, textOnDisk);
 
             // stop observing it and let GC reclaim it
-            if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
-            {
-                Assert.IsType<TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageServiceInternal>());
-                observedText.AssertReleased();
-            }
-            else
-            {
-                // If this assertion fails, it means a new target supports the true temporary storage service, and the
-                // condition above should be updated to ensure 'AssertReleased' is called for this target.
-                Assert.IsType<TrivialTemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageServiceInternal>());
-            }
+            observedText.AssertReleased();
 
             // if we ask for the same text again we should get the original content
             var observedText2 = sol.GetDocument(did).GetTextAsync().Result;
@@ -3715,8 +3701,7 @@ public class C : A {
             Assert.Contains(await frozenDocument.GetSyntaxTreeAsync(), (await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestFrozenPartialSemanticsWithMulitipleUnrelatedEdits([CombinatorialValues(1, 2, 3)] int documentToFreeze)
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
@@ -4036,8 +4021,7 @@ public class C : A {
             Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did3, did2, did1 })));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddingEditorConfigFileWithDiagnosticSeverity([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
             using var workspace = CreateWorkspace();
@@ -4073,8 +4057,7 @@ public class C : A {
             Assert.Equal(ReportDiagnostic.Error, severity);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddingAndRemovingEditorConfigFileWithDiagnosticSeverity([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
             using var workspace = CreateWorkspace();
@@ -4115,8 +4098,7 @@ public class C : A {
             Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterRemovingEditorConfig));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestChangingAnEditorConfigFile([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
             using var workspace = CreateWorkspace();
@@ -5079,6 +5061,63 @@ class C
 
             var frozenCompilation = await frozenProject.GetCompilationAsync();
             Assert.Null(frozenCompilation);
+        }
+
+        [Theory]
+        [InlineData(1000)]
+        [InlineData(2000)]
+        [InlineData(4000)]
+        [InlineData(8000)]
+        public async Task TestLargeLinkedFileChain(int intermediatePullCount)
+        {
+            using var workspace = CreateWorkspace();
+
+            var project1 = workspace.CurrentSolution
+                .AddProject($"Project1", $"Project1", LanguageNames.CSharp)
+                .WithParseOptions(CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG"))
+                .AddDocument($"Document", SourceText.From("class C { }"), filePath: @"c:\test\Document.cs").Project;
+            var documentId1 = project1.DocumentIds.Single();
+
+            // make another project, give a separate set of pp directives, so that we do *not* try to use the sibling
+            // root (from project1), but instead incrementally parse using the *contents* of the file in project1 again
+            // our actual tree.  This used to stack overflow since we'd create a long chain of incremental parsing steps
+            // for each edit made to the sibling file.
+            var project2 = project1.Solution
+                .AddProject($"Project2", $"Project2", LanguageNames.CSharp)
+                .WithParseOptions(CSharpParseOptions.Default.WithPreprocessorSymbols("RELEASE"))
+                .AddDocument($"Document", SourceText.From("class C { }"), filePath: @"c:\test\Document.cs").Project;
+            var documentId2 = project2.DocumentIds.Single();
+
+            workspace.SetCurrentSolution(
+                _ => project2.Solution,
+                (_, _) => (WorkspaceChangeKind.SolutionAdded, null, null));
+
+            for (var i = 1; i <= 8000; i++)
+            {
+                var lastContents = $"#if true //{new string('.', i)}//";
+                workspace.SetCurrentSolution(
+                    old => old.WithDocumentText(documentId1, SourceText.From(lastContents)),
+                    (_, _) => (WorkspaceChangeKind.DocumentChanged, documentId1.ProjectId, documentId1));
+
+                // Ensure that the first document is fine, and we're not stack overflowing on simply getting the tree
+                // from it. Do this on a disparate cadence from our pulls of the second document to ensure we are
+                // testing the case where we haven't necessarily immediately pulled on hte first doc before pulling on
+                // the second.
+                if (i % 33 == 0)
+                {
+                    var document1 = workspace.CurrentSolution.GetRequiredDocument(documentId1);
+                    await document1.GetSyntaxRootAsync();
+                }
+
+                if (i % intermediatePullCount == 0)
+                {
+                    var document2 = workspace.CurrentSolution.GetRequiredDocument(documentId2);
+
+                    // Getting the second document should both be fine, and have contents equivalent to what is in the first document.
+                    var root = await document2.GetSyntaxRootAsync();
+                    Assert.Equal(lastContents, root.ToFullString());
+                }
+            }
         }
     }
 }

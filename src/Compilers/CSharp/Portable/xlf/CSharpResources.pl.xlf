@@ -397,11 +397,6 @@
         <target state="translated">Nie można przekonwertować {0} na typ "{1}", ponieważ zwracany typ jest niezgodny ze zwracanym typem delegowania</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
-        <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
-        <target state="translated">Argumenty typu dla metody „{0}” nie mogą być wywnioskowane z użycia, ponieważ używany jest argument typu dynamicznego, a metoda ma parametr kolekcji params inny niż tablica. Spróbuj jawnie określić argumenty typu.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">Element __arglist nie może mieć argumentu przekazywanego przez parametr „in” ani „out”</target>
@@ -605,6 +600,11 @@
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="translated">Nie można określić modyfikatorów „readonly” dla obu metod dostępu właściwości lub indeksatora „{0}”. Zamiast tego dodaj modyfikator „readonly” do samej właściwości.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DynamicDispatchToParamsCollection">
+        <source>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</source>
+        <target state="new">'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">

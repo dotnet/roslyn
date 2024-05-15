@@ -795,6 +795,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundObjectCreationExpression New(MethodSymbol ctor, ImmutableArray<BoundExpression> args)
             => new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
 
+        public BoundObjectCreationExpression New(MethodSymbol constructor, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKinds)
+            => new BoundObjectCreationExpression(
+                Syntax,
+                constructor,
+                arguments,
+                argumentNamesOpt: default,
+                argumentRefKinds,
+                expanded: false,
+                argsToParamsOpt: default,
+                defaultArguments: default,
+                constantValueOpt: null,
+                initializerExpressionOpt: null,
+                constructor.ContainingType)
+            { WasCompilerGenerated = true };
+
         public BoundObjectCreationExpression New(WellKnownMember wm, ImmutableArray<BoundExpression> args)
         {
             var ctor = WellKnownMethod(wm);

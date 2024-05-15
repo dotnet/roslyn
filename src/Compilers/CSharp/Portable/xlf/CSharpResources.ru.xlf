@@ -397,11 +397,6 @@
         <target state="translated">Невозможно преобразовать {0} в тип "{1}", поскольку возвращаемый тип не совпадает с возвращаемым типом делегата</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
-        <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
-        <target state="translated">Аргументы типа для метода "{0}" не могут быть выведены из использования, поскольку используется аргумент с динамическим типом и метод имеет параметр коллекции params, не являющийся массивом. Попробуйте явно указать аргументы типа.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">В __arglist невозможно передать аргумент с помощью in или out</target>
@@ -605,6 +600,11 @@
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="translated">Запрещено указывать модификаторы readonly для обоих методов доступа свойства или индексатора "{0}". Вместо этого укажите модификатор readonly для самого свойства.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DynamicDispatchToParamsCollection">
+        <source>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</source>
+        <target state="new">'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">

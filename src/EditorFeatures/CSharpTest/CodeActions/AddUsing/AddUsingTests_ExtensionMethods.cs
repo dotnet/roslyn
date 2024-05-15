@@ -1107,8 +1107,7 @@ namespace N
 parseOptions: null);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/16547")]
         public async Task TestAddUsingForAddExtensionMethodWithSameNameAsProperty(TestHost testHost)
         {
@@ -1171,8 +1170,7 @@ namespace A.Extensions
 }", testHost);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/39155")]
         public async Task TestExtensionGetAwaiterOverload(TestHost testHost)
         {
@@ -1262,8 +1260,7 @@ namespace A.Extension
 ", testHost);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/39155")]
         public async Task TestExtensionSelectOverload(TestHost testHost)
         {

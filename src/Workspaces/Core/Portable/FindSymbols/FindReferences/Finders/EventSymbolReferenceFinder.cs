@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -56,6 +57,7 @@ internal class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbo
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        return FindReferencesInDocumentUsingSymbolNameAsync(symbol, state, processResult, processResultData, cancellationToken);
+        FindReferencesInDocumentUsingSymbolName(symbol, state, processResult, processResultData, cancellationToken);
+        return ValueTaskFactory.CompletedTask;
     }
 }

@@ -209,8 +209,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             GetMocks(controller).PresenterSession.Verify(Sub(p) p.SelectNextItem(), Times.Once)
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/1181")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1181")>
         Public Sub UpAndDownKeysShouldStillNavigateWhenDuplicateItemsAreFiltered()
             Dim item = CreateItems(1).Single()
             Dim controller = CreateController(CreateWorkspace(), items:={item, item}, waitForPresentation:=True)

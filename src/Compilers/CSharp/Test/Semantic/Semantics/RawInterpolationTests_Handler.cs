@@ -12639,9 +12639,14 @@ CustomHandler c = " + expression + ";";
 
         var comp = CreateCompilationWithCSharp(new[] { code, handler });
 
-        // Note: We don't give any errors when mixing dynamic and ref structs today. If that ever changes, we should get an
-        // error here. This will crash at runtime because of this.
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyDiagnostics(
+            // 0.cs(4,19): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomHandler'.
+            // CustomHandler c = $"""{h1}""" + $"""{h2}""";
+            Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomHandler").WithLocation(4, 19),
+            // 0.cs(4,19): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomHandler'.
+            // CustomHandler c = $"""{h1}""" + $"""{h2}""";
+            Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomHandler").WithLocation(4, 19)
+            );
     }
 
     [Theory]

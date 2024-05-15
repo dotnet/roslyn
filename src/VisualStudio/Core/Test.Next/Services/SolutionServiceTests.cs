@@ -56,8 +56,7 @@ public class SolutionServiceTests
         Assert.Equal(solutionChecksum, await synched.CompilationState.GetChecksumAsync(CancellationToken.None));
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestGetSolutionWithPrimaryFlag(bool updatePrimaryBranch)
     {
         var code1 = @"class Test1 { void Method() { } }";

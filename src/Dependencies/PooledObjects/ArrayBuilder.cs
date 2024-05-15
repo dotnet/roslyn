@@ -303,7 +303,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         public void Sort(Comparison<T> compare)
-            => Sort(Comparer<T>.Create(compare));
+        {
+            if (this.Count <= 1)
+                return;
+
+            Sort(Comparer<T>.Create(compare));
+        }
 
         public void Sort(int startIndex, IComparer<T> comparer)
         {

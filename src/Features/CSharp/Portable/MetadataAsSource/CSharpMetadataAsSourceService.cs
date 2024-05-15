@@ -57,8 +57,8 @@ internal partial class CSharpMetadataAsSourceService : AbstractMetadataAsSourceS
         return document.WithSyntaxRoot(newRoot);
     }
 
-    protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
-        => s_memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document));
+    protected override ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
+        => [s_memberSeparationRule, .. Formatter.GetDefaultFormattingRules(document)];
 
     protected override async Task<Document> ConvertDocCommentsToRegularCommentsAsync(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
     {

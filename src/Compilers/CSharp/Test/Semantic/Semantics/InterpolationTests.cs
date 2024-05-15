@@ -14139,10 +14139,10 @@ AppendFormatted");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       43 (0x2b)
-  .maxstack  3
+  // Code size      128 (0x80)
+  .maxstack  9
   .locals init (object V_0, //d
-            CustomHandler V_1)
+                CustomHandler V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  box        ""int""
   IL_0006:  stloc.0
@@ -14153,12 +14153,39 @@ AppendFormatted");
   IL_0010:  ldloca.s   V_1
   IL_0012:  ldstr      ""literal""
   IL_0017:  call       ""void CustomHandler.AppendLiteral(dynamic)""
-  IL_001c:  ldloca.s   V_1
-  IL_001e:  ldloc.0
-  IL_001f:  call       ""void CustomHandler.AppendFormatted(dynamic)""
-  IL_0024:  ldloc.1
-  IL_0025:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler)""
-  IL_002a:  ret
+  IL_001c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
+  IL_0021:  brtrue.s   IL_0062
+  IL_0023:  ldc.i4     0x100
+  IL_0028:  ldstr      ""AppendFormatted""
+  IL_002d:  ldnull
+  IL_002e:  ldtoken    ""Program""
+  IL_0033:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0038:  ldc.i4.2
+  IL_0039:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_003e:  dup
+  IL_003f:  ldc.i4.0
+  IL_0040:  ldc.i4.s   9
+  IL_0042:  ldnull
+  IL_0043:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0048:  stelem.ref
+  IL_0049:  dup
+  IL_004a:  ldc.i4.1
+  IL_004b:  ldc.i4.0
+  IL_004c:  ldnull
+  IL_004d:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0052:  stelem.ref
+  IL_0053:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0058:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_005d:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
+  IL_0062:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
+  IL_0067:  ldfld      ""<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>>.Target""
+  IL_006c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
+  IL_0071:  ldloca.s   V_1
+  IL_0073:  ldloc.0
+  IL_0074:  callvirt   ""void <>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref CustomHandler, dynamic)""
+  IL_0079:  ldloc.1
+  IL_007a:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler)""
+  IL_007f:  ret
 }
 ");
         }
@@ -14422,74 +14449,12 @@ AppendFormatted");
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, InterpolatedStringHandlerAttribute], expectedOutput: "literalHello world!", targetFramework: TargetFramework.StandardAndCSharp);
-            verifier.VerifyDiagnostics();
-
-            verifier.VerifyIL("<top-level-statements-entry-point>", type switch
-            {
-                "string" => """
-                    {
-                      // Code size      110 (0x6e)
-                      .maxstack  4
-                      .locals init (object V_0, //d
-                                    CustomInterpolationHandler V_1)
-                      IL_0000:  ldstr      "Hello world!"
-                      IL_0005:  stloc.0
-                      IL_0006:  ldloca.s   V_1
-                      IL_0008:  ldc.i4.7
-                      IL_0009:  ldc.i4.1
-                      IL_000a:  call       "CustomInterpolationHandler..ctor(int, int)"
-                      IL_000f:  ldloca.s   V_1
-                      IL_0011:  ldstr      "literal"
-                      IL_0016:  call       "void CustomInterpolationHandler.AppendLiteral(string)"
-                      IL_001b:  ldloca.s   V_1
-                      IL_001d:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> Program.<>o__0.<>p__0"
-                      IL_0022:  brtrue.s   IL_0048
-                      IL_0024:  ldc.i4.0
-                      IL_0025:  ldtoken    "string"
-                      IL_002a:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                      IL_002f:  ldtoken    "Program"
-                      IL_0034:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                      IL_0039:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-                      IL_003e:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                      IL_0043:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> Program.<>o__0.<>p__0"
-                      IL_0048:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> Program.<>o__0.<>p__0"
-                      IL_004d:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>>.Target"
-                      IL_0052:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> Program.<>o__0.<>p__0"
-                      IL_0057:  ldloc.0
-                      IL_0058:  callvirt   "string System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                      IL_005d:  call       "void CustomInterpolationHandler.AppendFormatted(string)"
-                      IL_0062:  ldloc.1
-                      IL_0063:  call       "string Program.<<Main>$>g__Interpolate|0_0(CustomInterpolationHandler)"
-                      IL_0068:  call       "void System.Console.WriteLine(string)"
-                      IL_006d:  ret
-                    }
-                    """,
-                _ => $$"""
-                    {
-                      // Code size       47 (0x2f)
-                      .maxstack  3
-                      .locals init (object V_0, //d
-                                    CustomInterpolationHandler V_1)
-                      IL_0000:  ldstr      "Hello world!"
-                      IL_0005:  stloc.0
-                      IL_0006:  ldloca.s   V_1
-                      IL_0008:  ldc.i4.7
-                      IL_0009:  ldc.i4.1
-                      IL_000a:  call       "CustomInterpolationHandler..ctor(int, int)"
-                      IL_000f:  ldloca.s   V_1
-                      IL_0011:  ldstr      "literal"
-                      IL_0016:  call       "void CustomInterpolationHandler.AppendLiteral(string)"
-                      IL_001b:  ldloca.s   V_1
-                      IL_001d:  ldloc.0
-                      IL_001e:  call       "void CustomInterpolationHandler.AppendFormatted({{type}})"
-                      IL_0023:  ldloc.1
-                      IL_0024:  call       "string Program.<<Main>$>g__Interpolate|0_0(CustomInterpolationHandler)"
-                      IL_0029:  call       "void System.Console.WriteLine(string)"
-                      IL_002e:  ret
-                    }
-                    """,
-            });
+            var comp = CreateCompilation([source, InterpolatedStringHandlerAttribute], targetFramework: TargetFramework.StandardAndCSharp);
+            comp.VerifyDiagnostics(
+                // (7,31): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomInterpolationHandler'.
+                // Console.WriteLine(Interpolate($"literal" + $"{d}"));
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomInterpolationHandler").WithLocation(7, 31)
+                );
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
@@ -17225,9 +17190,14 @@ CustomHandler c = " + expression + ";";
 
             var comp = CreateCompilationWithCSharp(new[] { code, handler });
 
-            // Note: We don't give any errors when mixing dynamic and ref structs today. If that ever changes, we should get an
-            // error here. This will crash at runtime because of this.
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyDiagnostics(
+                // 0.cs(4,19): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomHandler'.
+                // CustomHandler c = $"{h1}" + $"{h2}";
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomHandler").WithLocation(4, 19),
+                // 0.cs(4,19): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomHandler'.
+                // CustomHandler c = $"{h1}" + $"{h2}";
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomHandler").WithLocation(4, 19)
+                );
         }
 
         [Theory]

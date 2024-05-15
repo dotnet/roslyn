@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
@@ -26,7 +27,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
 
         protected override async Task AddDocumentFixesAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
+            Action<(Diagnostic diagnostic, CodeAction action)> onItemFound,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
             var pragmaActionsBuilder = ArrayBuilder<IPragmaBasedCodeAction>.GetInstance();
@@ -59,7 +60,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                     pragmaDiagnosticsBuilder.ToImmutableAndFree(),
                     fixAllState, cancellationToken);
 
-                fixes.Add((diagnostic: null, pragmaBatchFix));
+                onItemFound((diagnostic: null, pragmaBatchFix));
             }
         }
     }
