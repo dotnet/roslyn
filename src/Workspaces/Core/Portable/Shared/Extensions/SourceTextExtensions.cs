@@ -246,7 +246,7 @@ internal static partial class SourceTextExtensions
 
         var chunks = CreateChunks(totalLength);
 
-        using var chunkWriter = new CharArrayChunkTextWriter(totalLength, chunks, encoding!);
+        using var chunkWriter = new CharArrayChunkTextWriter(totalLength, chunks, encoding!, cancellationToken);
         node.WriteTo(chunkWriter);
         Contract.ThrowIfTrue(totalLength != chunkWriter.Position);
 
@@ -270,10 +270,16 @@ internal static partial class SourceTextExtensions
     private static int GetIndexFromPosition(int position) => position / CharArrayLength;
     private static int GetColumnFromPosition(int position) => position % CharArrayLength;
 
-    private sealed class CharArrayChunkTextWriter(int totalLength, ImmutableArray<char[]> chunks, Encoding encoding) : TextWriter
+    private sealed class CharArrayChunkTextWriter(
+        int totalLength, ImmutableArray<char[]> chunks, Encoding encoding, CancellationToken cancellationToken) : TextWriter
     {
         private readonly int _totalLength = totalLength;
         private readonly ImmutableArray<char[]> _chunks = chunks;
+        private readonly CancellationToken _cancellationToken = cancellationToken;
+
+        /// <summary>
+        /// Public so that caller can assert that writing out the text actually wrote out the full text of the node.
+        /// </summary>
         public int Position;
 
         public override Encoding Encoding { get; } = encoding;
@@ -285,6 +291,8 @@ internal static partial class SourceTextExtensions
             var valueSpan = value.AsSpan();
             while (valueSpan.Length > 0)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
+
                 var chunk = _chunks[GetIndexFromPosition(Position)];
                 Contract.ThrowIfTrue(chunk.Length != CharArrayLength);
 
@@ -307,6 +315,9 @@ internal static partial class SourceTextExtensions
         private readonly ImmutableArray<char[]> _chunks;
         private bool _disposed;
 
+        /// <summary>
+        /// Public so that the caller can assert that the new SourceText read all the way to the end of this successfully.
+        /// </summary>
         public int Position;
 
         public CharArrayChunkTextReader(ImmutableArray<char[]> chunks, int length)
@@ -374,9 +385,7 @@ internal static partial class SourceTextExtensions
         public override int Peek()
         {
             if (Position >= Length)
-            {
                 return -1;
-            }
 
             return Read(Position);
         }
@@ -384,35 +393,33 @@ internal static partial class SourceTextExtensions
         public override int Read()
         {
             if (Position >= Length)
-            {
                 return -1;
-            }
 
             return Read(Position++);
+        }
+
+        private int Read(int position)
+        {
+            var chunkIndex = GetIndexFromPosition(position);
+            var chunkColumn = GetColumnFromPosition(position);
+
+            return _chunks[chunkIndex][chunkColumn];
         }
 
         public override int Read(char[] buffer, int index, int count)
         {
             if (buffer == null)
-            {
                 throw new ArgumentNullException(nameof(buffer));
-            }
 
             if (index < 0 || index >= buffer.Length)
-            {
                 throw new ArgumentOutOfRangeException(nameof(index));
-            }
 
             if (count < 0 || (index + count) > buffer.Length)
-            {
                 throw new ArgumentOutOfRangeException(nameof(count));
-            }
 
             // check quick bail out
             if (count == 0)
-            {
                 return 0;
-            }
 
             // adjust to actual char to read
             var totalCharsToRead = Math.Min(count, Length - Position);
@@ -440,15 +447,8 @@ internal static partial class SourceTextExtensions
             }
 
             Position += totalCharsToRead;
+            Contract.ThrowIfTrue(Position > Length);
             return totalCharsToRead;
-        }
-
-        private int Read(int position)
-        {
-            var chunkIndex = GetIndexFromPosition(position);
-            var chunkColumn = GetColumnFromPosition(position);
-
-            return _chunks[chunkIndex][chunkColumn];
         }
     }
 }
