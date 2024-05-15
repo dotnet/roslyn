@@ -3495,7 +3495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: "12", symbolValidator: verify);
             verifier.VerifyDiagnostics();
-                
+
             void verify(ModuleSymbol module)
             {
                 var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
@@ -3535,7 +3535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 // (5,37): warning CS4024: The CallerLineNumberAttribute applied to parameter 'lineNumber' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //     public partial int this[int x, [CallerLineNumber] int lineNumber]
                 Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("lineNumber").WithLocation(5, 37));
-                
+
             void verify(ModuleSymbol module)
             {
                 // https://github.com/dotnet/roslyn/issues/73482
