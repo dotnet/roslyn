@@ -354,15 +354,11 @@ internal static partial class DependentProjectsFinder
 
             using (await s_metadataIdToAssemblyNameGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
-                {
-                    uncomputedReferences.Add((peReference, metadataId));
-                    continue;
-                }
-
-                if (name == assemblyName)
+                if (s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name) && name == assemblyName)
                     return true;
             }
+
+            uncomputedReferences.Add((peReference, metadataId));
         }
 
         if (uncomputedReferences.Count == 0)
@@ -390,7 +386,6 @@ internal static partial class DependentProjectsFinder
                     s_metadataIdToAssemblyName.TryAdd(metadataId, metadataAssemblyName);
                     if (metadataAssemblyName == assemblyName)
                         return true;
-
                 }
             }
         }
