@@ -44,20 +44,22 @@ internal abstract partial class AbstractTriviaDataFactory
             return lastOptionAndWhitespace.Item2;
 
         // Otherwise, get from the dictionary, computing if necessary.
-        var (spaces, whitespaces) = ComputeSpacesAndWhitespaces();
+        var (spaces, whitespaces) = ComputeAndCacheSpacesAndWhitespaces(options);
 
         // Cache this result for the next time.
         s_lastOptionAndWhitespace = Tuple.Create(options, (spaces, whitespaces));
         return (spaces, whitespaces);
 
-        (Whitespace[] spaces, Whitespace[,] whitespaces) ComputeSpacesAndWhitespaces()
+        static (Whitespace[] spaces, Whitespace[,] whitespaces) ComputeAndCacheSpacesAndWhitespaces(LineFormattingOptions options)
         {
+            // First check if it's already in the cache.
             lock (s_optionsToWhitespace)
             {
                 if (s_optionsToWhitespace.TryGetValue(options, out var result))
                     return result;
             }
 
+            // If not, compute it.
             var spaces = new Whitespace[SpaceCacheSize];
             for (var i = 0; i < SpaceCacheSize; i++)
                 spaces[i] = new Whitespace(options, space: i, elastic: false);
@@ -73,6 +75,7 @@ internal abstract partial class AbstractTriviaDataFactory
                 }
             }
 
+            // Attempt to store in cache.  But defer to any other thread that may have already stored it.
             lock (s_optionsToWhitespace)
             {
                 if (s_optionsToWhitespace.TryGetValue(options, out var result))
