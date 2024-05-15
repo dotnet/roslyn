@@ -20,7 +20,6 @@ internal partial class CSharpSyntaxTreeFactoryService
     {
         private readonly CSharpSyntaxNode _root;
         private readonly SourceHashAlgorithm _checksumAlgorithm;
-        private readonly ITextFactoryService _textFactoryService;
 
         public override Encoding? Encoding { get; }
         public override CSharpParseOptions Options { get; }
@@ -34,13 +33,11 @@ internal partial class CSharpSyntaxTreeFactoryService
             CSharpParseOptions options,
             string filePath,
             Encoding? encoding,
-            SourceHashAlgorithm checksumAlgorithm,
-            ITextFactoryService textFactoryService)
+            SourceHashAlgorithm checksumAlgorithm)
         {
             _lazyText = lazyText;
             _root = CloneNodeAsRoot(root);
             _checksumAlgorithm = checksumAlgorithm;
-            _textFactoryService = textFactoryService;
             Encoding = encoding;
             Options = options;
             FilePath = filePath;
@@ -50,8 +47,7 @@ internal partial class CSharpSyntaxTreeFactoryService
         {
             if (_lazyText == null)
             {
-                var sourceText = SourceTextExtensions.CreateSourceText(
-                    _textFactoryService, GetRoot(cancellationToken), Encoding, _checksumAlgorithm, cancellationToken);
+                var sourceText = SourceTextExtensions.CreateSourceText(GetRoot(cancellationToken), Encoding, _checksumAlgorithm, cancellationToken);
                 Interlocked.CompareExchange(ref _lazyText, sourceText, null);
             }
 
@@ -88,13 +84,12 @@ internal partial class CSharpSyntaxTreeFactoryService
                     (CSharpParseOptions)options,
                     FilePath,
                     Encoding,
-                    _checksumAlgorithm,
-                    _textFactoryService);
+                    _checksumAlgorithm);
 
         public override SyntaxTree WithFilePath(string path)
             => path == FilePath
                 ? this
-                : new ParsedSyntaxTree(_lazyText, _root, Options, path, Encoding, _checksumAlgorithm, _textFactoryService);
+                : new ParsedSyntaxTree(_lazyText, _root, Options, path, Encoding, _checksumAlgorithm);
 
         public override SyntaxReference GetReference(SyntaxNode node)
             => new NodeSyntaxReference(node);

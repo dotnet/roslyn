@@ -237,7 +237,7 @@ internal static partial class SourceTextExtensions
     }
 
     public static SourceText CreateSourceText(
-        ITextFactoryService textService, SyntaxNode node, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
+        SyntaxNode node, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
     {
         // If this node is small enough to not go into the LOH, we can just fast path directly to creating a SourceText from it.
         var totalLength = node.FullWidth();
