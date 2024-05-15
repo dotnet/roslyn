@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class SourceTextExtensions
 {
-    // char array length: 4k characters. 4K * 256 * 2 (bytes per char) = 4MB
+    private const int ObjectPoolCount = 1024;
+
+    // char array length: 4k characters. 4K * 1024 (object pool count) * 2 (bytes per char) = 8MB
     private const int CharArrayLength = 4 * 1024;
 
     // 32k characters. Equivalent to 64KB in memory bytes.  Will not be put into the LOH.
@@ -30,7 +32,7 @@ internal static partial class SourceTextExtensions
     /// cref="CharArrayLength"/> long.  Putting arrays back into this of the wrong length will result in broken
     /// behavior.  Do not expose this pool outside of this class.
     /// </summary>
-    private static readonly ObjectPool<char[]> s_charArrayPool = new(() => new char[CharArrayLength], 256);
+    private static readonly ObjectPool<char[]> s_charArrayPool = new(() => new char[CharArrayLength], ObjectPoolCount);
 
     public static void GetLineAndOffset(this SourceText text, int position, out int lineNumber, out int offset)
     {
