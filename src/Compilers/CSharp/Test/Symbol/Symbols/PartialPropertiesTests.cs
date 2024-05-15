@@ -3074,12 +3074,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 }
                 """;
 
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(source, symbolValidator: module => verify(module, isSource: false), sourceSymbolValidator: module => verify(module, isSource: true));
+            verifier.VerifyDiagnostics();
 
-            var property = comp.GetMember<SourcePropertySymbol>("C.P");
-            AssertEx.Equal([declAttribute, implAttribute], property.GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal([declAttribute, implAttribute], property.PartialImplementationPart!.GetAttributes().SelectAsArray(a => a.ToString()));
+            void verify(ModuleSymbol module, bool isSource)
+            {
+                var property = module.GlobalNamespace.GetMember<PropertySymbol>("C.P");
+                AssertEx.Equal([declAttribute, implAttribute], property.GetAttributes().SelectAsArray(a => a.ToString()));
+                if (isSource)
+                {
+                    AssertEx.Equal([declAttribute, implAttribute], ((SourcePropertySymbol)property).PartialImplementationPart!.GetAttributes().SelectAsArray(a => a.ToString()));
+                }
+            }
         }
 
         [Fact]
