@@ -375,6 +375,15 @@ internal static partial class DependentProjectsFinder
 
             using (await s_metadataIdToAssemblyNameGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
+                // Overwrite an existing null name with a non-null one.
+                if (s_metadataIdToAssemblyName.TryGetValue(metadataId, out var existingName) &&
+                    existingName == null &&
+                    name != null)
+                {
+                    s_metadataIdToAssemblyName[metadataId] = name;
+                }
+
+                // Return whatever is in the map, adding ourselves if something is not already there.
                 name = s_metadataIdToAssemblyName.GetOrAdd(metadataId, name);
             }
 
