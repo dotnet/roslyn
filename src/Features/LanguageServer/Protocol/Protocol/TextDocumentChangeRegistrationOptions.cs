@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
 
@@ -17,14 +18,13 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentChangeRegistrationOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class TextDocumentChangeRegistrationOptions : TextDocumentRegistrationOptions
     {
         /// <summary>
         /// How documents are synced to the server. See <see cref="TextDocumentSyncKind.Full"/>
 	    /// and <see cref="TextDocumentSyncKind.Incremental"/>.
         /// </summary>
-        [DataMember(Name = "syncKind")]
+        [JsonPropertyName("syncKind")]
         public TextDocumentSyncKind SyncKind
         {
             get;
