@@ -18,6 +18,7 @@ internal abstract partial class AbstractTriviaDataFactory
     private const int IndentationLevelCacheSize = 20;
 
     private static readonly Dictionary<LineFormattingOptions, (Whitespace[] spaces, Whitespace[,] whitespaces)> s_optionsToWhitespace = new();
+    private static Tuple<LineFormattingOptions, (Whitespace[] spaces, Whitespace[,] whitespaces)>? s_lastOptionAndWhitespace;
 
     protected readonly TreeData TreeInfo;
     protected readonly LineFormattingOptions Options;
@@ -37,35 +38,49 @@ internal abstract partial class AbstractTriviaDataFactory
 
     private static (Whitespace[] spaces, Whitespace[,] whitespaces) GetSpacesAndWhitespaces(LineFormattingOptions options)
     {
-        lock (s_optionsToWhitespace)
+        // Fast path where we'er asking for the same options as last time
+        var lastOptionAndWhitespace = s_lastOptionAndWhitespace;
+        if (lastOptionAndWhitespace?.Item1 == options)
+            return lastOptionAndWhitespace.Item2;
+
+        // Otherwise, get from the dictionary, computing if necessary.
+        var (spaces, whitespaces) = ComputeSpacesAndWhitespaces();
+
+        // Cache this result for the next time.
+        s_lastOptionAndWhitespace = Tuple.Create(options, (spaces, whitespaces));
+        return (spaces, whitespaces);
+
+        (Whitespace[] spaces, Whitespace[,] whitespaces) ComputeSpacesAndWhitespaces()
         {
-            if (s_optionsToWhitespace.TryGetValue(options, out var result))
-                return result;
-        }
-
-        var spaces = new Whitespace[SpaceCacheSize];
-        for (var i = 0; i < SpaceCacheSize; i++)
-            spaces[i] = new Whitespace(options, space: i, elastic: false);
-
-        var whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
-
-        for (var lineIndex = 0; lineIndex < LineBreakCacheSize; lineIndex++)
-        {
-            for (var indentationLevel = 0; indentationLevel < IndentationLevelCacheSize; indentationLevel++)
+            lock (s_optionsToWhitespace)
             {
-                var indentation = indentationLevel * options.IndentationSize;
-                whitespaces[lineIndex, indentationLevel] = new Whitespace
-                    (options, lineBreaks: lineIndex + 1, indentation: indentation, elastic: false);
+                if (s_optionsToWhitespace.TryGetValue(options, out var result))
+                    return result;
             }
-        }
 
-        lock (s_optionsToWhitespace)
-        {
-            if (s_optionsToWhitespace.TryGetValue(options, out var result))
-                return result;
+            var spaces = new Whitespace[SpaceCacheSize];
+            for (var i = 0; i < SpaceCacheSize; i++)
+                spaces[i] = new Whitespace(options, space: i, elastic: false);
 
-            s_optionsToWhitespace[options] = (spaces, whitespaces);
-            return (spaces, whitespaces);
+            var whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
+            for (var lineIndex = 0; lineIndex < LineBreakCacheSize; lineIndex++)
+            {
+                for (var indentationLevel = 0; indentationLevel < IndentationLevelCacheSize; indentationLevel++)
+                {
+                    var indentation = indentationLevel * options.IndentationSize;
+                    whitespaces[lineIndex, indentationLevel] = new Whitespace(
+                        options, lineBreaks: lineIndex + 1, indentation: indentation, elastic: false);
+                }
+            }
+
+            lock (s_optionsToWhitespace)
+            {
+                if (s_optionsToWhitespace.TryGetValue(options, out var result))
+                    return result;
+
+                s_optionsToWhitespace[options] = (spaces, whitespaces);
+                return (spaces, whitespaces);
+            }
         }
     }
 
