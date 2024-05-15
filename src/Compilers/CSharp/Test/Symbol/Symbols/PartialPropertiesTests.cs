@@ -3046,8 +3046,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             comp.VerifyEmitDiagnostics();
 
             var property = comp.GetMember<SourcePropertySymbol>("C.P");
-            AssertEx.Equal([declAttribute, implAttribute], property.GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal([declAttribute, implAttribute], property.PartialImplementationPart!.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal([declAttribute, implAttribute], property.GetAttributes().ToStrings());
+            AssertEx.Equal([declAttribute, implAttribute], property.PartialImplementationPart!.GetAttributes().ToStrings());
         }
 
         [Theory]
@@ -3080,10 +3080,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             void verify(ModuleSymbol module, bool isSource)
             {
                 var property = module.GlobalNamespace.GetMember<PropertySymbol>("C.P");
-                AssertEx.Equal([declAttribute, implAttribute], property.GetAttributes().SelectAsArray(a => a.ToString()));
+                AssertEx.Equal([declAttribute, implAttribute], property.GetAttributes().ToStrings());
                 if (isSource)
                 {
-                    AssertEx.Equal([declAttribute, implAttribute], ((SourcePropertySymbol)property).PartialImplementationPart!.GetAttributes().SelectAsArray(a => a.ToString()));
+                    AssertEx.Equal([declAttribute, implAttribute], ((SourcePropertySymbol)property).PartialImplementationPart!.GetAttributes().ToStrings());
                 }
             }
         }
@@ -3116,8 +3116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             comp.VerifyEmitDiagnostics();
 
             var property = comp.GetMember<SourcePropertySymbol>("C.P");
-            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], property.GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], property.PartialImplementationPart!.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], property.GetAttributes().ToStrings());
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], property.PartialImplementationPart!.GetAttributes().ToStrings());
         }
 
         [Fact]
@@ -3156,8 +3156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             comp.VerifyEmitDiagnostics();
 
             var accessor = comp.GetMember<MethodSymbol>("C.get_P");
-            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], accessor.GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], accessor.PartialImplementationPart!.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], accessor.GetAttributes().ToStrings());
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], accessor.PartialImplementationPart!.GetAttributes().ToStrings());
         }
 
         [Fact]
@@ -3196,8 +3196,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             comp.VerifyEmitDiagnostics();
 
             var accessor = comp.GetMember<MethodSymbol>("C.set_P");
-            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], accessor.GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], accessor.PartialImplementationPart!.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], accessor.GetAttributes().ToStrings());
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], accessor.PartialImplementationPart!.GetAttributes().ToStrings());
         }
 
         [Fact]
@@ -3237,10 +3237,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             comp.VerifyEmitDiagnostics();
 
             var accessor = comp.GetMember<MethodSymbol>("C.set_P");
-            AssertEx.Equal([], accessor.GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal([], accessor.PartialImplementationPart.GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["A(2)", "B(2)", "A(1)", "B(1)"], accessor.Parameters.Single().GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["A(2)", "B(2)", "A(1)", "B(1)"], accessor.PartialImplementationPart!.Parameters.Single().GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal([], accessor.GetAttributes().ToStrings());
+            AssertEx.Equal([], accessor.PartialImplementationPart.GetAttributes().ToStrings());
+            AssertEx.Equal(["A(2)", "B(2)", "A(1)", "B(1)"], accessor.Parameters.Single().GetAttributes().ToStrings());
+            AssertEx.Equal(["A(2)", "B(2)", "A(1)", "B(1)"], accessor.PartialImplementationPart!.Parameters.Single().GetAttributes().ToStrings());
         }
 
         [Fact]
@@ -3270,8 +3270,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             comp.VerifyEmitDiagnostics();
 
             var indexer = (SourcePropertySymbol)comp.GetMember<NamedTypeSymbol>("C").Indexers.Single();
-            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], indexer.GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], indexer.PartialImplementationPart!.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], indexer.GetAttributes().ToStrings());
+            AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], indexer.PartialImplementationPart!.GetAttributes().ToStrings());
         }
 
         [Fact]
@@ -3312,7 +3312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
             void verify(ParameterSymbol param)
             {
-                AssertEx.Equal(["A(2)", "B(2)", "A(1)", "B(1)"], param.GetAttributes().SelectAsArray(a => a.ToString()));
+                AssertEx.Equal(["A(2)", "B(2)", "A(1)", "B(1)"], param.GetAttributes().ToStrings());
             }
         }
 
@@ -3350,10 +3350,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(11, 46));
 
             var property = comp.GetMember<SourcePropertySymbol>("C.P");
-            AssertEx.Equal(["Attr", "Attr"], property.GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["Attr", "Attr"], property.GetMethod!.GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.Parameters.Single().GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["Attr", "Attr"], property.GetAttributes().ToStrings());
+            AssertEx.Equal(["Attr", "Attr"], property.GetMethod!.GetAttributes().ToStrings());
+            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.GetAttributes().ToStrings());
+            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.Parameters.Single().GetAttributes().ToStrings());
         }
 
         [Fact]
@@ -3396,14 +3396,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(11, 77));
 
             var property = (SourcePropertySymbol)comp.GetMember<NamedTypeSymbol>("C").Indexers.Single();
-            AssertEx.Equal(["Attr", "Attr"], property.GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["Attr", "Attr"], property.GetMethod!.GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["Attr", "Attr"], property.GetMethod!.Parameters[0].GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["Attr", "Attr"], property.GetMethod!.Parameters[1].GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.Parameters[0].GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.Parameters[1].GetAttributes().SelectAsArray(a => a.ToString()));
-            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.Parameters[2].GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal(["Attr", "Attr"], property.GetAttributes().ToStrings());
+            AssertEx.Equal(["Attr", "Attr"], property.GetMethod!.GetAttributes().ToStrings());
+            AssertEx.Equal(["Attr", "Attr"], property.GetMethod!.Parameters[0].GetAttributes().ToStrings());
+            AssertEx.Equal(["Attr", "Attr"], property.GetMethod!.Parameters[1].GetAttributes().ToStrings());
+            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.GetAttributes().ToStrings());
+            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.Parameters[0].GetAttributes().ToStrings());
+            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.Parameters[1].GetAttributes().ToStrings());
+            AssertEx.Equal(["Attr", "Attr"], property.SetMethod!.Parameters[2].GetAttributes().ToStrings());
         }
 
         [Fact]
@@ -3434,7 +3434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(10, 6));
 
             var property = comp.GetMember<SourcePropertySymbol>("C.P");
-            AssertEx.Equal([], property.GetAttributes().SelectAsArray(a => a.ToString()));
+            AssertEx.Equal([], property.GetAttributes().ToStrings());
         }
 
         [Theory]
