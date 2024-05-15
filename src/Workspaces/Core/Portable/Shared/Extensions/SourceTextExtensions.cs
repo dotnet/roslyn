@@ -246,26 +246,19 @@ internal static partial class SourceTextExtensions
 
         // Allocate the space to write the node into.  Explicitly chunked so that nothing goes into the LOH.
         var chunks = CreateChunks(totalLength);
-        try
-        {
-            // Write the node into that temp space.
-            using var chunkWriter = new CharArrayChunkTextWriter(totalLength, chunks, encoding!, cancellationToken);
-            node.WriteTo(chunkWriter);
-            Contract.ThrowIfTrue(totalLength != chunkWriter.Position);
 
-            // Call into the text service to make us a SourceText from the chunks.
-            using var chunkReader = new CharArrayChunkTextReader(chunks, totalLength);
-            var result = textService.CreateText(chunkReader, encoding, checksumAlgorithm, cancellationToken);
-            Contract.ThrowIfTrue(totalLength != chunkReader.Position);
+        // Write the node into that temp space.
+        using var chunkWriter = new CharArrayChunkTextWriter(totalLength, chunks, encoding!, cancellationToken);
+        node.WriteTo(chunkWriter);
+        Contract.ThrowIfTrue(totalLength != chunkWriter.Position);
 
-            return result;
-        }
-        finally
-        {
-            // Finally, free the chunks so they can be used by the next caller.
-            foreach (var chunk in chunks)
-                s_charArrayPool.Free(chunk);
-        }
+        // Call into the text service to make us a SourceText from the chunks.  Disposal of this reader will free all
+        // the intermediary chunks we allocated.
+        using var chunkReader = new CharArrayChunkTextReader(chunks, totalLength);
+        var result = textService.CreateText(chunkReader, encoding, checksumAlgorithm, cancellationToken);
+        Contract.ThrowIfTrue(totalLength != chunkReader.Position);
+
+        return result;
 
         static ImmutableArray<char[]> CreateChunks(int totalLength)
         {
