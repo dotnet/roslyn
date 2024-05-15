@@ -3505,7 +3505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             void verify(ModuleSymbol module)
             {
                 var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
-                AssertEx.Equal(["System.Runtime.CompilerServices.CallerLineNumberAttribute"], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerLineNumberAttribute"], indexer.Parameters[1].GetAttributes().ToStrings());
             }
         }
 
@@ -3548,7 +3548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 // The attribute is still written out to metadata even though it is ignored in source.
                 // We could consider changing this for both properties and methods.
                 var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
-                AssertEx.Equal(["System.Runtime.CompilerServices.CallerLineNumberAttribute"], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerLineNumberAttribute"], indexer.Parameters[1].GetAttributes().ToStrings());
             }
         }
 
@@ -3584,7 +3584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             void verify(ModuleSymbol module)
             {
                 var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
-                AssertEx.Equal(["System.Runtime.CompilerServices.CallerFilePathAttribute"], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerFilePathAttribute"], indexer.Parameters[1].GetAttributes().ToStrings());
             }
         }
 
@@ -3626,7 +3626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 // The attribute is still written out to metadata even though it is ignored in source.
                 // We could consider changing this for both properties and methods.
                 var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
-                AssertEx.Equal(["System.Runtime.CompilerServices.CallerFilePathAttribute"], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerFilePathAttribute"], indexer.Parameters[1].GetAttributes().ToStrings());
             }
         }
 
@@ -3662,7 +3662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             void verify(ModuleSymbol module)
             {
                 var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
-                AssertEx.Equal(["System.Runtime.CompilerServices.CallerMemberNameAttribute"], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerMemberNameAttribute"], indexer.Parameters[1].GetAttributes().ToStrings());
             }
         }
 
@@ -3704,7 +3704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 // The attribute is still written out to metadata even though it is ignored in source.
                 // We could consider changing this for both properties and methods.
                 var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
-                AssertEx.Equal(["System.Runtime.CompilerServices.CallerMemberNameAttribute"], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerMemberNameAttribute"], indexer.Parameters[1].GetAttributes().ToStrings());
             }
         }
 
@@ -3755,7 +3755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             void verify(ModuleSymbol module)
             {
                 var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
-                AssertEx.Equal(["""System.Runtime.CompilerServices.CallerArgumentExpressionAttribute("x")"""], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+                AssertEx.Equal(["""System.Runtime.CompilerServices.CallerArgumentExpressionAttribute("x")"""], indexer.Parameters[1].GetAttributes().ToStrings());
             }
         }
 
@@ -3812,7 +3812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 // The attribute is still written out to metadata even though it is ignored in source.
                 // We could consider changing this for both properties and methods.
                 var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
-                AssertEx.Equal(["""System.Runtime.CompilerServices.CallerArgumentExpressionAttribute("x")"""], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+                AssertEx.Equal(["""System.Runtime.CompilerServices.CallerArgumentExpressionAttribute("x")"""], indexer.Parameters[1].GetAttributes().ToStrings());
             }
         }
 
