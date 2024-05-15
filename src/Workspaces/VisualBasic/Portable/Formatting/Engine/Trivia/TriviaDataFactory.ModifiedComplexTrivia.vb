@@ -9,13 +9,13 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
-        Private Class ModifiedComplexTrivia
+        Private NotInheritable Class ModifiedComplexTrivia
             Inherits TriviaDataWithList
 
             Private ReadOnly _original As ComplexTrivia
 
             Public Sub New(options As SyntaxFormattingOptions, original As ComplexTrivia, lineBreaks As Integer, space As Integer)
-                MyBase.New(options, LanguageNames.VisualBasic)
+                MyBase.New(options)
                 Contract.ThrowIfNull(original)
 
                 Me._original = original

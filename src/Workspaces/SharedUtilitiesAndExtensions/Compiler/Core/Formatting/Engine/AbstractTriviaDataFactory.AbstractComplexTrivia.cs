@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -22,7 +21,7 @@ internal abstract partial class AbstractTriviaDataFactory
         private readonly bool _treatAsElastic;
 
         public AbstractComplexTrivia(SyntaxFormattingOptions options, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
-            : base(options, token1.Language)
+            : base(options)
         {
             Contract.ThrowIfNull(treeInfo);
 

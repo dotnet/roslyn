@@ -118,7 +118,7 @@ internal partial class TriviaDataFactory : AbstractTriviaDataFactory
         {
             // calculate actual space size from tab
             var spaces = CalculateSpaces(token1, token2);
-            return new ModifiedWhitespace(this.Options, result.LineBreaks, indentation: spaces, elastic: result.TreatAsElastic, language: LanguageNames.CSharp);
+            return new ModifiedWhitespace(this.Options, result.LineBreaks, indentation: spaces, elastic: result.TreatAsElastic);
         }
 
         // check whether we can cache trivia info for current indentation
