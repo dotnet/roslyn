@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComments
     Public Class RemoveDocCommentNodeCodeFixProviderTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicRemoveDocCommentNodeCodeFixProvider())

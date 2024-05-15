@@ -4,13 +4,12 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal static class PredefinedCompletionProviderNames
 {
-    internal static class PredefinedCompletionProviderNames
-    {
-        /// <summary>
-        /// Completion provider for language keywords.
-        /// </summary>
-        public const string Keyword = "Keyword Completion Provider";
-    }
+    /// <summary>
+    /// Completion provider for language keywords.
+    /// </summary>
+    public const string Keyword = "Keyword Completion Provider";
 }

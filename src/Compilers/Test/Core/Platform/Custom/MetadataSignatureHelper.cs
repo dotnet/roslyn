@@ -13,6 +13,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Roslyn.Utilities;
 
+// The compiler must emit binary serialization metadata entries even though it doesn't 
+// actually do binary serialization.
+#pragma warning disable SYSLIB0050 
+
 namespace Roslyn.Test.Utilities
 {
     public class MetadataSignatureHelper
@@ -49,7 +53,7 @@ namespace Roslyn.Test.Utilities
                 var genericConstraints = typeInfo.GetGenericParameterConstraints();
                 if (genericConstraints.Length > 0)
                 {
-                    sb.Append("(");
+                    sb.Append('(');
                     foreach (var genericConstraint in genericConstraints)
                     {
                         AppendType(genericConstraint, sb);
@@ -84,9 +88,9 @@ namespace Roslyn.Test.Utilities
 
         private static void AppendCustomAttributeData(CustomAttributeData attribute, StringBuilder sb)
         {
-            sb.Append("[");
+            sb.Append('[');
             AppendType(attribute.Constructor.DeclaringType, sb);
-            sb.Append("(");
+            sb.Append('(');
             foreach (var positionalArgument in attribute.ConstructorArguments)
             {
                 AppendValue(positionalArgument.Value, sb, false);
@@ -113,7 +117,7 @@ namespace Roslyn.Test.Utilities
                     attribute.AttributeType != typeof(MarshalAsAttribute))
                 {
                     AppendCustomAttributeData(attribute, sb);
-                    sb.Append(" ");
+                    sb.Append(' ');
                 }
             }
 
@@ -134,13 +138,13 @@ namespace Roslyn.Test.Utilities
             AppendParameterAttributes(sb, parameter.Attributes, all: false);
             if (sb.Length > length)
             {
-                sb.Append(" ");
+                sb.Append(' ');
             }
 
             AppendType(parameter.ParameterType, sb);
             if (!string.IsNullOrWhiteSpace(parameter.Name)) // If this is not the 'return' parameter
             {
-                sb.Append(" ");
+                sb.Append(' ');
                 sb.Append(parameter.Name);
 
                 var defaultValue = parameter.RawDefaultValue;
@@ -318,7 +322,7 @@ namespace Roslyn.Test.Utilities
             }
 
             sb.Append(codeType);
-            sb.Append(" ");
+            sb.Append(' ');
             sb.Append((attributes & MethodImplAttributes.Unmanaged) == MethodImplAttributes.Unmanaged ? "unmanaged" : "managed");
 
             if ((attributes & MethodImplAttributes.PreserveSig) != 0)
@@ -387,9 +391,9 @@ namespace Roslyn.Test.Utilities
             if ((attributes & TypeAttributes.Abstract) != 0)
                 sb.Append(" abstract");
 
-            sb.Append(" ");
+            sb.Append(' ');
             sb.Append(layout);
-            sb.Append(" ");
+            sb.Append(' ');
             sb.Append(stringFormat);
 
             if ((attributes & TypeAttributes.Import) != 0)
@@ -416,30 +420,30 @@ namespace Roslyn.Test.Utilities
 
             foreach (var attribute in method.CustomAttributes)
             {
-                sb.Append(" ");
+                sb.Append(' ');
                 AppendCustomAttributeData(attribute, sb);
             }
 
-            sb.Append(" ");
+            sb.Append(' ');
             AppendMethodAttributes(sb, method.Attributes);
-            sb.Append(" ");
+            sb.Append(' ');
             AppendParameterInfo(method.ReturnParameter, sb);
-            sb.Append(" ");
+            sb.Append(' ');
             sb.Append(method.Name);
 
             if (method.IsGenericMethod)
             {
-                sb.Append("<");
+                sb.Append('<');
                 foreach (var typeParameter in method.GetGenericArguments())
                 {
                     AppendType(typeParameter, sb, true);
                     AppendComma(sb);
                 }
                 RemoveTrailingComma(sb);
-                sb.Append(">");
+                sb.Append('>');
             }
 
-            sb.Append("(");
+            sb.Append('(');
             foreach (var parameter in method.GetParameters())
             {
                 AppendParameterInfo(parameter, sb);
@@ -456,36 +460,36 @@ namespace Roslyn.Test.Utilities
 
             foreach (var attribute in constructor.CustomAttributes)
             {
-                sb.Append(" ");
+                sb.Append(' ');
                 AppendCustomAttributeData(attribute, sb);
             }
 
-            sb.Append(" ");
+            sb.Append(' ');
             AppendMethodAttributes(sb, constructor.Attributes);
-            sb.Append(" ");
+            sb.Append(' ');
             sb.Append("void ");
             sb.Append(constructor.Name);
 
             if (constructor.IsGenericMethod)
             {
-                sb.Append("<");
+                sb.Append('<');
                 foreach (var typeParameter in constructor.GetGenericArguments())
                 {
                     AppendType(typeParameter, sb, true);
                     AppendComma(sb);
                 }
                 RemoveTrailingComma(sb);
-                sb.Append(">");
+                sb.Append('>');
             }
 
-            sb.Append("(");
+            sb.Append('(');
             foreach (var parameter in constructor.GetParameters())
             {
                 AppendParameterInfo(parameter, sb);
                 AppendComma(sb);
             }
             RemoveTrailingComma(sb);
-            sb.Append(")");
+            sb.Append(')');
 
             var implFlags = constructor.GetMethodImplementationFlags();
             if (implFlags.HasFlag(MethodImplAttributes.IL))
@@ -521,7 +525,7 @@ namespace Roslyn.Test.Utilities
             foreach (var attribute in property.CustomAttributes)
             {
                 AppendCustomAttributeData(attribute, sb);
-                sb.Append(" ");
+                sb.Append(' ');
             }
             foreach (var modreq in property.GetRequiredCustomModifiers())
             {
@@ -560,20 +564,20 @@ namespace Roslyn.Test.Utilities
                 sb.Append(propertyAccessors[0].IsStatic ? "static " : "instance ");
             }
             AppendType(property.PropertyType, sb);
-            sb.Append(" ");
+            sb.Append(' ');
             sb.Append(property.Name);
 
             var indexParameters = property.GetIndexParameters();
             if (indexParameters.Length > 0)
             {
-                sb.Append("(");
+                sb.Append('(');
                 foreach (var indexParameter in indexParameters)
                 {
                     AppendParameterInfo(indexParameter, sb);
                     AppendComma(sb);
                 }
                 RemoveTrailingComma(sb);
-                sb.Append(")");
+                sb.Append(')');
             }
         }
 
@@ -584,7 +588,7 @@ namespace Roslyn.Test.Utilities
             foreach (var attribute in field.CustomAttributes)
             {
                 AppendCustomAttributeData(attribute, sb);
-                sb.Append(" ");
+                sb.Append(' ');
             }
 
             foreach (var modreq in field.GetRequiredCustomModifiers())
@@ -628,7 +632,7 @@ namespace Roslyn.Test.Utilities
 
             sb.Append(field.IsStatic ? "static " : "instance ");
             AppendType(field.FieldType, sb);
-            sb.Append(" ");
+            sb.Append(' ');
             sb.Append(field.Name);
 
             if (field.IsLiteral)
@@ -644,7 +648,7 @@ namespace Roslyn.Test.Utilities
             foreach (var attribute in @event.CustomAttributes)
             {
                 AppendCustomAttributeData(attribute, sb);
-                sb.Append(" ");
+                sb.Append(' ');
             }
 
             if (@event.Attributes.HasFlag(EventAttributes.SpecialName))
@@ -653,7 +657,7 @@ namespace Roslyn.Test.Utilities
                 sb.Append("rtspecialname ");
 
             AppendType(@event.EventHandlerType, sb);
-            sb.Append(" ");
+            sb.Append(' ');
             sb.Append(@event.Name);
         }
         #endregion

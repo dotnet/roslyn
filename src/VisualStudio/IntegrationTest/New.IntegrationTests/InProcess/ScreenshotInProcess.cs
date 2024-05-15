@@ -43,7 +43,7 @@ internal partial class ScreenshotInProcess
     /// <remarks>
     /// Lock on this object before accessing to prevent concurrent accesses.
     /// </remarks>
-    private static readonly List<(TimeSpan elapsed, BitmapSource image)> s_frames = new();
+    private static readonly List<(TimeSpan elapsed, BitmapSource image)> s_frames = [];
     private static readonly System.Buffers.ArrayPool<byte> s_pool = System.Buffers.ArrayPool<byte>.Shared;
     private static ScreenshotInProcess? s_currentInstance;
 

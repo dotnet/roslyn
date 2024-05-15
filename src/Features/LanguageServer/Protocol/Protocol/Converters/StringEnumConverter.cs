@@ -25,7 +25,7 @@ internal class StringEnumConverter<TStringEnumType>
     static StringEnumConverter()
     {
         // TODO. When C# starts supporting static methods in interfaces, add a static Create method to IStringEnum and remove CreateEnum.
-        var constructor = typeof(TStringEnumType).GetConstructor(new Type[] { typeof(string) });
+        var constructor = typeof(TStringEnumType).GetConstructor([typeof(string)]);
         if (constructor is null)
         {
             throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, LanguageServerProtocolResources.StringEnumMissingConstructor, typeof(TStringEnumType).FullName));

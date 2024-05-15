@@ -7,29 +7,31 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal static class ObjectWriterExtensions
 {
-    internal static class ObjectWriterExtensions
+    public static void WriteArray<T>(this ObjectWriter writer, ImmutableArray<T> values, Action<ObjectWriter, T> write)
     {
-        public static void WriteArray<T>(this ObjectWriter writer, ImmutableArray<T> values, Action<ObjectWriter, T> write)
-        {
-            writer.WriteInt32(values.Length);
-            foreach (var val in values)
-                write(writer, val);
-        }
+        writer.WriteInt32(values.Length);
+        foreach (var val in values)
+            write(writer, val);
     }
+}
 
-    internal static class ObjectReaderExtensions
+internal static class ObjectReaderExtensions
+{
+    public static ImmutableArray<T> ReadArray<T>(this ObjectReader reader, Func<ObjectReader, T> read)
+        => ReadArray(reader, static (reader, read) => read(reader), read);
+
+    public static ImmutableArray<T> ReadArray<T, TArg>(this ObjectReader reader, Func<ObjectReader, TArg, T> read, TArg arg)
     {
-        public static ImmutableArray<T> ReadArray<T>(this ObjectReader reader, Func<ObjectReader, T> read)
-        {
-            var length = reader.ReadInt32();
-            using var _ = ArrayBuilder<T>.GetInstance(length, out var builder);
+        var length = reader.ReadInt32();
+        using var _ = ArrayBuilder<T>.GetInstance(length, out var builder);
 
-            for (var i = 0; i < length; i++)
-                builder.Add(read(reader));
+        for (var i = 0; i < length; i++)
+            builder.Add(read(reader, arg));
 
-            return builder.ToImmutableAndClear();
-        }
+        return builder.ToImmutableAndClear();
     }
 }

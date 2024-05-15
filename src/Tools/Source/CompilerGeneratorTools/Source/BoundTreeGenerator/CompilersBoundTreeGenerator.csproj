@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Roslyn.Compilers.Internal.BoundTreeGenerator</RootNamespace>
     <AssemblyName>BoundTreeGenerator</AssemblyName>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>$(NetRoslyn)</TargetFramework>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
 </Project>

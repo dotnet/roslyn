@@ -13,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
 
         Protected Overrides ReadOnly Property ContentType As String = ContentTypeNames.VisualBasicContentType
 
-        Protected Overrides Function CreateWorkspace(code As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(code)
+        Protected Overrides Function CreateWorkspace(code As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(code)
         End Function
 
         <Fact>

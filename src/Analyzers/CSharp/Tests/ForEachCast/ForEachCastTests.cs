@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.ForEachCast;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.ForEachCast;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
     public class ForEachCastTests
     {
         private static async Task TestWorkerAsync(
-            string testCode, string fixedCode, string optionValue)
+            string testCode, string fixedCode, string optionValue, ReferenceAssemblies? referenceAssemblies)
         {
             await new VerifyCS.Test
             {
@@ -27,14 +29,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
                 [*]
                 dotnet_style_prefer_foreach_explicit_cast_in_source=
                 """ + optionValue,
+                ReferenceAssemblies = referenceAssemblies ?? ReferenceAssemblies.Default,
             }.RunAsync();
         }
 
-        private static Task TestAlwaysAsync(string markup, string alwaysMarkup)
-            => TestWorkerAsync(markup, alwaysMarkup, "always");
+        private static Task TestAlwaysAsync(string markup, string alwaysMarkup, ReferenceAssemblies? referenceAssemblies = null)
+            => TestWorkerAsync(markup, alwaysMarkup, "always", referenceAssemblies);
 
-        private static Task TestWhenStronglyTypedAsync(string markup, string nonLegacyMarkup)
-            => TestWorkerAsync(markup, nonLegacyMarkup, "when_strongly_typed");
+        private static Task TestWhenStronglyTypedAsync(string markup, string nonLegacyMarkup, ReferenceAssemblies? referenceAssemblies = null)
+            => TestWorkerAsync(markup, nonLegacyMarkup, "when_strongly_typed", referenceAssemblies);
 
         [Fact]
         public async Task NonGenericIComparableCollection()
@@ -1075,6 +1078,241 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
 
             await TestAlwaysAsync(test, code);
             await TestWhenStronglyTypedAsync(test, code);
+        }
+
+        [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
+        public async Task TestRegex_GoodCast()
+        {
+            var test = """
+                using System.Text.RegularExpressions;
+
+                public static class Program
+                {   
+                    public static void M(Regex regex, string text)
+                    {
+                        foreach (Match m in regex.Matches(text))
+                        {
+                        }
+                    }
+                }
+                """;
+            await TestAlwaysAsync(test, test, ReferenceAssemblies.Net.Net80);
+            await TestWhenStronglyTypedAsync(test, test, ReferenceAssemblies.Net.Net80);
+        }
+
+        [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
+        public async Task TestRegex_BadCast()
+        {
+            var test = """
+                using System.Text.RegularExpressions;
+
+                public static class Program
+                {   
+                    public static void M(Regex regex, string text)
+                    {
+                        [|foreach|] (string m in regex.Matches(text))
+                        {
+                        }
+                    }
+                }
+                """;
+            var code = """
+                using System.Linq;
+                using System.Text.RegularExpressions;
+
+                public static class Program
+                {   
+                    public static void M(Regex regex, string text)
+                    {
+                        foreach (string m in regex.Matches(text).Cast<string>())
+                        {
+                        }
+                    }
+                }
+                """;
+            await TestAlwaysAsync(test, code, ReferenceAssemblies.Net.Net80);
+            await TestWhenStronglyTypedAsync(test, code, ReferenceAssemblies.Net.Net80);
+        }
+
+        [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
+        public async Task WeaklyTypedGetEnumeratorWithIEnumerableOfT()
+        {
+            var test = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Text.RegularExpressions;
+
+                public class C : IEnumerable<Match>
+                {
+                    public IEnumerator GetEnumerator() => new Enumerator(); // compiler picks this for the foreach loop.
+
+                    IEnumerator<Match> IEnumerable<Match>.GetEnumerator() => null; // compiler doesn't use this.
+
+                    public static void M(C c)
+                    {
+                        // The compiler adds a cast here from 'object' to 'Match',
+                        // and it will fail at runtime because GetEnumerator().Current will return a string.
+                        // This is due to badly implemented type 'C', and is rare enough. So, we don't report here
+                        // to reduce false positives.
+                        foreach (Match x in c)
+                        {
+                        }
+                    }
+
+                    private class Enumerator : IEnumerator
+                    {
+                        public object Current => "String";
+
+                        public bool MoveNext()
+                        {
+                            return true;
+                        }
+
+                        public void Reset()
+                        {
+                        }
+                    }
+                }
+                """;
+            await TestAlwaysAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
+        }
+
+        [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
+        public async Task WeaklyTypedGetEnumeratorWithIEnumerableOfT_DifferentTypeUsedInForEach()
+        {
+            var code = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class C : IEnumerable<string>
+                {
+                    public IEnumerator GetEnumerator() => new Enumerator(); // compiler picks this for the foreach loop.
+
+                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null; // compiler doesn't use this.
+
+                    public static void M(C c)
+                    {
+                        [|foreach|] (C x in c)
+                        {
+                        }
+                    }
+
+                    private class Enumerator : IEnumerator
+                    {
+                        public object Current => "String";
+
+                        public bool MoveNext()
+                        {
+                            return true;
+                        }
+
+                        public void Reset()
+                        {
+                        }
+                    }
+                }
+                """;
+
+            var fixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Linq;
+
+                public class C : IEnumerable<string>
+                {
+                    public IEnumerator GetEnumerator() => new Enumerator(); // compiler picks this for the foreach loop.
+
+                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null; // compiler doesn't use this.
+
+                    public static void M(C c)
+                    {
+                        foreach (C x in c.Cast<C>())
+                        {
+                        }
+                    }
+
+                    private class Enumerator : IEnumerator
+                    {
+                        public object Current => "String";
+
+                        public bool MoveNext()
+                        {
+                            return true;
+                        }
+
+                        public void Reset()
+                        {
+                        }
+                    }
+                }
+                """;
+            await TestAlwaysAsync(code, fixedCode);
+            await TestWhenStronglyTypedAsync(code, fixedCode);
+        }
+
+        [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
+        public async Task WeaklyTypedGetEnumeratorWithMultipleIEnumerableOfT()
+        {
+            // NOTE: The analyzer only considers the first IEnumerable<T> implementation.
+            // That is why the following tests produces a diagnostic for the implicit string cast, but not for the implicit int cast.
+            var test = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class C : IEnumerable<int>, IEnumerable<string>
+                {
+                    public IEnumerator GetEnumerator() => null;
+
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+
+                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null;
+
+                    public static void M(C c)
+                    {
+                        foreach (int x in c)
+                        {
+                        }
+
+                        [|foreach|] (string x in c)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            var fixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Linq;
+
+                public class C : IEnumerable<int>, IEnumerable<string>
+                {
+                    public IEnumerator GetEnumerator() => null;
+
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+
+                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null;
+
+                    public static void M(C c)
+                    {
+                        foreach (int x in c)
+                        {
+                        }
+
+                        foreach (string x in c.Cast<string>())
+                        {
+                        }
+                    }
+                }
+                """;
+            await TestAlwaysAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
         }
     }
 }

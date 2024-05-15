@@ -67,6 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                 Descriptor,
                 name.GetLocation(),
                 [option].Notification,
+                context.Options,
                 additionalLocations:=additionalLocations,
                 If(modifiersAdded, ModifiersAddedProperties, Nothing)))
         End Sub

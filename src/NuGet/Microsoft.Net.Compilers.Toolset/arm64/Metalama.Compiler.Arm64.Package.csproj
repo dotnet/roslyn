@@ -54,8 +54,8 @@
                       Targets="Publish"
                       ReferenceOutputAssembly="false"
                       SkipGetTargetFrameworkProperties="true"
-                      Condition="'$(TargetFramework)' == 'net6.0'"
-                      SetTargetFramework="TargetFramework=net6.0" />
+                      Condition="'$(TargetFramework)' == '$(NetVS)'"
+                      SetTargetFramework="TargetFramework=$(NetVS)" />
 
     <!-- <Metalama> -->
     <None Include="$(ArtifactsBinDir)Metalama.Compiler.Sdk\$(Configuration)\netstandard2.0\Metalama.Compiler.Interface.dll" Visible="false" Pack="true" PackagePath="analyzers/dotnet/cs" />

@@ -5,18 +5,17 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.Options
-{
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal class EditorConfigGeneratorAttribute : ExportAttribute
-    {
-        public string Language { get; }
+namespace Microsoft.CodeAnalysis.Options;
 
-        public EditorConfigGeneratorAttribute(string language)
-            : base(typeof(IEditorConfigOptionsCollection))
-        {
-            this.Language = language ?? throw new ArgumentNullException(nameof(language));
-        }
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal class EditorConfigGeneratorAttribute : ExportAttribute
+{
+    public string Language { get; }
+
+    public EditorConfigGeneratorAttribute(string language)
+        : base(typeof(IEditorConfigOptionsCollection))
+    {
+        this.Language = language ?? throw new ArgumentNullException(nameof(language));
     }
 }

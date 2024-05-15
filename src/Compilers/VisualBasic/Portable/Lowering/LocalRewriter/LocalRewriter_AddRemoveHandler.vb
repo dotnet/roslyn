@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                             WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__AddEventHandler,
                                                                             WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__RemoveEventHandler))
                 If addRemove IsNot Nothing Then
-                    Dim eventInfo = factory.[New](ctor, factory.Typeof([event].ContainingType), factory.Literal([event].MetadataName))
+                    Dim eventInfo = factory.[New](ctor, factory.Typeof([event].ContainingType, ctor.Parameters(0).Type), factory.Literal([event].MetadataName))
                     result = factory.Call(eventInfo,
                                           addRemove,
                                           Convert(factory, addRemove.Parameters(0).Type, receiver.MakeRValue()),

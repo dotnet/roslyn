@@ -227,7 +227,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Replace `T` with `T[]` for params array.
                     if (fields is [.., { IsParams: true } lastParam, _])
                     {
-                        var index = nTypeArguments - 1;
+                        Debug.Assert(lastParam.Type.IsSZArray());
+
+                        var index = fields.Length - 2;
                         // T minus `NullabilityAnnotation.Ignored`
                         var original = TypeWithAnnotations.Create(genericFieldTypes[index].Type);
                         // T[]
@@ -328,7 +330,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return hasDefaultScope(useUpdatedEscapeRules, field) &&
                     field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&
-                    !type.IsRestrictedType();
+                    !type.IsRestrictedType() &&
+                    (!field.IsParams || field.Type.IsSZArray()); // [params T collection] is not recognized as a valid params parameter definition
             }
 
             static SynthesizedDelegateKey getTemplateKey(AnonymousTypeDescriptor typeDescr, ImmutableArray<TypeParameterSymbol> typeParameters)

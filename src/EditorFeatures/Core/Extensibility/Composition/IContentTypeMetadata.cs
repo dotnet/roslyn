@@ -6,10 +6,9 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal interface IContentTypeMetadata
 {
-    internal interface IContentTypeMetadata
-    {
-        IEnumerable<string> ContentTypes { get; }
-    }
+    IEnumerable<string> ContentTypes { get; }
 }

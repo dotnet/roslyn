@@ -639,23 +639,27 @@ class C { }";
             var suppressor = new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId);
             var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor };
             var diagnostics = compilation.GetAnalyzerDiagnostics(analyzersAndSuppressors, reportSuppressedDiagnostics: true);
-            Assert.Single(diagnostics);
-            var suppressionInfo = diagnostics.Select(d => d.ProgrammaticSuppressionInfo).Single().Suppressions.Single();
-            Assert.Equal(suppressionId, suppressionInfo.Id);
-            Assert.Equal(suppressor.SuppressionDescriptor.Justification, suppressionInfo.Justification);
+            var diagnostic = Assert.Single(diagnostics);
+            var suppression = diagnostic.ProgrammaticSuppressionInfo.Suppressions.Single();
+            Assert.Equal(suppressionId, suppression.Descriptor.Id);
+            Assert.Equal(suppressor.SuppressionDescriptor.Justification, suppression.Descriptor.Justification);
+            var suppressionInfo = diagnostic.GetSuppressionInfo(compilation);
+            Assert.Equal(suppression, suppressionInfo.ProgrammaticSuppressions.Single());
 
             const string suppressionId2 = "SPR1002";
             var suppressor2 = new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId2);
             analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor, suppressor2 };
             diagnostics = compilation.GetAnalyzerDiagnostics(analyzersAndSuppressors, reportSuppressedDiagnostics: true);
-            Assert.Single(diagnostics);
-            var programmaticSuppression = diagnostics.Select(d => d.ProgrammaticSuppressionInfo).Single();
-            Assert.Equal(2, programmaticSuppression.Suppressions.Count);
-            var orderedSuppressions = programmaticSuppression.Suppressions.Order().ToImmutableArrayOrEmpty();
-            Assert.Equal(suppressionId, orderedSuppressions[0].Id);
-            Assert.Equal(suppressor.SuppressionDescriptor.Justification, orderedSuppressions[0].Justification);
-            Assert.Equal(suppressionId2, orderedSuppressions[1].Id);
-            Assert.Equal(suppressor2.SuppressionDescriptor.Justification, orderedSuppressions[1].Justification);
+            diagnostic = Assert.Single(diagnostics);
+            var programmaticSuppression = diagnostic.ProgrammaticSuppressionInfo;
+            Assert.Equal(2, programmaticSuppression.Suppressions.Length);
+            var orderedSuppressions = programmaticSuppression.Suppressions.OrderBy(suppression => suppression.Descriptor.Id).ToImmutableArrayOrEmpty();
+            Assert.Equal(suppressionId, orderedSuppressions[0].Descriptor.Id);
+            Assert.Equal(suppressor.SuppressionDescriptor.Justification, orderedSuppressions[0].Descriptor.Justification);
+            Assert.Equal(suppressionId2, orderedSuppressions[1].Descriptor.Id);
+            Assert.Equal(suppressor2.SuppressionDescriptor.Justification, orderedSuppressions[1].Descriptor.Justification);
+            suppressionInfo = diagnostic.GetSuppressionInfo(compilation);
+            AssertEx.SetEqual(programmaticSuppression.Suppressions, suppressionInfo.ProgrammaticSuppressions);
         }
 
         [CombinatorialData]

@@ -27,7 +27,7 @@ internal sealed class JsonLanguageDetector(
 {
     internal readonly struct JsonInfo : ILanguageDetectorInfo<JsonLanguageDetector>
     {
-        public ImmutableArray<string> LanguageIdentifiers => ImmutableArray.Create("Json");
+        public ImmutableArray<string> LanguageIdentifiers => ["Json"];
 
         public JsonLanguageDetector Create(Compilation compilation, EmbeddedLanguageInfo info)
         {
@@ -39,13 +39,13 @@ internal sealed class JsonLanguageDetector(
     private const string JsonParameterName = "json";
     private const string ParseMethodName = "Parse";
 
-    private static readonly HashSet<string> s_typeNamesOfInterest = new()
-    {
+    private static readonly HashSet<string> s_typeNamesOfInterest =
+    [
         "Newtonsoft.Json.Linq.JToken",
         "Newtonsoft.Json.Linq.JObject",
         "Newtonsoft.Json.Linq.JArray",
         "System.Text.Json.JsonDocument",
-    };
+    ];
 
     private readonly ISet<INamedTypeSymbol> _typesOfInterest = typesOfInterest;
 

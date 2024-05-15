@@ -3099,7 +3099,7 @@ abstract class C<T>
         }
 
         [Fact]
-        public void CS0225ERR_ParamsMustBeArray01()
+        public void CS0225ERR_ParamsMustBeCollection01()
         {
             var text = @"
 using System.Collections.Generic;
@@ -3122,9 +3122,11 @@ public class A
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParamsMustBeArray, Line = 8, Column = 46 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParamsMustBeArray, Line = 13, Column = 28 });
+            var comp = CreateCompilation(text).VerifyDiagnostics(
+                // (13,28): error CS0225: The params parameter must have a valid collection type
+                //     public static void Goo(params int a) {}
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(13, 28)
+                );
 
             var ns = comp.SourceModule.GlobalNamespace.GetTypeMembers("A").Single() as NamedTypeSymbol;
             // TODO...
@@ -12349,7 +12351,7 @@ class TestClass
         }
 
         [Fact]
-        public void CS0674ERR_ExplicitParamArray()
+        public void CS0674ERR_ExplicitParamArrayOrCollection()
         {
             var text = @"using System;
 public class MyClass
@@ -12363,7 +12365,7 @@ public class MyClass
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitParamArray, Line = 4, Column = 35 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitParamArrayOrCollection, Line = 4, Column = 35 });
         }
 
         [Fact]
@@ -15527,12 +15529,9 @@ class AAttribute : Attribute { }
                 // (4,33): error CS1002: ; expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "[").WithLocation(4, 33),
-                // (4,34): error CS1001: Identifier expected
+                // (4,33): error CS1031: Type expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "2").WithLocation(4, 34),
-                // (4,34): error CS1003: Syntax error, ',' expected
-                //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",").WithLocation(4, 34),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(4, 33),
                 // (4,36): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 36),
@@ -16214,7 +16213,7 @@ class Test
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 // 'i': A value of type '<null>' cannot be used as a default parameter because there are no standard conversions to type 'int'
                 new ErrorDescription { Code = 1750, Line = 3, Column = 24 },
-                // 'params': error CS1751: Cannot specify a default value for a parameter array
+                // 'params': error CS1751: Cannot specify a default value for a parameter collection
                 new ErrorDescription { Code = 1751, Line = 3, Column = 34 });
         }
 
@@ -20783,10 +20782,23 @@ namespace C
 }";
             var referenceD = CreateCompilation(codeD, assemblyName: "D").EmitToImageReference();
 
-            CompileAndVerify(
+            // ECMA-335 "II.22.14 ExportedType : 0x27" rule 14: "Ignoring nested Types, there shall be no duplicate rows, based upon FullName [ERROR]".
+            var verifier = CompileAndVerify(
                 source: codeA,
                 references: new MetadataReference[] { referenceB, referenceC2, referenceD },
-                expectedOutput: "obj is null");
+                expectedOutput: "obj is null",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = "[Main]: Unable to resolve token. { Offset = 0x1, Token = 167772167 }" });
+
+            verifier.VerifyIL("A.ClassA.Main", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  call       "string B.ClassB.MethodB(C.ClassC)"
+  IL_0006:  call       "void System.Console.WriteLine(string)"
+  IL_000b:  ret
+}
+""");
         }
 
         [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]

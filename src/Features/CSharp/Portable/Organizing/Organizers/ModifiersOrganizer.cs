@@ -10,28 +10,27 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
+namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers;
+
+internal static partial class ModifiersOrganizer
 {
-    internal static partial class ModifiersOrganizer
+    public static SyntaxTokenList Organize(SyntaxTokenList modifiers)
     {
-        public static SyntaxTokenList Organize(SyntaxTokenList modifiers)
+        if (modifiers.Count > 1 && !modifiers.SpansPreprocessorDirective())
         {
-            if (modifiers.Count > 1 && !modifiers.SpansPreprocessorDirective())
+            var initialList = new List<SyntaxToken>(modifiers);
+            var leadingTrivia = initialList.First().LeadingTrivia;
+            initialList[0] = initialList[0].WithLeadingTrivia(SpecializedCollections.EmptyEnumerable<SyntaxTrivia>());
+
+            var finalList = initialList.OrderBy(new Comparer()).ToList();
+            if (!initialList.SequenceEqual(finalList))
             {
-                var initialList = new List<SyntaxToken>(modifiers);
-                var leadingTrivia = initialList.First().LeadingTrivia;
-                initialList[0] = initialList[0].WithLeadingTrivia(SpecializedCollections.EmptyEnumerable<SyntaxTrivia>());
+                finalList[0] = finalList[0].WithLeadingTrivia(leadingTrivia);
 
-                var finalList = initialList.OrderBy(new Comparer()).ToList();
-                if (!initialList.SequenceEqual(finalList))
-                {
-                    finalList[0] = finalList[0].WithLeadingTrivia(leadingTrivia);
-
-                    return finalList.ToSyntaxTokenList();
-                }
+                return finalList.ToSyntaxTokenList();
             }
-
-            return modifiers;
         }
+
+        return modifiers;
     }
 }

@@ -443,6 +443,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool ContainsDirectives => this.Green.ContainsDirectives;
 
+        internal bool ContainsAttributes => this.Green.ContainsAttributes;
+
         /// <summary>
         /// Returns true if this node contains any directives (e.g. <c>#if</c>, <c>#nullable</c>, etc.) within it with a matching kind.
         /// </summary>

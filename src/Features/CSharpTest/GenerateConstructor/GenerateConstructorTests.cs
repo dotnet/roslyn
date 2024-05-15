@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-    public class GenerateConstructorTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class GenerateConstructorTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public GenerateConstructorTests(ITestOutputHelper logger)
           : base(logger)

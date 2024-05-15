@@ -15,284 +15,283 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
+
+/// <summary>
+/// Creates batch scopes for projects based on IVsSolutionEvents. This is useful for projects types that don't otherwise have
+/// good batching concepts.
+/// </summary> 
+/// <remarks>All members of this class are affinitized to the UI thread.</remarks>
+[Export(typeof(SolutionEventsBatchScopeCreator))]
+internal sealed class SolutionEventsBatchScopeCreator : ForegroundThreadAffinitizedObject
 {
-    /// <summary>
-    /// Creates batch scopes for projects based on IVsSolutionEvents. This is useful for projects types that don't otherwise have
-    /// good batching concepts.
-    /// </summary> 
-    /// <remarks>All members of this class are affinitized to the UI thread.</remarks>
-    [Export(typeof(SolutionEventsBatchScopeCreator))]
-    internal sealed class SolutionEventsBatchScopeCreator : ForegroundThreadAffinitizedObject
+    private readonly List<(ProjectSystemProject project, IVsHierarchy hierarchy, ProjectSystemProject.BatchScope batchScope)> _fullSolutionLoadScopes = new List<(ProjectSystemProject, IVsHierarchy, ProjectSystemProject.BatchScope)>();
+
+    private uint? _runningDocumentTableEventsCookie;
+
+    private readonly IServiceProvider _serviceProvider;
+
+    private bool _isSubscribedToSolutionEvents = false;
+    private bool _solutionLoaded = false;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public SolutionEventsBatchScopeCreator(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        : base(threadingContext, assertIsForeground: false)
     {
-        private readonly List<(ProjectSystemProject project, IVsHierarchy hierarchy, ProjectSystemProject.BatchScope batchScope)> _fullSolutionLoadScopes = new List<(ProjectSystemProject, IVsHierarchy, ProjectSystemProject.BatchScope)>();
+        _serviceProvider = serviceProvider;
+    }
 
-        private uint? _runningDocumentTableEventsCookie;
+    public void StartTrackingProject(ProjectSystemProject project, IVsHierarchy hierarchy)
+    {
+        AssertIsForeground();
 
-        private readonly IServiceProvider _serviceProvider;
+        EnsureSubscribedToSolutionEvents();
 
-        private bool _isSubscribedToSolutionEvents = false;
-        private bool _solutionLoaded = false;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SolutionEventsBatchScopeCreator(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-            : base(threadingContext, assertIsForeground: false)
+        if (!_solutionLoaded)
         {
-            _serviceProvider = serviceProvider;
+            _fullSolutionLoadScopes.Add((project, hierarchy, project.CreateBatchScope()));
+
+            EnsureSubscribedToRunningDocumentTableEvents();
         }
+    }
 
-        public void StartTrackingProject(ProjectSystemProject project, IVsHierarchy hierarchy)
+    public void StopTrackingProject(ProjectSystemProject project)
+    {
+        AssertIsForeground();
+
+        foreach (var scope in _fullSolutionLoadScopes)
         {
-            AssertIsForeground();
-
-            EnsureSubscribedToSolutionEvents();
-
-            if (!_solutionLoaded)
+            if (scope.project == project)
             {
-                _fullSolutionLoadScopes.Add((project, hierarchy, project.CreateBatchScope()));
-
-                EnsureSubscribedToRunningDocumentTableEvents();
-            }
-        }
-
-        public void StopTrackingProject(ProjectSystemProject project)
-        {
-            AssertIsForeground();
-
-            foreach (var scope in _fullSolutionLoadScopes)
-            {
-                if (scope.project == project)
-                {
-                    scope.batchScope.Dispose();
-                    _fullSolutionLoadScopes.Remove(scope);
-                    break;
-                }
-            }
-
-            EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded();
-        }
-
-        private void StopTrackingAllProjects()
-        {
-            AssertIsForeground();
-
-            foreach (var (_, _, batchScope) in _fullSolutionLoadScopes)
-            {
-                batchScope.Dispose();
-            }
-
-            _fullSolutionLoadScopes.Clear();
-
-            EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded();
-        }
-
-        private void StopTrackingAllProjectsMatchingHierarchy(IVsHierarchy hierarchy)
-        {
-            AssertIsForeground();
-
-            for (var i = 0; i < _fullSolutionLoadScopes.Count; i++)
-            {
-                if (_fullSolutionLoadScopes[i].hierarchy == hierarchy)
-                {
-                    _fullSolutionLoadScopes[i].batchScope.Dispose();
-                    _fullSolutionLoadScopes.RemoveAt(i);
-
-                    // Go back by one so we re-check the same index
-                    i--;
-                }
-            }
-
-            EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded();
-        }
-
-        private void EnsureSubscribedToSolutionEvents()
-        {
-            AssertIsForeground();
-
-            if (_isSubscribedToSolutionEvents)
-            {
-                return;
-            }
-
-            var solution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
-
-            // We never unsubscribe from these, so we just throw out the cookie. We could consider unsubscribing if/when all our
-            // projects are unloaded, but it seems fairly unnecessary -- it'd only be useful if somebody closed one solution but then
-            // opened other solutions in entirely different languages from there.
-            if (ErrorHandler.Succeeded(solution.AdviseSolutionEvents(new SolutionEventsEventSink(this), out _)))
-            {
-                _isSubscribedToSolutionEvents = true;
-            }
-
-            // It's possible that we're loading after the solution has already fully loaded, so see if we missed the event 
-            var shellMonitorSelection = (IVsMonitorSelection)_serviceProvider.GetService(typeof(SVsShellMonitorSelection));
-
-            if (ErrorHandler.Succeeded(shellMonitorSelection.GetCmdUIContextCookie(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, out var fullyLoadedContextCookie)))
-            {
-                if (ErrorHandler.Succeeded(shellMonitorSelection.IsCmdUIContextActive(fullyLoadedContextCookie, out var fActive)) && fActive != 0)
-                {
-                    _solutionLoaded = true;
-                }
+                scope.batchScope.Dispose();
+                _fullSolutionLoadScopes.Remove(scope);
+                break;
             }
         }
 
-        private void EnsureSubscribedToRunningDocumentTableEvents()
+        EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded();
+    }
+
+    private void StopTrackingAllProjects()
+    {
+        AssertIsForeground();
+
+        foreach (var (_, _, batchScope) in _fullSolutionLoadScopes)
         {
-            AssertIsForeground();
+            batchScope.Dispose();
+        }
 
-            if (_runningDocumentTableEventsCookie.HasValue)
+        _fullSolutionLoadScopes.Clear();
+
+        EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded();
+    }
+
+    private void StopTrackingAllProjectsMatchingHierarchy(IVsHierarchy hierarchy)
+    {
+        AssertIsForeground();
+
+        for (var i = 0; i < _fullSolutionLoadScopes.Count; i++)
+        {
+            if (_fullSolutionLoadScopes[i].hierarchy == hierarchy)
             {
-                return;
-            }
+                _fullSolutionLoadScopes[i].batchScope.Dispose();
+                _fullSolutionLoadScopes.RemoveAt(i);
 
-            var runningDocumentTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-
-            if (ErrorHandler.Succeeded(runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this, runningDocumentTable), out var runningDocumentTableEventsCookie)))
-            {
-                _runningDocumentTableEventsCookie = runningDocumentTableEventsCookie;
+                // Go back by one so we re-check the same index
+                i--;
             }
         }
 
-        private void EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded()
+        EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded();
+    }
+
+    private void EnsureSubscribedToSolutionEvents()
+    {
+        AssertIsForeground();
+
+        if (_isSubscribedToSolutionEvents)
         {
-            AssertIsForeground();
-
-            if (!_runningDocumentTableEventsCookie.HasValue)
-            {
-                return;
-            }
-
-            // If we don't have any scopes left, then there is no reason to be subscribed to Running Document Table events, because
-            // there won't be any scopes to complete.
-            if (_fullSolutionLoadScopes.Count > 0)
-            {
-                return;
-            }
-
-            var runningDocumentTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-            runningDocumentTable.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie.Value);
-            _runningDocumentTableEventsCookie = null;
+            return;
         }
 
-        private class SolutionEventsEventSink : IVsSolutionEvents, IVsSolutionLoadEvents
+        var solution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
+
+        // We never unsubscribe from these, so we just throw out the cookie. We could consider unsubscribing if/when all our
+        // projects are unloaded, but it seems fairly unnecessary -- it'd only be useful if somebody closed one solution but then
+        // opened other solutions in entirely different languages from there.
+        if (ErrorHandler.Succeeded(solution.AdviseSolutionEvents(new SolutionEventsEventSink(this), out _)))
         {
-            private readonly SolutionEventsBatchScopeCreator _scopeCreator;
-
-            public SolutionEventsEventSink(SolutionEventsBatchScopeCreator scopeCreator)
-                => _scopeCreator = scopeCreator;
-
-            int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
-            {
-                Contract.ThrowIfTrue(_scopeCreator._fullSolutionLoadScopes.Any());
-
-                _scopeCreator._solutionLoaded = false;
-
-                return VSConstants.S_OK;
-            }
-
-            int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
-            {
-                _scopeCreator._solutionLoaded = false;
-
-                return VSConstants.S_OK;
-            }
-
-            int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
-            {
-                _scopeCreator._solutionLoaded = true;
-                _scopeCreator.StopTrackingAllProjects();
-
-                return VSConstants.S_OK;
-            }
-
-            #region Unimplemented Members
-
-            int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
-                => VSConstants.E_NOTIMPL;
-
-            int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
-                => VSConstants.E_NOTIMPL;
-
-            int IVsSolutionEvents.OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
-                => VSConstants.E_NOTIMPL;
-
-            int IVsSolutionEvents.OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
-                => VSConstants.E_NOTIMPL;
-
-            int IVsSolutionEvents.OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
-                => VSConstants.E_NOTIMPL;
-
-            int IVsSolutionEvents.OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
-                => VSConstants.E_NOTIMPL;
-
-            int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
-                => VSConstants.E_NOTIMPL;
-
-            int IVsSolutionEvents.OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
-                => VSConstants.E_NOTIMPL;
-
-            int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
-                => VSConstants.E_NOTIMPL;
-
-            int IVsSolutionLoadEvents.OnBeforeBackgroundSolutionLoadBegins()
-                => VSConstants.E_NOTIMPL;
-
-            int IVsSolutionLoadEvents.OnQueryBackgroundLoadProjectBatch(out bool pfShouldDelayLoadToNextIdle)
-            {
-                pfShouldDelayLoadToNextIdle = false;
-                return VSConstants.E_NOTIMPL;
-            }
-
-            int IVsSolutionLoadEvents.OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
-                => VSConstants.E_NOTIMPL;
-
-            int IVsSolutionLoadEvents.OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
-                => VSConstants.E_NOTIMPL;
-
-            #endregion
+            _isSubscribedToSolutionEvents = true;
         }
 
-        private class RunningDocumentTableEventSink : IVsRunningDocTableEvents
+        // It's possible that we're loading after the solution has already fully loaded, so see if we missed the event 
+        var shellMonitorSelection = (IVsMonitorSelection)_serviceProvider.GetService(typeof(SVsShellMonitorSelection));
+
+        if (ErrorHandler.Succeeded(shellMonitorSelection.GetCmdUIContextCookie(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, out var fullyLoadedContextCookie)))
         {
-            private readonly SolutionEventsBatchScopeCreator _scopeCreator;
-            private readonly IVsRunningDocumentTable4 _runningDocumentTable;
-
-            public RunningDocumentTableEventSink(SolutionEventsBatchScopeCreator scopeCreator, IVsRunningDocumentTable runningDocumentTable)
+            if (ErrorHandler.Succeeded(shellMonitorSelection.IsCmdUIContextActive(fullyLoadedContextCookie, out var fActive)) && fActive != 0)
             {
-                _scopeCreator = scopeCreator;
-                _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
+                _solutionLoaded = true;
             }
-
-            int IVsRunningDocTableEvents.OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
-            {
-                _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
-
-                // Some document is being opened in this project; we need to ensure the project is fully updated so any requests
-                // for CodeModel or the workspace are successful.
-                _scopeCreator.StopTrackingAllProjectsMatchingHierarchy(hierarchy);
-
-                return VSConstants.S_OK;
-            }
-
-            #region Unimplemented Members
-
-            int IVsRunningDocTableEvents.OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
-                => VSConstants.E_NOTIMPL;
-
-            int IVsRunningDocTableEvents.OnAfterSave(uint docCookie)
-                => VSConstants.E_NOTIMPL;
-
-            int IVsRunningDocTableEvents.OnAfterAttributeChange(uint docCookie, uint grfAttribs)
-                => VSConstants.E_NOTIMPL;
-
-            int IVsRunningDocTableEvents.OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
-                => VSConstants.E_NOTIMPL;
-
-            int IVsRunningDocTableEvents.OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
-                => VSConstants.E_NOTIMPL;
-
-            #endregion
         }
+    }
+
+    private void EnsureSubscribedToRunningDocumentTableEvents()
+    {
+        AssertIsForeground();
+
+        if (_runningDocumentTableEventsCookie.HasValue)
+        {
+            return;
+        }
+
+        var runningDocumentTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+
+        if (ErrorHandler.Succeeded(runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this, runningDocumentTable), out var runningDocumentTableEventsCookie)))
+        {
+            _runningDocumentTableEventsCookie = runningDocumentTableEventsCookie;
+        }
+    }
+
+    private void EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded()
+    {
+        AssertIsForeground();
+
+        if (!_runningDocumentTableEventsCookie.HasValue)
+        {
+            return;
+        }
+
+        // If we don't have any scopes left, then there is no reason to be subscribed to Running Document Table events, because
+        // there won't be any scopes to complete.
+        if (_fullSolutionLoadScopes.Count > 0)
+        {
+            return;
+        }
+
+        var runningDocumentTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+        runningDocumentTable.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie.Value);
+        _runningDocumentTableEventsCookie = null;
+    }
+
+    private class SolutionEventsEventSink : IVsSolutionEvents, IVsSolutionLoadEvents
+    {
+        private readonly SolutionEventsBatchScopeCreator _scopeCreator;
+
+        public SolutionEventsEventSink(SolutionEventsBatchScopeCreator scopeCreator)
+            => _scopeCreator = scopeCreator;
+
+        int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
+        {
+            Contract.ThrowIfTrue(_scopeCreator._fullSolutionLoadScopes.Any());
+
+            _scopeCreator._solutionLoaded = false;
+
+            return VSConstants.S_OK;
+        }
+
+        int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
+        {
+            _scopeCreator._solutionLoaded = false;
+
+            return VSConstants.S_OK;
+        }
+
+        int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+        {
+            _scopeCreator._solutionLoaded = true;
+            _scopeCreator.StopTrackingAllProjects();
+
+            return VSConstants.S_OK;
+        }
+
+        #region Unimplemented Members
+
+        int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
+            => VSConstants.E_NOTIMPL;
+
+        int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
+            => VSConstants.E_NOTIMPL;
+
+        int IVsSolutionEvents.OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
+            => VSConstants.E_NOTIMPL;
+
+        int IVsSolutionEvents.OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
+            => VSConstants.E_NOTIMPL;
+
+        int IVsSolutionEvents.OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
+            => VSConstants.E_NOTIMPL;
+
+        int IVsSolutionEvents.OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
+            => VSConstants.E_NOTIMPL;
+
+        int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
+            => VSConstants.E_NOTIMPL;
+
+        int IVsSolutionEvents.OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
+            => VSConstants.E_NOTIMPL;
+
+        int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
+            => VSConstants.E_NOTIMPL;
+
+        int IVsSolutionLoadEvents.OnBeforeBackgroundSolutionLoadBegins()
+            => VSConstants.E_NOTIMPL;
+
+        int IVsSolutionLoadEvents.OnQueryBackgroundLoadProjectBatch(out bool pfShouldDelayLoadToNextIdle)
+        {
+            pfShouldDelayLoadToNextIdle = false;
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsSolutionLoadEvents.OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
+            => VSConstants.E_NOTIMPL;
+
+        int IVsSolutionLoadEvents.OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
+            => VSConstants.E_NOTIMPL;
+
+        #endregion
+    }
+
+    private class RunningDocumentTableEventSink : IVsRunningDocTableEvents
+    {
+        private readonly SolutionEventsBatchScopeCreator _scopeCreator;
+        private readonly IVsRunningDocumentTable4 _runningDocumentTable;
+
+        public RunningDocumentTableEventSink(SolutionEventsBatchScopeCreator scopeCreator, IVsRunningDocumentTable runningDocumentTable)
+        {
+            _scopeCreator = scopeCreator;
+            _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
+        }
+
+        int IVsRunningDocTableEvents.OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
+        {
+            _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
+
+            // Some document is being opened in this project; we need to ensure the project is fully updated so any requests
+            // for CodeModel or the workspace are successful.
+            _scopeCreator.StopTrackingAllProjectsMatchingHierarchy(hierarchy);
+
+            return VSConstants.S_OK;
+        }
+
+        #region Unimplemented Members
+
+        int IVsRunningDocTableEvents.OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
+            => VSConstants.E_NOTIMPL;
+
+        int IVsRunningDocTableEvents.OnAfterSave(uint docCookie)
+            => VSConstants.E_NOTIMPL;
+
+        int IVsRunningDocTableEvents.OnAfterAttributeChange(uint docCookie, uint grfAttribs)
+            => VSConstants.E_NOTIMPL;
+
+        int IVsRunningDocTableEvents.OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
+            => VSConstants.E_NOTIMPL;
+
+        int IVsRunningDocTableEvents.OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
+            => VSConstants.E_NOTIMPL;
+
+        #endregion
     }
 }

@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+
     internal sealed partial class RemoteWorkspace
     {
         /// <summary>
@@ -18,10 +20,10 @@ namespace Microsoft.CodeAnalysis.Remote
         private (Checksum checksum, Solution solution) _lastRequestedPrimaryBranchSolution;
 
         /// <summary>
-        /// The last solution requested by a service.  Cached as it's very common to have a flurry of requests for the
-        /// same checksum that don't run concurrently.  Only read/write while holding <see cref="_gate"/>.
+        /// Cache of last N solutions requested by a service.  Cached as it's very common to have a flurry of requests
+        /// for the same few checksum that don't run concurrently.  Only read/write while holding <see cref="_gate"/>.
         /// </summary>
-        private (Checksum checksum, Solution solution) _lastRequestedAnyBranchSolution;
+        private readonly RemoteSolutionCache<Checksum, Solution> _lastRequestedAnyBranchSolutions = new();
 
         /// <summary>
         /// Mapping from solution-checksum to the solution computed for it.  This is used so that we can hold a solution
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// checksum can share the computation of that particular solution and avoid duplicated concurrent work.  Only
         /// read/write while holding <see cref="_gate"/>.
         /// </summary>
-        private readonly Dictionary<Checksum, InFlightSolution> _solutionChecksumToSolution = new();
+        private readonly Dictionary<Checksum, InFlightSolution> _solutionChecksumToSolution = [];
 
         /// <summary>
         /// Deliberately not cancellable.  This code must always run fully to completion.
@@ -80,9 +82,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // See if we're being asked for a checksum we already have cached a solution for.  Safe to read directly
                 // as we're holding _gate.
-                var cachedSolution =
-                    _lastRequestedPrimaryBranchSolution.checksum == solutionChecksum ? _lastRequestedPrimaryBranchSolution.solution :
-                    _lastRequestedAnyBranchSolution.checksum == solutionChecksum ? _lastRequestedAnyBranchSolution.solution : null;
+                var cachedSolution = _lastRequestedPrimaryBranchSolution.checksum == solutionChecksum
+                    ? _lastRequestedPrimaryBranchSolution.solution
+                    : _lastRequestedAnyBranchSolutions.Find(solutionChecksum);
 
                 // We're the first call that is asking about this checksum.  Kick off async computation to compute it
                 // (or use an existing cached value we already have).  Start with an in-flight-count of 1 to represent

@@ -33,7 +33,7 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId)
 {
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId];
 
     protected override async Task FixAsync(
         Document document,
@@ -45,7 +45,7 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var expressionType = semanticModel.Compilation.ExpressionOfTType();
-        if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, allowInterfaceConversion: true, cancellationToken) is not { } analysisResult)
+        if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, allowSemanticsChange: true, cancellationToken) is not { } analysisResult)
             return;
 
         // We want to replace the final invocation (`builder.ToImmutable()`) with `new()`.  That way we can call into

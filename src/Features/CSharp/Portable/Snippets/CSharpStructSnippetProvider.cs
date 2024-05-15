@@ -15,47 +15,46 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+internal sealed class CSharpStructSnippetProvider : AbstractCSharpTypeSnippetProvider
 {
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpStructSnippetProvider : AbstractCSharpTypeSnippetProvider
+    private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
-        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-        {
-            SyntaxKind.InternalKeyword,
-            SyntaxKind.PublicKeyword,
-            SyntaxKind.PrivateKeyword,
-            SyntaxKind.ProtectedKeyword,
-            SyntaxKind.UnsafeKeyword,
-            SyntaxKind.RefKeyword,
-            SyntaxKind.ReadOnlyKeyword,
-            SyntaxKind.FileKeyword,
-        };
+        SyntaxKind.InternalKeyword,
+        SyntaxKind.PublicKeyword,
+        SyntaxKind.PrivateKeyword,
+        SyntaxKind.ProtectedKeyword,
+        SyntaxKind.UnsafeKeyword,
+        SyntaxKind.RefKeyword,
+        SyntaxKind.ReadOnlyKeyword,
+        SyntaxKind.FileKeyword,
+    };
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpStructSnippetProvider()
-        {
-        }
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpStructSnippetProvider()
+    {
+    }
 
-        public override string Identifier => "struct";
+    public override string Identifier => "struct";
 
-        public override string Description => FeaturesResources.struct_;
+    public override string Description => FeaturesResources.struct_;
 
-        protected override ISet<SyntaxKind> ValidModifiers => s_validModifiers;
+    protected override ISet<SyntaxKind> ValidModifiers => s_validModifiers;
 
-        protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+    protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var generator = SyntaxGenerator.GetGenerator(document);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var name = NameGenerator.GenerateUniqueName("MyStruct", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
-            return generator.StructDeclaration(name);
-        }
+        var name = NameGenerator.GenerateUniqueName("MyStruct", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
+        return generator.StructDeclaration(name);
+    }
 
-        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-        {
-            return syntaxFacts.IsStructDeclaration;
-        }
+    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
+    {
+        return syntaxFacts.IsStructDeclaration;
     }
 }

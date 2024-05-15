@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public sealed class Builder : IList<T>, IReadOnlyList<T>, IList
         {
             /// <summary>
-            /// The immutable collection this builder is based on.
+            /// The private builder implementation.
             /// </summary>
             private ValueBuilder _builder;
 

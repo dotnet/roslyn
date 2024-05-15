@@ -363,7 +363,7 @@ class C{i}
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ChangeSignatureCommandDisabledInSubmission()
         {
-            using var workspace = TestWorkspace.Create(XElement.Parse("""
+            using var workspace = EditorTestWorkspace.Create(XElement.Parse("""
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">  
                         class C

@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 Return ImmutableArray(Of Diagnostic).Empty
             End If
 
-            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, simplifierOptions, ignoredSpans:=Nothing, cancellationToken)
+            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, simplifierOptions, context.Options, ignoredSpans:=Nothing, cancellationToken)
             simplifier.Visit(root)
             Return simplifier.Diagnostics
         End Function
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             End If
 
             Dim configOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.SemanticModel.SyntaxTree)
-            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, context.SemanticModel, simplifierOptions, ignoredSpans:=codeBlockIntervalTree, context.CancellationToken)
+            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, context.SemanticModel, simplifierOptions, context.Options, ignoredSpans:=codeBlockIntervalTree, context.CancellationToken)
             simplifier.Visit(root)
             Return simplifier.Diagnostics
         End Function

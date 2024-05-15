@@ -10,18 +10,17 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
-{
-    internal abstract class AbstractLockSnippetProvider : AbstractStatementSnippetProvider
-    {
-        protected override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var statement = generator.LockStatement(generator.ThisExpression(), SpecializedCollections.EmptyEnumerable<SyntaxNode>());
-            return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), statement.NormalizeWhitespace().ToFullString()));
-        }
+namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-            => syntaxFacts.IsLockStatement;
+internal abstract class AbstractLockSnippetProvider : AbstractStatementSnippetProvider
+{
+    protected override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var generator = SyntaxGenerator.GetGenerator(document);
+        var statement = generator.LockStatement(generator.ThisExpression(), SpecializedCollections.EmptyEnumerable<SyntaxNode>());
+        return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), statement.NormalizeWhitespace().ToFullString()));
     }
+
+    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
+        => syntaxFacts.IsLockStatement;
 }

@@ -549,7 +549,7 @@ namespace Metalama.Compiler.UnitTests.Diagnostics
     }
 
     [Trait("Category", "OuterLoop")]
-    public class MetalamaCompilerLockTests : LockTests
+    public class MetalamaCompilerLockTests : Microsoft.CodeAnalysis.CSharp.UnitTests.LockTests
     {
         public MetalamaCompilerLockTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
 

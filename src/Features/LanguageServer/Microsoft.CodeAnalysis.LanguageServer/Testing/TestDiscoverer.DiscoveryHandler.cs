@@ -22,7 +22,7 @@ internal partial class TestDiscoverer
     private class DiscoveryHandler(BufferedProgress<RunTestsPartialResult> progress) : ITestDiscoveryEventsHandler
     {
         private readonly BufferedProgress<RunTestsPartialResult> _progress = progress;
-        private readonly ConcurrentBag<TestCase> _testCases = new();
+        private readonly ConcurrentBag<TestCase> _testCases = [];
         private bool _isComplete;
         private bool _isAborted;
 

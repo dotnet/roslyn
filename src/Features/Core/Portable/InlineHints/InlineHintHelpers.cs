@@ -12,52 +12,51 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.InlineHints
+namespace Microsoft.CodeAnalysis.InlineHints;
+
+internal static class InlineHintHelpers
 {
-    internal static class InlineHintHelpers
+    public static Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? GetDescriptionFunction(int position, SymbolKey symbolKey, SymbolDescriptionOptions options)
+        => (document, cancellationToken) => GetDescriptionAsync(document, position, symbolKey, options, cancellationToken);
+
+    private static async Task<ImmutableArray<TaggedText>> GetDescriptionAsync(Document document, int position, SymbolKey symbolKey, SymbolDescriptionOptions options, CancellationToken cancellationToken)
     {
-        public static Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? GetDescriptionFunction(int position, SymbolKey symbolKey, SymbolDescriptionOptions options)
-            => (document, cancellationToken) => GetDescriptionAsync(document, position, symbolKey, options, cancellationToken);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        private static async Task<ImmutableArray<TaggedText>> GetDescriptionAsync(Document document, int position, SymbolKey symbolKey, SymbolDescriptionOptions options, CancellationToken cancellationToken)
+        var symbol = symbolKey.Resolve(semanticModel.Compilation, cancellationToken: cancellationToken).Symbol;
+        if (symbol != null)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var symbolDisplayService = document.GetRequiredLanguageService<ISymbolDisplayService>();
 
-            var symbol = symbolKey.Resolve(semanticModel.Compilation, cancellationToken: cancellationToken).Symbol;
-            if (symbol != null)
+            var parts = new List<TaggedText>();
+
+            var groups = await symbolDisplayService.ToDescriptionGroupsAsync(
+                semanticModel, position, [symbol], options, cancellationToken).ConfigureAwait(false);
+
+            parts.AddRange(groups[SymbolDescriptionGroups.MainDescription]);
+
+            var formatter = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
+            var documentation = symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken);
+
+            if (documentation.Any())
             {
-                var symbolDisplayService = document.GetRequiredLanguageService<ISymbolDisplayService>();
-
-                var parts = new List<TaggedText>();
-
-                var groups = await symbolDisplayService.ToDescriptionGroupsAsync(
-                    semanticModel, position, ImmutableArray.Create(symbol), options, cancellationToken).ConfigureAwait(false);
-
-                parts.AddRange(groups[SymbolDescriptionGroups.MainDescription]);
-
-                var formatter = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
-                var documentation = symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken);
-
-                if (documentation.Any())
-                {
-                    parts.AddLineBreak();
-                    parts.AddRange(documentation);
-                }
-
-                if (groups.TryGetValue(SymbolDescriptionGroups.StructuralTypes, out var anonymousTypes))
-                {
-                    if (!anonymousTypes.IsDefaultOrEmpty)
-                    {
-                        parts.AddLineBreak();
-                        parts.AddLineBreak();
-                        parts.AddRange(anonymousTypes);
-                    }
-                }
-
-                return parts.ToImmutableArray();
+                parts.AddLineBreak();
+                parts.AddRange(documentation);
             }
 
-            return default;
+            if (groups.TryGetValue(SymbolDescriptionGroups.StructuralTypes, out var anonymousTypes))
+            {
+                if (!anonymousTypes.IsDefaultOrEmpty)
+                {
+                    parts.AddLineBreak();
+                    parts.AddLineBreak();
+                    parts.AddRange(anonymousTypes);
+                }
+            }
+
+            return parts.ToImmutableArray();
         }
+
+        return default;
     }
 }

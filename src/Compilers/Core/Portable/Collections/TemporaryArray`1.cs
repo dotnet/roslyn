@@ -351,6 +351,59 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
+        public void Sort(Comparison<T> compare)
+        {
+            if (_builder is not null)
+            {
+                _builder.Sort(compare);
+                return;
+            }
+
+            switch (_count)
+            {
+                case <= 1:
+                    return;
+                case 2:
+                    if (compare(_item0, _item1) > 0)
+                    {
+                        (_item0, _item1) = (_item1, _item0);
+                    }
+                    return;
+                case 3:
+                    if (compare(_item0, _item1) > 0)
+                        (_item0, _item1) = (_item1, _item0);
+
+                    if (compare(_item1, _item2) > 0)
+                    {
+                        (_item1, _item2) = (_item2, _item1);
+
+                        if (compare(_item0, _item1) > 0)
+                            (_item0, _item1) = (_item1, _item0);
+                    }
+                    return;
+                case 4:
+
+                    if (compare(_item0, _item1) > 0)
+                        (_item0, _item1) = (_item1, _item0);
+
+                    if (compare(_item2, _item3) > 0)
+                        (_item2, _item3) = (_item3, _item2);
+
+                    if (compare(_item0, _item2) > 0)
+                        (_item0, _item2) = (_item2, _item0);
+
+                    if (compare(_item1, _item3) > 0)
+                        (_item1, _item3) = (_item3, _item1);
+
+                    if (compare(_item1, _item2) > 0)
+                        (_item1, _item2) = (_item2, _item1);
+
+                    return;
+                default:
+                    throw ExceptionUtilities.Unreachable();
+            }
+        }
+
         /// <summary>
         /// Throws <see cref="IndexOutOfRangeException"/>.
         /// </summary>

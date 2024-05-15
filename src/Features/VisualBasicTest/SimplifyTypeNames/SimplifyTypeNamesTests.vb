@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
     <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
     <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
     Partial Public Class SimplifyTypeNamesTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(),
@@ -959,7 +959,7 @@ Namespace N1
 End Namespace")
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSimplifyTypeInScriptCode() As Task
             Await TestAsync(
 "Imports System

@@ -5,15 +5,17 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.IntroduceVariable
+Imports Microsoft.CodeAnalysis.UnitTests
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.IntroduceVariable
     <Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
     <Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
     Public Class IntroduceVariableTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New IntroduceVariableCodeRefactoringProvider()
         End Function
 
@@ -1705,7 +1707,7 @@ End Class
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529510")>
-        <WpfFact(Skip:="529510")>
+        <Fact(Skip:="529510")>
         Public Async Function TestNoRefactoringOnAddressOfExpression() As Task
             Dim source = "Imports System
 Module Module1
@@ -2562,7 +2564,7 @@ End Module
             Const code = "
 Imports System
 
-" & FormattableStringType & "
+" & CodeSnippets.VBFormattableStringType & "
 
 Namespace N
     Class C
@@ -2575,7 +2577,7 @@ End Namespace"
             Const expected = "
 Imports System
 
-" & FormattableStringType & "
+" & CodeSnippets.VBFormattableStringType & "
 
 Namespace N
     Class C

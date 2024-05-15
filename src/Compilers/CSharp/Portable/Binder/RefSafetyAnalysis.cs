@@ -539,6 +539,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+        {
+            base.VisitCompoundAssignmentOperator(node);
+            ValidateAssignment(node.Syntax, node.Left, node, isRef: false, _diagnostics);
+            return null;
+        }
+
         public override BoundNode? VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             this.Visit(node.Expression);

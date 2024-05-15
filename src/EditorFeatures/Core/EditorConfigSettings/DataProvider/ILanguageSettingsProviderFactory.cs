@@ -4,9 +4,8 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
+
+internal interface ILanguageSettingsProviderFactory<TData> : ISettingsProviderFactory<TData>, ILanguageService
 {
-    internal interface ILanguageSettingsProviderFactory<TData> : ISettingsProviderFactory<TData>, ILanguageService
-    {
-    }
 }

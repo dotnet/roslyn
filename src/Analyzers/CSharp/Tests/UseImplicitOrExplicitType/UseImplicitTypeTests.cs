@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-    public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public UseImplicitTypeTests(ITestOutputHelper? logger = null)
           : base(logger)
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
             };
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnFieldDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnFieldLikeEvents()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnConstants()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnNullLiteral()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
         public async Task NotOnRefVar()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnDynamic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnAnonymousMethodExpression()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnLambdaExpression()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnMethodGroup()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnDeclarationWithMultipleDeclarators()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnDeclarationWithoutInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnIFormattable()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnFormattableString()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotInCatchDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotDuringConflicts()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotIfAlreadyImplicitlyTyped()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnImplicitConversion()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnBoxingImplicitConversion()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnRHS()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnVariablesUsedInInitalizerExpression()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
         public async Task NotOnVariablesOfEnumTypeNamedAsEnumTypeUsedInInitalizerExpressionAtFirstPosition()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
         public async Task NotOnVariablesNamedAsTypeUsedInInitalizerExpressionContainingTypeNameAtFirstPositionOfMemberAccess()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
         public async Task SuggestOnVariablesUsedInInitalizerExpressionAsInnerPartsOfQualifiedNameStartedWithGlobal()
         {
             await TestAsync(
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, CSharpParseOptions.Default, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
         public async Task SuggestOnVariablesUsedInInitalizerExpressionAsInnerPartsOfQualifiedName()
         {
             await TestInRegularAndScriptAsync(
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26894")]
         public async Task SuggestOnVariablesUsedInInitalizerExpressionAsLastPartOfQualifiedName()
         {
             await TestInRegularAndScriptAsync(
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnAssignmentToInterfaceType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task NotOnArrayInitializerWithoutNewKeyword()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnLocalWithIntrinsicTypeString()
         {
             await TestInRegularAndScriptAsync(
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnIntrinsicType()
         {
             await TestInRegularAndScriptAsync(
@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
         public async Task SuggestVarOnRefIntrinsicType()
         {
             await TestInRegularAndScriptAsync(
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
         public async Task WithRefIntrinsicTypeInForeach()
         {
             var before = """
@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnFrameworkType()
         {
             await TestInRegularAndScriptAsync(
@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnUserDefinedType()
         {
             await TestInRegularAndScriptAsync(
@@ -806,7 +806,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnGenericType()
         {
             await TestInRegularAndScriptAsync(
@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnSeeminglyConflictingType()
         {
             await TestInRegularAndScriptAsync(
@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnSingleDimensionalArrayTypeWithNewOperator()
         {
             await TestInRegularAndScriptAsync(
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnSingleDimensionalArrayTypeWithNewOperator2()
         {
             await TestInRegularAndScriptAsync(
@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnSingleDimensionalJaggedArrayType()
         {
             await TestInRegularAndScriptAsync(
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnDeclarationWithObjectInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -990,7 +990,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnDeclarationWithCollectionInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -1020,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnDeclarationWithCollectionAndObjectInitializers()
         {
             await TestInRegularAndScriptAsync(
@@ -1066,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnForStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnForeachStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -1134,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnQueryExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1184,7 +1184,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarInUsingStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarOnExplicitConversion()
         {
             await TestInRegularAndScriptAsync(
@@ -1262,7 +1262,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarInConditionalAccessExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1302,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarInCheckedExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1332,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarInUnCheckedExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1362,7 +1362,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarInAwaitExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1402,7 +1402,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarInParenthesizedExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1430,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task DoNotSuggestVarOnBuiltInType_Literal_WithOption()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1447,7 +1447,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task DoNotSuggestVarOnBuiltInType_WithOption()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1466,7 +1466,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task DoNotSuggestVarOnFrameworkTypeEquivalentToBuiltInType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1485,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarWhereTypeIsEvident_DefaultExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1513,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeWhereApparent());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarWhereTypeIsEvident_Literals()
         {
             await TestInRegularAndScriptAsync(
@@ -1541,7 +1541,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeWhereApparentAndForIntrinsics());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task DoNotSuggestVarWhereTypeIsEvident_Literals()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1558,7 +1558,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarWhereTypeIsEvident_ObjectCreationExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1586,7 +1586,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeWhereApparent());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarWhereTypeIsEvident_CastExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1616,7 +1616,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeWhereApparent());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task DoNotSuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1634,7 +1634,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task DoNotSuggestVar_BuiltInTypesRulePrecedesOverTypeIsApparentRule2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1652,7 +1652,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task DoNotSuggestVarWhereTypeIsEvident_IsExpression()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1678,7 +1678,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarWhereTypeIsEvident_AsExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -1724,7 +1724,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeWhereApparent());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarWhereTypeIsEvident_ConversionHelpers()
         {
             await TestInRegularAndScriptAsync(
@@ -1752,7 +1752,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeWhereApparent());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarWhereTypeIsEvident_CreationHelpers()
         {
             await TestInRegularAndScriptAsync(
@@ -1786,7 +1786,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeWhereApparent());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarWhereTypeIsEvident_CreationHelpersWithInferredTypeArguments()
         {
             await TestInRegularAndScriptAsync(
@@ -1814,7 +1814,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeWhereApparent());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarWhereTypeIsEvident_ConvertToType()
         {
             await TestInRegularAndScriptAsync(
@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeWhereApparent());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarWhereTypeIsEvident_IConvertibleToType()
         {
             await TestInRegularAndScriptAsync(
@@ -1876,7 +1876,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 """, options: ImplicitTypeWhereApparent());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarNotificationLevelSilent()
         {
             var source =
@@ -1896,7 +1896,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 diagnosticSeverity: DiagnosticSeverity.Hidden);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarNotificationLevelInfo()
         {
             var source =
@@ -1916,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 diagnosticSeverity: DiagnosticSeverity.Info);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarNotificationLevelWarning()
         {
             var source =
@@ -1936,7 +1936,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 diagnosticSeverity: DiagnosticSeverity.Warning);
         }
 
-        [WpfFact]
+        [Fact]
         public async Task SuggestVarNotificationLevelError()
         {
             var source =
@@ -1956,7 +1956,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
                 diagnosticSeverity: DiagnosticSeverity.Error);
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
         public async Task SuggestVarOnLocalWithIntrinsicArrayType()
         {
             var before = @"class C { static void M() { [|int[]|] s = new int[0]; } }";
@@ -1968,7 +1968,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent())); // Preference of intrinsic types dominates
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
         public async Task SuggestVarOnLocalWithCustomArrayType()
         {
             var before = @"class C { static void M() { [|C[]|] s = new C[0]; } }";
@@ -1980,7 +1980,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeWhereApparent());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
         public async Task SuggestVarOnLocalWithNonApparentCustomArrayType()
         {
             var before = @"class C { static void M() { [|C[]|] s = new[] { new C() }; } }";
@@ -2010,7 +2010,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             }
             """;
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11094")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11094")]
         public async Task SuggestVarOnLocalWithIntrinsicTypeTuple()
         {
             var before = @"class C { static void M() { [|(int a, string)|] s = (a: 1, ""hello""); } }";
@@ -2021,7 +2021,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11094")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11094")]
         public async Task SuggestVarOnLocalWithNonApparentTupleType()
         {
             var before = @"class C { static void M(C c) { [|(int a, C b)|] s = (a: 1, b: c); } }";
@@ -2032,7 +2032,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11154")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11154")]
         public async Task ValueTupleCreate()
         {
             await TestInRegularAndScriptAsync(
@@ -2061,7 +2061,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
 options: ImplicitTypeWhereApparent());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11095")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11095")]
         public async Task ValueTupleCreate_2()
         {
             await TestInRegularAndScriptAsync(
@@ -2090,7 +2090,7 @@ options: ImplicitTypeWhereApparent());
 options: ImplicitTypeWhereApparent());
         }
 
-        [WpfFact]
+        [Fact]
         public async Task TupleWithDifferentNames()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2106,7 +2106,7 @@ options: ImplicitTypeWhereApparent());
 new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/14052")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14052")]
         public async Task DoNotOfferOnForEachConversionIfItChangesSemantics()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2143,7 +2143,7 @@ new TestParameters(options: ImplicitTypeEverywhere()));
 new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/14052")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14052")]
         public async Task OfferOnForEachConversionIfItDoesNotChangesSemantics()
         {
             await TestInRegularAndScriptAsync(
@@ -2209,7 +2209,7 @@ new TestParameters(options: ImplicitTypeEverywhere()));
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20437")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20437")]
         public async Task SuggestVarOnDeclarationExpressionSyntax()
         {
             await TestInRegularAndScriptAsync(
@@ -2238,7 +2238,7 @@ new TestParameters(options: ImplicitTypeEverywhere()));
 options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
         public async Task DoNotSuggestVarOnDeclarationExpressionSyntaxWithIntrinsicType()
         {
             var before =
@@ -2254,7 +2254,7 @@ options: ImplicitTypeEverywhere());
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
         public async Task DoNotSuggestVarOnStackAllocExpressions_SpanType()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -2276,7 +2276,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
         public async Task DoNotSuggestVarOnStackAllocExpressions_SpanType_NestedConditional()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -2298,7 +2298,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
         public async Task DoNotSuggestVarOnStackAllocExpressions_SpanType_NestedCast()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -2320,7 +2320,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
         public async Task SuggestVarOnLambdasWithNestedStackAllocs()
         {
             await TestInRegularAndScriptAsync("""
@@ -2352,7 +2352,7 @@ options: ImplicitTypeEverywhere());
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
         public async Task SuggestVarOnAnonymousMethodsWithNestedStackAllocs()
         {
             await TestInRegularAndScriptAsync("""
@@ -2384,7 +2384,7 @@ options: ImplicitTypeEverywhere());
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
         public async Task SuggestVarOnStackAllocsNestedInLambdas()
         {
             await TestInRegularAndScriptAsync("""
@@ -2416,7 +2416,7 @@ options: ImplicitTypeEverywhere());
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
         public async Task SuggestVarOnStackAllocsNestedInAnonymousMethods()
         {
             await TestInRegularAndScriptAsync("""
@@ -2448,7 +2448,7 @@ options: ImplicitTypeEverywhere());
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
         public async Task SuggestVarOnStackAllocsInOuterMethodScope()
         {
             await TestInRegularAndScriptAsync("""
@@ -2470,7 +2470,7 @@ options: ImplicitTypeEverywhere());
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
         public async Task DoSuggestForDeclarationExpressionIfItWouldNotChangeOverloadResolution2()
         {
             await TestInRegularAndScriptAsync("""
@@ -2500,7 +2500,7 @@ options: ImplicitTypeEverywhere());
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
         public async Task DoNotSuggestForDeclarationExpressionIfItWouldChangeOverloadResolution()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -2519,7 +2519,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
         public async Task DoNotSuggestIfChangesGenericTypeInference()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -2536,7 +2536,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
         public async Task SuggestIfDoesNotChangeGenericTypeInference1()
         {
             await TestInRegularAndScriptAsync("""
@@ -2564,7 +2564,7 @@ options: ImplicitTypeEverywhere());
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23116")]
         public async Task SuggestIfDoesNotChangeGenericTypeInference2()
         {
             await TestInRegularAndScriptAsync("""
@@ -2592,7 +2592,7 @@ options: ImplicitTypeEverywhere());
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23711")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23711")]
         public async Task SuggestVarForDelegateType()
         {
             await TestInRegularAndScriptAsync("""
@@ -2622,7 +2622,7 @@ options: ImplicitTypeEverywhere());
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23711")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23711")]
         public async Task DoNotSuggestVarForDelegateType1()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -2640,7 +2640,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23711")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23711")]
         public async Task DoNotSuggestVarForDelegateType2()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -2660,7 +2660,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/23711")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23711")]
         public async Task DoNotSuggestVarForDelegateType3()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -2678,7 +2678,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/24262")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24262")]
         public async Task DoNotSuggestVarForInterfaceVariableInForeachStatement()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -2706,7 +2706,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/24262")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24262")]
         public async Task DoNotSuggestVarForInterfaceVariableInDeclarationStatement()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -2730,7 +2730,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/24262")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24262")]
         public async Task DoNotSuggestVarForAbstractClassVariableInForeachStatement()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -2759,7 +2759,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/24262")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24262")]
         public async Task DoNotSuggestVarForAbstractClassVariableInDeclarationStatement()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -2785,7 +2785,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task DoNoSuggestVarForRefForeachVar()
         {
             await TestMissingInRegularAndScriptAsync("""
@@ -2817,7 +2817,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/26923")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26923")]
         public async Task NoSuggestionOnForeachCollectionExpression()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2838,8 +2838,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39171")]
-        [WpfFact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39171")]
         public async Task NoSuggestionForSwitchExpressionDifferentTypes()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2865,8 +2864,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39171")]
-        [WpfFact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39171")]
         public async Task SuggestSwitchExpressionSameOrInheritedTypes()
         {
             await TestInRegularAndScriptAsync(
@@ -2914,7 +2912,7 @@ options: ImplicitTypeEverywhere());
                 """, options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/32088")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32088")]
         public async Task DoNotSuggestVarOnDeclarationExpressionWithInferredTupleNames()
         {
             await TestMissingAsync(
@@ -2938,7 +2936,7 @@ options: ImplicitTypeEverywhere());
                 """, parameters: new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/32088")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32088")]
         public async Task DoSuggestVarOnDeclarationExpressionWithMatchingTupleNames()
         {
             await TestInRegularAndScriptAsync(
@@ -2981,7 +2979,7 @@ options: ImplicitTypeEverywhere());
 options: ImplicitTypeEverywhere());
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/44507")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44507")]
         public async Task DoNotSuggestVarInAmbiguousSwitchExpression()
         {
             await TestMissingAsync(
@@ -3012,7 +3010,7 @@ options: ImplicitTypeEverywhere());
                 """, parameters: new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/44507")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44507")]
         public async Task DoNotSuggestVarInSwitchExpressionWithDelegateType()
         {
             await TestMissingAsync(
@@ -3040,7 +3038,7 @@ options: ImplicitTypeEverywhere());
                 """, parameters: new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WpfFact]
+        [Fact]
         public async Task DoNotSuggestVarForImplicitObjectCreation()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3304,7 +3302,7 @@ options: ImplicitTypeEverywhere());
                 """,
 options: ImplicitTypeEverywhere());
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/41780")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41780")]
         public async Task SuggestOnRefType1()
         {
             await TestAsync(

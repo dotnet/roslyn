@@ -13,42 +13,41 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
 
-namespace Microsoft.CodeAnalysis.CSharp.Simplification
+namespace Microsoft.CodeAnalysis.CSharp.Simplification;
+
+internal partial class CSharpDefaultExpressionReducer
 {
-    internal partial class CSharpDefaultExpressionReducer
+    private class Rewriter : AbstractReductionRewriter
     {
-        private class Rewriter : AbstractReductionRewriter
+        public Rewriter(ObjectPool<IReductionRewriter> pool)
+            : base(pool)
         {
-            public Rewriter(ObjectPool<IReductionRewriter> pool)
-                : base(pool)
-            {
-                _simplifyDefaultExpression = SimplifyDefaultExpression;
-            }
-
-            private readonly Func<DefaultExpressionSyntax, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> _simplifyDefaultExpression;
-
-            private SyntaxNode SimplifyDefaultExpression(
-                DefaultExpressionSyntax node,
-                SemanticModel semanticModel,
-                CSharpSimplifierOptions options,
-                CancellationToken cancellationToken)
-            {
-                var preferSimpleDefaultExpression = options.PreferSimpleDefaultExpression.Value;
-
-                if (node.CanReplaceWithDefaultLiteral(ParseOptions, preferSimpleDefaultExpression, semanticModel, cancellationToken))
-                {
-                    return SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
-                                        .WithTriviaFrom(node);
-                }
-
-                return node;
-            }
-
-            public override SyntaxNode VisitDefaultExpression(DefaultExpressionSyntax node)
-                => SimplifyNode(
-                    node,
-                    newNode: base.VisitDefaultExpression(node),
-                    simplifier: _simplifyDefaultExpression);
+            _simplifyDefaultExpression = SimplifyDefaultExpression;
         }
+
+        private readonly Func<DefaultExpressionSyntax, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> _simplifyDefaultExpression;
+
+        private SyntaxNode SimplifyDefaultExpression(
+            DefaultExpressionSyntax node,
+            SemanticModel semanticModel,
+            CSharpSimplifierOptions options,
+            CancellationToken cancellationToken)
+        {
+            var preferSimpleDefaultExpression = options.PreferSimpleDefaultExpression.Value;
+
+            if (node.CanReplaceWithDefaultLiteral(ParseOptions, preferSimpleDefaultExpression, semanticModel, cancellationToken))
+            {
+                return SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
+                                    .WithTriviaFrom(node);
+            }
+
+            return node;
+        }
+
+        public override SyntaxNode VisitDefaultExpression(DefaultExpressionSyntax node)
+            => SimplifyNode(
+                node,
+                newNode: base.VisitDefaultExpression(node),
+                simplifier: _simplifyDefaultExpression);
     }
 }

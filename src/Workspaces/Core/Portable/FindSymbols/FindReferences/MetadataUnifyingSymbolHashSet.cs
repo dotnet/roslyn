@@ -4,12 +4,11 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols;
+
+internal sealed class MetadataUnifyingSymbolHashSet : HashSet<ISymbol>
 {
-    internal sealed class MetadataUnifyingSymbolHashSet : HashSet<ISymbol>
+    public MetadataUnifyingSymbolHashSet() : base(MetadataUnifyingEquivalenceComparer.Instance)
     {
-        public MetadataUnifyingSymbolHashSet() : base(MetadataUnifyingEquivalenceComparer.Instance)
-        {
-        }
     }
 }

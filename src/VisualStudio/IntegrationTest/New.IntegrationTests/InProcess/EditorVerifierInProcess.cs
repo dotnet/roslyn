@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
@@ -130,23 +131,50 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 [FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles],
                 cancellationToken);
 
-            var actualTags = await TestServices.Editor.GetErrorTagsAsync(cancellationToken);
-            Assert.Equal(expectedTags.Length, actualTags.Length);
-            for (var i = 0; i < expectedTags.Length; i++)
+            while (true)
             {
-                var expectedTag = expectedTags[i];
-                var actualTaggedSpan = actualTags[i];
-                Assert.Equal(expectedTag.errorType, actualTaggedSpan.Tag.ErrorType);
-                Assert.Equal(expectedTag.textSpan.Start, actualTaggedSpan.Span.Start.Position);
-                Assert.Equal(expectedTag.textSpan.Length, actualTaggedSpan.Span.Length);
+                cancellationToken.ThrowIfCancellationRequested();
+                await Task.Delay(TimeSpan.FromSeconds(1));
 
-                var actualTaggedText = actualTaggedSpan.Span.GetText();
-                Assert.Equal(expectedTag.taggedText, actualTaggedText);
+                if (!await TagEqualsAsync())
+                    continue;
 
-                AssertEx.NotNull(actualTaggedSpan.Tag.ToolTipContent);
-                var containerElement = (ContainerElement)actualTaggedSpan.Tag.ToolTipContent;
-                var actualTooltipText = CollectTextInRun(containerElement);
-                Assert.Equal(expectedTag.tooltipText, actualTooltipText);
+                return;
+            }
+
+            async Task<bool> TagEqualsAsync()
+            {
+                var actualTags = await TestServices.Editor.GetTagsAsync<IErrorTag>(cancellationToken);
+
+                if (expectedTags.Length != actualTags.Length)
+                    return false;
+
+                for (var i = 0; i < expectedTags.Length; i++)
+                {
+                    var expectedTag = expectedTags[i];
+                    var actualTaggedSpan = actualTags[i];
+
+                    if (expectedTag.errorType != actualTaggedSpan.Tag.ErrorType)
+                        return false;
+
+                    if (expectedTag.textSpan.Start != actualTaggedSpan.Span.Start.Position)
+                        return false;
+
+                    if (expectedTag.textSpan.Length != actualTaggedSpan.Span.Length)
+                        return false;
+
+                    var actualTaggedText = actualTaggedSpan.Span.GetText();
+                    if (expectedTag.taggedText != actualTaggedText)
+                        return false;
+
+                    AssertEx.NotNull(actualTaggedSpan.Tag.ToolTipContent);
+                    var containerElement = (ContainerElement)actualTaggedSpan.Tag.ToolTipContent;
+                    var actualTooltipText = CollectTextInRun(containerElement);
+                    if (expectedTag.tooltipText != actualTooltipText)
+                        return false;
+                }
+
+                return true;
             }
 
             static string CollectTextInRun(ContainerElement? containerElement)

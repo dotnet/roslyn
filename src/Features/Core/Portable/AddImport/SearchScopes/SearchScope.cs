@@ -11,67 +11,66 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.AddImport
+namespace Microsoft.CodeAnalysis.AddImport;
+
+internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
+    /// <summary>
+    /// SearchScope is used to control where the <see cref="AbstractAddImportFeatureService{TSimpleNameSyntax}"/>
+    /// searches.  We search different scopes in different ways.  For example we use 
+    /// SymbolTreeInfos to search unreferenced projects and metadata dlls.  However,
+    /// for the current project we're editing we defer to the compiler to do the 
+    /// search.
+    /// </summary>
+    private abstract class SearchScope
     {
-        /// <summary>
-        /// SearchScope is used to control where the <see cref="AbstractAddImportFeatureService{TSimpleNameSyntax}"/>
-        /// searches.  We search different scopes in different ways.  For example we use 
-        /// SymbolTreeInfos to search unreferenced projects and metadata dlls.  However,
-        /// for the current project we're editing we defer to the compiler to do the 
-        /// search.
-        /// </summary>
-        private abstract class SearchScope
+        public readonly bool Exact;
+        protected readonly AbstractAddImportFeatureService<TSimpleNameSyntax> provider;
+
+        protected SearchScope(AbstractAddImportFeatureService<TSimpleNameSyntax> provider, bool exact)
         {
-            public readonly bool Exact;
-            protected readonly AbstractAddImportFeatureService<TSimpleNameSyntax> provider;
+            this.provider = provider;
+            Exact = exact;
+        }
 
-            protected SearchScope(AbstractAddImportFeatureService<TSimpleNameSyntax> provider, bool exact)
+        protected abstract Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(SymbolFilter filter, SearchQuery query, CancellationToken cancellationToken);
+
+        public abstract SymbolReference CreateReference<T>(SymbolResult<T> symbol) where T : INamespaceOrTypeSymbol;
+
+        public async Task<ImmutableArray<SymbolResult<ISymbol>>> FindDeclarationsAsync(
+            string name, TSimpleNameSyntax nameNode, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (name != null && string.IsNullOrWhiteSpace(name))
             {
-                this.provider = provider;
-                Exact = exact;
+                return [];
             }
 
-            protected abstract Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(SymbolFilter filter, SearchQuery query, CancellationToken cancellationToken);
+            using var query = Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name);
+            var symbols = await FindDeclarationsAsync(filter, query, cancellationToken).ConfigureAwait(false);
 
-            public abstract SymbolReference CreateReference<T>(SymbolResult<T> symbol) where T : INamespaceOrTypeSymbol;
-
-            public async Task<ImmutableArray<SymbolResult<ISymbol>>> FindDeclarationsAsync(
-                string name, TSimpleNameSyntax nameNode, SymbolFilter filter, CancellationToken cancellationToken)
+            if (Exact)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (name != null && string.IsNullOrWhiteSpace(name))
-                {
-                    return ImmutableArray<SymbolResult<ISymbol>>.Empty;
-                }
-
-                using var query = Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name);
-                var symbols = await FindDeclarationsAsync(filter, query, cancellationToken).ConfigureAwait(false);
-
-                if (Exact)
-                {
-                    // We did an exact, case insensitive, search.  Case sensitive matches should
-                    // be preferred though over insensitive ones.
-                    return symbols.SelectAsArray(s =>
-                        SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1));
-                }
-
-                // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
-                // great way to store the original value we compute because it happens deep in the 
-                // compiler bowels when we call FindDeclarations.
-                using var similarityChecker = new WordSimilarityChecker(name, substringsAreSimilar: false);
-
-                var result = symbols.SelectAsArray(s =>
-                {
-                    var areSimilar = similarityChecker.AreSimilar(s.Name, out var matchCost);
-
-                    Debug.Assert(areSimilar);
-                    return SymbolResult.Create(s.Name, nameNode, s, matchCost);
-                });
-
-                return result;
+                // We did an exact, case insensitive, search.  Case sensitive matches should
+                // be preferred though over insensitive ones.
+                return symbols.SelectAsArray(s =>
+                    SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1));
             }
+
+            // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
+            // great way to store the original value we compute because it happens deep in the 
+            // compiler bowels when we call FindDeclarations.
+            using var similarityChecker = new WordSimilarityChecker(name, substringsAreSimilar: false);
+
+            var result = symbols.SelectAsArray(s =>
+            {
+                var areSimilar = similarityChecker.AreSimilar(s.Name, out var matchCost);
+
+                Debug.Assert(areSimilar);
+                return SymbolResult.Create(s.Name, nameNode, s, matchCost);
+            });
+
+            return result;
         }
     }
 }

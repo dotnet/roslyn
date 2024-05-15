@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -440,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type.IsReferenceType || type.TypeKind == TypeKind.TypeParameter) return true; // type parameter or reference type
             if (type.TypeKind != TypeKind.Struct) return false; // enums, etc
             if (type.SpecialType == SpecialType.System_TypedReference) return true;
-            if (type.SpecialType != SpecialType.None) return false; // int, etc
+            if (type.SpecialType.CanOptimizeBehavior()) return false; // int, etc
             if (!type.IsFromCompilation(this.CompilationState.ModuleBuilderOpt.Compilation)) return true; // perhaps from ref assembly
             foreach (var f in _emptyStructTypeCache.GetStructInstanceFields(type))
             {

@@ -9,35 +9,34 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.EditorConfigNamingStyleParser;
 
-namespace Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles
+namespace Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles;
+
+internal class NamingStyleOptionAccumulator : IEditorConfigOptionAccumulator<EditorConfigNamingStyles, NamingStyleOption>
 {
-    internal class NamingStyleOptionAccumulator : IEditorConfigOptionAccumulator<EditorConfigNamingStyles, NamingStyleOption>
+    private ArrayBuilder<NamingStyleOption>? _rules;
+
+    public EditorConfigNamingStyles Complete(string? fileName)
     {
-        private ArrayBuilder<NamingStyleOption>? _rules;
+        var editorConfigNamingStyles = new EditorConfigNamingStyles(fileName, _rules.ToImmutableOrEmptyAndFree());
+        _rules = null;
+        return editorConfigNamingStyles;
+    }
 
-        public EditorConfigNamingStyles Complete(string? fileName)
+    public void ProcessSection(Section section, IReadOnlyDictionary<string, (string value, TextLine? line)> properties)
+    {
+        foreach (var ruleTitle in GetRuleTitles(properties))
         {
-            var editorConfigNamingStyles = new EditorConfigNamingStyles(fileName, _rules.ToImmutableOrEmptyAndFree());
-            _rules = null;
-            return editorConfigNamingStyles;
-        }
-
-        public void ProcessSection(Section section, IReadOnlyDictionary<string, (string value, TextLine? line)> properties)
-        {
-            foreach (var ruleTitle in GetRuleTitles(properties))
+            if (TryGetSymbolSpec(section, ruleTitle, properties, out var applicableSymbolInfo) &&
+                TryGetNamingStyleData(section, ruleTitle, properties, out var namingScheme) &&
+                TryGetRuleSeverity(ruleTitle, properties, out var severity))
             {
-                if (TryGetSymbolSpec(section, ruleTitle, properties, out var applicableSymbolInfo) &&
-                    TryGetNamingStyleData(section, ruleTitle, properties, out var namingScheme) &&
-                    TryGetRuleSeverity(ruleTitle, properties, out var severity))
-                {
-                    _rules ??= ArrayBuilder<NamingStyleOption>.GetInstance();
-                    _rules.Add(new NamingStyleOption(
-                        Section: section,
-                        RuleName: (section, severity.line?.Span, ruleTitle), // all rules must have a severity so we consider this its location
-                        ApplicableSymbolInfo: applicableSymbolInfo,
-                        NamingScheme: namingScheme,
-                        Severity: (section, severity.line?.Span, severity.severity)));
-                }
+                _rules ??= ArrayBuilder<NamingStyleOption>.GetInstance();
+                _rules.Add(new NamingStyleOption(
+                    Section: section,
+                    RuleName: (section, severity.line?.Span, ruleTitle), // all rules must have a severity so we consider this its location
+                    ApplicableSymbolInfo: applicableSymbolInfo,
+                    NamingScheme: namingScheme,
+                    Severity: (section, severity.line?.Span, severity.severity)));
             }
         }
     }

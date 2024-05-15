@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -26,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         private readonly ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> _services;
 
         // map of type name to workspace service
-        private ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>> _serviceMap
-            = ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>>.Empty;
+        private ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>?> _serviceMap
+            = ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>?>.Empty;
 
         // accumulated cache for language services
         private ImmutableDictionary<string, MefLanguageServices> _languageServicesMap
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         internal IMefHostExportProvider HostExportProvider => _exportProvider;
 
-        internal string WorkspaceKind => _workspace.Kind;
+        internal string? WorkspaceKind => _workspace.Kind;
 
         public override Workspace Workspace
         {
@@ -73,77 +72,21 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
             else
             {
-                return default;
+                return default!;
             }
         }
 
-        private bool TryGetService(Type serviceType, out Lazy<IWorkspaceService, WorkspaceServiceMetadata> service)
+        private bool TryGetService(Type serviceType, [NotNullWhen(true)] out Lazy<IWorkspaceService, WorkspaceServiceMetadata>? service)
         {
             if (!_serviceMap.TryGetValue(serviceType, out service))
             {
-                service = ImmutableInterlocked.GetOrAdd(ref _serviceMap, serviceType, svctype =>
-                {
-                    // Pick from list of exported factories and instances
-                    // PERF: Hoist AssemblyQualifiedName out of inner lambda to avoid repeated string allocations.
-                    var assemblyQualifiedName = svctype.AssemblyQualifiedName;
-                    return PickWorkspaceService(_services.Where(lz => lz.Metadata.ServiceType == assemblyQualifiedName));
-                });
+                service = ImmutableInterlocked.GetOrAdd(ref _serviceMap, serviceType, serviceType => LayeredServiceUtilities.PickService(serviceType, _workspace.Kind, _services));
             }
 
             return service != null;
         }
 
-        private Lazy<IWorkspaceService, WorkspaceServiceMetadata> PickWorkspaceService(IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
-        {
-            Lazy<IWorkspaceService, WorkspaceServiceMetadata> service;
-#if !CODE_STYLE
-            // test layer overrides all other layers and workspace kind:
-            if (TryGetServiceByLayer(ServiceLayer.Test, services, out service))
-            {
-                return service;
-            }
-#endif
-            // workspace specific kind is best
-            if (TryGetServiceByLayer(_workspace.Kind, services, out service))
-            {
-                return service;
-            }
-
-            // host layer overrides editor, desktop or default
-            if (TryGetServiceByLayer(ServiceLayer.Host, services, out service))
-            {
-                return service;
-            }
-
-            // editor layer overrides desktop or default
-            if (TryGetServiceByLayer(ServiceLayer.Editor, services, out service))
-            {
-                return service;
-            }
-
-            // desktop layer overrides default
-            if (TryGetServiceByLayer(ServiceLayer.Desktop, services, out service))
-            {
-                return service;
-            }
-
-            // that just leaves default
-            if (TryGetServiceByLayer(ServiceLayer.Default, services, out service))
-            {
-                return service;
-            }
-
-            // no service.
-            return null;
-        }
-
-        private static bool TryGetServiceByLayer(string layer, IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services, out Lazy<IWorkspaceService, WorkspaceServiceMetadata> service)
-        {
-            service = services.SingleOrDefault(lz => lz.Metadata.Layer == layer);
-            return service != null;
-        }
-
-        private IEnumerable<string> _languages;
+        private IEnumerable<string>? _languages;
 
         private IEnumerable<string> GetSupportedLanguages()
         {
@@ -205,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
         }
 
-        internal bool TryGetLanguageServices(string languageName, out MefLanguageServices languageServices)
+        internal bool TryGetLanguageServices(string languageName, [NotNullWhen(true)] out MefLanguageServices? languageServices)
             => _languageServicesMap.TryGetValue(languageName, out languageServices);
 
         internal sealed class LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)

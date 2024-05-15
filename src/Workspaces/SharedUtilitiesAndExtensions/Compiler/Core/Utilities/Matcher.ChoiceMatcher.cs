@@ -4,30 +4,29 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+internal partial class Matcher<T>
 {
-    internal partial class Matcher<T>
+    private class ChoiceMatcher(params Matcher<T>[] matchers) : Matcher<T>
     {
-        private class ChoiceMatcher(params Matcher<T>[] matchers) : Matcher<T>
+        private readonly IEnumerable<Matcher<T>> _matchers = matchers;
+
+        public override bool TryMatch(IList<T> sequence, ref int index)
         {
-            private readonly IEnumerable<Matcher<T>> _matchers = matchers;
-
-            public override bool TryMatch(IList<T> sequence, ref int index)
+            // we can't use .Any() here because ref parameters can't be used in lambdas
+            foreach (var matcher in _matchers)
             {
-                // we can't use .Any() here because ref parameters can't be used in lambdas
-                foreach (var matcher in _matchers)
+                if (matcher.TryMatch(sequence, ref index))
                 {
-                    if (matcher.TryMatch(sequence, ref index))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
-
-                return false;
             }
 
-            public override string ToString()
-                => $"({string.Join("|", _matchers)})";
+            return false;
         }
+
+        public override string ToString()
+            => $"({string.Join("|", _matchers)})";
     }
 }

@@ -113,7 +113,7 @@ public class SimplifierTests
             var updatedOptions = options;
             foreach (var (option, newValue) in publicOptions)
             {
-                var languages = option.IsPerLanguage ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
+                var languages = option.IsPerLanguage ? [LanguageNames.CSharp, LanguageNames.VisualBasic] : new string?[] { null };
 
                 foreach (var language in languages)
                 {

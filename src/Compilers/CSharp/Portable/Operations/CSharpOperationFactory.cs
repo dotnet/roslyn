@@ -304,8 +304,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
-                case BoundKind.UnconvertedCollectionExpression:
-
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -1246,7 +1244,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     case CollectionExpressionTypeKind.Span:
                         return null;
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                    case CollectionExpressionTypeKind.ImplementsIEnumerableT:
                         return (expr.CollectionCreation as BoundObjectCreationExpression)?.Constructor;
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         return expr.CollectionBuilderMethod;
@@ -1260,13 +1257,14 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return element is BoundCollectionExpressionSpreadElement spreadElement ?
                 CreateBoundCollectionExpressionSpreadElement(expr, spreadElement) :
-                Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element) ?? element);
+                Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element, throwOnErrors: false));
         }
 
         private ISpreadOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpression expr, BoundCollectionExpressionSpreadElement element)
         {
-            var iteratorBody = ((BoundExpressionStatement?)element.IteratorBody)?.Expression;
-            var iteratorItem = Binder.GetUnderlyingCollectionExpressionElement(expr, iteratorBody);
+            var iteratorItem = element.IteratorBody is { } iteratorBody ?
+                Binder.GetUnderlyingCollectionExpressionElement(expr, ((BoundExpressionStatement)iteratorBody).Expression, throwOnErrors: false) :
+                null;
             var collection = Create(element.Expression);
             SyntaxNode syntax = element.Syntax;
             bool isImplicit = element.WasCompilerGenerated;
@@ -2882,8 +2880,6 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
-
-            Debug.Assert(!patternDisposeInfo.Expanded || patternDisposeInfo.Method.GetParameters().Last().OriginalDefinition.Type.IsSZArray());
 
             var args = DeriveArguments(
                             patternDisposeInfo.Method,

@@ -6,38 +6,37 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageService
+namespace Microsoft.CodeAnalysis.LanguageService;
+
+internal partial class AbstractSymbolDisplayService
 {
-    internal partial class AbstractSymbolDisplayService
+    protected abstract partial class AbstractSymbolDescriptionBuilder
     {
-        protected abstract partial class AbstractSymbolDescriptionBuilder
+        private void FixAllStructuralTypes(ISymbol firstSymbol)
         {
-            private void FixAllStructuralTypes(ISymbol firstSymbol)
-            {
-                // Now, replace all normal anonymous types and tuples with 'a, 'b, etc. and create a
-                // Structural Types: section to display their info.
+            // Now, replace all normal anonymous types and tuples with 'a, 'b, etc. and create a
+            // Structural Types: section to display their info.
 
-                var directStructuralTypes =
-                    from parts in _groupMap.Values
-                    from part in parts
-                    where part.Symbol.IsAnonymousType() || part.Symbol.IsTupleType()
-                    select (INamedTypeSymbol)part.Symbol!;
+            var directStructuralTypes =
+                from parts in _groupMap.Values
+                from part in parts
+                where part.Symbol.IsAnonymousType() || part.Symbol.IsTupleType()
+                select (INamedTypeSymbol)part.Symbol!;
 
-                // If the first symbol is an anonymous delegate, just show it's full sig in-line in the main
-                // description.  Otherwise, replace it with 'a, 'b etc. and show its sig in the 'Types:' section.
+            // If the first symbol is an anonymous delegate, just show it's full sig in-line in the main
+            // description.  Otherwise, replace it with 'a, 'b etc. and show its sig in the 'Types:' section.
 
-                if (firstSymbol.IsAnonymousDelegateType())
-                    directStructuralTypes = directStructuralTypes.Except(new[] { (INamedTypeSymbol)firstSymbol });
+            if (firstSymbol.IsAnonymousDelegateType())
+                directStructuralTypes = directStructuralTypes.Except([(INamedTypeSymbol)firstSymbol]);
 
-                var info = LanguageServices.GetRequiredService<IStructuralTypeDisplayService>().GetTypeDisplayInfo(
-                    firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);
+            var info = LanguageServices.GetRequiredService<IStructuralTypeDisplayService>().GetTypeDisplayInfo(
+                firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);
 
-                if (info.TypesParts.Count > 0)
-                    AddToGroup(SymbolDescriptionGroups.StructuralTypes, info.TypesParts);
+            if (info.TypesParts.Count > 0)
+                AddToGroup(SymbolDescriptionGroups.StructuralTypes, info.TypesParts);
 
-                foreach (var (group, parts) in _groupMap.ToArray())
-                    _groupMap[group] = info.ReplaceStructuralTypes(parts, _semanticModel, _position);
-            }
+            foreach (var (group, parts) in _groupMap.ToArray())
+                _groupMap[group] = info.ReplaceStructuralTypes(parts, _semanticModel, _position);
         }
     }
 }

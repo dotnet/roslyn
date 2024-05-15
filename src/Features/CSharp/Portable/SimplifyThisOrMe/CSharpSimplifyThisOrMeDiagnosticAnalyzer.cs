@@ -12,22 +12,21 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.SimplifyThisOrMe;
 
-namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
+namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpSimplifyThisOrMeDiagnosticAnalyzer
+    : AbstractSimplifyThisOrMeDiagnosticAnalyzer<
+        SyntaxKind,
+        ExpressionSyntax,
+        ThisExpressionSyntax,
+        MemberAccessExpressionSyntax>
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpSimplifyThisOrMeDiagnosticAnalyzer
-        : AbstractSimplifyThisOrMeDiagnosticAnalyzer<
-            SyntaxKind,
-            ExpressionSyntax,
-            ThisExpressionSyntax,
-            MemberAccessExpressionSyntax>
-    {
-        protected override ISyntaxKinds SyntaxKinds => CSharpSyntaxKinds.Instance;
+    protected override ISyntaxKinds SyntaxKinds => CSharpSyntaxKinds.Instance;
 
-        protected override ISimplification Simplification
-            => CSharpSimplification.Instance;
+    protected override ISimplification Simplification
+        => CSharpSimplification.Instance;
 
-        protected override AbstractMemberAccessExpressionSimplifier<ExpressionSyntax, MemberAccessExpressionSyntax, ThisExpressionSyntax> Simplifier
-            => MemberAccessExpressionSimplifier.Instance;
-    }
+    protected override AbstractMemberAccessExpressionSimplifier<ExpressionSyntax, MemberAccessExpressionSyntax, ThisExpressionSyntax> Simplifier
+        => MemberAccessExpressionSimplifier.Instance;
 }

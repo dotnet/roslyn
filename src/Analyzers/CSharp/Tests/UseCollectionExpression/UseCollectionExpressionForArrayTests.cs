@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -192,7 +191,7 @@ public class UseCollectionExpressionForArrayTests
     }
 
     [Fact]
-    public async Task TestNotWithIncompatibleExplicitArrays()
+    public async Task TestNotWithIncompatibleExplicitArrays_Strict()
     {
         await new VerifyCS.Test
         {
@@ -200,6 +199,31 @@ public class UseCollectionExpressionForArrayTests
                 class C
                 {
                     object[] i = new string[] { "" };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithIncompatibleExplicitArrays()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    object[] i = [|[|new|] string[]|] { "" };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    object[] i = [""];
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -370,10 +394,35 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
+                    object[] i = [|[|new|][]|] { "" };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    object[] i = [""];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithIncompatibleImplicitArrays_Strict()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
                     object[] i = new[] { "" };
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
         }.RunAsync();
     }
 
@@ -463,7 +512,7 @@ public class UseCollectionExpressionForArrayTests
 
     [Theory, CombinatorialData]
     public async Task TestNotWithVar_ExplicitArrayType(
-         [CombinatorialValues(new object[] { "var", "object", "dynamic" })] string type)
+         [CombinatorialValues(["var", "object", "dynamic"])] string type)
     {
         await new VerifyCS.Test
         {
@@ -482,7 +531,7 @@ public class UseCollectionExpressionForArrayTests
 
     [Theory, CombinatorialData]
     public async Task TestNotWithVar_ExplicitArrayType2(
-        [CombinatorialValues(new object[] { "var", "object", "dynamic" })] string type)
+        [CombinatorialValues(["var", "object", "dynamic"])] string type)
     {
         await new VerifyCS.Test
         {
@@ -501,7 +550,7 @@ public class UseCollectionExpressionForArrayTests
 
     [Theory, CombinatorialData]
     public async Task TestNotWithVar_ImplicitArrayType(
-        [CombinatorialValues(new object[] { "var", "object", "dynamic" })] string type)
+        [CombinatorialValues(["var", "object", "dynamic"])] string type)
     {
         await new VerifyCS.Test
         {
@@ -520,7 +569,7 @@ public class UseCollectionExpressionForArrayTests
 
     [Theory, CombinatorialData]
     public async Task TestNotWithVar_ImplicitArrayType2(
-        [CombinatorialValues(new object[] { "var", "object", "dynamic" })] string type)
+        [CombinatorialValues(["var", "object", "dynamic"])] string type)
     {
         await new VerifyCS.Test
         {
@@ -1054,6 +1103,23 @@ public class UseCollectionExpressionForArrayTests
                     void X(int[] x) { }
                 }
                 """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72337")]
+    public async Task TestTargetTypedArgumentPrimaryConstructor1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                       class C(int[] x);
+                       class C2() : C([|[|new|] int[]|] { 1, 2, 3 });
+                       """,
+            FixedCode = """
+                        class C(int[] x);
+                        class C2() : C([1, 2, 3]);
+                        """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
@@ -4410,6 +4476,43 @@ public class UseCollectionExpressionForArrayTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOn_ReadWriteDestination()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    IList<int> M()
+                    {
+                        return [|[|new|] int[]|] { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    IList<int> M()
+                    {
+                        return [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
     public async Task TestInterfaceOff()
     {
         await new VerifyCS.Test
@@ -4433,6 +4536,647 @@ public class UseCollectionExpressionForArrayTests
                 [*]
                 dotnet_style_prefer_collection_expression=when_types_exactly_match
                 """
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+    public async Task TestTargetTypedConditional1(
+        [CombinatorialValues("", "#nullable enable")] string nullable)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                {{nullable}}
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        int value = 3;
+                        M(value is 1 ? ["1"] : [|[|new|][]|] { "4" });
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                {{nullable}}
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        int value = 3;
+                        M(value is 1 ? ["1"] : ["4"]);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+    public async Task TestTargetTypedConditional2(
+        [CombinatorialValues("", "#nullable enable")] string nullable)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                {{nullable}}
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                int value = 3;
+                M(value is 1 ? ["1"] : [|[|new|][]|] { "4" });
+
+                static void M(string[] args) { }
+                """,
+            FixedCode = $$"""
+                {{nullable}}
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                int value = 3;
+                M(value is 1 ? ["1"] : ["4"]);
+
+                static void M(string[] args) { }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState = { OutputKind = OutputKind.ConsoleApplication }
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+    public async Task TestTargetTypedConditional3(
+        [CombinatorialValues("", "#nullable enable")] string nullable)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                {{nullable}}
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                int value = 3;
+                M(value is 1 ? [|[|new|][]|] { "1" } :
+                  value is 2 ? [|[|new|][]|] { "2" } :
+                  value is 3 ? [|[|new|][]|] { "3" } :
+                               [|[|new|][]|] { "4" });
+
+                static void M(string[] args) { }
+                """,
+            FixedCode = $$"""
+                {{nullable}}
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                int value = 3;
+                M(value is 1 ? ["1"] :
+                  value is 2 ? ["2"] :
+                  value is 3 ? ["3"] :
+                               ["4"]);
+
+                static void M(string[] args) { }
+                """,
+            BatchFixedCode = $$"""
+                {{nullable}}
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                int value = 3;
+                M(value is 1 ? ["1"] :
+                  value is 2 ? ["2"] :
+                  value is 3 ? ["3"] :
+                               ["4"]);
+
+                static void M(string[] args) { }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState = { OutputKind = OutputKind.ConsoleApplication }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNullableArrays1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable disable
+
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        GetActiveStatementDebugInfosCSharp(
+                            [|[|new|][]|] { GetGeneratedCodeFromMarkedSource() },
+                            filePaths: [|[|new|][]|] { this.filePath });
+                    }
+
+                #nullable enable
+
+                    public static void GetActiveStatementDebugInfosCSharp(
+                        string[] markedSources,
+                        string[]? filePaths = null,
+                        int[]? methodRowIds = null,
+                        Guid[]? modules = null,
+                        int[]? methodVersions = null,
+                        int[]? ilOffsets = null)
+                    {
+                    }
+
+                    private static string GetGeneratedCodeFromMarkedSource() => "";
+
+                    private string? filePath;
+                }
+                """,
+            FixedCode = """
+                #nullable disable
+                
+                using System;
+                
+                class C
+                {
+                    void M()
+                    {
+                        GetActiveStatementDebugInfosCSharp(
+                            [GetGeneratedCodeFromMarkedSource()],
+                            filePaths: [this.filePath]);
+                    }
+                
+                #nullable enable
+                
+                    public static void GetActiveStatementDebugInfosCSharp(
+                        string[] markedSources,
+                        string[]? filePaths = null,
+                        int[]? methodRowIds = null,
+                        Guid[]? modules = null,
+                        int[]? methodVersions = null,
+                        int[]? ilOffsets = null)
+                    {
+                    }
+                
+                    private static string GetGeneratedCodeFromMarkedSource() => "";
+                
+                    private string? filePath;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly = [|[|new|] object[][]|]
+                    {
+                        [|[|new|][]|] { "[]", "[]" },
+                        [|[|new|][]|] { "[]", "[]" },
+                    };
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly =
+                    [
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray1_Strict()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly = new object[][]
+                    {
+                        new[] { "[]", "[]" },
+                        new[] { "[]", "[]" },
+                    };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly =
+                    [
+                        [|[|new|][]|] { "[]", "[]" },
+                        [|[|new|][]|] { "[]", "[]" },
+                    ];
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly =
+                    [
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    ];
+                }
+                """,
+            BatchFixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly =
+                    [
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray2_Strict()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly =
+                    [
+                        new[] { "[]", "[]" },
+                        new[] { "[]", "[]" },
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly IEnumerable<IEnumerable<object>> EmptyOrConstantsOnly = [|[|new|] object[][]|]
+                    {
+                        [|[|new|][]|] { "[]", "[]" },
+                        [|[|new|][]|] { "[]", "[]" },
+                    };
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<IEnumerable<object>> EmptyOrConstantsOnly =
+                    [
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray3_Strict()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly IEnumerable<IEnumerable<object>> EmptyOrConstantsOnly = new object[][]
+                    {
+                        new[] { "[]", "[]" },
+                        new[] { "[]", "[]" },
+                    };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly IEnumerable<IEnumerable<object>> EmptyOrConstantsOnly = [|[|new|] object[][]|]
+                    {
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    };
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<IEnumerable<object>> EmptyOrConstantsOnly =
+                    [
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray4_Strict()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly IEnumerable<IEnumerable<object>> EmptyOrConstantsOnly = new object[][]
+                    {
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly IEnumerable<object> EmptyOrConstantsOnly = [|[|new|] object[][]|]
+                    {
+                        [|[|new|][]|] { "[]", "[]" },
+                        [|[|new|][]|] { "[]", "[]" },
+                    };
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object> EmptyOrConstantsOnly =
+                    [
+                        new[] { "[]", "[]" },
+                        new[] { "[]", "[]" },
+                    ];
+                }
+                """,
+            BatchFixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object> EmptyOrConstantsOnly = new object[][]
+                    {
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly object[] EmptyOrConstantsOnly = [|[|new|] object[][]|]
+                    {
+                        [|[|new|][]|] { "[]", "[]" },
+                        [|[|new|][]|] { "[]", "[]" },
+                    };
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly object[] EmptyOrConstantsOnly =
+                    [
+                        new[] { "[]", "[]" },
+                        new[] { "[]", "[]" },
+                    ];
+                }
+                """,
+            BatchFixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly object[] EmptyOrConstantsOnly = new object[][]
+                    {
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestArray1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly object EmptyOrConstantsOnly = new object[]
+                    {
+                        ""
+                    };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestArray2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly object EmptyOrConstantsOnly = new[]
+                    {
+                        ""
+                    };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 }

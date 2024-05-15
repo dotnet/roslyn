@@ -172,11 +172,6 @@
         <target state="translated">删除冗余的可为空的指令</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">请删除忽略运算符</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">删除不必要的 lambda 表达式</target>
@@ -457,9 +452,9 @@
         <target state="translated">可简化 "new" 表达式</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
-        <target state="translated">"typeof" 可以转换为 "nameof"</target>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
+        <target state="translated">“Typeof”可以转换为“nameof”</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

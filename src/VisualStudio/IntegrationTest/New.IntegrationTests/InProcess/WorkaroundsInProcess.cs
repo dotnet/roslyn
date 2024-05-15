@@ -116,6 +116,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 var result = writer.RequestCommit("Integration test workaround");
                 Assert.True(result.Outcome is SettingCommitOutcome.Success or SettingCommitOutcome.NoChangesQueued);
             }
+
+            // 17.9 P2 used a different name for the same setting
+            settingName = "textEditor.general.autoBraceSurround";
+            settingRetrieval = reader.GetValue<bool>(settingName);
+            if (settingRetrieval.Value)
+            {
+                var writer = settingManager.GetWriter("Roslyn Integration test");
+                writer.EnqueueChange(settingName, false);
+                var result = writer.RequestCommit("Integration test workaround");
+                Assert.True(result.Outcome is SettingCommitOutcome.Success or SettingCommitOutcome.NoChangesQueued);
+            }
         }
     }
 }

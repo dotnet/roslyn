@@ -5,21 +5,20 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
+
+internal abstract class RQMethodPropertyOrEvent(RQUnconstructedType containingType, RQMethodPropertyOrEventName memberName) : RQMember(containingType)
 {
-    internal abstract class RQMethodPropertyOrEvent(RQUnconstructedType containingType, RQMethodPropertyOrEventName memberName) : RQMember(containingType)
+    public readonly RQMethodPropertyOrEventName RqMemberName = memberName;
+
+    public override string MemberName
     {
-        public readonly RQMethodPropertyOrEventName RqMemberName = memberName;
+        get { return RqMemberName.OrdinaryNameValue; }
+    }
 
-        public override string MemberName
-        {
-            get { return RqMemberName.OrdinaryNameValue; }
-        }
-
-        protected override void AppendChildren(List<SimpleTreeNode> childList)
-        {
-            base.AppendChildren(childList);
-            childList.Add(RqMemberName.ToSimpleTree());
-        }
+    protected override void AppendChildren(List<SimpleTreeNode> childList)
+    {
+        base.AppendChildren(childList);
+        childList.Add(RqMemberName.ToSimpleTree());
     }
 }

@@ -17,7 +17,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         internal static readonly PatternMatch s_emptyCamelCaseNonContiguousSubstringPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousSubstring, true, false, ImmutableArray<Span>.Empty);
         internal static readonly PatternMatch s_emptyFuzzyPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Fuzzy, true, false, ImmutableArray<Span>.Empty);
 
-        protected abstract TestWorkspace CreateWorkspace(string content, TestComposition composition);
+        protected abstract EditorTestWorkspace CreateWorkspace(string content, TestComposition composition);
         protected abstract string Language { get; }
 
         public enum Composition
@@ -77,14 +76,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             FirstActiveAndVisible,
         }
 
-        private protected static NavigateToItemProvider CreateProvider(TestWorkspace workspace)
+        private protected static NavigateToItemProvider CreateProvider(EditorTestWorkspace workspace)
             => new(
                 workspace,
                 workspace.GetService<IThreadingContext>(),
                 workspace.GetService<IUIThreadOperationExecutor>(),
                 AsynchronousOperationListenerProvider.NullListener);
 
-        protected async Task TestAsync(TestHost testHost, Composition composition, string content, Func<TestWorkspace, Task> body)
+        protected async Task TestAsync(TestHost testHost, Composition composition, string content, Func<EditorTestWorkspace, Task> body)
         {
             var testComposition = composition switch
             {
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             await TestAsync(content, body, testHost, testComposition);
         }
 
-        protected async Task TestAsync(TestHost testHost, Composition composition, XElement content, Func<TestWorkspace, Task> body)
+        protected async Task TestAsync(TestHost testHost, Composition composition, XElement content, Func<EditorTestWorkspace, Task> body)
         {
             var testComposition = composition switch
             {
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         private async Task TestAsync(
-            string content, Func<TestWorkspace, Task> body, TestHost testHost,
+            string content, Func<EditorTestWorkspace, Task> body, TestHost testHost,
             TestComposition composition)
         {
             using var workspace = CreateWorkspace(content, testHost, composition);
@@ -119,26 +118,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         protected async Task TestAsync(
-            XElement content, Func<TestWorkspace, Task> body, TestHost testHost,
+            XElement content, Func<EditorTestWorkspace, Task> body, TestHost testHost,
             TestComposition composition)
         {
             using var workspace = CreateWorkspace(content, testHost, composition);
             await body(workspace);
         }
 
-        private protected TestWorkspace CreateWorkspace(
+        private protected EditorTestWorkspace CreateWorkspace(
             XElement workspaceElement,
             TestHost testHost,
             TestComposition composition)
         {
             composition = composition.WithTestHostParts(testHost);
 
-            var workspace = TestWorkspace.Create(workspaceElement, composition: composition);
+            var workspace = EditorTestWorkspace.Create(workspaceElement, composition: composition);
             InitializeWorkspace(workspace);
             return workspace;
         }
 
-        private protected TestWorkspace CreateWorkspace(
+        private protected EditorTestWorkspace CreateWorkspace(
             string content,
             TestHost testHost,
             TestComposition composition)
@@ -150,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             return workspace;
         }
 
-        internal void InitializeWorkspace(TestWorkspace workspace)
+        internal void InitializeWorkspace(EditorTestWorkspace workspace)
         {
             _provider = new NavigateToItemProvider(
                 workspace,

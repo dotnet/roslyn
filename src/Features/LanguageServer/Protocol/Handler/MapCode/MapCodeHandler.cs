@@ -20,11 +20,9 @@ using LSP = Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(MapCodeHandler)), Shared]
-[Method(WorkspaceMapCodeName)]
-internal sealed class MapCodeHandler : ILspServiceRequestHandler<MapCodeParams, LSP.WorkspaceEdit?>
+[Method(VSInternalMethods.WorkspaceMapCodeName)]
+internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCodeParams, LSP.WorkspaceEdit?>
 {
-    public const string WorkspaceMapCodeName = "workspace/mapCode";
-
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public MapCodeHandler()
@@ -34,7 +32,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<MapCodeParams, 
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
-    public async Task<WorkspaceEdit?> HandleRequestAsync(MapCodeParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> HandleRequestAsync(VSInternalMapCodeParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
 
@@ -79,7 +77,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<MapCodeParams, 
             };
         }
 
-        async Task<(Uri, TextEdit[])?> MapCodeAsync(LSP.MapCodeMapping codeMapping)
+        async Task<(Uri, TextEdit[])?> MapCodeAsync(LSP.VSInternalMapCodeMapping codeMapping)
         {
             var textDocument = codeMapping.TextDocument
                 ?? throw new ArgumentException($"mapCode sub-request failed: MapCodeMapping.TextDocument not expected to be null.");
@@ -117,7 +115,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<MapCodeParams, 
             Document document, TextDocumentIdentifier textDocumentIdentifier, LSP.Location[][]? focusLocations, CancellationToken cancellationToken)
         {
             if (focusLocations is null)
-                return ImmutableArray<(Document, TextSpan)>.Empty;
+                return [];
 
             var focusText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<(Document, TextSpan)>.GetInstance(out var builder);

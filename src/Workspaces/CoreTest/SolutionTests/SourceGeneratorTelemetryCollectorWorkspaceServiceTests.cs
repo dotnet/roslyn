@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public class SourceGeneratorTelemetryCollectorWorkspaceServiceTests
     {
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1675665")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1675665")]
         public async Task WithReferencesMethodCorrectlyUpdatesWithEqualReferences()
         {
             using var workspace = CreateWorkspace(additionalParts: [typeof(TestSourceGeneratorTelemetryCollectorWorkspaceServiceFactory)]);

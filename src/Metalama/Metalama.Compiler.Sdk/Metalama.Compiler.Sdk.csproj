@@ -26,9 +26,15 @@
 
   </ItemGroup>
 
+  <PropertyGroup>
+    <!-- The version here must be the LOWEST supported. -->
+    <LowestSupportedRoslynVersion>4.0.0</LowestSupportedRoslynVersion>
+  </PropertyGroup>
+
   <ItemGroup>
-    <!-- The version here must be the LOWEST supported -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(LowestSupportedRoslynVersion)" />
+    <!-- Required to override central package version. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(LowestSupportedRoslynVersion)" />
 
     <ProjectReference Include="..\Metalama.Compiler.BuildTasks\Metalama.Compiler.BuildTasks.csproj" PrivateAssets="All" ReferenceOutputAssembly="False" SetTargetFramework="TargetFramework=net6.0"/>
     <ProjectReference Include="..\Metalama.Compiler.BuildTasks\Metalama.Compiler.BuildTasks.csproj" PrivateAssets="All" ReferenceOutputAssembly="False" SetTargetFramework="TargetFramework=net472"/>

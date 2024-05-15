@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeFieldReadonly
     <Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
     Public Class MakeFieldReadonlyTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Private Shared ReadOnly s_strictFeatureFlag As ParseOptions = VisualBasicParseOptions.Default.WithFeatures({New KeyValuePair(Of String, String)("strict", "true")})
 
