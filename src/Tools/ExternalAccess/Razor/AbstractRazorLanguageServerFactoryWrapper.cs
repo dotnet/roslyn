@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.Host;
-using Newtonsoft.Json;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     /// </summary>
     internal abstract class AbstractRazorLanguageServerFactoryWrapper
     {
-        internal abstract IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, JsonSerializer jsonSerializer, IRazorTestCapabilitiesProvider capabilitiesProvider, HostServices hostServices);
+        internal abstract IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, JsonSerializerOptions options, IRazorTestCapabilitiesProvider capabilitiesProvider, HostServices hostServices);
 
         internal abstract DocumentInfo CreateDocumentInfo(
             DocumentId id,
@@ -31,6 +31,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         /// <summary>
         /// Supports the creation of a Roslyn LSP server for functional tests
         /// </summary>
-        internal abstract void AddJsonConverters(JsonSerializer jsonSerializer);
+        internal abstract void AddJsonConverters(JsonSerializerOptions options);
     }
 }

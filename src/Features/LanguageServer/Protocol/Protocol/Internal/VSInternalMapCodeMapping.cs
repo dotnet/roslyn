@@ -4,17 +4,15 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
-    [DataContract]
     internal class VSInternalMapCodeMapping
     {
         /// <summary>
         /// Gets or sets identifier for the document the contents are supposed to be mapped into.
         /// </summary>
-        [DataMember(Name = "_vs_textDocument")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_textDocument")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public TextDocumentIdentifier? TextDocument
         {
             get;
@@ -24,7 +22,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets strings of code/text to map into TextDocument.
         /// </summary>
-        [DataMember(Name = "_vs_contents")]
+        [JsonPropertyName("_vs_contents")]
         public string[] Contents
         {
             get;
@@ -36,8 +34,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// related classes (in other documents), viewport, etc. Earlier items should be considered
         /// higher priority.
         /// </summary>
-        [DataMember(Name = "_vs_focusLocations")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_focusLocations")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Location[][]? FocusLocations
         {
             get;

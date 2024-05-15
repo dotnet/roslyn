@@ -4,21 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing a single signature of a callable item.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureInformation">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SignatureInformation
     {
         /// <summary>
         /// Gets or sets the label of this signature.
         /// </summary>
-        [DataMember(Name = "label")]
+        [JsonPropertyName("label")]
         public string Label
         {
             get;
@@ -28,8 +26,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the human-readable documentation of this signature.
         /// </summary>
-        [DataMember(Name = "documentation")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("documentation")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SumType<string, MarkupContent>? Documentation
         {
             get;
@@ -39,8 +37,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the parameters of this signature.
         /// </summary>
-        [DataMember(Name = "parameters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("parameters")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ParameterInformation[]? Parameters
         {
             get;

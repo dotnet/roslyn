@@ -4,20 +4,18 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Text document capabilities specific to Visual Studio.
     /// </summary>
-    [DataContract]
     internal class VSInternalTextDocumentClientCapabilities : TextDocumentClientCapabilities
     {
         /// <summary>
         /// Gets or sets the setting which determines if on auto insert can be dynamically registered.
         /// </summary>
-        [DataMember(Name = "_vs_onAutoInsert")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_onAutoInsert")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? OnAutoInsert
         {
             get;

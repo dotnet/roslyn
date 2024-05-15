@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the parameters sent from a server to a client for the workspace/applyEdit request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#applyWorkspaceEditParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class ApplyWorkspaceEditParams
     {
         /// <summary>
         /// Gets or sets the label associated with this edit.
         /// </summary>
-        [DataMember(Name = "label")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("label")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Label
         {
             get;
@@ -29,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the edit to be applied to the workspace.
         /// </summary>
-        [DataMember(Name = "edit")]
+        [JsonPropertyName("edit")]
         public WorkspaceEdit Edit
         {
             get;

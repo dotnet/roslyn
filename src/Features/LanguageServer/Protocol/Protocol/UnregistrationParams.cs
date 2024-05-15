@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the parameter sent for the client/unregisterCapability request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#unregistrationParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class UnregistrationParams
     {
         /// <summary>
         /// Gets or sets the capabilities to unregister.
         /// </summary>
-        [DataMember(Name = "unregistrations")]
+        [JsonPropertyName("unregistrations")]
         public Unregistration[] Unregistrations
         {
             get;

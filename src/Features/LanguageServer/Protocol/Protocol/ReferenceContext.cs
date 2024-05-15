@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing reference context information for find reference request parameter.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#referenceContext">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class ReferenceContext
     {
         /// <summary>
         /// Gets or sets a value indicating whether declaration should be included.
         /// </summary>
-        [DataMember(Name = "includeDeclaration")]
+        [JsonPropertyName("includeDeclaration")]
         public bool IncludeDeclaration
         {
             get;

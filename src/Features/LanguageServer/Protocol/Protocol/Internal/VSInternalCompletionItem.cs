@@ -4,14 +4,12 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
     using Roslyn.Text.Adornments;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Extension class for CompletionItem with fields specific to Visual Studio functionalities.
     /// </summary>
-    [DataContract]
     internal class VSInternalCompletionItem : CompletionItem
     {
         internal const string IconSerializedName = "_vs_icon";
@@ -22,17 +20,17 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the icon to show for the completion item. In VS, this is more extensive than the completion kind.
         /// </summary>
-        [DataMember(Name = IconSerializedName)]
+        [JsonPropertyName(IconSerializedName)]
         [JsonConverter(typeof(ImageElementConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ImageElement? Icon { get; set; }
 
         /// <summary>
         /// Gets or sets the description for a completion item.
         /// </summary>
-        [DataMember(Name = DescriptionSerializedName)]
+        [JsonPropertyName(DescriptionSerializedName)]
         [JsonConverter(typeof(ClassifiedTextElementConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ClassifiedTextElement? Description { get; set; }
 
         /// <summary>
@@ -41,16 +39,16 @@ namespace Roslyn.LanguageServer.Protocol
         /// If present, client will use this value instead of <see cref="CompletionOptions.AllCommitCharacters"/>.
         /// If absent, client will default to <see cref="CompletionOptions.AllCommitCharacters"/>.
         /// </summary>
-        [DataMember(Name = VsCommitCharactersSerializedName)]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName(VsCommitCharactersSerializedName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SumType<string[], VSInternalCommitCharacter[]>? VsCommitCharacters { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the client should call <see cref="Methods.TextDocumentCompletionResolve"/> to
         /// get the value of the text edit to commit.
         /// </summary>
-        [DataMember(Name = VsResolveTextEditOnCommitName)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName(VsResolveTextEditOnCommitName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool VsResolveTextEditOnCommit { get; set; }
     }
 }

@@ -4,18 +4,18 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents content to be sent to the clipboard.
     /// </summary>
-    [DataContract]
     internal class VSInternalClipboardContent
     {
         /// <summary>
         /// Gets or sets a string that describes clipboard format types, for example, "text/plain".
         /// </summary>
-        [DataMember(Name = "_vs_mime", IsRequired = true)]
+        [JsonPropertyName("_vs_mime")]
+        [JsonRequired]
         public string MimeType
         {
             get;
@@ -25,7 +25,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the content of the clipboard.
         /// </summary>
-        [DataMember(Name = "_vs_content", IsRequired = true)]
+        [JsonPropertyName("_vs_content")]
+        [JsonRequired]
         public string Content
         {
             get;

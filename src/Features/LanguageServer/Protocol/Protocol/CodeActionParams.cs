@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the parameters sent from the client to the server for the textDocument/codeAction request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class CodeActionParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the document identifier indicating where the command was invoked.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
         {
             get;
@@ -27,7 +26,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range in the document for which the command was invoked.
         /// </summary>
-        [DataMember(Name = "range")]
+        [JsonPropertyName("range")]
         public Range Range
         {
             get;
@@ -37,7 +36,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the additional diagnostic information about the code action context.
         /// </summary>
-        [DataMember(Name = "context")]
+        [JsonPropertyName("context")]
         public CodeActionContext Context
         {
             get;

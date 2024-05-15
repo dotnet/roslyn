@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents the parameter that is sent with textDocument/didClose message.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didCloseTextDocumentParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class DidCloseTextDocumentParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the text document identifier.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
         {
             get;

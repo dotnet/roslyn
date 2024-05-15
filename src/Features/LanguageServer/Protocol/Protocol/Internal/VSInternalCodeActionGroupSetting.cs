@@ -4,18 +4,17 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class containing the set of code action default groups that are supported.
     /// </summary>
-    [DataContract]
     internal class VSInternalCodeActionGroupSetting
     {
         /// <summary>
         /// Gets or sets the code actions default group names the client supports.
         /// </summary>
-        [DataMember(Name = "_vs_valueSet")]
+        [JsonPropertyName("_vs_valueSet")]
         public string[] ValueSet
         {
             get;

@@ -5,22 +5,20 @@
 namespace Roslyn.LanguageServer.Protocol;
 
 using System;
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing a unchanged document diagnostic report for workspace diagnostic result.
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceUnchangedDocumentDiagnosticReport">Language Server Protocol specification</see> for additional information.
 /// </summary>
-[DataContract]
 [Kind(DocumentDiagnosticReportKind.Unchanged)]
 internal class WorkspaceUnchangedDocumentDiagnosticReport : UnchangedDocumentDiagnosticReport
 {
     /// <summary>
     /// Gets or sets the URI associated with this diagnostic report.
     /// </summary>
-    [DataMember(Name = "uri")]
+    [JsonPropertyName("uri")]
     [JsonConverter(typeof(DocumentUriConverter))]
     public Uri Uri
     {
@@ -32,7 +30,7 @@ internal class WorkspaceUnchangedDocumentDiagnosticReport : UnchangedDocumentDia
     /// Gets or sets the version number for which the diagnostics are reported.
     /// If the document is not marked as open 'null' can be provided.
     /// </summary>
-    [DataMember(Name = "version")]
+    [JsonPropertyName("version")]
     public int? Version
     {
         get;

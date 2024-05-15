@@ -4,21 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing additional information about the context in which a signature help request is triggered.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpContext">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SignatureHelpContext
     {
         /// <summary>
         /// Gets or sets the <see cref="SignatureHelpTriggerKind"/> indicating how the signature help was triggered.
         /// </summary>
-        [DataMember(Name = "triggerKind")]
+        [JsonPropertyName("triggerKind")]
         public SignatureHelpTriggerKind TriggerKind
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the character that caused signature help to be triggered.
         /// This value is null when triggerKind is not TriggerCharacter.
         /// </summary>
-        [DataMember(Name = "triggerCharacter")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("triggerCharacter")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? TriggerCharacter
         {
             get;
@@ -40,7 +38,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether signature help was already showing when it was triggered.
         /// </summary>
-        [DataMember(Name = "isRetrigger")]
+        [JsonPropertyName("isRetrigger")]
         public bool IsRetrigger
         {
             get;
@@ -50,8 +48,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the currently active <see cref="SignatureHelp"/>.
         /// </summary>
-        [DataMember(Name = "activeSignatureHelp")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("activeSignatureHelp")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SignatureHelp? ActiveSignatureHelp
         {
             get;

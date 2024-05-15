@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the initialization setting for document symbols.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentSymbolClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class DocumentSymbolSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets the <see cref="SymbolKindSetting"/> capabilities.
         /// </summary>
-        [DataMember(Name = "symbolKind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("symbolKind")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SymbolKindSetting? SymbolKind
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the document has hierarchical symbol support.
         /// </summary>
-        [DataMember(Name = "hierarchicalDocumentSymbolSupport")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("hierarchicalDocumentSymbolSupport")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool HierarchicalDocumentSymbolSupport
         {
             get;

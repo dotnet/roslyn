@@ -5,22 +5,19 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents formatting options.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#formattingOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class FormattingOptions
     {
         /// <summary>
         /// Gets or sets the number of spaces to be inserted per tab.
         /// </summary>
-        [DataMember(Name = "tabSize")]
+        [JsonPropertyName("tabSize")]
         public int TabSize
         {
             get;
@@ -30,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether tabs should be spaces.
         /// </summary>
-        [DataMember(Name = "insertSpaces")]
+        [JsonPropertyName("insertSpaces")]
         public bool InsertSpaces
         {
             get;

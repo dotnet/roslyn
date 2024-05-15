@@ -2,91 +2,58 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol;
-
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Roslyn.Text.Adornments;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
-/// <summary>
-/// JsonConverter for serializing and deserializing <see cref="ClassifiedTextRun"/>.
-/// </summary>
-internal class ClassifiedTextRunConverter : JsonConverter
+namespace Roslyn.LanguageServer.Protocol;
+internal class ClassifiedTextRunConverter : JsonConverter<ClassifiedTextRun>
 {
-    /// <summary>
-    /// A reusable instance of the <see cref="ClassifiedTextRunConverter"/>.
-    /// </summary>
     public static readonly ClassifiedTextRunConverter Instance = new();
 
-    /// <inheritdoc/>
-    public override bool CanConvert(Type objectType)
-        => objectType == typeof(ClassifiedTextRun);
-
-    /// <inheritdoc/>
-    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+    public override ClassifiedTextRun? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if (reader.TokenType == JsonToken.Null)
+        if (reader.TokenType == JsonTokenType.StartObject)
         {
-            reader.Read();
-            return null;
-        }
-        else if (reader.TokenType == JsonToken.StartObject)
-        {
-            var data = JObject.Load(reader);
-            var typeProperty = data[ObjectContentConverter.TypeProperty];
-            if (typeProperty is not null && typeProperty.ToString() != nameof(ClassifiedTextRun))
+            var data = JsonDocument.ParseValue(ref reader).RootElement;
+            if (data.TryGetProperty(ObjectContentConverter.TypeProperty, out var typeProperty) && typeProperty.GetString() != nameof(ClassifiedTextRun))
             {
-                throw new JsonSerializationException($"Expected {ObjectContentConverter.TypeProperty} property value {nameof(ClassifiedTextRun)}");
+                throw new JsonException($"Expected {ObjectContentConverter.TypeProperty} property value {nameof(ClassifiedTextRun)}");
             }
 
-            var classificationTypeName = data[nameof(ClassifiedTextRun.ClassificationTypeName)]?.Value<string>();
-            var text = data[nameof(ClassifiedTextRun.Text)]?.Value<string>();
-            var markerTagType = data[nameof(ClassifiedTextRun.MarkerTagType)]?.Value<string>();
-            var style = (ClassifiedTextRunStyle)(data[nameof(ClassifiedTextRun.Style)]?.Value<int>() ?? 0);
-            return new ClassifiedTextRun(classificationTypeName!, text!, style, markerTagType);
+            var classificationTypeName = data.GetProperty(nameof(ClassifiedTextRun.ClassificationTypeName)).GetString();
+            var text = data.GetProperty(nameof(ClassifiedTextRun.Text)).GetString();
+            var markerTagType = data.GetProperty(nameof(ClassifiedTextRun.MarkerTagType)).GetString();
+            var style = (ClassifiedTextRunStyle)(data.GetProperty(nameof(ClassifiedTextRun.Style)).GetInt32());
+            return new ClassifiedTextRun(classificationTypeName, text, style, markerTagType);
         }
         else
         {
-            throw new JsonSerializationException("Expected start object or null tokens");
+            throw new JsonException("Expected start object or null tokens");
         }
     }
 
-    /// <inheritdoc/>
-    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, ClassifiedTextRun value, JsonSerializerOptions options)
     {
-        if (value is not ClassifiedTextRun classifiedTextRun)
+        writer.WriteStartObject();
+        writer.WriteString(nameof(ClassifiedTextRun.ClassificationTypeName), value.ClassificationTypeName);
+        writer.WriteString(nameof(ClassifiedTextRun.Text), value.Text);
+        writer.WriteString(nameof(ClassifiedTextRun.MarkerTagType), value.MarkerTagType);
+        writer.WriteNumber(nameof(ClassifiedTextRun.Style), (int)value.Style);
+        writer.WriteNull(nameof(ClassifiedTextRun.Tooltip));
+        if (value.Tooltip is not null)
         {
-            writer.WriteNull();
+            throw new JsonException();
         }
-        else
+
+        writer.WriteNull(nameof(ClassifiedTextRun.NavigationAction));
+        if (value.NavigationAction is not null)
         {
-            writer.WriteStartObject();
-            writer.WritePropertyName(nameof(ClassifiedTextRun.ClassificationTypeName));
-            writer.WriteValue(classifiedTextRun.ClassificationTypeName);
-            writer.WritePropertyName(nameof(ClassifiedTextRun.Text));
-            writer.WriteValue(classifiedTextRun.Text);
-            writer.WritePropertyName(nameof(ClassifiedTextRun.MarkerTagType));
-            writer.WriteValue(classifiedTextRun.MarkerTagType);
-            writer.WritePropertyName(nameof(ClassifiedTextRun.Style));
-            writer.WriteValue(classifiedTextRun.Style);
-            writer.WritePropertyName(nameof(ClassifiedTextRun.Tooltip));
-            writer.WriteNull();
-            if (classifiedTextRun.Tooltip is not null)
-            {
-                throw new JsonSerializationException();
-            }
-
-            writer.WritePropertyName(nameof(ClassifiedTextRun.NavigationAction));
-            writer.WriteNull();
-            if (classifiedTextRun.NavigationAction is not null)
-            {
-                throw new JsonSerializationException();
-            }
-
-            writer.WritePropertyName(ObjectContentConverter.TypeProperty);
-            writer.WriteValue(nameof(ClassifiedTextRun));
-            writer.WriteEndObject();
+            throw new JsonException();
         }
+
+        writer.WriteString(ObjectContentConverter.TypeProperty, nameof(ClassifiedTextRun));
+        writer.WriteEndObject();
     }
 }

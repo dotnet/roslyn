@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -105,6 +106,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             { WellKnownTags.Deprecated, ImmutableArray.Create(LSP.CompletionItemTag.Deprecated) },
         }.ToImmutableDictionary();
+
+        public static JsonSerializerOptions AddLspSerializerOptions(this JsonSerializerOptions options)
+        {
+            LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(options);
+            options.Converters.Add(new NaturalObjectConverter());
+            return options;
+        }
+
+        /// <summary>
+        /// Options that know how to serialize / deserialize basic LSP types.
+        /// Useful when there are particular fields that are not serialized or deserialized by normal request handling (for example
+        /// deserializing a field that is typed as object instead of a concrete type).
+        /// </summary>
+        public static JsonSerializerOptions LspJsonSerializerOptions = new JsonSerializerOptions().AddLspSerializerOptions();
 
         // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
         // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726

@@ -3,21 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 
-[DataContract]
 internal record RunTestsParams(
-    [property: DataMember(Name = "textDocument")] LSP.TextDocumentIdentifier TextDocument,
-    [property: DataMember(Name = "range")] LSP.Range Range,
-    [property: DataMember(Name = "attachDebugger")] bool AttachDebugger,
-    [property: DataMember(Name = "runSettingsPath")] string? RunSettingsPath
+    [property: JsonPropertyName("textDocument")] LSP.TextDocumentIdentifier TextDocument,
+    [property: JsonPropertyName("range")] LSP.Range Range,
+    [property: JsonPropertyName("attachDebugger")] bool AttachDebugger,
+    [property: JsonPropertyName("runSettingsPath")] string? RunSettingsPath
 ) : LSP.IPartialResultParams<RunTestsPartialResult>
 {
-    [DataMember(Name = LSP.Methods.PartialResultTokenName)]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName(LSP.Methods.PartialResultTokenName)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IProgress<RunTestsPartialResult>? PartialResultToken { get; set; }
 }

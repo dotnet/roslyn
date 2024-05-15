@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
-using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -387,7 +387,7 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
 
         var actualCodeLenses = await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParamsDoc1, CancellationToken.None);
         var firstCodeLens = actualCodeLenses.First();
-        var data = JsonConvert.DeserializeObject<CodeLensResolveData>(firstCodeLens.Data!.ToString());
+        var data = JsonSerializer.Deserialize<CodeLensResolveData>(firstCodeLens.Data!.ToString(), ProtocolConversions.LspJsonSerializerOptions);
         AssertEx.NotNull(data);
 
         // Update the document so the syntax version changes
