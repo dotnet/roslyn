@@ -179,7 +179,10 @@ internal static partial class DependentProjectsFinder
 
             // If it's not private, then we need to find possible references.
             if (visibility != SymbolVisibility.Private)
-                AddNonSubmissionDependentProjects(solution, symbolOrigination, dependentProjects, cancellationToken);
+            {
+                await AddNonSubmissionDependentProjectsAsync(
+                    solution, symbolOrigination, dependentProjects, cancellationToken).ConfigureAwait(false);
+            }
 
             // submission projects are special here. The fields generated inside the Script object is private, but
             // further submissions can bind to them.
@@ -276,7 +279,7 @@ internal static partial class DependentProjectsFinder
         foreach (var project in solution.Projects)
         {
             if (!project.SupportsCompilation ||
-                !HasReferenceTo(symbolOrigination, project, cancellationToken))
+                !await HasReferenceToAsync(symbolOrigination, project, cancellationToken).ConfigureAwait(false))
             {
                 continue;
             }
