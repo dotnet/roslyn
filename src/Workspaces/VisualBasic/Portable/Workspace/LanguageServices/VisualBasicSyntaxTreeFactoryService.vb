@@ -11,23 +11,15 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
+    <ExportLanguageService(GetType(ISyntaxTreeFactoryService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicSyntaxTreeFactoryService
         Inherits AbstractSyntaxTreeFactoryService
 
-        <ExportLanguageServiceFactory(GetType(ISyntaxTreeFactoryService), LanguageNames.VisualBasic), [Shared]>
-        Private NotInheritable Class Factory
-            Implements ILanguageServiceFactory
-
-            Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-                Return New VisualBasicSyntaxTreeFactoryService(languageServices.WorkspaceServices.GetRequiredService(Of ITextFactoryService)())
-            End Function
-        End Class
-
         Private Shared ReadOnly _parseOptionsWithLatestLanguageVersion As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)
-        Private ReadOnly _textFactoryService As ITextFactoryService
 
-        Private Sub New(textFactoryService As ITextFactoryService)
-            _textFactoryService = textFactoryService
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
         End Sub
 
         Public Overloads Overrides Function GetDefaultParseOptions() As ParseOptions
@@ -83,14 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 options = GetDefaultParseOptions()
             End If
 
-            Return New ParsedSyntaxTree(
-                lazyText:=Nothing,
-                DirectCast(root, VisualBasicSyntaxNode),
-                DirectCast(options, VisualBasicParseOptions),
-                filePath,
-                encoding,
-                checksumAlgorithm,
-                _textFactoryService)
+            Return New ParsedSyntaxTree(lazyText:=Nothing, DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding, checksumAlgorithm)
         End Function
     End Class
 End Namespace
