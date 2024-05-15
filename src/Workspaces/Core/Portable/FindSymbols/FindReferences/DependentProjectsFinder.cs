@@ -390,7 +390,6 @@ internal static partial class DependentProjectsFinder
                     s_metadataIdToAssemblyName.TryAdd(metadataId, metadataAssemblyName);
                     if (metadataAssemblyName == assemblyName)
                         return true;
-
                 }
             }
         }
