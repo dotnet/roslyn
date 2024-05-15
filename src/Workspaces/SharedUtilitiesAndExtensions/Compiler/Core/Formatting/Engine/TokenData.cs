@@ -81,31 +81,30 @@ internal readonly record struct TokenData : IComparable<TokenData>
         // tokens.  In order to give a strict ordering, we need to walk up the tree to find the first common ancestor
         // and see which token we hit first in that ancestor.
         var commonRoot = this.Token.GetCommonRoot(other.Token);
-        RoslynDebug.Assert(commonRoot != null);
+        Contract.ThrowIfNull(commonRoot);
 
-        using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
-        stack.Push(commonRoot);
+        // Now, figure out the ancestor of each token parented by the common root.
+        var thisTokenAncestor = GetAncestorUnderRoot(this.Token, commonRoot);
+        var otherTokenAncestor = GetAncestorUnderRoot(other.Token, commonRoot);
 
-        while (stack.TryPop(out var current))
+        foreach (var child in commonRoot.ChildNodesAndTokens())
         {
-            if (current.IsNode)
-            {
-                // Push children in reverse order to ensure a DFS walk.
-                foreach (var child in current.AsNode()!.ChildNodesAndTokens().Reverse())
-                    stack.Push(child);
-            }
-            else if (current.IsToken)
-            {
-                var currentToken = current.AsToken();
-
-                if (currentToken == this.Token)
-                    return -1;
-                else if (currentToken == other.Token)
-                    return 1;
-            }
+            if (child == thisTokenAncestor)
+                return -1;
+            else if (child == otherTokenAncestor)
+                return 1;
         }
 
         throw ExceptionUtilities.Unreachable();
+
+        static SyntaxNodeOrToken GetAncestorUnderRoot(SyntaxNodeOrToken start, SyntaxNode root)
+        {
+            var current = start;
+            while (current.Parent != root)
+                current = current.Parent;
+
+            return current;
+        }
     }
 
     public static bool operator <(TokenData left, TokenData right)
