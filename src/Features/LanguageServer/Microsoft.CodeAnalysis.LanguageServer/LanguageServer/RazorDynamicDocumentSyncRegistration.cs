@@ -46,7 +46,7 @@ internal sealed class RazorDynamicDocumentSyncRegistration(IGlobalOptionService 
             {
                 var languageServerManager = context.GetRequiredLspService<IClientLanguageServerManager>();
 
-                var documentFilters = new[] { new DocumentFilter() { Pattern = "**/*.razor" }, new DocumentFilter() { Pattern = "**/*.cshtml" } };
+                var documentFilters = new[] { new DocumentFilter() { Pattern = "**/*.{razor, cshtml}", Language = "aspnetcorerazor" } };
                 var registrationOptions = new TextDocumentRegistrationOptions()
                 {
                     DocumentSelector = documentFilters
@@ -66,7 +66,11 @@ internal sealed class RazorDynamicDocumentSyncRegistration(IGlobalOptionService 
                             {
                                 Id = Guid.NewGuid().ToString(), // No need to save this for unregistering
                                 Method = Methods.TextDocumentDidChangeName,
-                                RegisterOptions = registrationOptions
+                                RegisterOptions = new TextDocumentChangeRegistrationOptions()
+                                {
+                                    DocumentSelector = documentFilters,
+                                    SyncKind = TextDocumentSyncKind.Incremental
+                                }
                             },
                             new()
                             {

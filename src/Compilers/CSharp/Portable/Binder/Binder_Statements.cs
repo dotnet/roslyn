@@ -176,9 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (this.IsIndirectlyInIterator) // called *after* we know the binder map has been created.
             {
-                // Spec 8.2: "An iterator block always defines a safe context, even when its declaration
-                // is nested in an unsafe context."
-                Error(diagnostics, ErrorCode.ERR_IllegalInnerUnsafe, node.UnsafeKeyword);
+                CheckFeatureAvailability(node.UnsafeKeyword, MessageID.IDS_FeatureRefUnsafeInIteratorAsync, diagnostics);
             }
 
             return BindEmbeddedBlock(node.Block, diagnostics);
@@ -267,6 +265,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (BindingTopLevelScriptCode)
             {
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
+            }
+            else if (InUnsafeRegion && Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefUnsafeInIteratorAsync))
+            {
+                Error(diagnostics, ErrorCode.ERR_BadYieldInUnsafe, node.YieldKeyword);
+            }
+            // NOTE: Error conditions should be checked above this point; only warning conditions below.
+            else if (this.Flags.Includes(BinderFlags.InLockBody))
+            {
+                Error(diagnostics, ErrorCode.WRN_BadYieldInLock, node.YieldKeyword);
             }
 
             CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
@@ -1165,15 +1172,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected bool CheckRefLocalInAsyncOrIteratorMethod(SyntaxToken identifierToken, BindingDiagnosticBag diagnostics)
         {
-            if (IsInAsyncMethod())
+            if (IsDirectlyInIterator || IsInAsyncMethod())
             {
-                Error(diagnostics, ErrorCode.ERR_BadAsyncLocalType, identifierToken);
-                return true;
-            }
-            else if (IsDirectlyInIterator)
-            {
-                Error(diagnostics, ErrorCode.ERR_BadIteratorLocalType, identifierToken);
-                return true;
+                return !CheckFeatureAvailability(identifierToken, MessageID.IDS_FeatureRefUnsafeInIteratorAsync, diagnostics);
             }
 
             return false;

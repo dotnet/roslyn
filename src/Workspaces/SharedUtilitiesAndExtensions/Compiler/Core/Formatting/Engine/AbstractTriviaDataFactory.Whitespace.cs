@@ -21,14 +21,14 @@ internal abstract partial class AbstractTriviaDataFactory
     {
         private readonly bool _elastic;
 
-        public Whitespace(SyntaxFormattingOptions options, int space, bool elastic, string language)
-            : this(options, lineBreaks: 0, indentation: space, elastic: elastic, language: language)
+        public Whitespace(LineFormattingOptions options, int space, bool elastic)
+            : this(options, lineBreaks: 0, indentation: space, elastic: elastic)
         {
             Contract.ThrowIfFalse(space >= 0);
         }
 
-        public Whitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation, bool elastic, string language)
-            : base(options, language)
+        public Whitespace(LineFormattingOptions options, int lineBreaks, int indentation, bool elastic)
+            : base(options)
         {
             _elastic = elastic;
 
@@ -47,11 +47,9 @@ internal abstract partial class AbstractTriviaDataFactory
         public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
         {
             if (this.LineBreaks == 0 && this.Spaces == space)
-            {
                 return this;
-            }
 
-            return new ModifiedWhitespace(this.Options, this, /*lineBreak*/0, space, elastic: false, language: this.Language);
+            return new ModifiedWhitespace(this.Options, this, /*lineBreak*/0, space, elastic: false);
         }
 
         public override TriviaData WithLine(int line, int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
@@ -63,7 +61,7 @@ internal abstract partial class AbstractTriviaDataFactory
                 return this;
             }
 
-            return new ModifiedWhitespace(this.Options, this, line, indentation, elastic: false, language: this.Language);
+            return new ModifiedWhitespace(this.Options, this, line, indentation, elastic: false);
         }
 
         public override TriviaData WithIndentation(
@@ -74,7 +72,7 @@ internal abstract partial class AbstractTriviaDataFactory
                 return this;
             }
 
-            return new ModifiedWhitespace(this.Options, this, this.LineBreaks, indentation, elastic: false, language: this.Language);
+            return new ModifiedWhitespace(this.Options, this, this.LineBreaks, indentation, elastic: false);
         }
 
         public override void Format(

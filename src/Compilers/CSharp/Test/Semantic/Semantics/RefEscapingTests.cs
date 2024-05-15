@@ -4969,9 +4969,10 @@ public class C
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
         public void AwaitRefStruct(LanguageVersion languageVersion)
         {
-            CreateCompilation(@"
+            var comp = CreateCompilation(@"
 using System.Threading.Tasks;
 
 ref struct S { }
@@ -4991,20 +4992,67 @@ class C
     void M(S t, ref S t1)
     {
     }
-}", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (8,26): error CS9504: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Task<TResult>'
-                //     async Task M(Task<S> t)
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "t").WithArguments("System.Threading.Tasks.Task<TResult>", "TResult", "S").WithLocation(8, 26),
-                // (12,9): error CS4012: Parameters or locals of type 'S' cannot be declared in async methods or async lambda expressions.
-                //         var a = await t;
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("S").WithLocation(12, 9),
-                // (14,9): error CS4012: Parameters or locals of type 'S' cannot be declared in async methods or async lambda expressions.
-                //         var r = t.Result;
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("S").WithLocation(14, 9),
-                // (15,9): error CS8350: This combination of arguments to 'C.M(S, ref S)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
-                //         M(await t, ref r);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M(await t, ref r)").WithArguments("C.M(S, ref S)", "t").WithLocation(15, 9)
-                );
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll);
+            if (languageVersion < LanguageVersionFacts.CSharpNext)
+            {
+                comp.VerifyDiagnostics(
+                    // (8,26): error CS9504: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Task<TResult>'
+                    //     async Task M(Task<S> t)
+                    Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "t").WithArguments("System.Threading.Tasks.Task<TResult>", "TResult", "S").WithLocation(8, 26),
+                    // (12,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         var a = await t;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(12, 9),
+                    // (14,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         var r = t.Result;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(14, 9),
+                    // (15,9): error CS8350: This combination of arguments to 'C.M(S, ref S)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                    //         M(await t, ref r);
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M(await t, ref r)").WithArguments("C.M(S, ref S)", "t").WithLocation(15, 9)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (8,26): error CS9504: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Task<TResult>'
+                    //     async Task M(Task<S> t)
+                    Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "t").WithArguments("System.Threading.Tasks.Task<TResult>", "TResult", "S").WithLocation(8, 26),
+                    // (15,9): error CS8350: This combination of arguments to 'C.M(S, ref S)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                    //         M(await t, ref r);
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M(await t, ref r)").WithArguments("C.M(S, ref S)", "t").WithLocation(15, 9)
+                    );
+            }
+        }
+
+        [Fact]
+        public void AsyncLocals_Reassignment()
+        {
+            var code = """
+                using System.Threading.Tasks;
+                class C
+                {
+                    async Task M1()
+                    {
+                        int x = 42;
+                        ref int y = ref x;
+                        y.ToString();
+                        await Task.Yield();
+                        y.ToString(); // 1
+                    }
+                    async Task M2()
+                    {
+                        int x = 42;
+                        ref int y = ref x;
+                        y.ToString();
+                        await Task.Yield();
+                        y = ref x;
+                        y.ToString();
+                    }
+                }
+                """;
+            CreateCompilation(code).VerifyEmitDiagnostics(
+                // (10,9): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         y.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(10, 9));
         }
 
         [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
@@ -5345,9 +5393,9 @@ public static class Test
 }
 """);
             compilation.VerifyEmitDiagnostics(
-                // (20,19): error CS4013: Instance of type 'PooledArrayHandle<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                // (20,19): error CS4007: Instance of type 'PooledArrayHandle<int>' cannot be preserved across 'await' or 'yield' boundary.
                 //         using var handle = RentArray<int>(200, out var array);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "handle = RentArray<int>(200, out var array)").WithArguments("PooledArrayHandle<int>").WithLocation(20, 19));
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "handle = RentArray<int>(200, out var array)").WithArguments("PooledArrayHandle<int>").WithLocation(20, 19));
         }
 
         [Theory(Skip = "https://github.com/dotnet/roslyn/issues/40583")]
