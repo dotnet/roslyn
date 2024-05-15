@@ -88,8 +88,8 @@
       <_File Include="$(MSBuildProjectDirectory)\buildMultiTargeting\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildMultiTargeting" />
       <_File Include="@(CommonMetalamaCompilerBinArtifact)" TargetDir="tasks/net472" Condition="'$(TargetFramework)' == 'net472'" />
       <_File Include="@(DesktopMetalamaCompilerBinArtifact)" TargetDir="tasks/net472" Condition="'$(TargetFramework)' == 'net472'" />
-      <_File Include="@(CommonMetalamaCompilerBinArtifact)" TargetDir="tasks/netcore/bincore" Condition="'$(TargetFramework)' == 'net6.0'" />
-      <_File Include="@(CoreClrMetalamaCompilerBinArtifact)" TargetDir="tasks/netcore/bincore" Condition="'$(TargetFramework)' == 'net6.0'" />
+      <_File Include="@(CommonMetalamaCompilerBinArtifact)" TargetDir="tasks/netcore/bincore" Condition="'$(TargetFramework)' == '$(NetRoslyn)'" />
+      <_File Include="@(CoreClrMetalamaCompilerBinArtifact)" TargetDir="tasks/netcore/bincore" Condition="'$(TargetFramework)' == '$(NetRoslyn)'" />
       <_File Include="$(NetSdkAnalyzersPath)\*.dll" TargetDir="sdkAnalyzers" />
       <!-- </Metalama> -->
 

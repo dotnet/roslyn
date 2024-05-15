@@ -1,6 +1,6 @@
 <Project>
    <PropertyGroup>
-        <_MetalamaCompilerSdkTasksDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core'">net6.0</_MetalamaCompilerSdkTasksDirectoryName>   
+        <_MetalamaCompilerSdkTasksDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NetRoslyn)</_MetalamaCompilerSdkTasksDirectoryName>   
         <_MetalamaCompilerSdkTasksDirectoryName Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_MetalamaCompilerSdkTasksDirectoryName>   
         <MetalamaTasksAssembly>$(MSBuildThisFileDirectory)..\tasks\$(_MetalamaCompilerSdkTasksDirectoryName)\Metalama.Compiler.BuildTasks.dll</MetalamaTasksAssembly> 
     </PropertyGroup>

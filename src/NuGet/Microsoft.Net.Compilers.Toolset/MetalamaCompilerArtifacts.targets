@@ -56,12 +56,12 @@
     </ItemGroup>
 
     <ItemGroup>
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\Newtonsoft.Json.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\net6.0\Microsoft.CodeAnalysis.Workspaces.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\net6.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\net6.0\Microsoft.CodeAnalysis.Features.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Features\$(Configuration)\net6.0\Microsoft.CodeAnalysis.CSharp.Features.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\net6.0\Microsoft.CodeAnalysis.Scripting.dll"/>
+      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(NetRoslyn)\publish\Newtonsoft.Json.dll" />
+      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\$(NetRoslyn)\Microsoft.CodeAnalysis.Workspaces.dll" />
+      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\$(NetRoslyn)\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" />
+      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\$(NetRoslyn)\Microsoft.CodeAnalysis.Features.dll" />
+      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Features\$(Configuration)\$(NetRoslyn)\Microsoft.CodeAnalysis.CSharp.Features.dll" />
+      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\$(NetRoslyn)\Microsoft.CodeAnalysis.Scripting.dll"/>
       <CoreClrMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_AttributedModel)\lib\netstandard1.0\System.Composition.AttributedModel.dll"/>
       <CoreClrMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Convention)\lib\netstandard1.0\System.Composition.Convention.dll"/>
       <CoreClrMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Hosting)\lib\netstandard1.0\System.Composition.Hosting.dll"/>
