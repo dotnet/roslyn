@@ -11305,9 +11305,10 @@ class C
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
+                // PROTOTYPE(RefStructInterfaces): follow up on recent changes due to https://github.com/dotnet/csharplang/blob/main/proposals/ref-unsafe-in-iterators-async.md
                 // (18,22): error CS9104: A using statement resource of type 'S2' cannot be used in async methods or async lambda expressions.
                 //         await using (new S2())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new S2()").WithArguments("S2").WithLocation(18, 22)
+                //Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new S2()").WithArguments("S2").WithLocation(18, 22)
                 );
         }
 
@@ -11341,9 +11342,10 @@ class C
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
+                // PROTOTYPE(RefStructInterfaces): follow up on recent changes due to https://github.com/dotnet/csharplang/blob/main/proposals/ref-unsafe-in-iterators-async.md
                 // (18,22): error CS9104: A using statement resource of type 'S2' cannot be used in async methods or async lambda expressions.
                 //         await using (new S2())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new S2()").WithArguments("S2").WithLocation(18, 22)
+                //Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new S2()").WithArguments("S2").WithLocation(18, 22)
                 );
         }
 
@@ -11382,9 +11384,10 @@ class C
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
+                // PROTOTYPE(RefStructInterfaces): follow up on recent changes due to https://github.com/dotnet/csharplang/blob/main/proposals/ref-unsafe-in-iterators-async.md
                 // (23,22): error CS9104: A using statement resource of type 'T' cannot be used in async methods or async lambda expressions.
                 //         await using (new T())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(23, 22)
+                //Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(23, 22)
                 );
         }
 
@@ -11427,9 +11430,10 @@ class C
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
+                // PROTOTYPE(RefStructInterfaces): follow up on recent changes due to https://github.com/dotnet/csharplang/blob/main/proposals/ref-unsafe-in-iterators-async.md
                 // (27,22): error CS9104: A using statement resource of type 'T' cannot be used in async methods or async lambda expressions.
                 //         await using (new T())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(27, 22)
+                //Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(27, 22)
                 );
         }
 
@@ -11482,10 +11486,12 @@ class C
                 Diagnostic(ErrorCode.ERR_AmbigCall, "new T()").WithArguments("IMyAsyncDisposable1.DisposeAsync()", "IMyAsyncDisposable2.DisposeAsync()").WithLocation(32, 22),
                 // (32,22): error CS8410: 'T': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (new T())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new T()").WithArguments("T").WithLocation(32, 22),
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new T()").WithArguments("T").WithLocation(32, 22)
+                // PROTOTYPE(RefStructInterfaces): follow up on recent changes due to https://github.com/dotnet/csharplang/blob/main/proposals/ref-unsafe-in-iterators-async.md
+                //,
                 // (32,22): error CS9104: A using statement resource of type 'T' cannot be used in async methods or async lambda expressions.
                 //         await using (new T())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(32, 22)
+                //Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(32, 22)
                 );
         }
 
@@ -11541,10 +11547,12 @@ class C
             comp.VerifyDiagnostics(
                 // (36,22): error CS0121: The call is ambiguous between the following methods or properties: 'IMyAsyncDisposable1.DisposeAsync()' and 'IMyAsyncDisposable2.DisposeAsync()'
                 //         await using (new T())
-                Diagnostic(ErrorCode.ERR_AmbigCall, "new T()").WithArguments("IMyAsyncDisposable1.DisposeAsync()", "IMyAsyncDisposable2.DisposeAsync()").WithLocation(36, 22),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new T()").WithArguments("IMyAsyncDisposable1.DisposeAsync()", "IMyAsyncDisposable2.DisposeAsync()").WithLocation(36, 22)
+                // PROTOTYPE(RefStructInterfaces): follow up on recent changes due to https://github.com/dotnet/csharplang/blob/main/proposals/ref-unsafe-in-iterators-async.md
+                //,
                 // (36,22): error CS9104: A using statement resource of type 'T' cannot be used in async methods or async lambda expressions.
                 //         await using (new T())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(36, 22)
+                //Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(36, 22)
                 );
         }
 
@@ -18513,12 +18521,12 @@ ref struct S
 
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyDiagnostics(
-                // (6,34): error CS4012: Parameters or locals of type 'T' cannot be declared in async methods or async lambda expressions.
+                // (6,34): error CS4012: Parameters of type 'T' cannot be declared in async methods or async lambda expressions.
                 //     static async void Test1<T>(T x)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "x").WithArguments("T").WithLocation(6, 34),
-                // (11,31): error CS4012: Parameters or locals of type 'S' cannot be declared in async methods or async lambda expressions.
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "x").WithArguments("T").WithLocation(6, 34),
+                // (11,31): error CS4012: Parameters of type 'S' cannot be declared in async methods or async lambda expressions.
                 //     static async void Test2(S y)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "y").WithArguments("S").WithLocation(11, 31)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "y").WithArguments("S").WithLocation(11, 31)
                 );
         }
 
