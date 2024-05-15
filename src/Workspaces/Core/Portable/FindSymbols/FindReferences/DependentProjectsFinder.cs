@@ -378,24 +378,17 @@ internal static partial class DependentProjectsFinder
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol { Name: string metadataAssemblyName })
+            var name = compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol { Name: string metadataAssemblyName }
+                ? metadataAssemblyName
+                : null;
+
+            using (await s_metadataIdToAssemblyNameGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                using (await s_metadataIdToAssemblyNameGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    s_metadataIdToAssemblyName.TryAdd(metadataId, metadataAssemblyName);
-                    if (metadataAssemblyName == assemblyName)
-                        return true;
-                }
+                name = s_metadataIdToAssemblyName.GetOrAdd(metadataId, name);
             }
-            else
-            {
-                using (await s_metadataIdToAssemblyNameGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    // Explicitly store that we don't know the name of this pe-reference's assembly.  That way we don't
-                    // try to recompute it in the future every time we see it.
-                    s_metadataIdToAssemblyName.TryAdd(metadataId, null);
-                }
-            }
+
+            if (name == assemblyName)
+                return true;
         }
 
         return false;
