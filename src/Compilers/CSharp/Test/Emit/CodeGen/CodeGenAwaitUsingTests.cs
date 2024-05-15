@@ -3105,6 +3105,7 @@ ref struct C
                     public void Dispose() { }
                 }
                 """;
+            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (6,16): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         using (new R())
@@ -3379,6 +3380,7 @@ ref struct C
                     public ValueTask DisposeAsync() => default;
                 }
                 """;
+            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (6,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await using (new R())
@@ -3416,6 +3418,7 @@ ref struct C
                     public ValueTask DisposeAsync() => default;
                 }
                 """ + AsyncStreamsTypes;
+            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (7,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await using (new R())
@@ -3451,6 +3454,7 @@ ref struct C
                     public ValueTask DisposeAsync() => default;
                 }
                 """ + AsyncStreamsTypes;
+            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (7,21): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await using var _ = new R();

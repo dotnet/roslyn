@@ -1359,6 +1359,7 @@ unsafe class Program
         yield return sizeof(System.UIntPtr);
     }
 }";
+            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             var expectedDiagnostics = new[]
             {
                 // (6,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
