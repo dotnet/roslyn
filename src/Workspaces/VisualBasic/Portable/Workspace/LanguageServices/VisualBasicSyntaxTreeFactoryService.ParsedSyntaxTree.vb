@@ -41,8 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function GetText(Optional cancellationToken As CancellationToken = Nothing) As SourceText
                 If _lazyText Is Nothing Then
-                    Dim text = SourceTextExtensions.CreateSourceText(
-                        GetRoot(cancellationToken), Encoding, _checksumAlgorithm, cancellationToken)
+                    Dim text = SourceTextExtensions.CreateSourceText(GetRoot(cancellationToken), Encoding, _checksumAlgorithm, cancellationToken)
                     Interlocked.CompareExchange(_lazyText, text, Nothing)
                 End If
 
