@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 
@@ -14,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             Private ReadOnly _original As ComplexTrivia
 
-            Public Sub New(options As SyntaxFormattingOptions, original As ComplexTrivia, lineBreaks As Integer, space As Integer)
+            Public Sub New(options As LineFormattingOptions, original As ComplexTrivia, lineBreaks As Integer, space As Integer)
                 MyBase.New(options)
                 Contract.ThrowIfNull(original)
 

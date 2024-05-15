@@ -27,7 +27,7 @@ internal partial class TriviaDataFactory
             int spaces,
             string originalString,
             CancellationToken cancellationToken)
-            : base(context.Options)
+            : base(context.Options.LineFormatting)
         {
             Contract.ThrowIfNull(context);
             Contract.ThrowIfNull(formattingRules);

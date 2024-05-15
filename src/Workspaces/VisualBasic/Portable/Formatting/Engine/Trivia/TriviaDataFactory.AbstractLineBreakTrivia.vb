@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Protected ReadOnly _original As String
             Protected ReadOnly _newString As String
 
-            Public Sub New(options As SyntaxFormattingOptions,
+            Public Sub New(options As LineFormattingOptions,
                            original As String,
                            lineBreaks As Integer,
                            indentation As Integer,

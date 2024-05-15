@@ -21,13 +21,13 @@ internal abstract partial class AbstractTriviaDataFactory
     {
         private readonly bool _elastic;
 
-        public Whitespace(SyntaxFormattingOptions options, int space, bool elastic)
+        public Whitespace(LineFormattingOptions options, int space, bool elastic)
             : this(options, lineBreaks: 0, indentation: space, elastic: elastic)
         {
             Contract.ThrowIfFalse(space >= 0);
         }
 
-        public Whitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation, bool elastic)
+        public Whitespace(LineFormattingOptions options, int lineBreaks, int indentation, bool elastic)
             : base(options)
         {
             _elastic = elastic;

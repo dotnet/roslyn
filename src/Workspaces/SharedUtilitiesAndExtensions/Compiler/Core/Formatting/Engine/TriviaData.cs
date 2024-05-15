@@ -18,12 +18,12 @@ internal abstract class TriviaData
 {
     protected const int TokenPairIndexNotNeeded = int.MinValue;
 
-    protected TriviaData(SyntaxFormattingOptions options)
+    protected TriviaData(LineFormattingOptions options)
     {
         Options = options;
     }
 
-    protected SyntaxFormattingOptions Options { get; }
+    protected LineFormattingOptions Options { get; }
 
     public int LineBreaks { get; protected set; }
     public int Spaces { get; protected set; }

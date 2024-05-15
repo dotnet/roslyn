@@ -15,13 +15,13 @@ internal abstract partial class AbstractTriviaDataFactory
     {
         private readonly Whitespace? _original;
 
-        public ModifiedWhitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation, bool elastic)
+        public ModifiedWhitespace(LineFormattingOptions options, int lineBreaks, int indentation, bool elastic)
             : base(options, lineBreaks, indentation, elastic)
         {
             _original = null;
         }
 
-        public ModifiedWhitespace(SyntaxFormattingOptions options, Whitespace original, int lineBreaks, int indentation, bool elastic)
+        public ModifiedWhitespace(LineFormattingOptions options, Whitespace original, int lineBreaks, int indentation, bool elastic)
             : base(options, lineBreaks, indentation, elastic)
         {
             Contract.ThrowIfNull(original);

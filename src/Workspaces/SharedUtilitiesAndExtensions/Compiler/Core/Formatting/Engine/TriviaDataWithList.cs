@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
-internal abstract class TriviaDataWithList(SyntaxFormattingOptions options) : TriviaData(options)
+internal abstract class TriviaDataWithList(LineFormattingOptions options) : TriviaData(options)
 {
     public abstract SyntaxTriviaList GetTriviaList(CancellationToken cancellationToken);
 }

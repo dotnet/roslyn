@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 /// </summary>
 internal partial class TriviaDataFactory : AbstractTriviaDataFactory
 {
-    public TriviaDataFactory(TreeData treeInfo, SyntaxFormattingOptions options)
+    public TriviaDataFactory(TreeData treeInfo, LineFormattingOptions options)
         : base(treeInfo, options)
     {
     }

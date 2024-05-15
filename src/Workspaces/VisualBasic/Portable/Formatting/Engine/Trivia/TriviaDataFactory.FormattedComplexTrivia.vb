@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                            spaces As Integer,
                            originalString As String,
                            cancellationToken As CancellationToken)
-                MyBase.New(context.Options)
+                MyBase.New(context.Options.LineFormatting)
 
                 Contract.ThrowIfNull(context)
                 Contract.ThrowIfNull(formattingRules)

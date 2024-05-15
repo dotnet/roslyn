@@ -29,7 +29,7 @@ internal class CSharpFormatEngine : AbstractFormatEngine
     internal override IHeaderFacts HeaderFacts => CSharpHeaderFacts.Instance;
 
     protected override AbstractTriviaDataFactory CreateTriviaFactory()
-        => new TriviaDataFactory(this.TreeData, this.Options);
+        => new TriviaDataFactory(this.TreeData, this.Options.LineFormatting);
 
     protected override AbstractFormattingResult CreateFormattingResult(TokenStream tokenStream)
         => new FormattingResult(this.TreeData, tokenStream, this.SpanToFormat);

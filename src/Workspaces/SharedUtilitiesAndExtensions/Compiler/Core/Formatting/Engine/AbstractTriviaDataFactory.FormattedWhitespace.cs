@@ -17,7 +17,7 @@ internal abstract partial class AbstractTriviaDataFactory
     {
         private readonly string _newString;
 
-        public FormattedWhitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation)
+        public FormattedWhitespace(LineFormattingOptions options, int lineBreaks, int indentation)
             : base(options)
         {
             this.LineBreaks = Math.Max(0, lineBreaks);

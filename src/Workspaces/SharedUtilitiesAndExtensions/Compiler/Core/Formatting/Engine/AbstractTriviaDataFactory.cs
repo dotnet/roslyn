@@ -15,12 +15,12 @@ internal abstract partial class AbstractTriviaDataFactory
     private const int IndentationLevelCacheSize = 20;
 
     protected readonly TreeData TreeInfo;
-    protected readonly SyntaxFormattingOptions Options;
+    protected readonly LineFormattingOptions Options;
 
     private readonly Whitespace[] _spaces;
     private readonly Whitespace?[,] _whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
 
-    protected AbstractTriviaDataFactory(TreeData treeInfo, SyntaxFormattingOptions options)
+    protected AbstractTriviaDataFactory(TreeData treeInfo, LineFormattingOptions options)
     {
         Contract.ThrowIfNull(treeInfo);
 

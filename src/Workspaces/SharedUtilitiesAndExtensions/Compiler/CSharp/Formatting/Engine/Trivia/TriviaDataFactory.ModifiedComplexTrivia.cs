@@ -18,7 +18,7 @@ internal partial class TriviaDataFactory
     {
         private readonly ComplexTrivia _original;
 
-        public ModifiedComplexTrivia(SyntaxFormattingOptions options, ComplexTrivia original, int lineBreaks, int space)
+        public ModifiedComplexTrivia(LineFormattingOptions options, ComplexTrivia original, int lineBreaks, int space)
             : base(options)
         {
             Contract.ThrowIfNull(original);
