@@ -30,6 +30,13 @@ internal static partial class DependentProjectsFinder
     /// </summary>
     private static ImmutableDictionary<MetadataId, string> s_metadataIdToAssemblyName = ImmutableDictionary<MetadataId, string>.Empty;
 
+    private static readonly ConditionalWeakTable<
+         Solution,
+         Dictionary<
+             (IAssemblySymbol assembly, Project? sourceProject, SymbolVisibility visibility),
+             ImmutableArray<(Project project, bool hasInternalsAccess)>>> s_solutionToDependentProjectMap = new();
+    private static readonly SemaphoreSlim s_gate = new(initialCount: 1);
+
     public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
         Solution solution, ImmutableArray<ISymbol> symbols, IImmutableSet<Project> projects, CancellationToken cancellationToken)
     {
@@ -128,24 +135,56 @@ internal static partial class DependentProjectsFinder
         SymbolVisibility visibility,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        var dictionary = s_solutionToDependentProjectMap.GetValue(solution, static _ => new());
 
-        var dependentProjects = new HashSet<(Project, bool hasInternalsAccess)>();
+        var key = (symbolOrigination.assembly, symbolOrigination.sourceProject, visibility);
+        ImmutableArray<(Project project, bool hasInternalsAccess)> dependentProjects;
 
-        // If a symbol was defined in source, then it is always visible to the project it
-        // was defined in.
-        if (symbolOrigination.sourceProject != null)
-            dependentProjects.Add((symbolOrigination.sourceProject, hasInternalsAccess: true));
+        // Check cache first.
+        using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            if (dictionary.TryGetValue(key, out dependentProjects))
+                return dependentProjects;
+        }
 
-        // If it's not private, then we need to find possible references.
-        if (visibility != SymbolVisibility.Private)
-            AddNonSubmissionDependentProjects(solution, symbolOrigination, dependentProjects, cancellationToken);
+        // Compute if not in cache.
+        dependentProjects = await ComputeDependentProjectsWorkerAsync(
+            solution, symbolOrigination, visibility, cancellationToken).ConfigureAwait(false);
 
-        // submission projects are special here. The fields generated inside the Script object is private, but
-        // further submissions can bind to them.
-        await AddSubmissionDependentProjectsAsync(solution, symbolOrigination.sourceProject, dependentProjects, cancellationToken).ConfigureAwait(false);
+        // Try to add to cache, returning existing value if another thread already added it.
+        using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            if (dictionary.TryGetValue((symbolOrigination.assembly, symbolOrigination.sourceProject, visibility), out dependentProjects))
+                return dependentProjects;
 
-        return [.. dependentProjects];
+            return dictionary.GetOrAdd(key, dependentProjects);
+        }
+
+        static async Task<ImmutableArray<(Project project, bool hasInternalsAccess)>> ComputeDependentProjectsWorkerAsync(
+           Solution solution,
+           (IAssemblySymbol assembly, Project? sourceProject) symbolOrigination,
+           SymbolVisibility visibility,
+           CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var dependentProjects = new HashSet<(Project, bool hasInternalsAccess)>();
+
+            // If a symbol was defined in source, then it is always visible to the project it
+            // was defined in.
+            if (symbolOrigination.sourceProject != null)
+                dependentProjects.Add((symbolOrigination.sourceProject, hasInternalsAccess: true));
+
+            // If it's not private, then we need to find possible references.
+            if (visibility != SymbolVisibility.Private)
+                AddNonSubmissionDependentProjects(solution, symbolOrigination, dependentProjects, cancellationToken);
+
+            // submission projects are special here. The fields generated inside the Script object is private, but
+            // further submissions can bind to them.
+            await AddSubmissionDependentProjectsAsync(solution, symbolOrigination.sourceProject, dependentProjects, cancellationToken).ConfigureAwait(false);
+
+            return [.. dependentProjects];
+        }
     }
 
     private static async Task AddSubmissionDependentProjectsAsync(
