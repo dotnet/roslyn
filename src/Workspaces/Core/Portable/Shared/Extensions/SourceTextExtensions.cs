@@ -255,7 +255,7 @@ internal static partial class SourceTextExtensions
         // Call into the text service to make us a SourceText from the chunks.  Disposal of this reader will free all
         // the intermediary chunks we allocated.
         using var chunkReader = new CharArrayChunkTextReader(chunks, totalLength);
-        var result = textService.CreateText(chunkReader, encoding, checksumAlgorithm, cancellationToken);
+        var result = SourceText.From(chunkReader, totalLength, encoding, checksumAlgorithm);
         Contract.ThrowIfTrue(totalLength != chunkReader.Position);
 
         return result;
