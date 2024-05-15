@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Security.Principal;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -14,11 +17,13 @@ internal abstract partial class AbstractTriviaDataFactory
     private const int LineBreakCacheSize = 5;
     private const int IndentationLevelCacheSize = 20;
 
+    private static readonly Dictionary<LineFormattingOptions, (Whitespace[] spaces, Whitespace[,] whitespaces)> s_optionsToWhitespace = new();
+
     protected readonly TreeData TreeInfo;
     protected readonly LineFormattingOptions Options;
 
     private readonly Whitespace[] _spaces;
-    private readonly Whitespace?[,] _whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
+    private readonly Whitespace[,] _whitespaces;
 
     protected AbstractTriviaDataFactory(TreeData treeInfo, LineFormattingOptions options)
     {
@@ -27,10 +32,40 @@ internal abstract partial class AbstractTriviaDataFactory
         TreeInfo = treeInfo;
         Options = options;
 
-        _spaces = new Whitespace[SpaceCacheSize];
-        for (var i = 0; i < SpaceCacheSize; i++)
+        (_spaces, _whitespaces) = GetSpacesAndWhitespaces(options);
+    }
+
+    private static (Whitespace[] spaces, Whitespace[,] whitespaces) GetSpacesAndWhitespaces(LineFormattingOptions options)
+    {
+        lock (s_optionsToWhitespace)
         {
-            _spaces[i] = new Whitespace(Options, space: i, elastic: false);
+            if (s_optionsToWhitespace.TryGetValue(options, out var result))
+                return result;
+        }
+
+        var spaces = new Whitespace[SpaceCacheSize];
+        for (var i = 0; i < SpaceCacheSize; i++)
+            spaces[i] = new Whitespace(options, space: i, elastic: false);
+
+        var whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
+
+        for (var lineIndex = 0; lineIndex < LineBreakCacheSize; lineIndex++)
+        {
+            for (var indentationLevel = 0; indentationLevel < IndentationLevelCacheSize; indentationLevel++)
+            {
+                var indentation = indentationLevel * options.IndentationSize;
+                whitespaces[lineIndex, indentationLevel] = new Whitespace
+                    (options, lineBreaks: lineIndex + 1, indentation: indentation, elastic: false);
+            }
+        }
+
+        lock (s_optionsToWhitespace)
+        {
+            if (s_optionsToWhitespace.TryGetValue(options, out var result))
+                return result;
+
+            s_optionsToWhitespace[options] = (spaces, whitespaces);
+            return (spaces, whitespaces);
         }
     }
 
@@ -75,7 +110,6 @@ internal abstract partial class AbstractTriviaDataFactory
             if (indentationLevel < IndentationLevelCacheSize)
             {
                 var lineIndex = lineBreaks - 1;
-                EnsureWhitespaceTriviaInfo(lineIndex, indentationLevel);
                 return _whitespaces[lineIndex, indentationLevel]!;
             }
         }
@@ -83,20 +117,6 @@ internal abstract partial class AbstractTriviaDataFactory
         return useTriviaAsItIs
             ? new Whitespace(this.Options, lineBreaks, indentation, elastic)
             : new ModifiedWhitespace(this.Options, lineBreaks, indentation, elastic);
-    }
-
-    private void EnsureWhitespaceTriviaInfo(int lineIndex, int indentationLevel)
-    {
-        Contract.ThrowIfFalse(lineIndex is >= 0 and < LineBreakCacheSize);
-        Contract.ThrowIfFalse(indentationLevel >= 0 && indentationLevel < _whitespaces.Length / _whitespaces.Rank);
-
-        // set up caches
-        if (_whitespaces[lineIndex, indentationLevel] == null)
-        {
-            var indentation = indentationLevel * Options.IndentationSize;
-            var triviaInfo = new Whitespace(Options, lineBreaks: lineIndex + 1, indentation: indentation, elastic: false);
-            Interlocked.CompareExchange(ref _whitespaces[lineIndex, indentationLevel], triviaInfo, null);
-        }
     }
 
     public abstract TriviaData CreateLeadingTrivia(SyntaxToken token);
