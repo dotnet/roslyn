@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -17,8 +19,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class SourceTextExtensions
 {
-    // char pooled memory : 8K * 256 = 2MB
+    // char pooled memory: 4k characters. 4K * 256 * 2 (bytes per char) = 2MB
     private const int CharArrayLength = 4 * 1024;
+
+    // 16k characters. Equivalent to 32KB in memory. comes from SourceText char buffer size and less than large object size
+    public const int SourceTextLengthThreshold = 32 * 1024 / sizeof(char);
 
     /// <summary>
     /// Note: there is a strong invariant that you only get arrays back from this that are exactly <see
@@ -168,9 +173,6 @@ internal static partial class SourceTextExtensions
         return -1;
     }
 
-    // 32KB. comes from SourceText char buffer size and less than large object size
-    internal const int SourceTextLengthThreshold = 32 * 1024 / sizeof(char);
-
     public static void WriteTo(this SourceText sourceText, ObjectWriter writer, CancellationToken cancellationToken)
     {
         // Source length
@@ -234,6 +236,31 @@ internal static partial class SourceTextExtensions
         return textService.CreateText(textReader, encoding, checksumAlgorithm, cancellationToken);
     }
 
+    private static ImmutableArray<char[]> CreateChunks(int totalLength)
+    {
+        var numberOfChunks = 1 + (totalLength / CharArrayLength);
+        var buffer = new FixedSizeArrayBuilder<char[]>(numberOfChunks);
+        for (var i = 0; i < numberOfChunks; i++)
+            buffer.Add(s_charArrayPool.Allocate());
+
+        return buffer.MoveToImmutable();
+    }
+
+    public static SourceText CreateSourceText(
+        SyntaxNode node, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
+    {
+        var totalLength = node.FullWidth();
+
+        var chunks = CreateChunks(totalLength);
+
+    }
+
+    public static SourceText ReadFromChunks(ImmutableArray<char[]> chunks, int totalLength)
+    {
+        Debug.Assert(chunks.All(static c => c.Length == CharArrayLength));
+        return SourceText.From(new ObjectReaderTextReader(chunks, CharArrayLength, totalLength));
+    }
+
     private sealed class ObjectReaderTextReader : TextReaderWithLength
     {
         private readonly ImmutableArray<char[]> _chunks;
@@ -256,7 +283,7 @@ internal static partial class SourceTextExtensions
             var numberOfChunks = reader.ReadInt32();
 
             // read as chunks
-            using var _ = ArrayBuilder<char[]>.GetInstance(numberOfChunks, out var chunks);
+            var chunks = new FixedSizeArrayBuilder<char[]>(numberOfChunks);
 
             var offset = 0;
             for (var i = 0; i < numberOfChunks; i++)
@@ -279,7 +306,7 @@ internal static partial class SourceTextExtensions
             }
 
             Contract.ThrowIfFalse(offset == length);
-            return new ObjectReaderTextReader(chunks.ToImmutableAndClear(), chunkSize, length);
+            return new ObjectReaderTextReader(chunks.MoveToImmutable(), chunkSize, length);
         }
 
         private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length)
