@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -74,25 +75,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return true;
         }
 
-        // NOTE: We want to avoid computing the operations on the UI thread. So we use Task.Run() to do this work on the background thread.
-        protected Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
+        protected async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
             IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
-            return Task.Run(
-                () => CodeAction.GetOperationsAsync(this.OriginalSolution, progressTracker, cancellationToken), cancellationToken);
+            // Avoid computing the operations on the UI thread
+            await TaskScheduler.Default;
+            return await CodeAction.GetOperationsAsync(this.OriginalSolution, progressTracker, cancellationToken).ConfigureAwait(false);
         }
 
-        protected Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
+        protected async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(
             CodeActionWithOptions actionWithOptions, object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
-            return Task.Run(
-                () => actionWithOptions.GetOperationsAsync(this.OriginalSolution, options, progressTracker, cancellationToken), cancellationToken);
+            // Avoid computing the operations on the UI thread
+            await TaskScheduler.Default;
+            return await actionWithOptions.GetOperationsAsync(this.OriginalSolution, options, progressTracker, cancellationToken).ConfigureAwait(false);
         }
 
-        protected Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
+        protected async Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
         {
-            return Task.Run(
-                () => CodeAction.GetPreviewOperationsAsync(this.OriginalSolution, cancellationToken), cancellationToken);
+            // Avoid computing the operations on the UI thread
+            await TaskScheduler.Default;
+            return await CodeAction.GetPreviewOperationsAsync(this.OriginalSolution, cancellationToken).ConfigureAwait(false);
         }
 
         public void Invoke(CancellationToken cancellationToken)
@@ -165,6 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // Clear the progress we showed while computing the action.
                 // We'll now show progress as we apply the action.
                 progressTracker.Report(CodeAnalysisProgress.Clear());
+                progressTracker.Report(CodeAnalysisProgress.Description(EditorFeaturesResources.Applying_changes));
 
                 using (Logger.LogBlock(
                     FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))

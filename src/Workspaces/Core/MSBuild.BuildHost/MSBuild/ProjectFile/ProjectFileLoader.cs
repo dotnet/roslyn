@@ -5,8 +5,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.MSBuild.Build;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild

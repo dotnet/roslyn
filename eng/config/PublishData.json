@@ -212,7 +212,7 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.11",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.11 P1]"
@@ -224,7 +224,7 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
+      "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.11 P2]"
     },
     "dev/andrha/telemetry": {

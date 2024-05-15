@@ -392,11 +392,6 @@
         <target state="translated">Impossible de convertir {0} en type « {1} », car le type de retour ne correspond pas au type de retour délégué</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
-        <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
-        <target state="translated">Désolé... Nous ne pouvons pas déduire les arguments de type pour la méthode « {0} » à partir de l’utilisation, car un argument avec un type dynamique est utilisé et la méthode a un paramètre de collection de params non-tableau. Essayez de spécifier explicitement les arguments de type.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist ne peut pas avoir un argument passé par 'in' ou 'out'</target>
@@ -595,6 +590,11 @@
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="translated">Impossible de spécifier des modificateurs 'readonly' sur les deux accesseurs de la propriété ou de l'indexeur '{0}'. À la place, mettez un modificateur 'readonly' sur la propriété elle-même.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DynamicDispatchToParamsCollection">
+        <source>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</source>
+        <target state="new">'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">

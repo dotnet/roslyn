@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             return new AnalyzerFileReference(original, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(original, shadow.Path)));
         }
 
-        private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
+        private class MissingAnalyzerLoader() : AnalyzerAssemblyLoader([])
         {
             protected override string PreparePathToLoad(string fullPath)
                 => throw new FileNotFoundException(fullPath);

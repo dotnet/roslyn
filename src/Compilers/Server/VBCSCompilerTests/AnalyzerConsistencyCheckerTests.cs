@@ -154,8 +154,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 directory.Path,
                 ImmutableArray.Create(new CommandLineAnalyzerReference(mvidAlpha2.Path)),
                 assemblyLoader,
-                Logger);
+                Logger,
+                out List<string>? errorMessages);
             Assert.False(result);
+            Assert.NotNull(errorMessages);
+
+            // Both the original and failed paths need to appear in the message, not the shadow copy 
+            // paths
+            var errorMessage = errorMessages!.Single();
+            Assert.Contains(mvidAlpha1.Path, errorMessage);
+            Assert.Contains(mvidAlpha2.Path, errorMessage);
         }
 
         /// <summary>
@@ -242,5 +250,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void AddDependencyLocation(string fullPath) { }
         public bool IsHostAssembly(Assembly assembly) => false;
         public Assembly LoadFromPath(string fullPath) => throw new Exception();
+        public string? GetOriginalDependencyLocation(AssemblyName assembly) => throw new Exception();
     }
 }

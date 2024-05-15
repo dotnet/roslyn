@@ -392,11 +392,6 @@
         <target state="translated">{0} kann nicht in den Typ „{1}“ konvertiert werden, da der Rückgabetyp nicht mit dem Rückgabetyp des Delegaten übereinstimmt</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
-        <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
-        <target state="translated">Die Typargumente für die Methode "{0}" können nicht aus der Verwendung abgeleitet werden, da ein Argument mit dynamischem Typ verwendet wird und die Methode einen nicht arraybasierten Params-Auflistungsparameter aufweist. Geben Sie die Typargumente explizit an.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">"__arglist" darf kein über "in" oder "out" übergebenes Argument umfassen.</target>
@@ -595,6 +590,11 @@
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="translated">readonly-Modifizierer können nicht für beide Accessoren der Eigenschaft oder des Indexers "{0}" angegeben werden. Legen Sie stattdessen einen readonly-Modifizierer für die Eigenschaft selbst fest.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DynamicDispatchToParamsCollection">
+        <source>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</source>
+        <target state="new">'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">

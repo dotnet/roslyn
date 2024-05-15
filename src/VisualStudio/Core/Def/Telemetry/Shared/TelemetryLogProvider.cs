@@ -17,17 +17,17 @@ internal sealed class TelemetryLogProvider : ITelemetryLogProvider
     private readonly AggregatingTelemetryLogManager _aggregatingTelemetryLogManager;
     private readonly VisualStudioTelemetryLogManager _visualStudioTelemetryLogManager;
 
-    private TelemetryLogProvider(TelemetrySession session, ILogger telemetryLogger)
+    private TelemetryLogProvider(TelemetrySession session, ILogger telemetryLogger, IAsynchronousOperationListener asyncListener)
     {
-        _aggregatingTelemetryLogManager = new AggregatingTelemetryLogManager(session);
+        _aggregatingTelemetryLogManager = new AggregatingTelemetryLogManager(session, asyncListener);
         _visualStudioTelemetryLogManager = new VisualStudioTelemetryLogManager(session, telemetryLogger);
     }
 
     public static TelemetryLogProvider Create(TelemetrySession session, ILogger telemetryLogger, IAsynchronousOperationListener asyncListener)
     {
-        var logProvider = new TelemetryLogProvider(session, telemetryLogger);
+        var logProvider = new TelemetryLogProvider(session, telemetryLogger, asyncListener);
 
-        TelemetryLogging.SetLogProvider(logProvider, asyncListener);
+        TelemetryLogging.SetLogProvider(logProvider);
 
         return logProvider;
     }

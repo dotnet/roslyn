@@ -7851,8 +7851,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureParamsCollections" xml:space="preserve">
     <value>params collections</value>
   </data>
-  <data name="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections" xml:space="preserve">
-    <value>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</value>
+  <data name="ERR_DynamicDispatchToParamsCollection" xml:space="preserve">
+    <value>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</value>
   </data>
   <data name="ERR_ParamsCollectionAmbiguousDynamicArgument" xml:space="preserve">
     <value>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</value>

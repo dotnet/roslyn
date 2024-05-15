@@ -392,11 +392,6 @@
         <target state="translated">Dönüş türü temsilci dönüş türüyle eşleşmediğinden {0}, ' {1} ' türüne dönüştürülemiyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
-        <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
-        <target state="translated">Dinamik türe sahip bir bağımsız değişken kullanıldığından ve metot dizi olmayan params koleksiyon parametresine sahip olduğundan, '{0}' metodu için tür bağımsız değişkeni kullanımdan çıkarsanamıyor. Tür bağımsız değişkenlerini açıkça belirtmeyi deneyin.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist, 'in' veya 'out' tarafından geçirilen bir bağımsız değişkene sahip olamaz</target>
@@ -595,6 +590,11 @@
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="translated">'readonly' değiştiricileri, '{0}' özelliğinin veya dizin oluşturucusunun her iki erişimcisinde de belirtilemez. Bunun yerine özelliğin kendisine bir 'readonly' değiştiricisi koyun.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DynamicDispatchToParamsCollection">
+        <source>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</source>
+        <target state="new">'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">

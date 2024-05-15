@@ -28,12 +28,12 @@ internal abstract partial class AbstractGenerateEqualsAndGetHashCodeService : IG
 
     public async Task<Document> FormatDocumentAsync(Document document, SyntaxFormattingOptions options, CancellationToken cancellationToken)
     {
-        var rules = new List<AbstractFormattingRule> { new FormatLargeBinaryExpressionRule(document.GetRequiredLanguageService<ISyntaxFactsService>()) };
-        rules.AddRange(Formatter.GetDefaultFormattingRules(document));
-
+        var formatBinaryRule = new FormatLargeBinaryExpressionRule(document.GetRequiredLanguageService<ISyntaxFactsService>());
         var formattedDocument = await Formatter.FormatAsync(
             document, s_specializedFormattingAnnotation,
-            options, rules, cancellationToken).ConfigureAwait(false);
+            options,
+            [formatBinaryRule, .. Formatter.GetDefaultFormattingRules(document)],
+            cancellationToken).ConfigureAwait(false);
         return formattedDocument;
     }
 

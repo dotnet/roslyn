@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public ImmutableArray<string> Aliases { get; }
 
         /// <summary>
-        /// The value of <see cref="MetadataNames.ReferenceOutputAssembly"/>.
+        /// The value of "ReferenceOutputAssembly" metadata.
         /// </summary>
         [DataMember(Order = 2)]
         public bool ReferenceOutputAssembly { get; }

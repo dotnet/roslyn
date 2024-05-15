@@ -392,11 +392,6 @@
         <target state="translated">無法將 {0} 轉換成類型 '{1}'，因為傳回型別不符合委派傳回型別</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
-        <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
-        <target state="translated">無法從使用方式推斷方法 '{0}' 的型別引數，因為使用了具有動態型別的引述，而且該方法具有非陣列參數集合參數。請嘗試明確指定型別引數。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist 不得包含 'in' 或 'out' 傳遞的引數</target>
@@ -595,6 +590,11 @@
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="translated">在屬性和索引子 '{0}' 的存取子上均無法指定 'readonly' 修飾元。請改在屬性自身上放置 'readonly' 修飾元。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DynamicDispatchToParamsCollection">
+        <source>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</source>
+        <target state="new">'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">

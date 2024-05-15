@@ -14561,10 +14561,10 @@ class Program
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped in TBuffer)""
+  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped ref readonly TBuffer)""
   IL_0006:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
   IL_000b:  ldarg.1
-  IL_000c:  call       ""System.ReadOnlySpan<TElement> System.Runtime.InteropServices.MemoryMarshal.CreateReadOnlySpan<TElement>(scoped ref TElement, int)""
+  IL_000c:  call       ""System.ReadOnlySpan<TElement> System.Runtime.InteropServices.MemoryMarshal.CreateReadOnlySpan<TElement>(scoped ref readonly TElement, int)""
   IL_0011:  ret
 }
 ");
@@ -14658,7 +14658,7 @@ class Program
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped in TBuffer)""
+  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped ref readonly TBuffer)""
   IL_0006:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
   IL_000b:  ldarg.1
   IL_000c:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.Add<TElement>(ref TElement, int)""
@@ -14749,7 +14749,7 @@ class Program
   // Code size       12 (0xc)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped in TBuffer)""
+  IL_0001:  call       ""ref TBuffer System.Runtime.CompilerServices.Unsafe.AsRef<TBuffer>(scoped ref readonly TBuffer)""
   IL_0006:  call       ""ref TElement System.Runtime.CompilerServices.Unsafe.As<TBuffer, TElement>(ref TBuffer)""
   IL_000b:  ret
 }
@@ -18493,7 +18493,7 @@ class Program
   IL_0019:  dup
   IL_001a:  ldind.i4
   IL_001b:  call       ""void System.Console.Write(int)""
-  IL_0020:  call       ""ref int System.Runtime.CompilerServices.Unsafe.AsRef<int>(scoped in int)""
+  IL_0020:  call       ""ref int System.Runtime.CompilerServices.Unsafe.AsRef<int>(scoped ref readonly int)""
   IL_0025:  dup
   IL_0026:  ldind.i4
   IL_0027:  ldc.i4.m1
@@ -18720,7 +18720,7 @@ class Program
   IL_0019:  dup
   IL_001a:  ldind.i4
   IL_001b:  call       ""void System.Console.Write(int)""
-  IL_0020:  call       ""ref int System.Runtime.CompilerServices.Unsafe.AsRef<int>(scoped in int)""
+  IL_0020:  call       ""ref int System.Runtime.CompilerServices.Unsafe.AsRef<int>(scoped ref readonly int)""
   IL_0025:  dup
   IL_0026:  ldind.i4
   IL_0027:  ldc.i4.m1

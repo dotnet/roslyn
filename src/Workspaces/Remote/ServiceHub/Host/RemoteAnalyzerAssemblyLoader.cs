@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
@@ -15,7 +16,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     {
         private readonly string _baseDirectory;
 
-        public RemoteAnalyzerAssemblyLoader(string baseDirectory)
+        public RemoteAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+            : base(externalResolvers ?? [])
         {
             _baseDirectory = baseDirectory;
         }

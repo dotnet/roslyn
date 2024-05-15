@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
 {
     using VerifyCS = CSharpCodeRefactoringVerifier<UseRecursivePatternsCodeRefactoringProvider>;
 
+    [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseRecursivePatterns)]
     public class UseRecursivePatternsRefactoringTests
     {

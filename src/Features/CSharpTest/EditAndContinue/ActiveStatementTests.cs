@@ -843,8 +843,7 @@ namespace N
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Parameter_Update_RefKind_RuntimeTypeUnchanged(
             [CombinatorialValues("ref", "out", "in", "ref readonly")] string oldModifiers,
             [CombinatorialValues("ref", "out", "in", "ref readonly")] string newModifiers)

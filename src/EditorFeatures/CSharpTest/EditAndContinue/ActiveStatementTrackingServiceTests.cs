@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     [UseExportProvider]
     public class ActiveStatementTrackingServiceTests
     {
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TrackingService_GetLatestSpansAsync(bool scheduleInitialTrackingBeforeOpenDoc)
         {
             var source1 = "class C { void F() => G(1); void G(int a) => System.Console.WriteLine(1); }";
