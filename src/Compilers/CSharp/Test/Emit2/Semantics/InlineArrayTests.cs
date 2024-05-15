@@ -23108,7 +23108,7 @@ struct ThreeStringBuffer {
         }
 
         [Fact]
-        public void Initialization_RefStruct_Await()
+        public void Initialization_Await_RefStruct()
         {
             var src = """
                 using System.Threading.Tasks;
@@ -23125,7 +23125,11 @@ struct ThreeStringBuffer {
                     private int _element0;
                 }
                 """;
-            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (3,1): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // var b = new Buffer();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(3, 1),
                 // (4,1): error CS0306: The type 'Buffer' may not be used as a type argument
                 // b[0] = await GetInt();
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "b[0]").WithArguments("Buffer").WithLocation(4, 1),
@@ -23135,6 +23139,185 @@ struct ThreeStringBuffer {
                 // (10,12): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 // ref struct Buffer
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "Buffer").WithLocation(10, 12));
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,1): error CS0306: The type 'Buffer' may not be used as a type argument
+                // b[0] = await GetInt();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "b[0]").WithArguments("Buffer").WithLocation(4, 1),
+                // (5,1): error CS0306: The type 'Buffer' may not be used as a type argument
+                // b[1] = await GetInt();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "b[1]").WithArguments("Buffer").WithLocation(5, 1),
+                // (10,12): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                // ref struct Buffer
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "Buffer").WithLocation(10, 12)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Initialization_Await()
+        {
+            var src = """
+                using System.Threading.Tasks;
+
+                var b = new Buffer();
+                b[0] = await GetInt();
+                System.Console.Write(b[1]);
+                b[1] = await GetInt();
+                System.Console.Write(b[1]);
+
+                static Task<int> GetInt() => Task.FromResult(42);
+                
+                [System.Runtime.CompilerServices.InlineArray(4)]
+                struct Buffer
+                {
+                    private int _element0;
+                }
+                """;
+            foreach (var parseOptions in new[] { TestOptions.Regular12, TestOptions.RegularNext, TestOptions.RegularPreview })
+            {
+                var verifier = CompileAndVerify(src, expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "042",
+                    parseOptions: parseOptions, targetFramework: TargetFramework.Net80, verify: Verification.FailsPEVerify);
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("Program.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+                    {
+                      // Code size      316 (0x13c)
+                      .maxstack  3
+                      .locals init (int V_0,
+                                    int V_1,
+                                    System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
+                                    System.Exception V_3)
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldfld      "int Program.<<Main>$>d__0.<>1__state"
+                      IL_0006:  stloc.0
+                      .try
+                      {
+                        IL_0007:  ldloc.0
+                        IL_0008:  brfalse.s  IL_0054
+                        IL_000a:  ldloc.0
+                        IL_000b:  ldc.i4.1
+                        IL_000c:  beq        IL_00cb
+                        IL_0011:  ldarg.0
+                        IL_0012:  ldflda     "Buffer Program.<<Main>$>d__0.<b>5__2"
+                        IL_0017:  initobj    "Buffer"
+                        IL_001d:  call       "System.Threading.Tasks.Task<int> Program.<<Main>$>g__GetInt|0_0()"
+                        IL_0022:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+                        IL_0027:  stloc.2
+                        IL_0028:  ldloca.s   V_2
+                        IL_002a:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get"
+                        IL_002f:  brtrue.s   IL_0070
+                        IL_0031:  ldarg.0
+                        IL_0032:  ldc.i4.0
+                        IL_0033:  dup
+                        IL_0034:  stloc.0
+                        IL_0035:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+                        IL_003a:  ldarg.0
+                        IL_003b:  ldloc.2
+                        IL_003c:  stfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+                        IL_0041:  ldarg.0
+                        IL_0042:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+                        IL_0047:  ldloca.s   V_2
+                        IL_0049:  ldarg.0
+                        IL_004a:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<<Main>$>d__0)"
+                        IL_004f:  leave      IL_013b
+                        IL_0054:  ldarg.0
+                        IL_0055:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+                        IL_005a:  stloc.2
+                        IL_005b:  ldarg.0
+                        IL_005c:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+                        IL_0061:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<int>"
+                        IL_0067:  ldarg.0
+                        IL_0068:  ldc.i4.m1
+                        IL_0069:  dup
+                        IL_006a:  stloc.0
+                        IL_006b:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+                        IL_0070:  ldloca.s   V_2
+                        IL_0072:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+                        IL_0077:  stloc.1
+                        IL_0078:  ldarg.0
+                        IL_0079:  ldflda     "Buffer Program.<<Main>$>d__0.<b>5__2"
+                        IL_007e:  call       "ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer, int>(ref Buffer)"
+                        IL_0083:  ldloc.1
+                        IL_0084:  stind.i4
+                        IL_0085:  ldarg.0
+                        IL_0086:  ldflda     "Buffer Program.<<Main>$>d__0.<b>5__2"
+                        IL_008b:  ldc.i4.1
+                        IL_008c:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer, int>(ref Buffer, int)"
+                        IL_0091:  ldind.i4
+                        IL_0092:  call       "void System.Console.Write(int)"
+                        IL_0097:  call       "System.Threading.Tasks.Task<int> Program.<<Main>$>g__GetInt|0_0()"
+                        IL_009c:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+                        IL_00a1:  stloc.2
+                        IL_00a2:  ldloca.s   V_2
+                        IL_00a4:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get"
+                        IL_00a9:  brtrue.s   IL_00e7
+                        IL_00ab:  ldarg.0
+                        IL_00ac:  ldc.i4.1
+                        IL_00ad:  dup
+                        IL_00ae:  stloc.0
+                        IL_00af:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+                        IL_00b4:  ldarg.0
+                        IL_00b5:  ldloc.2
+                        IL_00b6:  stfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+                        IL_00bb:  ldarg.0
+                        IL_00bc:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+                        IL_00c1:  ldloca.s   V_2
+                        IL_00c3:  ldarg.0
+                        IL_00c4:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<<Main>$>d__0)"
+                        IL_00c9:  leave.s    IL_013b
+                        IL_00cb:  ldarg.0
+                        IL_00cc:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+                        IL_00d1:  stloc.2
+                        IL_00d2:  ldarg.0
+                        IL_00d3:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+                        IL_00d8:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<int>"
+                        IL_00de:  ldarg.0
+                        IL_00df:  ldc.i4.m1
+                        IL_00e0:  dup
+                        IL_00e1:  stloc.0
+                        IL_00e2:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+                        IL_00e7:  ldloca.s   V_2
+                        IL_00e9:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+                        IL_00ee:  stloc.1
+                        IL_00ef:  ldarg.0
+                        IL_00f0:  ldflda     "Buffer Program.<<Main>$>d__0.<b>5__2"
+                        IL_00f5:  ldc.i4.1
+                        IL_00f6:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer, int>(ref Buffer, int)"
+                        IL_00fb:  ldloc.1
+                        IL_00fc:  stind.i4
+                        IL_00fd:  ldarg.0
+                        IL_00fe:  ldflda     "Buffer Program.<<Main>$>d__0.<b>5__2"
+                        IL_0103:  ldc.i4.1
+                        IL_0104:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer, int>(ref Buffer, int)"
+                        IL_0109:  ldind.i4
+                        IL_010a:  call       "void System.Console.Write(int)"
+                        IL_010f:  leave.s    IL_0128
+                      }
+                      catch System.Exception
+                      {
+                        IL_0111:  stloc.3
+                        IL_0112:  ldarg.0
+                        IL_0113:  ldc.i4.s   -2
+                        IL_0115:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+                        IL_011a:  ldarg.0
+                        IL_011b:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+                        IL_0120:  ldloc.3
+                        IL_0121:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                        IL_0126:  leave.s    IL_013b
+                      }
+                      IL_0128:  ldarg.0
+                      IL_0129:  ldc.i4.s   -2
+                      IL_012b:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+                      IL_0130:  ldarg.0
+                      IL_0131:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+                      IL_0136:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+                      IL_013b:  ret
+                    }
+                    """);
+            }
         }
     }
 }
