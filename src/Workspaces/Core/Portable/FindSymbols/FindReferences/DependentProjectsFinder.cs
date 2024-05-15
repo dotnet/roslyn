@@ -354,30 +354,29 @@ internal static partial class DependentProjectsFinder
 
             using (await s_metadataIdToAssemblyNameGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name) && name == assemblyName)
-                    return true;
+                if (s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
+                {
+                    // We already know the assembly name for this metadata id.  If it matches the one we're looking for,
+                    // we're done.  Otherwise, keep looking.
+                    if (name == assemblyName)
+                        return true;
+                    else
+                        continue;
+                }
             }
 
+            // We didn't know the name for the metadata id.  Add it to the list of things we need to compute below.
             uncomputedReferences.Add((peReference, metadataId));
         }
 
         if (uncomputedReferences.Count == 0)
             return false;
 
-        Compilation? compilation = null;
+        var compilation = CreateCompilation(project);
 
         foreach (var (peReference, metadataId) in uncomputedReferences)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            using (await s_metadataIdToAssemblyNameGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                if (s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name) && name == assemblyName)
-                    return true;
-            }
-
-            // Defer creating the compilation till needed.
-            CreateCompilation(project, ref compilation);
 
             if (compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol { Name: string metadataAssemblyName })
             {
@@ -392,18 +391,15 @@ internal static partial class DependentProjectsFinder
 
         return false;
 
-        static void CreateCompilation(Project project, [NotNull] ref Compilation? compilation)
+        static Compilation CreateCompilation(Project project)
         {
-            if (compilation != null)
-                return;
-
             // Use the project's compilation if it has one.
-            if (project.TryGetCompilation(out compilation))
-                return;
+            if (project.TryGetCompilation(out var compilation))
+                return compilation;
 
             // Perf: check metadata reference using newly created empty compilation with only metadata references.
             var factory = project.Services.GetRequiredService<ICompilationFactoryService>();
-            compilation = factory
+            return factory
                 .CreateCompilation(project.AssemblyName, project.CompilationOptions!)
                 .AddReferences(project.MetadataReferences);
         }
