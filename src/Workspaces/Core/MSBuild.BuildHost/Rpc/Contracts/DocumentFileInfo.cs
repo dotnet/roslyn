@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// Represents a source file that is part of a project file.
     /// </summary>
     [DataContract]
-    internal sealed class DocumentFileInfo(string filePath, string logicalPath, bool isLinked, bool isGenerated, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders)
+    internal sealed class DocumentFileInfo(string filePath, string logicalPath, bool isLinked, bool isGenerated, ImmutableArray<string> folders)
     {
         /// <summary>
         /// The absolute path to the document file on disk.
@@ -41,15 +41,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public bool IsGenerated { get; } = isGenerated;
 
         /// <summary>
-        /// The <see cref="SourceCodeKind"/> of this document.
-        /// </summary>
-        [DataMember(Order = 4)]
-        public SourceCodeKind SourceCodeKind { get; } = sourceCodeKind;
-
-        /// <summary>
         /// Containing folders of the document relative to the containing project root path.
         /// </summary>
-        [DataMember(Order = 5)]
+        [DataMember(Order = 4)]
         public ImmutableArray<string> Folders { get; } = folders;
     }
 }

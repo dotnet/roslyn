@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         DocumentId.CreateNewId(projectId, debugName: info.FilePath),
                         name,
                         folders,
-                        info.SourceCodeKind,
+                        SourceCodeKind.Regular,
                         new WorkspaceFileTextLoader(_solutionServices, info.FilePath, encoding),
                         info.FilePath,
                         info.IsGenerated);
