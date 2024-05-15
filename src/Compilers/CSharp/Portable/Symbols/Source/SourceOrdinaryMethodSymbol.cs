@@ -335,10 +335,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Returns the implementation part of a partial method definition, 
-        /// or null if this is not a partial method or it is the definition part.
-        /// </summary>
         internal SourceOrdinaryMethodSymbol SourcePartialDefinition
         {
             get
@@ -347,10 +343,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Returns the definition part of a partial method implementation, 
-        /// or null if this is not a partial method or it is the implementation part.
-        /// </summary>
         internal SourceOrdinaryMethodSymbol SourcePartialImplementation
         {
             get
