@@ -6,6 +6,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 internal class HandlerProvider(ILspServices lspServices) : AbstractHandlerProvider
 {
     private readonly ILspServices _lspServices = lspServices;
-    private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>? _requestHandlers;
+    private FrozenDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>? _requestHandlers;
 
     public IMethodHandler GetMethodHandler(string method, TypeRef? requestTypeRef, TypeRef? responseTypeRef)
         => GetMethodHandler(method, requestTypeRef, responseTypeRef, LanguageServerConstants.DefaultLanguageName);
@@ -39,15 +40,15 @@ internal class HandlerProvider(ILspServices lspServices) : AbstractHandlerProvid
     public override ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
     {
         var requestHandlers = GetRequestHandlers();
-        return requestHandlers.Keys.ToImmutableArray();
+        return requestHandlers.Keys;
     }
 
-    private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
+    private FrozenDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
         => _requestHandlers ??= CreateMethodToHandlerMap(_lspServices);
 
-    private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> CreateMethodToHandlerMap(ILspServices lspServices)
+    private static FrozenDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> CreateMethodToHandlerMap(ILspServices lspServices)
     {
-        var builder = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IMethodHandler>>();
+        var builder = new Dictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>();
 
         var methodHash = new HashSet<(string methodName, string language)>();
 
@@ -103,7 +104,7 @@ internal class HandlerProvider(ILspServices lspServices) : AbstractHandlerProvid
 
         VerifyHandlers(builder.Keys);
 
-        return builder.ToImmutable();
+        return builder.ToFrozenDictionary();
 
         static void CheckForDuplicates(string methodName, string language, HashSet<(string methodName, string language)> existingMethods)
         {

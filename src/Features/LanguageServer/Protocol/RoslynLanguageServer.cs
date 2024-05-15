@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text.Json;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<RequestContext>, IOnInitialized
     {
         private readonly AbstractLspServiceProvider _lspServiceProvider;
-        private readonly ImmutableDictionary<string, ImmutableArray<Func<ILspServices, object>>> _baseServices;
+        private readonly FrozenDictionary<string, ImmutableArray<Func<ILspServices, object>>> _baseServices;
         private readonly WellKnownLspServerKinds _serverKind;
 
         public RoslynLanguageServer(
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return provider.CreateRequestExecutionQueue(this, Logger, HandlerProvider);
         }
 
-        private ImmutableDictionary<string, ImmutableArray<Func<ILspServices, object>>> GetBaseServices(
+        private FrozenDictionary<string, ImmutableArray<Func<ILspServices, object>>> GetBaseServices(
             JsonRpc jsonRpc,
             AbstractLspLogger logger,
             ICapabilitiesProvider capabilitiesProvider,
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
                 AddBaseServiceFromFunc<LspMiscellaneousFilesWorkspace>(lspServices => new LspMiscellaneousFilesWorkspace(lspServices, hostServices));
 
-            return baseServices.ToImmutableDictionary();
+            return baseServices.ToFrozenDictionary();
 
             void AddBaseService<T>(T instance) where T : class
             {
