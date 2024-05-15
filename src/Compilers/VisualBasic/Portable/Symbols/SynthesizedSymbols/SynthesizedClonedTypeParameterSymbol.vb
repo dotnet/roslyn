@@ -100,9 +100,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AllowsByRefLike As Boolean
+        Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
             Get
-                Return _correspondingMethodTypeParameter.AllowsByRefLike
+                Return _correspondingMethodTypeParameter.AllowsRefLikeType
             End Get
         End Property
 

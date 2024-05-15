@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AllowsByRefLike As Boolean
+        Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
             Get
                 Return (_flags And MetadataHelpers.GenericParameterAttributesAllowByRefLike) <> 0
             End Get

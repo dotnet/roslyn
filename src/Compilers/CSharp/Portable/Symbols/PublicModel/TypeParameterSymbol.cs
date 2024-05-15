@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool ITypeParameterSymbol.HasValueTypeConstraint => _underlying.HasValueTypeConstraint;
 
-        bool ITypeParameterSymbol.AllowsByRefLike => _underlying.AllowsByRefLike;
+        bool ITypeParameterSymbol.AllowsRefLikeType => _underlying.AllowsRefLikeType;
 
         bool ITypeParameterSymbol.HasUnmanagedTypeConstraint => _underlying.HasUnmanagedTypeConstraint;
 

@@ -863,7 +863,7 @@ Done:
             If (typeParameter1.HasConstructorConstraint <> typeParameter2.HasConstructorConstraint) OrElse
                 (typeParameter1.HasReferenceTypeConstraint <> typeParameter2.HasReferenceTypeConstraint) OrElse
                 (typeParameter1.HasValueTypeConstraint <> typeParameter2.HasValueTypeConstraint) OrElse
-                (typeParameter1.AllowsByRefLike <> typeParameter2.AllowsByRefLike) OrElse
+                (typeParameter1.AllowsRefLikeType <> typeParameter2.AllowsRefLikeType) OrElse
                 (typeParameter1.Variance <> typeParameter2.Variance) Then
                 Return False
             End If

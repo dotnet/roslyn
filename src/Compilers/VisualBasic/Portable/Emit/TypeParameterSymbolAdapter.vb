@@ -233,9 +233,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IGenericParameterAllowByRefLike As Boolean Implements IGenericParameter.AllowByRefLike
+        Private ReadOnly Property IGenericParameterAllowByRefLike As Boolean Implements IGenericParameter.AllowsRefLikeType
             Get
-                Return AdaptedTypeParameterSymbol.AllowsByRefLike
+                Return AdaptedTypeParameterSymbol.AllowsRefLikeType
             End Get
         End Property
 

@@ -2829,8 +2829,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (destination is TypeParameterSymbol { AllowsByRefLike: false } &&
-                !source.AllowsByRefLike &&
+            if (destination is TypeParameterSymbol { AllowsRefLikeType: false } &&
+                !source.AllowsRefLikeType &&
                 source.DependsOn((TypeParameterSymbol)destination))
             {
                 return true;
@@ -2849,7 +2849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // Not a reference conversion.
             }
 
-            if (source.AllowsByRefLike)
+            if (source.AllowsRefLikeType)
             {
                 return false;
             }
@@ -2872,7 +2872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // * From T to a type parameter U, provided T depends on U.
-            if (destination is TypeParameterSymbol { AllowsByRefLike: false } &&
+            if (destination is TypeParameterSymbol { AllowsRefLikeType: false } &&
                 source.DependsOn((TypeParameterSymbol)destination))
             {
                 return true;
@@ -2972,14 +2972,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetInterfaceType.IsErrorType() || targetInterfaceType.IsInterface);
 
             return ClassifyImplicitConversionFromType(typeToCheck, targetInterfaceType, ref useSiteInfo).IsImplicit ||
-                   IsRefLikeOrAllowsByRefLikeImplementingVarianceCompatibleInterface(typeToCheck, targetInterfaceType, ref useSiteInfo);
+                   IsRefLikeOrAllowsRefLikeTypeImplementingVarianceCompatibleInterface(typeToCheck, targetInterfaceType, ref useSiteInfo);
         }
 
-        private bool IsRefLikeOrAllowsByRefLikeImplementingVarianceCompatibleInterface(TypeSymbol typeToCheck, NamedTypeSymbol targetInterfaceType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private bool IsRefLikeOrAllowsRefLikeTypeImplementingVarianceCompatibleInterface(TypeSymbol typeToCheck, NamedTypeSymbol targetInterfaceType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (typeToCheck is TypeParameterSymbol typeParameter)
             {
-                return typeParameter.AllowsByRefLike && HasVarianceCompatibleInterfaceInEffectiveInterfaceSet(typeParameter, targetInterfaceType, ref useSiteInfo);
+                return typeParameter.AllowsRefLikeType && HasVarianceCompatibleInterfaceInEffectiveInterfaceSet(typeParameter, targetInterfaceType, ref useSiteInfo);
             }
             else if (typeToCheck.IsRefLikeType)
             {
@@ -2994,7 +2994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetInterfaceType.IsErrorType() || targetInterfaceType.IsInterface);
 
             return ClassifyImplicitConversionFromExpression(expressionToCheck, targetInterfaceType, ref useSiteInfo).IsImplicit ||
-                   (expressionToCheck.Type is TypeSymbol typeToCheck && IsRefLikeOrAllowsByRefLikeImplementingVarianceCompatibleInterface(typeToCheck, targetInterfaceType, ref useSiteInfo));
+                   (expressionToCheck.Type is TypeSymbol typeToCheck && IsRefLikeOrAllowsRefLikeTypeImplementingVarianceCompatibleInterface(typeToCheck, targetInterfaceType, ref useSiteInfo));
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -3202,7 +3202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // Not a boxing conversion; both source and destination are references.
             }
 
-            if (source.AllowsByRefLike)
+            if (source.AllowsRefLikeType)
             {
                 return false;
             }
@@ -3225,7 +3225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // SPEC: From T to a type parameter U, provided T depends on U
-            if (destination is TypeParameterSymbol { AllowsByRefLike: false } d &&
+            if (destination is TypeParameterSymbol { AllowsRefLikeType: false } d &&
                 source.DependsOn(d))
             {
                 return true;
@@ -3480,7 +3480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeParameterSymbol s = source as TypeParameterSymbol;
             TypeParameterSymbol t = destination as TypeParameterSymbol;
 
-            if (s?.AllowsByRefLike == true || t?.AllowsByRefLike == true)
+            if (s?.AllowsRefLikeType == true || t?.AllowsRefLikeType == true)
             {
                 return false;
             }
@@ -3532,7 +3532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeParameterSymbol s = source as TypeParameterSymbol;
             TypeParameterSymbol t = destination as TypeParameterSymbol;
 
-            if (s?.AllowsByRefLike == true || t?.AllowsByRefLike == true)
+            if (s?.AllowsRefLikeType == true || t?.AllowsRefLikeType == true)
             {
                 return false;
             }

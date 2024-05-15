@@ -27,7 +27,7 @@ internal class CodeGenerationTypeParameterSymbol(
     public bool HasConstructorConstraint { get; } = hasConstructorConstraint;
     public bool HasReferenceTypeConstraint { get; } = hasReferenceConstraint;
     public bool HasValueTypeConstraint { get; } = hasValueConstraint;
-    public bool AllowsByRefLike => false;
+    public bool AllowsRefLikeType => false;
     public bool HasUnmanagedTypeConstraint { get; } = hasUnmanagedConstraint;
     public bool HasNotNullConstraint { get; } = hasNotNullConstraint;
     public int Ordinal { get; } = ordinal;

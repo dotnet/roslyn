@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public bool MustBeValueType => OldDefinition.MustBeValueType;
 
-        public bool AllowByRefLike => OldDefinition.AllowByRefLike;
+        public bool AllowsRefLikeType => OldDefinition.AllowsRefLikeType;
 
         public bool MustHaveDefaultConstructor => OldDefinition.MustHaveDefaultConstructor;
 

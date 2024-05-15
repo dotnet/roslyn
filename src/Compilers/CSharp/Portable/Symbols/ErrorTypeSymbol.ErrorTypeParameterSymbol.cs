@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public override bool AllowsByRefLike
+            public override bool AllowsRefLikeType
             {
                 get
                 {

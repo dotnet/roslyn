@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnosticsBuilder.Free();
 
-            if (typeParameter.AllowsByRefLike)
+            if (typeParameter.AllowsRefLikeType)
             {
                 if (inherited)
                 {
@@ -934,9 +934,9 @@ hasRelatedInterfaces:
                 return false;
             }
 
-            if (typeArgument.Type.IsRefLikeTypeOrAllowsByRefLike())
+            if (typeArgument.Type.IsRefLikeOrAllowsRefLikeType())
             {
-                if (typeParameter.AllowsByRefLike)
+                if (typeParameter.AllowsRefLikeType)
                 {
                     if (args.CurrentCompilation.SourceModule != typeParameter.ContainingModule)
                     {

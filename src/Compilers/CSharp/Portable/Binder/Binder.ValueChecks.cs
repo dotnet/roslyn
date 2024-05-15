@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal MixableDestination(ParameterSymbol parameter, BoundExpression argument)
             {
-                Debug.Assert(parameter.RefKind.IsWritableReference() && parameter.Type.IsRefLikeTypeOrAllowsByRefLike());
+                Debug.Assert(parameter.RefKind.IsWritableReference() && parameter.Type.IsRefLikeOrAllowsRefLikeType());
                 Debug.Assert(GetParameterValEscapeLevel(parameter).HasValue);
                 Argument = argument;
                 Parameter = parameter;
@@ -1897,7 +1897,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // check receiver if ref-like
-            if (receiver?.Type?.IsRefLikeTypeOrAllowsByRefLike() == true)
+            if (receiver?.Type?.IsRefLikeOrAllowsRefLikeType() == true)
             {
                 escapeScope = Math.Max(escapeScope, GetValEscape(receiver, scopeOfTheContainingExpression));
             }
@@ -1941,7 +1941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //
                 if (!returnsRefToRefStruct
                     || ((param is null ||
-                         (param is { RefKind: not RefKind.None, Type: { } type } && type.IsRefLikeTypeOrAllowsByRefLike())) &&
+                         (param is { RefKind: not RefKind.None, Type: { } type } && type.IsRefLikeOrAllowsRefLikeType())) &&
                         isArgumentRefEscape == isRefEscape))
                 {
                     uint argEscape = isArgumentRefEscape ?
@@ -1973,7 +1973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
 
             return method is { RefKind: not RefKind.None, ReturnType: { } returnType } &&
-                   returnType.IsRefLikeTypeOrAllowsByRefLike();
+                   returnType.IsRefLikeOrAllowsRefLikeType();
         }
 
         /// <summary>
@@ -2068,7 +2068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // check receiver if ref-like
-            if (receiver?.Type?.IsRefLikeTypeOrAllowsByRefLike() == true)
+            if (receiver?.Type?.IsRefLikeOrAllowsRefLikeType() == true)
             {
                 return CheckValEscape(receiver.Syntax, receiver, escapeFrom, escapeTo, false, diagnostics);
             }
@@ -2115,7 +2115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //
                 if (!returnsRefToRefStruct
                     || ((param is null ||
-                         (param is { RefKind: not RefKind.None, Type: { } type } && type.IsRefLikeTypeOrAllowsByRefLike())) &&
+                         (param is { RefKind: not RefKind.None, Type: { } type } && type.IsRefLikeOrAllowsRefLikeType())) &&
                         isArgumentRefEscape == isRefEscape))
                 {
                     bool valid = isArgumentRefEscape ?
@@ -2238,7 +2238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isMixableParameter([NotNullWhen(true)] ParameterSymbol? parameter) =>
                 parameter is not null &&
-                parameter.Type.IsRefLikeTypeOrAllowsByRefLike() &&
+                parameter.Type.IsRefLikeOrAllowsRefLikeType() &&
                 parameter.RefKind.IsWritableReference();
 
             static bool isMixableArgument(BoundExpression argument)
@@ -2362,9 +2362,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return method.ContainingType.IsRefLikeType;
                         }
 
-                        return method.ReturnType.IsRefLikeTypeOrAllowsByRefLike();
+                        return method.ReturnType.IsRefLikeOrAllowsRefLikeType();
                     case PropertySymbol property:
-                        return property.Type.IsRefLikeTypeOrAllowsByRefLike();
+                        return property.Type.IsRefLikeOrAllowsRefLikeType();
                     default:
                         return false;
                 }
@@ -2424,7 +2424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         escapeValues.Add(new EscapeValue(parameter: null, argument, EscapeLevel.ReturnOnly, isRefEscape: true));
                     }
 
-                    if (argument.Type?.IsRefLikeTypeOrAllowsByRefLike() == true)
+                    if (argument.Type?.IsRefLikeOrAllowsRefLikeType() == true)
                     {
                         escapeValues.Add(new EscapeValue(parameter: null, argument, EscapeLevel.CallingMethod, isRefEscape: false));
                     }
@@ -2432,7 +2432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (parameter.Type.IsRefLikeTypeOrAllowsByRefLike() && parameter.RefKind != RefKind.Out && GetParameterValEscapeLevel(parameter) is { } valEscapeLevel)
+                if (parameter.Type.IsRefLikeOrAllowsRefLikeType() && parameter.RefKind != RefKind.Out && GetParameterValEscapeLevel(parameter) is { } valEscapeLevel)
                 {
                     escapeValues.Add(new EscapeValue(parameter, argument, valEscapeLevel, isRefEscape: false));
                 }
@@ -2547,7 +2547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // collect all writeable ref-like arguments, including receiver
             var receiverType = receiverOpt?.Type;
-            if (receiverType?.IsRefLikeTypeOrAllowsByRefLike() == true && !IsReceiverRefReadOnly(symbol))
+            if (receiverType?.IsRefLikeOrAllowsRefLikeType() == true && !IsReceiverRefReadOnly(symbol))
             {
                 // PROTOTYPE(RefStructInterfaces): We do not have a test that demonstrates that the statement below makes a difference.
                 //                                 If it is commented out, not a single test fails 
@@ -2580,7 +2580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (refKind.IsWritableReference()
                         && !argument.IsDiscardExpression()
-                        && argument.Type?.IsRefLikeTypeOrAllowsByRefLike() == true)
+                        && argument.Type?.IsRefLikeOrAllowsRefLikeType() == true)
                     {
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                     }
@@ -3807,7 +3807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // to have local-referring values an expression must have a ref-like type
-            if (expr.Type?.IsRefLikeTypeOrAllowsByRefLike() != true)
+            if (expr.Type?.IsRefLikeOrAllowsRefLikeType() != true)
             {
                 return CallingMethodScope;
             }
@@ -4412,7 +4412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // to have local-referring values an expression must have a ref-like type
-            if (expr.Type?.IsRefLikeTypeOrAllowsByRefLike() != true)
+            if (expr.Type?.IsRefLikeOrAllowsRefLikeType() != true)
             {
                 return true;
             }

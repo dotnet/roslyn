@@ -64,9 +64,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Public Overrides ReadOnly Property AllowsByRefLike As Boolean
+        Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
             Get
-                Return _sourceTypeParameterSymbol.AllowsByRefLike
+                Return _sourceTypeParameterSymbol.AllowsRefLikeType
             End Get
         End Property
 

@@ -302,11 +302,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        bool Cci.IGenericParameter.AllowByRefLike
+        bool Cci.IGenericParameter.AllowsRefLikeType
         {
             get
             {
-                return AdaptedTypeParameterSymbol.AllowsByRefLike;
+                return AdaptedTypeParameterSymbol.AllowsRefLikeType;
             }
         }
 

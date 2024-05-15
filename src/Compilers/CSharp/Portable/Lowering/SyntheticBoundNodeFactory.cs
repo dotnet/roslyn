@@ -1540,7 +1540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, isChecked: false, ref useSiteInfo);
 
             if (allowBoxingByRefLikeTypeParametersToObject && !c.Exists &&
-                arg.Type is TypeParameterSymbol { AllowsByRefLike: true } && type.IsObjectType())
+                arg.Type is TypeParameterSymbol { AllowsRefLikeType: true } && type.IsObjectType())
             {
                 c = Conversion.Boxing;
             }

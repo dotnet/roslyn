@@ -749,9 +749,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Public Overrides ReadOnly Property AllowsByRefLike As Boolean
+            Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
                 Get
-                    Return _curriedFromTypeParameter.AllowsByRefLike
+                    Return _curriedFromTypeParameter.AllowsRefLikeType
                 End Get
             End Property
 

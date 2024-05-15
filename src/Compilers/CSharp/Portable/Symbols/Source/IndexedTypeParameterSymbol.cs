@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public override bool AllowsByRefLike
+        public override bool AllowsRefLikeType
         {
             get { return false; }
         }
