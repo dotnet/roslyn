@@ -127,7 +127,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             };
 
             // We verified above that parameters match, set flag if this request has parameters or is parameterless so we can set the entrypoint correctly.
-            var hasParameters = methodGroup.First().RequestType != null;
+            var hasParameters = methodGroup.First().RequestTypeRef != null;
             var entryPoint = delegatingEntryPoint.GetEntryPoint(hasParameters);
             _jsonRpc.AddLocalRpcMethod(entryPoint, delegatingEntryPoint, methodAttribute);
         }

@@ -79,12 +79,12 @@ internal abstract class NewtonsoftLanguageServer<TRequestContext> : AbstractLang
 
         private static object DeserializeRequest(JToken? request, RequestHandlerMetadata metadata, JsonSerializer jsonSerializer)
         {
-            if (request is null && metadata.RequestType is not null)
+            if (request is null && metadata.RequestTypeRef is not null)
             {
                 throw new InvalidOperationException($"Handler {metadata.HandlerDescription} requires request parameters but received none");
             }
 
-            if (request is not null && metadata.RequestType is null)
+            if (request is not null && metadata.RequestTypeRef is null)
             {
                 throw new InvalidOperationException($"Handler {metadata.HandlerDescription} does not accept parameters, but received some.");
             }
@@ -92,8 +92,8 @@ internal abstract class NewtonsoftLanguageServer<TRequestContext> : AbstractLang
             object requestObject = NoValue.Instance;
             if (request is not null)
             {
-                requestObject = request.ToObject(metadata.RequestType, jsonSerializer)
-                    ?? throw new InvalidOperationException($"Unable to deserialize {request} into {metadata.RequestType} for {metadata.HandlerDescription}");
+                requestObject = request.ToObject(metadata.RequestTypeRef!.GetResolvedType(), jsonSerializer)
+                    ?? throw new InvalidOperationException($"Unable to deserialize {request} into {metadata.RequestTypeRef} for {metadata.HandlerDescription}");
             }
 
             return requestObject;
