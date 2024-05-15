@@ -156,9 +156,6 @@ internal static partial class DependentProjectsFinder
         // Try to add to cache, returning existing value if another thread already added it.
         using (await s_solutionToDependentProjectMapGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            if (dictionary.TryGetValue(key, out dependentProjects))
-                return dependentProjects;
-
             return dictionary.GetOrAdd(key, dependentProjects);
         }
 
