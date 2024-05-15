@@ -36,6 +36,8 @@
     -->
     <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' != 'Product'">
       <PropertyGroup>
+        <!-- TODO until we figure out what is up with NetPrevious -->
+        <NetPrevious>$(NetMinimum)</NetPrevious>
         <NetRoslyn>$(NetPrevious)</NetRoslyn>
         <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
         <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
