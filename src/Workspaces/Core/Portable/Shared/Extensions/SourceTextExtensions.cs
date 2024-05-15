@@ -285,8 +285,6 @@ internal static partial class SourceTextExtensions
         public override void Write(string? value)
         {
             Contract.ThrowIfNull(value);
-            if (value == "")
-                return;
 
             var valueSpan = value.AsSpan();
             while (valueSpan.Length > 0)
