@@ -86,17 +86,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override OneOrMany<SyntaxList<AttributeListSyntax>> AttributeDeclarationLists
+        protected override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            get
+            if (this.containingType.AnyMemberHasAttributes)
             {
-                if (this.containingType.AnyMemberHasAttributes)
-                {
-                    return OneOrMany.Create(this.SyntaxNode.AttributeLists);
-                }
-
-                return OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
+                return OneOrMany.Create(this.SyntaxNode.AttributeLists);
             }
+
+            return OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
         }
 
 #nullable enable

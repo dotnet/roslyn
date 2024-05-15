@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override Location ErrorLocation
             => _property.Location;
 
-        protected override OneOrMany<SyntaxList<AttributeListSyntax>> AttributeDeclarationLists
+        protected override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
             => _property.AttributeDeclarationLists;
 
         public override Symbol AssociatedSymbol
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            foreach (var attributeList in AttributeDeclarationLists)
+            foreach (var attributeList in GetAttributeDeclarations())
             {
                 foreach (var attribute in attributeList)
                 {
