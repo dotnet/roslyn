@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OneOrMany.Create(AttributeDeclarationList);
         }
 
-        internal SyntaxList<AttributeListSyntax> AttributeDeclarationList
+        private SyntaxList<AttributeListSyntax> AttributeDeclarationList
         {
             get
             {
