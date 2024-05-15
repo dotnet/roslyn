@@ -5,6 +5,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp;
@@ -18,6 +20,7 @@ internal partial class CSharpSyntaxTreeFactoryService
     {
         private readonly CSharpSyntaxNode _root;
         private readonly SourceHashAlgorithm _checksumAlgorithm;
+        private readonly ITextFactoryService _textFactoryService;
 
         public override Encoding? Encoding { get; }
         public override CSharpParseOptions Options { get; }
@@ -25,12 +28,19 @@ internal partial class CSharpSyntaxTreeFactoryService
 
         private SourceText? _lazyText;
 
-        public ParsedSyntaxTree(SourceText? lazyText, CSharpSyntaxNode root, CSharpParseOptions options, string filePath, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm)
+        public ParsedSyntaxTree(
+            SourceText? lazyText,
+            CSharpSyntaxNode root,
+            CSharpParseOptions options,
+            string filePath,
+            Encoding? encoding,
+            SourceHashAlgorithm checksumAlgorithm,
+            ITextFactoryService textFactoryService)
         {
             _lazyText = lazyText;
             _root = CloneNodeAsRoot(root);
             _checksumAlgorithm = checksumAlgorithm;
-
+            _textFactoryService = textFactoryService;
             Encoding = encoding;
             Options = options;
             FilePath = filePath;
@@ -40,7 +50,9 @@ internal partial class CSharpSyntaxTreeFactoryService
         {
             if (_lazyText == null)
             {
-                Interlocked.CompareExchange(ref _lazyText, GetRoot(cancellationToken).GetText(Encoding, _checksumAlgorithm), null);
+                var sourceText = SourceTextExtensions.CreateSourceText(
+                    _textFactoryService, GetRoot(cancellationToken), Encoding, _checksumAlgorithm, cancellationToken);
+                Interlocked.CompareExchange(ref _lazyText, sourceText, null);
             }
 
             return _lazyText;
@@ -68,10 +80,21 @@ internal partial class CSharpSyntaxTreeFactoryService
         }
 
         public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
-            => (root == _root && options == Options) ? this : new ParsedSyntaxTree((root == _root) ? _lazyText : null, (CSharpSyntaxNode)root, (CSharpParseOptions)options, FilePath, Encoding, _checksumAlgorithm);
+            => root == _root && options == Options
+                ? this
+                : new ParsedSyntaxTree(
+                    root == _root ? _lazyText : null,
+                    (CSharpSyntaxNode)root,
+                    (CSharpParseOptions)options,
+                    FilePath,
+                    Encoding,
+                    _checksumAlgorithm,
+                    _textFactoryService);
 
         public override SyntaxTree WithFilePath(string path)
-            => (path == FilePath) ? this : new ParsedSyntaxTree(_lazyText, _root, Options, path, Encoding, _checksumAlgorithm);
+            => path == FilePath
+                ? this
+                : new ParsedSyntaxTree(_lazyText, _root, Options, path, Encoding, _checksumAlgorithm, _textFactoryService);
 
         public override SyntaxReference GetReference(SyntaxNode node)
             => new NodeSyntaxReference(node);
