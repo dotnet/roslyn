@@ -38,6 +38,7 @@ internal partial class CSharpSyntaxTreeFactoryService
             _lazyText = lazyText;
             _root = CloneNodeAsRoot(root);
             _checksumAlgorithm = checksumAlgorithm;
+
             Encoding = encoding;
             Options = options;
             FilePath = filePath;
