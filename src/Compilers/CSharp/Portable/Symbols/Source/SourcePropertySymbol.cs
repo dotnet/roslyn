@@ -631,7 +631,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((!hasTypeDifferences && !MemberSignatureComparer.PartialMethodsStrictComparer.Equals(this, implementation))
-                // PROTOTYPE(partial-properties): test indexers with parameter name differences
                 || !Parameters.SequenceEqual(implementation.Parameters, (a, b) => a.Name == b.Name))
             {
                 diagnostics.Add(ErrorCode.WRN_PartialPropertySignatureDifference, implementation.GetFirstLocation(),

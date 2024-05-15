@@ -4185,6 +4185,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(17, 30));
         }
 
+        [Fact]
+        public void IndexerParameterNameDifference()
+        {
+            var source = """
+                using System;
+
+                partial class C
+                {
+                    public partial int this[int p1] { get; set; }
+                    public partial int this[int p2] { get => p2; set { } }
+
+                    static void Main()
+                    {
+                        var c = new C();
+                        Console.Write(c[p1: 1]);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics(
+                // (6,24): warning CS9308: Partial property declarations 'int C.this[int p1]' and 'int C.this[int p2]' have signature differences.
+                //     public partial int this[int p2] { get => p2; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("int C.this[int p1]", "int C.this[int p2]").WithLocation(6, 24));
+
+            var indexer = ((CSharpCompilation)verifier.Compilation).GetMember<NamedTypeSymbol>("C").Indexers.Single();
+            Assert.Equal("p1", indexer.Parameters.Single().Name);
+        }
+
         // PROTOTYPE(partial-properties): override partial property where base has modopt
         // PROTOTYPE(partial-properties): test that doc comments work consistently with partial methods (and probably spec it as well)
     }
