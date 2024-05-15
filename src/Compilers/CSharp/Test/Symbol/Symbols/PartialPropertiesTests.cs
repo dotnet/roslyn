@@ -3943,6 +3943,101 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             verifier.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void Obsolete_01()
+        {
+            var source = """
+                using System;
+
+                partial class C
+                {
+                    [Obsolete]
+                    public partial int Prop { get; }
+
+                    public partial int Prop { get => M(); } // no diagnostic for use of obsolete member
+
+                    [Obsolete]
+                    int M() => 1;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Obsolete_02()
+        {
+            var source = """
+                using System;
+
+                partial class C
+                {
+                    public partial int this[int x, int y = VALUE] { get; } // no diagnostic for use of obsolete const
+
+                    [Obsolete]
+                    public partial int this[int x, int y] => x;
+
+                    [Obsolete]
+                    public const int VALUE = 1;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Obsolete_03()
+        {
+            var source = """
+                using System;
+
+                partial class C
+                {
+                    public partial int this[int x, int y = VALUE] { get; } // 1
+
+                    public partial int this[int x, int y] { [Obsolete] get => x; }
+
+                    [Obsolete]
+                    public const int VALUE = 1;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,44): warning CS0612: 'C.VALUE' is obsolete
+                //     public partial int this[int x, int y = VALUE] { get; } // 1
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "VALUE").WithArguments("C.VALUE").WithLocation(5, 44));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Obsolete_04(
+            [CombinatorialValues("public partial int Prop { [Obsolete] get; }", "[Obsolete] public partial int Prop { get; }")]
+            string declPart,
+            [CombinatorialValues("public partial int Prop { get => M(); }", "public partial int Prop => M();")]
+            string implPart)
+        {
+            // note that one of the combinations here is redundant with Obsolete_01, but that seems fine,
+            // as a failure in Obsolete_01 may be easier to triage.
+            var source = $$"""
+                using System;
+
+                partial class C
+                {
+                    {{declPart}}
+                    {{implPart}} // no diagnostic for use of obsolete member
+
+                    [Obsolete]
+                    int M() => 1;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
         // PROTOTYPE(partial-properties): override partial property where base has modopt
         // PROTOTYPE(partial-properties): test that doc comments work consistently with partial methods (and probably spec it as well)
     }
