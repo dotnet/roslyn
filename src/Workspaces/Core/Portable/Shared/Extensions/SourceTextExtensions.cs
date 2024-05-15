@@ -19,18 +19,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class SourceTextExtensions
 {
-    // char segment: 4k characters. 4K * 256 * 2 (bytes per char) = 4MB
-    private const int CharSegmentLength = 4096;
+    // char array length: 4k characters. 4K * 256 * 2 (bytes per char) = 4MB
+    private const int CharArrayLength = 4096;
 
     // 16k characters. Equivalent to 32KB in memory. comes from SourceText char buffer size and less than large object size
     public const int SourceTextLengthThreshold = 32 * 1024 / sizeof(char);
 
     /// <summary>
     /// Note: there is a strong invariant that you only get arrays back from this that are exactly <see
-    /// cref="CharSegmentLength"/> long.  Putting arrays back into this of the wrong length will result in broken
+    /// cref="CharArrayLength"/> long.  Putting arrays back into this of the wrong length will result in broken
     /// behavior.  Do not expose this pool outside of this class.
     /// </summary>
-    private static readonly ObjectPool<char[]> s_charArrayPool = new(() => new char[CharSegmentLength], 256);
+    private static readonly ObjectPool<char[]> s_charArrayPool = new(() => new char[CharArrayLength], 256);
 
     public static void GetLineAndOffset(this SourceText text, int position, out int lineNumber, out int offset)
     {
@@ -196,10 +196,10 @@ internal static partial class SourceTextExtensions
         // chunk size
         using var pooledObject = s_charArrayPool.GetPooledObject();
         var buffer = pooledObject.Object;
-        Contract.ThrowIfTrue(buffer.Length != CharSegmentLength);
+        Contract.ThrowIfTrue(buffer.Length != CharArrayLength);
 
         // We write out the chunk size for sanity purposes.
-        writer.WriteInt32(CharSegmentLength);
+        writer.WriteInt32(CharArrayLength);
 
         // number of chunks
         var numberOfChunks = 1 + (length / buffer.Length);
@@ -258,7 +258,7 @@ internal static partial class SourceTextExtensions
 
         static ImmutableArray<char[]> CreateChunks(int totalLength)
         {
-            var numberOfChunks = 1 + (totalLength / CharSegmentLength);
+            var numberOfChunks = 1 + (totalLength / CharArrayLength);
             var buffer = new FixedSizeArrayBuilder<char[]>(numberOfChunks);
             for (var i = 0; i < numberOfChunks; i++)
                 buffer.Add(s_charArrayPool.Allocate());
@@ -267,8 +267,8 @@ internal static partial class SourceTextExtensions
         }
     }
 
-    private static int GetIndexFromPosition(int position) => position / CharSegmentLength;
-    private static int GetColumnFromPosition(int position) => position % CharSegmentLength;
+    private static int GetIndexFromPosition(int position) => position / CharArrayLength;
+    private static int GetColumnFromPosition(int position) => position % CharArrayLength;
 
     private sealed class CharArrayChunkTextWriter(int totalLength, ImmutableArray<char[]> chunks, Encoding encoding) : TextWriter
     {
@@ -286,12 +286,12 @@ internal static partial class SourceTextExtensions
             while (valueSpan.Length > 0)
             {
                 var chunk = _chunks[GetIndexFromPosition(Position)];
-                Contract.ThrowIfTrue(chunk.Length != CharSegmentLength);
+                Contract.ThrowIfTrue(chunk.Length != CharArrayLength);
 
                 var chunkIndex = GetColumnFromPosition(Position);
-                Contract.ThrowIfTrue(chunkIndex >= CharSegmentLength);
+                Contract.ThrowIfTrue(chunkIndex >= CharArrayLength);
 
-                var count = Math.Min(valueSpan.Length, CharSegmentLength - chunkIndex);
+                var count = Math.Min(valueSpan.Length, CharArrayLength - chunkIndex);
                 valueSpan[..count].CopyTo(chunk.AsSpan().Slice(chunkIndex, count));
 
                 Position += count;
@@ -314,7 +314,7 @@ internal static partial class SourceTextExtensions
         {
             _chunks = chunks;
             _disposed = false;
-            Contract.ThrowIfTrue(chunks.Any(static (c, s) => c.Length != s, CharSegmentLength));
+            Contract.ThrowIfTrue(chunks.Any(static (c, s) => c.Length != s, CharArrayLength));
         }
 
         public static TextReader CreateFromObjectReader(ObjectReader reader)
@@ -327,7 +327,7 @@ internal static partial class SourceTextExtensions
             }
 
             var chunkSize = reader.ReadInt32();
-            Contract.ThrowIfTrue(chunkSize != CharSegmentLength);
+            Contract.ThrowIfTrue(chunkSize != CharArrayLength);
             var numberOfChunks = reader.ReadInt32();
 
             // read as chunks
@@ -340,14 +340,14 @@ internal static partial class SourceTextExtensions
                 var (currentChunk, currentChunkLength) = reader.ReadCharArray(
                     static length =>
                     {
-                        Contract.ThrowIfTrue(length > CharSegmentLength);
+                        Contract.ThrowIfTrue(length > CharArrayLength);
                         return s_charArrayPool.Allocate();
                     });
 
-                Contract.ThrowIfTrue(currentChunk.Length != CharSegmentLength);
+                Contract.ThrowIfTrue(currentChunk.Length != CharArrayLength);
 
                 // All but the last chunk must be completely filled.
-                Contract.ThrowIfTrue(i < numberOfChunks - 1 && currentChunkLength != CharSegmentLength);
+                Contract.ThrowIfTrue(i < numberOfChunks - 1 && currentChunkLength != CharArrayLength);
 
                 chunks.Add(currentChunk);
                 offset += currentChunkLength;
