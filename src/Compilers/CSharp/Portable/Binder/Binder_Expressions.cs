@@ -10033,45 +10033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-<<<<<<< HEAD
-                propertyAccess = BindSuccessfulIndexerOrIndexedPropertyAccess(receiver, analyzedArguments, overloadResolutionResult, syntax, hasDynamicArgument, diagnostics);
-=======
-                MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
-                PropertySymbol property = resolutionResult.Member;
-
-                ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
-
-                // Make sure that the result of overload resolution is valid.
-                var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
-
-                receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
-
-                ImmutableArray<int> argsToParams;
-                this.CheckAndCoerceArguments<PropertySymbol>(syntax, resolutionResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: false, out argsToParams);
-
-                if (!gotError && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
-                {
-                    gotError = IsRefOrOutThisParameterCaptured(syntax, diagnostics);
-                }
-
-                var arguments = analyzedArguments.Arguments.ToImmutable();
-
-                // Note that we do not bind default arguments here, because at this point we do not know whether
-                // the indexer is being used in a 'get', or 'set', or 'get+set' (compound assignment) context.
-                propertyAccess = new BoundIndexerAccess(
-                    syntax,
-                    receiver,
-                    initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, property),
-                    property,
-                    arguments,
-                    argumentNames,
-                    argumentRefKinds,
-                    expanded: resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
-                    argsToParams,
-                    defaultArguments: default,
-                    property.Type,
-                    gotError);
->>>>>>> dotnet/main
+                propertyAccess = BindSuccessfulIndexerOrIndexedPropertyAccess(receiver, analyzedArguments, overloadResolutionResult, syntax, diagnostics);
             }
 
             overloadResolutionResult.Free();
@@ -10152,7 +10114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!analyzedArguments.HasDynamicArgument); // PROTOTYPE need to confirm what we want for dynamic access
 
                 extensionIndexerAccess = originalBinder.BindSuccessfulIndexerOrIndexedPropertyAccess(
-                    receiver, analyzedArguments, overloadResolutionResult, syntax, hasDynamicArgument: false, diagnostics);
+                    receiver, analyzedArguments, overloadResolutionResult, syntax, diagnostics);
 
                 overloadResolutionResult.Free();
                 return true;
@@ -10160,29 +10122,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundIndexerAccess BindSuccessfulIndexerOrIndexedPropertyAccess(BoundExpression? receiver, AnalyzedArguments analyzedArguments,
-            OverloadResolutionResult<PropertySymbol> overloadResolutionResult, SyntaxNode syntax, bool hasDynamicArgument, BindingDiagnosticBag diagnostics)
+            OverloadResolutionResult<PropertySymbol> overloadResolutionResult, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
             PropertySymbol property = resolutionResult.Member;
-
-            bool forceDynamicResultType = false;
-            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-
-            // Due to backward compatibility, invocations statically bound in presence of dynamic arguments
-            // should have dynamic result if their dynamic binding succeeded in C# 12 and there are no
-            // obvious reasons for the runtime binder to fail (ref return, for example).
-            if (hasDynamicArgument &&
-                !(property.Type.IsDynamic() || property.ReturnsByRef ||
-                 !Conversions.ClassifyConversionFromExpressionType(property.Type, Compilation.DynamicType, isChecked: false, ref useSiteInfo).IsImplicit ||
-                 IsMemberWithExpandedNonArrayParamsCollection(resolutionResult)))
-            {
-                var tryDynamicAccessDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
-                BindDynamicIndexer(syntax, receiver, analyzedArguments, ImmutableArray.Create(property), tryDynamicAccessDiagnostics);
-                forceDynamicResultType = !tryDynamicAccessDiagnostics.HasAnyResolvedErrors();
-                tryDynamicAccessDiagnostics.Free();
-            }
-
-            diagnostics.Add(syntax, useSiteInfo);
 
             ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
 
@@ -10218,7 +10161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
                 argsToParams,
                 defaultArguments: default,
-                forceDynamicResultType ? Compilation.DynamicType : property.Type,
+                property.Type,
                 gotError);
         }
 
