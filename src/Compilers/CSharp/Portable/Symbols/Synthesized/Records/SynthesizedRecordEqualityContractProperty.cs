@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
-        public override OneOrMany<SyntaxList<AttributeListSyntax>> AttributeDeclarationLists
+        public override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
             => OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
 
         protected override SourcePropertySymbolBase? BoundAttributesSource => null;

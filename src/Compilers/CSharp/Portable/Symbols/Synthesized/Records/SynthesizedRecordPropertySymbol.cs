@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override Location TypeLocation
             => ((ParameterSyntax)CSharpSyntaxNode).Type!.Location;
 
-        public override OneOrMany<SyntaxList<AttributeListSyntax>> AttributeDeclarationLists
+        public override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
             => OneOrMany.Create(BackingParameter.AttributeDeclarationList);
 
         protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)

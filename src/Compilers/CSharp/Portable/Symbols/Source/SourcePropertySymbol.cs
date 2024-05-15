@@ -171,21 +171,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static bool HasInitializer(SyntaxNode syntax)
             => syntax is PropertyDeclarationSyntax { Initializer: { } };
 
-        public override OneOrMany<SyntaxList<AttributeListSyntax>> AttributeDeclarationLists
+        public override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            get
+            Debug.Assert(PartialDefinitionPart is null);
+            if (PartialImplementationPart is { } implementationPart)
             {
-                Debug.Assert(PartialDefinitionPart is null);
-                if (PartialImplementationPart is { } implementationPart)
-                {
-                    return OneOrMany.Create(
-                        ((BasePropertyDeclarationSyntax)CSharpSyntaxNode).AttributeLists,
-                        ((BasePropertyDeclarationSyntax)implementationPart.CSharpSyntaxNode).AttributeLists);
-                }
-                else
-                {
-                    return OneOrMany.Create(((BasePropertyDeclarationSyntax)CSharpSyntaxNode).AttributeLists);
-                }
+                return OneOrMany.Create(
+                    ((BasePropertyDeclarationSyntax)CSharpSyntaxNode).AttributeLists,
+                    ((BasePropertyDeclarationSyntax)implementationPart.CSharpSyntaxNode).AttributeLists);
+            }
+            else
+            {
+                return OneOrMany.Create(((BasePropertyDeclarationSyntax)CSharpSyntaxNode).AttributeLists);
             }
         }
 

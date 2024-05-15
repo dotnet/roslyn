@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => _property.Location;
 
         protected override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
-            => _property.AttributeDeclarationLists;
+            => _property.GetAttributeDeclarations();
 
         public override Symbol AssociatedSymbol
             => _property;

@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Attributes
 
-        public abstract OneOrMany<SyntaxList<AttributeListSyntax>> AttributeDeclarationLists { get; }
+        public abstract OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations();
 
         /// <summary>
         /// Symbol to copy bound attributes from, or null if the attributes are not shared among multiple source property symbols.
@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // The property is responsible for completion of the backing field
                 _ = BackingField?.GetAttributes();
-                bagCreatedOnThisThread = LoadAndValidateAttributes(AttributeDeclarationLists, ref _lazyCustomAttributesBag);
+                bagCreatedOnThisThread = LoadAndValidateAttributes(GetAttributeDeclarations(), ref _lazyCustomAttributesBag);
             }
 
             if (bagCreatedOnThisThread)
