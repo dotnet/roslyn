@@ -36,7 +36,8 @@
   </ItemGroup>
 
   <Target Name="AddDotnetSdkAssemblyAttribute" BeforeTargets="CoreGenerateAssemblyInfo">
-    <Exec Command="dotnet run $(RoslynVersion) -sdk-version" WorkingDirectory="..\..\..\..\eng-Metalama\DownloadNetSdkAnalyzers" ConsoleToMsBuild="true">
+    <!-- HACK: Random configuration name to prevent 'The process cannot access the file' error. -->
+    <Exec Command="dotnet run -c CFG$([System.IO.Path]::GetRandomFileName()) $(RoslynVersion) -sdk-version" WorkingDirectory="..\..\..\..\eng-Metalama\DownloadNetSdkAnalyzers" ConsoleToMsBuild="true" StandardOutputImportance="low" StandardErrorImportance="low">
       <Output TaskParameter="ConsoleOutput" PropertyName="DotnetSdkVersion" />
     </Exec>
     
