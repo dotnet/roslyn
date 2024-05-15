@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Nerdbank.Streams;
+using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -25,8 +26,14 @@ internal sealed class BrokeredServiceProxy<T> : IAsyncDisposable where T : class
     {
         var (serverStream, clientStream) = FullDuplexStream.CreatePair();
 
-        var serverTask = Task.Run(async () =>
+        _createConnectionTask = Task.WhenAll(CreateServerAsync(), CreateClientAsync());
+        return;
+
+        async Task CreateServerAsync()
         {
+            // Ensure caller can proceed.
+            await Task.Yield().ConfigureAwait(false);
+
             var serverMultiplexingStream = await MultiplexingStream.CreateAsync(serverStream);
             var serverChannel = await serverMultiplexingStream.AcceptChannelAsync("");
 
@@ -35,10 +42,13 @@ internal sealed class BrokeredServiceProxy<T> : IAsyncDisposable where T : class
 
             _serverRpc.AddLocalRpcTarget(service, options: null);
             _serverRpc.StartListening();
-        });
+        }
 
-        var clientTask = Task.Run(async () =>
+        async Task CreateClientAsync()
         {
+            // Ensure caller can proceed.
+            await Task.Yield().ConfigureAwait(false);
+
             var clientMultiplexingStream = await MultiplexingStream.CreateAsync(clientStream);
             var clientChannel = await clientMultiplexingStream.OfferChannelAsync("");
 
@@ -47,9 +57,7 @@ internal sealed class BrokeredServiceProxy<T> : IAsyncDisposable where T : class
 
             _clientFactoryProxy = _clientRpc.Attach<T>();
             _clientRpc.StartListening();
-        });
-
-        _createConnectionTask = Task.WhenAll(serverTask, clientTask);
+        }
     }
 
     public async ValueTask DisposeAsync()
