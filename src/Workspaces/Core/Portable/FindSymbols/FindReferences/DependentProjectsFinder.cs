@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -28,14 +29,15 @@ internal static partial class DependentProjectsFinder
     /// Cache from the <see cref="MetadataId"/> for a particular <see cref="PortableExecutableReference"/> to the
     /// name of the <see cref="IAssemblySymbol"/> defined by it.
     /// </summary>
-    private static ImmutableDictionary<MetadataId, string> s_metadataIdToAssemblyName = ImmutableDictionary<MetadataId, string>.Empty;
+    private static readonly Dictionary<MetadataId, string> s_metadataIdToAssemblyName = new();
+    private static readonly SemaphoreSlim s_metadataIdToAssemblyNameGate = new(initialCount: 1);
 
     private static readonly ConditionalWeakTable<
          Solution,
          Dictionary<
              (IAssemblySymbol assembly, Project? sourceProject, SymbolVisibility visibility),
              ImmutableArray<(Project project, bool hasInternalsAccess)>>> s_solutionToDependentProjectMap = new();
-    private static readonly SemaphoreSlim s_gate = new(initialCount: 1);
+    private static readonly SemaphoreSlim s_solutionToDependentProjectMapGate = new(initialCount: 1);
 
     public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
         Solution solution, ImmutableArray<ISymbol> symbols, IImmutableSet<Project> projects, CancellationToken cancellationToken)
@@ -141,7 +143,7 @@ internal static partial class DependentProjectsFinder
         ImmutableArray<(Project project, bool hasInternalsAccess)> dependentProjects;
 
         // Check cache first.
-        using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        using (await s_solutionToDependentProjectMapGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             if (dictionary.TryGetValue(key, out dependentProjects))
                 return dependentProjects;
@@ -152,7 +154,7 @@ internal static partial class DependentProjectsFinder
             solution, symbolOrigination, visibility, cancellationToken).ConfigureAwait(false);
 
         // Try to add to cache, returning existing value if another thread already added it.
-        using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        using (await s_solutionToDependentProjectMapGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             if (dictionary.TryGetValue((symbolOrigination.assembly, symbolOrigination.sourceProject, visibility), out dependentProjects))
                 return dependentProjects;
@@ -260,7 +262,7 @@ internal static partial class DependentProjectsFinder
                attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
     }
 
-    private static void AddNonSubmissionDependentProjects(
+    private static async Task AddNonSubmissionDependentProjectsAsync(
         Solution solution,
         (IAssemblySymbol assembly, Project? sourceProject) symbolOrigination,
         HashSet<(Project project, bool hasInternalsAccess)> dependentProjects,
@@ -309,7 +311,7 @@ internal static partial class DependentProjectsFinder
         return set;
     }
 
-    private static bool HasReferenceTo(
+    private static async Task<bool> HasReferenceToAsync(
         (IAssemblySymbol assembly, Project? sourceProject) symbolOrigination,
         Project project,
         CancellationToken cancellationToken)
@@ -323,10 +325,11 @@ internal static partial class DependentProjectsFinder
             return project.ProjectReferences.Any(p => p.ProjectId == symbolOrigination.sourceProject.Id);
 
         // Otherwise, if the symbol is from metadata, see if the project's compilation references that metadata assembly.
-        return HasReferenceToAssembly(project, symbolOrigination.assembly.Name, cancellationToken);
+        return await HasReferenceToAssemblyAsync(
+            project, symbolOrigination.assembly.Name, cancellationToken).ConfigureAwait(false);
     }
 
-    private static bool HasReferenceToAssembly(Project project, string assemblyName, CancellationToken cancellationToken)
+    private static async Task<bool> HasReferenceToAssemblyAsync(Project project, string assemblyName, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(project.SupportsCompilation);
 
@@ -346,14 +349,17 @@ internal static partial class DependentProjectsFinder
             if (metadataId is null)
                 continue;
 
-            if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
+            using (await s_metadataIdToAssemblyNameGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                uncomputedReferences.Add((peReference, metadataId));
-                continue;
-            }
+                if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
+                {
+                    uncomputedReferences.Add((peReference, metadataId));
+                    continue;
+                }
 
-            if (name == assemblyName)
-                return true;
+                if (name == assemblyName)
+                    return true;
+            }
         }
 
         if (uncomputedReferences.Count == 0)
@@ -365,16 +371,25 @@ internal static partial class DependentProjectsFinder
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
+            using (await s_metadataIdToAssemblyNameGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                // Defer creating the compilation till needed.
-                CreateCompilation(project, ref compilation);
-                if (compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol { Name: string metadataAssemblyName })
-                    name = ImmutableInterlocked.GetOrAdd(ref s_metadataIdToAssemblyName, metadataId, metadataAssemblyName);
+                if (s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name) && name == assemblyName)
+                    return true;
             }
 
-            if (name == assemblyName)
-                return true;
+            // Defer creating the compilation till needed.
+            CreateCompilation(project, ref compilation);
+
+            if (compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol { Name: string metadataAssemblyName })
+            {
+                using (await s_metadataIdToAssemblyNameGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    s_metadataIdToAssemblyName.TryAdd(metadataId, metadataAssemblyName);
+                    if (metadataAssemblyName == assemblyName)
+                        return true;
+
+                }
+            }
         }
 
         return false;
