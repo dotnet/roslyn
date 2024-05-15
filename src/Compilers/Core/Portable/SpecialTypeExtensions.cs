@@ -366,12 +366,9 @@ namespace Microsoft.CodeAnalysis
         public static bool CanOptimizeBehavior(this SpecialType specialType)
             => specialType is >= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute;
 
-
         /// <summary>
         /// Convert a boxed primitive (generally of the backing type of an enum) into a ulong.
         /// </summary>
-        /// <remarks>
-        /// </remarks>
         internal static ulong ConvertUnderlyingValueToUInt64(this SpecialType enumUnderlyingType, object value)
         {
             RoslynDebug.Assert(value != null);

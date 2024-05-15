@@ -34,16 +34,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\*.cs" Link="InternalUtilities\%(FileName).cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs" Link="Utilities\ArrayBuilderExtensions.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="Utilities\ImmutableArrayExtensions.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\TemporaryArray`1.cs" Link="Utilities\TemporaryArray`1.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\IOrderedReadOnlySet.cs" Link="Utilities\IOrderedReadOnlySet.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="Utilities\PathKind.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="Utilities\PathUtilities.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs" Link="Utilities\FileUtilities.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\Symbols\LanguageNames.cs" Link="Utilities\LanguageNames.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs" Link="Utilities\CaseInsensitiveComparison.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Workspace\WorkspaceDiagnosticKind.cs" Link="Utilities\WorkspaceDiagnosticKind.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs" Link="Collections\ArrayBuilderExtensions.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="Collections\ImmutableArrayExtensions.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\TemporaryArray`1.cs" Link="Collections\TemporaryArray`1.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\IOrderedReadOnlySet.cs" Link="Collections\IOrderedReadOnlySet.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="FileSystem\PathKind.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="FileSystem\PathUtilities.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs" Link="FileSystem\FileUtilities.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Symbols\LanguageNames.cs" Link="Compiler\LanguageNames.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs" Link="Compiler\CaseInsensitiveComparison.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Workspace\WorkspaceDiagnosticKind.cs" Link="Workspace\WorkspaceDiagnosticKind.cs" />
     <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ImmutableArrayExtensions.cs" Link="SharedUtilities\ImmutableArrayExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\IPooled.cs" Link="SharedUtilities\IPooled.cs" />
     <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\Extensions.cs" Link="SharedUtilities\Extensions.cs" />
