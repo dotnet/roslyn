@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
             await TestAllMissingOnExpressionAsync(expression);
         }
 
-        [InlineData("i == default || i > default(int)", "i is default(int) or > (default(int))")]
+        [InlineData("i == default || i > default(int)", "i is default(int) or > default(int)")]
         [InlineData("!(o is C c)", "o is not C c")]
         [InlineData("o is int ii && o is long jj", "o is int ii and long jj")]
         [InlineData("o is string || o is Exception", "o is string or Exception")]

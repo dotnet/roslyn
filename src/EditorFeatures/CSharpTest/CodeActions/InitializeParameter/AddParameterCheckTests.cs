@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -18,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
 {
     using VerifyCS = CSharpCodeRefactoringVerifier<CSharpAddParameterCheckCodeRefactoringProvider>;
 
+    [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
     public class AddParameterCheckTests
     {

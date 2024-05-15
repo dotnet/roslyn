@@ -28,9 +28,7 @@
     <PackageReference Include="Microsoft.Build.Framework" VersionOverride="17.3.2" ExcludeAssets="Runtime" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="17.3.2" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Locator" PrivateAssets="All" />
-    <PackageReference Include="System.Text.Json" />
     <PackageReference Include="System.CommandLine" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
     <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
   <ItemGroup>
@@ -41,8 +39,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\CompilerFeatureRequiredAttribute.cs" Link="Utilities\CompilerFeatureRequiredAttribute.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\RequiredMemberAttribute.cs" Link="Utilities\RequiredMemberAttribute.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

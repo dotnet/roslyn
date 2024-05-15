@@ -99,7 +99,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             return;
         }
 
-        foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
+        await foreach (var document in project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken))
         {
             if (scope != null && !scope.Contains(document))
                 continue;
@@ -917,7 +917,7 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
     {
         using var result = TemporaryArray<string>.Empty;
 
-        foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
+        await foreach (var document in project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken))
         {
             var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
             foreach (var alias in index.GetGlobalAliases(name, arity))

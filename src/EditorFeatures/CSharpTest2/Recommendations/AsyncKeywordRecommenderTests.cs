@@ -330,8 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction(bool topLevelStatement)
@@ -340,8 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/14525")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction2(bool topLevelStatement)
@@ -350,8 +348,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"unsafe $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/14525")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction3(bool topLevelStatement)
@@ -360,8 +357,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"unsafe $$ void L() { }", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction4(bool topLevelStatement)
@@ -388,8 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction6(bool topLevelStatement)
@@ -398,8 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"int $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction7(bool topLevelStatement)

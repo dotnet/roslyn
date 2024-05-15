@@ -22907,7 +22907,7 @@ implicit extension E for C
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "(new C())[d]");
         Assert.Equal("System.Int32 C.this[System.Int32 i] { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Equal(["System.Int32 C.this[System.Int32 i] { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]

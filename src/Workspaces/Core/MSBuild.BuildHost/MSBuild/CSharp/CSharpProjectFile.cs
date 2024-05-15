@@ -5,11 +5,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.MSBuild.Build;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 using MSB = Microsoft.Build;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class CSharpProjectFile : ProjectFile
     {

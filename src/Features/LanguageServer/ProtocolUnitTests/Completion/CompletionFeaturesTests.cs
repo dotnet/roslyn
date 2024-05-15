@@ -496,8 +496,7 @@ class A
         }
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/26488")]
     public async Task TestCompletionForObsoleteSymbol(bool mutatingLspWorkspace)
     {
