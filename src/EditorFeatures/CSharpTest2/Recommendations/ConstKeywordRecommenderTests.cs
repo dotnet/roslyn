@@ -62,8 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"global using Goo = $$");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInEmptyStatement(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(

@@ -233,10 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// did not meet the requirements, the return value will be a <see cref="BoundBadExpression"/> that
         /// (typically) wraps the subexpression.
         /// </summary>
-        internal BoundExpression BindValue(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind, bool dynamificationOfAssignmentResultIsHandled = false)
+        internal BoundExpression BindValue(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind)
         {
             var result = this.BindExpression(node, diagnostics: diagnostics, invoked: false, indexed: false);
-            return CheckValue(result, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled);
+            return CheckValue(result, valueKind, diagnostics);
         }
 
         internal BoundExpression BindRValueWithoutTargetType(ExpressionSyntax node, BindingDiagnosticBag diagnostics, bool reportNoTargetType = true)
@@ -5713,7 +5713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // D = { ..., <identifier> = <expr>, ... }, where D : dynamic
                     boundMember = new BoundDynamicObjectInitializerMember(leftSyntax, memberName.Identifier.Text, implicitReceiver.Type, initializerType, hasErrors: false);
-                    return CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
+                    return CheckValue(boundMember, valueKind, diagnostics);
                 }
                 else
                 {
@@ -5816,15 +5816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     {
-                        var indexer = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
-
-                        Debug.Assert(valueKind is BindValueKind.RValue or BindValueKind.RefAssignable or BindValueKind.Assignable);
-
-                        if (valueKind == BindValueKind.Assignable)
-                        {
-                            indexer = (BoundIndexerAccess)AdjustAssignmentTargetForDynamic(indexer, forceDynamicResult: out _);
-                        }
-
+                        var indexer = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)boundMember, valueKind, diagnostics);
                         boundMember = indexer;
                         hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(indexer.Indexer, leftSyntax, diagnostics, hasErrors, ref resultKind);
                         arguments = indexer.Arguments;
@@ -5864,10 +5856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors |= !CheckNestedObjectInitializerPropertySymbol(property, leftSyntax, diagnostics, hasErrors, ref resultKind);
                     }
 
-                    Debug.Assert(boundMember is not BoundIndexerAccess);
-                    return hasErrors ?
-                               boundMember :
-                               CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
+                    return hasErrors ? boundMember : CheckValue(boundMember, valueKind, diagnostics);
 
                 case BoundKind.DynamicObjectInitializerMember:
                     break;
@@ -5884,8 +5873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ArrayAccess:
                 case BoundKind.PointerElementAccess:
-                    Debug.Assert(boundMember is not BoundIndexerAccess);
-                    return CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
+                    return CheckValue(boundMember, valueKind, diagnostics);
 
                 default:
                     return BadObjectInitializerMemberAccess(boundMember, implicitReceiver, leftSyntax, diagnostics, valueKind, hasErrors);
@@ -5970,8 +5958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case LookupResultKind.Inaccessible:
-                        Debug.Assert(boundMember is not BoundIndexerAccess);
-                        boundMember = CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
+                        boundMember = CheckValue(boundMember, valueKind, diagnostics);
                         Debug.Assert(boundMember.HasAnyErrors);
                         break;
 
@@ -6583,70 +6570,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (finalApplicableCandidates.Length == 1)
                     {
                         Debug.Assert(finalApplicableCandidates[0].IsApplicable);
-
-                        if (IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, finalApplicableCandidates[0], out SyntaxNode argumentSyntax))
-                        {
-                            MethodSymbol singleCandidate = finalApplicableCandidates[0].Member;
-
-                            // We're only in trouble if a dynamic argument is passed to the
-                            // params parameter and is ambiguous at compile time between normal
-                            // and expanded form i.e., there is exactly one dynamic argument to
-                            // a params parameter, and we know that runtime binder might not be
-                            // able to handle the disambiguation
-                            if (!singleCandidate.Parameters.Last().Type.IsSZArray())
-                            {
-                                Error(diagnostics,
-                                    ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
-                                    argumentSyntax, singleCandidate);
-                            }
-                        }
-                        else
-                        {
-                            if (!type.IsAbstract)
-                            {
-                                result = BindClassCreationExpressionContinued(node, typeNode, type, analyzedArguments, initializerSyntaxOpt,
-                                    initializerTypeOpt, wasTargetTyped, finalApplicableCandidates[0], accessibleConstructors, in useSiteInfo, diagnostics);
-                            }
-                            else
-                            {
-                                result = CreateBadClassCreationExpression(node, typeNode, type, analyzedArguments,
-                                    initializerSyntaxOpt, initializerTypeOpt, finalApplicableCandidates[0], accessibleConstructors, in useSiteInfo, diagnostics);
-                            }
-                        }
+                        ReportMemberNotSupportedByDynamicDispatch(node, finalApplicableCandidates[0], analyzedArguments.Arguments, diagnostics);
                     }
 
-                    if (result == null)
+                    if (finalApplicableCandidates.Length != 1 &&
+                        Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
+                        HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, finalApplicableCandidates))
                     {
-                        if (finalApplicableCandidates.Length != 1 &&
-                            Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
-                            HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, finalApplicableCandidates))
-                        {
-                            Error(diagnostics,
-                                ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor,
-                                node);
-                        }
-
-                        var argArray = BuildArgumentsForDynamicInvocation(analyzedArguments, diagnostics);
-                        var refKindsArray = analyzedArguments.RefKinds.ToImmutableOrNull();
-
-                        hasErrors &= ReportBadDynamicArguments(node, receiver: null, argArray, refKindsArray, diagnostics, queryClause: null);
-
-                        BoundObjectInitializerExpressionBase boundInitializerOpt;
-                        boundInitializerOpt = MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics);
-                        result = new BoundDynamicObjectCreationExpression(
-                            node,
-                            typeName,
-                            argArray,
-                            analyzedArguments.GetNames(),
-                            refKindsArray,
-                            boundInitializerOpt,
-                            overloadResolutionResult.GetAllApplicableMembers(),
-                            wasTargetTyped,
-                            type,
-                            hasErrors);
-
-                        diagnostics.Add(node, useSiteInfo);
+                        Error(diagnostics,
+                            ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor,
+                            node);
                     }
+
+                    var argArray = BuildArgumentsForDynamicInvocation(analyzedArguments, diagnostics);
+                    var refKindsArray = analyzedArguments.RefKinds.ToImmutableOrNull();
+
+                    hasErrors &= ReportBadDynamicArguments(node, receiver: null, argArray, refKindsArray, diagnostics, queryClause: null);
+
+                    BoundObjectInitializerExpressionBase boundInitializerOpt;
+                    boundInitializerOpt = MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics);
+                    result = new BoundDynamicObjectCreationExpression(
+                        node,
+                        typeName,
+                        argArray,
+                        analyzedArguments.GetNames(),
+                        refKindsArray,
+                        boundInitializerOpt,
+                        overloadResolutionResult.GetAllApplicableMembers(),
+                        wasTargetTyped,
+                        type,
+                        hasErrors);
+
+                    diagnostics.Add(node, useSiteInfo);
                 }
 
                 overloadResolutionResult.Free();
@@ -9996,32 +9951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (finalApplicableCandidates.Length == 1)
                 {
                     Debug.Assert(finalApplicableCandidates[0].IsApplicable);
-
-                    if (IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, finalApplicableCandidates[0], out SyntaxNode argumentSyntax))
-                    {
-                        PropertySymbol singleCandidate = finalApplicableCandidates[0].LeastOverriddenMember;
-
-                        // We're only in trouble if a dynamic argument is passed to the
-                        // params parameter and is ambiguous at compile time between normal
-                        // and expanded form i.e., there is exactly one dynamic argument to
-                        // a params parameter, and we know that runtime binder might not be
-                        // able to handle the disambiguation
-                        if (!singleCandidate.Parameters.Last().Type.IsSZArray())
-                        {
-                            Error(diagnostics,
-                                ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
-                                argumentSyntax, singleCandidate);
-                        }
-                    }
-                    // For C# 12 and earlier always bind at runtime.
-                    else if (Compilation.LanguageVersion > LanguageVersion.CSharp12)
-                    {
-                        var resultWithSingleCandidate = OverloadResolutionResult<PropertySymbol>.GetInstance();
-                        resultWithSingleCandidate.ResultsBuilder.Add(finalApplicableCandidates[0]);
-                        overloadResolutionResult.Free();
-
-                        return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, resultWithSingleCandidate, hasDynamicArgument: true, diagnostics);
-                    }
+                    ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], analyzedArguments.Arguments, diagnostics);
                 }
 
                 if (finalApplicableCandidates.Length != 1 &&
@@ -10037,7 +9967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDynamicIndexer(syntax, receiver, analyzedArguments, finalApplicableCandidates.SelectAsArray(r => r.Member), diagnostics);
             }
 
-            return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, overloadResolutionResult, hasDynamicArgument: false, diagnostics);
+            return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, overloadResolutionResult, diagnostics);
         }
 
         private BoundExpression BindIndexerOrIndexedPropertyAccessContinued(
@@ -10046,7 +9976,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<PropertySymbol> propertyGroup,
             AnalyzedArguments analyzedArguments,
             OverloadResolutionResult<PropertySymbol> overloadResolutionResult,
-            bool hasDynamicArgument,
             BindingDiagnosticBag diagnostics)
         {
             BoundExpression propertyAccess;
@@ -10104,7 +10033,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+<<<<<<< HEAD
                 propertyAccess = BindSuccessfulIndexerOrIndexedPropertyAccess(receiver, analyzedArguments, overloadResolutionResult, syntax, hasDynamicArgument, diagnostics);
+=======
+                MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
+                PropertySymbol property = resolutionResult.Member;
+
+                ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
+
+                // Make sure that the result of overload resolution is valid.
+                var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
+
+                receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
+
+                ImmutableArray<int> argsToParams;
+                this.CheckAndCoerceArguments<PropertySymbol>(syntax, resolutionResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: false, out argsToParams);
+
+                if (!gotError && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
+                {
+                    gotError = IsRefOrOutThisParameterCaptured(syntax, diagnostics);
+                }
+
+                var arguments = analyzedArguments.Arguments.ToImmutable();
+
+                // Note that we do not bind default arguments here, because at this point we do not know whether
+                // the indexer is being used in a 'get', or 'set', or 'get+set' (compound assignment) context.
+                propertyAccess = new BoundIndexerAccess(
+                    syntax,
+                    receiver,
+                    initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, property),
+                    property,
+                    arguments,
+                    argumentNames,
+                    argumentRefKinds,
+                    expanded: resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
+                    argsToParams,
+                    defaultArguments: default,
+                    property.Type,
+                    gotError);
+>>>>>>> dotnet/main
             }
 
             overloadResolutionResult.Free();
@@ -11147,7 +11114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;
 
-            var hasParams = OverloadResolution.IsValidParams(this, methodSymbol);
+            var hasParams = OverloadResolution.IsValidParams(this, methodSymbol, out _);
 
             Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);

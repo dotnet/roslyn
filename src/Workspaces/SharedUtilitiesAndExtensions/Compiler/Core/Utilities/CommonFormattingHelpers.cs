@@ -346,20 +346,14 @@ internal static class CommonFormattingHelpers
 
     public static bool HasAnyWhitespaceElasticTrivia(SyntaxToken previousToken, SyntaxToken currentToken)
     {
-        if ((!previousToken.ContainsAnnotations && !currentToken.ContainsAnnotations) ||
-            (!previousToken.HasTrailingTrivia && !currentToken.HasLeadingTrivia))
-        {
+        if (!previousToken.ContainsAnnotations && !currentToken.ContainsAnnotations)
             return false;
-        }
+
+        if (!previousToken.HasTrailingTrivia && !currentToken.HasLeadingTrivia)
+            return false;
 
         return previousToken.TrailingTrivia.HasAnyWhitespaceElasticTrivia() || currentToken.LeadingTrivia.HasAnyWhitespaceElasticTrivia();
     }
-
-    public static bool IsNull<T>(T t) where T : class
-        => t == null;
-
-    public static bool IsNotNull<T>(T t) where T : class
-        => !IsNull(t);
 
     public static TextSpan GetFormattingSpan(SyntaxNode root, TextSpan span)
     {

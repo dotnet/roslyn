@@ -149,8 +149,7 @@ namespace N
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         Public Sub TestContent_InheritedMembers1()
             Dim code =
 <Code>
@@ -202,8 +201,7 @@ class C : B
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         Public Sub TestContent_InheritedMembers2()
             Dim code =
 <Code>
@@ -256,8 +254,7 @@ class C : B
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         Public Sub TestContent_InheritedMembers3()
             Dim code =
 <Code>
@@ -310,8 +307,7 @@ class C : B
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         Public Sub TestContent_HelpKeyword_Ctor()
             Dim code =
 <Code>
@@ -503,8 +499,7 @@ $"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939739")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939739")>
         Public Sub TestDescription_MethodInInterface()
             Dim code =
 <Code>
@@ -1472,8 +1467,7 @@ $"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
         Public Sub TestNavInfo_Class()
             Dim code =
 <Code>
@@ -1498,8 +1492,7 @@ namespace EditorFunctionalityHelper
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
         Public Sub TestNavInfo_NestedEnum()
             Dim code =
 <Code>
@@ -1531,8 +1524,7 @@ namespace EditorFunctionalityHelper
             End Using
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/59458")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59458")>
         Public Sub TestCheckedBinaryOperator()
             Dim code =
 <Code>
@@ -1558,8 +1550,7 @@ class C
             End Using
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/59458")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59458")>
         Public Sub TestCheckedUnaryOperator()
             Dim code =
 <Code>
@@ -1585,8 +1576,7 @@ class C
             End Using
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/59458")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59458")>
         Public Sub TestCheckedCastOperator()
             Dim code =
 <Code>

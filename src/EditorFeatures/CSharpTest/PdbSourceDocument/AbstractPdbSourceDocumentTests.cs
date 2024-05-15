@@ -172,7 +172,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             }
             finally
             {
-                service.CleanupGeneratedFiles();
                 service.TryGetWorkspace()?.Dispose();
             }
         }

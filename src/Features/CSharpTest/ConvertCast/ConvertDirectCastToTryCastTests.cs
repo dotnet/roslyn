@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertConversionOperat
 {
     using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertDirectCastToTryCastCodeRefactoringProvider>;
 
+    [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.ConvertCast)]
     public class ConvertDirectCastToTryCastTests
     {

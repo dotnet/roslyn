@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules;
 
@@ -13,7 +14,7 @@ internal abstract class CompatAbstractFormattingRule : AbstractFormattingRule
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
     [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public sealed override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+    public sealed override void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
     {
         var nextOperationCopy = nextOperation;
         AddSuppressOperationsSlow(list, node, ref nextOperationCopy);
@@ -68,7 +69,7 @@ internal abstract class CompatAbstractFormattingRule : AbstractFormattingRule
     /// Returns SuppressWrappingIfOnSingleLineOperations under a node either by itself or by
     /// filtering/replacing operations returned by NextOperation
     /// </summary>
-    public virtual void AddSuppressOperationsSlow(List<SuppressOperation> list, SyntaxNode node, ref NextSuppressOperationAction nextOperation)
+    public virtual void AddSuppressOperationsSlow(ArrayBuilder<SuppressOperation> list, SyntaxNode node, ref NextSuppressOperationAction nextOperation)
         => base.AddSuppressOperations(list, node, in nextOperation);
 
     /// <summary>

@@ -897,8 +897,7 @@ public class {|target2:Bar|} : IBar
                 itemForEooInAbstractClass);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public Task TestCSharpOverrideMemberCanFindImplementingInterface(bool testDuplicate, TestHost testHost)
         {
             var markup1 = @"using System;
@@ -1822,8 +1821,7 @@ using System.Collections;";
                 itemForFooInBar);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public Task TestVisualBasicOverrideMemberCanFindImplementingInterface(bool testDuplicate, TestHost testHost)
         {
             var markup1 = @"

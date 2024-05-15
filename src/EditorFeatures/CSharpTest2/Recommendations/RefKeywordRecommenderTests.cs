@@ -410,48 +410,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInLambdaDeclaration(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = ($$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInLambdaDeclaration2(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = (ref int a, $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInLambdaDeclaration3(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = (int a, $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInDelegateDeclaration(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = delegate ($$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInDelegateDeclaration2(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = delegate (a, $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInDelegateDeclaration3(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -472,64 +466,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyKeywordAsync(text);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestEmptyStatement(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterReturn(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"return $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInFor(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"for ($$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotInFor(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"for (var $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInFor2(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"for ($$;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInFor3(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"for ($$;;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotAfterVar(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"var $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotInUsing(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -709,8 +695,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"delegate $$");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotAfterAnonymousDelegate(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -790,8 +775,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInUnsafeBlock(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -854,16 +838,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInLocalArrowMethod(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @" ref int Goo() => $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInArrowLambda(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -952,8 +934,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRefInFor(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod("""
@@ -961,8 +942,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRefForeachVariable(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod("""
@@ -970,8 +950,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRefExpressionInAssignment(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod("""
@@ -981,8 +960,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRefExpressionAfterReturn(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod("""

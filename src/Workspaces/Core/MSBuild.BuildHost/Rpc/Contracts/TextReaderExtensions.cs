@@ -7,7 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Rpc;
+namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal static class TextReaderExtensions
 {

@@ -32,12 +32,12 @@ internal abstract partial class AbstractNavigateToSearchService
         Contract.ThrowIfTrue(projects.IsEmpty);
         Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
 
-        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument, onResultsFound, cancellationToken);
+        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument, onResultsFound);
 
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
-            var callback = new NavigateToSearchServiceCallback(onItemsFound, onProjectCompleted);
+            var callback = new NavigateToSearchServiceCallback(onItemsFound, onProjectCompleted, cancellationToken);
 
             await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 // Sync and search the full solution snapshot.  While this function is called serially per project,
@@ -60,18 +60,19 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<Project> projects,
         string pattern,
         IImmutableSet<string> kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-        await PerformParallelSearchAsync(projects, ProcessSingleProjectAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
+        await ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
+            projects, ProcessSingleProjectAsync, onItemsFound, args: default, cancellationToken).ConfigureAwait(false);
         return;
 
-        async ValueTask ProcessSingleProjectAsync(
-            Project project, Action<RoslynNavigateToItem> onItemFound)
+        async Task ProcessSingleProjectAsync(
+            Project project, Action<RoslynNavigateToItem> onItemFound, VoidResult _, CancellationToken cancellationToken)
         {
             // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
             var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);

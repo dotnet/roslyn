@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
         protected override TestWorkspace CreateWorkspace(string code, TestComposition composition)
             => TestWorkspace.CreateVisualBasic(code, composition: composition);
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestProperty(TestHost testHost)
         {
             var code =
@@ -58,8 +57,7 @@ End Class
             ValidateItem(initialItems[1], 3);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestPropertyValue(TestHost testHost)
         {
             var code =
@@ -110,8 +108,7 @@ End Class
             await ValidateChildrenEmptyAsync(workspace, childItems.Single());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestField(TestHost testHost)
         {
             var code =
@@ -146,8 +143,7 @@ End Class
                 });
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestLocal(TestHost testHost)
         {
             var code =
@@ -174,8 +170,7 @@ End Class
             ValidateItem(initialItems[1], 3);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestParameter(TestHost testHost)
         {
             var code =
@@ -201,8 +196,7 @@ End Class
             ValidateItem(initialItems[1], 2);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestVariableReferenceStart(TestHost testHost)
         {
             var code =
@@ -261,8 +255,7 @@ End Class";
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestVariableReferenceStart2(TestHost testHost)
         {
             var code =
@@ -321,8 +314,7 @@ End Class";
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestMultipleDeclarators(TestHost testHost)
         {
             var code =
