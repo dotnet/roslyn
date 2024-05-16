@@ -59,7 +59,9 @@ internal sealed class FindReferenceCache
     /// Not used by FAR directly.  But we compute and cache this while processing a document so that if we call any
     /// other services that use this semantic model, that they don't end up recreating it.
     /// </summary>
+#pragma warning disable IDE0052 // Remove unread private members
     private readonly SemanticModel _nullableEnabledSemanticModel;
+#pragma warning restore IDE0052 // Remove unread private members
 
     private readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> _symbolInfoCache = [];
     private readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> _identifierCache;
