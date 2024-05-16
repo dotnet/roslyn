@@ -8,37 +8,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
 internal static class ReferenceFinders
 {
-    public static readonly IReferenceFinder Constructor = ConstructorSymbolReferenceFinder.Instance;
-    public static readonly IReferenceFinder ConstructorInitializer = new ConstructorInitializerSymbolReferenceFinder();
-    public static readonly IReferenceFinder Destructor = new DestructorSymbolReferenceFinder();
-    public static readonly IReferenceFinder ExplicitConversion = new ExplicitConversionSymbolReferenceFinder();
-    public static readonly IReferenceFinder ExplicitInterfaceMethod = new ExplicitInterfaceMethodReferenceFinder();
-    public static readonly IReferenceFinder Event = new EventSymbolReferenceFinder();
-    public static readonly IReferenceFinder Field = new FieldSymbolReferenceFinder();
-    public static readonly IReferenceFinder Label = new LabelSymbolReferenceFinder();
-    public static readonly IReferenceFinder Local = new LocalSymbolReferenceFinder();
-    public static readonly IReferenceFinder MethodTypeParameter = new MethodTypeParameterSymbolReferenceFinder();
-    public static readonly IReferenceFinder NamedType = new NamedTypeSymbolReferenceFinder();
-    public static readonly IReferenceFinder Namespace = new NamespaceSymbolReferenceFinder();
-    public static readonly IReferenceFinder Operator = new OperatorSymbolReferenceFinder();
-    public static readonly IReferenceFinder OrdinaryMethod = new OrdinaryMethodReferenceFinder();
-    public static readonly IReferenceFinder Parameter = new ParameterSymbolReferenceFinder();
-    public static readonly IReferenceFinder Property = new PropertySymbolReferenceFinder();
-    public static readonly IReferenceFinder PropertyAccessor = new PropertyAccessorSymbolReferenceFinder();
-    public static readonly IReferenceFinder RangeVariable = new RangeVariableSymbolReferenceFinder();
-    public static readonly IReferenceFinder TypeParameter = new TypeParameterSymbolReferenceFinder();
+    private static readonly IReferenceFinder Constructor = ConstructorSymbolReferenceFinder.Instance;
+    private static readonly IReferenceFinder ConstructorInitializer = new ConstructorInitializerSymbolReferenceFinder();
+    private static readonly IReferenceFinder Destructor = new DestructorSymbolReferenceFinder();
+    private static readonly IReferenceFinder ExplicitConversion = new ExplicitConversionSymbolReferenceFinder();
+    private static readonly IReferenceFinder ExplicitInterfaceMethod = new ExplicitInterfaceMethodReferenceFinder();
+    private static readonly IReferenceFinder Event = new EventSymbolReferenceFinder();
+    private static readonly IReferenceFinder Field = new FieldSymbolReferenceFinder();
+    private static readonly IReferenceFinder Label = new LabelSymbolReferenceFinder();
+    private static readonly IReferenceFinder Local = new LocalSymbolReferenceFinder();
+    private static readonly IReferenceFinder MethodTypeParameter = new MethodTypeParameterSymbolReferenceFinder();
+    private static readonly IReferenceFinder NamedType = new NamedTypeSymbolReferenceFinder();
+    private static readonly IReferenceFinder Namespace = new NamespaceSymbolReferenceFinder();
+    private static readonly IReferenceFinder Operator = new OperatorSymbolReferenceFinder();
+    private static readonly IReferenceFinder OrdinaryMethod = new OrdinaryMethodReferenceFinder();
+    private static readonly IReferenceFinder Parameter = new ParameterSymbolReferenceFinder();
+    private static readonly IReferenceFinder PropertyAccessor = new PropertyAccessorSymbolReferenceFinder();
+    private static readonly IReferenceFinder RangeVariable = new RangeVariableSymbolReferenceFinder();
+    private static readonly IReferenceFinder TypeParameter = new TypeParameterSymbolReferenceFinder();
 
     /// <summary>
-    /// The list of common reference finders.
+    /// Public as it is used recursively from within the <see cref="PropertyAccessorSymbolReferenceFinder"/>.
     /// </summary>
-    public static readonly ImmutableArray<IReferenceFinder> DefaultReferenceFinders;
+    public static readonly IReferenceFinder Property = new PropertySymbolReferenceFinder();
 
     // Rename does not need to include base/this constructor initializer calls
-    internal static readonly ImmutableArray<IReferenceFinder> DefaultRenameReferenceFinders;
-
-    static ReferenceFinders()
-    {
-        DefaultRenameReferenceFinders =
+    public static readonly ImmutableArray<IReferenceFinder> DefaultRenameReferenceFinders =
         [
             Constructor,
             Destructor,
@@ -59,6 +54,9 @@ internal static class ReferenceFinders
             RangeVariable,
             TypeParameter,
         ];
-        DefaultReferenceFinders = DefaultRenameReferenceFinders.Add(ConstructorInitializer);
-    }
+
+    /// <summary>
+    /// The list of common reference finders.
+    /// </summary>
+    internal static readonly ImmutableArray<IReferenceFinder> DefaultReferenceFinders = [.. DefaultRenameReferenceFinders, ConstructorInitializer];
 }

@@ -28,7 +28,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature;
 /// </remarks>
 internal sealed class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
 {
-    public static readonly IReferenceFinder DelegateInvokeMethod = new DelegateInvokeMethodReferenceFinder();
+    public static readonly DelegateInvokeMethodReferenceFinder Instance = new();
+
+    private DelegateInvokeMethodReferenceFinder()
+    {
+    }
 
     protected override bool CanFind(IMethodSymbol symbol)
         => symbol.MethodKind == MethodKind.DelegateInvoke;
