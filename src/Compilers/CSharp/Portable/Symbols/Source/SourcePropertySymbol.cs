@@ -704,11 +704,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
             => (syntax as IndexerDeclarationSyntax)?.ParameterList;
 
+        public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : HasExternModifier;
+
         internal SourcePropertySymbol? OtherPartOfPartial => _otherPartOfPartial;
 
-        internal bool IsPartialDefinition => IsPartial && !AccessorsHaveImplementation && !IsExtern;
+        internal bool IsPartialDefinition => IsPartial && !AccessorsHaveImplementation && !HasExternModifier;
 
-        internal bool IsPartialImplementation => IsPartial && (AccessorsHaveImplementation || IsExtern);
+        internal bool IsPartialImplementation => IsPartial && (AccessorsHaveImplementation || HasExternModifier);
 
         internal SourcePropertySymbol? PartialDefinitionPart => IsPartialImplementation ? OtherPartOfPartial : null;
 

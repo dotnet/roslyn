@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -637,23 +640,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void Extern_01()
         {
-            // PROTOTYPE(partial-properties): test that appropriate flags are set in metadata for the property accessors.
-            // See ExtendedPartialMethodsTests.Extern_Symbols as a starting point.
             var source = """
-                partial class C
+                public partial class C
                 {
-                    partial int P { get; set; }
-                    extern partial int P { get; set; }
+                    public partial int P { get; set; }
+                    public extern partial int P { get; set; }
                 }
                 """;
-            var comp = CreateCompilation([source, IsExternalInitTypeDefinition]);
-            comp.VerifyEmitDiagnostics(
-                );
 
-            var prop = comp.GetMember<SourcePropertySymbol>("C.P");
-            // PROTOTYPE(partial-properties): a partial method definition should delegate to its implementation part to implement this API, i.e. return 'true' here
-            Assert.False(prop.GetPublicSymbol().IsExtern);
-            Assert.True(prop.PartialImplementationPart!.GetPublicSymbol().IsExtern);
+            var verifier = CompileAndVerify(
+                [source, IsExternalInitTypeDefinition],
+                sourceSymbolValidator: verifySource,
+                symbolValidator: verifyMetadata);
+            verifier.VerifyDiagnostics();
+
+            void verifySource(ModuleSymbol module)
+            {
+                var prop = module.GlobalNamespace.GetMember<SourcePropertySymbol>("C.P");
+                Assert.True(prop.GetPublicSymbol().IsExtern);
+                Assert.True(prop.GetMethod!.GetPublicSymbol().IsExtern);
+                Assert.True(prop.SetMethod!.GetPublicSymbol().IsExtern);
+                Assert.True(prop.PartialImplementationPart!.GetPublicSymbol().IsExtern);
+                Assert.True(prop.PartialImplementationPart!.GetMethod!.GetPublicSymbol().IsExtern);
+                Assert.True(prop.PartialImplementationPart!.SetMethod!.GetPublicSymbol().IsExtern);
+            }
+
+            void verifyMetadata(ModuleSymbol module)
+            {
+                var prop = module.GlobalNamespace.GetMember<PropertySymbol>("C.P");
+                // IsExtern doesn't round trip from metadata when DllImportAttribute is missing
+                // This is consistent with the behavior for methods
+                Assert.False(prop.GetPublicSymbol().IsExtern);
+                Assert.False(prop.GetMethod!.GetPublicSymbol().IsExtern);
+                Assert.False(prop.SetMethod!.GetPublicSymbol().IsExtern);
+            }
         }
 
         [Fact]
@@ -678,6 +698,127 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 //     extern partial int P { get; set; }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(4, 24)
                 );
+        }
+
+        /// <summary>Based on <see cref="ExtendedPartialMethodsTests.Extern_Symbols" /> as a starting point.</summary>
+        [Fact]
+        public void Extern_03()
+        {
+            var source = """
+                using System.Runtime.InteropServices;
+
+                public partial class C
+                {
+                    public static partial int P { get; set; }
+                    public static extern partial int P
+                    {
+                        [DllImport("something.dll")]
+                        get;
+
+                        [DllImport("something.dll")]
+                        set;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, IsExternalInitTypeDefinition],
+                symbolValidator: module => verify(module, isSource: false),
+                sourceSymbolValidator: module => verify(module, isSource: true));
+            verifier.VerifyDiagnostics();
+
+            void verify(ModuleSymbol module, bool isSource)
+            {
+                var prop = module.GlobalNamespace.GetMember<PropertySymbol>("C.P");
+                Assert.True(prop.GetPublicSymbol().IsExtern);
+                verifyAccessor(prop.GetMethod!);
+                verifyAccessor(prop.SetMethod!);
+
+                if (isSource)
+                {
+                    var implPart = ((SourcePropertySymbol)prop).PartialImplementationPart!;
+                    Assert.True(implPart.GetPublicSymbol().IsExtern);
+                    verifyAccessor(implPart.GetMethod!);
+                    verifyAccessor(implPart.SetMethod!);
+                }
+            }
+
+            void verifyAccessor(MethodSymbol accessor)
+            {
+                Assert.True(accessor.GetPublicSymbol().IsExtern);
+
+                var importData = accessor.GetDllImportData()!;
+                Assert.NotNull(importData);
+                Assert.Equal("something.dll", importData.ModuleName);
+                Assert.Equal(accessor.MetadataName, importData.EntryPointName); // e.g. 'get_P'
+                Assert.Equal(CharSet.None, importData.CharacterSet);
+                Assert.False(importData.SetLastError);
+                Assert.False(importData.ExactSpelling);
+                Assert.Equal(MethodImplAttributes.PreserveSig, accessor.ImplementationAttributes);
+                Assert.Equal(CallingConvention.Winapi, importData.CallingConvention);
+                Assert.Null(importData.BestFitMapping);
+                Assert.Null(importData.ThrowOnUnmappableCharacter);
+            }
+        }
+
+        /// <summary>Based on 'AttributeTests_WellKnownAttributes.TestPseudoAttributes_DllImport_OperatorsAndAccessors'.</summary>
+        [Theory]
+        [CombinatorialData]
+        public void TestPseudoAttributes_DllImport(bool attributesOnDefinition)
+        {
+            var source = $$"""
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+public partial class C
+{
+    public static partial int F 
+    { 
+        {{(attributesOnDefinition ? @"[DllImport(""a"")]" : "")}} get;
+        {{(attributesOnDefinition ? @"[DllImport(""b"")]" : "")}} set;
+    }
+
+    public extern static partial int F 
+    { 
+        {{(attributesOnDefinition ? "" : @"[DllImport(""a"")]")}} get;
+        {{(attributesOnDefinition ? "" : @"[DllImport(""b"")]")}} set;
+    }
+}
+""";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
+            {
+                var metadataReader = assembly.GetMetadataReader();
+
+                // no backing fields should be generated -- all members are "extern" members:
+                Assert.Equal(0, metadataReader.FieldDefinitions.AsEnumerable().Count());
+
+                Assert.Equal(2, metadataReader.GetTableRowCount(TableIndex.ModuleRef));
+                Assert.Equal(2, metadataReader.GetTableRowCount(TableIndex.ImplMap));
+                var visitedEntryPoints = new Dictionary<string, bool>();
+
+                foreach (var method in metadataReader.GetImportedMethods())
+                {
+                    string moduleName = metadataReader.GetString(metadataReader.GetModuleReference(method.GetImport().Module).Name);
+                    string entryPointName = metadataReader.GetString(method.Name);
+                    switch (entryPointName)
+                    {
+                        case "get_F":
+                            Assert.Equal("a", moduleName);
+                            break;
+
+                        case "set_F":
+                            Assert.Equal("b", moduleName);
+                            break;
+
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(entryPointName);
+                    }
+
+                    // This throws if we visit one entry point name twice.
+                    visitedEntryPoints.Add(entryPointName, true);
+                }
+
+                Assert.Equal(2, visitedEntryPoints.Count);
+            });
         }
 
         [Fact]
@@ -4215,6 +4356,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         }
 
         // PROTOTYPE(partial-properties): override partial property where base has modopt
-        // PROTOTYPE(partial-properties): test that doc comments work consistently with partial methods (and probably spec it as well)
     }
 }
