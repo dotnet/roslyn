@@ -220,7 +220,7 @@ internal sealed class LanguageServerProjectSystem
 
             var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
             var diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
-            if (diagnosticLogItems.Any(item => item.Kind is WorkspaceDiagnosticKind.Failure))
+            if (diagnosticLogItems.Any(item => item.Kind is DiagnosticLogItemKind.Error))
             {
                 await LogDiagnosticsAsync(diagnosticLogItems);
                 // We have total failures in evaluation, no point in continuing.
@@ -292,7 +292,7 @@ internal sealed class LanguageServerProjectSystem
         {
             // Since our LogDiagnosticsAsync helper takes DiagnosticLogItems, let's just make one for this
             var message = string.Format(LanguageServerResources.Exception_thrown_0, e);
-            var diagnosticLogItem = new DiagnosticLogItem(WorkspaceDiagnosticKind.Failure, message, projectPath);
+            var diagnosticLogItem = new DiagnosticLogItem(DiagnosticLogItemKind.Error, message, projectPath);
             await LogDiagnosticsAsync([diagnosticLogItem]);
 
             return false;
@@ -303,10 +303,10 @@ internal sealed class LanguageServerProjectSystem
             foreach (var logItem in diagnosticLogItems)
             {
                 var projectName = Path.GetFileName(projectPath);
-                _logger.Log(logItem.Kind is WorkspaceDiagnosticKind.Failure ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
+                _logger.Log(logItem.Kind is DiagnosticLogItemKind.Error ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
             }
 
-            var worstLspMessageKind = diagnosticLogItems.Any(logItem => logItem.Kind is WorkspaceDiagnosticKind.Failure) ? LSP.MessageType.Error : LSP.MessageType.Warning;
+            var worstLspMessageKind = diagnosticLogItems.Any(logItem => logItem.Kind is DiagnosticLogItemKind.Error) ? LSP.MessageType.Error : LSP.MessageType.Warning;
 
             string message;
 

@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.
                 var diagnosticItems = await projectFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false);
-                if (diagnosticItems.Any(d => d.Kind == WorkspaceDiagnosticKind.Failure))
+                if (diagnosticItems.Any(d => d.Kind == DiagnosticLogItemKind.Error))
                 {
                     _diagnosticReporter.Report(diagnosticItems);
 
