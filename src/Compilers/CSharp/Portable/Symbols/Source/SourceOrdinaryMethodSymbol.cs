@@ -335,10 +335,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Returns the implementation part of a partial method definition, 
-        /// or null if this is not a partial method or it is the definition part.
-        /// </summary>
         internal SourceOrdinaryMethodSymbol SourcePartialDefinition
         {
             get
@@ -347,10 +343,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Returns the definition part of a partial method implementation, 
-        /// or null if this is not a partial method or it is the implementation part.
-        /// </summary>
         internal SourceOrdinaryMethodSymbol SourcePartialImplementation
         {
             get
@@ -401,6 +393,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
+            // Attributes on partial methods are owned by the definition part.
+            // If this symbol has a non-null PartialDefinitionPart, we should have accessed this method through that definition symbol instead
+            Debug.Assert(PartialDefinitionPart is null);
+
             if ((object)this.SourcePartialImplementation != null)
             {
                 return OneOrMany.Create(ImmutableArray.Create(AttributeDeclarationSyntaxList, this.SourcePartialImplementation.AttributeDeclarationSyntaxList));

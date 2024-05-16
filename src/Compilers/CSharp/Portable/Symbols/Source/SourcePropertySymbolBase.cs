@@ -1060,7 +1060,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Attributes
 
-        public abstract SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList { get; }
+        public abstract OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations();
+
+        /// <summary>
+        /// Symbol to copy bound attributes from, or null if the attributes are not shared among multiple source property symbols.
+        /// Analogous to <see cref="SourceMethodSymbolWithAttributes.BoundAttributesSource"/>.
+        /// </summary>
+        protected abstract SourcePropertySymbolBase BoundAttributesSource { get; }
 
         public abstract IAttributeTargetSymbol AttributesOwner { get; }
 
@@ -1087,10 +1093,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return bag;
             }
 
-            // The property is responsible for completion of the backing field
-            _ = BackingField?.GetAttributes();
+            var copyFrom = this.BoundAttributesSource;
 
-            if (LoadAndValidateAttributes(OneOrMany.Create(AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
+            // prevent infinite recursion:
+            Debug.Assert(!ReferenceEquals(copyFrom, this));
+
+            bool bagCreatedOnThisThread;
+            if (copyFrom is not null)
+            {
+                // When partial properties get the ability to have a backing field,
+                // the implementer will have to decide how the BackingField symbol works in 'copyFrom' scenarios.
+                Debug.Assert(BackingField is null);
+
+                var attributesBag = copyFrom.GetAttributesBag();
+                bagCreatedOnThisThread = Interlocked.CompareExchange(ref _lazyCustomAttributesBag, attributesBag, null) == null;
+            }
+            else
+            {
+                // The property is responsible for completion of the backing field
+                _ = BackingField?.GetAttributes();
+                bagCreatedOnThisThread = LoadAndValidateAttributes(GetAttributeDeclarations(), ref _lazyCustomAttributesBag);
+            }
+
+            if (bagCreatedOnThisThread)
             {
                 var completed = _state.NotePartComplete(CompletionPart.Attributes);
                 Debug.Assert(completed);

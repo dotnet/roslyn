@@ -454,30 +454,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         /// <summary>
         /// Symbol to copy bound attributes from, or null if the attributes are not shared among multiple source parameter symbols.
         /// </summary>
         /// <remarks>
-        /// Used for parameters of partial implementation. We bind the attributes only on the definition
-        /// part and copy them over to the implementation.
+        /// This is inconsistent with analogous 'BoundAttributesSource' on other symbols.
+        /// Usually the definition part is the source, but for parameters the implementation part is the source.
+        /// This affects the location of diagnostics among other things.
         /// </remarks>
-        private SourceParameterSymbol BoundAttributesSource
+        private SourceParameterSymbol? BoundAttributesSource
+            => PartialImplementationPart;
+
+        protected SourceParameterSymbol? PartialImplementationPart
         {
             get
             {
-                var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
-                if ((object)sourceMethod == null)
+                ImmutableArray<ParameterSymbol> implParameters = this.ContainingSymbol switch
+                {
+                    SourceMemberMethodSymbol { PartialImplementationPart.Parameters: { } parameters } => parameters,
+                    SourcePropertySymbol { PartialImplementationPart.Parameters: { } parameters } => parameters,
+                    _ => default
+                };
+
+                if (implParameters.IsDefault)
                 {
                     return null;
                 }
 
-                var impl = sourceMethod.SourcePartialImplementation;
-                if ((object)impl == null)
+                Debug.Assert(!this.ContainingSymbol.IsPartialImplementation());
+                return (SourceParameterSymbol)implParameters[this.Ordinal];
+            }
+        }
+
+        protected SourceParameterSymbol? PartialDefinitionPart
+        {
+            get
+            {
+                ImmutableArray<ParameterSymbol> defParameters = this.ContainingSymbol switch
+                {
+                    SourceMemberMethodSymbol { PartialDefinitionPart.Parameters: { } parameters } => parameters,
+                    SourcePropertySymbol { PartialDefinitionPart.Parameters: { } parameters } => parameters,
+                    _ => default
+                };
+
+                if (defParameters.IsDefault)
                 {
                     return null;
                 }
 
-                return (SourceParameterSymbol)impl.Parameters[this.Ordinal];
+                Debug.Assert(!this.ContainingSymbol.IsPartialDefinition());
+                return (SourceParameterSymbol)defParameters[this.Ordinal];
             }
         }
 
@@ -495,44 +522,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            // C# spec:
-            // The attributes on the parameters of the resulting method declaration
-            // are the combined attributes of the corresponding parameters of the defining
-            // and the implementing partial method declaration in unspecified order.
-            // Duplicates are not removed.
+            // Attributes on parameters in partial members are owned by the parameter in the implementation part.
+            // If this symbol has a non-null PartialImplementationPart, we should have accessed this method through that implementation symbol.
+            Debug.Assert(PartialImplementationPart is null);
 
-            SyntaxList<AttributeListSyntax> attributes = AttributeDeclarationList;
-
-            var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
-            if ((object)sourceMethod == null)
+            if (PartialDefinitionPart is { } definitionPart)
             {
-                return OneOrMany.Create(attributes);
-            }
-
-            SyntaxList<AttributeListSyntax> otherAttributes;
-
-            // if this is a definition get the implementation and vice versa
-            SourceOrdinaryMethodSymbol otherPart = sourceMethod.OtherPartOfPartial;
-            if ((object)otherPart != null)
-            {
-                otherAttributes = ((SourceParameterSymbol)otherPart.Parameters[this.Ordinal]).AttributeDeclarationList;
+                return OneOrMany.Create(
+                    AttributeDeclarationList,
+                    definitionPart.AttributeDeclarationList);
             }
             else
             {
-                otherAttributes = default(SyntaxList<AttributeListSyntax>);
+                return OneOrMany.Create(AttributeDeclarationList);
             }
-
-            if (attributes.Equals(default(SyntaxList<AttributeListSyntax>)))
-            {
-                return OneOrMany.Create(otherAttributes);
-            }
-            else if (otherAttributes.Equals(default(SyntaxList<AttributeListSyntax>)))
-            {
-                return OneOrMany.Create(attributes);
-            }
-
-            return OneOrMany.Create(ImmutableArray.Create(attributes, otherAttributes));
         }
+#nullable disable
 
         /// <summary>
         /// Returns data decoded from well-known attributes applied to the symbol or null if there are no applied attributes.
@@ -1030,33 +1035,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                     && !ContainingSymbol.IsOperator()
                                                                     && !IsOnPartialImplementation(node);
 
+#nullable enable
         /// <summary>
         /// Is the attribute syntax appearing on a parameter of a partial method implementation part?
         /// Since attributes are merged between the parts of a partial, we need to look at the syntax where the
         /// attribute appeared in the source to see if it corresponds to a partial method implementation part.
         /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
         private bool IsOnPartialImplementation(AttributeSyntax node)
         {
-            var method = ContainingSymbol as MethodSymbol;
-            if ((object)method == null) return false;
-            var impl = method.IsPartialImplementation() ? method : method.PartialImplementationPart;
-            if ((object)impl == null) return false;
-            var paramList =
-                node     // AttributeSyntax
-                .Parent  // AttributeListSyntax
-                .Parent  // ParameterSyntax
-                .Parent as ParameterListSyntax; // ParameterListSyntax
-            if (paramList == null) return false;
-            var methDecl = paramList.Parent as MethodDeclarationSyntax;
-            if (methDecl == null) return false;
-            foreach (var r in impl.DeclaringSyntaxReferences)
+            // If we are asking this, the candidate attribute had better be contained in *some* attribute associated with this parameter syntactically
+            Debug.Assert(this.GetAttributeDeclarations().Any(attrLists => attrLists.Any(attrList => attrList.Contains(node))));
+
+            var implParameter = this.ContainingSymbol.IsPartialImplementation() ? this : PartialImplementationPart;
+            if (implParameter?.AttributeDeclarationList is not { } implParameterAttributeList)
             {
-                if (r.GetSyntax() == methDecl) return true;
+                return false;
             }
-            return false;
+
+            return implParameterAttributeList.Any(attrList => attrList.Attributes.Contains(node));
         }
+#nullable disable
 
         private void ValidateCallerLineNumberAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
         {
