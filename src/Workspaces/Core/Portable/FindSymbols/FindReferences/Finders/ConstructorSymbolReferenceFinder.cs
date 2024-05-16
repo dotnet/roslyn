@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
-internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
 {
     public static readonly ConstructorSymbolReferenceFinder Instance = new();
 
@@ -90,7 +90,7 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
         => syntaxFacts.TryGetPredefinedType(token, out var actualType) &&
            predefinedType == actualType;
 
-    protected override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected override void FindReferencesInDocument<TData>(
         IMethodSymbol methodSymbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -126,8 +126,6 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
 
         FindReferencesInDocumentInsideGlobalSuppressions(
             methodSymbol, state, processResult, processResultData, cancellationToken);
-
-        return ValueTaskFactory.CompletedTask;
     }
 
     /// <summary>

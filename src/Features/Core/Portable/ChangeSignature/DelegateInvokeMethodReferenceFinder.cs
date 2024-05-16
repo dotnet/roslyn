@@ -76,7 +76,7 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
         return Task.CompletedTask;
     }
 
-    protected override async ValueTask FindReferencesInDocumentAsync<TData>(
+    protected override async void FindReferencesInDocument<TData>(
         IMethodSymbol methodSymbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -105,8 +105,7 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
             var convertedType = (ISymbol?)state.SemanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
             if (convertedType != null)
             {
-                convertedType = await SymbolFinder.FindSourceDefinitionAsync(convertedType, state.Solution, cancellationToken).ConfigureAwait(false)
-                    ?? convertedType;
+                convertedType = SymbolFinder.FindSourceDefinition(convertedType, state.Solution, cancellationToken) ?? convertedType;
             }
 
             if (convertedType == methodSymbol.ContainingType)
