@@ -785,7 +785,7 @@ public partial class C
     }
 }
 """;
-            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -4408,6 +4408,39 @@ public partial class C
             var symbolInfo = model.GetSymbolInfo(node);
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
+        [Fact]
+        public void LangVersion_01()
+        {
+            var source = """
+                partial class C
+                {
+                    public partial int P { get; set; }
+                    public partial int P { get => 1; set { } }
+
+                    public partial int this[int i] { get; }
+                    public partial int this[int i] { get => i; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyEmitDiagnostics(
+                // (3,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                //     public partial int P { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "preview").WithLocation(3, 24),
+                // (4,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                //     public partial int P { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "preview").WithLocation(4, 24),
+                // (6,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                //     public partial int this[int i] { get; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "preview").WithLocation(6, 24),
+                // (7,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                //     public partial int this[int i] { get => i; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "preview").WithLocation(7, 24));
         }
 
         // PROTOTYPE(partial-properties): override partial property where base has modopt

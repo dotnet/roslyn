@@ -384,6 +384,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasExplicitAccessMod = true;
             }
 
+            if ((mods & DeclarationModifiers.Partial) != 0)
+            {
+                Debug.Assert(location.SourceTree is not null);
+
+                LanguageVersion availableVersion = ((CSharpParseOptions)location.SourceTree.Options).LanguageVersion;
+                LanguageVersion requiredVersion = MessageID.IDS_FeaturePartialProperties.RequiredVersion();
+                if (availableVersion < requiredVersion)
+                {
+                    ModifierUtils.ReportUnsupportedModifiersForLanguageVersion(mods, DeclarationModifiers.Partial, location, diagnostics, availableVersion, requiredVersion);
+                }
+            }
+
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
 
             containingType.CheckUnsafeModifier(mods, location, diagnostics);
