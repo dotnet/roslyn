@@ -23,14 +23,10 @@ internal static class ReferenceFinders
     private static readonly IReferenceFinder Operator = new OperatorSymbolReferenceFinder();
     private static readonly IReferenceFinder OrdinaryMethod = new OrdinaryMethodReferenceFinder();
     private static readonly IReferenceFinder Parameter = new ParameterSymbolReferenceFinder();
+    private static readonly IReferenceFinder Property = PropertySymbolReferenceFinder.Instance;
     private static readonly IReferenceFinder PropertyAccessor = new PropertyAccessorSymbolReferenceFinder();
     private static readonly IReferenceFinder RangeVariable = new RangeVariableSymbolReferenceFinder();
     private static readonly IReferenceFinder TypeParameter = new TypeParameterSymbolReferenceFinder();
-
-    /// <summary>
-    /// Public as it is used recursively from within the <see cref="PropertyAccessorSymbolReferenceFinder"/>.
-    /// </summary>
-    public static readonly IReferenceFinder Property = new PropertySymbolReferenceFinder();
 
     // Rename does not need to include base/this constructor initializer calls
     public static readonly ImmutableArray<IReferenceFinder> DefaultRenameReferenceFinders =
