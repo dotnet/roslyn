@@ -78,30 +78,56 @@ internal static partial class SourceTextExtensions
         var searchStringLength = searchString.Length;
         var textEnd = text.Length - searchStringLength;
 
-        // Get the first character of the value to search for, with the correct case sensitivity.  This way, we don't
-        // have to call through ToLower when we're trying to find the starting point of a word match
-        var normalizedFirstChar = caseSensitive ? searchString[0] : CaseInsensitiveComparison.ToLower(searchString[0]);
+        return caseSensitive
+            ? IndexOfCaseSensitive()
+            : IndexOfCaseInsensitive();
 
-        for (var i = startIndex; i <= textEnd; i++)
+        int IndexOfCaseSensitive()
         {
-            var match = true;
-            for (var j = 0; j < searchStringLength; j++)
+            for (var i = startIndex; i <= textEnd; i++)
             {
-                if (!Match(GetValueChar(j), text[i + j], caseSensitive))
+                var match = true;
+                for (var j = 0; j < searchStringLength; j++)
                 {
-                    match = false;
-                    break;
+                    if (searchString[j] != text[i + j])
+                    {
+                        match = false;
+                        break;
+                    }
                 }
+
+                if (match)
+                    return i;
             }
 
-            if (match)
-                return i;
+            return -1;
         }
 
-        return -1;
+        int IndexOfCaseInsensitive()
+        {
+            // Get the first character of the value to search for, with the correct case sensitivity.  This way, we don't
+            // have to call through ToLower when we're trying to find the starting point of a word match
+            var normalizedFirstChar = CaseInsensitiveComparison.ToLower(searchString[0]);
 
-        char GetValueChar(int index)
-            => index == 0 ? normalizedFirstChar : caseSensitive ? searchString[index] : CaseInsensitiveComparison.ToLower(searchString[index]);
+            for (var i = startIndex; i <= textEnd; i++)
+            {
+                var match = true;
+                for (var j = 0; j < searchStringLength; j++)
+                {
+                    var matchChar = j == 0 ? normalizedFirstChar : CaseInsensitiveComparison.ToLower(searchString[j]);
+                    if (matchChar != CaseInsensitiveComparison.ToLower(text[i + j]))
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                    return i;
+            }
+
+            return -1;
+        }
     }
 
     public static int LastIndexOf(this SourceText text, string value, int startIndex, bool caseSensitive)
