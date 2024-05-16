@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature;
 /// <remarks>
 /// TODO: Rewrite this to track backward through references instead of binding everything
 /// </remarks>
-internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+internal sealed class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
 {
     public static readonly IReferenceFinder DelegateInvokeMethod = new DelegateInvokeMethodReferenceFinder();
 
