@@ -3472,6 +3472,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 //     [field: Attr]
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(10, 6));
 
+            // https://github.com/dotnet/roslyn/issues/57012
+            // 'field' keyword in properties feature should test partial properties where the implementation uses 'field' and one or both parts have 'field:' targeted attribute lists.
             var property = comp.GetMember<SourcePropertySymbol>("C.P");
             AssertEx.Equal([], property.GetAttributes().ToStrings());
         }
