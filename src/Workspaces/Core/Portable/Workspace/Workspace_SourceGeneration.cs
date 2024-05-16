@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,7 +70,7 @@ public partial class Workspace
             // projects that transitively depend on that project, so that their generators will run as well when next
             // asked.
             var dependencyGraph = solution.GetProjectDependencyGraph();
-            var result = ImmutableSegmentedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>();
+            var result = ImmutableSortedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>();
 
             // Determine if we want a major solution change, forcing regeneration of all projects.
             var solutionMajor = projectIds.Any(t => t.projectId is null && t.forceRegeneration);
