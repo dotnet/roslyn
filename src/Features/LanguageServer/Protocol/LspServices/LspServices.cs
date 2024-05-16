@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
@@ -151,17 +152,27 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         return lspService;
     }
 
-    public ImmutableArray<(TypeRef HandlerTypeRef, ImmutableArray<HandlerMethodDetails> Methods)> GetMethodHandlers()
+    public ImmutableArray<(IMethodHandler? Instance, TypeRef HandlerTypeRef, ImmutableArray<HandlerMethodDetails> Methods)> GetMethodHandlers()
     {
-        using var builder = new TemporaryArray<(TypeRef, ImmutableArray<HandlerMethodDetails>)>();
+        using var _ = ArrayBuilder<(IMethodHandler?, TypeRef, ImmutableArray<HandlerMethodDetails>)>.GetInstance(out var builder);
 
+        // First, add any IMethodHandlers found in base services.
+        foreach (var handler in GetBaseServices<IMethodHandler>())
+        {
+            var handlerType = handler.GetType();
+            var methods = HandlerMethodDetails.From(handlerType);
+
+            builder.Add((handler, handlerType, methods));
+        }
+
+        // Now, walk through our MEF services and add any IMethodHandlers.
         foreach (var lazyService in _lazyMefLspServices.Values)
         {
             var metadata = lazyService.Metadata;
 
             if (metadata.HandlerMethods is { } handlerMethods)
             {
-                builder.Add((metadata.TypeRef, handlerMethods));
+                builder.Add((null, metadata.TypeRef, handlerMethods));
             }
         }
 
@@ -180,13 +191,6 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 
     private IEnumerable<T> GetMefServices<T>()
     {
-        if (typeof(T) == typeof(IMethodHandler))
-        {
-            // HACK: There is special handling for the IMethodHandler to make sure that its types remain lazy
-            // Special case this to avoid providing them twice.
-            yield break;
-        }
-
         foreach (var (typeName, lazyService) in _lazyMefLspServices)
         {
             if (lazyService.Metadata.InterfaceNames.Contains(typeof(T).AssemblyQualifiedName!))

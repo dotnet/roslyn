@@ -16,10 +16,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)AbstractRequestScope.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractTelemetryService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HandlerProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)HandlerReflection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Handlers\InitializedHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Handlers\InitializeHandler.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)HandlerDetails.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HandlerMethodDetails.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IInitializeManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ILifeCycleManager.cs" />

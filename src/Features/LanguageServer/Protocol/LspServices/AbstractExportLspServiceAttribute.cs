@@ -56,7 +56,7 @@ internal abstract class AbstractExportLspServiceAttribute : ExportAttribute
         InterfaceNames = Array.ConvertAll(serviceType.GetInterfaces(), t => t.AssemblyQualifiedName!);
 
         _lazyHandlerMethodData = typeof(IMethodHandler).IsAssignableFrom(serviceType)
-            ? new(() => MefSerialization.Serialize(HandlerReflection.GetHandlerMethodDetails(serviceType)))
+            ? new(() => MefSerialization.Serialize(HandlerMethodDetails.From(serviceType)))
             : null;
     }
 }

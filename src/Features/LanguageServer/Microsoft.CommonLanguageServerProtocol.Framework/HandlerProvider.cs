@@ -55,9 +55,9 @@ internal class HandlerProvider(ILspServices lspServices) : AbstractHandlerProvid
         // First, see if the ILspServices provides a special path for retrieving method handlers.
         if (lspServices is IMethodHandlerProvider methodHandlerProvider)
         {
-            foreach (var (handlerType, descriptors) in methodHandlerProvider.GetMethodHandlers())
+            foreach (var (instance, handlerTypeRef, methods) in methodHandlerProvider.GetMethodHandlers())
             {
-                foreach (var (methodName, language, requestTypeRef, responseTypeRef, _) in descriptors)
+                foreach (var (methodName, language, requestTypeRef, responseTypeRef, _) in methods)
                 {
                     CheckForDuplicates(methodName, language, methodHash);
 
@@ -65,38 +65,29 @@ internal class HandlerProvider(ILspServices lspServices) : AbstractHandlerProvid
                     // and then lookup the correct handler for the specified method.
                     builder.Add(
                         new RequestHandlerMetadata(methodName, requestTypeRef, responseTypeRef, language),
-                        new Lazy<IMethodHandler>(() =>
-                        {
-                            if (!lspServices.TryGetService(handlerType.GetResolvedType(), out var lspService))
-                            {
-                                throw new InvalidOperationException($"{handlerType} could not be retrieved from service");
-                            }
-
-                            return (IMethodHandler)lspService;
-                        }));
+                        instance is not null
+                            ? GetLazyHandlerFromInstance(instance)
+                            : GetLazyHandlerFromTypeRef(lspServices, handlerTypeRef));
                 }
             }
         }
-
-        // No fast path was provided, so we must realize all of of the services.
-        var handlers = lspServices.GetRequiredServices<IMethodHandler>();
-
-        foreach (var handler in handlers)
+        else
         {
-            var handlerType = handler.GetType();
-            var handlerDetails = HandlerReflection.GetHandlerDetails(handlerType);
+            // No fast path was provided, so we must realize all of of the services.
+            var handlers = lspServices.GetRequiredServices<IMethodHandler>();
 
-            foreach (var (requestType, responseType, requestContextType) in handlerDetails)
+            foreach (var handler in handlers)
             {
-                var (method, languages) = HandlerReflection.GetRequestHandlerMethod(handlerType, requestType, requestContextType, responseType);
+                var handlerType = handler.GetType();
+                var methods = HandlerMethodDetails.From(handlerType);
 
-                foreach (var language in languages)
+                foreach (var (methodName, language, requestTypeRef, responseTypeRef, _) in methods)
                 {
-                    CheckForDuplicates(method, language, methodHash);
+                    CheckForDuplicates(methodName, language, methodHash);
 
                     builder.Add(
-                        new RequestHandlerMetadata(method, requestType, responseType, language),
-                        new Lazy<IMethodHandler>(() => handler));
+                        new RequestHandlerMetadata(methodName, requestTypeRef, responseTypeRef, language),
+                        GetLazyHandlerFromInstance(handler));
                 }
             }
         }
@@ -104,6 +95,24 @@ internal class HandlerProvider(ILspServices lspServices) : AbstractHandlerProvid
         VerifyHandlers(builder.Keys);
 
         return builder.ToFrozenDictionary();
+
+        static Lazy<IMethodHandler> GetLazyHandlerFromInstance(IMethodHandler instance)
+        {
+            return new(() => instance);
+        }
+
+        static Lazy<IMethodHandler> GetLazyHandlerFromTypeRef(ILspServices lspServices, TypeRef handlerTypeRef)
+        {
+            return new(() =>
+            {
+                if (!lspServices.TryGetService(handlerTypeRef.GetResolvedType(), out var lspService))
+                {
+                    throw new InvalidOperationException($"{handlerTypeRef} could not be retrieved from service");
+                }
+
+                return (IMethodHandler)lspService;
+            });
+        }
 
         static void CheckForDuplicates(string methodName, string language, HashSet<(string methodName, string language)> existingMethods)
         {

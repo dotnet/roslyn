@@ -5,7 +5,6 @@
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -16,6 +15,8 @@ internal sealed class LspServiceMetadataView
     public FrozenSet<string> InterfaceNames { get; }
     public WellKnownLspServerKinds ServerKind { get; }
     public bool IsStateless { get; }
+
+    public bool IsMethodHandler => HandlerMethods is not null;
 
     /// <summary>
     /// Returns an array of request handler method details if this services is an <see cref="IMethodHandler"/>.

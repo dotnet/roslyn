@@ -47,10 +47,9 @@ internal abstract class TestLspServices(IEnumerable<(Type type, object instance)
     private sealed class WithMethodHandlerProvider(IEnumerable<(Type type, object instance)> services)
         : TestLspServices(services), IMethodHandlerProvider
     {
-        public ImmutableArray<(TypeRef HandlerTypeRef, ImmutableArray<HandlerMethodDetails> Methods)> GetMethodHandlers()
-            => Services.Select(s => s.instance.GetType())
-                       .Where(t => typeof(IMethodHandler).IsAssignableFrom(t))
-                       .Select(t => (TypeRef.From(t.AssemblyQualifiedName), HandlerReflection.GetHandlerMethodDetails(t)))
+        public ImmutableArray<(IMethodHandler? Instance, TypeRef HandlerTypeRef, ImmutableArray<HandlerMethodDetails> Methods)> GetMethodHandlers()
+            => Services.Where(s => s.instance is IMethodHandler)
+                       .Select(s => ((IMethodHandler?)s.instance, TypeRef.From(s.instance.GetType()), HandlerMethodDetails.From(s.instance.GetType())))
                        .ToImmutableArray();
 
         public override IEnumerable<T> GetRequiredServices<T>() => [];
