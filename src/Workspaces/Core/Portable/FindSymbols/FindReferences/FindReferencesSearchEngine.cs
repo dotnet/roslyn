@@ -290,19 +290,20 @@ internal partial class FindReferencesSearchEngine
         await RoslynParallel.ForEachAsync(
             symbols,
             GetParallelOptions(cancellationToken),
-            async (symbol, cancellationToken) =>
+            (symbol, cancellationToken) =>
             {
                 // symbolToGlobalAliases is safe to read in parallel.  It is created fully before this point and is no
                 // longer mutated.
                 var state = new FindReferencesDocumentState(
                     cache, TryGet(symbolToGlobalAliases, symbol));
 
-                await ProcessDocumentAsync(symbol, state, onReferenceFound).ConfigureAwait(false);
+                ProcessDocument(symbol, state, onReferenceFound);
+                return ValueTaskFactory.CompletedTask;
             }).ConfigureAwait(false);
 
         return;
 
-        async Task ProcessDocumentAsync(
+        void ProcessDocument(
             ISymbol symbol, FindReferencesDocumentState state, Action<Reference> onReferenceFound)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -318,12 +319,12 @@ internal partial class FindReferencesSearchEngine
                 // and only do interesting work on the single relevant one.
                 foreach (var finder in _finders)
                 {
-                    await finder.FindReferencesInDocumentAsync(
+                    finder.FindReferencesInDocument(
                         symbol, state,
                         static (loc, tuple) => tuple.onReferenceFound((tuple.group, tuple.symbol, loc.Location)),
                         (group, symbol, onReferenceFound),
                         _options,
-                        cancellationToken).ConfigureAwait(false);
+                        cancellationToken);
                 }
             }
         }

@@ -33,7 +33,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     public abstract Task DetermineDocumentsToSearchAsync<TData>(
         ISymbol symbol, HashSet<string>? globalAliases, Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-    public abstract ValueTask FindReferencesInDocumentAsync<TData>(
+    public abstract void FindReferencesInDocument<TData>(
         ISymbol symbol, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
     private static (bool matched, CandidateReason reason) SymbolsMatch(
@@ -837,7 +837,7 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
         Action<Document, TData> processResult, TData processResultData,
         FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-    protected abstract ValueTask FindReferencesInDocumentAsync<TData>(
+    protected abstract void FindReferencesInDocument<TData>(
         TSymbol symbol, FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult, TData processResultData,
         FindReferencesSearchOptions options, CancellationToken cancellationToken);
@@ -867,12 +867,11 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
         return Task.CompletedTask;
     }
 
-    public sealed override ValueTask FindReferencesInDocumentAsync<TData>(
+    public sealed override void FindReferencesInDocument<TData>(
         ISymbol symbol, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken)
     {
-        return symbol is TSymbol typedSymbol && CanFind(typedSymbol)
-            ? FindReferencesInDocumentAsync(typedSymbol, state, processResult, processResultData, options, cancellationToken)
-            : ValueTaskFactory.CompletedTask;
+        if (symbol is TSymbol typedSymbol && CanFind(typedSymbol))
+            FindReferencesInDocument(typedSymbol, state, processResult, processResultData, options, cancellationToken);
     }
 
     public sealed override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
