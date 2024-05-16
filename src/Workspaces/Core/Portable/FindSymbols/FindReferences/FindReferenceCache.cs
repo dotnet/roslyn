@@ -37,13 +37,14 @@ internal sealed class FindReferenceCache
             // Find-Refs is not impacted by nullable types at all.  So get a nullable-disabled semantic model to avoid
             // unnecessary costs while binding.
             var model = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var nullableEnableSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
             // any unicode escapes in it, then we do simple string matching to find the tokens.
             var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
 
-            return new(document, text, model, root, index);
+            return new(document, text, model, nullableEnableSemanticModel, root, index);
         }
     }
 
@@ -54,6 +55,12 @@ internal sealed class FindReferenceCache
     public readonly ISyntaxFactsService SyntaxFacts;
     public readonly SyntaxTreeIndex SyntaxTreeIndex;
 
+    /// <summary>
+    /// Not used by FAR directly.  But we compute and cache this while processing a document so that if we call any
+    /// other services that use this semantic model, that they don't end up recreating it.
+    /// </summary>
+    private readonly SemanticModel _nullableEnabledSemanticModel;
+
     private readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> _symbolInfoCache = [];
     private readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> _identifierCache;
 
@@ -61,11 +68,12 @@ internal sealed class FindReferenceCache
     private ImmutableArray<SyntaxToken> _constructorInitializerCache;
 
     private FindReferenceCache(
-        Document document, SourceText text, SemanticModel semanticModel, SyntaxNode root, SyntaxTreeIndex syntaxTreeIndex)
+        Document document, SourceText text, SemanticModel semanticModel, SemanticModel nullableEnabledSemanticModel, SyntaxNode root, SyntaxTreeIndex syntaxTreeIndex)
     {
         Document = document;
         Text = text;
         SemanticModel = semanticModel;
+        _nullableEnabledSemanticModel = nullableEnabledSemanticModel;
         Root = root;
         SyntaxTreeIndex = syntaxTreeIndex;
         SyntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();

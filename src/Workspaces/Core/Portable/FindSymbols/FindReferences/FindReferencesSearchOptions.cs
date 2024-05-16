@@ -64,7 +64,8 @@ internal readonly record struct FindReferencesSearchOptions(
     [property: DataMember(Order = 1)] bool Cascade = true,
     [property: DataMember(Order = 2)] bool Explicit = true,
     [property: DataMember(Order = 3)] bool UnidirectionalHierarchyCascade = false,
-    [property: DataMember(Order = 4)] bool DisplayAllDefinitions = false)
+    [property: DataMember(Order = 4)] bool DisplayAllDefinitions = false,
+    [property: DataMember(Order = 5)] bool ClassifyReferences = false)
 {
     public FindReferencesSearchOptions()
         : this(AssociatePropertyReferencesWithSpecificAccessor: false)
