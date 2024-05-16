@@ -112,10 +112,7 @@ internal abstract partial class AbstractFindUsagesService
             FindUsagesHelpers.GetDisplayName(symbol)),
             cancellationToken).ConfigureAwait(false);
 
-        var searchOptions = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol) with
-        {
-            ClassifyReferences = true,
-        };
+        var searchOptions = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
 
         // Now call into the underlying FAR engine to find reference.  The FAR
         // engine will push results into the 'progress' instance passed into it.
