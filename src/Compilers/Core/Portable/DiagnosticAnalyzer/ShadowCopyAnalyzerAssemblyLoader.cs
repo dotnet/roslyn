@@ -9,6 +9,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
+using System.Reflection;
 
 #if NETCOREAPP
 using System.Runtime.Loader;
@@ -42,15 +44,16 @@ namespace Microsoft.CodeAnalysis
         internal int CopyCount => _mvidPathMap.Count;
 
 #if NETCOREAPP
-        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory)
-            : this(null, baseDirectory)
+        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+            : this(null, baseDirectory, externalResolvers)
         {
         }
 
-        public ShadowCopyAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, string baseDirectory)
-            : base(compilerLoadContext, AnalyzerLoadOption.LoadFromDisk)
+        public ShadowCopyAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+            : base(compilerLoadContext, AnalyzerLoadOption.LoadFromDisk, externalResolvers ?? [])
 #else
-        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory)
+        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+            : base(externalResolvers ?? [])
 #endif
         {
             if (baseDirectory is null)

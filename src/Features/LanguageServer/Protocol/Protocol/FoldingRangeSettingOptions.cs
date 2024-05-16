@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the specific options for the folding range.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#foldingRangeClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class FoldingRangeSettingOptions : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets a value indicating whether if client supports collapsedText on folding ranges.
         /// </summary>
-        [DataMember(Name = "collapsedText")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("collapsedText")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool CollapsedText
         {
             get;

@@ -32,6 +32,11 @@
         <target state="translated">"{0}": абстрактное событие не может использовать синтаксис метода доступа к событиям.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AddressOfInIterator">
+        <source>The '&amp;' operator cannot be used on parameters or local variables in iterator methods.</source>
+        <target state="new">The '&amp;' operator cannot be used on parameters or local variables in iterator methods.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AddressOfMethodGroupInExpressionTree">
         <source>'&amp;' on method groups cannot be used in expression trees</source>
         <target state="translated">"&amp;" в группах методов не может использоваться в деревьях выражений</target>
@@ -267,14 +272,14 @@
         <target state="translated">Элемент записи "{0}" должен быть доступным для чтения свойством экземпляра или полем типа "{1}", чтобы соответствовать позиционному параметру "{2}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefLock">
-        <source>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</source>
-        <target state="translated">Оператор блокировки над значением типа "System.Threading.Lock" нельзя использовать в асинхронных методах и в асинхронных лямбда-выражениях.</target>
+      <trans-unit id="ERR_BadSpecialByRefIterator">
+        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</source>
+        <target state="new">foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefUsing">
-        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
-        <target state="translated">Ресурс оператора использования типа "{0}" нельзя применять в асинхронных методах или асинхронных лямбда-выражениях.</target>
+      <trans-unit id="ERR_BadSpecialByRefParameter">
+        <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="new">Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRefInUsingAlias">
@@ -300,6 +305,11 @@
       <trans-unit id="ERR_BadUsingStaticType">
         <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
         <target state="translated">' {0} ' недопустим для 'использования статики'. Можно использовать только класс, структуру, интерфейс, перечисление, делегат или пространство имен.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadYieldInUnsafe">
+        <source>Cannot use 'yield return' in an 'unsafe' block</source>
+        <target state="new">Cannot use 'yield return' in an 'unsafe' block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -1812,6 +1822,11 @@
         <target state="translated">Поле ссылки может быть объявлено только в структуре ссылки.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefLocalAcrossAwait">
+        <source>A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="new">A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">Левая сторона назначения ref должна быть переменной ref.</target>
@@ -2447,6 +2462,11 @@
         <target state="translated">Параметры ref, доступные только для чтения</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefUnsafeInIteratorAsync">
+        <source>ref and unsafe in async and iterator methods</source>
+        <target state="new">ref and unsafe in async and iterator methods</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
         <target state="translated">нестрогий оператор сдвига</target>
@@ -2620,6 +2640,16 @@
       <trans-unit id="WRN_BadArgRef_Title">
         <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
         <target state="translated">Модификатор "ref" для аргумента, соответствующего параметру "in", эквивалентен "in". Попробуйте вместо этого использовать "in".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_BadYieldInLock">
+        <source>'yield return' should not be used in the body of a lock statement</source>
+        <target state="new">'yield return' should not be used in the body of a lock statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_BadYieldInLock_Title">
+        <source>'yield return' should not be used in the body of a lock statement</source>
+        <target state="new">'yield return' should not be used in the body of a lock statement</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
@@ -9237,11 +9267,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <target state="translated">Недопустимо использовать параметр "{0}" с модификаторами ref, out или in внутри анонимного метода, лямбда-выражения, выражения запроса или локальной функции</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IllegalInnerUnsafe">
-        <source>Unsafe code may not appear in iterators</source>
-        <target state="translated">Небезопасный код не может использоваться в итераторах.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadYieldInCatch">
         <source>Cannot yield a value in the body of a catch clause</source>
         <target state="translated">Нельзя использовать оператор yield в теле предложения catch.</target>
@@ -10626,8 +10651,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByRefTypeAndAwait">
-        <source>'await' cannot be used in an expression containing the type '{0}'</source>
-        <target state="translated">'"await" нельзя использовать в выражении, содержащем тип "{0}"</target>
+        <source>Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="needs-review-translation">'"await" нельзя использовать в выражении, содержащем тип "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
@@ -10693,16 +10718,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       <trans-unit id="ERR_BadAsyncLacksBody">
         <source>The 'async' modifier can only be used in methods that have a body.</source>
         <target state="translated">Модификатор "async" можно использовать только в методах, имеющих тело.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
-        <target state="translated">Параметры или локальные переменные типа "{0}" не могут объявляться в асинхронных методах и в асинхронных лямбда-выражениях.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</source>
-        <target state="translated">Оператор foreach нельзя использовать с перечислителями типа "{0}" в методах с модификатором Async или Iterator, так как "{0}" является ссылочной структурой.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync">
@@ -11224,7 +11239,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_SpecialByRefInLambda">
         <source>Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</source>
-        <target state="translated">Экземпляр типа "{0}" нельзя использовать внутри вложенной функции, выражения запроса, блока итератора или асинхронного метода.</target>
+        <target state="new">Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeMissingAction">
@@ -12533,16 +12548,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_AnonDelegateCantUseLocal">
         <source>Cannot use ref local '{0}' inside an anonymous method, lambda expression, or query expression</source>
         <target state="translated">Невозможно использовать локальную переменную ref "{0}" внутри анонимного метода, лямбда-выражения или выражения запроса</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by-reference locals</source>
-        <target state="translated">Итераторы не могут иметь локальных переменных по ссылке</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by-reference locals</source>
-        <target state="translated">Асинхронные методы не могут иметь локальных переменных по ссылке</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

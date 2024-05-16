@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ScopeBinder = binder;
 
-            binder = binder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
+            binder = binder.SetOrClearUnsafeRegionIfNecessary(syntax.Modifiers);
 
             if (syntax.TypeParameterList != null)
             {

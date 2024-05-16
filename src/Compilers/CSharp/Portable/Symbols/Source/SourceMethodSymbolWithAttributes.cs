@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal virtual CSharpSyntaxNode SyntaxNode
+        internal CSharpSyntaxNode SyntaxNode
         {
             get
             {

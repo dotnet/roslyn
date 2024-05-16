@@ -130,10 +130,10 @@ internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer :
     {
         return node.WalkUpParentheses().Parent switch
         {
-            LambdaExpressionSyntax _ => true,
-            AssignmentExpressionSyntax _ => true,
-            ConditionalExpressionSyntax _ => true,
-            ExpressionSyntax _ => false,
+            LambdaExpressionSyntax => true,
+            AssignmentExpressionSyntax => true,
+            ConditionalExpressionSyntax => true,
+            ExpressionSyntax => false,
             _ => true
         };
     }
@@ -142,10 +142,10 @@ internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer :
     {
         return pattern switch
         {
-            Not { Pattern: Constant _ } => true,
-            Not { Pattern: Source { PatternSyntax: ConstantPatternSyntax _ } } => true,
-            Not _ => false,
-            Binary _ => false,
+            Not { Pattern: Constant } => true,
+            Not { Pattern: Source { PatternSyntax: ConstantPatternSyntax } } => true,
+            Not => false,
+            Binary => false,
             _ => true
         };
     }

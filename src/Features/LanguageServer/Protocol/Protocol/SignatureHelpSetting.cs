@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the signature help initialization setting.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SignatureHelpSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets the <see cref="SignatureInformationSetting"/> information.
         /// </summary>
-        [DataMember(Name = "signatureInformation")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("signatureInformation")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SignatureInformationSetting? SignatureInformation
         {
             get;
@@ -30,8 +28,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether additional context information
         /// is supported for the `textDocument/signatureHelp` request.
         /// </summary>
-        [DataMember(Name = "contextSupport")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("contextSupport")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool ContextSupport
         {
             get;

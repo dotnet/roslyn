@@ -6,22 +6,20 @@ namespace Roslyn.LanguageServer.Protocol
 {
     using System;
     using System.ComponentModel;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents the parameter sent with an initialize method request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initializeParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class InitializeParams
     {
         /// <summary>
         /// Gets or sets the ID of the process which launched the language server.
         /// </summary>
-        [DataMember(Name = "processId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        [JsonPropertyName("processId")]
         public int? ProcessId
         {
             get;
@@ -35,8 +33,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// Uses IETF language tags as the value's syntax.
         /// (See https://en.wikipedia.org/wiki/IETF_language_tag)
         /// </summary>
-        [DataMember(Name = "locale")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("locale")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Locale
         {
             get;
@@ -46,8 +44,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the workspace root path.
         /// </summary>
-        [DataMember(Name = "rootPath")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("rootPath")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [Obsolete("Deprecated in favour of RootUri")]
         public string? RootPath
         {
@@ -61,8 +59,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// This should be a string representation of an URI.
         /// </remarks>
-        [DataMember(Name = "rootUri")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        [JsonPropertyName("rootUri")]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri? RootUri
         {
@@ -73,8 +70,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the initialization options as specified by the client.
         /// </summary>
-        [DataMember(Name = "initializationOptions")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("initializationOptions")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? InitializationOptions
         {
             get;
@@ -84,7 +81,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the capabilities supported by the client.
         /// </summary>
-        [DataMember(Name = "capabilities")]
+        [JsonPropertyName("capabilities")]
         public ClientCapabilities Capabilities
         {
             get;
@@ -94,9 +91,9 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the initial trace setting.
         /// </summary>
-        [DataMember(Name = "trace")]
+        [JsonPropertyName("trace")]
         [DefaultValue(typeof(TraceSetting), "off")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public TraceSetting Trace
         {
             get;

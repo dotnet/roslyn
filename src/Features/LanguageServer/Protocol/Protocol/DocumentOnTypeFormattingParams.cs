@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the parameters sent for a textDocument/onTypeFormatting request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentOnTypeFormattingParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class DocumentOnTypeFormattingParams : TextDocumentPositionParams
     {
         /// <summary>
         /// Gets or sets the character that was typed.
         /// </summary>
-        [DataMember(Name = "ch")]
+        [JsonPropertyName("ch")]
         public string Character
         {
             get;
@@ -27,7 +26,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="FormattingOptions"/> for the request.
         /// </summary>
-        [DataMember(Name = "options")]
+        [JsonPropertyName("options")]
         public FormattingOptions Options
         {
             get;

@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 
@@ -12,17 +12,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 /// except for SdkVersion, which is unused by the client in the O# version.
 /// </summary>
 
-[DataContract]
 internal record ProjectLoadTelemetryEvent(
     // The project guid (if it came from a solution), or a hash representing the file path and contents.
-    [property: DataMember(Name = "ProjectId")] string ProjectId,
-    [property: DataMember(Name = "SessionId")] string SessionId,
-    [property: DataMember(Name = "OutputKind")] int OutputKind,
-    [property: DataMember(Name = "ProjectCapabilities")] IEnumerable<string> ProjectCapabilities,
-    [property: DataMember(Name = "TargetFrameworks")] IEnumerable<string> TargetFrameworks,
-    [property: DataMember(Name = "References")] IEnumerable<string> References,
-    [property: DataMember(Name = "FileExtensions")] IEnumerable<string> FileExtensions,
-    [property: DataMember(Name = "FileCounts")] IEnumerable<int> FileCounts,
-    [property: DataMember(Name = "SdkStyleProject")] bool SdkStyleProject)
+    [property: JsonPropertyName("ProjectId")] string ProjectId,
+    [property: JsonPropertyName("SessionId")] string SessionId,
+    [property: JsonPropertyName("OutputKind")] int OutputKind,
+    [property: JsonPropertyName("ProjectCapabilities")] IEnumerable<string> ProjectCapabilities,
+    [property: JsonPropertyName("TargetFrameworks")] IEnumerable<string> TargetFrameworks,
+    [property: JsonPropertyName("References")] IEnumerable<string> References,
+    [property: JsonPropertyName("FileExtensions")] IEnumerable<string> FileExtensions,
+    [property: JsonPropertyName("FileCounts")] IEnumerable<int> FileCounts,
+    [property: JsonPropertyName("SdkStyleProject")] bool SdkStyleProject)
 {
 }

@@ -4,20 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing response to semantic tokens messages.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensPartialResult">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SemanticTokensPartialResult
     {
         /// <summary>
         /// Gets or sets and array containing encoded semantic tokens data.
         /// </summary>
-        [DataMember(Name = "data", IsRequired = true)]
+        [JsonPropertyName("data")]
+        [JsonRequired]
         public int[] Data { get; set; }
     }
 }

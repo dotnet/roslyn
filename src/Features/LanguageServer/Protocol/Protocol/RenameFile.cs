@@ -5,29 +5,28 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing a rename file operation.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#renameFile">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     [Kind("rename")]
     internal class RenameFile
     {
         /// <summary>
         /// Gets the kind value.
         /// </summary>
-        [DataMember(Name = "kind")]
+        [JsonPropertyName("kind")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Member can't be static since it's part of the protocol")]
         public string Kind => "rename";
 
         /// <summary>
         /// Gets or sets the old (existing) location.
         /// </summary>
-        [DataMember(Name = "oldUri", IsRequired = true)]
+        [JsonPropertyName("oldUri")]
+        [JsonRequired]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri OldUri
         {
@@ -38,7 +37,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the new location.
         /// </summary>
-        [DataMember(Name = "newUri", IsRequired = true)]
+        [JsonPropertyName("newUri")]
+        [JsonRequired]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri NewUri
         {
@@ -49,8 +49,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the rename options.
         /// </summary>
-        [DataMember(Name = "options")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("options")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public RenameFileOptions? Options
         {
             get;

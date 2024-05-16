@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public readonly int BadParameter;
         public readonly MemberResolutionKind Kind;
+        public readonly TypeWithAnnotations DefinitionParamsElementTypeOpt;
         public readonly TypeWithAnnotations ParamsElementTypeOpt;
 
         /// <summary>
@@ -121,11 +122,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             int missingParameter = -1,
             bool hasAnyRefOmittedArgument = false,
             ImmutableArray<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt = default,
+            TypeWithAnnotations definitionParamsElementTypeOpt = default,
             TypeWithAnnotations paramsElementTypeOpt = default)
         {
+            Debug.Assert(kind != MemberResolutionKind.ApplicableInExpandedForm || definitionParamsElementTypeOpt.HasType);
             Debug.Assert(kind != MemberResolutionKind.ApplicableInExpandedForm || paramsElementTypeOpt.HasType);
 
             this.Kind = kind;
+            this.DefinitionParamsElementTypeOpt = definitionParamsElementTypeOpt;
             this.ParamsElementTypeOpt = paramsElementTypeOpt;
             this.BadArgumentsOpt = badArgumentsOpt;
             this.ArgsToParamsOpt = argsToParamsOpt;
@@ -314,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MemberAnalysisResult(MemberResolutionKind.UnsupportedMetadata);
         }
 
-        public static MemberAnalysisResult BadArgumentConversions(ImmutableArray<int> argsToParamsOpt, BitVector badArguments, ImmutableArray<Conversion> conversions, TypeWithAnnotations paramsElementTypeOpt)
+        public static MemberAnalysisResult BadArgumentConversions(ImmutableArray<int> argsToParamsOpt, BitVector badArguments, ImmutableArray<Conversion> conversions, TypeWithAnnotations definitionParamsElementTypeOpt, TypeWithAnnotations paramsElementTypeOpt)
         {
             Debug.Assert(conversions.Length != 0);
             Debug.Assert(badArguments.TrueBits().Any());
@@ -323,6 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 badArguments,
                 argsToParamsOpt,
                 conversions,
+                definitionParamsElementTypeOpt: definitionParamsElementTypeOpt,
                 paramsElementTypeOpt: paramsElementTypeOpt);
         }
 
@@ -373,9 +378,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MemberAnalysisResult(MemberResolutionKind.ApplicableInNormalForm, BitVector.Null, argsToParamsOpt, conversions, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument);
         }
 
-        public static MemberAnalysisResult ExpandedForm(ImmutableArray<int> argsToParamsOpt, ImmutableArray<Conversion> conversions, bool hasAnyRefOmittedArgument, TypeWithAnnotations paramsElementType)
+        public static MemberAnalysisResult ExpandedForm(ImmutableArray<int> argsToParamsOpt, ImmutableArray<Conversion> conversions, bool hasAnyRefOmittedArgument, TypeWithAnnotations definitionParamsElementType, TypeWithAnnotations paramsElementType)
         {
-            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInExpandedForm, BitVector.Null, argsToParamsOpt, conversions, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument, paramsElementTypeOpt: paramsElementType);
+            return new MemberAnalysisResult(
+                MemberResolutionKind.ApplicableInExpandedForm, BitVector.Null, argsToParamsOpt, conversions,
+                hasAnyRefOmittedArgument: hasAnyRefOmittedArgument, definitionParamsElementTypeOpt: definitionParamsElementType, paramsElementTypeOpt: paramsElementType);
         }
 
         public static MemberAnalysisResult Worse()

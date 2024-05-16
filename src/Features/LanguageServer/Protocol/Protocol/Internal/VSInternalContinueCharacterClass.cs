@@ -4,27 +4,25 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing a unicode character class for completion continuation.
     /// </summary>
-    [DataContract]
     internal class VSInternalContinueCharacterClass
     {
         /// <summary>
         /// Gets the type value.
         /// </summary>
-        [DataMember(Name = "_vs_type")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("_vs_type")]
+        [JsonRequired]
         public const string Type = "unicodeClass";
 
         /// <summary>
         /// Gets or sets the unicode class.
         /// </summary>
-        [DataMember(Name = "_vs_unicodeClass")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("_vs_unicodeClass")]
+        [JsonRequired]
         public string UnicodeClass { get; set; }
     }
 }

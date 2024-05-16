@@ -4,14 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
     /// Enum representing the default behavior used by the client for computing a rename range.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#prepareSupportDefaultBehavior">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal enum PrepareSupportDefaultBehavior
     {
         /// <summary>

@@ -17,6 +17,11 @@
         <target state="translated">读取指定的配置文件时出错: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Applying_changes_to_0">
+        <source>Applying changes to {0}</source>
+        <target state="new">Applying changes to {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp_files">
         <source>C# files</source>
         <target state="translated">c# 文件</target>

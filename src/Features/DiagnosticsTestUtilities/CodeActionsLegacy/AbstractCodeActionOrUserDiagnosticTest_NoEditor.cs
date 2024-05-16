@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 bool retainNonFixableDiagnostics = false,
                 bool includeDiagnosticsOutsideSelection = false,
                 string title = null,
-                TestHost testHost = TestHost.InProcess,
+                TestHost testHost = TestHost.OutOfProcess,
                 string workspaceKind = null,
                 bool includeNonLocalDocumentDiagnostics = false,
                 bool treatPositionIndicatorsAsCode = false)
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             object fixProviderData = null,
             ParseOptions parseOptions = null,
             string title = null,
-            TestHost testHost = TestHost.InProcess)
+            TestHost testHost = TestHost.OutOfProcess)
         {
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup,
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             OptionsCollectionAlias globalOptions = null,
             object fixProviderData = null,
             CodeActionPriority? priority = null,
-            TestHost testHost = TestHost.InProcess)
+            TestHost testHost = TestHost.OutOfProcess)
         {
             return TestAsync(
                 initialMarkup,

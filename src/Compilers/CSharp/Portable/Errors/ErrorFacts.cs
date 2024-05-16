@@ -207,6 +207,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
+                case ErrorCode.WRN_BadYieldInLock:
+                    // Warning level 9 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 9 (C# 13) and that can be reported for pre-existing code.
+                    return 9;
                 case ErrorCode.WRN_AddressOfInAsync:
                 case ErrorCode.WRN_ByValArraySizeConstRequired:
                     // Warning level 8 is exclusively for warnings introduced in the compiler
@@ -624,6 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InterceptableMethodMustBeOrdinary
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYield
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
+                or ErrorCode.ERR_RefLocalAcrossAwait
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     => true,
@@ -1276,7 +1281,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike
                 or ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember
                 or ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured
-                or ErrorCode.ERR_IllegalInnerUnsafe
                 or ErrorCode.ERR_BadYieldInCatch
                 or ErrorCode.ERR_BadDelegateLeave
                 or ErrorCode.WRN_IllegalPragma
@@ -1536,7 +1540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_NonTaskMainCantBeAsync
                 or ErrorCode.ERR_CantConvAsyncAnonFuncReturns
                 or ErrorCode.ERR_BadAwaiterPattern
-                or ErrorCode.ERR_BadSpecialByRefLocal
+                or ErrorCode.ERR_BadSpecialByRefParameter
                 or ErrorCode.WRN_UnobservedAwaitableExpression
                 or ErrorCode.ERR_SynchronizedAsyncMethod
                 or ErrorCode.ERR_BadAsyncReturnExpression
@@ -1779,8 +1783,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion
                 or ErrorCode.ERR_ByReferenceVariableMustBeInitialized
                 or ErrorCode.ERR_AnonDelegateCantUseLocal
-                or ErrorCode.ERR_BadIteratorLocalType
-                or ErrorCode.ERR_BadAsyncLocalType
                 or ErrorCode.ERR_PredefinedValueTupleTypeNotFound
                 or ErrorCode.ERR_SemiOrLBraceOrArrowExpected
                 or ErrorCode.ERR_NewWithTupleTypeSyntax
@@ -2332,7 +2334,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget
                 or ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation
                 or ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion
-                or ErrorCode.ERR_BadSpecialByRefUsing
                 or ErrorCode.ERR_InvalidPrimaryConstructorParameterReference
                 or ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
                 or ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase
@@ -2421,7 +2422,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CollectionExpressionMissingConstructor
                 or ErrorCode.ERR_CollectionExpressionMissingAdd
                 or ErrorCode.WRN_ConvertingLock
-                or ErrorCode.ERR_BadSpecialByRefLock
                 or ErrorCode.ERR_DynamicDispatchToParamsCollection
                 or ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument
                 or ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod
@@ -2441,6 +2441,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InterceptsLocationFileNotFound
                 or ErrorCode.ERR_InterceptsLocationDataInvalidPosition
                 or ErrorCode.INF_TooManyBoundLambdas
+                or ErrorCode.WRN_BadYieldInLock
+                or ErrorCode.ERR_BadYieldInUnsafe
+                or ErrorCode.ERR_AddressOfInIterator
 
                 or ErrorCode.ERR_PartialPropertyMissingImplementation
                 or ErrorCode.ERR_PartialPropertyMissingDefinition

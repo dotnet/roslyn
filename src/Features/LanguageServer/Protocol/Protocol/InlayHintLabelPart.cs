@@ -4,21 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using Newtonsoft.Json;
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// A class representing inlay hint label parts.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHintLabelPart">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class InlayHintLabelPart
     {
         /// <summary>
         /// Gets or sets the value associated with this label part.
         /// </summary>
-        [DataMember(Name = "value")]
+        [JsonPropertyName("value")]
         public string Value
         {
             get;
@@ -28,8 +26,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the tooltip of this label part.
         /// </summary>
-        [DataMember(Name = "tooltip")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("tooltip")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public SumType<string, MarkupContent>? ToolTip
         {
             get;
@@ -39,8 +37,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the location of this label part.
         /// </summary>
-        [DataMember(Name = "location")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("location")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Location? Location
         {
             get;
@@ -50,8 +48,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the command of this label part.
         /// </summary>
-        [DataMember(Name = "command")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("command")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Command? Command
         {
             get;

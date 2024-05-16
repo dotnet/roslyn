@@ -2,83 +2,71 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol;
-
 using System;
-using System.Linq;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Roslyn.Text.Adornments;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
-/// <summary>
-/// JsonConverter for serializing and deserializing <see cref="ClassifiedTextElement"/>.
-/// </summary>
-internal class ClassifiedTextElementConverter : JsonConverter
+namespace Roslyn.LanguageServer.Protocol;
+internal class ClassifiedTextElementConverter : JsonConverter<ClassifiedTextElement>
 {
-    /// <summary>
-    /// A reusable instance of the <see cref="ClassifiedTextElementConverter"/>.
-    /// </summary>
     public static readonly ClassifiedTextElementConverter Instance = new();
 
-    /// <inheritdoc/>
-    public override bool CanConvert(Type objectType) => objectType == typeof(ClassifiedTextElement);
-
-    /// <inheritdoc/>
-    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+    public override ClassifiedTextElement Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if (reader.TokenType == JsonToken.Null)
+        List<ClassifiedTextRun> objects = new();
+
+        while (reader.Read())
         {
-            reader.Read();
-            return null;
-        }
-        else if (reader.TokenType == JsonToken.StartObject)
-        {
-            var data = JObject.Load(reader);
-            var typeProperty = data[ObjectContentConverter.TypeProperty];
-            if (typeProperty is not null && typeProperty.ToString() != nameof(ClassifiedTextElement))
+            if (reader.TokenType == JsonTokenType.EndObject)
             {
-                throw new JsonSerializationException($"Expected {ObjectContentConverter.TypeProperty} property value {nameof(ClassifiedTextElement)}");
+                return new ClassifiedTextElement(objects);
             }
 
-            var runTokens = data[nameof(ClassifiedTextElement.Runs)]?.ToArray() ??
-                throw new JsonSerializationException($"Missing {nameof(ClassifiedTextElement.Runs)} property");
-            var runs = new ClassifiedTextRun[runTokens.Length];
-            for (var i = 0; i < runTokens.Length; i++)
+            if (reader.TokenType == JsonTokenType.PropertyName)
             {
-                var runTokenReader = runTokens[i].CreateReader();
-                runTokenReader.Read();
-                runs[i] = (ClassifiedTextRun)ClassifiedTextRunConverter.Instance.ReadJson(runTokenReader, typeof(ClassifiedTextRun), null, serializer)!;
-            }
+                var propertyName = reader.GetString();
+                reader.Read();
+                switch (propertyName)
+                {
+                    case nameof(ClassifiedTextElement.Runs):
+                        while (reader.Read())
+                        {
+                            if (reader.TokenType == JsonTokenType.EndArray)
+                                break;
 
-            return new ClassifiedTextElement(runs);
+                            objects.Add(ClassifiedTextRunConverter.Instance.Read(ref reader, typeof(ClassifiedTextRun), options)!);
+                        }
+
+                        break;
+                    case ObjectContentConverter.TypeProperty:
+                        if (reader.GetString() != nameof(ClassifiedTextElement))
+                            throw new JsonException($"Expected {ObjectContentConverter.TypeProperty} property value {nameof(ClassifiedTextElement)}");
+                        break;
+                    default:
+                        reader.Skip();
+                        break;
+                }
+            }
         }
-        else
-        {
-            throw new JsonSerializationException("Expected start object or null tokens");
-        }
+
+        throw new JsonException();
     }
 
-    /// <inheritdoc/>
-    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, ClassifiedTextElement value, JsonSerializerOptions options)
     {
-        if (value is not ClassifiedTextElement classifiedTextElement)
+        writer.WriteStartObject();
+        writer.WritePropertyName(nameof(ClassifiedTextElement.Runs));
+        writer.WriteStartArray();
+        foreach (var run in value.Runs)
         {
-            writer.WriteNull();
+            ClassifiedTextRunConverter.Instance.Write(writer, run, options);
         }
-        else
-        {
-            writer.WriteStartObject();
-            writer.WritePropertyName(nameof(ClassifiedTextElement.Runs));
-            writer.WriteStartArray();
-            foreach (var run in classifiedTextElement.Runs)
-            {
-                ClassifiedTextRunConverter.Instance.WriteJson(writer, run, serializer);
-            }
 
-            writer.WriteEndArray();
-            writer.WritePropertyName(ObjectContentConverter.TypeProperty);
-            writer.WriteValue(nameof(ClassifiedTextElement));
-            writer.WriteEndObject();
-        }
+        writer.WriteEndArray();
+        writer.WritePropertyName(ObjectContentConverter.TypeProperty);
+        writer.WriteStringValue(nameof(ClassifiedTextElement));
+        writer.WriteEndObject();
     }
 }

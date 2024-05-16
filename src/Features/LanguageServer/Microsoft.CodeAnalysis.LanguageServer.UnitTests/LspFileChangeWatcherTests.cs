@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.LanguageServer.Protocol;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 using Xunit.Abstractions;
 using FileSystemWatcher = Roslyn.LanguageServer.Protocol.FileSystemWatcher;
@@ -115,8 +114,8 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
 
     private static FileSystemWatcher GetSingleFileWatcher(DynamicCapabilitiesRpcTarget dynamicCapabilities)
     {
-        var registrationJson = Assert.IsType<JObject>(Assert.Single(dynamicCapabilities.Registrations).Value.RegisterOptions);
-        var registration = registrationJson.ToObject<DidChangeWatchedFilesRegistrationOptions>()!;
+        var registrationJson = Assert.IsType<JsonElement>(Assert.Single(dynamicCapabilities.Registrations).Value.RegisterOptions);
+        var registration = JsonSerializer.Deserialize<DidChangeWatchedFilesRegistrationOptions>(registrationJson, ProtocolConversions.LspJsonSerializerOptions)!;
 
         return Assert.Single(registration.Watchers);
     }

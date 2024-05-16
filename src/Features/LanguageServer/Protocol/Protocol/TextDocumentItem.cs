@@ -5,21 +5,19 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents a text document.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentItem">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class TextDocumentItem
     {
         /// <summary>
         /// Gets or sets the document URI.
         /// </summary>
-        [DataMember(Name = "uri")]
+        [JsonPropertyName("uri")]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri Uri
         {
@@ -30,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the document language identifier.
         /// </summary>
-        [DataMember(Name = "languageId")]
+        [JsonPropertyName("languageId")]
         public string LanguageId
         {
             get;
@@ -40,7 +38,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the document version.
         /// </summary>
-        [DataMember(Name = "version")]
+        [JsonPropertyName("version")]
         public int Version
         {
             get;
@@ -50,7 +48,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the content of the opened text document.
         /// </summary>
-        [DataMember(Name = "text")]
+        [JsonPropertyName("text")]
         public string Text
         {
             get;

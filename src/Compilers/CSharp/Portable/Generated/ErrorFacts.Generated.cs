@@ -342,6 +342,7 @@
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
+                case ErrorCode.WRN_BadYieldInLock:
                     return true;
                 default:
                     return false;

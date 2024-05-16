@@ -14,7 +14,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
 public class RequestExecutionQueueTests
 {
-    private class MockServer : AbstractLanguageServer<TestRequestContext>
+    private class MockServer : NewtonsoftLanguageServer<TestRequestContext>
     {
         public MockServer() : base(new JsonRpc(new HeaderDelimitedMessageHandler(FullDuplexStream.CreatePair().Item1)), JsonSerializer.CreateDefault(), NoOpLspLogger.Instance)
         {
