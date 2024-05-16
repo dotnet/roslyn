@@ -11278,7 +11278,7 @@ class C
         [Fact]
         public void AwaitUsing_01()
         {
-            var src = @"
+            var src1 = @"
 using System;
 using System.Threading.Tasks;
 
@@ -11302,20 +11302,227 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // PROTOTYPE(RefStructInterfaces): follow up on recent changes due to https://github.com/dotnet/csharplang/blob/main/proposals/ref-unsafe-in-iterators-async.md
-                // (18,22): error CS9104: A using statement resource of type 'S2' cannot be used in async methods or async lambda expressions.
+            var verifier = CompileAndVerify(
+                comp1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.Passes :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      229 (0xe5)
+  .maxstack  3
+  .locals init (int V_0,
+                S2 V_1,
+                object V_2,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_3,
+                System.Threading.Tasks.ValueTask V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Main>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_006d
+    IL_000a:  ldloca.s   V_1
+    IL_000c:  initobj    ""S2""
+    IL_0012:  ldarg.0
+    IL_0013:  ldnull
+    IL_0014:  stfld      ""object C.<Main>d__0.<>7__wrap1""
+    IL_0019:  ldarg.0
+    IL_001a:  ldc.i4.0
+    IL_001b:  stfld      ""int C.<Main>d__0.<>7__wrap2""
+    .try
+    {
+      IL_0020:  ldc.i4.s   123
+      IL_0022:  call       ""void System.Console.Write(int)""
+      IL_0027:  leave.s    IL_0033
+    }
+    catch object
+    {
+      IL_0029:  stloc.2
+      IL_002a:  ldarg.0
+      IL_002b:  ldloc.2
+      IL_002c:  stfld      ""object C.<Main>d__0.<>7__wrap1""
+      IL_0031:  leave.s    IL_0033
+    }
+    IL_0033:  ldloca.s   V_1
+    IL_0035:  call       ""System.Threading.Tasks.ValueTask S2.DisposeAsync()""
+    IL_003a:  stloc.s    V_4
+    IL_003c:  ldloca.s   V_4
+    IL_003e:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_0043:  stloc.3
+    IL_0044:  ldloca.s   V_3
+    IL_0046:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_004b:  brtrue.s   IL_0089
+    IL_004d:  ldarg.0
+    IL_004e:  ldc.i4.0
+    IL_004f:  dup
+    IL_0050:  stloc.0
+    IL_0051:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0056:  ldarg.0
+    IL_0057:  ldloc.3
+    IL_0058:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_005d:  ldarg.0
+    IL_005e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_0063:  ldloca.s   V_3
+    IL_0065:  ldarg.0
+    IL_0066:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
+    IL_006b:  leave.s    IL_00e4
+    IL_006d:  ldarg.0
+    IL_006e:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_0073:  stloc.3
+    IL_0074:  ldarg.0
+    IL_0075:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_007a:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_0080:  ldarg.0
+    IL_0081:  ldc.i4.m1
+    IL_0082:  dup
+    IL_0083:  stloc.0
+    IL_0084:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0089:  ldloca.s   V_3
+    IL_008b:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_0090:  ldarg.0
+    IL_0091:  ldfld      ""object C.<Main>d__0.<>7__wrap1""
+    IL_0096:  stloc.2
+    IL_0097:  ldloc.2
+    IL_0098:  brfalse.s  IL_00af
+    IL_009a:  ldloc.2
+    IL_009b:  isinst     ""System.Exception""
+    IL_00a0:  dup
+    IL_00a1:  brtrue.s   IL_00a5
+    IL_00a3:  ldloc.2
+    IL_00a4:  throw
+    IL_00a5:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00aa:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00af:  ldarg.0
+    IL_00b0:  ldnull
+    IL_00b1:  stfld      ""object C.<Main>d__0.<>7__wrap1""
+    IL_00b6:  leave.s    IL_00d1
+  }
+  catch System.Exception
+  {
+    IL_00b8:  stloc.s    V_5
+    IL_00ba:  ldarg.0
+    IL_00bb:  ldc.i4.s   -2
+    IL_00bd:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00c2:  ldarg.0
+    IL_00c3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_00c8:  ldloc.s    V_5
+    IL_00ca:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00cf:  leave.s    IL_00e4
+  }
+  IL_00d1:  ldarg.0
+  IL_00d2:  ldc.i4.s   -2
+  IL_00d4:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_00d9:  ldarg.0
+  IL_00da:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_00df:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00e4:  ret
+}
+");
+
+            var tree = comp1.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp1, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S2()')
+              Value:
+                IObjectCreationOperation (Constructor: S2..ctor()) (OperationKind.ObjectCreation, Type: S2) (Syntax: 'new S2()')
+                  Arguments(0)
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Write(123);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... .Write(123)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '123')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123) (Syntax: '123')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B4]
+                Finalizing: {R4}
+                Leaving: {R3} {R2} {R1}
+    }
+    .finally {R4}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (1)
+                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new S2()')
+                  Expression:
+                    IInvocationOperation ( System.Threading.Tasks.ValueTask S2.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new S2()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S2()')
+                      Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+ref struct S2 : IAsyncDisposable
+{
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await using (new S2())
+        {
+            await Task.Yield();
+        }
+    }
+}
+";
+
+            var comp2 = CreateCompilation(src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp2.VerifyEmitDiagnostics(
+                // (17,22): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await using (new S2())
-                //Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new S2()").WithArguments("S2").WithLocation(18, 22)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new S2()").WithArguments("S2").WithLocation(17, 22)
                 );
         }
 
         [Fact]
-        public void AwaitUsing_03()
+        public void AwaitUsing_02()
         {
-            var src = @"
+            var src1 = @"
 using System;
 using System.Threading.Tasks;
 
@@ -11339,20 +11546,475 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // PROTOTYPE(RefStructInterfaces): follow up on recent changes due to https://github.com/dotnet/csharplang/blob/main/proposals/ref-unsafe-in-iterators-async.md
-                // (18,22): error CS9104: A using statement resource of type 'S2' cannot be used in async methods or async lambda expressions.
+            var verifier = CompileAndVerify(
+                comp1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.Passes :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      235 (0xeb)
+  .maxstack  3
+  .locals init (int V_0,
+                S2 V_1,
+                object V_2,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_3,
+                System.Threading.Tasks.ValueTask V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Main>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0073
+    IL_000a:  ldloca.s   V_1
+    IL_000c:  initobj    ""S2""
+    IL_0012:  ldarg.0
+    IL_0013:  ldnull
+    IL_0014:  stfld      ""object C.<Main>d__0.<>7__wrap1""
+    IL_0019:  ldarg.0
+    IL_001a:  ldc.i4.0
+    IL_001b:  stfld      ""int C.<Main>d__0.<>7__wrap2""
+    .try
+    {
+      IL_0020:  ldc.i4.s   123
+      IL_0022:  call       ""void System.Console.Write(int)""
+      IL_0027:  leave.s    IL_0033
+    }
+    catch object
+    {
+      IL_0029:  stloc.2
+      IL_002a:  ldarg.0
+      IL_002b:  ldloc.2
+      IL_002c:  stfld      ""object C.<Main>d__0.<>7__wrap1""
+      IL_0031:  leave.s    IL_0033
+    }
+    IL_0033:  ldloca.s   V_1
+    IL_0035:  constrained. ""S2""
+    IL_003b:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_0040:  stloc.s    V_4
+    IL_0042:  ldloca.s   V_4
+    IL_0044:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_0049:  stloc.3
+    IL_004a:  ldloca.s   V_3
+    IL_004c:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_0051:  brtrue.s   IL_008f
+    IL_0053:  ldarg.0
+    IL_0054:  ldc.i4.0
+    IL_0055:  dup
+    IL_0056:  stloc.0
+    IL_0057:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_005c:  ldarg.0
+    IL_005d:  ldloc.3
+    IL_005e:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_0063:  ldarg.0
+    IL_0064:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_0069:  ldloca.s   V_3
+    IL_006b:  ldarg.0
+    IL_006c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
+    IL_0071:  leave.s    IL_00ea
+    IL_0073:  ldarg.0
+    IL_0074:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_0079:  stloc.3
+    IL_007a:  ldarg.0
+    IL_007b:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_0080:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_0086:  ldarg.0
+    IL_0087:  ldc.i4.m1
+    IL_0088:  dup
+    IL_0089:  stloc.0
+    IL_008a:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_008f:  ldloca.s   V_3
+    IL_0091:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_0096:  ldarg.0
+    IL_0097:  ldfld      ""object C.<Main>d__0.<>7__wrap1""
+    IL_009c:  stloc.2
+    IL_009d:  ldloc.2
+    IL_009e:  brfalse.s  IL_00b5
+    IL_00a0:  ldloc.2
+    IL_00a1:  isinst     ""System.Exception""
+    IL_00a6:  dup
+    IL_00a7:  brtrue.s   IL_00ab
+    IL_00a9:  ldloc.2
+    IL_00aa:  throw
+    IL_00ab:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00b0:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldnull
+    IL_00b7:  stfld      ""object C.<Main>d__0.<>7__wrap1""
+    IL_00bc:  leave.s    IL_00d7
+  }
+  catch System.Exception
+  {
+    IL_00be:  stloc.s    V_5
+    IL_00c0:  ldarg.0
+    IL_00c1:  ldc.i4.s   -2
+    IL_00c3:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00c8:  ldarg.0
+    IL_00c9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_00ce:  ldloc.s    V_5
+    IL_00d0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00d5:  leave.s    IL_00ea
+  }
+  IL_00d7:  ldarg.0
+  IL_00d8:  ldc.i4.s   -2
+  IL_00da:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_00df:  ldarg.0
+  IL_00e0:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_00e5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00ea:  ret
+}
+");
+
+            var tree = comp1.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp1, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S2()')
+              Value:
+                IObjectCreationOperation (Constructor: S2..ctor()) (OperationKind.ObjectCreation, Type: S2) (Syntax: 'new S2()')
+                  Arguments(0)
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Write(123);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... .Write(123)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '123')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123) (Syntax: '123')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B4]
+                Finalizing: {R4}
+                Leaving: {R3} {R2} {R1}
+    }
+    .finally {R4}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (1)
+                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new S2()')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new S2()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S2()')
+                      Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+ref struct S2 : IAsyncDisposable
+{
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await using (new S2())
+        {
+            await Task.Yield();
+        }
+    }
+}
+";
+            var comp2 = CreateCompilation(src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp2.VerifyEmitDiagnostics(
+                // (17,22): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await using (new S2())
-                //Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new S2()").WithArguments("S2").WithLocation(18, 22)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new S2()").WithArguments("S2").WithLocation(17, 22)
+                );
+        }
+
+        [Fact]
+        public void AwaitUsing_03()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+ref struct S2 : IAsyncDisposable
+{
+    ValueTask IAsyncDisposable.DisposeAsync() => throw null;
+
+    public ValueTask DisposeAsync()
+    {
+        System.Console.Write('D');
+        return ValueTask.CompletedTask;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await using (new S2())
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.Passes :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      229 (0xe5)
+  .maxstack  3
+  .locals init (int V_0,
+                S2 V_1,
+                object V_2,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_3,
+                System.Threading.Tasks.ValueTask V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Main>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_006d
+    IL_000a:  ldloca.s   V_1
+    IL_000c:  initobj    ""S2""
+    IL_0012:  ldarg.0
+    IL_0013:  ldnull
+    IL_0014:  stfld      ""object C.<Main>d__0.<>7__wrap1""
+    IL_0019:  ldarg.0
+    IL_001a:  ldc.i4.0
+    IL_001b:  stfld      ""int C.<Main>d__0.<>7__wrap2""
+    .try
+    {
+      IL_0020:  ldc.i4.s   123
+      IL_0022:  call       ""void System.Console.Write(int)""
+      IL_0027:  leave.s    IL_0033
+    }
+    catch object
+    {
+      IL_0029:  stloc.2
+      IL_002a:  ldarg.0
+      IL_002b:  ldloc.2
+      IL_002c:  stfld      ""object C.<Main>d__0.<>7__wrap1""
+      IL_0031:  leave.s    IL_0033
+    }
+    IL_0033:  ldloca.s   V_1
+    IL_0035:  call       ""System.Threading.Tasks.ValueTask S2.DisposeAsync()""
+    IL_003a:  stloc.s    V_4
+    IL_003c:  ldloca.s   V_4
+    IL_003e:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_0043:  stloc.3
+    IL_0044:  ldloca.s   V_3
+    IL_0046:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_004b:  brtrue.s   IL_0089
+    IL_004d:  ldarg.0
+    IL_004e:  ldc.i4.0
+    IL_004f:  dup
+    IL_0050:  stloc.0
+    IL_0051:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0056:  ldarg.0
+    IL_0057:  ldloc.3
+    IL_0058:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_005d:  ldarg.0
+    IL_005e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_0063:  ldloca.s   V_3
+    IL_0065:  ldarg.0
+    IL_0066:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
+    IL_006b:  leave.s    IL_00e4
+    IL_006d:  ldarg.0
+    IL_006e:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_0073:  stloc.3
+    IL_0074:  ldarg.0
+    IL_0075:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_007a:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_0080:  ldarg.0
+    IL_0081:  ldc.i4.m1
+    IL_0082:  dup
+    IL_0083:  stloc.0
+    IL_0084:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0089:  ldloca.s   V_3
+    IL_008b:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_0090:  ldarg.0
+    IL_0091:  ldfld      ""object C.<Main>d__0.<>7__wrap1""
+    IL_0096:  stloc.2
+    IL_0097:  ldloc.2
+    IL_0098:  brfalse.s  IL_00af
+    IL_009a:  ldloc.2
+    IL_009b:  isinst     ""System.Exception""
+    IL_00a0:  dup
+    IL_00a1:  brtrue.s   IL_00a5
+    IL_00a3:  ldloc.2
+    IL_00a4:  throw
+    IL_00a5:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00aa:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00af:  ldarg.0
+    IL_00b0:  ldnull
+    IL_00b1:  stfld      ""object C.<Main>d__0.<>7__wrap1""
+    IL_00b6:  leave.s    IL_00d1
+  }
+  catch System.Exception
+  {
+    IL_00b8:  stloc.s    V_5
+    IL_00ba:  ldarg.0
+    IL_00bb:  ldc.i4.s   -2
+    IL_00bd:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00c2:  ldarg.0
+    IL_00c3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_00c8:  ldloc.s    V_5
+    IL_00ca:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00cf:  leave.s    IL_00e4
+  }
+  IL_00d1:  ldarg.0
+  IL_00d2:  ldc.i4.s   -2
+  IL_00d4:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_00d9:  ldarg.0
+  IL_00da:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_00df:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00e4:  ret
+}
+");
+
+            var tree = comp1.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp1, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S2()')
+              Value:
+                IObjectCreationOperation (Constructor: S2..ctor()) (OperationKind.ObjectCreation, Type: S2) (Syntax: 'new S2()')
+                  Arguments(0)
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Write(123);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... .Write(123)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '123')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123) (Syntax: '123')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B4]
+                Finalizing: {R4}
+                Leaving: {R3} {R2} {R1}
+    }
+    .finally {R4}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (1)
+                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new S2()')
+                  Expression:
+                    IInvocationOperation ( System.Threading.Tasks.ValueTask S2.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new S2()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S2()')
+                      Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+ref struct S2 : IAsyncDisposable
+{
+    ValueTask IAsyncDisposable.DisposeAsync() => throw null;
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await using (new S2())
+        {
+            await Task.Yield();
+        }
+    }
+}
+";
+
+            var comp2 = CreateCompilation(src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp2.VerifyEmitDiagnostics(
+                // (19,22): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
+                //         await using (new S2())
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new S2()").WithArguments("S2").WithLocation(19, 22)
                 );
         }
 
         [Fact]
         public void AwaitUsing_04()
         {
-            var src = @"
+            var src1 = @"
 using System;
 using System.Threading.Tasks;
 
@@ -11380,21 +12042,504 @@ class C
         }
     }
 }
-";
-            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // PROTOTYPE(RefStructInterfaces): follow up on recent changes due to https://github.com/dotnet/csharplang/blob/main/proposals/ref-unsafe-in-iterators-async.md
-                // (23,22): error CS9104: A using statement resource of type 'T' cannot be used in async methods or async lambda expressions.
+namespace System
+{
+    public class Activator
+    {
+         public static T CreateInstance<T>() where T : allows ref struct => default;
+    }
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.Passes :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      241 (0xf1)
+  .maxstack  3
+  .locals init (int V_0,
+                T V_1,
+                object V_2,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_3,
+                System.Threading.Tasks.ValueTask V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Test>d__1<T>.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0079
+    IL_000a:  call       ""T System.Activator.CreateInstance<T>()""
+    IL_000f:  stloc.1
+    IL_0010:  ldarg.0
+    IL_0011:  ldnull
+    IL_0012:  stfld      ""object C.<Test>d__1<T>.<>7__wrap1""
+    IL_0017:  ldarg.0
+    IL_0018:  ldc.i4.0
+    IL_0019:  stfld      ""int C.<Test>d__1<T>.<>7__wrap2""
+    .try
+    {
+      IL_001e:  ldc.i4.s   123
+      IL_0020:  call       ""void System.Console.Write(int)""
+      IL_0025:  leave.s    IL_0031
+    }
+    catch object
+    {
+      IL_0027:  stloc.2
+      IL_0028:  ldarg.0
+      IL_0029:  ldloc.2
+      IL_002a:  stfld      ""object C.<Test>d__1<T>.<>7__wrap1""
+      IL_002f:  leave.s    IL_0031
+    }
+    IL_0031:  ldloc.1
+    IL_0032:  box        ""T""
+    IL_0037:  brfalse.s  IL_009c
+    IL_0039:  ldloca.s   V_1
+    IL_003b:  constrained. ""T""
+    IL_0041:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_0046:  stloc.s    V_4
+    IL_0048:  ldloca.s   V_4
+    IL_004a:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_004f:  stloc.3
+    IL_0050:  ldloca.s   V_3
+    IL_0052:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_0057:  brtrue.s   IL_0095
+    IL_0059:  ldarg.0
+    IL_005a:  ldc.i4.0
+    IL_005b:  dup
+    IL_005c:  stloc.0
+    IL_005d:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_0062:  ldarg.0
+    IL_0063:  ldloc.3
+    IL_0064:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__1""
+    IL_0069:  ldarg.0
+    IL_006a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+    IL_006f:  ldloca.s   V_3
+    IL_0071:  ldarg.0
+    IL_0072:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Test>d__1<T>)""
+    IL_0077:  leave.s    IL_00f0
+    IL_0079:  ldarg.0
+    IL_007a:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__1""
+    IL_007f:  stloc.3
+    IL_0080:  ldarg.0
+    IL_0081:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__1""
+    IL_0086:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_008c:  ldarg.0
+    IL_008d:  ldc.i4.m1
+    IL_008e:  dup
+    IL_008f:  stloc.0
+    IL_0090:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_0095:  ldloca.s   V_3
+    IL_0097:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_009c:  ldarg.0
+    IL_009d:  ldfld      ""object C.<Test>d__1<T>.<>7__wrap1""
+    IL_00a2:  stloc.2
+    IL_00a3:  ldloc.2
+    IL_00a4:  brfalse.s  IL_00bb
+    IL_00a6:  ldloc.2
+    IL_00a7:  isinst     ""System.Exception""
+    IL_00ac:  dup
+    IL_00ad:  brtrue.s   IL_00b1
+    IL_00af:  ldloc.2
+    IL_00b0:  throw
+    IL_00b1:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00b6:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00bb:  ldarg.0
+    IL_00bc:  ldnull
+    IL_00bd:  stfld      ""object C.<Test>d__1<T>.<>7__wrap1""
+    IL_00c2:  leave.s    IL_00dd
+  }
+  catch System.Exception
+  {
+    IL_00c4:  stloc.s    V_5
+    IL_00c6:  ldarg.0
+    IL_00c7:  ldc.i4.s   -2
+    IL_00c9:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_00ce:  ldarg.0
+    IL_00cf:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+    IL_00d4:  ldloc.s    V_5
+    IL_00d6:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00db:  leave.s    IL_00f0
+  }
+  IL_00dd:  ldarg.0
+  IL_00de:  ldc.i4.s   -2
+  IL_00e0:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+  IL_00e5:  ldarg.0
+  IL_00e6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+  IL_00eb:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00f0:  ret
+}
+");
+
+            var tree = comp1.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp1, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new T()')
+              Value:
+                ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'new T()')
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Write(123);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... .Write(123)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '123')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123) (Syntax: '123')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B6]
+                Finalizing: {R4}
+                Leaving: {R3} {R2} {R1}
+    }
+    .finally {R4}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B5]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new T()')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: T, IsImplicit) (Syntax: 'new T()')
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new T()')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new T()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: T, IsImplicit) (Syntax: 'new T()')
+                      Arguments(0)
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B6] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task Test<T>() where T : IAsyncDisposable, new(), allows ref struct
+    {
+        await using (new T())
+        {
+            await Task.Yield();
+        }
+    }
+}
+
+namespace System
+{
+    public class Activator
+    {
+         public static T CreateInstance<T>() where T : allows ref struct => default;
+    }
+}
+";
+            var comp2 = CreateCompilation(src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp2.VerifyEmitDiagnostics(
+                // (9,22): error CS4007: Instance of type 'T' cannot be preserved across 'await' or 'yield' boundary.
                 //         await using (new T())
-                //Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(23, 22)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new T()").WithArguments("T").WithLocation(9, 22)
+                );
+        }
+
+        [Fact]
+        public void AwaitUsing_05()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+ref struct S2 : IAsyncDisposable
+{
+    public ValueTask DisposeAsync()
+    {
+        System.Console.Write('D');
+        return ValueTask.CompletedTask;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S2>();
+    }
+
+    static async Task Test<T>() where T : struct, IAsyncDisposable, allows ref struct
+    {
+        await using (new T())
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+
+namespace System
+{
+    public class Activator
+    {
+         public static T CreateInstance<T>() where T : allows ref struct => default;
+    }
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.Passes :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      233 (0xe9)
+  .maxstack  3
+  .locals init (int V_0,
+                T V_1,
+                object V_2,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_3,
+                System.Threading.Tasks.ValueTask V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Test>d__1<T>.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0071
+    IL_000a:  call       ""T System.Activator.CreateInstance<T>()""
+    IL_000f:  stloc.1
+    IL_0010:  ldarg.0
+    IL_0011:  ldnull
+    IL_0012:  stfld      ""object C.<Test>d__1<T>.<>7__wrap1""
+    IL_0017:  ldarg.0
+    IL_0018:  ldc.i4.0
+    IL_0019:  stfld      ""int C.<Test>d__1<T>.<>7__wrap2""
+    .try
+    {
+      IL_001e:  ldc.i4.s   123
+      IL_0020:  call       ""void System.Console.Write(int)""
+      IL_0025:  leave.s    IL_0031
+    }
+    catch object
+    {
+      IL_0027:  stloc.2
+      IL_0028:  ldarg.0
+      IL_0029:  ldloc.2
+      IL_002a:  stfld      ""object C.<Test>d__1<T>.<>7__wrap1""
+      IL_002f:  leave.s    IL_0031
+    }
+    IL_0031:  ldloca.s   V_1
+    IL_0033:  constrained. ""T""
+    IL_0039:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_003e:  stloc.s    V_4
+    IL_0040:  ldloca.s   V_4
+    IL_0042:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_0047:  stloc.3
+    IL_0048:  ldloca.s   V_3
+    IL_004a:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_004f:  brtrue.s   IL_008d
+    IL_0051:  ldarg.0
+    IL_0052:  ldc.i4.0
+    IL_0053:  dup
+    IL_0054:  stloc.0
+    IL_0055:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_005a:  ldarg.0
+    IL_005b:  ldloc.3
+    IL_005c:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__1""
+    IL_0061:  ldarg.0
+    IL_0062:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+    IL_0067:  ldloca.s   V_3
+    IL_0069:  ldarg.0
+    IL_006a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Test>d__1<T>)""
+    IL_006f:  leave.s    IL_00e8
+    IL_0071:  ldarg.0
+    IL_0072:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__1""
+    IL_0077:  stloc.3
+    IL_0078:  ldarg.0
+    IL_0079:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__1""
+    IL_007e:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_0084:  ldarg.0
+    IL_0085:  ldc.i4.m1
+    IL_0086:  dup
+    IL_0087:  stloc.0
+    IL_0088:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_008d:  ldloca.s   V_3
+    IL_008f:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_0094:  ldarg.0
+    IL_0095:  ldfld      ""object C.<Test>d__1<T>.<>7__wrap1""
+    IL_009a:  stloc.2
+    IL_009b:  ldloc.2
+    IL_009c:  brfalse.s  IL_00b3
+    IL_009e:  ldloc.2
+    IL_009f:  isinst     ""System.Exception""
+    IL_00a4:  dup
+    IL_00a5:  brtrue.s   IL_00a9
+    IL_00a7:  ldloc.2
+    IL_00a8:  throw
+    IL_00a9:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00ae:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00b3:  ldarg.0
+    IL_00b4:  ldnull
+    IL_00b5:  stfld      ""object C.<Test>d__1<T>.<>7__wrap1""
+    IL_00ba:  leave.s    IL_00d5
+  }
+  catch System.Exception
+  {
+    IL_00bc:  stloc.s    V_5
+    IL_00be:  ldarg.0
+    IL_00bf:  ldc.i4.s   -2
+    IL_00c1:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_00c6:  ldarg.0
+    IL_00c7:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+    IL_00cc:  ldloc.s    V_5
+    IL_00ce:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00d3:  leave.s    IL_00e8
+  }
+  IL_00d5:  ldarg.0
+  IL_00d6:  ldc.i4.s   -2
+  IL_00d8:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+  IL_00dd:  ldarg.0
+  IL_00de:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+  IL_00e3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00e8:  ret
+}
+");
+
+            var tree = comp1.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp1, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new T()')
+              Value:
+                ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'new T()')
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Write(123);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... .Write(123)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '123')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123) (Syntax: '123')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B4]
+                Finalizing: {R4}
+                Leaving: {R3} {R2} {R1}
+    }
+    .finally {R4}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (1)
+                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new T()')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new T()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: T, IsImplicit) (Syntax: 'new T()')
+                      Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task Test<T>() where T : struct, IAsyncDisposable, allows ref struct
+    {
+        await using (new T())
+        {
+            await Task.Yield();
+        }
+    }
+}
+
+namespace System
+{
+    public class Activator
+    {
+         public static T CreateInstance<T>() where T : allows ref struct => default;
+    }
+}
+";
+            var comp2 = CreateCompilation(src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp2.VerifyEmitDiagnostics(
+                // (9,22): error CS4007: Instance of type 'T' cannot be preserved across 'await' or 'yield' boundary.
+                //         await using (new T())
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new T()").WithArguments("T").WithLocation(9, 22)
                 );
         }
 
         [Fact]
         public void AwaitUsing_06()
         {
-            var src = @"
+            var src1 = @"
 using System.Threading.Tasks;
 
 interface IMyAsyncDisposable
@@ -11426,14 +12571,246 @@ class C
         }
     }
 }
-";
-            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // PROTOTYPE(RefStructInterfaces): follow up on recent changes due to https://github.com/dotnet/csharplang/blob/main/proposals/ref-unsafe-in-iterators-async.md
-                // (27,22): error CS9104: A using statement resource of type 'T' cannot be used in async methods or async lambda expressions.
+namespace System
+{
+    public class Activator
+    {
+         public static T CreateInstance<T>() where T : allows ref struct => default;
+    }
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.Passes :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"
+{
+  // Code size      241 (0xf1)
+  .maxstack  3
+  .locals init (int V_0,
+                T V_1,
+                object V_2,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_3,
+                System.Threading.Tasks.ValueTask V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Test>d__1<T>.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0079
+    IL_000a:  call       ""T System.Activator.CreateInstance<T>()""
+    IL_000f:  stloc.1
+    IL_0010:  ldarg.0
+    IL_0011:  ldnull
+    IL_0012:  stfld      ""object C.<Test>d__1<T>.<>7__wrap1""
+    IL_0017:  ldarg.0
+    IL_0018:  ldc.i4.0
+    IL_0019:  stfld      ""int C.<Test>d__1<T>.<>7__wrap2""
+    .try
+    {
+      IL_001e:  ldc.i4.s   123
+      IL_0020:  call       ""void System.Console.Write(int)""
+      IL_0025:  leave.s    IL_0031
+    }
+    catch object
+    {
+      IL_0027:  stloc.2
+      IL_0028:  ldarg.0
+      IL_0029:  ldloc.2
+      IL_002a:  stfld      ""object C.<Test>d__1<T>.<>7__wrap1""
+      IL_002f:  leave.s    IL_0031
+    }
+    IL_0031:  ldloc.1
+    IL_0032:  box        ""T""
+    IL_0037:  brfalse.s  IL_009c
+    IL_0039:  ldloca.s   V_1
+    IL_003b:  constrained. ""T""
+    IL_0041:  callvirt   ""System.Threading.Tasks.ValueTask IMyAsyncDisposable.DisposeAsync()""
+    IL_0046:  stloc.s    V_4
+    IL_0048:  ldloca.s   V_4
+    IL_004a:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_004f:  stloc.3
+    IL_0050:  ldloca.s   V_3
+    IL_0052:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_0057:  brtrue.s   IL_0095
+    IL_0059:  ldarg.0
+    IL_005a:  ldc.i4.0
+    IL_005b:  dup
+    IL_005c:  stloc.0
+    IL_005d:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_0062:  ldarg.0
+    IL_0063:  ldloc.3
+    IL_0064:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__1""
+    IL_0069:  ldarg.0
+    IL_006a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+    IL_006f:  ldloca.s   V_3
+    IL_0071:  ldarg.0
+    IL_0072:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Test>d__1<T>)""
+    IL_0077:  leave.s    IL_00f0
+    IL_0079:  ldarg.0
+    IL_007a:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__1""
+    IL_007f:  stloc.3
+    IL_0080:  ldarg.0
+    IL_0081:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__1""
+    IL_0086:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_008c:  ldarg.0
+    IL_008d:  ldc.i4.m1
+    IL_008e:  dup
+    IL_008f:  stloc.0
+    IL_0090:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_0095:  ldloca.s   V_3
+    IL_0097:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_009c:  ldarg.0
+    IL_009d:  ldfld      ""object C.<Test>d__1<T>.<>7__wrap1""
+    IL_00a2:  stloc.2
+    IL_00a3:  ldloc.2
+    IL_00a4:  brfalse.s  IL_00bb
+    IL_00a6:  ldloc.2
+    IL_00a7:  isinst     ""System.Exception""
+    IL_00ac:  dup
+    IL_00ad:  brtrue.s   IL_00b1
+    IL_00af:  ldloc.2
+    IL_00b0:  throw
+    IL_00b1:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00b6:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00bb:  ldarg.0
+    IL_00bc:  ldnull
+    IL_00bd:  stfld      ""object C.<Test>d__1<T>.<>7__wrap1""
+    IL_00c2:  leave.s    IL_00dd
+  }
+  catch System.Exception
+  {
+    IL_00c4:  stloc.s    V_5
+    IL_00c6:  ldarg.0
+    IL_00c7:  ldc.i4.s   -2
+    IL_00c9:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_00ce:  ldarg.0
+    IL_00cf:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+    IL_00d4:  ldloc.s    V_5
+    IL_00d6:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00db:  leave.s    IL_00f0
+  }
+  IL_00dd:  ldarg.0
+  IL_00de:  ldc.i4.s   -2
+  IL_00e0:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+  IL_00e5:  ldarg.0
+  IL_00e6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+  IL_00eb:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00f0:  ret
+}
+");
+
+            var tree = comp1.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp1, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new T()')
+              Value:
+                ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'new T()')
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Write(123);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... .Write(123)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '123')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123) (Syntax: '123')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B6]
+                Finalizing: {R4}
+                Leaving: {R3} {R2} {R1}
+    }
+    .finally {R4}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B5]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new T()')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: T, IsImplicit) (Syntax: 'new T()')
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new T()')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask IMyAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new T()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: T, IsImplicit) (Syntax: 'new T()')
+                      Arguments(0)
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B6] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var src2 = @"
+using System.Threading.Tasks;
+
+interface IMyAsyncDisposable
+{
+    ValueTask DisposeAsync();
+}
+
+class C
+{
+    static async Task Test<T>() where T : IMyAsyncDisposable, new(), allows ref struct
+    {
+        await using (new T())
+        {
+            await Task.Yield();
+        }
+    }
+}
+
+namespace System
+{
+    public class Activator
+    {
+         public static T CreateInstance<T>() where T : allows ref struct => default;
+    }
+}
+";
+            var comp2 = CreateCompilation(src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp2.VerifyEmitDiagnostics(
+                // (13,22): error CS4007: Instance of type 'T' cannot be preserved across 'await' or 'yield' boundary.
                 //         await using (new T())
-                //Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(27, 22)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new T()").WithArguments("T").WithLocation(13, 22)
                 );
         }
 
@@ -11487,11 +12864,6 @@ class C
                 // (32,22): error CS8410: 'T': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (new T())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new T()").WithArguments("T").WithLocation(32, 22)
-                // PROTOTYPE(RefStructInterfaces): follow up on recent changes due to https://github.com/dotnet/csharplang/blob/main/proposals/ref-unsafe-in-iterators-async.md
-                //,
-                // (32,22): error CS9104: A using statement resource of type 'T' cannot be used in async methods or async lambda expressions.
-                //         await using (new T())
-                //Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(32, 22)
                 );
         }
 
@@ -11548,11 +12920,6 @@ class C
                 // (36,22): error CS0121: The call is ambiguous between the following methods or properties: 'IMyAsyncDisposable1.DisposeAsync()' and 'IMyAsyncDisposable2.DisposeAsync()'
                 //         await using (new T())
                 Diagnostic(ErrorCode.ERR_AmbigCall, "new T()").WithArguments("IMyAsyncDisposable1.DisposeAsync()", "IMyAsyncDisposable2.DisposeAsync()").WithLocation(36, 22)
-                // PROTOTYPE(RefStructInterfaces): follow up on recent changes due to https://github.com/dotnet/csharplang/blob/main/proposals/ref-unsafe-in-iterators-async.md
-                //,
-                // (36,22): error CS9104: A using statement resource of type 'T' cannot be used in async methods or async lambda expressions.
-                //         await using (new T())
-                //Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(36, 22)
                 );
         }
 
