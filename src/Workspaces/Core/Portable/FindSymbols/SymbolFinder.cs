@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -188,22 +189,13 @@ public static partial class SymbolFinder
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var result = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
 
-            if (result.Symbol != null && InSource(result.Symbol))
-            {
-                return result.Symbol;
-            }
-            else
-            {
-                return result.CandidateSymbols.FirstOrDefault(InSource);
-            }
+            return InSource(result.Symbol) ? result.Symbol : result.CandidateSymbols.FirstOrDefault(InSource);
         }
 
         return null;
-    }
 
-    private static bool InSource(ISymbol symbol)
-    {
-        return symbol.Locations.Any(static loc => loc.IsInSource);
+        static bool InSource([NotNullWhen(true)] ISymbol? symbol)
+           => symbol != null && symbol.Locations.Any(static loc => loc.IsInSource);
     }
 
     /// <summary>
