@@ -1702,7 +1702,7 @@ ref struct S
 """);
             var verifier = CompileAndVerify(
                 source,
-                targetFramework: TargetFramework.Net80, // PROTOTYPE(RefStructInterfaces): Switch to supporting target framework once we have its ref assemblies.
+                targetFramework: TargetFramework.Net90,
                 expectedOutput: @"
 <Main>$: Entered
 <Main>$: P'args'[0] = System.String[]

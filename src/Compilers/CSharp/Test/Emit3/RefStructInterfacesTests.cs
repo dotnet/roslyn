@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class RefStructInterfacesTests : CSharpTestBase
     {
-        // PROTOTYPE(RefStructInterfaces): Switch to supporting target framework once we have its ref assemblies.
-        private static readonly TargetFramework s_targetFrameworkSupportingByRefLikeGenerics = TargetFramework.Net80;
+        private static readonly TargetFramework s_targetFrameworkSupportingByRefLikeGenerics = TargetFramework.Net90;
 
         [Theory]
         [CombinatorialData]
@@ -4390,6 +4389,13 @@ public class C<T>
                 );
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.DesktopLatestExtended, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (3,22): error CS9500: Target runtime doesn't support by-ref-like generics.
+                //     where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 22)
+                );
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefLikeGenerics));
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (3,22): error CS9500: Target runtime doesn't support by-ref-like generics.
                 //     where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 22)
