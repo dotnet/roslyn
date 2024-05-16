@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -238,87 +236,6 @@ internal static partial class SourceTextExtensions
         return textService.CreateText(textReader, encoding, checksumAlgorithm, cancellationToken);
     }
 
-    public static SourceText CreateSourceText(
-        SyntaxNode node, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
-    {
-        // If this node is small enough to not go into the LOH, we can just fast path directly to creating a SourceText from it.
-        var totalLength = node.FullWidth();
-        if (totalLength <= SourceTextLengthThreshold)
-            return SourceText.From(node.ToFullString(), encoding, checksumAlgorithm);
-
-        // Allocate the space to write the node into.  Explicitly chunked so that nothing goes into the LOH.
-        var chunks = CreateChunks(totalLength);
-
-        // Write the node into that temp space.
-        using var chunkWriter = new CharArrayChunkTextWriter(totalLength, chunks, encoding!, cancellationToken);
-        node.WriteTo(chunkWriter);
-        Contract.ThrowIfTrue(totalLength != chunkWriter.Position);
-
-        // Call into the text service to make us a SourceText from the chunks.  Disposal of this reader will free all
-        // the intermediary chunks we allocated.
-
-        Contract.ThrowIfTrue(chunks.Any(static (c, s) => c.Length != s, CharArrayLength));
-
-        using var chunkReader = new CharArrayChunkTextReader(chunks, totalLength);
-        var result = SourceText.From(chunkReader, totalLength, encoding, checksumAlgorithm);
-        Contract.ThrowIfTrue(totalLength != chunkReader.Position);
-
-        return result;
-
-        static ImmutableArray<char[]> CreateChunks(int totalLength)
-        {
-            var numberOfChunks = 1 + (totalLength / CharArrayLength);
-            var buffer = new FixedSizeArrayBuilder<char[]>(numberOfChunks);
-            for (var i = 0; i < numberOfChunks; i++)
-                buffer.Add(s_charArrayPool.Allocate());
-
-            return buffer.MoveToImmutable();
-        }
-    }
-
-    private static int GetIndexFromPosition(int position) => position / CharArrayLength;
-    private static int GetColumnFromPosition(int position) => position % CharArrayLength;
-
-    private sealed class CharArrayChunkTextWriter(
-        int totalLength, ImmutableArray<char[]> chunks, Encoding encoding, CancellationToken cancellationToken) : TextWriter
-    {
-        private readonly int _totalLength = totalLength;
-        private readonly ImmutableArray<char[]> _chunks = chunks;
-        private readonly CancellationToken _cancellationToken = cancellationToken;
-
-        /// <summary>
-        /// Public so that caller can assert that writing out the text actually wrote out the full text of the node.
-        /// </summary>
-        public int Position { get; private set; }
-
-        public override Encoding Encoding { get; } = encoding;
-
-        public override void Write(string? value)
-        {
-            Contract.ThrowIfNull(value);
-
-            var valueSpan = value.AsSpan();
-            while (valueSpan.Length > 0)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-
-                var chunk = _chunks[GetIndexFromPosition(Position)];
-                Contract.ThrowIfTrue(chunk.Length != CharArrayLength);
-
-                var chunkIndex = GetColumnFromPosition(Position);
-                Contract.ThrowIfTrue(chunkIndex >= CharArrayLength);
-
-                var count = Math.Min(valueSpan.Length, CharArrayLength - chunkIndex);
-                valueSpan[..count].CopyTo(chunk.AsSpan().Slice(chunkIndex, count));
-
-                Position += count;
-                valueSpan = valueSpan[count..];
-            }
-
-            Contract.ThrowIfTrue(Position > _totalLength);
-        }
-    }
-
     private sealed class CharArrayChunkTextReader(ImmutableArray<char[]> chunks, int length) : TextReaderWithLength(length)
     {
         private readonly ImmutableArray<char[]> _chunks = chunks;
@@ -328,6 +245,9 @@ internal static partial class SourceTextExtensions
         /// Public so that the caller can assert that the new SourceText read all the way to the end of this successfully.
         /// </summary>
         public int Position { get; private set; }
+
+        private static int GetIndexFromPosition(int position) => position / CharArrayLength;
+        private static int GetColumnFromPosition(int position) => position % CharArrayLength;
 
         public static TextReader CreateFromObjectReader(ObjectReader reader)
         {
