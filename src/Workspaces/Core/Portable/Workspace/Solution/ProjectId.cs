@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis;
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
 [DataContract]
-public sealed class ProjectId : IEquatable<ProjectId>, IComparer<ProjectId>
+public sealed class ProjectId : IEquatable<ProjectId>, IComparable<ProjectId>
 {
     /// <summary>
     /// Checksum of this ProjectId, built only from <see cref="Id"/>.
@@ -115,12 +115,11 @@ public sealed class ProjectId : IEquatable<ProjectId>, IComparer<ProjectId>
                 writer.WriteGuid(@this.Id);
             }), this);
 
-    int IComparer<ProjectId>.Compare(ProjectId? x, ProjectId? y)
-        => (x, y) switch
-        {
-            (null, null) => 0,
-            (null, _) => -1,
-            (_, null) => 1,
-            _ => x.Id.CompareTo(y.Id),
-        };
+    int IComparable<ProjectId>.CompareTo(ProjectId? other)
+    {
+        if (other is null)
+            return 1;
+
+        return this.Id.CompareTo(other.Id);
+    }
 }
