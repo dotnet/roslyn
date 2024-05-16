@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 /// <param name="delta">Total of lines modified after the update.</param>
 /// <param name="newSpan">Updated text span for the active statement.</param>
 [DataContract]
-internal readonly struct ManagedExceptionRegionUpdate(
+public readonly struct ManagedExceptionRegionUpdate(
     ManagedModuleMethodId method,
     int delta,
     SourceSpan newSpan)

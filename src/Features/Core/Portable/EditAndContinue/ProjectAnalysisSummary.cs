@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal enum ProjectAnalysisSummary
+public enum ProjectAnalysisSummary
 {
     /// <summary>
     /// Project hasn't been changed.

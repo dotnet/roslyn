@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// The capabilities that the runtime has with respect to edit and continue
 /// </summary>
 [Flags]
-internal enum EditAndContinueCapabilities
+public enum EditAndContinueCapabilities
 {
     None = 0,
 

@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 // TELEMETRY: DO NOT MODIFY ANY ENUM VALUES OF THIS ENUM.
 // IT WILL BREAK OUR SQM VARIABLE MAPPINGS.
 
-internal enum RudeEditKind : ushort
+public enum RudeEditKind : ushort
 {
     None = 0,
 

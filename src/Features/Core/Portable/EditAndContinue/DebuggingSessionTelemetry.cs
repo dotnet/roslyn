@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
+public sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
 {
-    internal readonly struct Data(DebuggingSessionTelemetry telemetry)
+    public readonly struct Data(DebuggingSessionTelemetry telemetry)
     {
         public readonly Guid SolutionSessionId = telemetry._solutionSessionId;
         public readonly ImmutableArray<EditSessionTelemetry.Data> EditSessionData = [.. telemetry._editSessionData];
@@ -69,7 +69,7 @@ internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
     // | extend IsEnC = not(IsHotReload)
     // | summarize HotReloadUsers = dcountif(MacAddressHash, IsHotReload),
     //             EncUsers = dcountif(MacAddressHash, IsEnC)
-    public static void Log(Data data, Action<FunctionId, LogMessage> log, Func<int> getNextId)
+    internal static void Log(Data data, Action<FunctionId, LogMessage> log, Func<int> getNextId)
     {
         const string SessionId = nameof(SessionId);
         const string EditSessionId = nameof(EditSessionId);

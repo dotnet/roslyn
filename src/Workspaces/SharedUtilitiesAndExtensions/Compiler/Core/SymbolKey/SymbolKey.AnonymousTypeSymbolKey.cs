@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial struct SymbolKey
+public partial struct SymbolKey
 {
     private sealed class AnonymousTypeSymbolKey : AbstractSymbolKey<INamedTypeSymbol>
     {

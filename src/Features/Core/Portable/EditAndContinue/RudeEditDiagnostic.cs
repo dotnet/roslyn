@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 [DataContract]
-internal readonly struct RudeEditDiagnostic
+public readonly struct RudeEditDiagnostic
 {
     [DataMember(Order = 0)]
     public readonly RudeEditKind Kind;

@@ -1,5 +1,590 @@
+abstract Microsoft.CodeAnalysis.Debugging.DebugInformationReaderProvider.CopyContentToAsync(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+abstract Microsoft.CodeAnalysis.Debugging.DebugInformationReaderProvider.CreateEditAndContinueMethodDebugInfoReader() -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader
+abstract Microsoft.CodeAnalysis.Debugging.DebugInformationReaderProvider.Dispose() -> void
+abstract Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.GetDebugInfo(System.Reflection.Metadata.MethodDefinitionHandle methodHandle) -> Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation
+abstract Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.GetLocalSignature(System.Reflection.Metadata.MethodDefinitionHandle methodHandle) -> System.Reflection.Metadata.StandaloneSignatureHandle
+abstract Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IsPortable.get -> bool
+abstract Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.TryGetDocumentChecksum(string documentPath, out System.Collections.Immutable.ImmutableArray<byte> checksum, out System.Guid algorithmId) -> bool
+abstract Microsoft.CodeAnalysis.Emit.CompilationOutputs.AssemblyDisplayPath.get -> string
+abstract Microsoft.CodeAnalysis.Emit.CompilationOutputs.OpenAssemblyStream() -> System.IO.Stream
+abstract Microsoft.CodeAnalysis.Emit.CompilationOutputs.OpenPdbStream() -> System.IO.Stream
+abstract Microsoft.CodeAnalysis.Emit.CompilationOutputs.PdbDisplayPath.get -> string
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags.LeafFrame = 1 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags.MethodUpToDate = 8 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags.None = 0 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags.NonLeafFrame = 16 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags.NonUserCode = 4 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags.PartiallyExecuted = 2 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags.Stale = 32 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.IManagedHotReloadService
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.IManagedHotReloadService.GetActiveStatementsAsync(System.Threading.CancellationToken cancellation) -> System.Threading.Tasks.ValueTask<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementDebugInfo>>
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.IManagedHotReloadService.GetAvailabilityAsync(System.Guid module, System.Threading.CancellationToken cancellation) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailability>
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.IManagedHotReloadService.GetCapabilitiesAsync(System.Threading.CancellationToken cancellation) -> System.Threading.Tasks.ValueTask<System.Collections.Immutable.ImmutableArray<string>>
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.IManagedHotReloadService.PrepareModuleForUpdateAsync(System.Guid module, System.Threading.CancellationToken cancellation) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementDebugInfo
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementDebugInfo.ActiveInstruction.get -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementDebugInfo.DocumentName.get -> string
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementDebugInfo.Flags.get -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementDebugInfo.HasSourceLocation.get -> bool
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementDebugInfo.ManagedActiveStatementDebugInfo() -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementDebugInfo.ManagedActiveStatementDebugInfo(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId activeInstruction, string documentName, Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan sourceSpan, Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags flags) -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementDebugInfo.SourceSpan.get -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementUpdate
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementUpdate.ILOffset.get -> int
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementUpdate.ManagedActiveStatementUpdate() -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementUpdate.ManagedActiveStatementUpdate(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId method, int ilOffset, Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan newSpan) -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementUpdate.Method.get -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementUpdate.NewSpan.get -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedExceptionRegionUpdate
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedExceptionRegionUpdate.Delta.get -> int
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedExceptionRegionUpdate.ManagedExceptionRegionUpdate() -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedExceptionRegionUpdate.ManagedExceptionRegionUpdate(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId method, int delta, Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan newSpan) -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedExceptionRegionUpdate.Method.get -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedExceptionRegionUpdate.NewSpan.get -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailability
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailability.LocalizedMessage.get -> string
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailability.ManagedHotReloadAvailability() -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailability.ManagedHotReloadAvailability(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus status, string localizedMessage = null) -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailability.Status.get -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.Attach = 4 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.Available = 0 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.Disabled = 19 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.DomainNeutralAssembly = 13 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.IntelliTrace = 15 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.InternalError = 17 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.Interop = 1 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.Minidump = 3 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.ModuleNotLoaded = 5 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.ModuleReloaded = 6 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.NotAllowedForModule = 11 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.NotAllowedForRuntime = 16 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.NotBuilt = 8 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.NotSupportedForClr64Version = 10 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.Optimized = 12 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.ReflectionAssembly = 14 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.SqlClr = 2 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.Unavailable = 18 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.UnsupportedEngine = 9 -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate.ActiveStatements.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementUpdate>
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate.ExceptionRegions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedExceptionRegionUpdate>
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate.ILDelta.get -> System.Collections.Immutable.ImmutableArray<byte>
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate.ManagedHotReloadUpdate() -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate.ManagedHotReloadUpdate(System.Guid module, string moduleName, System.Collections.Immutable.ImmutableArray<byte> ilDelta, System.Collections.Immutable.ImmutableArray<byte> metadataDelta, System.Collections.Immutable.ImmutableArray<byte> pdbDelta, System.Collections.Immutable.ImmutableArray<int> updatedTypes, System.Collections.Immutable.ImmutableArray<string> requiredCapabilities, System.Collections.Immutable.ImmutableArray<int> updatedMethods, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Contracts.EditAndContinue.SequencePointUpdates> sequencePoints, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedActiveStatementUpdate> activeStatements, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedExceptionRegionUpdate> exceptionRegions) -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate.MetadataDelta.get -> System.Collections.Immutable.ImmutableArray<byte>
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate.Module.get -> System.Guid
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate.ModuleName.get -> string
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate.PdbDelta.get -> System.Collections.Immutable.ImmutableArray<byte>
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate.RequiredCapabilities.get -> System.Collections.Immutable.ImmutableArray<string>
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate.SequencePoints.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Contracts.EditAndContinue.SequencePointUpdates>
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate.UpdatedMethods.get -> System.Collections.Immutable.ImmutableArray<int>
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate.UpdatedTypes.get -> System.Collections.Immutable.ImmutableArray<int>
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId.Equals(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId other) -> bool
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId.ILOffset.get -> int
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId.ManagedInstructionId() -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId.ManagedInstructionId(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId method, int ilOffset) -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId.Method.get -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId.Equals(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId other) -> bool
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId.ManagedMethodId() -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId.ManagedMethodId(System.Guid module, int token, int version) -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId.ManagedMethodId(System.Guid module, Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId method) -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId.Method.get -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId.Module.get -> System.Guid
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId.Token.get -> int
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId.Version.get -> int
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId.Equals(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId other) -> bool
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId.ManagedModuleMethodId() -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId.ManagedModuleMethodId(int token, int version) -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId.Token.get -> int
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId.Version.get -> int
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SequencePointUpdates
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SequencePointUpdates.FileName.get -> string
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SequencePointUpdates.LineUpdates.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceLineUpdate>
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SequencePointUpdates.SequencePointUpdates() -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SequencePointUpdates.SequencePointUpdates(string fileName, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceLineUpdate> lineUpdates) -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceLineUpdate
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceLineUpdate.NewLine.get -> int
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceLineUpdate.OldLine.get -> int
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceLineUpdate.SourceLineUpdate() -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceLineUpdate.SourceLineUpdate(int oldLine, int newLine) -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan.EndColumn.get -> int
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan.EndLine.get -> int
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan.Equals(Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan other) -> bool
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan.SourceSpan() -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan.SourceSpan(int startLine, int startColumn, int endLine, int endColumn) -> void
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan.StartColumn.get -> int
+Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan.StartLine.get -> int
+Microsoft.CodeAnalysis.Debugging.DebugInformationReaderProvider
+Microsoft.CodeAnalysis.Debugging.DebugInformationReaderProvider.DebugInformationReaderProvider() -> void
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement.ActiveStatement(Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId id, Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags flags, Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan span, Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId instructionId) -> void
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement.FilePath.get -> string
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement.IsLeaf.get -> bool
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement.IsMethodUpToDate.get -> bool
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement.IsNonLeaf.get -> bool
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement.IsStale.get -> bool
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement.Span.get -> Microsoft.CodeAnalysis.Text.LinePositionSpan
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement.WithFileSpan(Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan span) -> Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement.WithFlags(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags flags) -> Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement.WithSpan(Microsoft.CodeAnalysis.Text.LinePositionSpan span) -> Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId.ActiveStatementId() -> void
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId.ActiveStatementId(int Ordinal) -> void
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId.Deconstruct(out int Ordinal) -> void
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId.Equals(Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId other) -> bool
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId.Ordinal.get -> int
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId.Ordinal.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.ActiveStatementSpan() -> void
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.ActiveStatementSpan(Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId Id, Microsoft.CodeAnalysis.Text.LinePositionSpan LineSpan, Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags Flags, Microsoft.CodeAnalysis.DocumentId UnmappedDocumentId = null) -> void
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.Deconstruct(out Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId Id, out Microsoft.CodeAnalysis.Text.LinePositionSpan LineSpan, out Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags Flags, out Microsoft.CodeAnalysis.DocumentId UnmappedDocumentId) -> void
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.Equals(Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan other) -> bool
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.Flags.get -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.Flags.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.Id.get -> Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.Id.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.LineSpan.get -> Microsoft.CodeAnalysis.Text.LinePositionSpan
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.LineSpan.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.UnmappedDocumentId.get -> Microsoft.CodeAnalysis.DocumentId
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.UnmappedDocumentId.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpanProvider
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.CommitSolution(Microsoft.CodeAnalysis.Solution solution) -> void
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.CommittedSolution(Microsoft.CodeAnalysis.EditAndContinue.DebuggingSession debuggingSession, Microsoft.CodeAnalysis.Solution solution, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<Microsoft.CodeAnalysis.DocumentId, Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.DocumentState>> initialDocumentStates) -> void
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.ContainsDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> bool
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.DocumentState
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.DocumentState.DesignTimeOnly = 3 -> Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.DocumentState
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.DocumentState.Indeterminate = 2 -> Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.DocumentState
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.DocumentState.MatchesBuildOutput = 4 -> Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.DocumentState
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.DocumentState.None = 0 -> Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.DocumentState
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.DocumentState.OutOfSync = 1 -> Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.DocumentState
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.GetDocumentAndStateAsync(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Document currentDocument, System.Threading.CancellationToken cancellationToken, bool reloadOutOfSyncDocument = false) -> System.Threading.Tasks.Task<(Microsoft.CodeAnalysis.Document Document, Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.DocumentState State)>
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.GetDocumentIdsWithFilePath(string path) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId>
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.GetProject(Microsoft.CodeAnalysis.ProjectId id) -> Microsoft.CodeAnalysis.Project
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.GetRequiredProject(Microsoft.CodeAnalysis.ProjectId id) -> Microsoft.CodeAnalysis.Project
+Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution.HasNoChanges(Microsoft.CodeAnalysis.Solution solution) -> bool
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSession
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSession.BreakStateOrCapabilitiesChanged(bool? inBreakState) -> void
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSession.CommitSolutionUpdate() -> void
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSession.DiscardSolutionUpdate() -> void
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSession.Dispose() -> void
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSession.EditSession.get -> Microsoft.CodeAnalysis.EditAndContinue.EditSession
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSession.EmitSolutionUpdateAsync(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpanProvider activeStatementSpanProvider, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults>
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSession.EndSession(out Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionTelemetry.Data telemetryData) -> void
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSession.GetAdjustedActiveStatementSpansAsync(Microsoft.CodeAnalysis.TextDocument mappedDocument, Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpanProvider activeStatementSpanProvider, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan>>
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSession.GetBaseActiveStatementSpansAsync(Microsoft.CodeAnalysis.Solution solution, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Immutable.ImmutableArray<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan>>>
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSession.GetDocumentDiagnosticsAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpanProvider activeStatementSpanProvider, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId.DebuggingSessionId() -> void
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId.DebuggingSessionId(int Ordinal) -> void
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId.Deconstruct(out int Ordinal) -> void
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId.Equals(Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId other) -> bool
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId.Ordinal.get -> int
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId.Ordinal.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionTelemetry
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionTelemetry.Data
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionTelemetry.Data.Data() -> void
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionTelemetry.Data.Data(Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionTelemetry telemetry) -> void
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionTelemetry.DebuggingSessionTelemetry(System.Guid solutionSessionId) -> void
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionTelemetry.GetDataAndClear() -> Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionTelemetry.Data
+Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionTelemetry.LogEditSession(Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data editSessionTelemetryData) -> void
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.ActiveStatements.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement>
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.DocumentAnalysisResults(Microsoft.CodeAnalysis.DocumentId documentId, string filePath, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement> activeStatementsOpt, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic> rudeEdits, Microsoft.CodeAnalysis.Diagnostic syntaxError, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo> semanticEditsOpt, System.Collections.Immutable.ImmutableArray<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan>> exceptionRegionsOpt, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Contracts.EditAndContinue.SequencePointUpdates> lineEditsOpt, Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities requiredCapabilities, System.TimeSpan elapsedTime, bool hasChanges, bool hasSyntaxErrors) -> void
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.DocumentId.get -> Microsoft.CodeAnalysis.DocumentId
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.ElapsedTime.get -> System.TimeSpan
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.ExceptionRegions.get -> System.Collections.Immutable.ImmutableArray<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan>>
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.FilePath -> string
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.HasChanges.get -> bool
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.HasChangesAndErrors.get -> bool
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.HasChangesAndSyntaxErrors.get -> bool
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.HasSignificantValidChanges.get -> bool
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.HasSyntaxErrors.get -> bool
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.LineEdits.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Contracts.EditAndContinue.SequencePointUpdates>
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.RequiredCapabilities.get -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.RudeEditErrors.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic>
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.SemanticEdits.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo>
+Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.SyntaxError.get -> Microsoft.CodeAnalysis.Diagnostic
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities.AddExplicitInterfaceImplementation = 1024 -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities.AddInstanceFieldToExistingType = 8 -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities.AddMethodToExistingType = 2 -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities.AddStaticFieldToExistingType = 4 -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities.Baseline = 1 -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities.ChangeCustomAttributes = 32 -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities.GenericAddFieldToExistingType = 512 -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities.GenericAddMethodToExistingType = 128 -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities.GenericUpdateMethod = 256 -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities.NewTypeDefinition = 16 -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities.None = 0 -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities.UpdateParameters = 64 -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader
+Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.EditAndContinueMethodDebugInfoReader() -> void
+Microsoft.CodeAnalysis.EditAndContinue.EditSession
+Microsoft.CodeAnalysis.EditAndContinue.EditSession.EmitSolutionUpdateAsync(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpanProvider solutionActiveStatementSpanProvider, Microsoft.CodeAnalysis.EditAndContinue.UpdateId updateId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.EditAndContinue.SolutionUpdate>
+Microsoft.CodeAnalysis.EditAndContinue.EditSession.GetModuleDiagnosticsAsync(System.Guid mvid, Microsoft.CodeAnalysis.Project oldProject, Microsoft.CodeAnalysis.Project newProject, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults> documentAnalyses, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>?>
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.Data() -> void
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.Data(Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry telemetry) -> void
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.EditSessionTelemetry() -> void
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.GetDataAndClear() -> Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.IsEmpty.get -> bool
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.LogAnalysisTime(System.TimeSpan span) -> void
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.LogCommitted() -> void
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.LogEmitDifferenceTime(System.TimeSpan span) -> void
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.LogProjectAnalysisSummary(Microsoft.CodeAnalysis.EditAndContinue.ProjectAnalysisSummary summary, System.Guid projectTelemetryId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> emitDiagnostics) -> void
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.LogProjectAnalysisSummary(Microsoft.CodeAnalysis.EditAndContinue.ProjectAnalysisSummary summary, System.Guid projectTelemetryId, System.Collections.Immutable.ImmutableArray<string> errorsIds) -> void
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.LogRudeEditDiagnostics(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic> diagnostics, System.Guid projectTelemetryId) -> void
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.LogRuntimeCapabilities(Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities capabilities) -> void
+Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.SetBreakState(bool value) -> void
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Data
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Data.Data() -> void
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Data.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticData>
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Data.Diagnostics.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Data.ModuleUpdates.get -> Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Data.ModuleUpdates.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Data.RudeEdits.get -> System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.DocumentId DocumentId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic> Diagnostics)>
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Data.RudeEdits.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Data.SyntaxError.get -> Microsoft.CodeAnalysis.Diagnostics.DiagnosticData
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Data.SyntaxError.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Dehydrate(Microsoft.CodeAnalysis.Solution solution) -> Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Data
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics>
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Diagnostics.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.EmitSolutionUpdateResults() -> void
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.GetAllDiagnosticsAsync(Microsoft.CodeAnalysis.Solution solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.GetSyntaxErrorData(Microsoft.CodeAnalysis.Solution solution) -> Microsoft.CodeAnalysis.Diagnostics.DiagnosticData
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.ModuleUpdates.get -> Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.ModuleUpdates.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.RudeEdits.get -> System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.DocumentId DocumentId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic> Diagnostics)>
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.RudeEdits.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.SyntaxError.get -> Microsoft.CodeAnalysis.Diagnostic
+Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.SyntaxError.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueService
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueService.BreakStateOrCapabilitiesChanged(Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId sessionId, bool? inBreakState) -> void
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueService.CommitSolutionUpdate(Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId sessionId) -> void
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueService.DiscardSolutionUpdate(Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId sessionId) -> void
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueService.EmitSolutionUpdateAsync(Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId sessionId, Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpanProvider activeStatementSpanProvider, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults>
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueService.EndDebuggingSession(Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId sessionId) -> void
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueService.GetAdjustedActiveStatementSpansAsync(Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId sessionId, Microsoft.CodeAnalysis.TextDocument document, Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpanProvider activeStatementSpanProvider, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan>>
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueService.GetBaseActiveStatementSpansAsync(Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId sessionId, Microsoft.CodeAnalysis.Solution solution, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Immutable.ImmutableArray<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan>>>
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueService.GetDocumentDiagnosticsAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpanProvider activeStatementSpanProvider, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueService.SetFileLoggingDirectory(string logDirectory) -> void
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueService.StartDebuggingSessionAsync(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.Contracts.EditAndContinue.IManagedHotReloadService debuggerService, Microsoft.CodeAnalysis.EditAndContinue.IPdbMatchingSourceTextProvider sourceTextProvider, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId>
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueSessionTracker
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueSessionTracker.ApplyChangesDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticData>
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueSessionTracker.IsSessionActive.get -> bool
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueWorkspaceService
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueWorkspaceService.Service.get -> Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueService
+Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueWorkspaceService.SessionTracker.get -> Microsoft.CodeAnalysis.EditAndContinue.IEditAndContinueSessionTracker
+Microsoft.CodeAnalysis.EditAndContinue.IPdbMatchingSourceTextProvider
+Microsoft.CodeAnalysis.EditAndContinue.IPdbMatchingSourceTextProvider.TryGetMatchingSourceTextAsync(string filePath, System.Collections.Immutable.ImmutableArray<byte> requiredChecksum, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<string>
+Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates
+Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates.Deconstruct(out Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdateStatus Status, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate> Updates) -> void
+Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates.Equals(Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates other) -> bool
+Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates.ModuleUpdates() -> void
+Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates.ModuleUpdates(Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdateStatus Status, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate> Updates) -> void
+Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates.Status.get -> Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdateStatus
+Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates.Status.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates.Updates.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedHotReloadUpdate>
+Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates.Updates.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdateStatus
+Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdateStatus.Blocked = 3 -> Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdateStatus
+Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdateStatus.None = 0 -> Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdateStatus
+Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdateStatus.Ready = 1 -> Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdateStatus
+Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdateStatus.RestartRequired = 2 -> Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdateStatus
+Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion
+Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion.Equals(Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion other) -> bool
+Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion.NonRemappableRegion() -> void
+Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion.NonRemappableRegion(Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan oldSpan, Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan newSpan, bool isExceptionRegion) -> void
+Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion.WithNewSpan(Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan newSpan) -> Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion
+Microsoft.CodeAnalysis.EditAndContinue.NullPdbMatchingSourceTextProvider
+Microsoft.CodeAnalysis.EditAndContinue.NullPdbMatchingSourceTextProvider.TryGetMatchingSourceTextAsync(string filePath, System.Collections.Immutable.ImmutableArray<byte> requiredChecksum, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<string>
+Microsoft.CodeAnalysis.EditAndContinue.ProjectAnalysisSummary
+Microsoft.CodeAnalysis.EditAndContinue.ProjectAnalysisSummary.CompilationErrors = 1 -> Microsoft.CodeAnalysis.EditAndContinue.ProjectAnalysisSummary
+Microsoft.CodeAnalysis.EditAndContinue.ProjectAnalysisSummary.NoChanges = 0 -> Microsoft.CodeAnalysis.EditAndContinue.ProjectAnalysisSummary
+Microsoft.CodeAnalysis.EditAndContinue.ProjectAnalysisSummary.RudeEdits = 2 -> Microsoft.CodeAnalysis.EditAndContinue.ProjectAnalysisSummary
+Microsoft.CodeAnalysis.EditAndContinue.ProjectAnalysisSummary.ValidChanges = 4 -> Microsoft.CodeAnalysis.EditAndContinue.ProjectAnalysisSummary
+Microsoft.CodeAnalysis.EditAndContinue.ProjectAnalysisSummary.ValidInsignificantChanges = 3 -> Microsoft.CodeAnalysis.EditAndContinue.ProjectAnalysisSummary
+Microsoft.CodeAnalysis.EditAndContinue.ProjectBaseline
+Microsoft.CodeAnalysis.EditAndContinue.ProjectBaseline.EmitBaseline.get -> Microsoft.CodeAnalysis.Emit.EmitBaseline
+Microsoft.CodeAnalysis.EditAndContinue.ProjectBaseline.Generation.get -> int
+Microsoft.CodeAnalysis.EditAndContinue.ProjectBaseline.ProjectBaseline(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.Emit.EmitBaseline emitBaseline, int generation) -> void
+Microsoft.CodeAnalysis.EditAndContinue.ProjectBaseline.ProjectId.get -> Microsoft.CodeAnalysis.ProjectId
+Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics
+Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics.Deconstruct(out Microsoft.CodeAnalysis.ProjectId ProjectId, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> Diagnostics) -> void
+Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
+Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics.Diagnostics.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics.Equals(Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics other) -> bool
+Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics.ProjectDiagnostics() -> void
+Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics.ProjectDiagnostics(Microsoft.CodeAnalysis.ProjectId ProjectId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> Diagnostics) -> void
+Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics.ProjectId.get -> Microsoft.CodeAnalysis.ProjectId
+Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics.ProjectId.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic.RudeEditDiagnostic() -> void
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.AccessorKindUpdate = 16 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ActiveStatementLambdaRemoved = 2 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ActiveStatementUpdate = 1 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.AwaitStatementUpdate = 46 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.BaseTypeOrInterfaceUpdate = 14 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.CapturingPrimaryConstructorParameter = 114 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangeImplicitMainReturnType = 102 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingAccessibility = 47 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingAttribute = 116 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingAttributesNotSupportedByRuntime = 101 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingCapturedVariableScope = 52 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingCapturedVariableType = 51 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingConstraints = 105 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingFromAsynchronousToSynchronous = 85 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingLambdaParameters = 53 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingLambdaReturnType = 54 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingNameOrSignatureOfActiveMember = 117 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingNamespace = 109 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingNonCustomAttribute = 108 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingParameterTypes = 103 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingQueryLambdaType = 59 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime = 106 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingSignatureNotSupportedByRuntime = 110 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingStateMachineShape = 86 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ChangingTypeParameters = 104 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ComplexQueryExpression = 87 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.DeclareAliasUpdate = 19 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.DeclareLibraryUpdate = 18 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.Delete = 33 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.DeleteActiveStatement = 62 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.DeleteAroundActiveStatement = 61 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.DeleteNotSupportedByRuntime = 111 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.EnumUnderlyingTypeUpdate = 13 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ExperimentalFeaturesEnabled = 45 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.FieldKindUpdate = 8 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.FixedSizeFieldUpdate = 12 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.GenericMethodUpdate = 36 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.GenericTypeUpdate = 38 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.HandlesClauseUpdate = 5 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ImplementsClauseUpdate = 6 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InitializerUpdate = 11 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.Insert = 21 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertAroundActiveStatement = 60 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas = 68 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertDllImport = 29 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertExtern = 25 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertFile = 71 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertHandlesClause = 70 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertIntoClassWithLayout = 31 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertIntoInterface = 82 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertIntoStruct = 30 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertLocalFunctionIntoInterfaceMethod = 83 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier = 81 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertNotSupportedByRuntime = 100 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertOperator = 26 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertOverridable = 24 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InsertVirtual = 23 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.InternalError = 80 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.MakeMethodAsyncNotSupportedByRuntime = 98 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.MakeMethodIteratorNotSupportedByRuntime = 99 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.MemberBodyInternalError = 88 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.MemberBodyTooBig = 90 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.ModifiersUpdate = 4 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.Move = 32 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.None = 0 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.NotCapturingPrimaryConstructorParameter = 115 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.NotSupportedByRuntime = 97 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.PartiallyExecutedActiveStatementDelete = 73 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.PartiallyExecutedActiveStatementUpdate = 72 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.Renamed = 20 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.RenamingCapturedVariable = 69 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.RenamingNotSupportedByRuntime = 107 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.SourceFileTooBig = 89 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.StackAllocUpdate = 44 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.SwitchBetweenLambdaAndLocalFunction = 76 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.TypeKindUpdate = 15 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.TypeUpdate = 9 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.Update = 3 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.UpdateAroundActiveStatement = 63 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.UpdateCatchHandlerAroundActiveStatement = 66 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.UpdateExceptionHandlerOfActiveTry = 64 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.UpdateStaticLocal = 67 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.UpdateTryOrCatchWithActiveFinally = 65 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.UpdatingGenericNotSupportedByRuntime = 113 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement = 74 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.UpdatingStateMachineMethodMissingAttribute = 75 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime = 112 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind.VarianceUpdate = 7 -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo
+Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo.DeletedSymbolContainer.get -> Microsoft.CodeAnalysis.SymbolKey?
+Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo.Kind.get -> Microsoft.CodeAnalysis.Emit.SemanticEditKind
+Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo.PartialType.get -> Microsoft.CodeAnalysis.SymbolKey?
+Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo.SemanticEditInfo() -> void
+Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo.SemanticEditInfo(Microsoft.CodeAnalysis.Emit.SemanticEditKind kind, Microsoft.CodeAnalysis.SymbolKey symbol, Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps syntaxMaps, Microsoft.CodeAnalysis.SymbolKey? partialType, Microsoft.CodeAnalysis.SymbolKey? deletedSymbolContainer) -> void
+Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo.Symbol.get -> Microsoft.CodeAnalysis.SymbolKey
+Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo.SyntaxMaps.get -> Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps
+Microsoft.CodeAnalysis.EditAndContinue.SolutionUpdate
+Microsoft.CodeAnalysis.EditAndContinue.SolutionUpdate.SolutionUpdate() -> void
+Microsoft.CodeAnalysis.EditAndContinue.SolutionUpdate.SolutionUpdate(Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates moduleUpdates, System.Collections.Immutable.ImmutableArray<(System.Guid ModuleId, System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId Method, Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion Region)>)> nonRemappableRegions, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.ProjectBaseline> projectBaselines, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics> diagnostics, System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.DocumentId DocumentId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic> Diagnostics)> documentsWithRudeEdits, Microsoft.CodeAnalysis.Diagnostic syntaxError) -> void
+Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan
+Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.Contains(Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan span) -> bool
+Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.End.get -> Microsoft.CodeAnalysis.Text.LinePosition
+Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.Equals(Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan other) -> bool
+Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.IsValid.get -> bool
+Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.Path.get -> string
+Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.SourceFileSpan() -> void
+Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.SourceFileSpan(string path, Microsoft.CodeAnalysis.Text.LinePositionSpan span) -> void
+Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.Span.get -> Microsoft.CodeAnalysis.Text.LinePositionSpan
+Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.Start.get -> Microsoft.CodeAnalysis.Text.LinePosition
+Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.WithPath(string path) -> Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan
+Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.WithSpan(Microsoft.CodeAnalysis.Text.LinePositionSpan span) -> Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan
+Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps
+Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps.Equals(Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps other) -> bool
+Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps.HasMap.get -> bool
+Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps.SyntaxMaps() -> void
+Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps.SyntaxMaps(Microsoft.CodeAnalysis.SyntaxTree newTree, System.Func<Microsoft.CodeAnalysis.SyntaxNode, Microsoft.CodeAnalysis.SyntaxNode> matchingNodes = null, System.Func<Microsoft.CodeAnalysis.SyntaxNode, Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit?> runtimeRudeEdits = null) -> void
+Microsoft.CodeAnalysis.EditAndContinue.UpdateId
+Microsoft.CodeAnalysis.EditAndContinue.UpdateId.Deconstruct(out Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId SessionId, out int Ordinal) -> void
+Microsoft.CodeAnalysis.EditAndContinue.UpdateId.Equals(Microsoft.CodeAnalysis.EditAndContinue.UpdateId other) -> bool
+Microsoft.CodeAnalysis.EditAndContinue.UpdateId.Ordinal.get -> int
+Microsoft.CodeAnalysis.EditAndContinue.UpdateId.Ordinal.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.UpdateId.SessionId.get -> Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId
+Microsoft.CodeAnalysis.EditAndContinue.UpdateId.SessionId.init -> void
+Microsoft.CodeAnalysis.EditAndContinue.UpdateId.UpdateId() -> void
+Microsoft.CodeAnalysis.EditAndContinue.UpdateId.UpdateId(Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId SessionId, int Ordinal) -> void
+Microsoft.CodeAnalysis.Emit.CompilationOutputFiles
+Microsoft.CodeAnalysis.Emit.CompilationOutputFiles.AssemblyFilePath.get -> string
+Microsoft.CodeAnalysis.Emit.CompilationOutputFiles.CompilationOutputFiles(string assemblyFilePath = null, string pdbFilePath = null) -> void
+Microsoft.CodeAnalysis.Emit.CompilationOutputFiles.PdbFilePath.get -> string
+Microsoft.CodeAnalysis.Emit.CompilationOutputs
+Microsoft.CodeAnalysis.Emit.CompilationOutputs.CompilationOutputs() -> void
+Microsoft.CodeAnalysis.Host.ICompileTimeSolutionProvider
+Microsoft.CodeAnalysis.Host.ICompileTimeSolutionProvider.GetCompileTimeSolution(Microsoft.CodeAnalysis.Solution designTimeSolution) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.TaggedText.Equals(Microsoft.CodeAnalysis.TaggedText other) -> bool
+override Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId.GetHashCode() -> int
+override Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId.GetHashCode() -> int
+override Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId.GetHashCode() -> int
+override Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan.GetHashCode() -> int
+override Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId.GetHashCode() -> int
+override Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId.ToString() -> string
+override Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.GetHashCode() -> int
+override Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.ToString() -> string
+override Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId.GetHashCode() -> int
+override Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId.ToString() -> string
+override Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates.GetHashCode() -> int
+override Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates.ToString() -> string
+override Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion.GetHashCode() -> int
+override Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics.GetHashCode() -> int
+override Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics.ToString() -> string
+override Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.Equals(object other) -> bool
+override Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.GetHashCode() -> int
+override Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.ToString() -> string
+override Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps.GetHashCode() -> int
+override Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps.ToString() -> string
+override Microsoft.CodeAnalysis.EditAndContinue.UpdateId.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.EditAndContinue.UpdateId.GetHashCode() -> int
+override Microsoft.CodeAnalysis.EditAndContinue.UpdateId.ToString() -> string
+override Microsoft.CodeAnalysis.Emit.CompilationOutputFiles.AssemblyDisplayPath.get -> string
+override Microsoft.CodeAnalysis.Emit.CompilationOutputFiles.PdbDisplayPath.get -> string
 override Microsoft.CodeAnalysis.TaggedText.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.TaggedText.GetHashCode() -> int
+readonly Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement.FileSpan -> Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan
+readonly Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement.Flags -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ActiveStatementFlags
+readonly Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement.Id -> Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId
+readonly Microsoft.CodeAnalysis.EditAndContinue.ActiveStatement.InstructionId -> Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId
+readonly Microsoft.CodeAnalysis.EditAndContinue.DebuggingSession.LastCommittedSolution -> Microsoft.CodeAnalysis.EditAndContinue.CommittedSolution
+readonly Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionTelemetry.Data.EditSessionData -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data>
+readonly Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionTelemetry.Data.EmptyEditSessionCount -> int
+readonly Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionTelemetry.Data.EmptyHotReloadEditSessionCount -> int
+readonly Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionTelemetry.Data.SolutionSessionId -> System.Guid
+readonly Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.AnalysisTime -> System.TimeSpan
+readonly Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.Capabilities -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueCapabilities
+readonly Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.Committed -> bool
+readonly Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.EmitDifferenceTime -> System.TimeSpan
+readonly Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.EmitErrorIds -> System.Collections.Immutable.ImmutableArray<string>
+readonly Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.HadCompilationErrors -> bool
+readonly Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.HadRudeEdits -> bool
+readonly Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.HadValidChanges -> bool
+readonly Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.HadValidInsignificantChanges -> bool
+readonly Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.InBreakState -> bool
+readonly Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.IsEmpty -> bool
+readonly Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.ProjectsWithValidDelta -> System.Collections.Immutable.ImmutableArray<System.Guid>
+readonly Microsoft.CodeAnalysis.EditAndContinue.EditSessionTelemetry.Data.RudeEdits -> System.Collections.Immutable.ImmutableArray<(ushort EditKind, ushort SyntaxKind, System.Guid projectId)>
+readonly Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion.IsExceptionRegion -> bool
+readonly Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion.NewSpan -> Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan
+readonly Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion.OldSpan -> Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan
+readonly Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic.Arguments -> string[]
+readonly Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic.Kind -> Microsoft.CodeAnalysis.EditAndContinue.RudeEditKind
+readonly Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic.Span -> Microsoft.CodeAnalysis.Text.TextSpan
+readonly Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic.SyntaxKind -> ushort
+readonly Microsoft.CodeAnalysis.EditAndContinue.SolutionUpdate.Diagnostics -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics>
+readonly Microsoft.CodeAnalysis.EditAndContinue.SolutionUpdate.DocumentsWithRudeEdits -> System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.DocumentId DocumentId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic> Diagnostics)>
+readonly Microsoft.CodeAnalysis.EditAndContinue.SolutionUpdate.ModuleUpdates -> Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates
+readonly Microsoft.CodeAnalysis.EditAndContinue.SolutionUpdate.NonRemappableRegions -> System.Collections.Immutable.ImmutableArray<(System.Guid ModuleId, System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId Method, Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion Region)>)>
+readonly Microsoft.CodeAnalysis.EditAndContinue.SolutionUpdate.ProjectBaselines -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.ProjectBaseline>
+readonly Microsoft.CodeAnalysis.EditAndContinue.SolutionUpdate.SyntaxError -> Microsoft.CodeAnalysis.Diagnostic
+readonly Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps.MatchingNodes -> System.Func<Microsoft.CodeAnalysis.SyntaxNode, Microsoft.CodeAnalysis.SyntaxNode>
+readonly Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps.NewTree -> Microsoft.CodeAnalysis.SyntaxTree
+readonly Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps.RuntimeRudeEdits -> System.Func<Microsoft.CodeAnalysis.SyntaxNode, Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit?>
+static Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId.operator !=(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId left, Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId right) -> bool
+static Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId.operator ==(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId left, Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedInstructionId right) -> bool
+static Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId.operator !=(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId left, Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId right) -> bool
+static Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId.operator ==(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId left, Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedMethodId right) -> bool
+static Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId.operator !=(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId left, Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId right) -> bool
+static Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId.operator ==(Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId left, Microsoft.CodeAnalysis.Contracts.EditAndContinue.ManagedModuleMethodId right) -> bool
+static Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan.operator !=(Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan left, Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan right) -> bool
+static Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan.operator ==(Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan left, Microsoft.CodeAnalysis.Contracts.EditAndContinue.SourceSpan right) -> bool
+static Microsoft.CodeAnalysis.Debugging.DebugInformationReaderProvider.CreateFromMetadataReader(System.Reflection.Metadata.MetadataReaderProvider metadataProvider) -> Microsoft.CodeAnalysis.Debugging.DebugInformationReaderProvider
+static Microsoft.CodeAnalysis.Debugging.DebugInformationReaderProvider.CreateFromStream(System.IO.Stream stream) -> Microsoft.CodeAnalysis.Debugging.DebugInformationReaderProvider
+static Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId.operator !=(Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId left, Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId.operator ==(Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId left, Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementId right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.operator !=(Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan left, Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan.operator ==(Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan left, Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId.operator !=(Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId left, Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId.operator ==(Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId left, Microsoft.CodeAnalysis.EditAndContinue.DebuggingSessionId right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.SyntaxErrors(Microsoft.CodeAnalysis.DocumentId documentId, string filePath, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic> rudeEdits, Microsoft.CodeAnalysis.Diagnostic syntaxError, System.TimeSpan elapsedTime, bool hasChanges) -> Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults
+static Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults.Unchanged(Microsoft.CodeAnalysis.DocumentId documentId, string filePath, System.TimeSpan elapsedTime) -> Microsoft.CodeAnalysis.EditAndContinue.DocumentAnalysisResults
+static Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.Create(Microsoft.DiaSymReader.ISymUnmanagedReader5 symReader, int version = 1) -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader
+static Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.Create(System.Reflection.Metadata.MetadataReader pdbReader) -> Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader
+static Microsoft.CodeAnalysis.EditAndContinue.EditSession.GetChangedDocumentsAsync(Microsoft.CodeAnalysis.Project oldProject, Microsoft.CodeAnalysis.Project newProject, System.Threading.CancellationToken cancellationToken) -> System.Collections.Generic.IAsyncEnumerable<Microsoft.CodeAnalysis.DocumentId>
+static Microsoft.CodeAnalysis.EditAndContinue.EditSession.HasChangesAsync(Microsoft.CodeAnalysis.Solution oldSolution, Microsoft.CodeAnalysis.Solution newSolution, string sourceFilePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<bool>
+static Microsoft.CodeAnalysis.EditAndContinue.EditSession.HasChangesAsync(Microsoft.CodeAnalysis.Solution oldSolution, Microsoft.CodeAnalysis.Solution newSolution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<bool>
+static Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates.operator !=(Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates left, Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates.operator ==(Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates left, Microsoft.CodeAnalysis.EditAndContinue.ModuleUpdates right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion.operator !=(Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion left, Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion.operator ==(Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion left, Microsoft.CodeAnalysis.EditAndContinue.NonRemappableRegion right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics.operator !=(Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics left, Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics.operator ==(Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics left, Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo.CreateDelete(Microsoft.CodeAnalysis.SymbolKey symbol, Microsoft.CodeAnalysis.SymbolKey deletedSymbolContainer, Microsoft.CodeAnalysis.SymbolKey? partialType) -> Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo
+static Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo.CreateInsert(Microsoft.CodeAnalysis.SymbolKey symbol, Microsoft.CodeAnalysis.SymbolKey? partialType) -> Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo
+static Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo.CreateReplace(Microsoft.CodeAnalysis.SymbolKey symbol, Microsoft.CodeAnalysis.SymbolKey? partialType) -> Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo
+static Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo.CreateUpdate(Microsoft.CodeAnalysis.SymbolKey symbol, Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps syntaxMaps, Microsoft.CodeAnalysis.SymbolKey? partialType) -> Microsoft.CodeAnalysis.EditAndContinue.SemanticEditInfo
+static Microsoft.CodeAnalysis.EditAndContinue.SolutionUpdate.Blocked(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.ProjectDiagnostics> diagnostics, System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.DocumentId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.RudeEditDiagnostic>)> documentsWithRudeEdits, Microsoft.CodeAnalysis.Diagnostic syntaxError, bool hasEmitErrors) -> Microsoft.CodeAnalysis.EditAndContinue.SolutionUpdate
+static Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.implicit operator Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan(Microsoft.CodeAnalysis.FileLinePositionSpan span) -> Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan
+static Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.operator !=(Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan left, Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan.operator ==(Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan left, Microsoft.CodeAnalysis.EditAndContinue.SourceFileSpan right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps.operator !=(Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps left, Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps.operator ==(Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps left, Microsoft.CodeAnalysis.EditAndContinue.SyntaxMaps right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.UpdateId.operator !=(Microsoft.CodeAnalysis.EditAndContinue.UpdateId left, Microsoft.CodeAnalysis.EditAndContinue.UpdateId right) -> bool
+static Microsoft.CodeAnalysis.EditAndContinue.UpdateId.operator ==(Microsoft.CodeAnalysis.EditAndContinue.UpdateId left, Microsoft.CodeAnalysis.EditAndContinue.UpdateId right) -> bool
 static Microsoft.CodeAnalysis.TaggedText.operator !=(Microsoft.CodeAnalysis.TaggedText left, Microsoft.CodeAnalysis.TaggedText right) -> bool
 static Microsoft.CodeAnalysis.TaggedText.operator ==(Microsoft.CodeAnalysis.TaggedText left, Microsoft.CodeAnalysis.TaggedText right) -> bool
+static readonly Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults.Empty -> Microsoft.CodeAnalysis.EditAndContinue.EmitSolutionUpdateResults
+static readonly Microsoft.CodeAnalysis.EditAndContinue.NullPdbMatchingSourceTextProvider.Instance -> Microsoft.CodeAnalysis.EditAndContinue.NullPdbMatchingSourceTextProvider
+virtual Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpanProvider.Invoke(Microsoft.CodeAnalysis.DocumentId documentId, string filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.EditAndContinue.ActiveStatementSpan>>
+virtual Microsoft.CodeAnalysis.Emit.CompilationOutputs.OpenAssemblyMetadata(bool prefetch) -> System.Reflection.Metadata.MetadataReaderProvider
+virtual Microsoft.CodeAnalysis.Emit.CompilationOutputs.OpenPdb() -> Microsoft.CodeAnalysis.Debugging.DebugInformationReaderProvider

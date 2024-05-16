@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 /// Zero-based line number.
 /// </summary>
 [DataContract]
-internal readonly struct SourceLineUpdate
+public readonly struct SourceLineUpdate
 {
     /// <summary>
     /// Creates a SourceLineUpdate. 

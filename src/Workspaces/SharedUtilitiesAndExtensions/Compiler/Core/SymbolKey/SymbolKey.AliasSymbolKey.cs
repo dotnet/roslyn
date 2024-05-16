@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial struct SymbolKey
+public partial struct SymbolKey
 {
     private sealed class AliasSymbolKey : AbstractSymbolKey<IAliasSymbol>
     {

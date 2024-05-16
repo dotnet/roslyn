@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// More than one thread can share the same instance of <see cref="ActiveStatement"/>.
 /// </summary>
 [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-internal sealed class ActiveStatement
+public sealed class ActiveStatement
 {
     /// <summary>
     /// Ordinal of the active statement within the set of all active statements.

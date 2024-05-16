@@ -16,10 +16,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal readonly struct EmitSolutionUpdateResults
+public readonly struct EmitSolutionUpdateResults
 {
     [DataContract]
-    internal readonly struct Data
+    public readonly struct Data
     {
         [DataMember]
         public required ModuleUpdates ModuleUpdates { get; init; }

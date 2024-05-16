@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial struct SymbolKey
+public partial struct SymbolKey
 {
     private sealed class FieldSymbolKey : AbstractSymbolKey<IFieldSymbol>
     {

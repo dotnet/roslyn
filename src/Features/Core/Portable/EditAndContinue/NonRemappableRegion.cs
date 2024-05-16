@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-internal readonly struct NonRemappableRegion(SourceFileSpan oldSpan, SourceFileSpan newSpan, bool isExceptionRegion) : IEquatable<NonRemappableRegion>
+public readonly struct NonRemappableRegion(SourceFileSpan oldSpan, SourceFileSpan newSpan, bool isExceptionRegion) : IEquatable<NonRemappableRegion>
 {
     /// <summary>
     /// PDB span in pre-remap method version.

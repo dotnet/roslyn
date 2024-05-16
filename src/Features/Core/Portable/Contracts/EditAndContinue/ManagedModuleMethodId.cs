@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 /// </summary>
 [DataContract]
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-internal readonly struct ManagedModuleMethodId : IEquatable<ManagedModuleMethodId>
+public readonly struct ManagedModuleMethodId : IEquatable<ManagedModuleMethodId>
 {
     /// <summary>
     /// Creates a ManagedModuleMethodId.

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 /// <param name="ilOffset">IL offset for the instruction.</param>
 [DataContract]
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-internal readonly struct ManagedInstructionId(
+public readonly struct ManagedInstructionId(
     ManagedMethodId method,
     int ilOffset) : IEquatable<ManagedInstructionId>
 {

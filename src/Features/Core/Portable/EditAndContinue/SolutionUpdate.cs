@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal readonly struct SolutionUpdate(
+public readonly struct SolutionUpdate(
     ModuleUpdates moduleUpdates,
     ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions,
     ImmutableArray<ProjectBaseline> projectBaselines,

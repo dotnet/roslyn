@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 /// Do not change the value for any of the preexisting status, as this is the value 
 /// used when reporting telemetry.
 /// </remarks>
-internal enum ManagedHotReloadAvailabilityStatus
+public enum ManagedHotReloadAvailabilityStatus
 {
     /// <summary>
     /// Applying changes is available to the current session.

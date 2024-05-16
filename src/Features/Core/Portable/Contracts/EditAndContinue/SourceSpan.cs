@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 /// </summary>
 [DataContract]
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-internal readonly struct SourceSpan : IEquatable<SourceSpan>
+public readonly struct SourceSpan : IEquatable<SourceSpan>
 {
     /// <summary>
     /// Creates a TextSpan.

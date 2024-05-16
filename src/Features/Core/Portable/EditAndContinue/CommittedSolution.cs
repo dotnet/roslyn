@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// Encapsulates access to the last committed solution.
 /// We don't want to expose the solution directly since access to documents must be gated by out-of-sync checks.
 /// </summary>
-internal sealed class CommittedSolution
+public sealed class CommittedSolution
 {
     private readonly DebuggingSession _debuggingSession;
 
     private Solution _solution;
 
-    internal enum DocumentState
+    public enum DocumentState
     {
         None = 0,
 

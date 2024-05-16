@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 /// <param name="ilOffset">Old IL offset of the active statement.</param>
 /// <param name="newSpan">Updated text span for the active statement.</param>
 [DataContract]
-internal readonly struct ManagedActiveStatementUpdate(
+public readonly struct ManagedActiveStatementUpdate(
     ManagedModuleMethodId method,
     int ilOffset,
     SourceSpan newSpan)

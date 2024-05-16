@@ -11,7 +11,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial struct SymbolKey
+public partial struct SymbolKey
 {
     private sealed class TupleTypeSymbolKey : AbstractSymbolKey<INamedTypeSymbol>
     {

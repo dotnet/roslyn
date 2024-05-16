@@ -9,7 +9,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 [DataContract]
-internal readonly struct ManagedHotReloadUpdate(
+public readonly struct ManagedHotReloadUpdate(
     Guid module,
     string moduleName,
     ImmutableArray<byte> ilDelta,

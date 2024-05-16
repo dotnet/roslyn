@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 /// Service for providing helper functionality to a language service regarding hot reload and Edit and Continue operations.
 /// This is currently exported through MEF.
 /// </summary>
-internal interface IManagedHotReloadService
+public interface IManagedHotReloadService
 {
     /// <summary>
     /// Retrieves a list of active statements for the debugging session.

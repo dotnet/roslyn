@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 /// <param name="method">Method ID.</param>
 [DataContract]
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-internal readonly struct ManagedMethodId(
+public readonly struct ManagedMethodId(
     Guid module,
     ManagedModuleMethodId method) : IEquatable<ManagedMethodId>
 {

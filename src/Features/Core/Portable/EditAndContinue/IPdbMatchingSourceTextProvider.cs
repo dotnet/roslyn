@@ -11,13 +11,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal interface IPdbMatchingSourceTextProvider
+public interface IPdbMatchingSourceTextProvider
 {
     // TODO: Return SourceText (https://github.com/dotnet/roslyn/issues/64504) or text changes (if we can maintain baseline)
     ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken);
 }
 
-internal sealed class NullPdbMatchingSourceTextProvider : IPdbMatchingSourceTextProvider
+public sealed class NullPdbMatchingSourceTextProvider : IPdbMatchingSourceTextProvider
 {
     public static readonly NullPdbMatchingSourceTextProvider Instance = new();
 

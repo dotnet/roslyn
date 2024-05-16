@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// <summary>
 /// Exposes EnC and Hot Reload session state to in-proc components.
 /// </summary>
-internal interface IEditAndContinueSessionTracker
+public interface IEditAndContinueSessionTracker
 {
     /// <summary>
     /// True while Hot Reload or EnC session is active.

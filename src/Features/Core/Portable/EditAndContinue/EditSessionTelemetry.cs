@@ -11,9 +11,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 // EncEditSessionInfo is populated on a background thread and then read from the UI thread
-internal sealed class EditSessionTelemetry
+public sealed class EditSessionTelemetry
 {
-    internal readonly struct Data(EditSessionTelemetry telemetry)
+    public readonly struct Data(EditSessionTelemetry telemetry)
     {
         public readonly ImmutableArray<(ushort EditKind, ushort SyntaxKind, Guid projectId)> RudeEdits = telemetry._rudeEdits.AsImmutable();
         public readonly ImmutableArray<string> EmitErrorIds = telemetry._emitErrorIds.AsImmutable();

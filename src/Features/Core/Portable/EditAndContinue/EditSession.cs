@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal sealed class EditSession
+public sealed class EditSession
 {
     internal readonly DebuggingSession DebuggingSession;
     internal readonly EditSessionTelemetry Telemetry;
@@ -466,7 +466,7 @@ internal sealed class EditSession
     /// <summary>
     /// Enumerates <see cref="DocumentId"/>s of changed (not added or removed) <see cref="Document"/>s (not additional nor analyzer config).
     /// </summary>
-    internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(Project oldProject, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
+    public static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(Project oldProject, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         Debug.Assert(oldProject.Id == newProject.Id);
 
