@@ -48,8 +48,7 @@ internal partial class CSharpSyntaxTreeFactoryService
         {
             if (_lazyText == null)
             {
-                var sourceText = SourceTextExtensions.CreateSourceText(GetRoot(cancellationToken), Encoding, _checksumAlgorithm, cancellationToken);
-                Interlocked.CompareExchange(ref _lazyText, sourceText, null);
+                Interlocked.CompareExchange(ref _lazyText, GetRoot(cancellationToken).GetText(Encoding, _checksumAlgorithm), null);
             }
 
             return _lazyText;
