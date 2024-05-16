@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -4353,6 +4354,60 @@ public partial class C
 
             var indexer = ((CSharpCompilation)verifier.Compilation).GetMember<NamedTypeSymbol>("C").Indexers.Single();
             Assert.Equal("p1", indexer.Parameters.Single().Name);
+        }
+
+        [Fact]
+        public void BindExpressionInPropertyWithoutAccessors()
+        {
+            // Exercise an assertion in 'BinderFactoryVisitor.VisitAccessorDeclaration'.
+            var source = """
+                class C
+                {
+                    int X = 1;
+                    public int P
+                    {
+                        Console.Write(X);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,9): warning CS0414: The field 'C.X' is assigned but its value is never used
+                //     int X = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("C.X").WithLocation(3, 9),
+                // (4,16): error CS0548: 'C.P': property or indexer must have at least one accessor
+                //     public int P
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("C.P").WithLocation(4, 16),
+                // (6,9): error CS1014: A get or set accessor expected
+                //         Console.Write(X);
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "Console").WithLocation(6, 9),
+                // (6,16): error CS1014: A get or set accessor expected
+                //         Console.Write(X);
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, ".").WithLocation(6, 16),
+                // (6,17): error CS1014: A get or set accessor expected
+                //         Console.Write(X);
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "Write").WithLocation(6, 17),
+                // (6,22): error CS1513: } expected
+                //         Console.Write(X);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(6, 22),
+                // (6,24): error CS8124: Tuple must contain at least two elements.
+                //         Console.Write(X);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(6, 24),
+                // (6,25): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //         Console.Write(X);
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 25),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.ToString() == "X").Last();
+            Assert.Equal(SyntaxKind.TupleElement, node.Parent!.Kind());
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
         // PROTOTYPE(partial-properties): override partial property where base has modopt

@@ -290,7 +290,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     if ((object)propertySymbol != null)
                                     {
                                         accessor = (parent.Kind() == SyntaxKind.GetAccessorDeclaration) ? propertySymbol.GetMethod : propertySymbol.SetMethod;
-                                        // PROTOTYPE(partial-properties): check if a property with no accessors could fail this assertion, in which case we should either adjust the assertion or remove it.
                                         Debug.Assert(accessor is not null || parent.HasErrors);
                                     }
                                     break;
