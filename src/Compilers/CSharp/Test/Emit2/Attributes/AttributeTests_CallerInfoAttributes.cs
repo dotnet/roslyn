@@ -5859,7 +5859,7 @@ void M(int i, [CallerArgumentExpression(""i"")] in string s = ""default value"")
                 using System.Runtime.CompilerServices;
                 using System.Runtime.InteropServices;
 
-                partial class C
+                public partial class C
                 {
                     public static void Main()
                     {
@@ -5881,6 +5881,22 @@ void M(int i, [CallerArgumentExpression(""i"")] in string s = ""default value"")
 
             var verifier = CompileAndVerify(source, expectedOutput: "1");
             verifier.VerifyDiagnostics();
+
+            var source1 = """
+                class D
+                {
+                    void M()
+                    {
+                        var c = new C();
+                        c.set_Item(1);
+                    }
+                }
+                """;
+            var comp1 = CreateCompilation(source1, references: [verifier.Compilation.EmitToImageReference()]);
+            comp1.VerifyEmitDiagnostics(
+                // (6,11): error CS0571: 'C.this[int].set': cannot explicitly call operator or accessor
+                //         c.set_Item(1);
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_Item").WithArguments("C.this[int].set").WithLocation(6, 11));
         }
 
         [Fact]

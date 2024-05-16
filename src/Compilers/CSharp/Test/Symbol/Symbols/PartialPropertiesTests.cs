@@ -3160,10 +3160,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             AssertEx.Equal(["A(1)", "B(1)", "A(2)", "B(2)"], accessor.PartialImplementationPart!.GetAttributes().ToStrings());
         }
 
-        [Fact]
-        public void Attributes_SetAccessor()
+        [Theory]
+        [CombinatorialData]
+        public void Attributes_SetAccessor(bool definitionFirst)
         {
-            var source = """
+            var definitionPart = """
+                    public partial int P
+                    {
+                        get;
+                        [A(1), B(1)]
+                        set;
+                    }
+                """;
+
+            var implementationPart = """
+                    public partial int P
+                    {
+                        get => 1;
+                        [A(2), B(2)]
+                        set { }
+                    }
+                """;
+
+            var source = $$"""
                 #pragma warning disable CS9113 // Primary constructor parameter is unread
 
                 using System;
@@ -3176,19 +3195,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
                 partial class C
                 {
-                    public partial int P
-                    {
-                        get => 1;
-                        [A(2), B(2)]
-                        set { }
-                    }
+                    {{(definitionFirst ? definitionPart : implementationPart)}}
 
-                    public partial int P
-                    {
-                        get;
-                        [A(1), B(1)]
-                        set;
-                    }
+                    {{(definitionFirst ? implementationPart : definitionPart)}}
                 }
                 """;
 
@@ -3327,27 +3336,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 partial class C
                 {
                     [Attr]
-                    public partial int P { [Attr] get; [Attr] [param: Attr] set; } // 1 (param)
+                    public partial int P
+                    {
+                        [Attr]
+                        get;
+
+                        [Attr]
+                        [param: Attr] set; // 1
+                    }
 
                     [Attr] // 2
-                    public partial int P { [Attr] get => 1; [Attr] [param: Attr] set { } } // 3, 4 (accessors)
+                    public partial int P
+                    {
+                        [Attr] // 3
+                        get => 1;
+
+                        [Attr] // 4
+                        [param: Attr] set { }
+                    }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (8,55): error CS0579: Duplicate 'Attr' attribute
-                //     public partial int P { [Attr] get; [Attr] [param: Attr] set; } // 1 (param)
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(8, 55),
-                // (10,6): error CS0579: Duplicate 'Attr' attribute
+                // (14,17): error CS0579: Duplicate 'Attr' attribute
+                //         [param: Attr] set; // 1
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(14, 17),
+                // (17,6): error CS0579: Duplicate 'Attr' attribute
                 //     [Attr] // 2
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(10, 6),
-                // (11,29): error CS0579: Duplicate 'Attr' attribute
-                //     public partial int P { [Attr] get => 1; [Attr] [param: Attr] set { } } // 3, 4 (accessors)
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(11, 29),
-                // (11,46): error CS0579: Duplicate 'Attr' attribute
-                //     public partial int P { [Attr] get => 1; [Attr] [param: Attr] set { } } // 3, 4 (accessors)
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(11, 46));
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(17, 6),
+                // (20,10): error CS0579: Duplicate 'Attr' attribute
+                //         [Attr] // 3
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(20, 10),
+                // (23,10): error CS0579: Duplicate 'Attr' attribute
+                //         [Attr] // 4
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(23, 10));
 
             var property = comp.GetMember<SourcePropertySymbol>("C.P");
             AssertEx.Equal(["Attr", "Attr"], property.GetAttributes().ToStrings());
@@ -3367,33 +3390,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 partial class C
                 {
                     [Attr]
-                    public partial int this[[Attr] int x, [Attr] int y] { [Attr] get; [Attr] [param: Attr] set; } // 1, 2, 3 (param)
+                    public partial int this[
+                        [Attr] int x, // 1
+                        [Attr] int y] // 2
+                    {
+                        [Attr] get;
+                        [Attr]
+                        [param: Attr] set; // 3
+                    }
 
                     [Attr] // 4
-                    public partial int this[[Attr] int x, [Attr] int y] { [Attr] get => 1; [Attr] [param: Attr] set { } } // 5, 6 (accessor)
+                    public partial int this[
+                        [Attr] int x,
+                        [Attr] int y]
+                    {
+                        [Attr] // 5
+                        get => 1;
+
+                        [Attr] // 6
+                        [param: Attr] set { }
+                    }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (8,30): error CS0579: Duplicate 'Attr' attribute
-                //     public partial int this[[Attr] int x, [Attr] int y] { [Attr] get; [Attr] [param: Attr] set; } // 1, 2, 3 (param)
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(8, 30),
-                // (8,44): error CS0579: Duplicate 'Attr' attribute
-                //     public partial int this[[Attr] int x, [Attr] int y] { [Attr] get; [Attr] [param: Attr] set; } // 1, 2, 3 (param)
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(8, 44),
-                // (8,86): error CS0579: Duplicate 'Attr' attribute
-                //     public partial int this[[Attr] int x, [Attr] int y] { [Attr] get; [Attr] [param: Attr] set; } // 1, 2, 3 (param)
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(8, 86),
-                // (10,6): error CS0579: Duplicate 'Attr' attribute
+                // (9,10): error CS0579: Duplicate 'Attr' attribute
+                //         [Attr] int x, // 1
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(9, 10),
+                // (10,10): error CS0579: Duplicate 'Attr' attribute
+                //         [Attr] int y] // 2
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(10, 10),
+                // (14,17): error CS0579: Duplicate 'Attr' attribute
+                //         [param: Attr] set; // 3
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(14, 17),
+                // (17,6): error CS0579: Duplicate 'Attr' attribute
                 //     [Attr] // 4
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(10, 6),
-                // (11,60): error CS0579: Duplicate 'Attr' attribute
-                //     public partial int this[[Attr] int x, [Attr] int y] { [Attr] get => 1; [Attr] [param: Attr] set { } } // 5, 6 (accessor)
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(11, 60),
-                // (11,77): error CS0579: Duplicate 'Attr' attribute
-                //     public partial int this[[Attr] int x, [Attr] int y] { [Attr] get => 1; [Attr] [param: Attr] set { } } // 5, 6 (accessor)
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(11, 77));
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(17, 6),
+                // (22,10): error CS0579: Duplicate 'Attr' attribute
+                //         [Attr] // 5
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(22, 10),
+                // (25,10): error CS0579: Duplicate 'Attr' attribute
+                //         [Attr] // 6
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr").WithArguments("Attr").WithLocation(25, 10));
 
             var property = (SourcePropertySymbol)comp.GetMember<NamedTypeSymbol>("C").Indexers.Single();
             AssertEx.Equal(["Attr", "Attr"], property.GetAttributes().ToStrings());
@@ -4036,6 +4075,112 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("[Obsolete]", "")]
+        [InlineData("", "[Obsolete]")]
+        public void Obsolete_05(string defAttrs, string implAttrs)
+        {
+            var source = $$"""
+                using System;
+
+                partial class C
+                {
+                    {{defAttrs}}
+                    public partial int this[int x] { get; }
+
+                    {{implAttrs}}
+                    public partial int this[int x] { get => x; }
+                }
+
+                class D
+                {
+                    void M()
+                    {
+                        var c = new C();
+                        _ = c[1]; // 1
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (17,13): warning CS0612: 'C.this[int]' is obsolete
+                //         _ = c[1]; // 1
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c[1]").WithArguments("C.this[int]").WithLocation(17, 13));
+        }
+
+        [Theory]
+        [InlineData("[Obsolete]", "")]
+        [InlineData("", "[Obsolete]")]
+        public void Obsolete_06(string defAttrs, string implAttrs)
+        {
+            var source = $$"""
+                using System;
+
+                partial class C
+                {
+                    public partial int this[int x] { {{defAttrs}} get; }
+
+                    public partial int this[int x] { {{implAttrs}} get => x; }
+                }
+
+                class D
+                {
+                    void M()
+                    {
+                        var c = new C();
+                        _ = c[1]; // 1
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,13): warning CS0612: 'C.this[int].get' is obsolete
+                //         _ = c[1]; // 1
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c[1]").WithArguments("C.this[int].get").WithLocation(15, 13));
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnly()
+        {
+            var source = $$"""
+                using System.Runtime.InteropServices;
+
+                partial class C
+                {
+                    [UnmanagedCallersOnly] // 1
+                    public partial int P1 { get; }
+                    public partial int P1 => 1;
+
+                    public partial int P2 { get; }
+                    [UnmanagedCallersOnly] // 2
+                    public partial int P2 => 1;
+
+                    public partial int P3 { [UnmanagedCallersOnly] get; } // 3
+                    public partial int P3 => 1;
+
+                    public partial int P4 { get; }
+                    public partial int P4 { [UnmanagedCallersOnly] get => 1; } // 4
+                }
+                """;
+
+            var comp = CreateCompilation([source, UnmanagedCallersOnlyAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (5,6): error CS0592: Attribute 'UnmanagedCallersOnly' is not valid on this declaration type. It is only valid on 'method' declarations.
+                //     [UnmanagedCallersOnly] // 1
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "UnmanagedCallersOnly").WithArguments("UnmanagedCallersOnly", "method").WithLocation(5, 6),
+                // (10,6): error CS0592: Attribute 'UnmanagedCallersOnly' is not valid on this declaration type. It is only valid on 'method' declarations.
+                //     [UnmanagedCallersOnly] // 2
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "UnmanagedCallersOnly").WithArguments("UnmanagedCallersOnly", "method").WithLocation(10, 6),
+                // (13,30): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                //     public partial int P3 { [UnmanagedCallersOnly] get; } // 3
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(13, 30),
+                // (17,30): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                //     public partial int P4 { [UnmanagedCallersOnly] get => 1; } // 4
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(17, 30));
         }
 
         // PROTOTYPE(partial-properties): override partial property where base has modopt

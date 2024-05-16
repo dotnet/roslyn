@@ -472,8 +472,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ImmutableArray<ParameterSymbol> implParameters = this.ContainingSymbol switch
                 {
-                    SourceMemberMethodSymbol method => method.PartialImplementationPart?.Parameters ?? default,
-                    SourcePropertySymbol property => property.PartialImplementationPart?.Parameters ?? default,
+                    SourceMemberMethodSymbol { PartialImplementationPart.Parameters: { } parameters } => parameters,
+                    SourcePropertySymbol { PartialImplementationPart.Parameters: { } parameters } => parameters,
                     _ => default
                 };
 
@@ -482,6 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
+                Debug.Assert(!this.ContainingSymbol.IsPartialImplementation());
                 return (SourceParameterSymbol)implParameters[this.Ordinal];
             }
         }
@@ -492,8 +493,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ImmutableArray<ParameterSymbol> defParameters = this.ContainingSymbol switch
                 {
-                    SourceMemberMethodSymbol method => method.PartialDefinitionPart?.Parameters ?? default,
-                    SourcePropertySymbol property => property.PartialDefinitionPart?.Parameters ?? default,
+                    SourceMemberMethodSymbol { PartialDefinitionPart.Parameters: { } parameters } => parameters,
+                    SourcePropertySymbol { PartialDefinitionPart.Parameters: { } parameters } => parameters,
                     _ => default
                 };
 
@@ -502,6 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
+                Debug.Assert(!this.ContainingSymbol.IsPartialDefinition());
                 return (SourceParameterSymbol)defParameters[this.Ordinal];
             }
         }
@@ -520,7 +522,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            // If this symbol has a non-null PartialImplementationPart, we should have accessed this method through that implementation symbol instead
+            // Attributes on parameters in partial members are owned by the parameter in the implementation part.
+            // If this symbol has a non-null PartialImplementationPart, we should have accessed this method through that implementation symbol.
             Debug.Assert(PartialImplementationPart is null);
 
             if (PartialDefinitionPart is { } definitionPart)

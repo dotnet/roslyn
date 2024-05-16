@@ -641,6 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // For example, the 'value' parameter of a set accessor.
             if (PartialDefinitionPart is { } definition)
             {
+                Debug.Assert(MethodKind == MethodKind.PropertySet);
                 return OneOrMany.Create(AttributeDeclarationList, ((SourcePropertyAccessorSymbol)definition).AttributeDeclarationList);
             }
 

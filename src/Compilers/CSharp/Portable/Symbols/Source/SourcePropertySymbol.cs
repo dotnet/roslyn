@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
+            // Attributes on partial properties are owned by the definition part.
             // If this symbol has a non-null PartialDefinitionPart, we should have accessed this method through that definition symbol instead
             Debug.Assert(PartialDefinitionPart is null);
 
