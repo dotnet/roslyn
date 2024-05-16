@@ -133,7 +133,7 @@ $@"{LogoAndHelpPrompt}
 > from x in await GetStuffAsync()
 . where x > 2
 . select x * x
-Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
+Enumerable.ArrayWhereSelectIterator<int, int> {{ 9, 16, 25 }}
 > ", runner.Console.Out.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
