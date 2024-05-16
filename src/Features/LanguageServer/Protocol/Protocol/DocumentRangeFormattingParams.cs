@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents the parameter that is sent with textDocument/rangeFormatting message.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentRangeFormattingParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class DocumentRangeFormattingParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the identifier for the text document to be formatted.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
         {
             get;
@@ -27,7 +26,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the selection range to be formatted.
         /// </summary>
-        [DataMember(Name = "range")]
+        [JsonPropertyName("range")]
         public Range Range
         {
             get;
@@ -37,7 +36,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the formatting options.
         /// </summary>
-        [DataMember(Name = "options")]
+        [JsonPropertyName("options")]
         public FormattingOptions Options
         {
             get;

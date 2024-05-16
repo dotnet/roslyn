@@ -2,13 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using Roslyn.LanguageServer.Protocol;
+using System.Text.Json.Serialization;
 
 namespace Roslyn.LanguageServer.Protocol
 {
@@ -17,14 +11,13 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentChangeRegistrationOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class TextDocumentChangeRegistrationOptions : TextDocumentRegistrationOptions
     {
         /// <summary>
         /// How documents are synced to the server. See <see cref="TextDocumentSyncKind.Full"/>
 	    /// and <see cref="TextDocumentSyncKind.Incremental"/>.
         /// </summary>
-        [DataMember(Name = "syncKind")]
+        [JsonPropertyName("syncKind")]
         public TextDocumentSyncKind SyncKind
         {
             get;

@@ -4,20 +4,18 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents extensions of <see cref="ReferenceParams"/> passed as parameter of find reference requests.
     /// </summary>
-    [DataContract]
     internal class VSInternalReferenceParams : ReferenceParams
     {
         /// <summary>
         /// Gets or sets a value indicating the scope of returned items.
         /// </summary>
-        [DataMember(Name = "_vs_scope")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_scope")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalItemOrigin? Scope
         {
             get;

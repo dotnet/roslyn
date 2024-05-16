@@ -4,14 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
     /// Enum which represents the various reason why code actions were requested.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionTriggerKind">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal enum CodeActionTriggerKind
     {
         /// <summary>

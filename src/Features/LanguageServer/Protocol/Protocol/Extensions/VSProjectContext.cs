@@ -5,18 +5,18 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// <see cref="VSProjectContext"/> represents a project context.
     /// </summary>
-    [DataContract]
     internal class VSProjectContext : IEquatable<VSProjectContext>
     {
         /// <summary>
         /// Gets or sets the label for the project context.
         /// </summary>
-        [DataMember(Name = "_vs_label", IsRequired = true)]
+        [JsonPropertyName("_vs_label")]
+        [JsonRequired]
         public string Label
         {
             get;
@@ -26,7 +26,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the unique identifier of the project context.
         /// </summary>
-        [DataMember(Name = "_vs_id", IsRequired = true)]
+        [JsonPropertyName("_vs_id")]
+        [JsonRequired]
         public string Id
         {
             get;
@@ -36,7 +37,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the context kind of the project context which is used to determine its associated icon.
         /// </summary>
-        [DataMember(Name = "_vs_kind")]
+        [JsonPropertyName("_vs_kind")]
         public VSProjectKind Kind
         {
             get;

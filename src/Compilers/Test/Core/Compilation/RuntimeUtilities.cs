@@ -27,14 +27,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #endif
         internal static bool IsCoreClrRuntime => !IsDesktopRuntime;
 
+        private static int? CoreClrRuntimeVersion { get; } = IsDesktopRuntime
+            ? null
+            : typeof(object).Assembly.GetName().Version.Major;
+
         internal static bool IsCoreClr6Runtime
             => IsCoreClrRuntime && RuntimeInformation.FrameworkDescription.StartsWith(".NET 6.", StringComparison.Ordinal);
 
         internal static bool IsCoreClr8OrHigherRuntime
-            => IsCoreClrRuntime && RuntimeInformation.FrameworkDescription.StartsWith(".NET 8.", StringComparison.Ordinal);
+            => CoreClrRuntimeVersion is { } v && v >= 8;
 
         internal static bool IsCoreClr9OrHigherRuntime
-            => IsCoreClrRuntime && RuntimeInformation.FrameworkDescription.StartsWith(".NET 9.", StringComparison.Ordinal);
+            => CoreClrRuntimeVersion is { } v && v >= 9;
+
 #if NET9_0_OR_GREATER
 #error Make the above check be an #if NET9_OR_GREATER when we add net8 support to build
 #endif

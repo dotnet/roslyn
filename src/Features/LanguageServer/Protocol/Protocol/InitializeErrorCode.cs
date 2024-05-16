@@ -4,14 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
     /// Enum representing the possible reasons for an initialization error.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initializeErrorCodes">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal enum InitializeErrorCode
     {
         /// <summary>

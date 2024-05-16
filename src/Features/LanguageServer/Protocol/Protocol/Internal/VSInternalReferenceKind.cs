@@ -4,8 +4,6 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Diagnostics.CodeAnalysis;
-
     /// <summary>
     /// Enum which represents the various reference kinds.
     /// </summary>

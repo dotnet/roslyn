@@ -4,15 +4,13 @@
 
 using System;
 using System.Composition;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Newtonsoft.Json;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -125,14 +123,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await server.ExecuteRequestAsync<TestRequestTypeThree, string>(TestDocumentHandler.MethodName, request, CancellationToken.None));
         }
 
-        [DataContract]
-        internal record TestRequestTypeOne([property: DataMember(Name = "textDocument"), JsonProperty(Required = Required.Always)] TextDocumentIdentifier TextDocumentIdentifier);
+        internal record TestRequestTypeOne([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
 
-        [DataContract]
-        internal record TestRequestTypeTwo([property: DataMember(Name = "textDocument"), JsonProperty(Required = Required.Always)] TextDocumentIdentifier TextDocumentIdentifier);
+        internal record TestRequestTypeTwo([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
 
-        [DataContract]
-        internal record TestRequestTypeThree([property: DataMember(Name = "someValue")] string SomeValue);
+        internal record TestRequestTypeThree([property: JsonPropertyName("someValue")] string SomeValue);
 
         [ExportCSharpVisualBasicStatelessLspService(typeof(TestDocumentHandler)), PartNotDiscoverable, Shared]
         [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]

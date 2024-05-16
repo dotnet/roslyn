@@ -5,7 +5,8 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using Newtonsoft.Json;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Converter used to serialize and deserialize classes extending types defined in the
@@ -14,28 +15,46 @@ namespace Roslyn.LanguageServer.Protocol
     /// <typeparam name="TBase">Base class that is specified in the
     /// Microsoft.VisualStudio.LanguageServer.Protocol package.</typeparam>
     /// <typeparam name="TExtension">Extension class that extends TBase.</typeparam>
-    internal class VSExtensionConverter<TBase, TExtension> : JsonConverter
-        where TExtension : TBase
+    internal class VSExtensionConverter<TBase, TExtension> : JsonConverter<TBase>
+    where TExtension : TBase
     {
-        /// <inheritdoc/>
-        public override bool CanWrite => false;
+        private JsonSerializerOptions? _trimmedOptions;
 
-        /// <inheritdoc/>
-        public override bool CanConvert(Type objectType)
+        public override TBase? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return objectType == typeof(TBase);
+            return JsonSerializer.Deserialize<TExtension>(ref reader, options);
         }
 
-        /// <inheritdoc/>
-        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+        public override void Write(Utf8JsonWriter writer, TBase value, JsonSerializerOptions options)
         {
-            return serializer.Deserialize<TExtension>(reader);
+            // System.Text.Json doesn't serialize properties from derived classes by default, and there's no 'readonly' converters
+            // like Newtonsoft has.
+            if (value is TExtension extension)
+            {
+                JsonSerializer.Serialize(writer, extension, options);
+            }
+            else
+            {
+                // There's no ability to fallback to a 'default' serialization, so we clone our options
+                // and exclude this converter from it to prevent a stack overflow.
+                JsonSerializer.Serialize(writer, (object)value!, DropConverter(options));
+            }
         }
 
-        /// <inheritdoc/>
-        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        private JsonSerializerOptions DropConverter(JsonSerializerOptions options)
         {
-            throw new NotImplementedException();
+            if (_trimmedOptions != null)
+            {
+                return _trimmedOptions;
+            }
+
+            lock (this)
+            {
+                options = new System.Text.Json.JsonSerializerOptions(options);
+                options.Converters.Remove(this);
+                _trimmedOptions = options;
+                return options;
+            }
         }
     }
 }

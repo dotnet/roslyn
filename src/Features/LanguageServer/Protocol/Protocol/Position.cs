@@ -5,15 +5,13 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents a position on a text document.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#position">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class Position : IEquatable<Position>
     {
         /// <summary>
@@ -37,7 +35,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the line number.
         /// </summary>
-        [DataMember(Name = "line")]
+        [JsonPropertyName("line")]
         public int Line
         {
             get;
@@ -47,7 +45,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the character number.
         /// </summary>
-        [DataMember(Name = "character")]
+        [JsonPropertyName("character")]
         public int Character
         {
             get;

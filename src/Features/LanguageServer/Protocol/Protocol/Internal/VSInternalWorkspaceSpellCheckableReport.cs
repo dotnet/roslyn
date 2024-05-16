@@ -2,23 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Text.Json.Serialization;
+
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Runtime.Serialization;
-    using System.Text;
-
     /// <summary>
     /// Report for workspace spell checkable range request.
     /// </summary>
-    [DataContract]
     internal class VSInternalWorkspaceSpellCheckableReport : VSInternalSpellCheckableRangeReport, ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the document for which the spell checkable ranges are returned.
         /// </summary>
-        [DataMember(Name = "_vs_textDocument", IsRequired = true)]
+        [JsonPropertyName("_vs_textDocument")]
+        [JsonRequired]
         public TextDocumentIdentifier TextDocument { get; set; }
     }
 }

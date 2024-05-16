@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class containing the set of code action kinds that are supported.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class CodeActionKindSetting
     {
         /// <summary>
         /// Gets or sets the code actions kinds the client supports.
         /// </summary>
-        [DataMember(Name = "valueSet")]
+        [JsonPropertyName("valueSet")]
         public CodeActionKind[] ValueSet
         {
             get;

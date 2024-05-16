@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents a possible result value of the 'textDocument/prepareRename' request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_prepareRename">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class RenameRange
     {
         /// <summary>
         /// Gets or sets the range of the string to rename.
         /// </summary>
-        [DataMember(Name = "range")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("range")]
+        [JsonRequired]
         public Range Range
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the placeholder text of the string content to be renamed.
         /// </summary>
-        [DataMember(Name = "placeholder")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("placeholder")]
+        [JsonRequired]
         public string Placeholder
         {
             get;

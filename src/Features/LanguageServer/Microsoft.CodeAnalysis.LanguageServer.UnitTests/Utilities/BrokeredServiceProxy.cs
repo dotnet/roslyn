@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 /// <summary>
 /// A wrapper which takes a service but actually sends calls to it through JsonRpc to ensure we can actually use the service across a wire.
 /// </summary>
-internal sealed class BrokeredServiceProxy<T> : IAsyncDisposable where T : class
+internal sealed class BrokeredServiceProxy<T> : System.IAsyncDisposable where T : class
 {
     /// <summary>
     /// A task that cane awaited to assert the rest of the fields in this class being assigned and non-null.
@@ -31,8 +32,8 @@ internal sealed class BrokeredServiceProxy<T> : IAsyncDisposable where T : class
 
         async Task CreateServerAsync()
         {
-            // Ensure caller can proceed.
-            await Task.Yield().ConfigureAwait(false);
+            // Always yield to ensure caller can proceed.
+            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 
             var serverMultiplexingStream = await MultiplexingStream.CreateAsync(serverStream);
             var serverChannel = await serverMultiplexingStream.AcceptChannelAsync("");
@@ -46,8 +47,8 @@ internal sealed class BrokeredServiceProxy<T> : IAsyncDisposable where T : class
 
         async Task CreateClientAsync()
         {
-            // Ensure caller can proceed.
-            await Task.Yield().ConfigureAwait(false);
+            // Always yield to ensure caller can proceed.
+            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 
             var clientMultiplexingStream = await MultiplexingStream.CreateAsync(clientStream);
             var clientChannel = await clientMultiplexingStream.OfferChannelAsync("");

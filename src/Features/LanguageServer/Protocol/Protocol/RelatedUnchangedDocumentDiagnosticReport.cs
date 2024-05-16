@@ -6,23 +6,21 @@ namespace Roslyn.LanguageServer.Protocol;
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing an unchanged diagnostic report with a set of related documents.
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#relatedUnchangedDocumentDiagnosticReport">Language Server Protocol specification</see> for additional information.
 /// </summary>
-[DataContract]
 [Kind(DocumentDiagnosticReportKind.Unchanged)]
 internal class RelatedUnchangedDocumentDiagnosticReport : UnchangedDocumentDiagnosticReport
 {
     /// <summary>
     /// Gets or sets the map of related document diagnostic reports.
     /// </summary>
-    [DataMember(Name = "relatedDocuments")]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("relatedDocuments")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<Uri, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>? RelatedDocuments
     {
         get;

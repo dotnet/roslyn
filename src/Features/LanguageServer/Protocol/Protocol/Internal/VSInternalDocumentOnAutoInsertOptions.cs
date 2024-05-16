@@ -4,18 +4,17 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the options for on auto insert.
     /// </summary>
-    [DataContract]
     internal class VSInternalDocumentOnAutoInsertOptions
     {
         /// <summary>
         /// Gets or sets trigger characters for on auto insert.
         /// </summary>
-        [DataMember(Name = "_vs_triggerCharacters")]
+        [JsonPropertyName("_vs_triggerCharacters")]
         public string[] TriggerCharacters
         {
             get;

@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.Serialization;
 using Roslyn.LanguageServer.Protocol;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -15,13 +14,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal sealed class RoslynDocumentSymbol : DocumentSymbol
     {
-        [DataMember(IsRequired = false, Name = "glyph")]
+        [JsonPropertyName("glyph")]
         public int Glyph { get; set; }
 
         // Deliberately override the value in the base so that our serializers/deserializers know to include the custom
         // data we have on the children as well.
-        [DataMember(Name = "children")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("children")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public new RoslynDocumentSymbol[]? Children
         {
             get => (RoslynDocumentSymbol[]?)base.Children;

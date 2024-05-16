@@ -4,21 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the options for execute command support.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#executeCommandOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class ExecuteCommandOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets the commands that are to be executed on the server.
         /// </summary>
-        [DataMember(Name = "commands")]
+        [JsonPropertyName("commands")]
         public string[] Commands
         {
             get;
@@ -28,8 +26,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
-        [DataMember(Name = "workDoneProgress")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("workDoneProgress")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WorkDoneProgress { get; init; }
     }
 }

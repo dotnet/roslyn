@@ -5,8 +5,7 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the parameters sent for a textDocument/documentHighlight request.
@@ -20,8 +19,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value of the PartialResultToken instance.
         /// </summary>
-        [DataMember(Name = "partialResultToken")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("partialResultToken")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<DocumentHighlight[]>? PartialResultToken
         {
             get;
