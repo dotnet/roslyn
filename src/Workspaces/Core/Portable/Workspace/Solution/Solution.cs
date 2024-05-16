@@ -237,7 +237,7 @@ public partial class Solution
     /// <summary>
     /// Gets a document or a source generated document in this solution with the specified document ID.
     /// </summary>
-    internal ValueTask<Document?> GetDocumentAsync(DocumentId? documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
+    public ValueTask<Document?> GetDocumentAsync(DocumentId? documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
     {
         var project = GetProject(documentId?.ProjectId);
         if (project == null)
@@ -252,7 +252,7 @@ public partial class Solution
     /// <summary>
     /// Gets a document, additional document, analyzer config document or a source generated document in this solution with the specified document ID.
     /// </summary>
-    internal ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId? documentId, CancellationToken cancellationToken = default)
+    public ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId? documentId, CancellationToken cancellationToken = default)
     {
         var project = GetProject(documentId?.ProjectId);
         if (project == null)
@@ -504,8 +504,7 @@ public partial class Solution
     /// Create a new solution instance with the project specified updated to have
     /// the specified hasAllInformation.
     /// </summary>
-    // TODO: https://github.com/dotnet/roslyn/issues/42449 make it public
-    internal Solution WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
+    public Solution WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
     {
         CheckContainsProject(projectId);
 
@@ -516,8 +515,7 @@ public partial class Solution
     /// Create a new solution instance with the project specified updated to have
     /// the specified runAnalyzers.
     /// </summary>
-    // TODO: https://github.com/dotnet/roslyn/issues/42449 make it public
-    internal Solution WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
+    public Solution WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
     {
         CheckContainsProject(projectId);
 

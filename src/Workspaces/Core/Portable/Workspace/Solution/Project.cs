@@ -253,7 +253,7 @@ public partial class Project
     /// <summary>
     /// Gets a document or a source generated document in this solution with the specified document ID.
     /// </summary>
-    internal async ValueTask<Document?> GetDocumentAsync(DocumentId documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
+    public async ValueTask<Document?> GetDocumentAsync(DocumentId documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
     {
         var document = GetDocument(documentId);
         if (document != null || !includeSourceGenerated)
@@ -267,7 +267,7 @@ public partial class Project
     /// <summary>
     /// Gets a document, additional document, analyzer config document or a source generated document in this solution with the specified document ID.
     /// </summary>
-    internal async ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId documentId, CancellationToken cancellationToken = default)
+    public async ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId documentId, CancellationToken cancellationToken = default)
     {
         var document = GetDocument(documentId) ?? GetAdditionalDocument(documentId) ?? GetAnalyzerConfigDocument(documentId);
         if (document != null)
