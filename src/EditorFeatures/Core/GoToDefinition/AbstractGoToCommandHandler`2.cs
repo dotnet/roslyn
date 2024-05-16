@@ -251,7 +251,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         IFindUsagesContext findContext, Document document, int position, CancellationToken cancellationToken)
     {
         // Ensure that we relinquish the thread so that the caller can proceed with their work.
-        await Task.Yield().ConfigureAwait(false);
+        await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 
         using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
         {
