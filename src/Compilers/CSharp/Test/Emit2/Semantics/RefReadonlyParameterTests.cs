@@ -176,7 +176,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 [return: RequiresLocation] ref readonly int M7() => throw null;
                 [RequiresLocation] void M8() { }
                 [RequiresLocation] public int field;
-                [RequiresLocation] int Property { get => field; set => field = value; }
+                [RequiresLocation] int Property { get => @field; set => @field = value; }
             }
             """;
 
@@ -215,7 +215,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //     [RequiresLocation] public int field;
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(12, 6),
             // 0.cs(13,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
-            //     [RequiresLocation] int Property { get => field; set => field = value; }
+            //     [RequiresLocation] int Property { get => @field; set => @field = value; }
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(13, 6));
 
         var expectedDiagnostics = new[]
@@ -251,7 +251,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //     [RequiresLocation] public int field;
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(12, 6),
             // 0.cs(13,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
-            //     [RequiresLocation] int Property { get => field; set => field = value; }
+            //     [RequiresLocation] int Property { get => @field; set => @field = value; }
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(13, 6)
         };
 

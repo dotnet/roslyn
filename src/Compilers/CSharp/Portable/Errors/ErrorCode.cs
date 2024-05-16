@@ -2324,6 +2324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember = 9245,
         ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike = 9246,
         ERR_BadAllowByRefLikeEnumerator = 9247,
+        INF_IdentifierConflictWithContextualKeyword = 9248,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

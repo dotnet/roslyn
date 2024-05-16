@@ -1782,10 +1782,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     assertBindIdentifierTargets(inMethodBinder, identifierMap, methodBody, diagnostics);
 #endif
 
+                    var compilation = bodyBinder.Compilation;
+
+                    if (method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet)
+                    {
+                        var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
+                        if (requiredVersion > compilation.LanguageVersion)
+                        {
+                            ReportFieldOrValueContextualKeywordConflicts(method, methodBody, diagnostics);
+                        }
+                    }
+
                     BoundNode methodBodyForSemanticModel = methodBody;
                     NullableWalker.SnapshotManager? snapshotManager = null;
                     ImmutableDictionary<Symbol, Symbol>? remappedSymbols = null;
-                    var compilation = bodyBinder.Compilation;
 
                     nullableInitialState = getInitializerState(methodBody);
 
@@ -2147,6 +2157,112 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 #endif
+        }
+
+        /// <summary>
+        /// Report a diagnostic for any 'field' or 'value' identifier in the bound tree where the
+        /// meaning will change when the identifier is considered a contextual keyword.
+        /// </summary>
+        private static void ReportFieldOrValueContextualKeywordConflicts(MethodSymbol method, BoundNode node, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet);
+            Debug.Assert(method.AssociatedSymbol is PropertySymbol);
+
+            PooledHashSet<IdentifierNameSyntax>? valueIdentifiers = null;
+
+            foreach (var syntax in node.Syntax.DescendantNodesAndSelf())
+            {
+                // PROTOTYPE: Handle all syntax fields with <Kind Name="IdentifierToken"/> from syntax.xml.
+                switch (syntax)
+                {
+                    case IdentifierNameSyntax identifierName:
+                        if (isFieldOrValueInKeywordContext(method, identifierName.Identifier, out bool isValue))
+                        {
+                            if (isValue)
+                            {
+                                // Report conflicts with "value" later, after collecting all references and
+                                // dropping any that refer to the implicit parameter.
+                                valueIdentifiers ??= PooledHashSet<IdentifierNameSyntax>.GetInstance();
+                                valueIdentifiers.Add(identifierName);
+                            }
+                            else
+                            {
+                                reportConflict(identifierName, identifierName.Identifier, diagnostics);
+                            }
+                        }
+                        break;
+                    case VariableDeclaratorSyntax variableDeclarator:
+                        reportConflictIfAny(method, variableDeclarator, variableDeclarator.Identifier, diagnostics);
+                        break;
+                    case ParameterSyntax parameter:
+                        reportConflictIfAny(method, parameter, parameter.Identifier, diagnostics);
+                        break;
+                }
+            }
+
+            if (valueIdentifiers is { })
+            {
+                // Remove references to the implicit "value" parameter.
+                var checker = new ValueIdentifierChecker(valueIdentifiers);
+                checker.Visit(node);
+                foreach (var identifierName in valueIdentifiers)
+                {
+                    reportConflict(identifierName, identifierName.Identifier, diagnostics);
+                }
+                valueIdentifiers.Free();
+            }
+
+            static bool isFieldOrValueInKeywordContext(MethodSymbol method, SyntaxToken identifierToken, out bool isValue)
+            {
+                switch (identifierToken.Text)
+                {
+                    case "field":
+                        isValue = false;
+                        return method.AssociatedSymbol is PropertySymbol { IsIndexer: false };
+                    case "value":
+                        isValue = true;
+                        return method.MethodKind == MethodKind.PropertySet;
+                    default:
+                        isValue = false;
+                        return false;
+                }
+            }
+
+            static void reportConflictIfAny(MethodSymbol method, SyntaxNode syntax, SyntaxToken identifierToken, BindingDiagnosticBag diagnostics)
+            {
+                if (isFieldOrValueInKeywordContext(method, identifierToken, out _))
+                {
+                    reportConflict(syntax, identifierToken, diagnostics);
+                }
+            }
+
+            static void reportConflict(SyntaxNode syntax, SyntaxToken identifierToken, BindingDiagnosticBag diagnostics)
+            {
+                var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
+                diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, identifierToken.Text, requiredVersion.ToDisplayString());
+            }
+        }
+
+        private sealed class ValueIdentifierChecker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            private readonly HashSet<IdentifierNameSyntax> _valueIdentifiers;
+
+            public ValueIdentifierChecker(HashSet<IdentifierNameSyntax> valueIdentifiers)
+            {
+                _valueIdentifiers = valueIdentifiers;
+            }
+
+            public override BoundNode? VisitParameter(BoundParameter node)
+            {
+                Debug.Assert(node.Syntax is IdentifierNameSyntax);
+
+                if (node.ParameterSymbol is SynthesizedPropertyAccessorValueParameterSymbol { Name: "value" })
+                {
+                    _valueIdentifiers.Remove((IdentifierNameSyntax)node.Syntax);
+                }
+
+                return base.VisitParameter(node);
+            }
         }
 
 #if DEBUG
