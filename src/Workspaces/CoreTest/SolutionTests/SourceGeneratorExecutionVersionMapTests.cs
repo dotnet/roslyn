@@ -18,6 +18,7 @@ public sealed class SourceGeneratorExecutionVersionMapTests
     {
         var projectId1 = ProjectId.CreateNewId();
         var projectId2 = ProjectId.CreateNewId();
+        Assert.NotEqual(projectId1, projectId2);
 
         var project1Kvp = new KeyValuePair<ProjectId, SourceGeneratorExecutionVersion>(projectId1, new(MajorVersion: 1, MinorVersion: 1));
         var project2Kvp = new KeyValuePair<ProjectId, SourceGeneratorExecutionVersion>(projectId2, new(MajorVersion: 2, MinorVersion: 2));
