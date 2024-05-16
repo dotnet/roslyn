@@ -121,6 +121,9 @@ select x * x
 ");
             runner.RunInteractive();
 
+            var iteratorType = RuntimeUtilities.IsCoreClr9OrHigherRuntime
+                ? "ArrayWhereSelectIterator"
+                : "WhereSelectArrayIterator";
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"{LogoAndHelpPrompt}
 > async Task<int[]> GetStuffAsync()
@@ -133,7 +136,7 @@ $@"{LogoAndHelpPrompt}
 > from x in await GetStuffAsync()
 . where x > 2
 . select x * x
-Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
+Enumerable.{iteratorType}<int, int> {{ 9, 16, 25 }}
 > ", runner.Console.Out.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
