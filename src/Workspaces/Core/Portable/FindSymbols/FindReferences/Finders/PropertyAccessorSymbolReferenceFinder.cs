@@ -60,7 +60,7 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
         await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    protected override async void FindReferencesInDocument<TData>(
+    protected override void FindReferencesInDocument<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,

@@ -76,7 +76,7 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
         return Task.CompletedTask;
     }
 
-    protected override async void FindReferencesInDocument<TData>(
+    protected override void FindReferencesInDocument<TData>(
         IMethodSymbol methodSymbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
