@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
 internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IPropertySymbol>
 {
-    public static readonly PropertyAccessorSymbolReferenceFinder Instance = new();
+    public static readonly PropertySymbolReferenceFinder Instance = new();
 
     private PropertySymbolReferenceFinder()
     {
