@@ -12,11 +12,11 @@ using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Roslyn.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
+using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions;
 
@@ -93,7 +93,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
 
         var topLevelAction = Assert.Single(results.Where(action => action.Title == titlePath[0]));
         var introduceConstant = topLevelAction.Children.FirstOrDefault(
-            r => ((JObject)r.Data!).ToObject<CodeActionResolveData>()!.UniqueIdentifier == titlePath[1]);
+            r => JsonSerializer.Deserialize<CodeActionResolveData>((JsonElement)r.Data!, ProtocolConversions.LspJsonSerializerOptions)!.UniqueIdentifier == titlePath[1]);
 
         AssertJsonEquals(expected, introduceConstant);
     }
@@ -323,8 +323,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
 
     private static CodeActionResolveData? GetCodeActionResolveData(CodeAction codeAction)
     {
-        return ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
-
+        return JsonSerializer.Deserialize<CodeActionResolveData>((JsonElement)codeAction.Data!, ProtocolConversions.LspJsonSerializerOptions);
     }
 
     internal static CodeActionParams CreateCodeActionParams(LSP.Location caret)
@@ -349,7 +348,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
             Title = title,
             Kind = kind,
             Children = children,
-            Data = JToken.FromObject(data),
+            Data = JsonSerializer.SerializeToElement(data, ProtocolConversions.LspJsonSerializerOptions),
             Diagnostics = diagnostics,
             Edit = edit,
             Group = groupName,

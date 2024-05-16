@@ -5596,7 +5596,7 @@ class C
 Main: Entered
 Main: L'a' = 1
 Main: L'b' = 2
-Main: L4 = System.Linq.Enumerable+SelectArrayIterator`2[System.Int32,System.Int32]
+Main: L4 = System.Linq.Enumerable+ArraySelectIterator`2[System.Int32,System.Int32]
 Main: Entered lambda '<Main>b__0'
 <Main>b__0: P'item'[0] = 10
 <Main>b__0: Returned

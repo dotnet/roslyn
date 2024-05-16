@@ -5,20 +5,18 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Response class when asking server to resolve the rendering information of a string kind.
     /// </summary>
-    [DataContract]
     internal class VSInternalIconMapping : IEquatable<VSInternalIconMapping>
     {
         /// <summary>
         /// Gets or sets the ImageElements for a certain kind.
         /// </summary>
-        [DataMember(Name = "_vs_images")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_images")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public VSImageId[]? Images
         {
             get;
@@ -28,8 +26,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the tags for a certain kind. To be used in the absence of ImageIds.
         /// </summary>
-        [DataMember(Name = "_vs_tags")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_tags")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string[]? Tags
         {
             get;

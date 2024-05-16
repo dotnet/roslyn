@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Collections;
@@ -48,14 +49,14 @@ internal readonly record struct SourceGeneratorExecutionVersion(
 /// Helper construct to allow a mapping from <see cref="ProjectId"/>s to <see cref="SourceGeneratorExecutionVersion"/>.
 /// Limited to just the surface area the workspace needs.
 /// </summary>
-internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> map)
+internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSortedDictionary<ProjectId, SourceGeneratorExecutionVersion> map)
 {
     public static readonly SourceGeneratorExecutionVersionMap Empty = new();
 
-    public ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> Map { get; } = map;
+    public ImmutableSortedDictionary<ProjectId, SourceGeneratorExecutionVersion> Map { get; } = map;
 
     public SourceGeneratorExecutionVersionMap()
-        : this(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Empty)
+        : this(ImmutableSortedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Empty)
     {
     }
 
@@ -75,6 +76,8 @@ internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSegmentedDicti
 
     public void WriteTo(ObjectWriter writer)
     {
+        // Writing out the dictionary in order is fine.  That's because it's a sorted dictionary, and ProjectIds are
+        // naturally comparable.
         writer.WriteInt32(Map.Count);
         foreach (var (projectId, version) in Map)
         {
@@ -86,7 +89,7 @@ internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSegmentedDicti
     public static SourceGeneratorExecutionVersionMap Deserialize(ObjectReader reader)
     {
         var count = reader.ReadInt32();
-        var builder = ImmutableSegmentedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>();
+        var builder = ImmutableSortedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>();
         for (var i = 0; i < count; i++)
         {
             var projectId = ProjectId.ReadFrom(reader);

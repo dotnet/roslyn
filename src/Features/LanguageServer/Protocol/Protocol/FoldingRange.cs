@@ -4,21 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing a folding range in a document.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#foldingRange">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class FoldingRange
     {
         /// <summary>
         /// Gets or sets the start line value.
         /// </summary>
-        [DataMember(Name = "startLine")]
+        [JsonPropertyName("startLine")]
         public int StartLine
         {
             get;
@@ -28,8 +26,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the start character value.
         /// </summary>
-        [DataMember(Name = "startCharacter")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("startCharacter")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? StartCharacter
         {
             get;
@@ -39,7 +37,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the end line value.
         /// </summary>
-        [DataMember(Name = "endLine")]
+        [JsonPropertyName("endLine")]
         public int EndLine
         {
             get;
@@ -49,8 +47,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the end character value.
         /// </summary>
-        [DataMember(Name = "endCharacter")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("endCharacter")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? EndCharacter
         {
             get;
@@ -60,8 +58,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the folding range kind.
         /// </summary>
-        [DataMember(Name = "kind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("kind")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public FoldingRangeKind? Kind
         {
             get;
@@ -71,8 +69,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the collapsedText.
         /// </summary>
-        [DataMember(Name = "collapsedText")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("collapsedText")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? CollapsedText
         {
             get;

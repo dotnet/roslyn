@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
@@ -18,26 +18,23 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 {
     private const string ProvideRazorDynamicFileInfoMethodName = "razor/provideDynamicFileInfo";
 
-    [DataContract]
     private class ProvideDynamicFileParams
     {
-        [DataMember(Name = "razorFiles")]
+        [JsonPropertyName("razorFiles")]
         public required Uri[] RazorFiles { get; set; }
     }
 
-    [DataContract]
     private class ProvideDynamicFileResponse
     {
-        [DataMember(Name = "generatedFiles")]
+        [JsonPropertyName("generatedFiles")]
         public required Uri[] GeneratedFiles { get; set; }
     }
 
     private const string RemoveRazorDynamicFileInfoMethodName = "razor/removeDynamicFileInfo";
 
-    [DataContract]
     private class RemoveDynamicFileParams
     {
-        [DataMember(Name = "razorFiles")]
+        [JsonPropertyName("razorFiles")]
         public required Uri[] RazorFiles { get; set; }
     }
 

@@ -4,20 +4,18 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// <see cref="VSLocation"/> extends <see cref="Location"/> providing additional properties used by Visual Studio.
     /// </summary>
-    [DataContract]
     internal class VSLocation : Location
     {
         /// <summary>
         /// Gets or sets the project name to be displayed to user.
         /// </summary>
-        [DataMember(Name = "_vs_projectName")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_projectName")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? ProjectName { get; set; }
 
         /// <summary>
@@ -25,8 +23,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// In case the actual path on disk would be confusing for users, this should be a friendly display name.
         /// This doesn't have to correspond to a real file path, but must be parsable by the <see cref="System.IO.Path.GetFileName(string)" /> method.
         /// </summary>
-        [DataMember(Name = "_vs_displayPath")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_displayPath")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? DisplayPath { get; set; }
     }
 }

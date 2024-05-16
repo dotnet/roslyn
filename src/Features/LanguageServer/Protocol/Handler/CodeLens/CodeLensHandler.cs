@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeLens;
@@ -18,7 +17,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using LSP = Roslyn.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 

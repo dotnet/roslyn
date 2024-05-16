@@ -4,24 +4,23 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Extension class for CompletionItem with fields specific to Visual Studio functionalities.
     /// </summary>
-    [DataContract]
     internal class VSInternalCommitCharacter
     {
         /// <summary>
         /// Gets or sets the commit character.
         /// </summary>
-        [DataMember(Name = "_vs_character")]
+        [JsonPropertyName("_vs_character")]
         public string Character { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the commit character should be inserted or not.
         /// </summary>
-        [DataMember(Name = "_vs_insert")]
+        [JsonPropertyName("_vs_insert")]
         public bool Insert { get; set; }
     }
 }

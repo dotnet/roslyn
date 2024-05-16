@@ -4,21 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// A class representing a code lens command that should be shown alongside source code.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeLens">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class CodeLens
     {
         /// <summary>
         /// Gets or sets the range that the code lens applies to.
         /// </summary>
-        [DataMember(Name = "range")]
+        [JsonPropertyName("range")]
         public Range Range
         {
             get;
@@ -28,8 +26,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the command associated with this code lens.
         /// </summary>
-        [DataMember(Name = "command")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("command")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Command? Command
         {
             get;
@@ -39,8 +37,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the data that should be preserved between a textDocument/codeLens request and a codeLens/resolve request.
         /// </summary>
-        [DataMember(Name = "data")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("data")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? Data
         {
             get;

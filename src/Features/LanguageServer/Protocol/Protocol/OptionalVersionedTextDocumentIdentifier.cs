@@ -6,22 +6,20 @@ namespace Roslyn.LanguageServer.Protocol
 {
     using System;
     using System.Globalization;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents a text document, but optionally has a version identifier.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#optionalVersionedTextDocumentIdentifier">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class OptionalVersionedTextDocumentIdentifier : TextDocumentIdentifier, IEquatable<OptionalVersionedTextDocumentIdentifier>
     {
         /// <summary>
         /// Gets or sets the version of the document.
         /// </summary>
-        [DataMember(Name = "version")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        [JsonPropertyName("version")]
         public int? Version
         {
             get;

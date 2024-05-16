@@ -5,21 +5,19 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing a description for an error code.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeDescription">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class CodeDescription : IEquatable<CodeDescription>
     {
         /// <summary>
         /// Gets or sets URI to open with more information about the diagnostic error.
         /// </summary>
-        [DataMember(Name = "href")]
+        [JsonPropertyName("href")]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri Href
         {

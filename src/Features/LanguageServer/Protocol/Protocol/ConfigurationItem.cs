@@ -5,22 +5,20 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents an configuration item.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#configurationItem">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class ConfigurationItem
     {
         /// <summary>
         /// Gets or sets the scope to get the configuration section for.
         /// </summary>
-        [DataMember(Name = "scopeUri")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("scopeUri")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri? ScopeUri
         {
@@ -31,8 +29,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the requested configuration section.
         /// </summary>
-        [DataMember(Name = "section")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("section")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Section
         {
             get;

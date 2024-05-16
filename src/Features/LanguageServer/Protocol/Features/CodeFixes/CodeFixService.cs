@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 CancellationToken cancellationToken)
             {
                 // Ensure we yield here so the caller can continue on.
-                await AwaitExtensions.ConfigureAwait(Task.Yield(), false);
+                await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 
                 await foreach (var collection in StreamFixesAsync(
                     document, spanToDiagnostics, fixAllForInSpan: false,

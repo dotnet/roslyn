@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the options for signature help support.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SignatureHelpOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets the characters that trigger signature help automatically.
         /// </summary>
-        [DataMember(Name = "triggerCharacters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("triggerCharacters")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string[]? TriggerCharacters
         {
             get;
@@ -30,8 +28,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the characters that re-trigger signature help
         /// when signature help is already showing.
         /// </summary>
-        [DataMember(Name = "retriggerCharacters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("retriggerCharacters")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string[]? RetriggerCharacters
         {
             get;
@@ -41,8 +39,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
-        [DataMember(Name = "workDoneProgress")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("workDoneProgress")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WorkDoneProgress { get; init; }
     }
 }

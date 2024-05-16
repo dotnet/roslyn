@@ -5,15 +5,13 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System.ComponentModel;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Value representing the kind of resource operations supported by the client.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#resourceOperationKind">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     [JsonConverter(typeof(StringEnumConverter<ResourceOperationKind>))]
     [TypeConverter(typeof(StringEnumConverter<ResourceOperationKind>.TypeConverter))]
     internal readonly record struct ResourceOperationKind(string Value) : IStringEnum

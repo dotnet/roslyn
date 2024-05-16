@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
     using Roslyn.Text.Adornments;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Extension class for signature help information which contains colorized label information.
     /// </summary>
-    [DataContract]
     internal class VSInternalSignatureInformation : SignatureInformation
     {
         /// <summary>
         /// Gets or sets the value representing the colorized label.
         /// </summary>
-        [DataMember(Name = "_vs_colorizedLabel")]
+        [JsonPropertyName("_vs_colorizedLabel")]
         [JsonConverter(typeof(ClassifiedTextElementConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ClassifiedTextElement? ColorizedLabel
         {
             get;

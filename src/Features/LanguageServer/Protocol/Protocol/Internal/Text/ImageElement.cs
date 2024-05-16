@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Text.Json.Serialization;
 using Roslyn.Core.Imaging;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.Text.Adornments;
 
+[JsonConverter(typeof(ImageElementConverter))]
 internal sealed class ImageElement
 {
     public static readonly ImageElement Empty = new(default, string.Empty);
@@ -17,6 +20,7 @@ internal sealed class ImageElement
     {
     }
 
+    [JsonConstructor]
     public ImageElement(ImageId imageId, string? automationName)
     {
         ImageId = imageId;
