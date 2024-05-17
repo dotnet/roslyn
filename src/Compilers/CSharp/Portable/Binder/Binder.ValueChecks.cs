@@ -4261,7 +4261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.AsOperator:
                 case BoundKind.AwaitExpression:
-                case BoundKind.ConditionalAccess: // PROTOTYPE(RefStructInterfaces): Conditional access is allowed on type parameters. Is current implementation correct for 'allows ref struct' case?
+                case BoundKind.ConditionalAccess:
                 case BoundKind.ConditionalReceiver:
                 case BoundKind.ArrayAccess:
                     // only possible in error cases (if possible at all)
@@ -4965,6 +4965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.AsOperator:
                 case BoundKind.AwaitExpression:
                 case BoundKind.ConditionalAccess:
+                case BoundKind.ConditionalReceiver:
                 case BoundKind.ArrayAccess:
                     // only possible in error cases (if possible at all)
                     return false;
@@ -5098,7 +5099,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //                case BoundKind.SequencePointExpression:
                     //                case BoundKind.SequencePointWithSpan:
                     //                case BoundKind.StateMachineScope:
-                    //                case BoundKind.ConditionalReceiver:
                     //                case BoundKind.ComplexConditionalReceiver:
                     //                case BoundKind.PreviousSubmissionReference:
                     //                case BoundKind.HostObjectMemberReference:
