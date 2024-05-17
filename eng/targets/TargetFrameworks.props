@@ -18,7 +18,6 @@
     <NetVSCode>net8.0</NetVSCode>
     <NetVSShared>net7.0;net8.0</NetVSShared>
     <NetRoslynBuildHostNetCoreVersion>net6.0</NetRoslynBuildHostNetCoreVersion>
-    <NetRoslynNext>net9.0</NetRoslynNext>
   </PropertyGroup>
 
   <!-- 
@@ -37,13 +36,10 @@
     -->
     <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' != 'Product'">
       <PropertyGroup>
-        <!-- TODO until we figure out what is up with NetPrevious -->
-        <NetPrevious>$(NetMinimum)</NetPrevious>
         <NetRoslyn>$(NetPrevious)</NetRoslyn>
         <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
         <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
         <NetRoslynBuildHostNetCoreVersion>$(NetPrevious)</NetRoslynBuildHostNetCoreVersion>
-        <NetRoslynNext>$(NetPrevious)</NetRoslynNext>
       </PropertyGroup>
     </When>
 
@@ -56,7 +52,6 @@
         <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
         <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
         <NetRoslynBuildHostNetCoreVersion>$(NetCurrent)</NetRoslynBuildHostNetCoreVersion>
-        <NetRoslynNext>$(NetCurrent)</NetRoslynNext>
       </PropertyGroup>
     </When>
 
