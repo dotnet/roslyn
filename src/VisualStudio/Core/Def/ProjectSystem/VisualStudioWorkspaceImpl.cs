@@ -29,6 +29,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
@@ -40,6 +41,7 @@ using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
@@ -132,12 +134,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
 
         _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
-            new ExternalErrorDiagnosticUpdateSource(
-                this,
-                exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
-                exportProvider.GetExportedValue<IGlobalOperationNotificationService>(),
-                exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
-                _threadingContext),
+            exportProvider.GetExportedValue<ExternalErrorDiagnosticUpdateSource>(),
             isThreadSafe: true);
 
         _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
