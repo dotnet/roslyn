@@ -2549,8 +2549,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = receiverOpt?.Type;
             if (receiverType?.IsRefLikeOrAllowsRefLikeType() == true && !IsReceiverRefReadOnly(symbol))
             {
-                // PROTOTYPE(RefStructInterfaces): We do not have a test that demonstrates that the statement below makes a difference.
-                //                                 If it is commented out, not a single test fails 
+                // https://github.com/dotnet/roslyn/issues/73550:
+                // We do not have a test that demonstrates that the statement below makes a difference.
+                // If it is commented out, not a single test fails 
                 escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
             }
 
@@ -4143,9 +4144,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
 
                 case BoundKind.AssignmentOperator:
-                    // PROTOTYPE(RefStructInterfaces): We do not have a test that demonstrates that the statement below makes a difference.
-                    //                                 If 'scopeOfTheContainingExpression' is always returned, not a single test fails.
-                    //                                 Same for the 'case BoundKind.NullCoalescingAssignmentOperator:' below.
+                    // https://github.com/dotnet/roslyn/issues/73549:
+                    // We do not have a test that demonstrates that the statement below makes a difference.
+                    // If 'scopeOfTheContainingExpression' is always returned, not a single test fails.
+                    // Same for the 'case BoundKind.NullCoalescingAssignmentOperator:' below.
                     return GetValEscape(((BoundAssignmentOperator)expr).Right, scopeOfTheContainingExpression);
 
                 case BoundKind.NullCoalescingAssignmentOperator:

@@ -20,8 +20,9 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class MetadataHelpers
     {
-        // PROTOTYPE(RefStructInterfaces): Remove this constant and refer to GenericParameterAttributes.AllowByRefLike directly once the new enum member becomes available.
-        //                                 See // https://github.com/dotnet/runtime/issues/68002#issuecomment-1942166436 for more details.
+        // https://github.com/dotnet/roslyn/issues/73548:
+        // Remove this constant and refer to GenericParameterAttributes.AllowByRefLike directly once the new enum member becomes available.
+        // See // https://github.com/dotnet/runtime/issues/68002#issuecomment-1942166436 for more details.
         public const System.Reflection.GenericParameterAttributes GenericParameterAttributesAllowByRefLike = (System.Reflection.GenericParameterAttributes)0x0020;
 
         public const char DotDelimiter = '.';
