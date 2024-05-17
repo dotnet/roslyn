@@ -45,21 +45,28 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         // Convert MEF exported service factories to the lazy LSP services that they create.
         foreach (var lazyServiceFactory in mefLspServiceFactories)
         {
-            serviceMap.Add(
-                lazyServiceFactory.Metadata.TypeRef.TypeName,
-                new(() => lazyServiceFactory.Value.CreateILspService(this, serverKind), lazyServiceFactory.Metadata));
+            var metadata = lazyServiceFactory.Metadata;
+
+            // Make sure that we only include services exported for the specified server kind (or NotSpecified).
+            if (metadata.ServerKind == serverKind ||
+                metadata.ServerKind == WellKnownLspServerKinds.Any)
+            {
+                serviceMap.Add(
+                    metadata.TypeRef.TypeName,
+                    new(() => lazyServiceFactory.Value.CreateILspService(this, serverKind), metadata));
+            }
         }
 
         foreach (var lazyService in mefLspServices)
         {
-            // Make sure that we only include services exported for the specified server kind (or NotSpecified).
-            if (lazyService.Metadata.ServerKind != serverKind &&
-                lazyService.Metadata.ServerKind != WellKnownLspServerKinds.Any)
-            {
-                continue;
-            }
+            var metadata = lazyService.Metadata;
 
-            serviceMap.Add(lazyService.Metadata.TypeRef.TypeName, lazyService);
+            // Make sure that we only include services exported for the specified server kind (or NotSpecified).
+            if (metadata.ServerKind == serverKind ||
+                metadata.ServerKind == WellKnownLspServerKinds.Any)
+            {
+                serviceMap.Add(metadata.TypeRef.TypeName, lazyService);
+            }
         }
 
         _lazyMefLspServices = serviceMap.ToFrozenDictionary();
