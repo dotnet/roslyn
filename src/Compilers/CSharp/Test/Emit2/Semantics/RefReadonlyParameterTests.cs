@@ -613,7 +613,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (1,2): error CS8358: Cannot use attribute constructor 'A.A(ref readonly int)' because it has 'in' or 'ref readonly' parameters.
             // [A(1)]
             Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(ref readonly int)").WithLocation(1, 2),
-            // (1,4): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // (1,4): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
             // [A(1)]
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "1").WithArguments("1").WithLocation(1, 4),
             // (7,2): error CS8358: Cannot use attribute constructor 'B.B(ref readonly int)' because it has 'in' or 'ref readonly' parameters.
@@ -801,10 +801,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CompileAndVerify(source, expectedOutput: "4445").VerifyDiagnostics(
-            // (6,20): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (6,20): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             // C.E((int p) => C.M(p));
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "p").WithArguments("1").WithLocation(6, 20),
-            // (7,20): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // (7,20): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
             // C.E((int p) => C.M(5));
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("1").WithLocation(7, 20));
     }
@@ -4906,7 +4906,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             modifier == ""
                 ? new[]
                 {
-                    // (6,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+                    // (6,11): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
                     //         M(x);
                     Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(6, 11)
                 }
