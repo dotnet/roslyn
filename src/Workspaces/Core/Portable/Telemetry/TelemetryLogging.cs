@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Telemetry;
 
@@ -132,6 +133,6 @@ internal static class TelemetryLogging
         // Create a fire and forget task to handle the next collection. This doesn't use IAsynchronousOperationListener
         // to track this work as no-one needs to ensure this is sent, and the create a new item of work
         // upon previous completion doesn't fit well in that model.
-        _ = PostCollectedTelemetryAsync(CancellationToken.None);
+        _ = PostCollectedTelemetryAsync(CancellationToken.None).ReportNonFatalErrorAsync();
     }
 }
