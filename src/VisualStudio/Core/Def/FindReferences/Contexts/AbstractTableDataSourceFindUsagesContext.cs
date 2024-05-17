@@ -65,6 +65,7 @@ internal partial class StreamingFindUsagesPresenter
         protected readonly IWpfTableControl2 TableControl;
 
         private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
+        private readonly AsyncBatchingWorkQueue _notifyQueue;
 
         protected readonly object Gate = new();
 
@@ -163,6 +164,18 @@ internal partial class StreamingFindUsagesPresenter
                 this.UpdateTableProgressAsync,
                 presenter._asyncListener,
                 CancellationTokenSource.Token);
+
+            // Similarly, updating the actual FAR window can be quite expensive (especially when there are thousands of
+            // results).  To limit the amount of work we do, we'll only update the window every 500ms.
+            _notifyQueue = new AsyncBatchingWorkQueue(
+                DelayTimeSpan.Medium,
+                cancellationToken =>
+                {
+                    _tableDataSink.FactorySnapshotChanged(this);
+                    return ValueTaskFactory.CompletedTask;
+                },
+                presenter._asyncListener,
+                CancellationTokenSource.Token);
         }
 
         protected abstract Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken);
@@ -203,7 +216,7 @@ internal partial class StreamingFindUsagesPresenter
         }
 
         protected void NotifyChange()
-            => _tableDataSink.FactorySnapshotChanged(this);
+            => _notifyQueue.AddWork();
 
         private void OnFindReferencesWindowClosed(object sender, EventArgs e)
         {
