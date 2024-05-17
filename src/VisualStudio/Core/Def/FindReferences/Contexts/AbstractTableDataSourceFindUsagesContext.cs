@@ -166,9 +166,9 @@ internal partial class StreamingFindUsagesPresenter
                 CancellationTokenSource.Token);
 
             // Similarly, updating the actual FAR window can be quite expensive (especially when there are thousands of
-            // results).  To limit the amount of work we do, we'll only update the window every 500ms.
+            // results).  To limit the amount of work we do, we'll only update the window every 250ms.
             _notifyQueue = new AsyncBatchingWorkQueue(
-                DelayTimeSpan.Medium,
+                DelayTimeSpan.Short,
                 cancellationToken =>
                 {
                     _tableDataSink.FactorySnapshotChanged(this);
