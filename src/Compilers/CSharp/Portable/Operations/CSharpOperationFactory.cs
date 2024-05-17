@@ -1881,7 +1881,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                      compilation.Conversions.
                                                                                          HasImplicitConversionToOrImplementsVarianceCompatibleInterface(enumeratorInfoOpt.GetEnumeratorInfo.Method.ReturnType,
                                                                                                                             iDisposable,
-                                                                                                                            ref discardedUseSiteInfo) :
+                                                                                                                            ref discardedUseSiteInfo,
+                                                                                                                            needSupportForRefStructInterfaces: out _) :
                                                                                      false,
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),

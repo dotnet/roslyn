@@ -236,10 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol disposableInterface = getDisposableInterface(hasAwait);
                 Debug.Assert((object)disposableInterface != null);
 
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
-                bool implementsIDisposable = implementsInterface(fromExpression, disposableInterface, ref useSiteInfo);
-
-                diagnostics.Add(syntax, useSiteInfo);
+                bool implementsIDisposable = implementsInterface(fromExpression, disposableInterface, diagnostics);
 
                 if (implementsIDisposable)
                 {
@@ -255,8 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Retry with a different assumption about whether the `using` is async
                     NamedTypeSymbol alternateInterface = getDisposableInterface(!hasAwait);
-                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    bool implementsAlternateIDisposable = implementsInterface(fromExpression, alternateInterface, ref discardedUseSiteInfo);
+                    bool implementsAlternateIDisposable = implementsInterface(fromExpression, alternateInterface, BindingDiagnosticBag.Discarded);
 
                     ErrorCode errorCode = implementsAlternateIDisposable
                         ? (hasAwait ? ErrorCode.ERR_NoConvToIAsyncDispWrongAsync : ErrorCode.ERR_NoConvToIDispWrongAsync)
@@ -268,19 +264,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            bool implementsInterface(bool fromExpression, NamedTypeSymbol targetInterface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            bool implementsInterface(bool fromExpression, NamedTypeSymbol targetInterface, BindingDiagnosticBag diagnostics)
             {
                 var conversions = originalBinder.Conversions;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
+                bool result;
+                bool needSupportForRefStructInterfaces;
+
                 if (fromExpression)
                 {
                     Debug.Assert(expressionOpt is { });
-                    return conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(expressionOpt, targetInterface, ref useSiteInfo);
+                    result = conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(expressionOpt, targetInterface, ref useSiteInfo, out needSupportForRefStructInterfaces);
                 }
                 else
                 {
                     Debug.Assert(declarationTypeOpt is { });
-                    return conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(declarationTypeOpt, targetInterface, ref useSiteInfo);
+                    result = conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(declarationTypeOpt, targetInterface, ref useSiteInfo, out needSupportForRefStructInterfaces);
                 }
+
+                diagnostics.Add(syntax, useSiteInfo);
+
+                if (needSupportForRefStructInterfaces &&
+                    (fromExpression ? expressionOpt!.Type : declarationTypeOpt)!.ContainingModule != originalBinder.Compilation.SourceModule)
+                {
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
+                }
+
+                return result;
             }
 
             NamedTypeSymbol getDisposableInterface(bool isAsync)
