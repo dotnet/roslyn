@@ -29,20 +29,21 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
         SegmentedList<ClassifiedSpan> result,
         CancellationToken cancellationToken)
     {
-        if (syntax is IdentifierNameSyntax name)
+        if (syntax is SimpleNameSyntax name)
             ClassifyTypeSyntax(name, semanticModel, result, cancellationToken);
     }
 
     public override ImmutableArray<Type> SyntaxNodeTypes { get; } =
     [
         typeof(IdentifierNameSyntax),
+        typeof(GenericNameSyntax),
     ];
 
     protected override bool IsParentAnAttribute(SyntaxNode node)
         => node.IsParentKind(SyntaxKind.Attribute);
 
     private void ClassifyTypeSyntax(
-        IdentifierNameSyntax name,
+        SimpleNameSyntax name,
         SemanticModel semanticModel,
         SegmentedList<ClassifiedSpan> result,
         CancellationToken cancellationToken)
@@ -57,7 +58,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private bool TryClassifySymbol(
-        IdentifierNameSyntax name,
+        SimpleNameSyntax name,
         SymbolInfo symbolInfo,
         SegmentedList<ClassifiedSpan> result)
     {
@@ -88,7 +89,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private static bool TryClassifyAmbiguousSymbol(
-        IdentifierNameSyntax name,
+        SimpleNameSyntax name,
         SymbolInfo symbolInfo,
         SegmentedList<ClassifiedSpan> result)
     {
@@ -122,7 +123,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private static bool TryClassifySymbol(
-        IdentifierNameSyntax name,
+        SimpleNameSyntax name,
         [NotNullWhen(returnValue: true)] ISymbol? symbol,
         out ClassifiedSpan classifiedSpan)
     {
@@ -153,7 +154,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
             return true;
         }
 
-        if (name is { Identifier.Text: "args" } &&
+        if (name is IdentifierNameSyntax { Identifier.Text: "args" } &&
             symbol is IParameterSymbol { ContainingSymbol: IMethodSymbol { Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName } })
         {
             classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
@@ -264,7 +265,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
             : ClassificationTypeNames.MethodName;
     }
 
-    private static bool IsInVarContext(IdentifierNameSyntax name)
+    private static bool IsInVarContext(SimpleNameSyntax name)
     {
         return
             name.CheckParent<RefTypeSyntax>(v => v.Type == name) ||
@@ -276,7 +277,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private static bool TryClassifyFromIdentifier(
-        IdentifierNameSyntax name,
+        SimpleNameSyntax name,
         SymbolInfo symbolInfo,
         SegmentedList<ClassifiedSpan> result)
     {
@@ -297,7 +298,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private static bool TryClassifyValueIdentifier(
-        IdentifierNameSyntax name,
+        SimpleNameSyntax name,
         SymbolInfo symbolInfo,
         SegmentedList<ClassifiedSpan> result)
     {
@@ -310,14 +311,14 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
         return false;
     }
 
-    private static bool TryClassifySomeContextualKeywordIdentifiersAsKeywords(IdentifierNameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
+    private static bool TryClassifySomeContextualKeywordIdentifiersAsKeywords(SimpleNameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
     {
         // Simple approach, if the user ever types one of identifiers from the list and it doesn't actually bind to anything, presume that
         // they intend to use it as a keyword. This works for all error
         // cases, while not conflicting with the extremely rare case where such identifiers might actually be used to
         // reference actual symbols with that names.
         if (symbolInfo.GetAnySymbol() is null &&
-            name is { Identifier.Text: "async" or "nameof" or "partial" })
+            name is IdentifierNameSyntax { Identifier.Text: "async" or "nameof" or "partial" })
         {
             result.Add(new(name.Span, ClassificationTypeNames.Keyword));
             return true;
