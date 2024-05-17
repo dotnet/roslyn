@@ -207,7 +207,6 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
             ? -1
             : symbol.Parameters.Length;
 
-        var implicitObjectKind = state.SyntaxFacts.SyntaxKinds.ImplicitObjectCreationExpression;
         FindReferencesInDocument(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
         return;
 
@@ -217,11 +216,12 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
         void CollectMatchingReferences(
             SyntaxNode node, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData)
         {
-            if (node.RawKind != implicitObjectKind)
+            var syntaxFacts = state.SyntaxFacts;
+            if (!syntaxFacts.IsImplicitObjectCreationExpression(node))
                 return;
 
             // if there are too few or too many arguments, then don't bother checking.
-            var actualArgumentCount = state.SyntaxFacts.GetArgumentsOfObjectCreationExpression(node).Count;
+            var actualArgumentCount = syntaxFacts.GetArgumentsOfObjectCreationExpression(node).Count;
             if (actualArgumentCount < minimumArgumentCount || actualArgumentCount > maximumArgumentCount)
                 return;
 

@@ -603,15 +603,18 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         var semanticFacts = state.SemanticFacts;
         var semanticModel = state.SemanticModel;
 
-        var topNameNode = node;
-        while (syntaxFacts.IsQualifiedName(topNameNode.Parent))
-            topNameNode = topNameNode.Parent;
-
-        var isInNamespaceNameContext = syntaxFacts.IsBaseNamespaceDeclaration(topNameNode.Parent);
-
-        return syntaxFacts.IsInNamespaceOrTypeContext(topNameNode)
+        return IsInNamespaceOrTypeContext()
             ? SymbolUsageInfo.Create(GetTypeOrNamespaceUsageInfo())
             : GetSymbolUsageInfoCommon();
+
+        bool IsInNamespaceOrTypeContext()
+        {
+            var current = node;
+            while (syntaxFacts.IsQualifiedName(current.Parent))
+                current = current.Parent;
+
+            return syntaxFacts.IsInNamespaceOrTypeContext(current);
+        }
 
         // Local functions.
         TypeOrNamespaceUsageInfo GetTypeOrNamespaceUsageInfo()
@@ -620,7 +623,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
                 ? TypeOrNamespaceUsageInfo.Qualified
                 : TypeOrNamespaceUsageInfo.None;
 
-            if (isInNamespaceNameContext)
+            if (semanticFacts.IsNamespaceDeclarationNameContext(semanticModel, node.SpanStart, cancellationToken))
             {
                 usageInfo |= TypeOrNamespaceUsageInfo.NamespaceDeclaration;
             }
@@ -694,18 +697,24 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
                     {
                         case SymbolKind.Namespace:
                             var namespaceUsageInfo = TypeOrNamespaceUsageInfo.None;
-                            if (isInNamespaceNameContext)
+                            if (semanticFacts.IsNamespaceDeclarationNameContext(semanticModel, node.SpanStart, cancellationToken))
+                            {
                                 namespaceUsageInfo |= TypeOrNamespaceUsageInfo.NamespaceDeclaration;
+                            }
 
                             if (IsNodeOrAnyAncestorLeftSideOfDot(node, syntaxFacts))
+                            {
                                 namespaceUsageInfo |= TypeOrNamespaceUsageInfo.Qualified;
+                            }
 
                             return SymbolUsageInfo.Create(namespaceUsageInfo);
 
                         case SymbolKind.NamedType:
                             var typeUsageInfo = TypeOrNamespaceUsageInfo.None;
                             if (IsNodeOrAnyAncestorLeftSideOfDot(node, syntaxFacts))
+                            {
                                 typeUsageInfo |= TypeOrNamespaceUsageInfo.Qualified;
+                            }
 
                             return SymbolUsageInfo.Create(typeUsageInfo);
 
@@ -717,7 +726,9 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
                         case SymbolKind.Local:
                             var valueUsageInfo = ValueUsageInfo.Read;
                             if (semanticFacts.IsWrittenTo(semanticModel, node, cancellationToken))
+                            {
                                 valueUsageInfo |= ValueUsageInfo.Write;
+                            }
 
                             return SymbolUsageInfo.Create(valueUsageInfo);
                     }
