@@ -16382,13 +16382,13 @@ class Program
                 // (9,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>?' to 'System.ReadOnlySpan<int>?'
                 //     static int M2() => M4(M3(), default);
                 Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>?", "System.ReadOnlySpan<int>?").WithLocation(9, 27),
-                // (13,45): error CS9504: The type 'ReadOnlySpan<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                // (13,45): error CS9244: The type 'ReadOnlySpan<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     static int M4(System.ReadOnlySpan<int>? x, Buffer10<int> y)
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "System.ReadOnlySpan<int>").WithLocation(13, 45),
                 // (18,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>?' to 'System.Span<int>?'
                 //     static int M5() => M6(M3(), default);
                 Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>?", "System.Span<int>?").WithLocation(18, 27),
-                // (20,37): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                // (20,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     static int M6(System.Span<int>? x, Buffer10<int> y)
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "System.Span<int>").WithLocation(20, 37)
                 );
@@ -16469,13 +16469,13 @@ class Program
                 // (9,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>' to 'System.ReadOnlySpan<int>?'
                 //     static int M2() => M4(M3(), default);
                 Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>", "System.ReadOnlySpan<int>?").WithLocation(9, 27),
-                // (13,45): error CS9504: The type 'ReadOnlySpan<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                // (13,45): error CS9244: The type 'ReadOnlySpan<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     static int M4(System.ReadOnlySpan<int>? x, Buffer10<int> y)
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "System.ReadOnlySpan<int>").WithLocation(13, 45),
                 // (18,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>' to 'System.Span<int>?'
                 //     static int M5() => M6(M3(), default);
                 Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>", "System.Span<int>?").WithLocation(18, 27),
-                // (20,37): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                // (20,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     static int M6(System.Span<int>? x, Buffer10<int> y)
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "System.Span<int>").WithLocation(20, 37)
                 );
@@ -22952,10 +22952,10 @@ struct Buffer4
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (7,37): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                // (7,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public static implicit operator System.Span<int>?(Buffer4 b) => new [] {1, 2, 3, 4}; 
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "System.Span<int>?").WithArguments("System.Nullable<T>", "T", "System.Span<int>").WithLocation(7, 37),
-                // (12,36): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                // (12,36): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         System.Console.WriteLine(((System.Span<int>?)b).Value[0]);
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "System.Span<int>?").WithArguments("System.Nullable<T>", "T", "System.Span<int>").WithLocation(12, 36)
                 );

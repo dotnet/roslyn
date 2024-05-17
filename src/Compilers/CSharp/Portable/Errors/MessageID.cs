@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureRefUnsafeInIteratorAsync = MessageBase + 12843,
 
-        IDS_FeatureRefStructInterfaces = MessageBase + 12950, // PROTOTYPE(RefStructInterfaces): Pack numbers
+        IDS_FeatureRefStructInterfaces = MessageBase + 12844,
     }
 
     // Message IDs may refer to strings that need to be localized.

@@ -26034,7 +26034,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,17): error CS9503: There is no target type for the collection expression.
+                // (7,17): error CS9176: There is no target type for the collection expression.
                 //         var v = []->Count;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 17));
         }
@@ -26097,7 +26097,7 @@ partial class Program
                 }
                 """;
             CreateCompilationWithIndexAndRangeAndSpan(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9500: Cannot initialize type 'Index' with a collection expression because the type is not constructible.
+                // (7,9): error CS9174: Cannot initialize type 'Index' with a collection expression because the type is not constructible.
                 //         []..;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("System.Index").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -26120,7 +26120,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9503: There is no target type for the collection expression.
+                // (7,9): error CS9176: There is no target type for the collection expression.
                 //         [] switch
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -26143,7 +26143,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9503: There is no target type for the collection expression.
+                // (7,9): error CS9176: There is no target type for the collection expression.
                 //         [] with { Count = 1, };
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -26166,7 +26166,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9503: There is no target type for the collection expression.
+                // (7,9): error CS9176: There is no target type for the collection expression.
                 //         [] is object;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -26189,7 +26189,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9503: There is no target type for the collection expression.
+                // (7,9): error CS9176: There is no target type for the collection expression.
                 //         [] as List<int>;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
