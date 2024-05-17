@@ -3,8 +3,6 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
-    <ImportDirectoryPackagesProps>false</ImportDirectoryPackagesProps>
     <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
   </PropertyGroup>
   <ItemGroup>
@@ -25,10 +23,6 @@
     <RestoreSources Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'">
       $(RestoreSources);
       https://devdiv.pkgs.visualstudio.com/_packaging/VS/nuget/v3/index.json;
-    </RestoreSources>
-    <RestoreSources Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'">
-      $(RestoreSources);
-      https://pkgs.dev.azure.com/devdiv/_packaging/dotnet-core-internal-tooling/nuget/v3/index.json
     </RestoreSources>
   </PropertyGroup>
 
