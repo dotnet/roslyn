@@ -75,24 +75,22 @@ internal static partial class SourceTextExtensions
         return TextChangeRange.Collapse(ranges);
     }
 
-    public static int IndexOf(this SourceText text, string searchString, int startIndex, bool caseSensitive)
+    public static int IndexOf(this SourceText text, string value, int startIndex, bool caseSensitive)
     {
-        if (searchString.Length == 0)
-            return -1;
+        var length = text.Length - value.Length;
+        var normalized = caseSensitive ? value : CaseInsensitiveComparison.ToLower(value);
 
-        var searchStringLength = searchString.Length;
-        var textEnd = text.Length - searchStringLength;
-
-        // Get the first character of the value to search for, with the correct case sensitivity.  This way, we don't
-        // have to call through ToLower when we're trying to find the starting point of a word match
-        var normalizedFirstChar = caseSensitive ? searchString[0] : CaseInsensitiveComparison.ToLower(searchString[0]);
-
-        for (var i = startIndex; i <= textEnd; i++)
+        for (var i = startIndex; i <= length; i++)
         {
             var match = true;
-            for (var j = 0; j < searchStringLength; j++)
+            for (var j = 0; j < normalized.Length; j++)
             {
-                if (!Match(GetValueChar(j), text[i + j], caseSensitive))
+                // just use indexer of source text. perf of indexer depends on actual implementation of SourceText.
+                // * all of our implementation at editor layer should provide either O(1) or O(log n).
+                //
+                // only one implementation we have that could have bad indexer perf is CompositeText with heavily modified text
+                // at compiler layer but I believe that being used in find all reference will be very rare if not none.
+                if (!Match(normalized[j], text[i + j], caseSensitive))
                 {
                     match = false;
                     break;
@@ -100,13 +98,12 @@ internal static partial class SourceTextExtensions
             }
 
             if (match)
+            {
                 return i;
+            }
         }
 
         return -1;
-
-        char GetValueChar(int index)
-            => index == 0 ? normalizedFirstChar : caseSensitive ? searchString[index] : CaseInsensitiveComparison.ToLower(searchString[index]);
     }
 
     public static int LastIndexOf(this SourceText text, string value, int startIndex, bool caseSensitive)
