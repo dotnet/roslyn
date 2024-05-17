@@ -34,13 +34,13 @@ internal abstract class AbstractExportLspServiceAttribute : ExportAttribute
     /// </summary>
     public string[] InterfaceNames { get; }
 
-    private readonly Lazy<byte[]>? _lazyHandlerMethodData;
+    private readonly Lazy<string?[]>? _lazyHandlerMethodData;
 
     /// <summary>
     /// If this this service implements <see cref="IMethodHandler"/>, returns a blob of binary data
     /// that encodes an array of <see cref="HandlerMethodDetails"/>s; otherwise <see langword="null"/>.
     /// </summary>
-    public byte[]? HandlerMethodData => _lazyHandlerMethodData?.Value;
+    public string?[]? HandlerMethodData => _lazyHandlerMethodData?.Value;
 
     protected AbstractExportLspServiceAttribute(
         Type serviceType, string contractName, Type contractType, bool isStateless, WellKnownLspServerKinds serverKind)
@@ -56,7 +56,26 @@ internal abstract class AbstractExportLspServiceAttribute : ExportAttribute
         InterfaceNames = Array.ConvertAll(serviceType.GetInterfaces(), t => t.AssemblyQualifiedName!);
 
         _lazyHandlerMethodData = typeof(IMethodHandler).IsAssignableFrom(serviceType)
-            ? new(() => MefSerialization.Serialize(HandlerMethodDetails.From(serviceType)))
+            ? new(() => CreateHandlerMethodData(serviceType))
             : null;
+    }
+
+    private static string?[] CreateHandlerMethodData(Type handlerType)
+    {
+        var handlerMethods = HandlerMethodDetails.From(handlerType);
+
+        var result = new string?[handlerMethods.Length * 5];
+
+        var index = 0;
+        foreach (var (methodName, language, requestTypeRef, responseTypeRef, requestContextTypeRef) in handlerMethods)
+        {
+            result[index++] = methodName;
+            result[index++] = language;
+            result[index++] = requestTypeRef?.TypeName;
+            result[index++] = responseTypeRef?.TypeName;
+            result[index++] = requestContextTypeRef.TypeName;
+        }
+
+        return result;
     }
 }

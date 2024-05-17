@@ -5,7 +5,9 @@
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -34,10 +36,38 @@ internal sealed class LspServiceMetadataView
         ServerKind = (WellKnownLspServerKinds)metadata[nameof(AbstractExportLspServiceAttribute.ServerKind)];
         IsStateless = (bool)metadata[nameof(AbstractExportLspServiceAttribute.IsStateless)];
 
-        var handlerMethodData = (byte[]?)metadata[nameof(AbstractExportLspServiceAttribute.HandlerMethodData)];
+        var handlerMethodData = (string[]?)metadata[nameof(AbstractExportLspServiceAttribute.HandlerMethodData)];
 
-        HandlerMethods = handlerMethodData is not null
-            ? MefSerialization.DeserializeHandlerMethods(handlerMethodData)
-            : null;
+        if (handlerMethodData is not null)
+        {
+            Contract.ThrowIfFalse(handlerMethodData.Length % 5 == 0);
+
+            var total = handlerMethodData.Length / 5;
+
+            var handlerMethods = new HandlerMethodDetails[total];
+
+            var index = 0;
+            for (var i = 0; i < total; i++)
+            {
+                var methodName = handlerMethodData[index++];
+                var language = handlerMethodData[index++];
+                var requestTypeName = handlerMethodData[index++];
+                var responseTypeName = handlerMethodData[index++];
+                var requestContextTypeName = handlerMethodData[index++];
+
+                handlerMethods[i] = new(
+                    methodName,
+                    language,
+                    TypeRef.From(requestTypeName),
+                    TypeRef.From(responseTypeName),
+                    TypeRef.From(requestContextTypeName));
+            }
+
+            HandlerMethods = ImmutableCollectionsMarshal.AsImmutableArray(handlerMethods);
+        }
+        else
+        {
+            HandlerMethods = null;
+        }
     }
 }
