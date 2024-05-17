@@ -38,16 +38,6 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
         typeof(IdentifierNameSyntax),
     ];
 
-    protected override int? GetRightmostNameArity(SyntaxNode node)
-    {
-        if (node is ExpressionSyntax expressionSyntax)
-        {
-            return expressionSyntax.GetRightmostName()?.Arity;
-        }
-
-        return null;
-    }
-
     protected override bool IsParentAnAttribute(SyntaxNode node)
         => node.IsParentKind(SyntaxKind.Attribute);
 
