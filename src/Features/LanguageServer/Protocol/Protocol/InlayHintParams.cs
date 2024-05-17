@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the parameters sent from the client to the server for a textDocument/inlayHint request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHintParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class InlayHintParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the document identifier to fetch inlay hints results for.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
         {
             get;
@@ -27,7 +26,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range to fetch inlay hints results for.
         /// </summary>
-        [DataMember(Name = "range")]
+        [JsonPropertyName("range")]
         public Range Range
         {
             get;

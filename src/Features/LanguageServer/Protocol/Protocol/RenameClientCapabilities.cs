@@ -4,25 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using System.Xml.Linq;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-    using static System.Net.Mime.MediaTypeNames;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents renaming client capabilities.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#renameClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class RenameClientCapabilities : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets a value indicating whether the client supports testing for validity of rename operations before execution.
         /// </summary>
-        [DataMember(Name = "prepareSupport")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("prepareSupport")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool PrepareSupport
         {
             get;
@@ -33,8 +28,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the value indicating the default behavior used by the client when the (`{ defaultBehavior: boolean }`)
         /// result is used in the 'textDocument/prepareRename' request.
         /// </summary>
-        [DataMember(Name = "prepareSupportDefaultBehavior")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("prepareSupportDefaultBehavior")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public PrepareSupportDefaultBehavior? PrepareSupportDefaultBehavior
         {
             get;
@@ -46,8 +41,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// operations returned via the rename request's workspace edit, by for example presenting the workspace edit in
         /// the user interface and asking for confirmation.
         /// </summary>
-        [DataMember(Name = "honorsChangeAnnotations")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("honorsChangeAnnotations")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool HonorsChangeAnnotations
         {
             get;

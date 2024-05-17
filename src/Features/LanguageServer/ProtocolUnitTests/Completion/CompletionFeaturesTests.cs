@@ -297,7 +297,7 @@ class A { }";
         AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
         Assert.Equal(false, resolvedItem.Command.Arguments[2]);
-        Assert.Equal((long)14, resolvedItem.Command.Arguments[3]);
+        Assert.Equal(14, resolvedItem.Command.Arguments[3]);
     }
 
     [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1755955")]
@@ -933,7 +933,7 @@ public class C
                 AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
 
                 Assert.Equal(false, resolvedItem.Command.Arguments[2]);
-                Assert.Equal((long)-1, resolvedItem.Command.Arguments[3]);
+                Assert.Equal(-1, resolvedItem.Command.Arguments[3]);
             }
         }
     }
@@ -990,7 +990,7 @@ public class C
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
 
         Assert.Equal(false, resolvedItem.Command.Arguments[2]);
-        Assert.Equal((long)268, resolvedItem.Command.Arguments[3]);
+        Assert.Equal(268, resolvedItem.Command.Arguments[3]);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6495")]

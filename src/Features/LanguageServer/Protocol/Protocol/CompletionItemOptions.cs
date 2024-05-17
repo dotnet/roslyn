@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents completion item capabilities.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class CompletionItemOptions
     {
         /// <summary>
         /// Gets or sets a value indicating The server has support for completion item label details
         /// </summary>
-        [DataMember(Name = "labelDetailsSupport")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("labelDetailsSupport")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool LabelDetailsSupport
         {
             get;

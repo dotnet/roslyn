@@ -33,7 +33,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     public abstract Task DetermineDocumentsToSearchAsync<TData>(
         ISymbol symbol, HashSet<string>? globalAliases, Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-    public abstract ValueTask FindReferencesInDocumentAsync<TData>(
+    public abstract void FindReferencesInDocument<TData>(
         ISymbol symbol, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
     private static (bool matched, CandidateReason reason) SymbolsMatch(
@@ -603,18 +603,15 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         var semanticFacts = state.SemanticFacts;
         var semanticModel = state.SemanticModel;
 
-        return IsInNamespaceOrTypeContext()
+        var topNameNode = node;
+        while (syntaxFacts.IsQualifiedName(topNameNode.Parent))
+            topNameNode = topNameNode.Parent;
+
+        var isInNamespaceNameContext = syntaxFacts.IsBaseNamespaceDeclaration(topNameNode.Parent);
+
+        return syntaxFacts.IsInNamespaceOrTypeContext(topNameNode)
             ? SymbolUsageInfo.Create(GetTypeOrNamespaceUsageInfo())
             : GetSymbolUsageInfoCommon();
-
-        bool IsInNamespaceOrTypeContext()
-        {
-            var current = node;
-            while (syntaxFacts.IsQualifiedName(current.Parent))
-                current = current.Parent;
-
-            return syntaxFacts.IsInNamespaceOrTypeContext(current);
-        }
 
         // Local functions.
         TypeOrNamespaceUsageInfo GetTypeOrNamespaceUsageInfo()
@@ -623,7 +620,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
                 ? TypeOrNamespaceUsageInfo.Qualified
                 : TypeOrNamespaceUsageInfo.None;
 
-            if (semanticFacts.IsNamespaceDeclarationNameContext(semanticModel, node.SpanStart, cancellationToken))
+            if (isInNamespaceNameContext)
             {
                 usageInfo |= TypeOrNamespaceUsageInfo.NamespaceDeclaration;
             }
@@ -697,24 +694,18 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
                     {
                         case SymbolKind.Namespace:
                             var namespaceUsageInfo = TypeOrNamespaceUsageInfo.None;
-                            if (semanticFacts.IsNamespaceDeclarationNameContext(semanticModel, node.SpanStart, cancellationToken))
-                            {
+                            if (isInNamespaceNameContext)
                                 namespaceUsageInfo |= TypeOrNamespaceUsageInfo.NamespaceDeclaration;
-                            }
 
                             if (IsNodeOrAnyAncestorLeftSideOfDot(node, syntaxFacts))
-                            {
                                 namespaceUsageInfo |= TypeOrNamespaceUsageInfo.Qualified;
-                            }
 
                             return SymbolUsageInfo.Create(namespaceUsageInfo);
 
                         case SymbolKind.NamedType:
                             var typeUsageInfo = TypeOrNamespaceUsageInfo.None;
                             if (IsNodeOrAnyAncestorLeftSideOfDot(node, syntaxFacts))
-                            {
                                 typeUsageInfo |= TypeOrNamespaceUsageInfo.Qualified;
-                            }
 
                             return SymbolUsageInfo.Create(typeUsageInfo);
 
@@ -726,9 +717,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
                         case SymbolKind.Local:
                             var valueUsageInfo = ValueUsageInfo.Read;
                             if (semanticFacts.IsWrittenTo(semanticModel, node, cancellationToken))
-                            {
                                 valueUsageInfo |= ValueUsageInfo.Write;
-                            }
 
                             return SymbolUsageInfo.Create(valueUsageInfo);
                     }
@@ -848,7 +837,7 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
         Action<Document, TData> processResult, TData processResultData,
         FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-    protected abstract ValueTask FindReferencesInDocumentAsync<TData>(
+    protected abstract void FindReferencesInDocument<TData>(
         TSymbol symbol, FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult, TData processResultData,
         FindReferencesSearchOptions options, CancellationToken cancellationToken);
@@ -878,12 +867,11 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
         return Task.CompletedTask;
     }
 
-    public sealed override ValueTask FindReferencesInDocumentAsync<TData>(
+    public sealed override void FindReferencesInDocument<TData>(
         ISymbol symbol, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken)
     {
-        return symbol is TSymbol typedSymbol && CanFind(typedSymbol)
-            ? FindReferencesInDocumentAsync(typedSymbol, state, processResult, processResultData, options, cancellationToken)
-            : ValueTaskFactory.CompletedTask;
+        if (symbol is TSymbol typedSymbol && CanFind(typedSymbol))
+            FindReferencesInDocument(typedSymbol, state, processResult, processResultData, options, cancellationToken);
     }
 
     public sealed override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(

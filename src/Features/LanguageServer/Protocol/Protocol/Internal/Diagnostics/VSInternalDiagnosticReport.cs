@@ -5,13 +5,11 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing a diagnostic pull request report.
     /// </summary>
-    [DataContract]
     internal class VSInternalDiagnosticReport
     {
         /// <summary>
@@ -21,8 +19,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// diagnostics.The server can use this result ID to avoid resending
         /// diagnostics that had previously been sent.
         /// </summary>
-        [DataMember(Name = "_vs_resultId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_resultId")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? ResultId { get; set; }
 
         /// <summary>
@@ -32,8 +30,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// Is null if no changes in the diagnostics. Is empty if there is no diagnostic.
         /// </remarks>
-        [DataMember(Name = "_vs_diagnostics")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_diagnostics")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Diagnostic[]? Diagnostics { get; set; }
 
         /// <summary>
@@ -43,8 +41,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <see cref="Diagnostic" /> entries tagged with <see cref="VSDiagnosticTags.PotentialDuplicate" /> will
         /// be hidden in the editor.
         /// </summary>
-        [DataMember(Name = "_vs_identifier")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_identifier")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? Identifier { get; set; }
 
         /// <summary>
@@ -53,8 +51,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// Diagnostics in a superseded report will be hidden if they have the PotentialDuplicate VSDiagnosticTag.
         /// </remarks>
-        [DataMember(Name = "_vs_supersedes")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_supersedes")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? Supersedes { get; set; }
 
         /// <summary>
@@ -63,15 +61,15 @@ namespace Roslyn.LanguageServer.Protocol
         /// outputId and the (outputKey, outputId) uniquely identify
         /// a line of text in the output window).
         /// </summary>
-        [DataMember(Name = "_vs_outputKey")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_outputKey")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Guid? OutputKey { get; set; }
 
         /// <summary>
         /// Gets or sets the document version.
         /// </summary>
-        [DataMember(Name = "_vs_version")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_version")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? Version { get; set; }
     }
 }

@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -32,10 +32,9 @@ internal class OpenProjectHandler : ILspServiceNotificationHandler<OpenProjectHa
         return _projectSystem.OpenProjectsAsync(request.Projects.SelectAsArray(p => p.LocalPath));
     }
 
-    [DataContract]
     private class NotificationParams
     {
-        [DataMember(Name = "projects")]
+        [JsonPropertyName("projects")]
         public required Uri[] Projects { get; set; }
     }
 }

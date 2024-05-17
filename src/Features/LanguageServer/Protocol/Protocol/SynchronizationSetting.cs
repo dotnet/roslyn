@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents synchronization initialization setting.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentSyncClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SynchronizationSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets a value indicating whether WillSave event is supported.
         /// </summary>
-        [DataMember(Name = "willSave")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("willSave")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WillSave
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether WillSaveWaitUntil event is supported.
         /// </summary>
-        [DataMember(Name = "willSaveWaitUntil")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("willSaveWaitUntil")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WillSaveWaitUntil
         {
             get;
@@ -40,8 +38,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether DidSave event is supported.
         /// </summary>
-        [DataMember(Name = "didSave")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("didSave")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool DidSave
         {
             get;

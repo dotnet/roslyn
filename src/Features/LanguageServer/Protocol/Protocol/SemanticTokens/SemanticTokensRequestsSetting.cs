@@ -4,15 +4,13 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Requests client settings for semantic tokens.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SemanticTokensRequestsSetting
     {
         /// <summary>
@@ -20,8 +18,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// `textDocument/semanticTokens/range` request if the server provides a
         /// corresponding handler.
         /// </summary>
-        [DataMember(Name = "range")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("range")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SumType<bool, object>? Range { get; set; }
 
         /// <summary>
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// `textDocument/semanticTokens/full` request if the server provides a
         /// corresponding handler.
         /// </summary>
-        [DataMember(Name = "full")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("full")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SumType<bool, SemanticTokensRequestsFullSetting>? Full { get; set; }
     }
 }

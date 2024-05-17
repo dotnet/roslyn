@@ -4,20 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// A special text edit to provide an insert and a replace operation.
     /// 
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#insertReplaceEdit">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class InsertReplaceEdit
     {
         /// <summary>
         /// Gets or sets the string to be inserted.
         /// </summary>
-        [DataMember(Name = "newText", IsRequired = true)]
+        [JsonPropertyName("newText")]
+        [JsonRequired]
         public string NewText
         {
             get;
@@ -27,7 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range range if the insert is requested
         /// </summary>
-        [DataMember(Name = "insert", IsRequired = true)]
+        [JsonPropertyName("insert")]
+        [JsonRequired]
         public Range Insert
         {
             get;
@@ -37,7 +38,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range range if the replace is requested
         /// </summary>
-        [DataMember(Name = "replace", IsRequired = true)]
+        [JsonPropertyName("replace")]
+        [JsonRequired]
         public Range Replace
         {
             get;

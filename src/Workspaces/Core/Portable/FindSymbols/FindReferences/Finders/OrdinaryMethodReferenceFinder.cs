@@ -109,7 +109,7 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
     private static bool IsAddMethod(IMethodSymbol methodSymbol)
         => methodSymbol.Name == WellKnownMemberNames.CollectionInitializerAddMethodName;
 
-    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override void FindReferencesInDocument<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -134,7 +134,5 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
 
         if (IsAddMethod(symbol))
             FindReferencesInCollectionInitializer(symbol, state, processResult, processResultData, cancellationToken);
-
-        return ValueTaskFactory.CompletedTask;
     }
 }

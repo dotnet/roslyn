@@ -4,12 +4,12 @@
 
 using System;
 using System.Composition;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
-using Newtonsoft.Json;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
@@ -30,7 +30,7 @@ internal class RazorSemanticTokensRefreshQueueWrapperFactory() : ILspServiceFact
     {
         public void Initialize(string clientCapabilitiesString)
         {
-            var clientCapabilities = JsonConvert.DeserializeObject<VSInternalClientCapabilities>(clientCapabilitiesString) ?? new();
+            var clientCapabilities = JsonSerializer.Deserialize<VSInternalClientCapabilities>(clientCapabilitiesString) ?? new();
             // If Roslyn and Razor both support semantic tokens, then this call to Initialize is redundant, but the
             // Initialize method in the queue itself is resilient to being called twice, so it doesn't actually do
             // any harm.

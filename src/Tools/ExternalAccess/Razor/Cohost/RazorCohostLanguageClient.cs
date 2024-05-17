@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Utilities;
-using Newtonsoft.Json;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -60,9 +60,9 @@ internal sealed class RazorCohostLanguageClient(
         Contract.ThrowIfNull(razorCapabilitiesProvider);
 
         // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
-        var serializedClientCapabilities = JsonConvert.SerializeObject(clientCapabilities);
+        var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities);
         var serializedServerCapabilities = razorCapabilitiesProvider.GetCapabilities(serializedClientCapabilities);
-        var razorCapabilities = JsonConvert.DeserializeObject<VSInternalServerCapabilities>(serializedServerCapabilities);
+        var razorCapabilities = JsonSerializer.Deserialize<VSInternalServerCapabilities>(serializedServerCapabilities);
         Contract.ThrowIfNull(razorCapabilities);
 
         // We support a few things on this side, so lets make sure they're set

@@ -4,23 +4,21 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents a possible result value of the 'textDocument/prepareRename' request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_prepareRename">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class DefaultBehaviorPrepareRename
     {
         /// <summary>
         /// Gets or sets a value indicating whether the rename position is valid and the client should use its
         /// default behavior to compute the rename range.
         /// </summary>
-        [DataMember(Name = "defaultBehavior")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("defaultBehavior")]
+        [JsonRequired]
         public bool DefaultBehavior
         {
             get;

@@ -5,7 +5,7 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System.ComponentModel;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Value representing the language server trace setting.

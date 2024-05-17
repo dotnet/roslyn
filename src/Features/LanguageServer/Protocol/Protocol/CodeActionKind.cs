@@ -5,15 +5,13 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System.ComponentModel;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Value representing the kind of a code action.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionKind">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     [JsonConverter(typeof(StringEnumConverter<CodeActionKind>))]
     [TypeConverter(typeof(StringEnumConverter<CodeActionKind>.TypeConverter))]
     internal readonly record struct CodeActionKind(string Value) : IStringEnum

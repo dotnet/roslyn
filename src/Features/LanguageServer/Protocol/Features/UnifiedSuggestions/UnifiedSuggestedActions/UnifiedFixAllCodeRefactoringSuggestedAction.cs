@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions

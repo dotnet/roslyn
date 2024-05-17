@@ -5,11 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
-using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 Command = CodeActionsHandler.RunCodeActionCommandName,
                 Arguments =
                 [
-                    JToken.FromObject(codeActionData)
+                    JsonSerializer.SerializeToElement(codeActionData, ProtocolConversions.LspJsonSerializerOptions)
                 ]
             };
 

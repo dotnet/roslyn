@@ -5,21 +5,19 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the response of a textDocument/documentLink request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentLink">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class DocumentLink
     {
         /// <summary>
         /// Gets or sets the range the link applies to.
         /// </summary>
-        [DataMember(Name = "range")]
+        [JsonPropertyName("range")]
         public Range Range
         {
             get;
@@ -29,9 +27,9 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the uri that the link points to.
         /// </summary>
-        [DataMember(Name = "target")]
+        [JsonPropertyName("target")]
         [JsonConverter(typeof(DocumentUriConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Uri? Target
         {
             get;

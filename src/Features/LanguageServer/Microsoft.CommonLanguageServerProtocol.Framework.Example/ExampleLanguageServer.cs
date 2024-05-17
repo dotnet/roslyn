@@ -3,19 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text.Json;
 using Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
-internal class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContext>
+internal class ExampleLanguageServer : SystemTextJsonLanguageServer<ExampleRequestContext>
 {
     private readonly Action<IServiceCollection>? _addExtraHandlers;
 
-    public ExampleLanguageServer(JsonRpc jsonRpc, JsonSerializer jsonSerializer, ILspLogger logger, Action<IServiceCollection>? addExtraHandlers) : base(jsonRpc, jsonSerializer, logger)
+    public ExampleLanguageServer(JsonRpc jsonRpc, JsonSerializerOptions options, ILspLogger logger, Action<IServiceCollection>? addExtraHandlers) : base(jsonRpc, options, logger)
     {
         _addExtraHandlers = addExtraHandlers;
         // This spins up the queue and ensure the LSP is ready to start receiving requests

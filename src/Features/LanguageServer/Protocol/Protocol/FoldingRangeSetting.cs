@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the folding range setting for initialization.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#foldingRangeClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class FoldingRangeSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets the range limit for folding ranges.
         /// </summary>
-        [DataMember(Name = "rangeLimit")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("rangeLimit")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? RangeLimit
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether if client only supports entire line folding only.
         /// </summary>
-        [DataMember(Name = "lineFoldingOnly")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("lineFoldingOnly")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool LineFoldingOnly
         {
             get;
@@ -40,8 +38,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating the specific options for the folding range.
         /// </summary>
-        [DataMember(Name = "foldingRange")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("foldingRange")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public FoldingRangeSettingOptions? FoldingRange
         {
             get;

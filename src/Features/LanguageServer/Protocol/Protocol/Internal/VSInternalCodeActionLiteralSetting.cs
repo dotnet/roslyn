@@ -4,20 +4,18 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing support for code action literals.
     /// </summary>
-    [DataContract]
     internal class VSInternalCodeActionLiteralSetting : CodeActionLiteralSetting
     {
         /// <summary>
         /// Gets or sets a value indicating what code action default groups are supported.
         /// </summary>
-        [DataMember(Name = "_vs_codeActionGroup")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_codeActionGroup")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalCodeActionGroupSetting? CodeActionGroup
         {
             get;

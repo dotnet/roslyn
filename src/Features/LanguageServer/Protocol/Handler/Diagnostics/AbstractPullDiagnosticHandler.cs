@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;

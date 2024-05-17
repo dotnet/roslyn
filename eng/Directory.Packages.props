@@ -57,7 +57,7 @@
       Visual Studio
     -->
     <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.10.234-preview.1" />
-    <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="17.9.35796-preview.1" />
+    <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="17.9.36524" />
     <PackageVersion Include="Microsoft.ServiceHub.Client" Version="4.2.1017" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility" Version="$(MicrosoftVisualStudioExtensibilityVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="$(MicrosoftVisualStudioExtensibilityVersion)" />
@@ -100,7 +100,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Language" Version="$(MicrosoftVisualStudioCoreVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioCoreVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioCoreVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="17.10.11-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="17.10.72-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.10.3-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.10.234-preview.1" />
@@ -139,11 +139,11 @@
     <!--
       Language Server
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="17.9.25-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="17.10.72-preview" />
     <PackageVersion Include="NuGet.ProjectModel" Version="6.8.0-rc.112" />
     <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftTestPlatformVersion)" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="7.0.0-preview.24165.3" />
+    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="7.0.0-preview.24266.1" />
 
     <!--
       Analyzers

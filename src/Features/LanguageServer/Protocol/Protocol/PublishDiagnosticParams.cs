@@ -5,21 +5,19 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents the parameter that's sent with 'textDocument/publishDiagnostics' messages.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#publishDiagnosticsParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class PublishDiagnosticParams
     {
         /// <summary>
         /// Gets or sets the URI of the text document.
         /// </summary>
-        [DataMember(Name = "uri")]
+        [JsonPropertyName("uri")]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri Uri
         {
@@ -30,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the collection of diagnostics.
         /// </summary>
-        [DataMember(Name = "diagnostics")]
+        [JsonPropertyName("diagnostics")]
         public Diagnostic[] Diagnostics
         {
             get;

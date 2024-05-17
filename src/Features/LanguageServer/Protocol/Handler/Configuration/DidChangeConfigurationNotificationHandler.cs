@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -12,7 +14,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -114,17 +115,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             }
         }
 
-        private async Task<ImmutableArray<string>> GetConfigurationsAsync(CancellationToken cancellationToken)
+        private async Task<ImmutableArray<string?>> GetConfigurationsAsync(CancellationToken cancellationToken)
         {
             try
             {
                 var configurationParams = new ConfigurationParams() { Items = _configurationItems.AsArray() };
-                var options = await _clientLanguageServerManager.SendRequestAsync<ConfigurationParams, JArray>(
+                var options = await _clientLanguageServerManager.SendRequestAsync<ConfigurationParams, JsonArray>(
                     Methods.WorkspaceConfigurationName, configurationParams, cancellationToken).ConfigureAwait(false);
 
                 // Failed to get result from client.
                 Contract.ThrowIfNull(options);
-                return options.SelectAsArray(token => token.ToString());
+                var converted = options.SelectAsArray(token => token?.ToString());
+                return converted;
             }
             catch (Exception e)
             {
