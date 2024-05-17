@@ -29,19 +29,13 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
         SegmentedList<ClassifiedSpan> result,
         CancellationToken cancellationToken)
     {
-        if (syntax is NameSyntax name)
-        {
+        if (syntax is IdentifierNameSyntax name)
             ClassifyTypeSyntax(name, semanticModel, result, cancellationToken);
-        }
     }
 
     public override ImmutableArray<Type> SyntaxNodeTypes { get; } =
     [
-        typeof(AliasQualifiedNameSyntax),
-        typeof(GenericNameSyntax),
         typeof(IdentifierNameSyntax),
-        typeof(QualifiedNameSyntax),
-        typeof(SimpleNameSyntax),
     ];
 
     protected override int? GetRightmostNameArity(SyntaxNode node)
@@ -58,7 +52,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
         => node.IsParentKind(SyntaxKind.Attribute);
 
     private void ClassifyTypeSyntax(
-        NameSyntax name,
+        IdentifierNameSyntax name,
         SemanticModel semanticModel,
         SegmentedList<ClassifiedSpan> result,
         CancellationToken cancellationToken)
@@ -73,7 +67,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private bool TryClassifySymbol(
-        NameSyntax name,
+        IdentifierNameSyntax name,
         SymbolInfo symbolInfo,
         SegmentedList<ClassifiedSpan> result)
     {
@@ -104,7 +98,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private static bool TryClassifyAmbiguousSymbol(
-        NameSyntax name,
+        IdentifierNameSyntax name,
         SymbolInfo symbolInfo,
         SegmentedList<ClassifiedSpan> result)
     {
@@ -138,19 +132,18 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private static bool TryClassifySymbol(
-        NameSyntax name,
+        IdentifierNameSyntax name,
         [NotNullWhen(returnValue: true)] ISymbol? symbol,
         out ClassifiedSpan classifiedSpan)
     {
         // For Namespace parts, we want don't want to classify the QualifiedNameSyntax
         // nodes, we instead wait for the each IdentifierNameSyntax node to avoid
         // creating overlapping ClassifiedSpans.
-        if (symbol is INamespaceSymbol namespaceSymbol &&
-            name is IdentifierNameSyntax identifierNameSyntax)
+        if (symbol is INamespaceSymbol namespaceSymbol)
         {
             // Do not classify the global:: namespace. It is already syntactically classified as a keyword.
             var isGlobalNamespace = namespaceSymbol.IsGlobalNamespace &&
-                identifierNameSyntax.Identifier.IsKind(SyntaxKind.GlobalKeyword);
+                name.Identifier.IsKind(SyntaxKind.GlobalKeyword);
             if (isGlobalNamespace)
             {
                 classifiedSpan = default;
@@ -170,7 +163,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
             return true;
         }
 
-        if (name is IdentifierNameSyntax { Identifier.Text: "args" } &&
+        if (name is { Identifier.Text: "args" } &&
             symbol is IParameterSymbol { ContainingSymbol: IMethodSymbol { Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName } })
         {
             classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
@@ -281,7 +274,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
             : ClassificationTypeNames.MethodName;
     }
 
-    private static bool IsInVarContext(NameSyntax name)
+    private static bool IsInVarContext(IdentifierNameSyntax name)
     {
         return
             name.CheckParent<RefTypeSyntax>(v => v.Type == name) ||
@@ -293,18 +286,17 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private static bool TryClassifyFromIdentifier(
-        NameSyntax name,
+        IdentifierNameSyntax name,
         SymbolInfo symbolInfo,
         SegmentedList<ClassifiedSpan> result)
     {
         // Okay - it wasn't a type. If the syntax matches "var q = from" or "q = from", and from
         // doesn't bind to anything then optimistically color from as a keyword.
-        if (name is IdentifierNameSyntax identifierName &&
-            identifierName.Identifier.HasMatchingText(SyntaxKind.FromKeyword) &&
+        if (name.Identifier.HasMatchingText(SyntaxKind.FromKeyword) &&
             symbolInfo.Symbol == null)
         {
-            var token = identifierName.Identifier;
-            if (identifierName.IsRightSideOfAnyAssignExpression() || identifierName.IsVariableDeclaratorValue())
+            var token = name.Identifier;
+            if (name.IsRightSideOfAnyAssignExpression() || name.IsVariableDeclaratorValue())
             {
                 result.Add(new ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword));
                 return true;
@@ -315,28 +307,27 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private static bool TryClassifyValueIdentifier(
-        NameSyntax name,
+        IdentifierNameSyntax name,
         SymbolInfo symbolInfo,
         SegmentedList<ClassifiedSpan> result)
     {
-        if (name is IdentifierNameSyntax identifierName &&
-            symbolInfo.Symbol.IsImplicitValueParameter())
+        if (symbolInfo.Symbol.IsImplicitValueParameter())
         {
-            result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
+            result.Add(new ClassifiedSpan(name.Identifier.Span, ClassificationTypeNames.Keyword));
             return true;
         }
 
         return false;
     }
 
-    private static bool TryClassifySomeContextualKeywordIdentifiersAsKeywords(NameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
+    private static bool TryClassifySomeContextualKeywordIdentifiersAsKeywords(IdentifierNameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
     {
         // Simple approach, if the user ever types one of identifiers from the list and it doesn't actually bind to anything, presume that
         // they intend to use it as a keyword. This works for all error
         // cases, while not conflicting with the extremely rare case where such identifiers might actually be used to
         // reference actual symbols with that names.
         if (symbolInfo.GetAnySymbol() is null &&
-            name is IdentifierNameSyntax { Identifier.Text: "async" or "nameof" or "partial" })
+            name is { Identifier.Text: "async" or "nameof" or "partial" })
         {
             result.Add(new(name.Span, ClassificationTypeNames.Keyword));
             return true;
