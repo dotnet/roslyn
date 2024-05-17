@@ -284,7 +284,8 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     {
         // Okay - it wasn't a type. If the syntax matches "var q = from" or "q = from", and from
         // doesn't bind to anything then optimistically color from as a keyword.
-        if (name.Identifier.HasMatchingText(SyntaxKind.FromKeyword) &&
+        if (name if IdentifierNameSyntax &&
+            name.Identifier.HasMatchingText(SyntaxKind.FromKeyword) &&
             symbolInfo.Symbol == null)
         {
             var token = name.Identifier;
