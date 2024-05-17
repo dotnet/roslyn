@@ -3391,10 +3391,59 @@ class Program
             verifier.VerifyIL("C.M", il);
         }
 
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+        public void NullableConstant_Double_E0([CombinatorialValues("0d", "0.0")] string rhs)
+        {
+            var source = $$"""
+                C.Run(0d);
+                C.Run(0.0);
+                C.Run(1.0);
+                C.Run(1.2);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(double? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(double? x) => x == {{rhs}};
+                }
+                """;
+            var output = "11000";
+            var il = """
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  2
+                  .locals init (double? V_0,
+                                double V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.r8     0
+                  IL_000b:  stloc.1
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  call       "double double?.GetValueOrDefault()"
+                  IL_0013:  ldloc.1
+                  IL_0014:  ceq
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  call       "bool double?.HasValue.get"
+                  IL_001d:  and
+                  IL_001e:  ret
+                }
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
         public void NullableConstant_Double_G1()
         {
             var source = """
+                C.Run(0d);
                 C.Run(0.0);
                 C.Run(1.0);
                 C.Run(1.2);
@@ -3409,7 +3458,7 @@ class Program
                     static bool M(double? x) => x > 1.0;
                 }
                 """;
-            var output = "0010";
+            var output = "00010";
             var il = """
                 {
                   // Code size       31 (0x1f)
@@ -3442,6 +3491,7 @@ class Program
         public void NullableConstant_Double_LE1()
         {
             var source = """
+                C.Run(0d);
                 C.Run(0.0);
                 C.Run(1.0);
                 C.Run(1.2);
@@ -3456,7 +3506,7 @@ class Program
                     static bool M(double? x) => x <= 1.0;
                 }
                 """;
-            var output = "1100";
+            var output = "11100";
             var il = """
                 {
                   // Code size       34 (0x22)
@@ -3477,6 +3527,209 @@ class Program
                   IL_001b:  call       "bool double?.HasValue.get"
                   IL_0020:  and
                   IL_0021:  ret
+                }
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+        public void NullableConstant_Decimal_E0()
+        {
+            var source = """
+                C.Run(0m);
+                C.Run(0.0m);
+                C.Run(1m);
+                C.Run(2m);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(decimal? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(decimal? x) => x == 0m;
+                }
+                """;
+            var output = "11000";
+            var il = """
+                {
+                  // Code size       32 (0x20)
+                  .maxstack  2
+                  .locals init (decimal? V_0,
+                                decimal V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_1
+                  IL_0004:  initobj    "decimal"
+                  IL_000a:  ldloca.s   V_0
+                  IL_000c:  call       "decimal decimal?.GetValueOrDefault()"
+                  IL_0011:  ldloc.1
+                  IL_0012:  call       "bool decimal.op_Equality(decimal, decimal)"
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  call       "bool decimal?.HasValue.get"
+                  IL_001e:  and
+                  IL_001f:  ret
+                }
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73510")]
+        public void NullableConstant_Decimal_E00()
+        {
+            var source = """
+                C.Run(0m);
+                C.Run(0.0m);
+                C.Run(1m);
+                C.Run(2m);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(decimal? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(decimal? x) => x == 0.0m;
+                }
+                """;
+            var output = "11000";
+            var il = """
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  6
+                  .locals init (decimal? V_0,
+                                decimal V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_1
+                  IL_0004:  ldc.i4.0
+                  IL_0005:  ldc.i4.0
+                  IL_0006:  ldc.i4.0
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldc.i4.1
+                  IL_0009:  call       "decimal..ctor(int, int, int, bool, byte)"
+                  IL_000e:  ldloca.s   V_0
+                  IL_0010:  call       "decimal decimal?.GetValueOrDefault()"
+                  IL_0015:  ldloc.1
+                  IL_0016:  call       "bool decimal.op_Equality(decimal, decimal)"
+                  IL_001b:  ldloca.s   V_0
+                  IL_001d:  call       "bool decimal?.HasValue.get"
+                  IL_0022:  and
+                  IL_0023:  ret
+                }
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+        public void NullableConstant_Decimal_GE0()
+        {
+            var source = """
+                C.Run(0m);
+                C.Run(0.0m);
+                C.Run(1m);
+                C.Run(2m);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(decimal? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(decimal? x) => x >= 0m;
+                }
+                """;
+            var output = "11110";
+            var il = """
+                {
+                  // Code size       32 (0x20)
+                  .maxstack  2
+                  .locals init (decimal? V_0,
+                                decimal V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_1
+                  IL_0004:  initobj    "decimal"
+                  IL_000a:  ldloca.s   V_0
+                  IL_000c:  call       "decimal decimal?.GetValueOrDefault()"
+                  IL_0011:  ldloc.1
+                  IL_0012:  call       "bool decimal.op_GreaterThanOrEqual(decimal, decimal)"
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  call       "bool decimal?.HasValue.get"
+                  IL_001e:  and
+                  IL_001f:  ret
+                }
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", il);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+        public void NullableConstant_Decimal_GE00()
+        {
+            var source = """
+                C.Run(0m);
+                C.Run(0.0m);
+                C.Run(1m);
+                C.Run(2m);
+                C.Run(null);
+
+                class C
+                {
+                    public static void Run(decimal? x)
+                    {
+                        System.Console.Write(M(x) ? 1 : 0);
+                    }
+                    static bool M(decimal? x) => x >= 0.0m;
+                }
+                """;
+            var output = "11110";
+            var il = """
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  6
+                  .locals init (decimal? V_0,
+                                decimal V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_1
+                  IL_0004:  ldc.i4.0
+                  IL_0005:  ldc.i4.0
+                  IL_0006:  ldc.i4.0
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldc.i4.1
+                  IL_0009:  call       "decimal..ctor(int, int, int, bool, byte)"
+                  IL_000e:  ldloca.s   V_0
+                  IL_0010:  call       "decimal decimal?.GetValueOrDefault()"
+                  IL_0015:  ldloc.1
+                  IL_0016:  call       "bool decimal.op_GreaterThanOrEqual(decimal, decimal)"
+                  IL_001b:  ldloca.s   V_0
+                  IL_001d:  call       "bool decimal?.HasValue.get"
+                  IL_0022:  and
+                  IL_0023:  ret
                 }
                 """;
             var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
