@@ -487,9 +487,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Keep in sync with VB's AssemblySymbol.RuntimeSupportsByRefLikeGenerics
             get
             {
-                // PROTOTYPE(RefStructInterfaces): Implement real check once RuntimeFeature.ByRefLikeGenerics becomes available in ref assembly.
-                //                                 See https://github.com/dotnet/runtime/issues/68002#issuecomment-1942166436 for details.
-                return RuntimeSupportsInlineArrayTypes;
+                // CorLibrary should never be null, but that invariant is broken in some cases for MissingAssemblySymbol.
+                // Tracked by https://github.com/dotnet/roslyn/issues/61262
+                return CorLibrary is not null &&
+                    RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics);
             }
         }
 

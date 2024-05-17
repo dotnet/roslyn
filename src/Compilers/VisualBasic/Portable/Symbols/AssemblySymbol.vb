@@ -414,9 +414,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property RuntimeSupportsByRefLikeGenerics As Boolean
             Get
                 ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsByRefLikeGenerics
-                ' PROTOTYPE(RefStructInterfaces) Implement real check once RuntimeFeature.ByRefLikeGenerics becomes available in ref assembly.
-                '                                See https://github.com/dotnet/runtime/issues/68002#issuecomment-1942166436 for details.
-                Return RuntimeSupportsInlineArrayTypes
+                ' CorLibrary should never be null, but that invariant Is broken in some cases for MissingAssemblySymbol.
+                ' Tracked by https://github.com/dotnet/roslyn/issues/61262
+                Return CorLibrary IsNot Nothing AndAlso
+                       RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics)
             End Get
         End Property
 

@@ -12,8 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class RefStructInterfacesTests
         Inherits BasicTestBase
 
-        ' PROTOTYPE(RefStructInterfaces): Switch to supporting target framework once we have its ref assemblies.
-        Private Shared ReadOnly s_targetFrameworkSupportingByRefLikeGenerics As TargetFramework = TargetFramework.Net80
+        Private Shared ReadOnly s_targetFrameworkSupportingByRefLikeGenerics As TargetFramework = TargetFramework.Net90
 
         <Fact>
         Public Sub RuntimeCapability_01()
@@ -22,6 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.True(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefLikeGenerics))
 
             comp = CreateCompilation("", targetFramework:=TargetFramework.DesktopLatestExtended)
+            Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefLikeGenerics))
+
+            comp = CreateCompilation("", targetFramework:=TargetFramework.Net80)
             Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefLikeGenerics))
         End Sub
 
