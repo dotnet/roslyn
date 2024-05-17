@@ -13333,7 +13333,8 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // https://github.com/dotnet/roslyn/issues/73563
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73563")]
         public void AwaitUsing_LanguageVersion_01()
         {
             var src1 = @"
@@ -15712,7 +15713,8 @@ Block[B7] - Exit
             AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // https://github.com/dotnet/roslyn/issues/73563
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73563")]
         public void AwaitForeach_IAsyncEnumerableT_LanguageVersion_01()
         {
             var src1 = @"
