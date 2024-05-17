@@ -1511,8 +1511,8 @@ public partial class C
 }
 ";
 
-            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
 
             // Files passed in order.
             var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
@@ -1562,8 +1562,8 @@ public partial class C
 }
 ";
 
-            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
 
             // Files passed in order.
             var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
@@ -1612,8 +1612,8 @@ public partial class C
 }
 ";
 
-            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
 
             // Files passed in order.
             var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
@@ -1664,8 +1664,8 @@ public partial class C
 }
 ";
 
-            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
 
             // Files passed in order.
             var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
@@ -1715,8 +1715,8 @@ public partial class C
 }
 ";
 
-            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
 
             var expectedDiagnostics = new[]
             {
@@ -1771,8 +1771,8 @@ partial class C
 }
 ";
 
-            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
 
             // Files passed in order.
             var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
@@ -1820,8 +1820,8 @@ partial class C
 }
 ";
 
-            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
 
             var expectedDiagnostics = new[]
             {
@@ -1876,8 +1876,8 @@ partial class C
 }
 ";
 
-            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
 
             // Files passed in order.
             verify(new[] { tree1, tree2 });
@@ -1934,8 +1934,8 @@ partial class C
     public partial int this[int p2] { get; }
 }
 ";
-            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
 
             // Files passed in order.
             verify(new[] { tree1, tree2 });
@@ -1998,8 +1998,8 @@ partial class C
     public partial int this[int p2] { get; }
 }
 ";
-            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
 
             // Files passed in order.
             verify(new[] { tree1, tree2 });
@@ -2062,8 +2062,8 @@ partial class C
     public partial int this[int p2] { get; }
 }
 ";
-            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreviewWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreviewWithDocumentationComments);
 
             // Files passed in order.
             verify(new[] { tree1, tree2 });
