@@ -26,7 +26,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
     /// Unfortunately MEF doesn't provide a good way to export something for multiple contracts with metadata
     /// so these are manually created in <see cref="RoslynLanguageServer"/>.
     /// </summary>
-    private readonly FrozenDictionary<string, ImmutableArray<Func<ILspServices, object>>> _baseServices;
+    private readonly FrozenDictionary<string, ImmutableArray<BaseService>> _baseServices;
 
     /// <summary>
     /// Gates access to <see cref="_servicesToDispose"/>.
@@ -38,7 +38,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> mefLspServices,
         ImmutableArray<Lazy<ILspServiceFactory, LspServiceMetadataView>> mefLspServiceFactories,
         WellKnownLspServerKinds serverKind,
-        FrozenDictionary<string, ImmutableArray<Func<ILspServices, object>>> baseServices)
+        FrozenDictionary<string, ImmutableArray<BaseService>> baseServices)
     {
         var serviceMap = new Dictionary<string, Lazy<ILspService, LspServiceMetadataView>>();
 
@@ -124,16 +124,14 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
             return this;
         }
 
-        object? lspService;
-
         // Check the base services first
         if (_baseServices.TryGetValue(typeName, out var baseServices))
         {
-            lspService = baseServices.Select(creatorFunc => creatorFunc(this)).SingleOrDefault();
-            if (lspService is not null)
-            {
-                return lspService;
-            }
+            // It's possible that there may be more than one base service registered for the same type,
+            // such as IMethodHandler. If that's the case, we return null.
+            return baseServices is [var baseService]
+                ? baseService.GetInstance(this)
+                : null;
         }
 
         if (_lazyMefLspServices.TryGetValue(typeName, out var lazyService))
@@ -143,20 +141,19 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
             // Stateless LSP services will be disposed of on MEF container disposal.
             var checkDisposal = !lazyService.Metadata.IsStateless && !lazyService.IsValueCreated;
 
-            lspService = lazyService.Value;
+            var lspService = lazyService.Value;
             if (checkDisposal && lspService is IDisposable disposable)
             {
                 lock (_gate)
                 {
-                    var res = _servicesToDispose.Add(disposable);
+                    _servicesToDispose.Add(disposable);
                 }
             }
 
             return lspService;
         }
 
-        lspService = null;
-        return lspService;
+        return null;
     }
 
     public ImmutableArray<(IMethodHandler? Instance, TypeRef HandlerTypeRef, ImmutableArray<HandlerMethodDetails> Methods)> GetMethodHandlers()
@@ -192,7 +189,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         Contract.ThrowIfNull(typeName);
 
         return _baseServices.TryGetValue(typeName, out var baseServices)
-            ? baseServices.SelectAsArray(creatorFunc => (T)creatorFunc(this))
+            ? baseServices.SelectAsArray(s => (T)s.GetInstance(this))
             : [];
     }
 
