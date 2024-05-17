@@ -7,7 +7,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Classification.Classifiers
 Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -17,10 +16,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
         Inherits AbstractNameSyntaxClassifier
 
         Public Overrides ReadOnly Property SyntaxNodeTypes As ImmutableArray(Of Type) = ImmutableArray.Create(
-            GetType(NameSyntax),
-            GetType(ModifiedIdentifierSyntax),
+            GetType(CrefOperatorReferenceSyntax),
+            GetType(GenericNameSyntax),
+            GetType(GlobalNameSyntax),
+            GetType(IdentifierNameSyntax),
+            GetType(LabelSyntax),
             GetType(MethodStatementSyntax),
-            GetType(LabelSyntax))
+            GetType(ModifiedIdentifierSyntax),
+            GetType(QualifiedCrefOperatorReferenceSyntax),
+            GetType(QualifiedNameSyntax),
+            GetType(SimpleNameSyntax))
 
         Public Overrides Sub AddClassifications(
                 syntax As SyntaxNode,
