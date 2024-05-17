@@ -307,6 +307,7 @@
     <PackageVersion Include="System.Data.SqlClient" Version="4.8.6" />
     <!-- fix of vulnerability in 6.0.0 coming via Microsoft.TeamFoundationServer.Client -->
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="7.0.1" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="7.0.2" />
     <!--
       Infra
     -->
