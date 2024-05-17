@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Adornments;
-using Newtonsoft.Json;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -245,7 +244,6 @@ class A
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.CompletionItem>(
                 testLspServer,
                 label: "AMethod").ConfigureAwait(false);
-            Assert.True(clientCompletionItem is not VSInternalCompletionItem);
 
             var expected = @"```csharp
 void A.AMethod(int i)
@@ -307,7 +305,6 @@ class A
             var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.CompletionItem>(
                 testLspServer,
                 label: "AMethod").ConfigureAwait(false);
-            Assert.True(clientCompletionItem is not VSInternalCompletionItem);
 
             var expected = @"void A.AMethod(int i)
 A cref A.AMethod(int)
@@ -455,8 +452,7 @@ link text";
                 Assert.NotNull(vsCompletionList.Data);
             }
 
-            var serverCompletionItem = completionList.Items.FirstOrDefault(item => item.Label == label);
-            var clientCompletionItem = ConvertToClientCompletionItem((T)serverCompletionItem);
+            var clientCompletionItem = (T)completionList.Items.FirstOrDefault(item => item.Label == label);
             return clientCompletionItem;
         }
 
@@ -480,13 +476,6 @@ link text";
             }
 
             return completionList;
-        }
-
-        private static T ConvertToClientCompletionItem<T>(T serverCompletionItem) where T : LSP.CompletionItem
-        {
-            var serializedItem = JsonConvert.SerializeObject(serverCompletionItem);
-            var clientCompletionItem = JsonConvert.DeserializeObject<T>(serializedItem);
-            return clientCompletionItem;
         }
 
         private class TestCaretOutOfScopeCompletionService : CompletionService

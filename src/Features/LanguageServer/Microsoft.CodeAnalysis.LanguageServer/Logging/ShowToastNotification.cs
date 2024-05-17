@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -33,9 +33,8 @@ internal static class ShowToastNotification
         await languageServerManager.SendNotificationAsync(ShowToastNotificationName, toastParams, cancellationToken);
     }
 
-    [DataContract]
     private record ShowToastNotificationParams(
-        [property: DataMember(Name = "messageType")] LSP.MessageType MessageType,
-        [property: DataMember(Name = "message")] string Message,
-        [property: DataMember(Name = "commands")] LSP.Command[] Commands);
+        [property: JsonPropertyName("messageType")] LSP.MessageType MessageType,
+        [property: JsonPropertyName("message")] string Message,
+        [property: JsonPropertyName("commands")] LSP.Command[] Commands);
 }

@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents the parameter that is sent with textDocument/didOpen message.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didOpenTextDocumentParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class DidOpenTextDocumentParams
     {
         /// <summary>
         /// Gets or sets the <see cref="TextDocumentItem"/> which represents the text document that was opened.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [JsonPropertyName("textDocument")]
         public TextDocumentItem TextDocument
         {
             get;

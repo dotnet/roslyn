@@ -113,8 +113,8 @@ internal partial class FindReferencesSearchEngine
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var referencesForFinder);
             foreach (var finder in _finders)
             {
-                await finder.FindReferencesInDocumentAsync(
-                    symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, referencesForFinder, _options, cancellationToken).ConfigureAwait(false);
+                finder.FindReferencesInDocument(
+                    symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, referencesForFinder, _options, cancellationToken);
             }
 
             if (referencesForFinder.Count > 0)

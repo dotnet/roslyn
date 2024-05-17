@@ -4,14 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
     /// Enum values for inlay hint kinds.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHintKind">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal enum InlayHintKind
     {
         /// <summary>

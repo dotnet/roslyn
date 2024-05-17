@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
-internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
 {
     public static readonly ConstructorSymbolReferenceFinder Instance = new();
 
@@ -90,7 +90,7 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
         => syntaxFacts.TryGetPredefinedType(token, out var actualType) &&
            predefinedType == actualType;
 
-    protected override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected override void FindReferencesInDocument<TData>(
         IMethodSymbol methodSymbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -126,8 +126,6 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
 
         FindReferencesInDocumentInsideGlobalSuppressions(
             methodSymbol, state, processResult, processResultData, cancellationToken);
-
-        return ValueTaskFactory.CompletedTask;
     }
 
     /// <summary>
@@ -209,6 +207,7 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
             ? -1
             : symbol.Parameters.Length;
 
+        var implicitObjectKind = state.SyntaxFacts.SyntaxKinds.ImplicitObjectCreationExpression;
         FindReferencesInDocument(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
         return;
 
@@ -218,12 +217,11 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
         void CollectMatchingReferences(
             SyntaxNode node, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData)
         {
-            var syntaxFacts = state.SyntaxFacts;
-            if (!syntaxFacts.IsImplicitObjectCreationExpression(node))
+            if (node.RawKind != implicitObjectKind)
                 return;
 
             // if there are too few or too many arguments, then don't bother checking.
-            var actualArgumentCount = syntaxFacts.GetArgumentsOfObjectCreationExpression(node).Count;
+            var actualArgumentCount = state.SyntaxFacts.GetArgumentsOfObjectCreationExpression(node).Count;
             if (actualArgumentCount < minimumArgumentCount || actualArgumentCount > maximumArgumentCount)
                 return;
 

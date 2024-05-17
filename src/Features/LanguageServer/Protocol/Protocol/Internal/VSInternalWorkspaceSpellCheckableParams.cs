@@ -5,29 +5,25 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Collections.Generic;
-    using System.Runtime.Serialization;
-    using System.Text;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Parameter for workspace/_vs_spellCheckableRanges.
     /// </summary>
-    [DataContract]
     internal class VSInternalWorkspaceSpellCheckableParams : IPartialResultParams<VSInternalWorkspaceSpellCheckableReport[]>
     {
         /// <summary>
         /// Gets or sets the current state of the documents the client already has received.
         /// </summary>
-        [DataMember(Name = "_vs_previousResults")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_previousResults")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalStreamingParams[]? PreviousResults { get; set; }
 
         /// <summary>
         /// Gets or sets an optional token that a server can use to report partial results (e.g. streaming) to the client.
         /// </summary>
-        [DataMember(Name = "_vs_partialResultToken")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_partialResultToken")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<VSInternalWorkspaceSpellCheckableReport[]>? PartialResultToken
         {
             get;

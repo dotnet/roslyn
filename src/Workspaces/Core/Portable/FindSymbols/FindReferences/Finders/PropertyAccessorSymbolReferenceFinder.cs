@@ -50,7 +50,7 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
             // we want to associate normal property references with the specific accessor being
             // referenced.  So we also need to include documents with our property's name. Just
             // defer to the Property finder to find these docs and combine them with the result.
-            await ReferenceFinders.Property.DetermineDocumentsToSearchAsync(
+            await PropertySymbolReferenceFinder.Instance.DetermineDocumentsToSearchAsync(
                 property, globalAliases, project, documents,
                 processResult, processResultData,
                 options with { AssociatePropertyReferencesWithSpecificAccessor = false },
@@ -60,7 +60,7 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
         await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    protected override async ValueTask FindReferencesInDocumentAsync<TData>(
+    protected override void FindReferencesInDocument<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -77,7 +77,7 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
             return;
         }
 
-        await ReferenceFinders.Property.FindReferencesInDocumentAsync(
+        PropertySymbolReferenceFinder.Instance.FindReferencesInDocument(
             property,
             state,
             static (loc, data) =>
@@ -89,6 +89,6 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
             },
             (property, symbol, state, processResult, processResultData, cancellationToken),
             options with { AssociatePropertyReferencesWithSpecificAccessor = false },
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 }

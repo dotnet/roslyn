@@ -4,14 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
     /// Message type enum.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#messageType">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal enum MessageType
     {
         /// <summary>

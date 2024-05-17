@@ -236,7 +236,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             var engine = new FindReferencesSearchEngine(
                 solution,
                 documents: null,
-                ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
+                [.. ReferenceFinders.DefaultReferenceFinders, DelegateInvokeMethodReferenceFinder.Instance],
                 streamingProgress,
                 FindReferencesSearchOptions.Default);
 

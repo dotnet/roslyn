@@ -4,21 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing diagnostic information about the context of a code action
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionContext">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class CodeActionContext
     {
         /// <summary>
         /// Gets or sets an array of diagnostics relevant to a code action.
         /// </summary>
-        [DataMember(Name = "diagnostics")]
+        [JsonPropertyName("diagnostics")]
         public Diagnostic[] Diagnostics
         {
             get;
@@ -28,8 +26,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets an array of code action kinds to filter for.
         /// </summary>
-        [DataMember(Name = "only")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("only")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CodeActionKind[]? Only
         {
             get;
@@ -39,8 +37,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="CodeActionTriggerKind"/> indicating how the code action was triggered..
         /// </summary>
-        [DataMember(Name = "triggerKind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("triggerKind")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CodeActionTriggerKind? TriggerKind
         {
             get;

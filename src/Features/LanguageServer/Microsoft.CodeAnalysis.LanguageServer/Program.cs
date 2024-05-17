@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
@@ -18,7 +19,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 // Setting the title can fail if the process is run without a window, such
@@ -120,7 +120,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
 
     // Send the named pipe connection info to the client 
-    Console.WriteLine(JsonConvert.SerializeObject(new NamedPipeInformation(clientPipeName)));
+    Console.WriteLine(JsonSerializer.Serialize(new NamedPipeInformation(clientPipeName)));
 
     // Wait for connection from client
     await pipeServer.WaitForConnectionAsync(cancellationToken);
@@ -204,6 +204,12 @@ static CliRootCommand CreateCommandLineParser()
         Required = false
     };
 
+    var razorDesignTimePathOption = new CliOption<string?>("--razorDesignTimePath")
+    {
+        Description = "Full path to the Razor design time target path (optional).",
+        Required = false
+    };
+
     var rootCommand = new CliRootCommand()
     {
         debugOption,
@@ -215,6 +221,7 @@ static CliRootCommand CreateCommandLineParser()
         extensionAssemblyPathsOption,
         devKitDependencyPathOption,
         razorSourceGeneratorOption,
+        razorDesignTimePathOption,
         extensionLogDirectoryOption
     };
     rootCommand.SetAction((parseResult, cancellationToken) =>
@@ -227,6 +234,7 @@ static CliRootCommand CreateCommandLineParser()
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
         var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
         var razorSourceGenerator = parseResult.GetValue(razorSourceGeneratorOption);
+        var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
 
         var serverConfiguration = new ServerConfiguration(
@@ -238,6 +246,7 @@ static CliRootCommand CreateCommandLineParser()
             ExtensionAssemblyPaths: extensionAssemblyPaths,
             DevKitDependencyPath: devKitDependencyPath,
             RazorSourceGenerator: razorSourceGenerator,
+            RazorDesignTimePath: razorDesignTimePath,
             ExtensionLogDirectory: extensionLogDirectory);
 
         return RunAsync(serverConfiguration, cancellationToken);

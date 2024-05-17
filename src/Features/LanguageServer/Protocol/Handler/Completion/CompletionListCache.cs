@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.Completion;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.Completion.CompletionListCache;
-using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 {

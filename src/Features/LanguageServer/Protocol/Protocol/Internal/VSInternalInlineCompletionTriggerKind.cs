@@ -4,13 +4,10 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
     /// How the inline completion request was triggered.
     /// See https://github.com/microsoft/vscode/blob/075ba020e8493f40dba89891b1a08453f2c067e9/src/vscode-dts/vscode.proposed.inlineCompletions.d.ts#L58.
     /// </summary>
-    [DataContract]
     internal enum VSInternalInlineCompletionTriggerKind
     {
         /// <summary>

@@ -30,7 +30,7 @@ internal sealed class ExplicitInterfaceMethodReferenceFinder : AbstractReference
         return Task.CompletedTask;
     }
 
-    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override void FindReferencesInDocument<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -39,6 +39,5 @@ internal sealed class ExplicitInterfaceMethodReferenceFinder : AbstractReference
         CancellationToken cancellationToken)
     {
         // An explicit method can't be referenced anywhere.
-        return ValueTaskFactory.CompletedTask;
     }
 }

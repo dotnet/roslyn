@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -134,7 +134,6 @@ internal static class ProjectDependencyHelper
         await languageServerManager.SendRequestAsync(ProjectNeedsRestoreName, unresolvedParams, cancellationToken);
     }
 
-    [DataContract]
     private record UnresolvedDependenciesParams(
-        [property: DataMember(Name = "projectFilePaths")] string[] ProjectFilePaths);
+        [property: JsonPropertyName("projectFilePaths")] string[] ProjectFilePaths);
 }

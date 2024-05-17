@@ -247,6 +247,7 @@ namespace BuildBoss
                     case "net472":
                     case "netstandard2.0":
                     case "$(NetRoslyn)":
+                    case "$(NetRoslynNext)":
                     case "$(NetRoslynSourceBuild)":
                     case "$(NetRoslynToolset)":
                     case "$(NetRoslynAll)":

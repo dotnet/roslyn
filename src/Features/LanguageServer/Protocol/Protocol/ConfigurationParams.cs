@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the parameters for the workspace/configuration request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#configurationParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class ConfigurationParams
     {
         /// <summary>
         /// Gets or sets the ConfigurationItems being requested.
         /// </summary>
-        [DataMember(Name = "items")]
+        [JsonPropertyName("items")]
         public ConfigurationItem[] Items
         {
             get;

@@ -63,7 +63,7 @@ internal interface IReferenceFinder
     /// 
     /// Implementations of this method must be thread-safe.
     /// </summary>
-    ValueTask FindReferencesInDocumentAsync<TData>(
+    void FindReferencesInDocument<TData>(
         ISymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,

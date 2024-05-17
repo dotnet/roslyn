@@ -4,20 +4,18 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the parameters sent for a textDocument/_vs_textPresentation request.
     /// </summary>
-    [DataContract]
     internal class VSInternalTextPresentationParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the identifier for the text document to be operate on.
         /// </summary>
-        [DataMember(Name = "_vs_textDocument")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("_vs_textDocument")]
+        [JsonRequired]
         public TextDocumentIdentifier TextDocument
         {
             get;
@@ -27,8 +25,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range.
         /// </summary>
-        [DataMember(Name = "_vs_range")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("_vs_range")]
+        [JsonRequired]
         public Range Range
         {
             get;
@@ -38,7 +36,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text.
         /// </summary>
-        [DataMember(Name = "_vs_text")]
+        [JsonPropertyName("_vs_text")]
         public string? Text
         {
             get;
