@@ -240,7 +240,7 @@ class C
 }";
             var comp = CreateCompilationWithIndexAndRangeAndSpan(src, TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (9,9): error CS9504: The type 'Span<char>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Throws<T>(Func<T>)'
+                // (9,9): error CS9244: The type 'Span<char>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Throws<T>(Func<T>)'
                 //         Throws(() => new Span<char>(s.ToCharArray())[0..1]);
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Throws").WithArguments("C.Throws<T>(System.Func<T>)", "T", "System.Span<char>").WithLocation(9, 9)
                 );

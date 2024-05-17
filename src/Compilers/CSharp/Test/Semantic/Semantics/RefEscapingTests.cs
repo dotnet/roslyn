@@ -4342,10 +4342,10 @@ namespace System
     }
 }";
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (8,19): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
+                // (8,19): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         var t = ((global, global) = global); // error
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "global").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(8, 19),
-                // (8,27): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
+                // (8,27): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         var t = ((global, global) = global); // error
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "global").WithArguments("(T1, T2)", "T2", "System.Span<int>").WithLocation(8, 27)
             );
@@ -4398,25 +4398,25 @@ namespace System
 ";
             var compilation = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             compilation.VerifyDiagnostics(
-                // (12,29): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
+                // (12,29): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(12, 29),
-                // (12,36): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
+                // (12,36): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T2", "System.Span<int>").WithLocation(12, 36),
-                // (14,24): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
+                // (14,24): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (global, s) = (local, ""); // error 2
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(14, 24),
-                // (15,24): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
+                // (15,24): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (global, s) = (local, null); // error 3
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(15, 24),
-                // (17,23): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
+                // (17,23): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (local, s) = (global, ""); // error 4
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "global").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(17, 23),
-                // (18,23): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
+                // (18,23): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (local, s) = (global, null); // error 5
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "global").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(18, 23),
-                // (20,19): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
+                // (20,19): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (c, s) = (local, ""); // error 6
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(20, 19)
             );
@@ -4486,16 +4486,16 @@ public class C
                 // (12,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, local)").WithArguments("System.ValueTuple`2").WithLocation(12, 28),
-                // (12,29): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
+                // (12,29): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(, )", "", "System.Span<int>").WithLocation(12, 29),
-                // (12,36): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
+                // (12,36): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(, )", "", "System.Span<int>").WithLocation(12, 36),
                 // (14,23): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (global, s) = (local, ""); // error 2
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(local, """")").WithArguments("System.ValueTuple`2").WithLocation(14, 23),
-                // (14,24): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
+                // (14,24): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
                 //         (global, s) = (local, ""); // error 2
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(, )", "", "System.Span<int>").WithLocation(14, 24),
                 // (15,23): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
@@ -4504,7 +4504,7 @@ public class C
                 // (17,22): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (local, s) = (global, ""); // error 4
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(global, """")").WithArguments("System.ValueTuple`2").WithLocation(17, 22),
-                // (17,23): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
+                // (17,23): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
                 //         (local, s) = (global, ""); // error 4
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "global").WithArguments("(, )", "", "System.Span<int>").WithLocation(17, 23),
                 // (18,22): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
@@ -4513,7 +4513,7 @@ public class C
                 // (20,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (c, s) = (local, ""); // error 6
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(local, """")").WithArguments("System.ValueTuple`2").WithLocation(20, 18),
-                // (20,19): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
+                // (20,19): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
                 //         (c, s) = (local, ""); // error 6
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(, )", "", "System.Span<int>").WithLocation(20, 19),
                 // (21,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
@@ -4598,25 +4598,25 @@ namespace System
 ";
             var compilation = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             compilation.VerifyDiagnostics(
-                // (12,29): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
+                // (12,29): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(12, 29),
-                // (12,36): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
+                // (12,36): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T2", "System.Span<int>").WithLocation(12, 36),
-                // (14,24): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
+                // (14,24): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (global, s) = (local, ""); // error 2
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(14, 24),
-                // (15,24): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
+                // (15,24): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (global, s) = (local, null); // error 3
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(15, 24),
-                // (17,23): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
+                // (17,23): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (local, s) = (global, ""); // error 4
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "global").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(17, 23),
-                // (18,23): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
+                // (18,23): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (local, s) = (global, null); // error 5
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "global").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(18, 23),
-                // (20,19): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
+                // (20,19): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (c, s) = (local, ""); // error 6
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(20, 19)
                 );
@@ -4996,7 +4996,7 @@ class C
             if (languageVersion < LanguageVersionFacts.CSharpNext)
             {
                 comp.VerifyDiagnostics(
-                    // (8,26): error CS9504: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Task<TResult>'
+                    // (8,26): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Task<TResult>'
                     //     async Task M(Task<S> t)
                     Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "t").WithArguments("System.Threading.Tasks.Task<TResult>", "TResult", "S").WithLocation(8, 26),
                     // (12,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -5013,7 +5013,7 @@ class C
             else
             {
                 comp.VerifyDiagnostics(
-                    // (8,26): error CS9504: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Task<TResult>'
+                    // (8,26): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Task<TResult>'
                     //     async Task M(Task<S> t)
                     Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "t").WithArguments("System.Threading.Tasks.Task<TResult>", "TResult", "S").WithLocation(8, 26),
                     // (15,9): error CS8350: This combination of arguments to 'C.M(S, ref S)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
@@ -5073,10 +5073,10 @@ class C
         var a = (S?)null ?? default;
     }
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (8,14): error CS9504: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                // (8,14): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         _ = (S?)null ?? default;
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "S?").WithArguments("System.Nullable<T>", "T", "S").WithLocation(8, 14),
-                // (10,18): error CS9504: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                // (10,18): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         var a = (S?)null ?? default;
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "S?").WithArguments("System.Nullable<T>", "T", "S").WithLocation(10, 18)
                 );

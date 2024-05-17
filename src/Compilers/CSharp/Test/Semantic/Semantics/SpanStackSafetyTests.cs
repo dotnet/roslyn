@@ -444,7 +444,7 @@ class Program
                 // (13,26): error CS0701: 'Span<int>' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 //     class C1<T> where T: Span<int>
                 Diagnostic(ErrorCode.ERR_BadBoundType, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 26),
-                // (10,14): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Func<TResult>'
+                // (10,14): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Func<TResult>'
                 //         Func<Span<int>> d = ()=>x;
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Span<int>").WithArguments("System.Func<TResult>", "TResult", "System.Span<int>").WithLocation(10, 14),
                 // (10,33): error CS8175: Cannot use ref local 'x' inside an anonymous method, lambda expression, or query expression

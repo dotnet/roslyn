@@ -634,7 +634,7 @@ ref struct S
 
             var expectedDiagnostics = new[]
             {
-                // source(4,65): error CS9504: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IAsyncEnumerable<T>'
+                // source(4,65): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IAsyncEnumerable<T>'
                 //     static async System.Collections.Generic.IAsyncEnumerable<S> M()
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M").WithArguments("System.Collections.Generic.IAsyncEnumerable<T>", "T", "S").WithLocation(4, 65)
             };
@@ -647,7 +647,7 @@ ref struct S
 
             comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // source(4,65): error CS9504: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IAsyncEnumerable<T>'
+                // source(4,65): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IAsyncEnumerable<T>'
                 //     static async System.Collections.Generic.IAsyncEnumerable<S> M()
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M").WithArguments("System.Collections.Generic.IAsyncEnumerable<T>", "T", "S").WithLocation(4, 65),
                 // source(11,24): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.

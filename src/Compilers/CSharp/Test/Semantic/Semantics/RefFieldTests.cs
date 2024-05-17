@@ -8990,10 +8990,10 @@ static class Program
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
-                // (8,19): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
+                // (8,19): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (x, y) = (y, x);
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "y").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(8, 19),
-                // (8,22): error CS9504: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
+                // (8,22): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         (x, y) = (y, x);
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("(T1, T2)", "T2", "System.Span<int>").WithLocation(8, 22)
                 );
@@ -9773,7 +9773,7 @@ class C
                 // (4,40): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithRefField')
                 //     StructWithRefField* p = stackalloc StructWithRefField[10]; // 1, 2
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithRefField").WithArguments("StructWithRefField").WithLocation(4, 40),
-                // (5,7): error CS9504: The type 'StructWithRefField' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.M<T>()'
+                // (5,7): error CS9244: The type 'StructWithRefField' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.M<T>()'
                 //     C.M<StructWithRefField>(); // 3
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M<StructWithRefField>").WithArguments("C.M<T>()", "T", "StructWithRefField").WithLocation(5, 7)
                 );
@@ -9812,7 +9812,7 @@ class C
                 // (4,48): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
                 //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField").WithArguments("StructWithIndirectRefField").WithLocation(4, 48),
-                // (5,7): error CS9504: The type 'StructWithIndirectRefField' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.M<T>()'
+                // (5,7): error CS9244: The type 'StructWithIndirectRefField' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.M<T>()'
                 //     C.M<StructWithIndirectRefField>(); // 3
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M<StructWithIndirectRefField>").WithArguments("C.M<T>()", "T", "StructWithIndirectRefField").WithLocation(5, 7),
                 // (10,36): warning CS0649: Field 'StructWithIndirectRefField.Field' is never assigned to, and will always have its default value 

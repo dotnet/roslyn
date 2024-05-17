@@ -4389,14 +4389,14 @@ public class C<T>
                 );
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.DesktopLatestExtended, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-                // (3,22): error CS9500: Target runtime doesn't support by-ref-like generics.
+                // (3,22): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 22)
                 );
             Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefLikeGenerics));
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-                // (3,22): error CS9500: Target runtime doesn't support by-ref-like generics.
+                // (3,22): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 22)
                 );
@@ -4439,7 +4439,7 @@ public class C
                 );
 
             CreateCompilation(src, targetFramework: TargetFramework.DesktopLatestExtended, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-                // (5,26): error CS9500: Target runtime doesn't support by-ref-like generics.
+                // (5,26): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //         where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(5, 26)
                 );
@@ -4462,10 +4462,10 @@ public class D<T>
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (3,34): error CS9501: 'ref struct' is already specified.
+                // (3,34): error CS9241: 'ref struct' is already specified.
                 //     where T : allows ref struct, ref struct
                 Diagnostic(ErrorCode.ERR_RefStructConstraintAlreadySpecified, "ref struct").WithLocation(3, 34),
-                // (8,34): error CS9501: 'ref struct' is already specified.
+                // (8,34): error CS9241: 'ref struct' is already specified.
                 //     where T : allows ref struct, ref
                 Diagnostic(ErrorCode.ERR_RefStructConstraintAlreadySpecified, @"ref
 ").WithLocation(8, 34),
@@ -4503,7 +4503,7 @@ public class C<T>
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                // (3,15): error CS9242: The 'allows' constraint clause must be the last constraint specified
                 //     where T : allows ref struct, allows ref struct
                 Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15)
                 );
@@ -4529,7 +4529,7 @@ public class C<T>
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                // (3,15): error CS9242: The 'allows' constraint clause must be the last constraint specified
                 //     where T : allows ref struct, struct
                 Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15),
                 // (3,34): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
@@ -4580,10 +4580,10 @@ public class C<T>
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (2,16): error CS9503: Cannot allow ref structs for a type parameter known from other constraints to be a class
+                // (2,16): error CS9243: Cannot allow ref structs for a type parameter known from other constraints to be a class
                 // public class C<T>
                 Diagnostic(ErrorCode.ERR_ClassIsCombinedWithRefStruct, "T").WithLocation(2, 16),
-                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                // (3,15): error CS9242: The 'allows' constraint clause must be the last constraint specified
                 //     where T : allows ref struct, class
                 Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15),
                 // (3,34): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
@@ -4612,7 +4612,7 @@ public class C<T>
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (2,16): error CS9503: Cannot allow ref structs for a type parameter known from other constraints to be a class
+                // (2,16): error CS9243: Cannot allow ref structs for a type parameter known from other constraints to be a class
                 // public class C<T>
                 Diagnostic(ErrorCode.ERR_ClassIsCombinedWithRefStruct, "T").WithLocation(2, 16)
                 );
@@ -4638,7 +4638,7 @@ public class C<T>
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                // (3,15): error CS9242: The 'allows' constraint clause must be the last constraint specified
                 //     where T : allows ref struct, default
                 Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15),
                 // (3,34): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
@@ -4673,7 +4673,7 @@ public class C
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (5,19): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                // (5,19): error CS9242: The 'allows' constraint clause must be the last constraint specified
                 //         where T : allows ref struct, default
                 Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(5, 19),
                 // (5,38): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
@@ -4834,7 +4834,7 @@ public class C<T>
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                // (3,15): error CS9242: The 'allows' constraint clause must be the last constraint specified
                 //     where T : allows ref struct, unmanaged
                 Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15),
                 // (3,34): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
@@ -4885,7 +4885,7 @@ public class C<T>
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                // (3,15): error CS9242: The 'allows' constraint clause must be the last constraint specified
                 //     where T : allows ref struct, notnull
                 Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15),
                 // (3,34): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
@@ -4938,7 +4938,7 @@ public interface I1 {}
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                // (3,15): error CS9242: The 'allows' constraint clause must be the last constraint specified
                 //     where T : allows ref struct, notnull
                 Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15)
                 );
@@ -4996,7 +4996,7 @@ public class C1 {}
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (2,16): error CS9503: Cannot allow ref structs for a type parameter known from other constraints to be a class
+                // (2,16): error CS9243: Cannot allow ref structs for a type parameter known from other constraints to be a class
                 // public class C<T>
                 Diagnostic(ErrorCode.ERR_ClassIsCombinedWithRefStruct, "T").WithLocation(2, 16)
                 );
@@ -5079,7 +5079,7 @@ public class C<T>
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                // (3,15): error CS9242: The 'allows' constraint clause must be the last constraint specified
                 //     where T : allows ref struct, new()
                 Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15)
                 );
@@ -5470,7 +5470,7 @@ class C2 : C1
             var comp2 = CreateCompilation(src1, targetFramework: TargetFramework.Net70);
 
             CreateCompilation(src2, references: [comp2.ToMetadataReference()], targetFramework: TargetFramework.Net70).VerifyDiagnostics(
-                // (4,29): error CS9500: Target runtime doesn't support by-ref-like generics.
+                // (4,29): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     public override void M1<T>()
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "T").WithLocation(4, 29)
                 );
@@ -5603,7 +5603,7 @@ class C2 : C1
             var comp2 = CreateCompilation(src1, targetFramework: TargetFramework.Net70);
 
             CreateCompilation(src2, references: [comp2.ToMetadataReference()], targetFramework: TargetFramework.Net70).VerifyDiagnostics(
-                // (4,16): error CS9500: Target runtime doesn't support by-ref-like generics.
+                // (4,16): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     void C1.M1<T>()
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "T").WithLocation(4, 16)
                 );
@@ -5729,7 +5729,7 @@ class C {}
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (10,20): error CS9503: Cannot allow ref structs for a type parameter known from other constraints to be a class
+                // (10,20): error CS9243: Cannot allow ref structs for a type parameter known from other constraints to be a class
                 //     public void M1<T>() where T : C, allows ref struct
                 Diagnostic(ErrorCode.ERR_ClassIsCombinedWithRefStruct, "T").WithLocation(10, 20),
                 // (13,17): error CS0425: The constraints for type parameter 'T' of method 'C2.M2<T>()' must match the constraints for type parameter 'T' of interface method 'C1<C>.M2<T>()'. Consider using an explicit interface implementation instead.
@@ -5923,7 +5923,7 @@ class C
             var comp = CreateCompilation(src);
 
             comp.VerifyDiagnostics(
-                // (19,9): error CS9504: The type 'S1' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Test<T>(T)'
+                // (19,9): error CS9244: The type 'S1' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Test<T>(T)'
                 //         Test(new S1());
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Test").WithArguments("C.Test<T>(T)", "T", "S1").WithLocation(19, 9)
                 );
@@ -6078,7 +6078,7 @@ class C
             var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetCoreApp);
 
             comp1.VerifyDiagnostics(
-                // (11,17): error CS9505: 'I1.M1()' cannot implement interface member 'I1.M1()' for ref struct 'S1'.
+                // (11,17): error CS9245: 'I1.M1()' cannot implement interface member 'I1.M1()' for ref struct 'S1'.
                 // ref struct S1 : I1
                 Diagnostic(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "S1").WithLocation(11, 17)
                 );
@@ -6088,7 +6088,7 @@ class C
 
             // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
             comp2.VerifyDiagnostics(
-                // (100,9): error CS9506: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
+                // (100,9): error CS9246: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
                 //         x.M3();
                 Diagnostic(ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, "x.M3").WithLocation(100, 9),
                 // (101,17): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
@@ -6139,7 +6139,7 @@ class C
             var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetCoreApp);
 
             comp1.VerifyDiagnostics(
-                // (9,17): error CS9505: 'I1.P1.get' cannot implement interface member 'I1.P1.get' for ref struct 'S1'.
+                // (9,17): error CS9245: 'I1.P1.get' cannot implement interface member 'I1.P1.get' for ref struct 'S1'.
                 // ref struct S1 : I1
                 Diagnostic(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "S1").WithLocation(9, 17)
                 );
@@ -6149,7 +6149,7 @@ class C
 
             // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
             comp2.VerifyDiagnostics(
-                // (100,13): error CS9506: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
+                // (100,13): error CS9246: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
                 //         _ = x.P3;
                 Diagnostic(ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, "x.P3").WithLocation(100, 13)
                 );
@@ -6196,7 +6196,7 @@ class C
             var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetCoreApp);
 
             comp1.VerifyDiagnostics(
-                // (9,17): error CS9505: 'I1.P1.set' cannot implement interface member 'I1.P1.set' for ref struct 'S1'.
+                // (9,17): error CS9245: 'I1.P1.set' cannot implement interface member 'I1.P1.set' for ref struct 'S1'.
                 // ref struct S1 : I1
                 Diagnostic(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.set", "I1.P1.set", "S1").WithLocation(9, 17)
                 );
@@ -6206,7 +6206,7 @@ class C
 
             // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
             comp2.VerifyDiagnostics(
-                // (14,9): error CS9506: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
+                // (14,9): error CS9246: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
                 //         x.P3 = 123;
                 Diagnostic(ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, "x.P3").WithLocation(14, 9)
                 );
@@ -6263,7 +6263,7 @@ class C
             var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetCoreApp);
 
             comp1.VerifyDiagnostics(
-                // (12,17): error CS9505: 'I1.this[int].get' cannot implement interface member 'I1.this[int].get' for ref struct 'S1'.
+                // (12,17): error CS9245: 'I1.this[int].get' cannot implement interface member 'I1.this[int].get' for ref struct 'S1'.
                 // ref struct S1 : I1, I2
                 Diagnostic(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].get", "I1.this[int].get", "S1").WithLocation(12, 17)
                 );
@@ -6273,7 +6273,7 @@ class C
 
             // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
             comp2.VerifyDiagnostics(
-                // (21,13): error CS9506: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
+                // (21,13): error CS9246: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
                 //         _ = x[4];
                 Diagnostic(ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, "x[4]").WithLocation(21, 13)
                 );
@@ -6330,7 +6330,7 @@ class C
             var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetCoreApp);
 
             comp1.VerifyDiagnostics(
-                // (12,17): error CS9505: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' for ref struct 'S1'.
+                // (12,17): error CS9245: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' for ref struct 'S1'.
                 // ref struct S1 : I1, I2
                 Diagnostic(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "S1").WithLocation(12, 17)
                 );
@@ -6340,7 +6340,7 @@ class C
 
             // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
             comp2.VerifyDiagnostics(
-                // (21,9): error CS9506: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
+                // (21,9): error CS9246: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
                 //         x[4] = 4;
                 Diagnostic(ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, "x[4]").WithLocation(21, 9)
                 );
@@ -6395,10 +6395,10 @@ class C
             var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetCoreApp);
 
             comp1.VerifyDiagnostics(
-                // (9,17): error CS9505: 'I1.E1.add' cannot implement interface member 'I1.E1.add' for ref struct 'S1'.
+                // (9,17): error CS9245: 'I1.E1.add' cannot implement interface member 'I1.E1.add' for ref struct 'S1'.
                 // ref struct S1 : I1
                 Diagnostic(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E1.add", "I1.E1.add", "S1").WithLocation(9, 17),
-                // (9,17): error CS9505: 'I1.E1.remove' cannot implement interface member 'I1.E1.remove' for ref struct 'S1'.
+                // (9,17): error CS9245: 'I1.E1.remove' cannot implement interface member 'I1.E1.remove' for ref struct 'S1'.
                 // ref struct S1 : I1
                 Diagnostic(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E1.remove", "I1.E1.remove", "S1").WithLocation(9, 17)
                 );
@@ -6408,10 +6408,10 @@ class C
 
             // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
             comp2.VerifyDiagnostics(
-                // (100,9): error CS9506: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
+                // (100,9): error CS9246: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
                 //         x.E3 += null;
                 Diagnostic(ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, "x.E3 += null").WithLocation(100, 9),
-                // (200,9): error CS9506: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
+                // (200,9): error CS9246: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
                 //         x.E3 -= null;
                 Diagnostic(ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, "x.E3 -= null").WithLocation(200, 9)
                 );
@@ -11057,7 +11057,7 @@ class C
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (58,27): error CS9507: foreach statement cannot operate on enumerators of type 'TEnumerator' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.
+                // (58,27): error CS9247: foreach statement cannot operate on enumerators of type 'TEnumerator' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.
                 //         foreach (var i in t)
                 Diagnostic(ErrorCode.ERR_BadAllowByRefLikeEnumerator, "t").WithArguments("TEnumerator").WithLocation(58, 27)
                 );
@@ -11152,7 +11152,7 @@ class C
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (53,27): error CS9507: foreach statement cannot operate on enumerators of type 'TEnumerator' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.
+                // (53,27): error CS9247: foreach statement cannot operate on enumerators of type 'TEnumerator' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.
                 //         foreach (var i in t)
                 Diagnostic(ErrorCode.ERR_BadAllowByRefLikeEnumerator, "t").WithArguments("TEnumerator").WithLocation(53, 27)
                 );
@@ -18313,7 +18313,7 @@ class C
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (10,9): error CS9504: The type 'S1' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Test<T>(T)'
+                // (10,9): error CS9244: The type 'S1' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Test<T>(T)'
                 //         Test(new S1());
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Test").WithArguments("C.Test<T>(T)", "T", "S1").WithLocation(10, 9)
                 );
@@ -18371,7 +18371,7 @@ class C
                 );
 
             CreateCompilation([src1, src2], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (100,54): error CS9500: Target runtime doesn't support by-ref-like generics.
+                // (100,54): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     public static void Test<T>(T x) where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 54)
                 );
@@ -18379,7 +18379,7 @@ class C
             comp1Ref = CreateCompilation(src1, targetFramework: TargetFramework.DesktopLatestExtended).ToMetadataReference();
 
             CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (200,9): error CS9500: Target runtime doesn't support by-ref-like generics.
+                // (200,9): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //         Helper.Test(new S1());
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "Helper.Test").WithLocation(200, 9)
                 );
@@ -18409,10 +18409,10 @@ class C
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (10,9): error CS9504: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Test2<T>(T)'
+                // (10,9): error CS9244: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Test2<T>(T)'
                 //         Test2(x);
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Test2").WithArguments("C.Test2<T>(T)", "T", "T").WithLocation(10, 9),
-                // (11,9): error CS9504: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Test2<T>(T)'
+                // (11,9): error CS9244: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Test2<T>(T)'
                 //         Test2<T>(x);
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Test2<T>").WithArguments("C.Test2<T>(T)", "T", "T").WithLocation(11, 9)
                 );
@@ -18501,10 +18501,10 @@ class C<T, S>
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (12,26): error CS9504: The type 'S1' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'S' in the generic type or method 'C<T, S>'
+                // (12,26): error CS9244: The type 'S1' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'S' in the generic type or method 'C<T, S>'
                 //         _ = typeof(C<S1, S1>);
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "S1").WithArguments("C<T, S>", "S", "S1").WithLocation(12, 26),
-                // (16,25): error CS9504: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'S' in the generic type or method 'C<T, S>'
+                // (16,25): error CS9244: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'S' in the generic type or method 'C<T, S>'
                 //         _ = typeof(C<T, T>);
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "T").WithArguments("C<T, S>", "S", "T").WithLocation(16, 25)
                 );
@@ -19532,10 +19532,10 @@ ref struct S
             var comp = CreateCompilation(sourceA, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (7,30): error CS9504: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Activator.CreateInstance<T>()'
+                // (7,30): error CS9244: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Activator.CreateInstance<T>()'
                 //         _ = System.Activator.CreateInstance<T>();
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "CreateInstance<T>").WithArguments("System.Activator.CreateInstance<T>()", "T", "T").WithLocation(7, 30),
-                // (12,30): error CS9504: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Activator.CreateInstance<T>()'
+                // (12,30): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Activator.CreateInstance<T>()'
                 //         _ = System.Activator.CreateInstance<S>();
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "CreateInstance<S>").WithArguments("System.Activator.CreateInstance<T>()", "T", "S").WithLocation(12, 30)
                 );
@@ -19570,7 +19570,7 @@ namespace System
             var comp = CreateCompilation(sourceA, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyEmitDiagnostics(
-                // (7,13): error CS9504: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Activator.CreateInstance<T>()'
+                // (7,13): error CS9244: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Activator.CreateInstance<T>()'
                 //         _ = new T();
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "new T()").WithArguments("System.Activator.CreateInstance<T>()", "T", "T").WithLocation(7, 13)
                 );
@@ -23048,7 +23048,7 @@ class C
                 // (3,39): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     class Program<T> where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(3, 39),
-                // (3,39): error CS9500: Target runtime doesn't support by-ref-like generics.
+                // (3,39): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     class Program<T> where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 39),
                 // (20,39): error CS8352: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
@@ -23469,13 +23469,13 @@ public class C<R> where R : struct, IR<R>, allows ref struct
                 // (3,50): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     class Program<S1> where S1 : IS1<S1>, allows ref struct
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(3, 50),
-                // (3,50): error CS9500: Target runtime doesn't support by-ref-like generics.
+                // (3,50): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     class Program<S1> where S1 : IS1<S1>, allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 50),
                 // (31,50): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     interface IS1<S1> where S1 : IS1<S1>, allows ref struct
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(31, 50),
-                // (31,50): error CS9500: Target runtime doesn't support by-ref-like generics.
+                // (31,50): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     interface IS1<S1> where S1 : IS1<S1>, allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(31, 50),
                 // (33,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
@@ -23549,13 +23549,13 @@ interface IS1<S1> where S1 : IS1<S1>, allows ref struct
                 // 0.cs(38,46): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // interface IS1<S1> where S1 : IS1<S1>, allows ref struct
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(38, 46),
-                // 0.cs(38,46): error CS9500: Target runtime doesn't support by-ref-like generics.
+                // 0.cs(38,46): error CS9240: Target runtime doesn't support by-ref-like generics.
                 // interface IS1<S1> where S1 : IS1<S1>, allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(38, 46),
                 // 0.cs(3,46): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // class Program<S1> where S1 : IS1<S1>, allows ref struct
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(3, 46),
-                // 0.cs(3,46): error CS9500: Target runtime doesn't support by-ref-like generics.
+                // 0.cs(3,46): error CS9240: Target runtime doesn't support by-ref-like generics.
                 // class Program<S1> where S1 : IS1<S1>, allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 46),
                 // 0.cs(20,32): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope

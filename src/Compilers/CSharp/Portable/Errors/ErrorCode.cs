@@ -2310,20 +2310,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptsLocationDataInvalidPosition = 9235,
         INF_TooManyBoundLambdas = 9236,
 
-        ERR_RuntimeDoesNotSupportByRefLikeGenerics = 9500, // PROTOTYPE(RefStructInterfaces): Pack numbers
-        ERR_RefStructConstraintAlreadySpecified = 9501,
-        ERR_AllowsClauseMustBeLast = 9502,
-        ERR_ClassIsCombinedWithRefStruct = 9503,
-        ERR_NotRefStructConstraintNotSatisfied = 9504,
-        ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember = 9505,
-        ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike = 9506,
-        ERR_BadAllowByRefLikeEnumerator = 9507,
-
         #endregion
 
         WRN_BadYieldInLock = 9237,
         ERR_BadYieldInUnsafe = 9238,
         ERR_AddressOfInIterator = 9239,
+
+        ERR_RuntimeDoesNotSupportByRefLikeGenerics = 9240,
+        ERR_RefStructConstraintAlreadySpecified = 9241,
+        ERR_AllowsClauseMustBeLast = 9242,
+        ERR_ClassIsCombinedWithRefStruct = 9243,
+        ERR_NotRefStructConstraintNotSatisfied = 9244,
+        ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember = 9245,
+        ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike = 9246,
+        ERR_BadAllowByRefLikeEnumerator = 9247,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
