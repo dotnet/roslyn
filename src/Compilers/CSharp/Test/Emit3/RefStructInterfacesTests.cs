@@ -6086,7 +6086,8 @@ class C
             comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
-            // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
+            // Specification suggests to report a warning for access to virtual (non-abstract) members.
+            // There is an open design question - https://github.com/dotnet/csharplang/blob/main/proposals/ref-struct-interfaces.md#warn-on-dim-invocation
             comp2.VerifyDiagnostics(
                 // (100,9): error CS9246: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
                 //         x.M3();
@@ -6147,7 +6148,8 @@ class C
             comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
-            // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
+            // Specification suggests to report a warning for access to virtual (non-abstract) members.
+            // There is an open design question - https://github.com/dotnet/csharplang/blob/main/proposals/ref-struct-interfaces.md#warn-on-dim-invocation
             comp2.VerifyDiagnostics(
                 // (100,13): error CS9246: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
                 //         _ = x.P3;
@@ -6204,7 +6206,8 @@ class C
             comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
-            // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
+            // Specification suggests to report a warning for access to virtual (non-abstract) members.
+            // There is an open design question - https://github.com/dotnet/csharplang/blob/main/proposals/ref-struct-interfaces.md#warn-on-dim-invocation
             comp2.VerifyDiagnostics(
                 // (14,9): error CS9246: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
                 //         x.P3 = 123;
@@ -6271,7 +6274,8 @@ class C
             comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
-            // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
+            // Specification suggests to report a warning for access to virtual (non-abstract) members.
+            // There is an open design question - https://github.com/dotnet/csharplang/blob/main/proposals/ref-struct-interfaces.md#warn-on-dim-invocation
             comp2.VerifyDiagnostics(
                 // (21,13): error CS9246: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
                 //         _ = x[4];
@@ -6338,7 +6342,8 @@ class C
             comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
-            // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
+            // Specification suggests to report a warning for access to virtual (non-abstract) members.
+            // There is an open design question - https://github.com/dotnet/csharplang/blob/main/proposals/ref-struct-interfaces.md#warn-on-dim-invocation
             comp2.VerifyDiagnostics(
                 // (21,9): error CS9246: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
                 //         x[4] = 4;
@@ -6406,7 +6411,8 @@ class C
             comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
-            // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
+            // Specification suggests to report a warning for access to virtual (non-abstract) members.
+            // There is an open design question - https://github.com/dotnet/csharplang/blob/main/proposals/ref-struct-interfaces.md#warn-on-dim-invocation
             comp2.VerifyDiagnostics(
                 // (100,9): error CS9246: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
                 //         x.E3 += null;
@@ -7065,6 +7071,7 @@ Block[B4] - Exit
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73559")]
         public void Using_06()
         {
             var src = @"
@@ -7101,7 +7108,7 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            // PROTOTYPE(RefStructInterfaces): Should we adjust wording for the error? Ref struct implement interfaces, but not convertible to them.  
+            // https://github.com/dotnet/roslyn/issues/73559: Should we adjust wording for the error? Ref struct implement interfaces, but not convertible to them.  
             comp.VerifyDiagnostics(
                 // (23,16): error CS1674: 'T': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (t)
@@ -12921,7 +12928,7 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            // PROTOTYPE(RefStructInterfaces): The failure is likely unexpected, but is not specific to `allow ref struct` scenario. See https://github.com/dotnet/roslyn/issues/72819. 
+            // https://github.com/dotnet/roslyn/issues/72819: The failure is likely unexpected, but is not specific to `allow ref struct` scenario.
             comp.VerifyDiagnostics(
                 // (36,22): error CS0121: The call is ambiguous between the following methods or properties: 'IMyAsyncDisposable1.DisposeAsync()' and 'IMyAsyncDisposable2.DisposeAsync()'
                 //         await using (new T())
@@ -19008,8 +19015,9 @@ public class Helper
                 );
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(RefStructInterfaces): Follow up on used assemblies validation failure. Could be an artifact of https://github.com/dotnet/roslyn/issues/72945.
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // https://github.com/dotnet/roslyn/issues/73558: Follow up on used assemblies validation failure. Could be an artifact of https://github.com/dotnet/roslyn/issues/72945.
         [WorkItem("https://github.com/dotnet/roslyn/issues/72945")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73558")]
         public void AnonymousTypeMember_02()
         {
             var src = @"
@@ -19383,7 +19391,7 @@ ref struct S : IEnumerable<int>
                 Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(12, 24)
                 );
 
-            // PROTOTYPE(RefStructInterfaces): Consider testing similar scenario without params
+            // https://github.com/dotnet/roslyn/issues/73557: Consider testing similar scenario without params
         }
 
         [Fact]
@@ -19737,6 +19745,7 @@ ref struct S
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73556")]
         public void InlineArrayElement_01()
         {
             var src1 = @"
@@ -19786,9 +19795,10 @@ struct S2<T2>
                 //     T2 _f;
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "T2").WithArguments("T2").WithLocation(6, 5),
 
-                // PROTOTYPE(RefStructInterfaces): The warning below is somewhat misleading. 'S2' can be used as a type argument (it is not a ref struct) and 'T2' is a type argument. 
-                //                                 However, given the error above, this is probably not worth fixing. There is no way to declare a legal non-ref struct with a field
-                //                                 of type 'T2'.
+                // https://github.com/dotnet/roslyn/issues/73556:
+                // The warning below is somewhat misleading. 'S2' can be used as a type argument (it is not a ref struct) and 'T2' is a type argument. 
+                // However, given the error above, this is probably not worth fixing. There is no way to declare a legal non-ref struct with a field
+                // of type 'T2'.
 
                 // (6,8): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     T2 _f;
@@ -19944,7 +19954,7 @@ ref struct S
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("y").WithLocation(14, 35)
                 );
 
-            // PROTOTYPE(RefStructInterfaces): Consider testing similar scenario with implicitly scoped parameter
+            // https://github.com/dotnet/roslyn/issues/73555: Consider testing similar scenario with implicitly scoped parameter
         }
 
         [Fact]
@@ -19988,10 +19998,11 @@ ref struct S
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("y").WithLocation(14, 38)
                 );
 
-            // PROTOTYPE(RefStructInterfaces): Consider testing ERR_ScopedMismatchInParameterOfPartial and ERR_ScopedMismatchInParameterOfTarget.
+            // https://github.com/dotnet/roslyn/issues/73554: Consider testing ERR_ScopedMismatchInParameterOfPartial and ERR_ScopedMismatchInParameterOfTarget.
         }
 
-        [Fact(Skip = "'byreflike' in IL is not supported yet")] // PROTOTYPE(RefStructInterfaces): Enable once we get support for 'byreflike' in IL.
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/73553")] // Enable once we get support for 'byreflike' in IL.
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73553")]
         public void RefFieldTypeAllowsRefLike()
         {
             // ref struct R2<T> where T : allows ref struct

@@ -578,8 +578,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static uint getDeclarationValEscape(BoundTypeExpression typeExpression, uint valEscape)
             {
-                // PROTOTYPE(RefStructInterfaces): We do not have a test that demonstrates the statement below makes a difference
-                //                                 for ref like types. If 'CallingMethodScope' is always returned, not a single test fails.
+                // https://github.com/dotnet/roslyn/issues/73551:
+                // We do not have a test that demonstrates the statement below makes a difference
+                // for ref like types. If 'CallingMethodScope' is always returned, not a single test fails.
                 return typeExpression.Type.IsRefLikeOrAllowsRefLikeType() ? valEscape : CallingMethodScope;
             }
         }

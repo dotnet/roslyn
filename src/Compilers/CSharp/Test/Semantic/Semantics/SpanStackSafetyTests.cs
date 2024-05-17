@@ -793,7 +793,7 @@ public class Program
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"1223").VerifyDiagnostics();
 
-            // PROTOTYPE(RefStructInterfaces): Do we really want to prioritize pattern over an interface? 
+            // We prioritize pattern over an interface according to https://github.com/dotnet/csharplang/blob/main/proposals/ref-struct-interfaces.md#using-statement 
 
             verifier.VerifyIL("Program.Main",
 @"
