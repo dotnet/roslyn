@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly IContentType _contentType;
         private readonly IEditorOptionsFactoryService _editorOptions;
         private readonly ITextEditorFactoryService _textEditorFactoryService;
-        private readonly ITextBufferFactoryService _textBufferFactoryService;
+        private readonly ITextBufferCloneService _textBufferCloneService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactory;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
 
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
             _contentTypeRegistryService = _componentModel.GetService<IContentTypeRegistryService>();
-            _textBufferFactoryService = _componentModel.GetService<ITextBufferFactoryService>();
+            _textBufferCloneService = _componentModel.GetService<ITextBufferCloneService>();
             _textEditorFactoryService = _componentModel.GetService<ITextEditorFactoryService>();
             _projectionBufferFactory = _componentModel.GetService<IProjectionBufferFactoryService>();
             _editorOptions = _componentModel.GetService<IEditorOptionsFactoryService>();
@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var formattingOptions = formattingService.GetFormattingOptions(OptionStore, fallbackFormattingOptions);
             var formatted = Formatter.FormatAsync(document, formattingOptions, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
-            var textBuffer = _textBufferFactoryService.CreateTextBuffer(formatted.GetTextSynchronously(CancellationToken.None).ToString(), _contentType);
+            var textBuffer = _textBufferCloneService.Clone(formatted.GetTextSynchronously(CancellationToken.None), _contentType);
 
             var container = textBuffer.AsTextContainer();
 
