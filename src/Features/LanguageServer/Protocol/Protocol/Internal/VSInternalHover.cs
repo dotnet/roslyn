@@ -4,13 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Extension to Hover which adds additional data for colorization.
     /// </summary>
-    [DataContract]
     internal class VSInternalHover : Hover
     {
         /// <summary>
@@ -18,9 +16,9 @@ namespace Roslyn.LanguageServer.Protocol
         /// of objects from the Microsoft.VisualStudio.Text.Adornments namespace,
         /// such as ContainerElements, ClassifiedTextElements and ClassifiedTextRuns.
         /// </summary>
-        [DataMember(Name = "_vs_rawContent")]
+        [JsonPropertyName("_vs_rawContent")]
         [JsonConverter(typeof(ObjectContentConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? RawContent
         {
             get;

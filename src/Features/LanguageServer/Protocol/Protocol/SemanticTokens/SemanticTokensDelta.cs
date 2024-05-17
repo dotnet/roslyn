@@ -4,31 +4,29 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Represents a response from a semantic tokens Document provider Edits request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensDelta">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SemanticTokensDelta
     {
         /// <summary>
         /// Gets or sets the Id for the client's new version after applying all
         /// edits to their current semantic tokens data.
         /// </summary>
-        [DataMember(Name = "resultId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("resultId")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? ResultId { get; set; }
 
         /// <summary>
         /// Gets or sets an array of edits to apply to a previous response from a
         /// semantic tokens Document provider.
         /// </summary>
-        [DataMember(Name = "edits", IsRequired = true)]
+        [JsonPropertyName("edits")]
+        [JsonRequired]
         public SemanticTokensEdit[] Edits { get; set; }
     }
 }

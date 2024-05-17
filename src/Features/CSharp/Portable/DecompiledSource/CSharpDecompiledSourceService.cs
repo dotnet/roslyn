@@ -63,7 +63,7 @@ internal class CSharpDecompiledSourceService : IDecompiledSourceService
              document,
              [node.FullSpan],
              options,
-             CSharpDecompiledSourceFormattingRule.Instance.Concat(Formatter.GetDefaultFormattingRules(document)),
+             [CSharpDecompiledSourceFormattingRule.Instance, .. Formatter.GetDefaultFormattingRules(document)],
              cancellationToken).ConfigureAwait(false);
 
         return formattedDoc;

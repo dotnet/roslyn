@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertIfToSwitchCodeRefactoringProvider>;
 
+    [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
     public class ConvertIfToSwitchTests
     {

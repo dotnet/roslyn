@@ -4,14 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
     /// Enum which represents the various ways in which completion can be triggered.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpTriggerKind">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal enum SignatureHelpTriggerKind
     {
         /// <summary>

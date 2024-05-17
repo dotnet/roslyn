@@ -141,8 +141,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
             }
 
-            var errorFixTask = Task.Run(() => GetFirstFixAsync(spanToErrorDiagnostics, cancellationToken), cancellationToken);
-            var otherFixTask = Task.Run(() => GetFirstFixAsync(spanToOtherDiagnostics, linkedToken), linkedToken);
+            var errorFixTask = GetFirstFixAsync(spanToErrorDiagnostics, cancellationToken);
+            var otherFixTask = GetFirstFixAsync(spanToOtherDiagnostics, linkedToken);
 
             // If the error diagnostics task happens to complete with a non-null result before
             // the other diagnostics task, we can cancel the other task.
@@ -156,6 +156,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 SortedDictionary<TextSpan, List<DiagnosticData>> spanToDiagnostics,
                 CancellationToken cancellationToken)
             {
+                // Ensure we yield here so the caller can continue on.
+                await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+
                 await foreach (var collection in StreamFixesAsync(
                     document, spanToDiagnostics, fixAllForInSpan: false,
                     priorityProvider, fallbackOptions, _ => null, cancellationToken).ConfigureAwait(false))

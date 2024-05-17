@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
         internal void AssertFormatWithTransformation(
             SolutionServices services, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, SyntaxFormattingOptions options, bool treeCompare = true, ParseOptions? parseOptions = null)
         {
-            var newRootNode = Formatter.Format(root, spans, services, options, rules: null, CancellationToken.None);
+            var newRootNode = Formatter.Format(root, spans, services, options, rules: default, CancellationToken.None);
 
             Assert.Equal(expected, newRootNode.ToFullString());
 

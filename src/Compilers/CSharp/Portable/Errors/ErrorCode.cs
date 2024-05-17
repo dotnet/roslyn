@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadYieldInTryOfCatch = 1626,
         ERR_EmptyYield = 1627,
         ERR_AnonDelegateCantUse = 1628,
-        ERR_IllegalInnerUnsafe = 1629,
+        // ERR_IllegalInnerUnsafe = 1629,
         //ERR_BadWatsonMode = 1630,
         ERR_BadYieldInCatch = 1631,
         ERR_BadDelegateLeave = 1632,
@@ -1111,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NonTaskMainCantBeAsync = 4009,
         ERR_CantConvAsyncAnonFuncReturns = 4010,
         ERR_BadAwaiterPattern = 4011,
-        ERR_BadSpecialByRefLocal = 4012,
+        ERR_BadSpecialByRefParameter = 4012,
         ERR_SpecialByRefInLambda = 4013,
         WRN_UnobservedAwaitableExpression = 4014,
         ERR_SynchronizedAsyncMethod = 4015,
@@ -1429,8 +1429,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefAssignmentMustHaveIdentityConversion = 8173,
         ERR_ByReferenceVariableMustBeInitialized = 8174,
         ERR_AnonDelegateCantUseLocal = 8175,
-        ERR_BadIteratorLocalType = 8176,
-        ERR_BadAsyncLocalType = 8177,
+        // ERR_BadIteratorLocalType = 8176,
+        // ERR_BadAsyncLocalType = 8177,
         ERR_RefReturningCallAndAwait = 8178,
         #endregion diagnostics for ref locals and ref returns introduced in C# 7
 
@@ -2161,7 +2161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnscopedRefAttributeUnsupportedMemberTarget = 9101,
         ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
         ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
-        ERR_BadSpecialByRefUsing = 9104,
+        // ERR_BadSpecialByRefUsing = 9104,
 
         ERR_InvalidPrimaryConstructorParameterReference = 9105,
         ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver = 9106,
@@ -2286,7 +2286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionExpressionMissingAdd = 9215,
 
         WRN_ConvertingLock = 9216,
-        ERR_BadSpecialByRefLock = 9217,
+        ERR_RefLocalAcrossAwait = 9217,
 
         ERR_DynamicDispatchToParamsCollection = 9218,
         ERR_ParamsCollectionAmbiguousDynamicArgument = 9219,
@@ -2323,6 +2323,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialPropertyRequiredDifference = 9309,
 
         #endregion
+
+        WRN_BadYieldInLock = 9237,
+        ERR_BadYieldInUnsafe = 9238,
+        ERR_AddressOfInIterator = 9239,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

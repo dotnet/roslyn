@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             var inprocServices = new InProcRemoteServices(services, traceListener, testData);
             var instance = new InProcRemoteHostClient(services, inprocServices, callbackDispatchers);
 
-            instance.Started();
-
             // return instance
             return instance;
         }
@@ -76,8 +74,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         public override void Dispose()
         {
             _inprocServices.Dispose();
-
-            base.Dispose();
         }
 
         public sealed class ServiceProvider : IServiceProvider
@@ -166,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             {
                 var remoteLogger = new TraceSource("InProcRemoteClient")
                 {
-                    Switch = { Level = SourceLevels.Verbose },
+                    Switch = { Level = SourceLevels.Warning },
                 };
 
                 if (traceListener != null)

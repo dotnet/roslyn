@@ -115,7 +115,8 @@ internal partial class FormattingContext
             _initialIndentBlockOperations = indentationOperations;
         }
 
-        suppressOperations?.Do(this.AddInitialSuppressOperation);
+        foreach (var suppressOperation in suppressOperations)
+            this.AddInitialSuppressOperation(suppressOperation);
     }
 
     public void AddIndentBlockOperations(

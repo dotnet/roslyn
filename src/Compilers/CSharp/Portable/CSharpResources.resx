@@ -2950,9 +2950,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_AnonDelegateCantUse" xml:space="preserve">
     <value>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</value>
   </data>
-  <data name="ERR_IllegalInnerUnsafe" xml:space="preserve">
-    <value>Unsafe code may not appear in iterators</value>
-  </data>
   <data name="ERR_BadYieldInCatch" xml:space="preserve">
     <value>Cannot yield a value in the body of a catch clause</value>
   </data>
@@ -3810,7 +3807,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>__arglist is not allowed in the parameter list of async methods</value>
   </data>
   <data name="ERR_ByRefTypeAndAwait" xml:space="preserve">
-    <value>'await' cannot be used in an expression containing the type '{0}'</value>
+    <value>Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</value>
   </data>
   <data name="ERR_UnsafeAsyncArgType" xml:space="preserve">
     <value>Async methods cannot have pointer type parameters</value>
@@ -3851,14 +3848,11 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAsyncLacksBody" xml:space="preserve">
     <value>The 'async' modifier can only be used in methods that have a body.</value>
   </data>
-  <data name="ERR_BadSpecialByRefLocal" xml:space="preserve">
-    <value>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</value>
-  </data>
-  <data name="ERR_BadSpecialByRefUsing" xml:space="preserve">
-    <value>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</value>
-  </data>
   <data name="ERR_BadSpecialByRefIterator" xml:space="preserve">
     <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</value>
+  </data>
+  <data name="ERR_BadSpecialByRefParameter" xml:space="preserve">
+    <value>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</value>
   </data>
   <data name="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync" xml:space="preserve">
     <value>Security attribute '{0}' cannot be applied to an Async method.</value>
@@ -5289,12 +5283,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_AnonDelegateCantUseLocal" xml:space="preserve">
     <value>Cannot use ref local '{0}' inside an anonymous method, lambda expression, or query expression</value>
-  </data>
-  <data name="ERR_BadIteratorLocalType" xml:space="preserve">
-    <value>Iterators cannot have by-reference locals</value>
-  </data>
-  <data name="ERR_BadAsyncLocalType" xml:space="preserve">
-    <value>Async methods cannot have by-reference locals</value>
   </data>
   <data name="ERR_RefReturningCallAndAwait" xml:space="preserve">
     <value>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</value>
@@ -7857,9 +7845,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_ConvertingLock_Title" xml:space="preserve">
     <value>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</value>
   </data>
-  <data name="ERR_BadSpecialByRefLock" xml:space="preserve">
-    <value>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</value>
-  </data>
   <data name="IDS_FeatureLockObject" xml:space="preserve">
     <value>Lock object</value>
   </data>
@@ -7928,6 +7913,24 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InterceptsLocationDataInvalidPosition" xml:space="preserve">
     <value>The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</value>
+  </data>
+  <data name="WRN_BadYieldInLock" xml:space="preserve">
+    <value>'yield return' should not be used in the body of a lock statement</value>
+  </data>
+  <data name="WRN_BadYieldInLock_Title" xml:space="preserve">
+    <value>'yield return' should not be used in the body of a lock statement</value>
+  </data>
+  <data name="IDS_FeatureRefUnsafeInIteratorAsync" xml:space="preserve">
+    <value>ref and unsafe in async and iterator methods</value>
+  </data>
+  <data name="ERR_RefLocalAcrossAwait" xml:space="preserve">
+    <value>A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</value>
+  </data>
+  <data name="ERR_BadYieldInUnsafe" xml:space="preserve">
+    <value>Cannot use 'yield return' in an 'unsafe' block</value>
+  </data>
+  <data name="ERR_AddressOfInIterator" xml:space="preserve">
+    <value>The '&amp;' operator cannot be used on parameters or local variables in iterator methods.</value>
   </data>
   <data name="ERR_PartialPropertyMissingImplementation" xml:space="preserve">
     <value>Partial property '{0}' must have an implementation part.</value>

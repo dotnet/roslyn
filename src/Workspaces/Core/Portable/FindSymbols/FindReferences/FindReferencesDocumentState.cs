@@ -27,6 +27,10 @@ internal sealed class FindReferencesDocumentState(
     public SyntaxTree SyntaxTree => this.SemanticModel.SyntaxTree;
 
     public Solution Solution => this.Document.Project.Solution;
-    public ISyntaxFactsService SyntaxFacts => this.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-    public ISemanticFactsService SemanticFacts => this.Document.GetRequiredLanguageService<ISemanticFactsService>();
+
+    // These are expensive enough (in the GetRequiredLanguageService call) that we cache this up front in stead of
+    // computing on demand.
+
+    public ISyntaxFactsService SyntaxFacts { get; } = cache.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+    public ISemanticFactsService SemanticFacts { get; } = cache.Document.GetRequiredLanguageService<ISemanticFactsService>();
 }

@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.LanguageServer.Protocol;
-using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -41,7 +41,7 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
         Logger.Log(FunctionId.LSP_Initialize, KeyValueLogMessage.Create(m =>
         {
             m["serverKind"] = context.ServerKind.ToTelemetryString();
-            m["capabilities"] = JsonConvert.SerializeObject(serverCapabilities);
+            m["capabilities"] = JsonSerializer.Serialize(serverCapabilities, ProtocolConversions.LspJsonSerializerOptions);
         }));
 
         return Task.FromResult(new InitializeResult

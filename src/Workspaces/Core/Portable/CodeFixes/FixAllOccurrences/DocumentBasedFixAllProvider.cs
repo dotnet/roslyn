@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -74,7 +73,7 @@ public abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> su
             DetermineDiagnosticsAndGetFixedDocumentsAsync);
 
     private async Task DetermineDiagnosticsAndGetFixedDocumentsAsync(
-        FixAllContext fixAllContext, Action<(DocumentId documentId, (SyntaxNode? node, SourceText? text))> callback)
+        FixAllContext fixAllContext, Func<Document, Document?, ValueTask> onDocumentFixed)
     {
         var cancellationToken = fixAllContext.CancellationToken;
 
@@ -93,15 +92,7 @@ public abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> su
                     return;
 
                 var newDocument = await this.FixAllAsync(fixAllContext, document, documentDiagnostics).ConfigureAwait(false);
-                if (newDocument == null || newDocument == document)
-                    return;
-
-                // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
-                // language that doesn't support that, then just grab the text.
-                var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
-                var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-
-                callback((document.Id, (node, text)));
+                await onDocumentFixed(document, newDocument).ConfigureAwait(false);
             }).ConfigureAwait(false);
     }
 }

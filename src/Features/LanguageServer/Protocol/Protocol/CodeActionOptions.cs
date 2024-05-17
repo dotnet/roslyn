@@ -4,15 +4,13 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the registration options for code actions support.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class CodeActionOptions : IWorkDoneProgressOptions
     {
         /// <summary>
@@ -22,8 +20,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// The list of kinds may be generic, such as `CodeActionKind.Refactor`, or the server
         /// may list out every specific kind they provide.
         /// </remarks>
-        [DataMember(Name = "codeActionKinds")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("codeActionKinds")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CodeActionKind[]? CodeActionKinds
         {
             get;
@@ -33,16 +31,16 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
-        [DataMember(Name = "workDoneProgress")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("workDoneProgress")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WorkDoneProgress { get; init; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the server provides support to resolve
         /// additional information for a code action.
         /// </summary>
-        [DataMember(Name = "resolveProvider")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("resolveProvider")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool ResolveProvider
         {
             get;

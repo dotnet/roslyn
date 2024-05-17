@@ -8,14 +8,11 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CaseCorrection;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -32,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 /// <summary>
 /// An action produced by a <see cref="CodeFixProvider"/> or a <see cref="CodeRefactoringProvider"/>.
 /// </summary>
-public abstract class CodeAction
+public abstract partial class CodeAction
 {
     private static readonly Dictionary<Type, bool> s_isNonProgressGetChangedSolutionAsyncOverridden = [];
     private static readonly Dictionary<Type, bool> s_isNonProgressComputeOperationsAsyncOverridden = [];
@@ -248,7 +245,7 @@ public abstract class CodeAction
 
         if (operations != null)
         {
-            return await this.PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
+            return await PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
         }
 
         return [];
@@ -269,7 +266,7 @@ public abstract class CodeAction
 
         if (operations != null)
         {
-            return await this.PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
+            return await PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
         }
 
         return [];
@@ -408,7 +405,7 @@ public abstract class CodeAction
             return solution;
         }
 
-        return await this.PostProcessChangesAsync(originalSolution, solution, cancellationToken).ConfigureAwait(false);
+        return await PostProcessChangesAsync(originalSolution, solution, cancellationToken).ConfigureAwait(false);
     }
 
     internal Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
@@ -420,11 +417,13 @@ public abstract class CodeAction
     /// <param name="operations">A list of operations.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A new list of operations with post processing steps applied to any <see cref="ApplyChangesOperation"/>'s.</returns>
+#pragma warning disable CA1822 // Mark members as static. This is a public API.
     protected Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
-        => PostProcessAsync(originalSolution: null!, operations, cancellationToken);
+#pragma warning restore CA1822 // Mark members as static
+        => PostProcessAsync(originalSolution: null, operations, cancellationToken);
 
-    internal async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(
-        Solution originalSolution, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
+    internal static async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(
+        Solution? originalSolution, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
     {
         using var result = TemporaryArray<CodeActionOperation>.Empty;
 
@@ -432,7 +431,7 @@ public abstract class CodeAction
         {
             if (op is ApplyChangesOperation ac)
             {
-                result.Add(new ApplyChangesOperation(await this.PostProcessChangesAsync(originalSolution, ac.ChangedSolution, cancellationToken).ConfigureAwait(false)));
+                result.Add(new ApplyChangesOperation(await PostProcessChangesAsync(originalSolution, ac.ChangedSolution, cancellationToken).ConfigureAwait(false)));
             }
             else
             {
@@ -448,11 +447,13 @@ public abstract class CodeAction
     /// </summary>
     /// <param name="changedSolution">The solution changed by the <see cref="CodeAction"/>.</param>
     /// <param name="cancellationToken">A cancellation token</param>
+#pragma warning disable CA1822 // Mark members as static. This is a public API.
     protected Task<Solution> PostProcessChangesAsync(Solution changedSolution, CancellationToken cancellationToken)
-        => PostProcessChangesAsync(originalSolution: null!, changedSolution, cancellationToken);
+#pragma warning restore CA1822 // Mark members as static
+        => PostProcessChangesAsync(originalSolution: null, changedSolution, cancellationToken);
 
-    internal async Task<Solution> PostProcessChangesAsync(
-        Solution originalSolution,
+    private static async Task<Solution> PostProcessChangesAsync(
+        Solution? originalSolution,
         Solution changedSolution,
         CancellationToken cancellationToken)
     {
@@ -461,38 +462,10 @@ public abstract class CodeAction
         // underneath us).  But it's the only option we have for the compat case with existing public extension
         // points.
         originalSolution ??= changedSolution.Workspace.CurrentSolution;
-        var solutionChanges = changedSolution.GetChanges(originalSolution);
 
-        var processedSolution = changedSolution;
-
-        // process changed projects
-        foreach (var projectChanges in solutionChanges.GetProjectChanges())
-        {
-            var documentsToProcess = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(
-                projectChanges.GetAddedDocuments());
-
-            foreach (var documentId in documentsToProcess)
-            {
-                var document = processedSolution.GetRequiredDocument(documentId);
-                var processedDocument = await PostProcessChangesAsync(document, cancellationToken).ConfigureAwait(false);
-                processedSolution = processedDocument.Project.Solution;
-            }
-        }
-
-        // process completely new projects too
-        foreach (var addedProject in solutionChanges.GetAddedProjects())
-        {
-            var documentsToProcess = addedProject.DocumentIds;
-
-            foreach (var documentId in documentsToProcess)
-            {
-                var document = processedSolution.GetRequiredDocument(documentId);
-                var processedDocument = await PostProcessChangesAsync(document, cancellationToken).ConfigureAwait(false);
-                processedSolution = processedDocument.Project.Solution;
-            }
-        }
-
-        return processedSolution;
+        var globalOptions = changedSolution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
+        var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
+        return await CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, fallbackOptions, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -514,25 +487,6 @@ public abstract class CodeAction
             var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             return await CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
         }
-
-        return document;
-    }
-
-    internal static async Task<Document> CleanupDocumentAsync(
-        Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
-    {
-        document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-            document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
-
-        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, options.SimplifierOptions, cancellationToken).ConfigureAwait(false);
-
-        // format any node with explicit formatter annotation
-        document = await Formatter.FormatAsync(document, Formatter.Annotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
-
-        // format any elastic whitespace
-        document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
-
-        document = await CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
 
         return document;
     }

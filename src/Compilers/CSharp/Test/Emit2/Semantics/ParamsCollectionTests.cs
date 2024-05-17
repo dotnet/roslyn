@@ -360,6 +360,85 @@ class Test : System.Attribute
         }
 
         [Fact]
+        public void Span_SingleElement_TempsAreNotReused()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M(1);
+                        M(2);
+                    }
+
+                    static void M(params Span<int> span)
+                    {
+                        Console.Write(span[0]);
+                        Console.Write(span.Length);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExpectedOutput("1121"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  1
+                  .locals init (int V_0,
+                                int V_1)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  newobj     "System.Span<int>..ctor(ref int)"
+                  IL_0009:  call       "void Program.M(params System.Span<int>)"
+                  IL_000e:  ldc.i4.2
+                  IL_000f:  stloc.1
+                  IL_0010:  ldloca.s   V_1
+                  IL_0012:  newobj     "System.Span<int>..ctor(ref int)"
+                  IL_0017:  call       "void Program.M(params System.Span<int>)"
+                  IL_001c:  ret
+                }
+                """);
+
+            verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net70,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExpectedOutput("1121"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       41 (0x29)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "int"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldc.i4.1
+                  IL_0009:  stelem.i4
+                  IL_000a:  newobj     "System.Span<int>..ctor(int[])"
+                  IL_000f:  call       "void Program.M(params System.Span<int>)"
+                  IL_0014:  ldc.i4.1
+                  IL_0015:  newarr     "int"
+                  IL_001a:  dup
+                  IL_001b:  ldc.i4.0
+                  IL_001c:  ldc.i4.2
+                  IL_001d:  stelem.i4
+                  IL_001e:  newobj     "System.Span<int>..ctor(int[])"
+                  IL_0023:  call       "void Program.M(params System.Span<int>)"
+                  IL_0028:  ret
+                }
+                """);
+        }
+
+        [Fact]
         public void String()
         {
             var src = @"
@@ -4663,9 +4742,7 @@ class Program
 
             CompileAndVerify(
                 comp,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                            Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xc }" }
-                            : Verification.Skipped,
+                verify: Verification.Skipped,
                 expectedOutput: ExpectedOutput(@"
 int
 int")).VerifyDiagnostics();
@@ -4703,9 +4780,7 @@ class C3 : C2 {}
 
             CompileAndVerify(
                 comp,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                            Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xc }" }
-                            : Verification.Skipped,
+                verify: Verification.Skipped,
                 expectedOutput: ExpectedOutput(@"
 C2
 C2")).VerifyDiagnostics();
@@ -15574,6 +15649,118 @@ class C1
                 //         Test(x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "params MyCollection<object>").WithLocation(19, 14)
                 );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73346")]
+        public void ParameterTypeSpecificity_01()
+        {
+            string source = """
+using System;
+
+namespace OverloadResolutionRepro
+{
+    public class C
+    {
+        public void Method<S>(params Func<Bar, S>[] projections) => Console.Write(1);
+        public void Method<S>(params Func<Bar, Wrapper<S>>[] projections) => Console.Write(2);
+    }
+
+    public class Bar
+    {
+        public Wrapper<int> WrappedValue { get; set; } = new Wrapper<int>();
+    }
+
+    public struct Wrapper<TValue>
+    {
+    }
+
+    public class EntryPoint
+    {
+        static void Main()
+        {
+            new C().Method(x => x.WrappedValue);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73346")]
+        public void ParameterTypeSpecificity_02()
+        {
+            string source = """
+using System;
+
+namespace OverloadResolutionRepro
+{
+    public class C<S>
+    {
+        public C(params Func<Bar, S>[] projections) => Console.Write(1);
+        public C(params Func<Bar, Wrapper<int>>[] projections) => Console.Write(2);
+    }
+
+    public class Bar
+    {
+        public Wrapper<int> WrappedValue { get; set; } = new Wrapper<int>();
+    }
+
+    public struct Wrapper<TValue>
+    {
+    }
+
+    public class EntryPoint
+    {
+        static void Main()
+        {
+            new C<Wrapper<int>>(x => x.WrappedValue);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73346")]
+        public void ParameterTypeSpecificity_03()
+        {
+            string source = """
+using System;
+using System.Collections.Generic;
+
+namespace OverloadResolutionRepro
+{
+    public class C
+    {
+        public void Method<S>(params IEnumerable<Func<Bar, S>> projections) => Console.Write(1);
+        public void Method<S>(params IEnumerable<Func<Bar, Wrapper<S>>> projections) => Console.Write(2);
+    }
+
+    public class Bar
+    {
+        public Wrapper<int> WrappedValue { get; set; } = new Wrapper<int>();
+    }
+
+    public struct Wrapper<TValue>
+    {
+    }
+
+    public class EntryPoint
+    {
+        static void Main()
+        {
+            new C().Method(x => x.WrappedValue);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
         }
     }
 }

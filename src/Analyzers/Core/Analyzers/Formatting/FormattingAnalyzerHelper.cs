@@ -24,7 +24,7 @@ internal static class FormattingAnalyzerHelper
         var root = tree.GetRoot(cancellationToken);
         var span = context.FilterSpan.HasValue ? context.FilterSpan.GetValueOrDefault() : root.FullSpan;
         var spans = SpecializedCollections.SingletonEnumerable(span);
-        var formattingChanges = Formatter.GetFormattedTextChanges(root, spans, formattingProvider, options, rules: null, cancellationToken);
+        var formattingChanges = Formatter.GetFormattedTextChanges(root, spans, formattingProvider, options, rules: default, cancellationToken);
 
         // formattingChanges could include changes that impact a larger section of the original document than
         // necessary. Before reporting diagnostics, process the changes to minimize the span of individual

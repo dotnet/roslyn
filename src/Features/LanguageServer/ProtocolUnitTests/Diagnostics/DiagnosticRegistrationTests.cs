@@ -5,11 +5,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
-using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
@@ -53,7 +53,7 @@ public class DiagnosticRegistrationTests : AbstractLanguageServerProtocolTests
         // Get all registrations for diagnostics (note that workspace registrations are registered against document method name).
         var diagnosticRegistrations = registrations
             .Where(r => r.Method == Methods.TextDocumentDiagnosticName)
-            .Select(r => ((JObject)r.RegisterOptions!).ToObject<DiagnosticRegistrationOptions>()!);
+            .Select(r => JsonSerializer.Deserialize<DiagnosticRegistrationOptions>((JsonElement)r.RegisterOptions!, ProtocolConversions.LspJsonSerializerOptions)!);
 
         Assert.NotEmpty(diagnosticRegistrations);
 

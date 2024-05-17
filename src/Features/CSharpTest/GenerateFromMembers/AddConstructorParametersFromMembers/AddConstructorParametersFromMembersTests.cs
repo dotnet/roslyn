@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
 {
     using VerifyCS = CSharpCodeRefactoringVerifier<AddConstructorParametersFromMembersCodeRefactoringProvider>;
 
+    [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
     public class AddConstructorParametersFromMembersTests
     {
