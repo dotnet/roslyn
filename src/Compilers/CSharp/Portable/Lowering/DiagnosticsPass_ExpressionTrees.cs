@@ -811,6 +811,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                // PROTOTYPE: ImplicitSpan
+
                 default:
 
                     if (_inExpressionLambda && node.Conversion.Method is MethodSymbol method && (method.IsAbstract || method.IsVirtual) && method.IsStatic)

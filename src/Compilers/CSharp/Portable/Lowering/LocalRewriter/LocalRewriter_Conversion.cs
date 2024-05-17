@@ -614,6 +614,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return _factory.Call(null, createSpan, rewrittenOperand, _factory.Literal(length), useStrictArgumentRefKinds: true);
                     }
 
+                case ConversionKind.ImplicitSpan:
+                    {
+                        var spanType = (NamedTypeSymbol)rewrittenType;
+
+                        WellKnownMember ctorMember;
+                        if (spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
+                        {
+                            ctorMember = WellKnownMember.System_ReadOnlySpan_T__ctor_Array;
+                        }
+                        else
+                        {
+                            Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions));
+                            ctorMember = WellKnownMember.System_Span_T__ctor_Array;
+                        }
+
+                        if (!TryGetWellKnownTypeMember(rewrittenOperand.Syntax, ctorMember, out MethodSymbol? ctor))
+                        {
+                            Debug.Fail("We should have reported an error during binding for missing members for span conversion.");
+                            return BadExpression(rewrittenOperand.Syntax, rewrittenType, []);
+                        }
+                        else
+                        {
+                            return new BoundObjectCreationExpression(rewrittenOperand.Syntax, ctor.AsMember((NamedTypeSymbol)rewrittenType), rewrittenOperand);
+                        }
+                    }
+
                 default:
                     break;
             }
