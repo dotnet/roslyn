@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversions = _factory.CurrentFunction.ContainingAssembly.CorLibrary.TypeConversions;
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
-                implementsInterface = conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(enumeratorType, idisposableTypeSymbol, ref useSiteInfo);
+                implementsInterface = conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(enumeratorType, idisposableTypeSymbol, ref useSiteInfo, out _);
                 _diagnostics.Add(forEachSyntax, useSiteInfo);
             }
 

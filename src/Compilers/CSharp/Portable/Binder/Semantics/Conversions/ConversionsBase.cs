@@ -2967,12 +2967,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImplementsVarianceCompatibleInterface((TypeSymbol)derivedType, baseType, ref useSiteInfo);
         }
 
-        internal bool HasImplicitConversionToOrImplementsVarianceCompatibleInterface(TypeSymbol typeToCheck, NamedTypeSymbol targetInterfaceType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal bool HasImplicitConversionToOrImplementsVarianceCompatibleInterface(TypeSymbol typeToCheck, NamedTypeSymbol targetInterfaceType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool needSupportForRefStructInterfaces)
         {
             Debug.Assert(targetInterfaceType.IsErrorType() || targetInterfaceType.IsInterface);
 
-            return ClassifyImplicitConversionFromType(typeToCheck, targetInterfaceType, ref useSiteInfo).IsImplicit ||
-                   IsRefLikeOrAllowsRefLikeTypeImplementingVarianceCompatibleInterface(typeToCheck, targetInterfaceType, ref useSiteInfo);
+            if (ClassifyImplicitConversionFromType(typeToCheck, targetInterfaceType, ref useSiteInfo).IsImplicit)
+            {
+                needSupportForRefStructInterfaces = false;
+                return true;
+            }
+
+            if (IsRefLikeOrAllowsRefLikeTypeImplementingVarianceCompatibleInterface(typeToCheck, targetInterfaceType, ref useSiteInfo))
+            {
+                needSupportForRefStructInterfaces = true;
+                return true;
+            }
+
+            needSupportForRefStructInterfaces = false;
+            return false;
         }
 
         private bool IsRefLikeOrAllowsRefLikeTypeImplementingVarianceCompatibleInterface(TypeSymbol typeToCheck, NamedTypeSymbol targetInterfaceType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -2989,12 +3001,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal bool HasImplicitConversionToOrImplementsVarianceCompatibleInterface(BoundExpression expressionToCheck, NamedTypeSymbol targetInterfaceType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal bool HasImplicitConversionToOrImplementsVarianceCompatibleInterface(BoundExpression expressionToCheck, NamedTypeSymbol targetInterfaceType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool needSupportForRefStructInterfaces)
         {
             Debug.Assert(targetInterfaceType.IsErrorType() || targetInterfaceType.IsInterface);
 
-            return ClassifyImplicitConversionFromExpression(expressionToCheck, targetInterfaceType, ref useSiteInfo).IsImplicit ||
-                   (expressionToCheck.Type is TypeSymbol typeToCheck && IsRefLikeOrAllowsRefLikeTypeImplementingVarianceCompatibleInterface(typeToCheck, targetInterfaceType, ref useSiteInfo));
+            if (ClassifyImplicitConversionFromExpression(expressionToCheck, targetInterfaceType, ref useSiteInfo).IsImplicit)
+            {
+                needSupportForRefStructInterfaces = false;
+                return true;
+            }
+
+            if (expressionToCheck.Type is TypeSymbol typeToCheck && IsRefLikeOrAllowsRefLikeTypeImplementingVarianceCompatibleInterface(typeToCheck, targetInterfaceType, ref useSiteInfo))
+            {
+                needSupportForRefStructInterfaces = true;
+                return true;
+            }
+
+            needSupportForRefStructInterfaces = false;
+            return false;
         }
 
         ////////////////////////////////////////////////////////////////////////////////

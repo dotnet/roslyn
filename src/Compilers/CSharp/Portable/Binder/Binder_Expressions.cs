@@ -6158,8 +6158,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE:    type to the predefined System.Collections.IEnumerable type, so we do the same.
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var result = Conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(initializerType, collectionsIEnumerableType, ref useSiteInfo);
+                var result = Conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(initializerType, collectionsIEnumerableType, ref useSiteInfo, out bool needSupportForRefStructInterfaces);
                 diagnostics.Add(node, useSiteInfo);
+
+                if (needSupportForRefStructInterfaces &&
+                    initializerType.ContainingModule != Compilation.SourceModule)
+                {
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
+                }
+
                 return result;
             }
             else

@@ -1259,9 +1259,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 bool result = this.Conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(enumeratorType,
                                         targetInterface,
-                                        ref useSiteInfo);
+                                        ref useSiteInfo,
+                                        out bool needSupportForRefStructInterfaces);
 
                 diagnostics.Add(syntax, useSiteInfo);
+
+                if (needSupportForRefStructInterfaces &&
+                    enumeratorType.ContainingModule != Compilation.SourceModule)
+                {
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
+                }
 
                 return result;
             }
@@ -1759,11 +1766,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var implementedNonGeneric = this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
                     if ((object)implementedNonGeneric != null)
                     {
-                        var implements = this.Conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(type, implementedNonGeneric, ref useSiteInfo);
+                        var implements = this.Conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(type, implementedNonGeneric, ref useSiteInfo, out bool needSupportForRefStructInterfaces);
 
                         if (implements)
                         {
                             implementedIEnumerable = implementedNonGeneric;
+
+                            if (needSupportForRefStructInterfaces &&
+                                type.ContainingModule != Compilation.SourceModule)
+                            {
+                                CheckFeatureAvailability(collectionSyntax, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
+                            }
                         }
                     }
                 }
