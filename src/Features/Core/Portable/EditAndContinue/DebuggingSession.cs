@@ -493,15 +493,15 @@ internal sealed class DebuggingSession : IDisposable
                 }
             }
 
-            if (analysis.RudeEditErrors.IsEmpty)
+            if (analysis.RudeEdits.IsEmpty)
             {
                 return [];
             }
 
-            EditSession.Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors, project.State.Attributes.TelemetryId);
+            EditSession.Telemetry.LogRudeEditDiagnostics(analysis.RudeEdits, project.State.Attributes.TelemetryId);
 
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return analysis.RudeEditErrors.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
+            return analysis.RudeEdits.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {

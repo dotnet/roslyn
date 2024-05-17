@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var src1 = @"
 class C
 {
-    static void Main(string[] args)
+    static void F()
     {
         <AS:0>Goo(1);</AS:0>
     }
@@ -28,7 +28,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main(string[] args)
+    static void F()
     {
     <AS:0>}</AS:0>
 
@@ -53,7 +53,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main(string[] args)
+    static void F()
     {
         <AS:0>Goo(1);</AS:0>
     }
@@ -61,7 +61,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main(string[] args)
+    static void F()
     {
         <AS:0>Goo(1);</AS:0>
     }
@@ -86,7 +86,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main(string[] args)
+    static void F()
     {
         Action a = () => { <AS:0>Goo(1);</AS:0> };
     }
@@ -94,7 +94,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main(string[] args)
+    static void F()
     {
         Action a = () => { <AS:0>}</AS:0>;
         <TS:0>Goo(1);</TS:0>
@@ -113,7 +113,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main(string[] args)
+    static void F()
     {
         Action a = () => { <AS:0>Goo(1);</AS:0> };
         Action b = () => { Goo(2); };
@@ -122,7 +122,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main(string[] args)
+    static void F()
     {
         Action a = () => { <AS:0>Goo(1);</AS:0> };
         Action b = () => { <TS:0>Goo(2);</TS:0> };
