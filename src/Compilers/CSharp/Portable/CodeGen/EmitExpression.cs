@@ -2074,6 +2074,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return false;
             }
 
+            Debug.Assert(receiverType.IsTypeParameter());
             return !receiverType.IsValueType;
         }
 

@@ -255,7 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiverOpt != null);
 
             BoundExpression transformedReceiver = VisitExpression(receiverOpt);
-            transformedReceiver = AdjustReceiverForExtensionsIfNeeded(transformedReceiver, indexerAccess.Indexer);
 
             // Dealing with the arguments is a bit tricky because they can be named out-of-order arguments;
             // we have to preserve both the source-code order of the side effects and the side effects
@@ -467,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TransformCompoundAssignmentFieldOrEventAccessReceiver(Symbol fieldOrEvent, ref BoundExpression? receiver, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
         {
             Debug.Assert(fieldOrEvent.Kind == SymbolKind.Field || fieldOrEvent.Kind == SymbolKind.Event);
-            Debug.Assert(AdjustReceiverForExtensionsIfNeeded(receiver, fieldOrEvent) == receiver); // We don't need to adjust
+            Debug.Assert(AdjustReceiverForExtensionsIfNeeded(receiver, fieldOrEvent) == receiver); // PROTOTYPE we'll probably want to adjust for `this.UnderlyingMember` receiver
 
             //If the receiver is static or is the receiver is of kind "Base" or "this", then we can just generate field = field + value
             if (fieldOrEvent.IsStatic)

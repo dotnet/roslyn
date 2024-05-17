@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             TypeSymbol type)
         {
-            Debug.Assert(AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, eventSymbol) == rewrittenReceiver); // We don't need to adjust
+            Debug.Assert(AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, eventSymbol) == rewrittenReceiver); // PROTOTYPE we'll probably want to adjust for `this.UnderlyingMember` receiver
             Debug.Assert(eventSymbol.HasAssociatedField);
 
             FieldSymbol? fieldSymbol = eventSymbol.AssociatedField;

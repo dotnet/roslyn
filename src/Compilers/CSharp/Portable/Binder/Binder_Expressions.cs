@@ -3466,7 +3466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
                     reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
-                    coercedArgument = bindInterpolatedStringHandlerInMemberCall(argument, parameterTypeWithAnnotations.Type, argumentsForInterpolationConversion, parameters, in result, arg, receiver, diagnostics);
+                    coercedArgument = bindInterpolatedStringHandlerInMemberCall(argument, parameterTypeWithAnnotations.Type, argumentsForInterpolationConversion, parameters, in methodResult, arg, receiver, diagnostics);
                 }
                 // https://github.com/dotnet/roslyn/issues/37119 : should we create an (Identity) conversion when the kind is Identity but the types differ?
                 else if (!kind.IsIdentity)
@@ -3634,11 +3634,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol handlerType,
                 ArrayBuilder<BoundExpression>? arguments,
                 ImmutableArray<ParameterSymbol> parameters,
-                in MemberAnalysisResult memberAnalysisResult,
+                in MemberResolutionResult<TMember> methodResult,
                 int interpolatedStringArgNum,
                 BoundExpression? receiver,
                 BindingDiagnosticBag diagnostics)
             {
+                var memberAnalysisResult = methodResult.Result;
                 Debug.Assert(unconvertedString is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
                 var interpolatedStringConversion = memberAnalysisResult.ConversionForArg(interpolatedStringArgNum);
                 Debug.Assert(interpolatedStringConversion.IsInterpolatedStringHandler);
@@ -3754,7 +3755,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                             Debug.Assert(receiver!.Type is not null);
                             refKind = RefKind.None;
-                            placeholderType = receiver.Type;
+                            bool useExtensionInstance = methodResult.Member.ContainingType.IsExtension && !receiver.Type.IsExtension;
+                            placeholderType = useExtensionInstance ? methodResult.Member.ContainingType : receiver.Type;
                             break;
                         case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                             {

@@ -32,8 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isLeftOfAssignment,
             BoundPropertyAccess? oldNodeOpt = null)
         {
-            rewrittenReceiverOpt = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiverOpt, propertySymbol);
-
             // check for System.Array.[Length|LongLength] on a single dimensional array,
             // we have a special node for such cases.
             if (rewrittenReceiverOpt is { Type: { TypeKind: TypeKind.Array } } && !isLeftOfAssignment)
@@ -95,6 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(getMethod is { });
                 Debug.Assert(getMethod.ParameterCount == rewrittenArguments.Length);
                 Debug.Assert(getMethodOpt is null || ReferenceEquals(getMethod, getMethodOpt));
+
+                rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, getMethod);
 
                 return BoundCall.Synthesized(
                     syntax,

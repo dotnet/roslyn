@@ -18539,5 +18539,53 @@ class C
                 //     public A(int x, A a = M($"{1}")) { }
                 Diagnostic(ErrorCode.ERR_BadArgRef, @"$""{1}""").WithArguments("1", "ref").WithLocation(8, 29));
         }
+
+        [Fact]
+        public void StructReceiver_RefReadonlyParameter()
+        {
+            var source = """
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var s = new S(5);
+M(ref s);
+System.Console.Write(s.field);
+
+void M(ref readonly S s)
+{
+    s.M($"literal");
+}
+
+public struct S
+{
+    public int Prop { get; }
+    public S(int i) => Prop = i;
+    public int field;
+    public void Increment() { field++; }
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c) => Console.Write(c.ToString());
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, S s)
+    {
+        _builder = new();
+        _builder.Append("s.Prop:" + s.Prop.ToString() + " ");
+    }
+
+    private readonly StringBuilder _builder;
+    public bool AppendLiteral(string literal)
+    {
+        _builder.Append("literal:" + literal + " ");
+        return true;
+    }
+    public override string ToString() => _builder.ToString();
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, expectedOutput: "s.Prop:5 literal:literal 0");
+        }
     }
 }

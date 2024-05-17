@@ -15411,7 +15411,7 @@ public static class E2
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         // PROTOTYPE confirm when spec'ing pattern-based deconstruction
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("(42, 43)")).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("(42, 43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -15591,26 +15591,25 @@ implicit extension E for C
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         // PROTOTYPE confirm when spec'ing pattern-based disposal
-        comp.VerifyDiagnostics();
-        // PROTOTYPE missing re-interpretation of the disposal operand as the extension type
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("RAN"), verify: Verification.Fails).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("RAN"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("Program.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
-{
-  // Code size      243 (0xf3)
+    {
+  // Code size      252 (0xfc)
   .maxstack  3
   .locals init (int V_0,
                 C V_1, //x
                 object V_2,
                 System.Runtime.CompilerServices.TaskAwaiter V_3,
-                int V_4,
-                System.Exception V_5)
+                C V_4,
+                int V_5,
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      "int Program.<<Main>$>d__0.<>1__state"
   IL_0006:  stloc.0
   .try
   {
     IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_006c
+    IL_0008:  brfalse.s  IL_0075
     IL_000a:  newobj     "C..ctor()"
     IL_000f:  stloc.1
     IL_0010:  ldarg.0
@@ -15635,85 +15634,88 @@ implicit extension E for C
       IL_002f:  leave.s    IL_0031
     }
     IL_0031:  ldloc.1
-    IL_0032:  brfalse.s  IL_008f
+    IL_0032:  brfalse.s  IL_0098
     IL_0034:  ldloc.1
-    IL_0035:  callvirt   "System.Threading.Tasks.Task E.DisposeAsync()"
-    IL_003a:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
-    IL_003f:  stloc.3
-    IL_0040:  ldloca.s   V_3
-    IL_0042:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
-    IL_0047:  brtrue.s   IL_0088
-    IL_0049:  ldarg.0
-    IL_004a:  ldc.i4.0
-    IL_004b:  dup
-    IL_004c:  stloc.0
-    IL_004d:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+    IL_0035:  stloc.s    V_4
+    IL_0037:  ldloca.s   V_4
+    IL_0039:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+    IL_003e:  call       "System.Threading.Tasks.Task E.DisposeAsync()"
+    IL_0043:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_0048:  stloc.3
+    IL_0049:  ldloca.s   V_3
+    IL_004b:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_0050:  brtrue.s   IL_0091
     IL_0052:  ldarg.0
-    IL_0053:  ldloc.3
-    IL_0054:  stfld      "System.Runtime.CompilerServices.TaskAwaiter Program.<<Main>$>d__0.<>u__1"
-    IL_0059:  ldarg.0
-    IL_005a:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
-    IL_005f:  ldloca.s   V_3
-    IL_0061:  ldarg.0
-    IL_0062:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref Program.<<Main>$>d__0)"
-    IL_0067:  leave      IL_00f2
-    IL_006c:  ldarg.0
-    IL_006d:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter Program.<<Main>$>d__0.<>u__1"
-    IL_0072:  stloc.3
-    IL_0073:  ldarg.0
-    IL_0074:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter Program.<<Main>$>d__0.<>u__1"
-    IL_0079:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
-    IL_007f:  ldarg.0
-    IL_0080:  ldc.i4.m1
-    IL_0081:  dup
-    IL_0082:  stloc.0
-    IL_0083:  stfld      "int Program.<<Main>$>d__0.<>1__state"
-    IL_0088:  ldloca.s   V_3
-    IL_008a:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
-    IL_008f:  ldarg.0
-    IL_0090:  ldfld      "object Program.<<Main>$>d__0.<>7__wrap1"
-    IL_0095:  stloc.2
-    IL_0096:  ldloc.2
-    IL_0097:  brfalse.s  IL_00ae
-    IL_0099:  ldloc.2
-    IL_009a:  isinst     "System.Exception"
-    IL_009f:  dup
-    IL_00a0:  brtrue.s   IL_00a4
+    IL_0053:  ldc.i4.0
+    IL_0054:  dup
+    IL_0055:  stloc.0
+    IL_0056:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+    IL_005b:  ldarg.0
+    IL_005c:  ldloc.3
+    IL_005d:  stfld      "System.Runtime.CompilerServices.TaskAwaiter Program.<<Main>$>d__0.<>u__1"
+    IL_0062:  ldarg.0
+    IL_0063:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+    IL_0068:  ldloca.s   V_3
+    IL_006a:  ldarg.0
+    IL_006b:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref Program.<<Main>$>d__0)"
+    IL_0070:  leave      IL_00fb
+    IL_0075:  ldarg.0
+    IL_0076:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter Program.<<Main>$>d__0.<>u__1"
+    IL_007b:  stloc.3
+    IL_007c:  ldarg.0
+    IL_007d:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter Program.<<Main>$>d__0.<>u__1"
+    IL_0082:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_0088:  ldarg.0
+    IL_0089:  ldc.i4.m1
+    IL_008a:  dup
+    IL_008b:  stloc.0
+    IL_008c:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+    IL_0091:  ldloca.s   V_3
+    IL_0093:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_0098:  ldarg.0
+    IL_0099:  ldfld      "object Program.<<Main>$>d__0.<>7__wrap1"
+    IL_009e:  stloc.2
+    IL_009f:  ldloc.2
+    IL_00a0:  brfalse.s  IL_00b7
     IL_00a2:  ldloc.2
-    IL_00a3:  throw
-    IL_00a4:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
-    IL_00a9:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-    IL_00ae:  ldarg.0
-    IL_00af:  ldfld      "int Program.<<Main>$>d__0.<>7__wrap2"
-    IL_00b4:  stloc.s    V_4
-    IL_00b6:  ldloc.s    V_4
-    IL_00b8:  ldc.i4.1
-    IL_00b9:  bne.un.s   IL_00bd
-    IL_00bb:  leave.s    IL_00df
-    IL_00bd:  ldarg.0
-    IL_00be:  ldnull
-    IL_00bf:  stfld      "object Program.<<Main>$>d__0.<>7__wrap1"
-    IL_00c4:  leave.s    IL_00df
+    IL_00a3:  isinst     "System.Exception"
+    IL_00a8:  dup
+    IL_00a9:  brtrue.s   IL_00ad
+    IL_00ab:  ldloc.2
+    IL_00ac:  throw
+    IL_00ad:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+    IL_00b2:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+    IL_00b7:  ldarg.0
+    IL_00b8:  ldfld      "int Program.<<Main>$>d__0.<>7__wrap2"
+    IL_00bd:  stloc.s    V_5
+    IL_00bf:  ldloc.s    V_5
+    IL_00c1:  ldc.i4.1
+    IL_00c2:  bne.un.s   IL_00c6
+    IL_00c4:  leave.s    IL_00e8
+    IL_00c6:  ldarg.0
+    IL_00c7:  ldnull
+    IL_00c8:  stfld      "object Program.<<Main>$>d__0.<>7__wrap1"
+    IL_00cd:  leave.s    IL_00e8
   }
   catch System.Exception
   {
-    IL_00c6:  stloc.s    V_5
-    IL_00c8:  ldarg.0
-    IL_00c9:  ldc.i4.s   -2
-    IL_00cb:  stfld      "int Program.<<Main>$>d__0.<>1__state"
-    IL_00d0:  ldarg.0
-    IL_00d1:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
-    IL_00d6:  ldloc.s    V_5
-    IL_00d8:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
-    IL_00dd:  leave.s    IL_00f2
+    IL_00cf:  stloc.s    V_6
+    IL_00d1:  ldarg.0
+    IL_00d2:  ldc.i4.s   -2
+    IL_00d4:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+    IL_00d9:  ldarg.0
+    IL_00da:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+    IL_00df:  ldloc.s    V_6
+    IL_00e1:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00e6:  leave.s    IL_00fb
   }
-  IL_00df:  ldarg.0
-  IL_00e0:  ldc.i4.s   -2
-  IL_00e2:  stfld      "int Program.<<Main>$>d__0.<>1__state"
-  IL_00e7:  ldarg.0
-  IL_00e8:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
-  IL_00ed:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
-  IL_00f2:  ret
+  IL_00e8:  ldarg.0
+  IL_00e9:  ldc.i4.s   -2
+  IL_00eb:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+  IL_00f0:  ldarg.0
+  IL_00f1:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+  IL_00f6:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00fb:  ret
 }
 """);
 
@@ -18827,7 +18829,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18899,7 +18901,7 @@ implicit extension E2 for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify);
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19069,7 +19071,7 @@ implicit extension E2 for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19172,7 +19174,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify);
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19337,7 +19339,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: "M(42)", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("M(42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20192,7 +20194,7 @@ implicit extension E for C
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20367,7 +20369,7 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: "ran ran ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20911,7 +20913,7 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22771,7 +22773,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: "[42] = 43", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[42] = 43"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22852,7 +22854,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22942,7 +22944,7 @@ implicit extension E for Base
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37820,18 +37822,116 @@ public class MyCollection : IEnumerable<int>
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE missing re-interpretation of the receiver as the extension type
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.Fails).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       15 (0xf)
+  // Code size       23 (0x17)
   .maxstack  3
+  .locals init (MyCollection V_0)
   IL_0000:  newobj     "MyCollection..ctor()"
   IL_0005:  dup
-  IL_0006:  ldc.i4.s   42
-  IL_0008:  callvirt   "void E.Add(int)"
-  IL_000d:  pop
-  IL_000e:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<MyCollection, E>(ref MyCollection)"
+  IL_000e:  ldc.i4.s   42
+  IL_0010:  call       "void E.Add(int)"
+  IL_0015:  pop
+  IL_0016:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ResolveAll_CollectionExpression_ExtensionAddMethod_TwoElements()
+    {
+        var source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = [42, 43];
+
+public implicit extension E for MyCollection
+{
+    public void Add(int i) { System.Console.Write($"ran({i}) "); }
+}
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran(42) ran(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (MyCollection V_0,
+                MyCollection V_1)
+  IL_0000:  newobj     "MyCollection..ctor()"
+  IL_0005:  dup
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<MyCollection, E>(ref MyCollection)"
+  IL_000e:  ldc.i4.s   42
+  IL_0010:  call       "void E.Add(int)"
+  IL_0015:  dup
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<MyCollection, E>(ref MyCollection)"
+  IL_001e:  ldc.i4.s   43
+  IL_0020:  call       "void E.Add(int)"
+  IL_0025:  pop
+  IL_0026:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ResolveAll_CollectionExpression_ExtensionAddMethod_TwoElements_ValueType()
+    {
+        var source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = [42, 43];
+System.Console.Write(c.field);
+
+public implicit extension E for MyCollection
+{
+    public void Add(int i) { System.Console.Write($"ran({i}) "); this.Increment(); }
+}
+
+public struct MyCollection : IEnumerable<int>
+{
+    public int field;
+    public void Increment() { field++; }
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran(42) ran(43) 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       48 (0x30)
+  .maxstack  2
+  .locals init (MyCollection V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "MyCollection"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<MyCollection, E>(ref MyCollection)"
+  IL_000f:  ldc.i4.s   42
+  IL_0011:  call       "void E.Add(int)"
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<MyCollection, E>(ref MyCollection)"
+  IL_001d:  ldc.i4.s   43
+  IL_001f:  call       "void E.Add(int)"
+  IL_0024:  ldloc.0
+  IL_0025:  ldfld      "int MyCollection.field"
+  IL_002a:  call       "void System.Console.Write(int)"
+  IL_002f:  ret
 }
 """);
     }
@@ -40808,7 +40908,7 @@ object.M();
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_ObjectCreation_ReferenceType()
+    public void AdjustReceiver_Invocation_ObjectCreation_ReferenceType()
     {
         var source = """
 new object().M();
@@ -40836,7 +40936,7 @@ implicit extension E for object
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_ObjectCreation_ValueType()
+    public void AdjustReceiver_Invocation_ObjectCreation_ValueType()
     {
         var source = """
 new S().M();
@@ -40853,21 +40953,21 @@ implicit extension E for S
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       20 (0x14)
-  .maxstack  2
+  // Code size       21 (0x15)
+  .maxstack  1
   .locals init (S V_0)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  dup
-  IL_0003:  initobj    "S"
-  IL_0009:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
-  IL_000e:  call       "void E.M()"
-  IL_0013:  ret
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  call       "void E.M()"
+  IL_0014:  ret
 }
 """);
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_ObjectCreation_MissingUnsafeAs()
+    public void AdjustReceiver_Invocation_ObjectCreation_MissingUnsafeAs()
     {
         var source = """
 new object().M();
@@ -40886,7 +40986,7 @@ implicit extension E for object
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_Local_ReferenceType()
+    public void AdjustReceiver_Invocation_Local_ReferenceType()
     {
         var source = $$"""
 C c = new C();
@@ -40952,70 +41052,37 @@ implicit extension E for C
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_Local_ValueType()
+    public void AdjustReceiver_Invocation_NoHome_ValueType()
     {
         var source = $$"""
-S s = new S();
-s.M(s.Increment());
-System.Console.Write(" ");
-System.Console.Write(s.field);
+new S().M();
 
-struct S
-{
-    public int field;
-    public int Increment() => field += 1;
-}
+struct S { }
 
 implicit extension E for S
 {
-    public void M(int i) { System.Console.Write(this.field); System.Console.Write(" "); System.Console.Write(i); this.Increment(); }
+    public void M() { System.Console.Write("ran"); }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("1 1 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
-        verifier.VerifyIL("E.M", """
-{
-  // Code size       45 (0x2d)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  ldflda     "S E.<UnderlyingInstance>$"
-  IL_0006:  ldfld      "int S.field"
-  IL_000b:  call       "void System.Console.Write(int)"
-  IL_0010:  ldstr      " "
-  IL_0015:  call       "void System.Console.Write(string)"
-  IL_001a:  ldarg.1
-  IL_001b:  call       "void System.Console.Write(int)"
-  IL_0020:  ldarg.0
-  IL_0021:  ldflda     "S E.<UnderlyingInstance>$"
-  IL_0026:  call       "int S.Increment()"
-  IL_002b:  pop
-  IL_002c:  ret
-}
-""");
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       49 (0x31)
-  .maxstack  2
-  .locals init (S V_0) //s
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (S V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "S"
   IL_0008:  ldloca.s   V_0
   IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
-  IL_000f:  ldloca.s   V_0
-  IL_0011:  call       "int S.Increment()"
-  IL_0016:  call       "void E.M(int)"
-  IL_001b:  ldstr      " "
-  IL_0020:  call       "void System.Console.Write(string)"
-  IL_0025:  ldloc.0
-  IL_0026:  ldfld      "int S.field"
-  IL_002b:  call       "void System.Console.Write(int)"
-  IL_0030:  ret
+  IL_000f:  call       "void E.M()"
+  IL_0014:  ret
 }
 """);
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_RefLocal_ReferenceType()
+    public void AdjustReceiver_Invocation_RefLocal_ReferenceType()
     {
         var source = $$"""
 C c = new C();
@@ -41039,36 +41106,32 @@ implicit extension E for C
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("1 1 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       53 (0x35)
+  // Code size       49 (0x31)
   .maxstack  2
   .locals init (C V_0, //c
-                C& V_1, //c2
-                C V_2)
+                C& V_1) //c2
   IL_0000:  newobj     "C..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
   IL_0008:  stloc.1
   IL_0009:  ldloc.1
-  IL_000a:  ldind.ref
-  IL_000b:  stloc.2
-  IL_000c:  ldloca.s   V_2
-  IL_000e:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
-  IL_0013:  ldloc.1
-  IL_0014:  ldind.ref
-  IL_0015:  callvirt   "int C.Increment()"
-  IL_001a:  call       "void E.M(int)"
-  IL_001f:  ldstr      " "
-  IL_0024:  call       "void System.Console.Write(string)"
-  IL_0029:  ldloc.0
-  IL_002a:  ldfld      "int C.field"
-  IL_002f:  call       "void System.Console.Write(int)"
-  IL_0034:  ret
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000f:  ldloc.1
+  IL_0010:  ldind.ref
+  IL_0011:  callvirt   "int C.Increment()"
+  IL_0016:  call       "void E.M(int)"
+  IL_001b:  ldstr      " "
+  IL_0020:  call       "void System.Console.Write(string)"
+  IL_0025:  ldloc.0
+  IL_0026:  ldfld      "int C.field"
+  IL_002b:  call       "void System.Console.Write(int)"
+  IL_0030:  ret
 }
 """);
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_RefLocal_ValueType()
+    public void AdjustReceiver_Invocation_RefLocal_ValueType()
     {
         var source = $$"""
 S s = new S();
@@ -41116,7 +41179,7 @@ implicit extension E for S
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_Chained_ReferenceType()
+    public void AdjustReceiver_Invocation_Chained_ReferenceType()
     {
         var source = $$"""
 new C().M1().M2();
@@ -41156,7 +41219,7 @@ implicit extension E2 for C
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_Chained_ValueType()
+    public void AdjustReceiver_Invocation_Chained_ValueType()
     {
         var source = $$"""
 new S().M1().M2();
@@ -41177,26 +41240,26 @@ implicit extension E2 for S
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran1 ran2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       33 (0x21)
-  .maxstack  2
+  // Code size       34 (0x22)
+  .maxstack  1
   .locals init (S V_0,
                 S V_1)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  dup
-  IL_0003:  initobj    "S"
-  IL_0009:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<S, E1>(ref S)"
-  IL_000e:  call       "S E1.M1()"
-  IL_0013:  stloc.1
-  IL_0014:  ldloca.s   V_1
-  IL_0016:  call       "ref E2 System.Runtime.CompilerServices.Unsafe.As<S, E2>(ref S)"
-  IL_001b:  call       "void E2.M2()"
-  IL_0020:  ret
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<S, E1>(ref S)"
+  IL_000f:  call       "S E1.M1()"
+  IL_0014:  stloc.0
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       "ref E2 System.Runtime.CompilerServices.Unsafe.As<S, E2>(ref S)"
+  IL_001c:  call       "void E2.M2()"
+  IL_0021:  ret
 }
 """);
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_ChainedTwice_ValueType()
+    public void AdjustReceiver_Invocation_ChainedTwice_ValueType()
     {
         var source = $$"""
 new S().M1().M1().M2();
@@ -41213,31 +41276,31 @@ implicit extension E1 for S
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran1 ran1 ran2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       46 (0x2e)
-  .maxstack  2
+  // Code size       47 (0x2f)
+  .maxstack  1
   .locals init (S V_0,
                 S V_1,
                 S V_2)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  dup
-  IL_0003:  initobj    "S"
-  IL_0009:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<S, E1>(ref S)"
-  IL_000e:  call       "S E1.M1()"
-  IL_0013:  stloc.1
-  IL_0014:  ldloca.s   V_1
-  IL_0016:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<S, E1>(ref S)"
-  IL_001b:  call       "S E1.M1()"
-  IL_0020:  stloc.2
-  IL_0021:  ldloca.s   V_2
-  IL_0023:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<S, E1>(ref S)"
-  IL_0028:  call       "void E1.M2()"
-  IL_002d:  ret
+  IL_0000:  ldloca.s   V_2
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_2
+  IL_000a:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<S, E1>(ref S)"
+  IL_000f:  call       "S E1.M1()"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<S, E1>(ref S)"
+  IL_001c:  call       "S E1.M1()"
+  IL_0021:  stloc.0
+  IL_0022:  ldloca.s   V_0
+  IL_0024:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<S, E1>(ref S)"
+  IL_0029:  call       "void E1.M2()"
+  IL_002e:  ret
 }
 """);
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_This_ReferenceType()
+    public void AdjustReceiver_Invocation_This_ReferenceType()
     {
         var source = $$"""
 var c = new C();
@@ -41278,7 +41341,7 @@ implicit extension E for C
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_This_ValueType()
+    public void AdjustReceiver_Invocation_This_ValueType()
     {
         var source = $$"""
 var s = new S();
@@ -41318,7 +41381,7 @@ implicit extension E for S
     [Theory]
     [InlineData("int")]
     [InlineData("object")]
-    public void InstanceCodeGen_Invocation_Constant(string forType)
+    public void AdjustReceiver_Invocation_Constant(string forType)
     {
         var source = $$"""
 42.M();
@@ -41346,7 +41409,7 @@ implicit extension E for {{forType}}
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_Parameter()
+    public void AdjustReceiver_Invocation_Parameter()
     {
         var source = """
 var s = new S();
@@ -41381,7 +41444,211 @@ implicit extension E for S
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_ArrayAccess()
+    public void AdjustReceiver_Invocation_Parameter_RefReadonly()
+    {
+        var source = """
+var s = new S();
+C.Method(ref s);
+System.Console.Write(s.field);
+
+class C
+{
+    public static void Method(ref readonly S s)
+    {
+        s.M();
+    }
+}
+
+struct S 
+{ 
+    public int field;
+    public void Increment() { field++; }
+}
+
+implicit extension E for S
+{
+    public void M() { System.Console.Write("ran "); this.Increment(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran 0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("C.Method", """
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000e:  call       "void E.M()"
+  IL_0013:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void AdjustReceiver_Invocation_Parameter_RefReadonly_ReferenceType()
+    {
+        var source = """
+var c = new C();
+C.Method(ref c);
+System.Console.Write(c.field);
+
+class C
+{
+    public static void Method(ref readonly C c)
+    {
+        c.M();
+    }
+
+    public int field;
+    public void Increment() { field++; }
+}
+
+implicit extension E for C
+{
+    public void M() { System.Console.Write("ran "); this.Increment(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran 1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("C.Method", """
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.ref
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000a:  call       "void E.M()"
+  IL_000f:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void AdjustReceiver_Invocation_Parameter_RefReadonly_ReadonlyMember()
+    {
+        var source = """
+var s = new S();
+C.Method(ref s);
+
+class C
+{
+    public static void Method(ref readonly S s)
+    {
+        s.M();
+    }
+}
+
+struct S { }
+implicit extension E for S
+{
+    public readonly void M() { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (15,26): error CS0106: The modifier 'readonly' is not valid for this item
+            //     public readonly void M() { }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(15, 26));
+    }
+
+    [Fact]
+    public void AdjustReceiver_Invocation_ThisInReadonlyMethod_ValueType()
+    {
+        var source = """
+var s = new S();
+s.Method();
+System.Console.Write(s.field);
+
+struct S
+{
+    public readonly void Method()
+    {
+        this.M();
+    }
+
+    public int field;
+    public void Increment() { field++; }
+}
+
+implicit extension E for S
+{
+    public void M() { System.Console.Write("ran "); this.Increment(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran 0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("S.Method", """
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000e:  call       "void E.M()"
+  IL_0013:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void AdjustReceiver_Invocation_ReadonlyField_ValueType()
+    {
+        var source = """
+var c = new C();
+c.Method();
+System.Console.Write(c.field.field2);
+
+class C
+{
+    public readonly S field = new S();
+
+    public void Method()
+    {
+        field.M();
+    }
+}
+
+struct S
+{
+    public int field2;
+    public void Increment() { field2++; }
+}
+
+implicit extension E for S
+{
+    public void M() { System.Console.Write("ran "); this.Increment(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran 0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("C.Method", """
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "S C.field"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000e:  call       "void E.M()"
+  IL_0013:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void AdjustReceiver_Invocation_ArrayAccess()
     {
         var source = """
 var s = new S[] { new S() };
@@ -41420,7 +41687,7 @@ implicit extension E for S
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_ThisReference()
+    public void AdjustReceiver_Invocation_ThisReference()
     {
         var source = """
 var s = new S();
@@ -41455,7 +41722,7 @@ implicit extension E for S
     }
 
     [Fact]
-    public void InstanceCodeGen_Invocation_Deconstruction()
+    public void AdjustReceiver_Invocation_Deconstruction()
     {
         var source = """
 var s = new S();
@@ -41504,7 +41771,7 @@ implicit extension E for S
     }
 
     [Fact]
-    public void InstanceCodeGen_PropertyAccess()
+    public void AdjustReceiver_PropertyAccess()
     {
         var source = """
 S s = new S();
@@ -41545,7 +41812,7 @@ implicit extension E for S
     }
 
     [Fact]
-    public void InstanceCodeGen_PropertyAccess_Compound_Local()
+    public void AdjustReceiver_PropertyAccess_Compound_Local()
     {
         var source = """
 S s = new S();
@@ -41588,7 +41855,7 @@ implicit extension E for S
     }
 
     [Fact]
-    public void InstanceCodeGen_PropertyAccess_Compound_Constant()
+    public void AdjustReceiver_PropertyAccess_Compound_Constant()
     {
         var source = """
 "".P += 1;
@@ -41628,7 +41895,7 @@ implicit extension E for string
     }
 
     [Fact]
-    public void InstanceCodeGen_PropertyAccess_Compound_Local_RefProperty()
+    public void AdjustReceiver_PropertyAccess_Compound_Local_RefProperty()
     {
         var source = """
 S s = new S();
@@ -41673,7 +41940,7 @@ implicit extension E for S
     }
 
     [Fact]
-    public void InstanceCodeGen_PropertyAccess_PropertyPattern()
+    public void AdjustReceiver_PropertyAccess_PropertyPattern()
     {
         var src = """
 var s = new S();
@@ -41716,7 +41983,7 @@ implicit extension E for S
     }
 
     [Fact]
-    public void InstanceCodeGen_PropertyAccess_ObjectInitializer()
+    public void AdjustReceiver_PropertyAccess_ObjectInitializer()
     {
         var src = """
 _ = new object() { Property = 1 };
@@ -41745,7 +42012,7 @@ implicit extension E for object
     }
 
     [Fact]
-    public void InstanceCodeGen_PropertyAccess_ObjectInitializer_ValueType()
+    public void AdjustReceiver_PropertyAccess_ObjectInitializer_ValueType()
     {
         var src = """
 var s = new S() { Property = 1 };
@@ -41784,7 +42051,7 @@ implicit extension E for S
     }
 
     [Fact]
-    public void InstanceCodeGen_IndexerAccess_ObjectInitializer_ValueType()
+    public void AdjustReceiver_IndexerAccess_ObjectInitializer_ValueType()
     {
         var src = """
 var s = new S() { [42] = 43 };
@@ -41824,7 +42091,7 @@ implicit extension E for S
     }
 
     [Fact]
-    public void InstanceCodeGen_PropertyAccess_WithInitializer_ValueType()
+    public void AdjustReceiver_PropertyAccess_WithInitializer_ValueType()
     {
         var src = """
 var s = new S();
@@ -41866,7 +42133,39 @@ implicit extension E for S
     }
 
     [Fact]
-    public void InstanceCodeGen_IndexerAccess_Compound_Local()
+    public void AdjustReceiver_PropertyAccess_Compouned_RefReadonlyParameter()
+    {
+        var source = """
+var i = 42;
+C.Method(ref i);
+System.Console.Write(i);
+
+class C
+{
+    public static void Method(ref readonly int i)
+    {
+        i.Property += 1;
+    }
+}
+
+implicit extension E for int
+{
+    public int Property
+    {
+        get { System.Console.Write("get "); return 10; }
+        set { System.Console.Write("set "); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (9,9): error CS8332: Cannot assign to a member of variable 'i' or use it as the right hand side of a ref assignment because it is a readonly variable
+            //         i.Property += 1;
+            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "i.Property").WithArguments("variable", "i").WithLocation(9, 9));
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_Compound_Local()
     {
         var source = """
 S s = new S();
@@ -41911,7 +42210,7 @@ implicit extension E for S
     }
 
     [Fact]
-    public void InstanceCodeGen_EventAssignment()
+    public void AdjustReceiver_EventAssignment()
     {
         var source = """
 class C
@@ -41974,5 +42273,812 @@ implicit extension E for S
   IL_000f:  ret
 }
 """);
+    }
+
+    [Fact]
+    public void AdjustReceiver_AwaitArgument()
+    {
+        var source = """
+S s = new S();
+s.M(await System.Threading.Tasks.Task.FromResult(42));
+
+struct S { }
+
+implicit extension E for S
+{
+    public void M(int i) { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        // PROTOTYPE investigate whether we could allow this scenario
+        comp.VerifyEmitDiagnostics(
+            // (2,1): error CS8178: A reference returned by a call to 'Unsafe.As<S, E>(ref S)' cannot be preserved across 'await' or 'yield' boundary.
+            // s.M(await System.Threading.Tasks.Task.FromResult(42));
+            Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "s").WithArguments("System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void AdjustReceiver_AfterAwait()
+    {
+        var source = """
+S s = new S();
+var arg = await System.Threading.Tasks.Task.FromResult(42);
+s.M(arg);
+
+struct S { }
+
+implicit extension E for S
+{
+    public void M(int i) { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("Program.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      207 (0xcf)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_1,
+                Program.<<Main>$>d__0 V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int Program.<<Main>$>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_0054
+    IL_000e:  ldarg.0
+    IL_000f:  ldflda     "S Program.<<Main>$>d__0.<s>5__1"
+    IL_0014:  initobj    "S"
+    IL_001a:  ldc.i4.s   42
+    IL_001c:  call       "System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)"
+    IL_0021:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+    IL_0026:  stloc.1
+    IL_0027:  ldloca.s   V_1
+    IL_0029:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get"
+    IL_002e:  brtrue.s   IL_0070
+    IL_0030:  ldarg.0
+    IL_0031:  ldc.i4.0
+    IL_0032:  dup
+    IL_0033:  stloc.0
+    IL_0034:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+    IL_0039:  ldarg.0
+    IL_003a:  ldloc.1
+    IL_003b:  stfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+    IL_0040:  ldarg.0
+    IL_0041:  stloc.2
+    IL_0042:  ldarg.0
+    IL_0043:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+    IL_0048:  ldloca.s   V_1
+    IL_004a:  ldloca.s   V_2
+    IL_004c:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<<Main>$>d__0)"
+    IL_0051:  nop
+    IL_0052:  leave.s    IL_00ce
+    IL_0054:  ldarg.0
+    IL_0055:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+    IL_005a:  stloc.1
+    IL_005b:  ldarg.0
+    IL_005c:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+    IL_0061:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<int>"
+    IL_0067:  ldarg.0
+    IL_0068:  ldc.i4.m1
+    IL_0069:  dup
+    IL_006a:  stloc.0
+    IL_006b:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+    IL_0070:  ldarg.0
+    IL_0071:  ldloca.s   V_1
+    IL_0073:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+    IL_0078:  stfld      "int Program.<<Main>$>d__0.<>s__3"
+    IL_007d:  ldarg.0
+    IL_007e:  ldarg.0
+    IL_007f:  ldfld      "int Program.<<Main>$>d__0.<>s__3"
+    IL_0084:  stfld      "int Program.<<Main>$>d__0.<arg>5__2"
+    IL_0089:  ldarg.0
+    IL_008a:  ldflda     "S Program.<<Main>$>d__0.<s>5__1"
+    IL_008f:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+    IL_0094:  ldarg.0
+    IL_0095:  ldfld      "int Program.<<Main>$>d__0.<arg>5__2"
+    IL_009a:  call       "void E.M(int)"
+    IL_009f:  nop
+    IL_00a0:  leave.s    IL_00ba
+  }
+  catch System.Exception
+  {
+    IL_00a2:  stloc.3
+    IL_00a3:  ldarg.0
+    IL_00a4:  ldc.i4.s   -2
+    IL_00a6:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+    IL_00ab:  ldarg.0
+    IL_00ac:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+    IL_00b1:  ldloc.3
+    IL_00b2:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00b7:  nop
+    IL_00b8:  leave.s    IL_00ce
+  }
+  IL_00ba:  ldarg.0
+  IL_00bb:  ldc.i4.s   -2
+  IL_00bd:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+  IL_00c2:  ldarg.0
+  IL_00c3:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+  IL_00c8:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00cd:  nop
+  IL_00ce:  ret
+}
+""");
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ReferenceType(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var c = new C(5);
+c.M({{expression}});
+Console.Write(c.field);
+
+public class C
+{
+    public int Prop { get; }
+    public C(int i) => Prop = i;
+    public int field;
+    public void Increment() { field++; }
+}
+
+public implicit extension E for C
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c) => Console.Write(c.ToString());
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e)
+    {
+        _builder = new();
+        ref var c = ref System.Runtime.CompilerServices.Unsafe.As<E, C>(ref e);
+        _builder.Append("c.Prop:" + c.Prop.ToString() + " ");
+        c.Increment();
+    }
+
+    private readonly StringBuilder _builder;
+    public bool AppendLiteral(string literal)
+    {
+        _builder.Append("literal:" + literal + " ");
+        return true;
+    }
+    public override string ToString() => _builder.ToString();
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("c.Prop:5 literal:literal 1"),
+                sourceSymbolValidator: validator, symbolValidator: validator, verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       62 (0x3e)
+  .maxstack  6
+  .locals init (E& V_0,
+                C V_1,
+                CustomHandler V_2)
+  IL_0000:  ldc.i4.5
+  IL_0001:  newobj     "C..ctor(int)"
+  IL_0006:  dup
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000f:  stloc.0
+  IL_0010:  ldloc.0
+  IL_0011:  ldloca.s   V_2
+  IL_0013:  ldc.i4.7
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldloc.0
+  IL_0016:  ldobj      "E"
+  IL_001b:  call       "CustomHandler..ctor(int, int, E)"
+  IL_0020:  ldloca.s   V_2
+  IL_0022:  ldstr      "literal"
+  IL_0027:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_002c:  pop
+  IL_002d:  ldloc.2
+  IL_002e:  call       "void E.M(CustomHandler)"
+  IL_0033:  ldfld      "int C.field"
+  IL_0038:  call       "void System.Console.Write(int)"
+  IL_003d:  ret
+}
+""");
+
+        static void validator(ModuleSymbol module)
+        {
+            var cParam = module.GlobalNamespace.GetTypeMember("E").GetMethod("M").Parameters.Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            AssertEx.Equal([-1], cParam.InterpolatedStringHandlerArgumentIndexes);
+        }
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ValueType(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var s = new S(5);
+s.M({{expression}});
+Console.Write(s.field);
+
+public struct S
+{
+    public int Prop { get; }
+    public S(int i) => Prop = i;
+    public int field;
+    public void Increment() { field++; }
+}
+
+public implicit extension E for S
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c) => Console.Write(c.ToString());
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e)
+    {
+        _builder = new();
+        ref var s = ref System.Runtime.CompilerServices.Unsafe.As<E, S>(ref e);
+        _builder.Append("s.Prop:" + s.Prop.ToString() + " ");
+        s.Increment();
+    }
+
+    private readonly StringBuilder _builder;
+    public bool AppendLiteral(string literal)
+    {
+        _builder.Append("literal:" + literal + " ");
+        return true;
+    }
+    public override string ToString() => _builder.ToString();
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("s.Prop:5 literal:literal 0"),
+                sourceSymbolValidator: validator, symbolValidator: validator, verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       63 (0x3f)
+  .maxstack  5
+  .locals init (S V_0, //s
+                E& V_1,
+                CustomHandler V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.5
+  IL_0003:  call       "S..ctor(int)"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  ldloca.s   V_2
+  IL_0013:  ldc.i4.7
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldloc.1
+  IL_0016:  ldobj      "E"
+  IL_001b:  call       "CustomHandler..ctor(int, int, E)"
+  IL_0020:  ldloca.s   V_2
+  IL_0022:  ldstr      "literal"
+  IL_0027:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_002c:  pop
+  IL_002d:  ldloc.2
+  IL_002e:  call       "void E.M(CustomHandler)"
+  IL_0033:  ldloc.0
+  IL_0034:  ldfld      "int S.field"
+  IL_0039:  call       "void System.Console.Write(int)"
+  IL_003e:  ret
+}
+""");
+
+        static void validator(ModuleSymbol module)
+        {
+            var cParam = module.GlobalNamespace.GetTypeMember("E").GetMethod("M").Parameters.Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            AssertEx.Equal([-1], cParam.InterpolatedStringHandlerArgumentIndexes);
+        }
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ReferenceTypeReference(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var c = new C(5);
+ref var cRef = ref c;
+cRef.M({{expression}});
+Console.Write(cRef.field);
+
+public class C
+{
+    public int Prop { get; }
+    public C(int i) => Prop = i;
+    public int field;
+    public void Increment() { field++; }
+}
+
+public implicit extension E for C
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c) => Console.Write(c.ToString());
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e)
+    {
+        _builder = new();
+        ref var c = ref System.Runtime.CompilerServices.Unsafe.As<E, C>(ref e);
+        _builder.Append("c.Prop:" + c.Prop.ToString() + " ");
+        c.Increment();
+    }
+
+    private readonly StringBuilder _builder;
+    public bool AppendLiteral(string literal)
+    {
+        _builder.Append("literal:" + literal + " ");
+        return true;
+    }
+    public override string ToString() => _builder.ToString();
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("c.Prop:5 literal:literal 1"),
+                sourceSymbolValidator: validator, symbolValidator: validator, verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       63 (0x3f)
+  .maxstack  6
+  .locals init (C V_0, //c
+                E& V_1,
+                CustomHandler V_2)
+  IL_0000:  ldc.i4.5
+  IL_0001:  newobj     "C..ctor(int)"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  dup
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  ldloca.s   V_2
+  IL_0013:  ldc.i4.7
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldloc.1
+  IL_0016:  ldobj      "E"
+  IL_001b:  call       "CustomHandler..ctor(int, int, E)"
+  IL_0020:  ldloca.s   V_2
+  IL_0022:  ldstr      "literal"
+  IL_0027:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_002c:  pop
+  IL_002d:  ldloc.2
+  IL_002e:  call       "void E.M(CustomHandler)"
+  IL_0033:  ldind.ref
+  IL_0034:  ldfld      "int C.field"
+  IL_0039:  call       "void System.Console.Write(int)"
+  IL_003e:  ret
+}
+""");
+
+        static void validator(ModuleSymbol module)
+        {
+            var cParam = module.GlobalNamespace.GetTypeMember("E").GetMethod("M").Parameters.Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            AssertEx.Equal([-1], cParam.InterpolatedStringHandlerArgumentIndexes);
+        }
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ValueTypeReference(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var s = new S(5);
+ref var sRef = ref s;
+sRef.M({{expression}});
+Console.Write(sRef.field);
+
+public struct S
+{
+    public int Prop { get; }
+    public S(int i) => Prop = i;
+    public int field;
+    public void Increment() { field++; }
+}
+
+public implicit extension E for S
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c) => Console.Write(c.ToString());
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e)
+    {
+        _builder = new();
+        ref var s = ref System.Runtime.CompilerServices.Unsafe.As<E, S>(ref e);
+        _builder.Append("s.Prop:" + s.Prop.ToString() + " ");
+        s.Increment();
+    }
+
+    private readonly StringBuilder _builder;
+    public bool AppendLiteral(string literal)
+    {
+        _builder.Append("literal:" + literal + " ");
+        return true;
+    }
+    public override string ToString() => _builder.ToString();
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("s.Prop:5 literal:literal 0"),
+                sourceSymbolValidator: validator, symbolValidator: validator, verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       63 (0x3f)
+  .maxstack  6
+  .locals init (S V_0, //s
+                E& V_1,
+                CustomHandler V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.5
+  IL_0003:  call       "S..ctor(int)"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  dup
+  IL_000b:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.1
+  IL_0012:  ldloca.s   V_2
+  IL_0014:  ldc.i4.7
+  IL_0015:  ldc.i4.0
+  IL_0016:  ldloc.1
+  IL_0017:  ldobj      "E"
+  IL_001c:  call       "CustomHandler..ctor(int, int, E)"
+  IL_0021:  ldloca.s   V_2
+  IL_0023:  ldstr      "literal"
+  IL_0028:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_002d:  pop
+  IL_002e:  ldloc.2
+  IL_002f:  call       "void E.M(CustomHandler)"
+  IL_0034:  ldfld      "int S.field"
+  IL_0039:  call       "void System.Console.Write(int)"
+  IL_003e:  ret
+}
+""");
+
+        static void validator(ModuleSymbol module)
+        {
+            var cParam = module.GlobalNamespace.GetTypeMember("E").GetMethod("M").Parameters.Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            AssertEx.Equal([-1], cParam.InterpolatedStringHandlerArgumentIndexes);
+        }
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ValueTypeReference_RefParameter(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var s = new S(5);
+ref var sRef = ref s;
+sRef.M({{expression}});
+Console.Write(sRef.field);
+
+public struct S
+{
+    public int Prop { get; }
+    public S(int i) => Prop = i;
+    public int field;
+    public void Increment() { field++; }
+}
+
+public implicit extension E for S
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c) => Console.Write(c.ToString());
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, ref E e)
+    {
+        _builder = new();
+        ref var s = ref System.Runtime.CompilerServices.Unsafe.As<E, S>(ref e);
+        _builder.Append("s.Prop:" + s.Prop.ToString() + " ");
+        s.Increment();
+    }
+
+    private readonly StringBuilder _builder;
+    public bool AppendLiteral(string literal)
+    {
+        _builder.Append("literal:" + literal + " ");
+        return true;
+    }
+    public override string ToString() => _builder.ToString();
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (7,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
+            // sRef.M( $"literal" );
+            Diagnostic(ErrorCode.ERR_BadArgRef, "sRef").WithArguments("3", "ref").WithLocation(7, 1));
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ValueType_Indexer(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var s = new S(5);
+s[{{expression}}] += 42;
+Console.Write(s.field);
+
+public struct S
+{
+    public int Prop { get; }
+    public S(int i) => Prop = i;
+    public int field;
+    public void Increment() { field++; }
+}
+
+public implicit extension E for S
+{
+    public int this[[InterpolatedStringHandlerArgument("")] CustomHandler c]
+    {
+        get { Console.Write("get "); return 10; }
+        set { Console.Write($"set({value}) "); Console.Write(c.ToString()); }
+    }
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e)
+    {
+        _builder = new();
+        ref var s = ref System.Runtime.CompilerServices.Unsafe.As<E, S>(ref e);
+        _builder.Append("s.Prop:" + s.Prop.ToString() + " ");
+        s.Increment();
+    }
+
+    private readonly StringBuilder _builder;
+    public bool AppendLiteral(string literal)
+    {
+        _builder.Append("literal:" + literal + " ");
+        return true;
+    }
+    public override string ToString() => _builder.ToString();
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(52) s.Prop:5 literal:literal 0"), 
+                verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       77 (0x4d)
+  .maxstack  4
+  .locals init (S V_0, //s
+                E V_1,
+                CustomHandler V_2,
+                CustomHandler V_3)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.5
+  IL_0003:  call       "S..ctor(int)"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  ldobj      "E"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_3
+  IL_0017:  ldc.i4.7
+  IL_0018:  ldc.i4.0
+  IL_0019:  ldloc.1
+  IL_001a:  call       "CustomHandler..ctor(int, int, E)"
+  IL_001f:  ldloca.s   V_3
+  IL_0021:  ldstr      "literal"
+  IL_0026:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_002b:  pop
+  IL_002c:  ldloc.3
+  IL_002d:  stloc.2
+  IL_002e:  ldloca.s   V_1
+  IL_0030:  ldloc.2
+  IL_0031:  ldloca.s   V_1
+  IL_0033:  ldloc.2
+  IL_0034:  call       "int E.this[CustomHandler].get"
+  IL_0039:  ldc.i4.s   42
+  IL_003b:  add
+  IL_003c:  call       "void E.this[CustomHandler].set"
+  IL_0041:  ldloc.0
+  IL_0042:  ldfld      "int S.field"
+  IL_0047:  call       "void System.Console.Write(int)"
+  IL_004c:  ret
+}
+""");
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_InstanceOfUnderlyingType(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+(new C(5)).M({{expression}});
+
+public class C
+{
+    public int Prop { get; }
+    public C(int i) => Prop = i;
+}
+
+public implicit extension E for C
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c) => Console.WriteLine(c.ToString());
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C c)
+    {
+        _builder = new();
+        _builder.Append("c.Prop:" + c.Prop.ToString() + " ");
+    }
+
+    private readonly StringBuilder _builder;
+    public bool AppendLiteral(string literal)
+    {
+        _builder.Append("literal:" + literal);
+        return true;
+    }
+    public override string ToString() => _builder.ToString();
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE add support for extension conversions (would be a copy, should mention in spec)
+        comp.VerifyEmitDiagnostics(
+            // (5,2): error CS1503: Argument 3: cannot convert from 'E' to 'C'
+            // (new C(5)).M((int)10, "str",  $"literal" );
+            Diagnostic(ErrorCode.ERR_BadArgType, "new C(5)").WithArguments("3", "E", "C").WithLocation(5, 2));
+        //var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("c.Prop:5 literal:literal"),
+        //        sourceSymbolValidator: validator, symbolValidator: validator)
+        //    .VerifyDiagnostics();
+
+        //static void validator(ModuleSymbol module)
+        //{
+        //    var cParam = module.GlobalNamespace.GetTypeMember("E").GetMethod("M").Parameters.Skip(2).Single();
+        //    AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+        //                   cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+        //    AssertEx.Equal([-1], cParam.InterpolatedStringHandlerArgumentIndexes);
+        //}
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_RefReadonlyParameter(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var s = new S(5);
+M(ref s);
+System.Console.Write(s.field);
+
+void M(ref readonly S s)
+{
+    s.M({{expression}});
+}
+
+public struct S
+{
+    public int Prop { get; }
+    public S(int i) => Prop = i;
+    public int field;
+    public void Increment() { field++; }
+}
+
+public implicit extension E for S
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c) => Console.WriteLine(c.ToString());
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e)
+    {
+        _builder = new();
+        ref var s = ref System.Runtime.CompilerServices.Unsafe.As<E, S>(ref e);
+        _builder.Append("s.Prop:" + s.Prop.ToString() + " ");
+        s.Increment();
+    }
+
+    private readonly StringBuilder _builder;
+    public bool AppendLiteral(string literal)
+    {
+        _builder.Append("literal:" + literal);
+        return true;
+    }
+    public override string ToString() => _builder.ToString();
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE add support for extension conversions (would be a copy, should mention in spec)
+        comp.VerifyEmitDiagnostics(
+            // (5,2): error CS1503: Argument 3: cannot convert from 'E' to 'C'
+            // (new C(5)).M((int)10, "str",  $"literal" );
+            Diagnostic(ErrorCode.ERR_BadArgType, "new C(5)").WithArguments("3", "E", "C").WithLocation(5, 2));
+        //var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("c.Prop:5 literal:literal"),
+        //        sourceSymbolValidator: validator, symbolValidator: validator)
+        //    .VerifyDiagnostics();
+
+        //static void validator(ModuleSymbol module)
+        //{
+        //    var cParam = module.GlobalNamespace.GetTypeMember("E").GetMethod("M").Parameters.Skip(2).Single();
+        //    AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+        //                   cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+        //    AssertEx.Equal([-1], cParam.InterpolatedStringHandlerArgumentIndexes);
+        //}
     }
 }

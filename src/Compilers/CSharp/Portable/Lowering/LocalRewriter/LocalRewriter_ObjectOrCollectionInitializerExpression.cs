@@ -217,31 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (BoundExpression)base.VisitObjectInitializerMember(node)!;
             }
 
-            var originalReceiver = rewrittenReceiver;
-            ArrayBuilder<LocalSymbol>? constructionTemps = null;
             var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(ref rewrittenReceiver, captureReceiverMode: ReceiverCaptureMode.Default, node.Arguments, node.MemberSymbol, node.ArgsToParamsOpt, node.ArgumentRefKindsOpt,
-                storesOpt: null, ref constructionTemps);
-
-            if (constructionTemps != null)
-            {
-                if (temps == null)
-                {
-                    temps = constructionTemps;
-                }
-                else
-                {
-                    temps.AddRange(constructionTemps);
-                    constructionTemps.Free();
-                }
-            }
-
-            if (originalReceiver != rewrittenReceiver && rewrittenReceiver is BoundSequence sequence)
-            {
-                Debug.Assert(temps != null);
-                temps.AddRange(sequence.Locals);
-                sideEffects.AddRange(sequence.SideEffects);
-                rewrittenReceiver = sequence.Value;
-            }
+                sideEffects, ref temps);
 
             return node.Update(node.MemberSymbol, rewrittenArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.ReceiverType, node.Type);
         }

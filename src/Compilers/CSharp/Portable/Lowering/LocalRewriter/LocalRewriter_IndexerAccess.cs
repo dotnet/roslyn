@@ -108,8 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundIndexerAccess? oldNodeOpt,
             bool isLeftOfAssignment)
         {
-            rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, indexer);
-
             if (isLeftOfAssignment && indexer.RefKind == RefKind.None)
             {
                 TypeSymbol type = indexer.Type;
@@ -459,6 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Argument, out PatternIndexOffsetLoweringStrategy strategy);
 
             var receiver = VisitExpression(node.Receiver);
+            // PROTOTYPE revisit as part of "implicit indexer access" section (we'll probably want to adjust the receiver here)
 
             // Do not capture receiver if we're in an initializer
             if (!cacheAllArgumentsOnly)
@@ -757,6 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var F = _factory;
 
             var receiver = VisitExpression(node.Receiver);
+            // PROTOTYPE revisit as part of "implicit indexer access" section (we'll probably want to adjust the receiver here)
             var rangeArg = node.Argument;
 
             BoundRangeExpression? rangeExpr;
