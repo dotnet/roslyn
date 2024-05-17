@@ -1211,7 +1211,9 @@ public partial class C
                 text1,
                 parseOptions: TestOptions.RegularWithExtendedPartialMethods,
                 sourceSymbolValidator: module => validator(module, isSource: true),
-                symbolValidator: module => validator(module, isSource: false));
+                symbolValidator: module => validator(module, isSource: false),
+                // PEVerify fails when extern methods lack an implementation
+                verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M2", expectedIL);
 
@@ -1219,7 +1221,9 @@ public partial class C
                 text2,
                 parseOptions: TestOptions.RegularWithExtendedPartialMethods,
                 sourceSymbolValidator: module => validator(module, isSource: true),
-                symbolValidator: module => validator(module, isSource: false));
+                symbolValidator: module => validator(module, isSource: false),
+                // PEVerify fails when extern methods lack an implementation
+                verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M2", expectedIL);
 

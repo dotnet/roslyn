@@ -652,7 +652,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var verifier = CompileAndVerify(
                 [source, IsExternalInitTypeDefinition],
                 sourceSymbolValidator: verifySource,
-                symbolValidator: verifyMetadata);
+                symbolValidator: verifyMetadata,
+                // PEVerify fails when extern methods lack an implementation
+                verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
             void verifySource(ModuleSymbol module)
