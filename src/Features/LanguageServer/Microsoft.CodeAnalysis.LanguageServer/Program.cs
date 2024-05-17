@@ -204,6 +204,12 @@ static CliRootCommand CreateCommandLineParser()
         Required = false
     };
 
+    var razorDesignTimePathOption = new CliOption<string?>("--razorDesignTimePath")
+    {
+        Description = "Full path to the Razor design time target path (optional).",
+        Required = false
+    };
+
     var rootCommand = new CliRootCommand()
     {
         debugOption,
@@ -215,6 +221,7 @@ static CliRootCommand CreateCommandLineParser()
         extensionAssemblyPathsOption,
         devKitDependencyPathOption,
         razorSourceGeneratorOption,
+        razorDesignTimePathOption,
         extensionLogDirectoryOption
     };
     rootCommand.SetAction((parseResult, cancellationToken) =>
@@ -227,6 +234,7 @@ static CliRootCommand CreateCommandLineParser()
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
         var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
         var razorSourceGenerator = parseResult.GetValue(razorSourceGeneratorOption);
+        var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
 
         var serverConfiguration = new ServerConfiguration(
@@ -238,6 +246,7 @@ static CliRootCommand CreateCommandLineParser()
             ExtensionAssemblyPaths: extensionAssemblyPaths,
             DevKitDependencyPath: devKitDependencyPath,
             RazorSourceGenerator: razorSourceGenerator,
+            RazorDesignTimePath: razorDesignTimePath,
             ExtensionLogDirectory: extensionLogDirectory);
 
         return RunAsync(serverConfiguration, cancellationToken);
