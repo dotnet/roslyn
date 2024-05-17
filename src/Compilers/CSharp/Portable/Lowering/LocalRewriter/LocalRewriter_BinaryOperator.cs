@@ -1110,18 +1110,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     IsDefaultValue: false,
                     Discriminator: ConstantValueTypeDiscriminator.Boolean
-                        or ConstantValueTypeDiscriminator.Byte
-                        or ConstantValueTypeDiscriminator.Char
                         or ConstantValueTypeDiscriminator.Double
-                        or ConstantValueTypeDiscriminator.Int16
                         or ConstantValueTypeDiscriminator.Int32
                         or ConstantValueTypeDiscriminator.Int64
                         or ConstantValueTypeDiscriminator.NInt
                         or ConstantValueTypeDiscriminator.NUInt
-                        or ConstantValueTypeDiscriminator.SByte
                         or ConstantValueTypeDiscriminator.Single
-                        or ConstantValueTypeDiscriminator.String
-                        or ConstantValueTypeDiscriminator.UInt16
                         or ConstantValueTypeDiscriminator.UInt32
                         or ConstantValueTypeDiscriminator.UInt64
                 };
