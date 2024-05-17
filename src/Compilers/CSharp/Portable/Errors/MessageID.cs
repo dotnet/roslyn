@@ -471,6 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureImplicitIndexerInitializer:
                 case MessageID.IDS_FeatureLockObject:
                 case MessageID.IDS_FeatureParamsCollections:
+                case MessageID.IDS_FeatureRefUnsafeInIteratorAsync:
                 case MessageID.IDS_FeaturePartialProperties:
                     return LanguageVersion.Preview;
 
