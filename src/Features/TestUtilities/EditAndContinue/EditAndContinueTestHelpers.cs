@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 actualRequiredCapabilities |= result.RequiredCapabilities;
                 hasValidChanges &= result.HasSignificantValidChanges;
 
-                VerifyDiagnostics(expectedResult.Diagnostics, result.RudeEditErrors.ToDescription(newText, includeFirstLineInDiagnostics), assertMessagePrefix);
+                VerifyDiagnostics(expectedResult.Diagnostics, result.RudeEdits.ToDescription(newText, includeFirstLineInDiagnostics), assertMessagePrefix);
 
                 if (!expectedResult.SemanticEdits.IsDefault)
                 {
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 else
                 {
                     // exception regions not available in presence of rude edits:
-                    Assert.Equal(!expectedResult.Diagnostics.IsEmpty, result.ExceptionRegions.IsDefault);
+                    Assert.Equal(expectedResult.Diagnostics.Any(d => d.RudeEditKind.IsBlocking()), result.ExceptionRegions.IsDefault);
 
                     VerifyDocumentActiveStatementsAndExceptionRegions(
                         expectedResult.ActiveStatements,
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                         result.ExceptionRegions);
                 }
 
-                if (!result.RudeEditErrors.IsEmpty)
+                if (result.HasBlockingRudeEdits)
                 {
                     Assert.True(result.LineEdits.IsDefault);
                     Assert.True(expectedResult.LineEdits.IsDefaultOrEmpty);

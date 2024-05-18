@@ -405,6 +405,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">비동기에서 동기로 {0}을(를) 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_0_might_not_have_any_effect_until_the_application_is_restarted">
+        <source>Changing '{0}' might not have any effect until the application is restarted.</source>
+        <target state="new">Changing '{0}' might not have any effect until the application is restarted.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' requires restarting the application because it changes the shape of the state machine.</source>
         <target state="translated">'{0}'을(를) '{1}'(으)로 변경하려면 상태 시스템의 모양을 변경하므로 애플리케이션을 다시 시작해야 합니다.</target>

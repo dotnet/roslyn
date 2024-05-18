@@ -378,6 +378,9 @@
   <data name="Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Changing attribute '{0}' requires restarting the application.</value>
   </data>
+  <data name="Changing_0_might_not_have_any_effect_until_the_application_is_restarted" xml:space="preserve">
+    <value>Changing '{0}' might not have any effect until the application is restarted.</value>
+  </data>
   <data name="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application" xml:space="preserve">
     <value>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</value>
   </data>
