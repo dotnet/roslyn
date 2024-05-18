@@ -190,11 +190,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, scope, diagnostics);
 
-                ScopedKind? declaredScope = parameter is SourceParameterSymbol s ? s.DeclaredScope : null;
-
                 Debug.Assert(parameter is SourceComplexParameterSymbolBase || !parameter.IsParams); // Only SourceComplexParameterSymbolBase validates 'params' type.
+                Debug.Assert(parameter is SourceComplexParameterSymbolBase || parameter is not SourceParameterSymbol s || s.DeclaredScope == ScopedKind.None); // Only SourceComplexParameterSymbolBase validates 'scope'.
                 ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, lastParameterIndex: lastIndex, parameter.IsParams, parameter.TypeWithAnnotations,
-                                      parameter.RefKind, declaredScope, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, diagnostics);
+                                      parameter.RefKind, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
                 builder.Add(parameter);
                 ++parameterIndex;
@@ -652,7 +651,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             TypeWithAnnotations typeWithAnnotations,
             RefKind refKind,
-            ScopedKind? declaredScope,
             Symbol? containingSymbol,
             SyntaxToken thisKeyword,
             SyntaxToken paramsKeyword,
@@ -701,11 +699,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // error CS0231: A params parameter must be the last parameter in a parameter list
                 diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
-            }
-
-            if (declaredScope == ScopedKind.ScopedValue && !typeWithAnnotations.IsRefLikeType())
-            {
-                diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, syntax.Location);
             }
         }
 

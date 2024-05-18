@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.ERR_NewBoundWithUnmanaged, syntax.GetFirstToken().GetLocation());
                         }
 
-                        if (i != n - 1)
+                        if (i != n - 1 && constraintsSyntax[i + 1].Kind() != SyntaxKind.AllowsConstraintClause)
                         {
                             diagnostics.Add(ErrorCode.ERR_NewBoundMustBeLast, syntax.GetFirstToken().GetLocation());
                         }
@@ -290,6 +290,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntaxBuilder!.Add(typeConstraintSyntax);
                         }
                         continue;
+
+                    case SyntaxKind.AllowsConstraintClause:
+
+                        if (isForOverride)
+                        {
+                            reportOverrideWithConstraints(ref reportedOverrideWithConstraints, syntax, diagnostics);
+                            continue;
+                        }
+
+                        if (i != n - 1)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_AllowsClauseMustBeLast, syntax.GetFirstToken().GetLocation());
+                        }
+
+                        bool hasRefStructConstraint = false;
+
+                        foreach (var allowsConstraint in ((AllowsConstraintClauseSyntax)syntax).Constraints)
+                        {
+                            if (allowsConstraint.Kind() == SyntaxKind.RefStructConstraint)
+                            {
+                                if (hasRefStructConstraint)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_RefStructConstraintAlreadySpecified, allowsConstraint);
+                                }
+                                else
+                                {
+                                    CheckFeatureAvailability(allowsConstraint, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
+
+                                    if (!Compilation.Assembly.RuntimeSupportsByRefLikeGenerics)
+                                    {
+                                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, allowsConstraint);
+                                    }
+
+                                    constraints |= TypeParameterConstraintKind.AllowByRefLike;
+                                    hasRefStructConstraint = true;
+                                }
+                            }
+                        }
+
+                        continue;
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
                 }

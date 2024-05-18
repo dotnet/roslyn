@@ -264,9 +264,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,13): error CS0019: Operator 'is' cannot be applied to operands of type 'T' and 'Span<int>'
+                // (7,13): warning CS0184: The given expression is never of the provided ('Span<int>') type
                 //         if (t is Span<int>)
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "t is Span<int>").WithArguments("is", "T", "System.Span<int>").WithLocation(7, 13),
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is Span<int>").WithArguments("System.Span<int>").WithLocation(7, 13),
                 // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
                 //         if (t is Span<int> s)
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18));
@@ -308,9 +308,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,13): error CS0019: Operator 'is' cannot be applied to operands of type 'Span<int>' and 'T'
+                // (7,13): warning CS0184: The given expression is never of the provided ('T') type
                 //         if (s is T) { }
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s is T").WithArguments("is", "System.Span<int>", "T").WithLocation(7, 13),
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
                 // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
                 //         if (s is T t) { }
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
@@ -330,9 +330,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,13): error CS0019: Operator 'is' cannot be applied to operands of type 'Span<int>' and 'T'
+                // (7,13): warning CS0184: The given expression is never of the provided ('T') type
                 //         if (s is T) { }
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s is T").WithArguments("is", "System.Span<int>", "T").WithLocation(7, 13),
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
                 // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
                 //         if (s is T t) { }
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
@@ -444,9 +444,9 @@ class Program
                 // (13,26): error CS0701: 'Span<int>' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 //     class C1<T> where T: Span<int>
                 Diagnostic(ErrorCode.ERR_BadBoundType, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 26),
-                // (10,14): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (10,14): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Func<TResult>'
                 //         Func<Span<int>> d = ()=>x;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "Span<int>").WithArguments("System.Span<int>").WithLocation(10, 14),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Span<int>").WithArguments("System.Func<TResult>", "TResult", "System.Span<int>").WithLocation(10, 14),
                 // (10,33): error CS8175: Cannot use ref local 'x' inside an anonymous method, lambda expression, or query expression
                 //         Func<Span<int>> d = ()=>x;
                 Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "x").WithArguments("x").WithLocation(10, 33)
@@ -698,7 +698,7 @@ public class Program
 
         [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
         [Fact]
-        public void InterfaceImpl()
+        public void InterfaceImpl_01()
         {
             var text = @"
 using System;
@@ -709,24 +709,177 @@ public class Program
     {
         using (new S1())
         {
-
+            System.Console.Write(1);
         }
+
+        System.Console.Write(3);    
     }
 
     public ref struct S1 : IDisposable
     {
-        public void Dispose() { }
+        public void Dispose()
+        {
+            System.Console.Write(2);
+        }
     }
 }
 ";
 
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (14,28): error CS8343: 'Program.S1': ref structs cannot implement interfaces
-                //     public ref struct S1 : IDisposable
-                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IDisposable").WithArguments("Program.S1").WithLocation(14, 28)
-            );
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Main",
+@"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (Program.S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""Program.S1""
+  .try
+  {
+    IL_0008:  ldc.i4.1
+    IL_0009:  call       ""void System.Console.Write(int)""
+    IL_000e:  leave.s    IL_0018
+  }
+  finally
+  {
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  call       ""void Program.S1.Dispose()""
+    IL_0017:  endfinally
+  }
+  IL_0018:  ldc.i4.3
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InterfaceImpl_02()
+        {
+            var text = @"
+using System;
+
+public class Program
+{
+    static void Main(string[] args)
+    {
+        using (new S1())
+        {
+            System.Console.Write(1);
+        }
+
+        System.Console.Write(3);    
+    }
+
+    public ref struct S1 : IDisposable
+    {
+        public void Dispose()
+        {
+            System.Console.Write(22);
+        }
+
+        void IDisposable.Dispose()
+        {
+            System.Console.Write(2);
+        }
+    }
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"1223").VerifyDiagnostics();
+
+            // We prioritize pattern over an interface according to https://github.com/dotnet/csharplang/blob/main/proposals/ref-struct-interfaces.md#using-statement 
+
+            verifier.VerifyIL("Program.Main",
+@"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (Program.S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""Program.S1""
+  .try
+  {
+    IL_0008:  ldc.i4.1
+    IL_0009:  call       ""void System.Console.Write(int)""
+    IL_000e:  leave.s    IL_0018
+  }
+  finally
+  {
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  call       ""void Program.S1.Dispose()""
+    IL_0017:  endfinally
+  }
+  IL_0018:  ldc.i4.3
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InterfaceImpl_03()
+        {
+            var text = @"
+using System;
+
+public class Program
+{
+    static void Main(string[] args)
+    {
+        using (new S1())
+        {
+            System.Console.Write(1);
+        }
+
+        System.Console.Write(3);    
+    }
+
+    public ref struct S1 : IDisposable
+    {
+        void IDisposable.Dispose()
+        {
+            System.Console.Write(2);
+        }
+    }
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Main",
+@"
+{
+  // Code size       37 (0x25)
+  .maxstack  1
+  .locals init (Program.S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""Program.S1""
+  .try
+  {
+    IL_0008:  ldc.i4.1
+    IL_0009:  call       ""void System.Console.Write(int)""
+    IL_000e:  leave.s    IL_001e
+  }
+  finally
+  {
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  constrained. ""Program.S1""
+    IL_0018:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_001d:  endfinally
+  }
+  IL_001e:  ldc.i4.3
+  IL_001f:  call       ""void System.Console.Write(int)""
+  IL_0024:  ret
+}
+");
         }
 
         [Fact]
@@ -739,21 +892,51 @@ public class Program
     {
         using (new S1())
         {
-
+            System.Console.Write(1);
         }
+
+        System.Console.Write(3);
     }
 
     public ref struct S1
     {
-        public void Dispose() { }
+        public void Dispose()
+        {
+            System.Console.Write(2);
+        }
     }
 }
 ";
 
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-            );
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Main",
+@"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (Program.S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""Program.S1""
+  .try
+  {
+    IL_0008:  ldc.i4.1
+    IL_0009:  call       ""void System.Console.Write(int)""
+    IL_000e:  leave.s    IL_0018
+  }
+  finally
+  {
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  call       ""void Program.S1.Dispose()""
+    IL_0017:  endfinally
+  }
+  IL_0018:  ldc.i4.3
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
         }
 
         [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
@@ -807,7 +990,7 @@ class C1
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (15,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct.
+                // (15,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct or a type parameter that allows ref struct.
                 //         foreach (var i in obj)
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1.S1").WithLocation(15, 9)
             );
@@ -879,7 +1062,7 @@ class C1
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (33,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct.
+                // (33,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct or a type parameter that allows ref struct.
                 //         foreach (var i in new C1())
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1.S1").WithLocation(33, 9)
             );

@@ -2709,9 +2709,10 @@ class C
                 // (8,9): error CS0019: Operator '??=' cannot be applied to operands of type 'Span<byte>' and 'Span<byte>'
                 //         s1 ??= new Span<byte>();
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 ??= new Span<byte>()").WithArguments("??=", "System.Span<byte>", "System.Span<byte>").WithLocation(8, 9),
-                // (9,9): error CS0306: The type 'Span<byte>' may not be used as a type argument
+                // (9,9): error CS9244: The type 'Span<byte>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         Span<byte>? s2 = null;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "Span<byte>?").WithArguments("System.Span<byte>").WithLocation(9, 9));
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Span<byte>?").WithArguments("System.Nullable<T>", "T", "System.Span<byte>").WithLocation(9, 9)
+                );
         }
 
         [Fact]

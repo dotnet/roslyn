@@ -8964,9 +8964,6 @@ public ref struct Buffer10
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (7,16): error CS0306: The type 'Buffer10' may not be used as a type argument
-                //         return M3(x)[0];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("Buffer10").WithLocation(7, 16),
                 // (7,16): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         return M3(x)[0];
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("System.Span<int>").WithLocation(7, 16),
@@ -8976,24 +8973,15 @@ public ref struct Buffer10
                 // (7,19): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         return M3(x)[0];
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(7, 19),
-                // (13,17): error CS0306: The type 'Buffer10' may not be used as a type argument
-                //         var y = M3(x)[0];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("Buffer10").WithLocation(13, 17),
                 // (13,17): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var y = M3(x)[0];
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(x)[0]").WithArguments("System.Span<int>").WithLocation(13, 17),
                 // (14,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         return y;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(14, 16),
-                // (24,16): error CS0306: The type 'Buffer10' may not be used as a type argument
-                //         return M3(xx)[0];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("Buffer10").WithLocation(24, 16),
                 // (24,16): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         return M3(xx)[0];
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("System.Span<int>").WithLocation(24, 16),
-                // (29,18): error CS0306: The type 'Buffer10' may not be used as a type argument
-                //         var yy = M3(xx)[0];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("Buffer10").WithLocation(29, 18),
                 // (29,18): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var yy = M3(xx)[0];
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M3(xx)[0]").WithArguments("System.Span<int>").WithLocation(29, 18),
@@ -16394,15 +16382,15 @@ class Program
                 // (9,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>?' to 'System.ReadOnlySpan<int>?'
                 //     static int M2() => M4(M3(), default);
                 Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>?", "System.ReadOnlySpan<int>?").WithLocation(9, 27),
-                // (13,45): error CS0306: The type 'ReadOnlySpan<int>' may not be used as a type argument
+                // (13,45): error CS9244: The type 'ReadOnlySpan<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     static int M4(System.ReadOnlySpan<int>? x, Buffer10<int> y)
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("System.ReadOnlySpan<int>").WithLocation(13, 45),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "System.ReadOnlySpan<int>").WithLocation(13, 45),
                 // (18,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>?' to 'System.Span<int>?'
                 //     static int M5() => M6(M3(), default);
                 Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>?", "System.Span<int>?").WithLocation(18, 27),
-                // (20,37): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (20,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     static int M6(System.Span<int>? x, Buffer10<int> y)
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("System.Span<int>").WithLocation(20, 37)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "System.Span<int>").WithLocation(20, 37)
                 );
         }
 
@@ -16481,15 +16469,15 @@ class Program
                 // (9,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>' to 'System.ReadOnlySpan<int>?'
                 //     static int M2() => M4(M3(), default);
                 Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>", "System.ReadOnlySpan<int>?").WithLocation(9, 27),
-                // (13,45): error CS0306: The type 'ReadOnlySpan<int>' may not be used as a type argument
+                // (13,45): error CS9244: The type 'ReadOnlySpan<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     static int M4(System.ReadOnlySpan<int>? x, Buffer10<int> y)
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("System.ReadOnlySpan<int>").WithLocation(13, 45),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "System.ReadOnlySpan<int>").WithLocation(13, 45),
                 // (18,27): error CS1503: Argument 1: cannot convert from 'Buffer10<int>' to 'System.Span<int>?'
                 //     static int M5() => M6(M3(), default);
                 Diagnostic(ErrorCode.ERR_BadArgType, "M3()").WithArguments("1", "Buffer10<int>", "System.Span<int>?").WithLocation(18, 27),
-                // (20,37): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (20,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     static int M6(System.Span<int>? x, Buffer10<int> y)
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("System.Span<int>").WithLocation(20, 37)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "System.Span<int>").WithLocation(20, 37)
                 );
         }
 
@@ -19167,18 +19155,12 @@ public ref struct Buffer10
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (7,27): error CS0306: The type 'Buffer10' may not be used as a type argument
-                //         foreach (var y in GetBuffer(x))
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(x)").WithArguments("Buffer10").WithLocation(7, 27),
                 // (7,27): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         foreach (var y in GetBuffer(x))
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(x)").WithArguments("System.Span<int>").WithLocation(7, 27),
                 // (9,20): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //             return y;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(9, 20),
-                // (17,28): error CS0306: The type 'Buffer10' may not be used as a type argument
-                //         foreach (var yy in GetBuffer(xx))
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(xx)").WithArguments("Buffer10").WithLocation(17, 28),
                 // (17,28): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         foreach (var yy in GetBuffer(xx))
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "GetBuffer(xx)").WithArguments("System.Span<int>").WithLocation(17, 28),
@@ -22970,12 +22952,12 @@ struct Buffer4
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (7,37): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (7,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public static implicit operator System.Span<int>?(Buffer4 b) => new [] {1, 2, 3, 4}; 
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "System.Span<int>?").WithArguments("System.Span<int>").WithLocation(7, 37),
-                // (12,36): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "System.Span<int>?").WithArguments("System.Nullable<T>", "T", "System.Span<int>").WithLocation(7, 37),
+                // (12,36): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         System.Console.WriteLine(((System.Span<int>?)b).Value[0]);
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "System.Span<int>?").WithArguments("System.Span<int>").WithLocation(12, 36)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "System.Span<int>?").WithArguments("System.Nullable<T>", "T", "System.Span<int>").WithLocation(12, 36)
                 );
         }
 

@@ -20557,10 +20557,7 @@ partial class Program
             CreateCompilation(source).VerifyDiagnostics(
                 // (5,7): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
                 // S s = [d];
-                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "[d]").WithArguments("S").WithLocation(5, 7),
-                // (7,16): error CS8343: 'S': ref structs cannot implement interfaces
-                // ref struct S : IEnumerable<int>
-                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable<int>").WithArguments("S").WithLocation(7, 16)
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "[d]").WithArguments("S").WithLocation(5, 7)
             );
         }
 
@@ -26037,7 +26034,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,17): error CS9503: There is no target type for the collection expression.
+                // (7,17): error CS9176: There is no target type for the collection expression.
                 //         var v = []->Count;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 17));
         }
@@ -26100,7 +26097,7 @@ partial class Program
                 }
                 """;
             CreateCompilationWithIndexAndRangeAndSpan(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9500: Cannot initialize type 'Index' with a collection expression because the type is not constructible.
+                // (7,9): error CS9174: Cannot initialize type 'Index' with a collection expression because the type is not constructible.
                 //         []..;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("System.Index").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -26123,7 +26120,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9503: There is no target type for the collection expression.
+                // (7,9): error CS9176: There is no target type for the collection expression.
                 //         [] switch
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -26146,7 +26143,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9503: There is no target type for the collection expression.
+                // (7,9): error CS9176: There is no target type for the collection expression.
                 //         [] with { Count = 1, };
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -26169,7 +26166,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9503: There is no target type for the collection expression.
+                // (7,9): error CS9176: There is no target type for the collection expression.
                 //         [] is object;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -26192,7 +26189,7 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS9503: There is no target type for the collection expression.
+                // (7,9): error CS9176: There is no target type for the collection expression.
                 //         [] as List<int>;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -28831,9 +28828,6 @@ partial class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,16): error CS8343: 'S': ref structs cannot implement interfaces
-                // ref struct S : IEnumerable
-                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable").WithArguments("S").WithLocation(2, 16),
                 // (4,28): error CS0611: Array elements cannot be of type 'S'
                 //     public void Add(params S[] x) => throw null;
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(4, 28),
@@ -28862,9 +28856,6 @@ partial class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,19): error CS8343: 'S<T>': ref structs cannot implement interfaces
-                // ref struct S<T> : IEnumerable<T>
-                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable<T>").WithArguments("S<T>").WithLocation(3, 19),
                 // (11,26): error CS9203: A collection expression of type 'S<int>' cannot be used in this context because it may be exposed outside of the current scope.
                 //     static S<int> F() => [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[1, 2, 3]").WithArguments("S<int>").WithLocation(11, 26));
