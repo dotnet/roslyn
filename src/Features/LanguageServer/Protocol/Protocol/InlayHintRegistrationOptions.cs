@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using Newtonsoft.Json;
-    using System.Runtime.Serialization;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Inlay hint registration options.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#inlayHintRegistrationOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class InlayHintRegistrationOptions : InlayHintOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
     {
         /// <summary>
         /// Gets or sets the document filters for this registration option.
         /// </summary>
-        [DataMember(Name = "documentSelector")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        [JsonPropertyName("documentSelector")]
         public DocumentFilter[]? DocumentSelector
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
-        [DataMember(Name = "id")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("id")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Id
         {
             get;

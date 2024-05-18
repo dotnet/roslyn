@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         public PreviewFactoryService(
             IThreadingContext threadingContext,
             ITextBufferFactoryService textBufferFactoryService,
+            ITextBufferCloneService textBufferCloneService,
             IContentTypeRegistryService contentTypeRegistryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             ITextEditorFactoryService textEditorFactoryService,
@@ -43,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             IWpfDifferenceViewerFactoryService differenceViewerService)
             : base(threadingContext,
                   textBufferFactoryService,
+                  textBufferCloneService,
                   contentTypeRegistryService,
                   projectionBufferFactoryService,
                   editorOptionsService,

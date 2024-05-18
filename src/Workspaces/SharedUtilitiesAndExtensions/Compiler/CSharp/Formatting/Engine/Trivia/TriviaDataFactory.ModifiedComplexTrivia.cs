@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
 internal partial class TriviaDataFactory
 {
-    private class ModifiedComplexTrivia : TriviaDataWithList
+    private sealed class ModifiedComplexTrivia : TriviaDataWithList
     {
         private readonly ComplexTrivia _original;
 
-        public ModifiedComplexTrivia(SyntaxFormattingOptions options, ComplexTrivia original, int lineBreaks, int space)
-            : base(options, original.Token1.Language)
+        public ModifiedComplexTrivia(LineFormattingOptions options, ComplexTrivia original, int lineBreaks, int space)
+            : base(options)
         {
             Contract.ThrowIfNull(original);
 

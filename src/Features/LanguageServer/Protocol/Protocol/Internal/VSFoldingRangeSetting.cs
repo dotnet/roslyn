@@ -4,8 +4,7 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class used to extend <see cref="FoldingRangeSetting" /> to add internal capabilities.
@@ -15,8 +14,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether if client only supports entire line folding only.
         /// </summary>
-        [DataMember(Name = "_vs_refreshSupport")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("_vs_refreshSupport")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool RefreshSupport
         {
             get;

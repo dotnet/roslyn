@@ -5,15 +5,13 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System.ComponentModel;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Value representing the various formats of markup text.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#markupContent">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     [JsonConverter(typeof(StringEnumConverter<MarkupKind>))]
     [TypeConverter(typeof(StringEnumConverter<MarkupKind>.TypeConverter))]
     internal readonly record struct MarkupKind(string Value) : IStringEnum

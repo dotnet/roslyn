@@ -6,22 +6,20 @@ namespace Roslyn.LanguageServer.Protocol
 {
     using System;
     using System.Collections.Generic;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents a text document text range.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#range">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class Range : IEquatable<Range>
     {
         /// <summary>
         /// Gets or sets the text start position.
         /// </summary>
-        [DataMember(Name = "start")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("start")]
+        [JsonRequired]
         public Position Start
         {
             get;
@@ -31,8 +29,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text end position.
         /// </summary>
-        [DataMember(Name = "end")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("end")]
+        [JsonRequired]
         public Position End
         {
             get;

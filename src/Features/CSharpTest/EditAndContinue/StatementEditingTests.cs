@@ -4,16 +4,13 @@
 
 #nullable disable
 
-using System;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -4725,8 +4722,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Lambdas_Update_CeaseCapture_PrimaryParameter_InPrimaryConstructor_First(
             [CombinatorialValues("class", "struct", "record", "record struct")] string keyword)
         {
@@ -4739,8 +4735,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [_, _]), preserveLocalVariables: true));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Lambdas_Update_CeaseCapture_PrimaryParameter_InPrimaryConstructor_Second(
             [CombinatorialValues("class", "struct", "record", "record struct")] string keyword)
         {
@@ -4753,8 +4748,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [_, _]), preserveLocalVariables: true));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Lambdas_Update_CeaseCapture_PrimaryParameter_InPrimaryConstructor_BaseInitializer(
             [CombinatorialValues("class", "record")] string keyword)
@@ -5246,8 +5240,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Lambdas_Update_Capturing_PrimaryParameter_InPrimaryConstructor_First(
             [CombinatorialValues("class", "struct", "record", "record struct")] string keyword)
         {
@@ -5260,8 +5253,7 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Lambdas_Update_Capturing_PrimaryParameter_InPrimaryConstructor_Second(
             [CombinatorialValues("class", "struct", "record", "record struct")] string keyword)
         {
@@ -9659,7 +9651,9 @@ class Test
             var src2 = "Console.WriteLine(2); int C(int X);";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")));
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"))],
+                [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Console.WriteLine(2);", GetResource("top-level code"))]);
         }
 
         #endregion
@@ -13142,6 +13136,45 @@ int G1(int[] p) { return p[2]; }
         #region Top Level Statements
 
         [Fact]
+        public void TopLevelStatement_Lambda_Update()
+        {
+            var src1 = @"
+using System;
+
+var x = new Func<int>(() => 1);
+";
+            var src2 = @"
+using System;
+
+var x = new Func<int>(() => 2);
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true)]);
+        }
+
+        [Fact]
+        public void TopLevelStatement_Lambda_Insert()
+        {
+            var src1 = @"
+using System;
+
+Console.WriteLine(1);
+";
+            var src2 = @"
+using System;
+
+Console.WriteLine(1);
+var x = new Func<int>(() => 2);
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true)],
+                [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Console.WriteLine(1);", GetResource("top-level code"))],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
         public void TopLevelStatement_Capture_Args()
         {
             var src1 = @"
@@ -13156,7 +13189,7 @@ var x = new Func<string[]>(() => args);
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true));
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -13208,34 +13241,46 @@ var f1 = new Func<int, int>(a1 =>
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
         public void TopLevelStatement_InsertMultiScopeCapture()
         {
-            var src1 = @"
-using System;
+            var src1 = """
+            using System;
 
-foreach (int x0 in new[] { 1 })  // Group #0
-{                                // Group #1
-    int x1 = 0;
+            foreach (int x0 in new[] { 1 })  // Group #0
+            {                                // Group #1
+                int x1 = 0;
 
-    int f0(int a) => x0;
-    int f1(int a) => x1;
-}
-";
-            var src2 = @"
-using System;
+                int f0(int a) => x0;
+                int f1(int a) => x1;
+            }
+            """;
 
-foreach (int x0 in new[] { 1 })  // Group #0
-{                                // Group #1
-    int x1 = 0;                  
+            var src2 = """
+            using System;
 
-    int f0(int a) => x0;
-    int f1(int a) => x1;
+            foreach (int x0 in new[] { 1 })  // Group #0
+            {                                // Group #1
+                int x1 = 0;
 
-    int f2(int a) => x0 + x1;   // runtime rude edit: connecting previously disconnected closures
-}
-";
+                int f0(int a) => x0;
+                int f1(int a) => x1;
+
+                int f2(int a) => x0 + x1;   // runtime rude edit: connecting previously disconnected closures
+            }
+            """;
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
                 [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true)],
+                [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, """
+                    foreach (int x0 in new[] { 1 })  // Group #0
+                    {                                // Group #1
+                        int x1 = 0;
+
+                        int f0(int a) => x0;
+                        int f1(int a) => x1;
+
+                        int f2(int a) => x0 + x1;   // runtime rude edit: connecting previously disconnected closures
+                    }
+                    """, GetResource("top-level code"))],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.UpdateParameters);
         }
 

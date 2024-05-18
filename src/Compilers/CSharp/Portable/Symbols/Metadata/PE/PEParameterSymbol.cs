@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         Debug.Assert(refKind != RefKind.None);
                         scope = ScopedKind.ScopedRef;
                     }
-                    else if (typeWithAnnotations.Type.IsRefLikeType)
+                    else if (typeWithAnnotations.Type.IsRefLikeOrAllowsRefLikeType())
                     {
                         scope = ScopedKind.ScopedValue;
                     }

@@ -689,7 +689,7 @@ End Class
                 Next
 
                 Assert.True(result.IsSingle())
-                Assert.Empty(result.Single().RudeEditErrors)
+                Assert.Empty(result.Single().RudeEdits)
             End Using
         End Function
     End Class

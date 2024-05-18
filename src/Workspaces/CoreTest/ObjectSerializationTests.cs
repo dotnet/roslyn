@@ -246,8 +246,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => TestRoundTripCompressedUint(0xC0000000u)); // both high bits set not allowed
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void TestByteSpan([CombinatorialValues(0, 1, 2, 3, 1000, 1000000)] int size)
         {
             var data = new byte[size];
@@ -597,7 +596,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestRoundTripGuid()
         {
-            void test(Guid guid)
+            static void test(Guid guid)
             {
                 TestRoundTrip(guid, (w, v) => w.WriteGuid(v), r => r.ReadGuid());
             }

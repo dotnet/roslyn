@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                         new SourceSimpleParameterSymbol(owner: this,
                             TypeWithAnnotations.Create(Binder.GetWellKnownType(compilation, WellKnownType.System_Text_StringBuilder, diagnostics, location), annotation),
-                            ordinal: 0, RefKind.None, ScopedKind.None, "builder", Locations)));
+                            ordinal: 0, RefKind.None, "builder", Locations)));
         }
 
         protected override int GetParameterCountFromSyntax() => 1;
@@ -213,8 +213,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendString),
                                 F.Call(value, F.SpecialMethod(SpecialMember.System_Object__ToString)))));
                     }
-                    else
+                    else if (!value.Type.IsRestrictedType())
                     {
+                        // Otherwise, an error has been reported elsewhere (SourceMemberFieldSymbol.TypeChecks)
                         block.Add(F.ExpressionStatement(
                             F.Call(receiver: builder,
                                 F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendObject),

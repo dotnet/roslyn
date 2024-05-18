@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing human readable text that should be rendered.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#markedString">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class MarkedString
     {
         /// <summary>
         /// Gets or sets the language of the code stored in <see cref="Value" />.
         /// </summary>
-        [DataMember(Name = "language")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("language")]
+        [JsonRequired]
         public string Language
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the code.
         /// </summary>
-        [DataMember(Name = "value")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("value")]
+        [JsonRequired]
         public string Value
         {
             get;

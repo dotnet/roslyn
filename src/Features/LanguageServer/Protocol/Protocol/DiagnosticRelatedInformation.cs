@@ -4,7 +4,7 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents a related message and source code location for a diagnostic.
@@ -13,19 +13,18 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnosticRelatedInformation">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class DiagnosticRelatedInformation
     {
         /// <summary>
         /// Gets or sets the location for the related information.
         /// </summary>
-        [DataMember(Name = "location")]
+        [JsonPropertyName("location")]
         public Location Location { get; set; }
 
         /// <summary>
         /// Gets or sets the message for the related information.
         /// </summary>
-        [DataMember(Name = "message")]
+        [JsonPropertyName("message")]
         public string Message { get; set; }
     }
 }

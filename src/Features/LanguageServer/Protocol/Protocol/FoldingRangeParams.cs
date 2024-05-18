@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the folding range request parameter.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#foldingRangeParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class FoldingRangeParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the text document associated with the folding range request.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
         {
             get;

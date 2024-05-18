@@ -5,21 +5,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal sealed class RoslynLanguageServer : AbstractLanguageServer<RequestContext>, IOnInitialized
+    internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<RequestContext>, IOnInitialized
     {
         private readonly AbstractLspServiceProvider _lspServiceProvider;
         private readonly ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> _baseServices;
@@ -28,24 +27,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public RoslynLanguageServer(
             AbstractLspServiceProvider lspServiceProvider,
             JsonRpc jsonRpc,
-            JsonSerializer serializer,
+            JsonSerializerOptions serializerOptions,
             ICapabilitiesProvider capabilitiesProvider,
             AbstractLspLogger logger,
             HostServices hostServices,
             ImmutableArray<string> supportedLanguages,
             WellKnownLspServerKinds serverKind)
-            : base(jsonRpc, serializer, logger)
+            : base(jsonRpc, serializerOptions, logger)
         {
             _lspServiceProvider = lspServiceProvider;
             _serverKind = serverKind;
-
-            VSCodeInternalExtensionUtilities.AddVSCodeInternalExtensionConverters(serializer);
 
             // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
             _baseServices = GetBaseServices(jsonRpc, logger, capabilitiesProvider, hostServices, serverKind, supportedLanguages);
 
             // This spins up the queue and ensure the LSP is ready to start receiving requests
             Initialize();
+        }
+
+        public static SystemTextJsonFormatter CreateJsonMessageFormatter()
+        {
+            var messageFormatter = new SystemTextJsonFormatter();
+            messageFormatter.JsonSerializerOptions.AddLspSerializerOptions();
+            return messageFormatter;
         }
 
         protected override ILspServices ConstructLspServices()
@@ -113,7 +117,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return Task.CompletedTask;
         }
 
-        protected override string GetLanguageForRequest(string methodName, JToken? parameters)
+        protected override string GetLanguageForRequest(string methodName, JsonElement? parameters)
         {
             if (parameters == null)
             {
@@ -134,12 +138,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // { "textDocument": { "uri": "<uri>" ... } ... }
             //
             // We can easily identify the URI for the request by looking for this structure
-            var textDocumentToken = parameters["textDocument"] ?? parameters["_vs_textDocument"];
-            if (textDocumentToken is not null)
+            if (parameters.Value.TryGetProperty("textDocument", out var textDocumentToken) ||
+                parameters.Value.TryGetProperty("_vs_textDocument", out textDocumentToken))
             {
-                var uriToken = textDocumentToken["uri"];
-                Contract.ThrowIfNull(uriToken, "textDocument does not have a uri property");
-                var uri = uriToken.ToObject<Uri>(_jsonSerializer);
+                var uriToken = textDocumentToken.GetProperty("uri");
+                var uri = JsonSerializer.Deserialize<Uri>(uriToken, ProtocolConversions.LspJsonSerializerOptions);
                 Contract.ThrowIfNull(uri, "Failed to deserialize uri property");
                 var language = lspWorkspaceManager.GetLanguageForUri(uri);
                 Logger.LogInformation($"Using {language} from request text document");
@@ -150,10 +153,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // { "data": { "TextDocument": { "uri": "<uri>" ... } ... } ... }
             //
             // We can deserialize the data object using our unified DocumentResolveData.
-            var dataToken = parameters["data"];
-            if (dataToken is not null)
+            //var dataToken = parameters["data"];
+            if (parameters.Value.TryGetProperty("data", out var dataToken))
             {
-                var data = dataToken.ToObject<DocumentResolveData>(_jsonSerializer);
+                var data = JsonSerializer.Deserialize<DocumentResolveData>(dataToken, ProtocolConversions.LspJsonSerializerOptions);
                 Contract.ThrowIfNull(data, "Failed to document resolve data object");
                 var language = lspWorkspaceManager.GetLanguageForUri(data.TextDocument.Uri);
                 Logger.LogInformation($"Using {language} from data text document");
@@ -165,7 +168,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return LanguageServerConstants.DefaultLanguageName;
 
             static bool ShouldUseDefaultLanguage(string methodName)
-                => methodName switch
+            {
+                return methodName switch
                 {
                     Methods.InitializeName => true,
                     Methods.InitializedName => true,
@@ -177,6 +181,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     Methods.ExitName => true,
                     _ => false,
                 };
+            }
         }
     }
 }

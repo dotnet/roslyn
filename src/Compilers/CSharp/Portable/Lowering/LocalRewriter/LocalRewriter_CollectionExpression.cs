@@ -195,8 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax,
                         elementType,
                         elements,
-                        asReadOnlySpan: collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan,
-                        _additionalLocals);
+                        asReadOnlySpan: collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan);
                 }
 
                 Debug.Assert(IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType.Type, _compilation));
@@ -243,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Create a temp for the collection.
             BoundAssignmentOperator assignmentToTemp;
-            BoundLocal temp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+            BoundLocal temp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
             sideEffects.Add(assignmentToTemp);
 
@@ -429,16 +428,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             TypeWithAnnotations elementType,
             ImmutableArray<BoundNode> elements,
-            bool asReadOnlySpan,
-            ArrayBuilder<LocalSymbol> locals)
+            bool asReadOnlySpan)
         {
             Debug.Assert(elements.Length > 0);
             Debug.Assert(elements.All(e => e is BoundExpression));
             Debug.Assert(_factory.ModuleBuilderOpt is { });
             Debug.Assert(_diagnostics.DiagnosticBag is { });
             Debug.Assert(_compilation.Assembly.RuntimeSupportsInlineArrayTypes);
+            Debug.Assert(_additionalLocals is { });
 
             int arrayLength = elements.Length;
+            if (arrayLength == 1
+                && _factory.WellKnownMember(asReadOnlySpan
+                    ? WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T
+                    : WellKnownMember.System_Span_T__ctor_ref_T, isOptional: true) is MethodSymbol spanRefConstructor)
+            {
+                // Special case: no need to create an InlineArray1 type. Just use a temp of the element type.
+                var spanType = _factory
+                    .WellKnownType(asReadOnlySpan ? WellKnownType.System_ReadOnlySpan_T : WellKnownType.System_Span_T)
+                    .Construct([elementType]);
+                var constructor = spanRefConstructor.AsMember(spanType);
+                var element = VisitExpression((BoundExpression)elements[0]);
+                var temp = _factory.StoreToTemp(element, out var assignment);
+                _additionalLocals.Add(temp.LocalSymbol);
+                var call = _factory.New(constructor, arguments: [temp], argumentRefKinds: [asReadOnlySpan ? RefKindExtensions.StrictIn : RefKind.Ref]);
+                return _factory.Sequence([assignment], call);
+            }
+
             var inlineArrayType = _factory.ModuleBuilderOpt.EnsureInlineArrayTypeExists(syntax, _factory, arrayLength, _diagnostics.DiagnosticBag).Construct(ImmutableArray.Create(elementType));
             Debug.Assert(inlineArrayType.HasInlineArrayAttribute(out int inlineArrayLength) && inlineArrayLength == arrayLength);
 
@@ -449,10 +465,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Create an inline array and assign to a local.
             // var tmp = new <>y__InlineArrayN<ElementType>();
             BoundAssignmentOperator assignmentToTemp;
-            BoundLocal inlineArrayLocal = _factory.StoreToTemp(new BoundDefaultExpression(syntax, inlineArrayType), out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+            BoundLocal inlineArrayLocal = _factory.StoreToTemp(new BoundDefaultExpression(syntax, inlineArrayType), out assignmentToTemp);
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
             sideEffects.Add(assignmentToTemp);
-            locals.Add(inlineArrayLocal.LocalSymbol);
+            _additionalLocals.Add(inlineArrayLocal.LocalSymbol);
 
             // Populate the inline array.
             // InlineArrayElementRef<<>y__InlineArrayN<ElementType>, ElementType>(ref tmp, 0) = element0;
@@ -604,8 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // int index = 0;
             BoundLocal indexTemp = _factory.StoreToTemp(
                 _factory.Literal(0),
-                out assignmentToTemp,
-                isKnownToReferToTempIfReferenceType: true);
+                out assignmentToTemp);
             localsBuilder.Add(indexTemp);
             sideEffects.Add(assignmentToTemp);
 
@@ -615,8 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray.Create(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder)),
                     initializerOpt: null,
                     arrayType),
-                out assignmentToTemp,
-                isKnownToReferToTempIfReferenceType: true);
+                out assignmentToTemp);
             localsBuilder.Add(arrayTemp);
             sideEffects.Add(assignmentToTemp);
 
@@ -903,7 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If we use optimizations, we know the length of the resulting list, and we store it in a temp so we can pass it to List.ctor(int32) and to CollectionsMarshal.SetCount
 
                     // int knownLengthTemp = N + s1.Length + ...;
-                    knownLengthTemp = _factory.StoreToTemp(knownLengthExpression, out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+                    knownLengthTemp = _factory.StoreToTemp(knownLengthExpression, out assignmentToTemp);
                     localsBuilder.Add(knownLengthTemp);
                     sideEffects.Add(assignmentToTemp);
 
@@ -924,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Create a temp for the list.
-            BoundLocal listTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+            BoundLocal listTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
             localsBuilder.Add(listTemp);
             sideEffects.Add(assignmentToTemp);
 
@@ -940,7 +954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects.Add(_factory.Call(receiver: null, setCount, listTemp, knownLengthTemp));
 
                 // var span = CollectionsMarshal.AsSpan<ElementType(list);
-                BoundLocal spanTemp = _factory.StoreToTemp(_factory.Call(receiver: null, asSpan, listTemp), out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+                BoundLocal spanTemp = _factory.StoreToTemp(_factory.Call(receiver: null, asSpan, listTemp), out assignmentToTemp);
                 localsBuilder.Add(spanTemp);
                 sideEffects.Add(assignmentToTemp);
 
@@ -950,8 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // int index = 0;
                 BoundLocal indexTemp = _factory.StoreToTemp(
                     _factory.Literal(0),
-                    out assignmentToTemp,
-                    isKnownToReferToTempIfReferenceType: true);
+                    out assignmentToTemp);
                 localsBuilder.Add(indexTemp);
                 sideEffects.Add(assignmentToTemp);
 
@@ -1061,7 +1074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var rewrittenExpression = RewriteCollectionExpressionElementExpression(elements[i]);
                 BoundAssignmentOperator assignmentToTemp;
-                BoundLocal temp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+                BoundLocal temp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp);
                 locals.Add(temp);
                 sideEffects.Add(assignmentToTemp);
             }

@@ -5,21 +5,19 @@
 namespace Roslyn.LanguageServer.Protocol;
 
 using System;
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing a previous result id in a workspace pull request.
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#previousResultId">Language Server Protocol specification</see> for additional information.
 /// </summary>
-[DataContract]
 internal class PreviousResultId
 {
     /// <summary>
     /// Gets or sets the URI for which the client knows a result id.
     /// </summary>
-    [DataMember(Name = "uri")]
+    [JsonPropertyName("uri")]
     [JsonConverter(typeof(DocumentUriConverter))]
     public Uri Uri
     {
@@ -30,7 +28,7 @@ internal class PreviousResultId
     /// <summary>
     /// Gets or sets the value of the previous result id.
     /// </summary>
-    [DataMember(Name = "value")]
+    [JsonPropertyName("value")]
     public string Value
     {
         get;

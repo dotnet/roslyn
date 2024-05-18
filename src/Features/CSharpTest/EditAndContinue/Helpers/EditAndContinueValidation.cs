@@ -113,6 +113,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         internal static void VerifySemantics(
+            this EditScript<SyntaxNode> editScript,
+            SemanticEditDescription[] semanticEdits,
+            RudeEditDiagnosticDescription[] warnings,
+            EditAndContinueCapabilities? capabilities = null)
+        {
+            VerifySemantics(
+                [editScript],
+                [new DocumentAnalysisResultsDescription(ActiveStatementsDescription.Empty, semanticEdits: semanticEdits, diagnostics: warnings)],
+                capabilities: capabilities);
+        }
+
+        internal static void VerifySemantics(
             EditScript<SyntaxNode>[] editScripts,
             DocumentAnalysisResultsDescription[] results,
             TargetFramework[]? targetFrameworks = null,

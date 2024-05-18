@@ -6,21 +6,19 @@ namespace Roslyn.LanguageServer.Protocol
 {
     using System;
     using System.Collections.Generic;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing information about programming constructs like variables, classes, interfaces, etc.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#symbolInformation">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SymbolInformation : IEquatable<SymbolInformation>
     {
         /// <summary>
         /// Gets or sets the name of this symbol.
         /// </summary>
-        [DataMember(Name = "name")]
+        [JsonPropertyName("name")]
         public string Name
         {
             get;
@@ -30,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="SymbolKind"/> of this symbol.
         /// </summary>
-        [DataMember(Name = "kind")]
+        [JsonPropertyName("kind")]
         public SymbolKind Kind
         {
             get;
@@ -40,7 +38,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="Protocol.Location"/> of this symbol.
         /// </summary>
-        [DataMember(Name = "location")]
+        [JsonPropertyName("location")]
         public Location Location
         {
             get;
@@ -50,8 +48,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the name of the symbol containing this symbol.
         /// </summary>
-        [DataMember(Name = "containerName")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("containerName")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? ContainerName
         {
             get;

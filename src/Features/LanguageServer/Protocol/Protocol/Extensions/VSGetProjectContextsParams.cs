@@ -4,19 +4,18 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// <see cref="VSGetProjectContextsParams" /> represents the parameter that is sent
     /// with the 'textDocument/_vs_getProjectContexts' request.
     /// </summary>
-    [DataContract]
     internal class VSGetProjectContextsParams
     {
         /// <summary>
         /// Gets or sets the document for which project contexts are queried.
         /// </summary>
-        [DataMember(Name = "_vs_textDocument")]
+        [JsonPropertyName("_vs_textDocument")]
         public TextDocumentItem TextDocument
         {
             get;

@@ -15,16 +15,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable;
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass)]
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InvertConditional)]
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InvertLogical)]
-[ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-    Name = PredefinedCodeRefactoringProviderNames.IntroduceVariable), Shared]
-internal class IntroduceVariableCodeRefactoringProvider : CodeRefactoringProvider
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeRefactoringProviderNames.IntroduceVariable), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class IntroduceVariableCodeRefactoringProvider() : CodeRefactoringProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public IntroduceVariableCodeRefactoringProvider()
-    {
-    }
-
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, textSpan, cancellationToken) = context;

@@ -144,7 +144,7 @@ internal partial class SolutionCompilationState
                 foreach (var (documentIdentity, _, generationDateTime) in infos)
                 {
                     var documentId = documentIdentity.DocumentId;
-                    oldGeneratedDocuments = oldGeneratedDocuments.SetState(documentId, oldGeneratedDocuments.GetRequiredState(documentId).WithGenerationDateTime(generationDateTime));
+                    oldGeneratedDocuments = oldGeneratedDocuments.SetState(oldGeneratedDocuments.GetRequiredState(documentId).WithGenerationDateTime(generationDateTime));
                 }
 
                 // If there are no generated documents though, then just use the compilationWithoutGeneratedFiles so we

@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var right = node.Right;
             Debug.Assert(right.Conversion.Kind == ConversionKind.Deconstruction);
-            Debug.Assert(node.Type.IsTupleType);
-            return RewriteDeconstruction(node.Left, right.Conversion, right.Operand, node.IsUsed, (NamedTypeSymbol)node.Type);
+
+            return RewriteDeconstruction(node.Left, right.Conversion, right.Operand, node.IsUsed);
         }
 
         /// <summary>
@@ -34,12 +34,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - the conversion phase
         /// - the assignment phase
         /// </summary>
-        private BoundExpression? RewriteDeconstruction(BoundTupleExpression left, Conversion conversion, BoundExpression right, bool isUsed, NamedTypeSymbol assignmentResultTupleType)
+        private BoundExpression? RewriteDeconstruction(BoundTupleExpression left, Conversion conversion, BoundExpression right, bool isUsed)
         {
             var lhsTemps = ArrayBuilder<LocalSymbol>.GetInstance();
             var lhsEffects = ArrayBuilder<BoundExpression>.GetInstance();
             ArrayBuilder<Binder.DeconstructionVariable> lhsTargets = GetAssignmentTargetsAndSideEffects(left, lhsTemps, lhsEffects);
-            BoundExpression? result = RewriteDeconstruction(lhsTargets, conversion, right, assignmentResultTupleType, isUsed);
+            Debug.Assert(left.Type is { });
+            BoundExpression? result = RewriteDeconstruction(lhsTargets, conversion, left.Type, right, isUsed);
             Binder.DeconstructionVariable.FreeDeconstructionVariables(lhsTargets);
             if (result is null)
             {
@@ -54,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression? RewriteDeconstruction(
             ArrayBuilder<Binder.DeconstructionVariable> lhsTargets,
             Conversion conversion,
+            TypeSymbol leftType,
             BoundExpression right,
-            NamedTypeSymbol assignmentResultTupleType,
             bool isUsed)
         {
             if (right.Kind == BoundKind.ConditionalOperator)
@@ -65,17 +66,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return conditional.Update(
                     conditional.IsRef,
                     VisitExpression(conditional.Condition),
-                    RewriteDeconstruction(lhsTargets, conversion, conditional.Consequence, assignmentResultTupleType, isUsed: true)!,
-                    RewriteDeconstruction(lhsTargets, conversion, conditional.Alternative, assignmentResultTupleType, isUsed: true)!,
+                    RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Consequence, isUsed: true)!,
+                    RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Alternative, isUsed: true)!,
                     conditional.ConstantValueOpt,
-                    assignmentResultTupleType,
+                    leftType,
                     wasTargetTyped: true,
-                    assignmentResultTupleType);
+                    leftType);
             }
 
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var effects = DeconstructionSideEffects.GetInstance();
-            BoundExpression? returnValue = ApplyDeconstructionConversion(lhsTargets, right, conversion, temps, effects, assignmentResultTupleType, isUsed, inInit: true);
+            BoundExpression? returnValue = ApplyDeconstructionConversion(lhsTargets, right, conversion, temps, effects, isUsed, inInit: true);
             reverseAssignmentsToTargetsIfApplicable();
 
             effects.Consolidate();
@@ -212,7 +213,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             ArrayBuilder<LocalSymbol> temps,
             DeconstructionSideEffects effects,
-            NamedTypeSymbol assignmentResultTupleType,
             bool isUsed,
             bool inInit)
         {
@@ -227,19 +227,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < leftTargets.Count; i++)
             {
                 BoundExpression? resultPart;
-                TypeSymbol resultType = assignmentResultTupleType.TupleElementTypesWithAnnotations[i].Type;
                 var (placeholder, nestedConversion) = deconstructConversionInfo[i];
                 Debug.Assert(placeholder is not null);
                 Debug.Assert(nestedConversion is not null);
 
                 if (leftTargets[i].NestedVariables is { } nested)
                 {
-                    Debug.Assert(resultType.IsTupleType);
-                    resultPart = ApplyDeconstructionConversion(
-                        nested, rightParts[i],
-                        BoundNode.GetConversion(nestedConversion, placeholder), temps, effects,
-                        (NamedTypeSymbol)resultType,
-                        isUsed, inInit);
+                    resultPart = ApplyDeconstructionConversion(nested, rightParts[i],
+                        BoundNode.GetConversion(nestedConversion, placeholder), temps, effects, isUsed, inInit);
                 }
                 else
                 {
@@ -258,15 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         effects.assignments.Add(MakeAssignmentOperator(resultPart.Syntax, leftTarget, resultPart,
                             used: false, isChecked: false, isCompoundAssignment: false));
-
-                        if (ShouldConvertResultOfAssignmentToDynamic(resultType, leftTarget))
-                        {
-                            Debug.Assert(resultPart.Type is not null);
-                            Debug.Assert(!resultPart.Type.IsDynamic());
-                            resultPart = _factory.Convert(resultType, resultPart);
-                        }
-
-                        Debug.Assert(TypeSymbol.Equals(resultPart.Type, resultType, TypeCompareKind.AllIgnoreOptions));
                     }
                 }
                 Debug.Assert(builder is null || resultPart is { });

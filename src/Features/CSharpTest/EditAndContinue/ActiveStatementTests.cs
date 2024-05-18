@@ -109,7 +109,7 @@ class C
 [CreateNewOnMetadataUpdate]
 class C
 {
-    static void Main()
+    static void F()
     {
         <AS:1>Goo(1);</AS:1>
     }
@@ -123,7 +123,7 @@ class C
 [CreateNewOnMetadataUpdate]
 class C
 {
-    static void Main()
+    static void F()
     {
         while (true)
         {
@@ -733,7 +733,7 @@ namespace N
 {
     class C
     {
-        static void Main()
+        static void F()
         {
             <AS:0>Console.WriteLine(1);</AS:0>
         }
@@ -746,7 +746,7 @@ namespace N
 
             edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.Delete, "", GetResource("class", "N.C")),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "", GetResource("method", "N.C.Main()")));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "", GetResource("method", "N.C.F()")));
         }
 
         [Fact]
@@ -757,7 +757,7 @@ namespace N
 {
     class C
     {
-        static void Main()
+        static void F()
         {
             <AS:0>Console.WriteLine(1);</AS:0>
         }
@@ -770,7 +770,7 @@ namespace N
 
             edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.Delete, "namespace N", GetResource("class", "C")),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "namespace N", GetResource("method", "N.C.Main()")));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "namespace N", GetResource("method", "N.C.F()")));
         }
 
         [Fact]
@@ -781,7 +781,7 @@ namespace N
 {
     class C
     {
-        static void Main()
+        static void F()
         {
             <AS:0>Console.WriteLine(1);</AS:0>
         }
@@ -800,7 +800,7 @@ namespace N
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", GetResource("method", "N.C.Main()")));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", GetResource("method", "N.C.F()")));
         }
 
         #endregion
@@ -843,8 +843,7 @@ namespace N
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Parameter_Update_RefKind_RuntimeTypeUnchanged(
             [CombinatorialValues("ref", "out", "in", "ref readonly")] string oldModifiers,
             [CombinatorialValues("ref", "out", "in", "ref readonly")] string newModifiers)
@@ -5000,7 +4999,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         var aa = new int[4];
         var bb = new int[4];
@@ -5015,7 +5014,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         var aa = new int[4];
         var bb = new int[4];
@@ -5040,7 +5039,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         Buffer4 aa = default;
         Buffer4 bb = default;
@@ -5061,7 +5060,7 @@ struct Buffer4
             var src2 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         Buffer4 aa = default;
         Buffer4 bb = default;
@@ -6237,7 +6236,7 @@ class C
 {
     public static bool B() <AS:0>{</AS:0> return false; }
     
-    public static void Main()
+    public static void F()
     {
         <AS:1>if (B())</AS:1>
         {
@@ -6250,7 +6249,7 @@ class C
 {
     public static bool B() <AS:0>{</AS:0> return false; }
     
-    public static void Main()
+    public static void F()
     {
         <AS:1>if (B())</AS:1>
         {
@@ -6272,7 +6271,7 @@ class C
 {
     public static bool B() <AS:0>{</AS:0> return false; }
     
-    public static void Main()
+    public static void F()
     {
         <AS:1>if (B())</AS:1>
         {
@@ -6285,7 +6284,7 @@ class C
 {
     public static bool B() <AS:0>{</AS:0> return false; }
     
-    public static void Main()
+    public static void F()
     {
         <AS:1>if (!B())</AS:1>
         {
@@ -6308,7 +6307,7 @@ class C
 {
     public static bool B(Func<int> a) => <AS:0>false</AS:0>;
     
-    public static void Main()
+    public static void F()
     {
         <AS:1>if (B(() => 1))</AS:1>
         {
@@ -6321,7 +6320,7 @@ class C
 {
     public static bool B(Func<int> a) => <AS:0>false</AS:0>;
     
-    public static void Main()
+    public static void F()
     {
         <AS:1>if (B(() => 2))</AS:1>
         {
@@ -6343,7 +6342,7 @@ class C
 {
     public static bool B() <AS:0>{</AS:0> return false; }
     
-    public static void Main()
+    public static void F()
     {
         <AS:1>while (B())</AS:1>
         {
@@ -6356,7 +6355,7 @@ class C
 {
     public static bool B() <AS:0>{</AS:0> return false; }
     
-    public static void Main()
+    public static void F()
     {
         <AS:1>while (B())</AS:1>
         {
@@ -6378,7 +6377,7 @@ class C
 {
     public static bool B() <AS:0>{</AS:0> return false; }
     
-    public static void Main()
+    public static void F()
     {
         <AS:1>while (B())</AS:1>
         {
@@ -6391,7 +6390,7 @@ class C
 {
     public static bool B() <AS:0>{</AS:0> return false; }
     
-    public static void Main()
+    public static void F()
     {
         <AS:1>while (!B())</AS:1>
         {
@@ -6414,7 +6413,7 @@ class C
 {
     public static bool B(Func<int> a) => <AS:0>false</AS:0>;
     
-    public static void Main()
+    public static void F()
     {
         <AS:1>while (B(() => 1))</AS:1>
         {
@@ -6427,7 +6426,7 @@ class C
 {
     public static bool B(Func<int> a) => <AS:0>false</AS:0>;
     
-    public static void Main()
+    public static void F()
     {
         <AS:1>while (B(() => 2))</AS:1>
         {
@@ -6449,7 +6448,7 @@ class C
 {
     public static bool B() <AS:0>{</AS:0> return false; }
     
-    public static void Main()
+    public static void F()
     {
         do
         {
@@ -6463,7 +6462,7 @@ class C
 {
     public static bool B() <AS:0>{</AS:0> return false; }
     
-    public static void Main()
+    public static void F()
     {
         do
         {
@@ -6486,7 +6485,7 @@ class C
 {
     public static bool B() <AS:0>{</AS:0> return false; }
     
-    public static void Main()
+    public static void F()
     {
         do
         {
@@ -6500,7 +6499,7 @@ class C
 {
     public static bool B() <AS:0>{</AS:0> return false; }
     
-    public static void Main()
+    public static void F()
     {
         do
         {
@@ -6524,7 +6523,7 @@ class C
 {
     public static bool B(Func<int> a) => <AS:0>false</AS:0>;
     
-    public static void Main()
+    public static void F()
     {
         do
         {
@@ -6538,7 +6537,7 @@ class C
 {
     public static bool B(Func<int> a) => <AS:0>false</AS:0>;
     
-    public static void Main()
+    public static void F()
     {
         do
         {
@@ -6588,7 +6587,7 @@ class C
 {
     public static string F() <AS:0>{</AS:0> return null; }
     
-    public static void Main()
+    public static void G()
     {
         <AS:1>switch (F())</AS:1>
         {
@@ -6602,7 +6601,7 @@ class C
 {
     public static string F() <AS:0>{</AS:0> return null; }
     
-    public static void Main()
+    public static void G()
     {
         <AS:1>switch (F())</AS:1>
         {
@@ -6625,7 +6624,7 @@ class C
 {
     public static bool B(Func<int> a) => <AS:0>false</AS:0>;
     
-    public static void Main()
+    public static void F()
     {
         <AS:1>switch (B(() => 1))</AS:1>
         {
@@ -6639,7 +6638,7 @@ class C
 {
     public static bool B(Func<int> a) => <AS:0>false</AS:0>;
     
-    public static void Main()
+    public static void F()
     {
         <AS:1>switch (B(() => 2))</AS:1>
         {
@@ -7822,7 +7821,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         <AS:0>Console.WriteLine(0);</AS:0>
 
@@ -7839,7 +7838,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         <AS:0>Console.WriteLine(0);</AS:0>
      
@@ -7904,7 +7903,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         <AS:0>Console.WriteLine(0);</AS:0>
         
@@ -7921,7 +7920,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         <AS:0>Console.WriteLine(0);</AS:0>
         
@@ -7947,7 +7946,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         try
         {
@@ -7962,7 +7961,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         try
         {
@@ -8952,7 +8951,7 @@ class C
         <AS:0>return 1;</AS:0>
     }
 
-    static void Main()
+    static void F()
     {
         Func<int, int> f = null;
         try
@@ -8976,7 +8975,7 @@ class C
         <AS:0>return 1;</AS:0>
     }
 
-    static void Main()
+    static void F()
     {
         Func<int, int> f = null;
 
@@ -9005,7 +9004,7 @@ class C
         <AS:0>return 1;</AS:0>
     }
 
-    static void Main()
+    static void F()
     {
         Func<int, int> f = x => 
         {
@@ -9031,7 +9030,7 @@ class C
         <AS:0>return 1;</AS:0>
     }
 
-    static void Main()
+    static void F()
     {
         Func<int, int> f = x => 
         {
@@ -9060,7 +9059,7 @@ class C
         <AS:0>return 1;</AS:0>
     }
 
-    static void Main()
+    static void F()
     {
         try
         {
@@ -9083,7 +9082,7 @@ class C
         <AS:0>return 1;</AS:0>
     }
 
-    static void Main()
+    static void F()
     {
         q = from x in xs
             join y in ys on <AS:1>F()</AS:1> equals G()
@@ -9308,7 +9307,7 @@ using System.Linq;
 
 class Test
 {
-    static void Main()
+    static void F()
     {
         IEnumerable<int> f;
         unchecked
@@ -9330,7 +9329,7 @@ using System.Linq;
 
 class Test
 {
-    static void Main()
+    static void F()
     {
         IEnumerable<int> f;
         checked
@@ -9610,14 +9609,47 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22696")]
         public void Lambdas_ExpressionToStatements()
         {
+            // TODO: The active statement should be mapped to the return statement.
+
             var src1 = @"
 class C
 {
-    static void Main(string[] args)
+    static void Main()
     {
-        Func<int, int> f = a => <AS:0>1</AS:0>;
+              Func<int, int> f = a => <AS:0>1</AS:0>;
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void Main()
+    {
+        <AS:0>Func<int, int> f = a => { return 1; };</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/22696")]
+        public void Lambdas_ExpressionToStatements_WithSignatureChange()
+        {
+            // TODO: The active statement should be mapped to the return statement.
+
+            var src1 = @"
+class C
+{
+    static void Main()
+    {
+              Func<int, int> f = a => <AS:0>1</AS:0>;
     }
 }
 ";
@@ -9633,7 +9665,9 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics(active);
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -9643,7 +9677,7 @@ class C
 using System;
 class C
 {
-    static void Main()
+    static void F()
     {
         Func<int, int> f = a => <AS:0>1</AS:0>;
     }
@@ -9653,7 +9687,7 @@ class C
 using System;
 class C
 {
-    static void Main()
+    static void F()
     {
         <AS:0>Func<int, int> f = delegate(int a) { return 1; };</AS:0>
     }
@@ -9748,7 +9782,7 @@ class C
 using System;
 class C
 {
-    static void Main()
+    static void F()
     {
         Func<int, int> f = delegate(int a) { <AS:0>return 1;</AS:0> };
     }
@@ -9758,7 +9792,7 @@ class C
 using System;
 class C
 {
-    static void Main()
+    static void F()
     {
         <AS:0>Func<int, int> f = a => 1;</AS:0>
     }
@@ -9777,7 +9811,7 @@ class C
 using System;
 class C
 {
-    static void Main()
+    static void F()
     {
         Func<int, int> f = a => { <AS:0>return 1;</AS:0> };
     }
@@ -9787,7 +9821,7 @@ class C
 using System;
 class C
 {
-    static void Main()
+    static void F()
     {
         Func<int, int> f = delegate(int a) { <AS:0>return 2;</AS:0> };
     }
@@ -9959,7 +9993,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main(string[] args)
+    static void Main()
     {
         Func<int, Func<int, int>> f = a =>
         {
@@ -9975,7 +10009,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main(string[] args)
+    static void Main()
     <AS:0,1>{</AS:0,1>
     
     }
@@ -9985,6 +10019,8 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
+                // reported because the old main body does not have active statement (only the lambda does):
+                Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "static void Main()", GetResource("method")),
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "{", CSharpFeaturesResources.lambda),
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "{", CSharpFeaturesResources.lambda));
         }
@@ -10181,7 +10217,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         var q = from x in xs
                 join y in ys on F() equals G() into g
@@ -10191,7 +10227,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         var q = from x in xs
                 join y in ys on F() equals G()
@@ -10211,7 +10247,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         var q = from x in xs
                 group x by x.F() into g
@@ -10222,7 +10258,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         var q = from x in xs
                 group x by x.F() <AS:0>into</AS:0> g
@@ -10243,7 +10279,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         var q = from x in xs
                 group x by x.F() into g
@@ -10253,7 +10289,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         var q = from x in xs
                 <AS:0>join</AS:0> y in ys on F() equals G() into g
@@ -10274,7 +10310,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         var q = from a in array
                 where a > 0
@@ -10284,7 +10320,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         var q = from a in array
                 where a > 0
@@ -10307,7 +10343,7 @@ class C
 {
     static int F(IEnumerable<int> e) => <AS:0>1</AS:0>;
 
-    static void Main()
+    static void F()
     {
         <AS:1>F(from a in array where a > 0 select a + 1);</AS:1>
     }
@@ -10317,7 +10353,7 @@ class C
 {
     static int F(IEnumerable<int> e) => <AS:0>1</AS:0>;
    
-    static void Main()
+    static void F()
     {
         <AS:1>F(from a in array where a > 0 select a);</AS:1>
     }
@@ -10336,7 +10372,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         var q = from a in array
                 group <AS:0>a + 1</AS:0> by a;
@@ -10345,7 +10381,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main()
+    static void F()
     {
         var q = from a in array
                 <AS:0>group</AS:0> a by a;
@@ -10367,7 +10403,7 @@ class C
 {
     static int F(IEnumerable<IGrouping<int, int>> e) => <AS:0>1</AS:0>;
 
-    static void Main()
+    static void F()
     {
         <AS:1>F(from a in array group a by a);</AS:1>
     }
@@ -10377,7 +10413,7 @@ class C
 {
     static int F(IEnumerable<IGrouping<int, int>> e) => <AS:0>1</AS:0>;
    
-    static void Main()
+    static void F()
     {
         <AS:1>F(from a in array group a + 1 by a);</AS:1>
     }
@@ -11962,7 +11998,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main()
+    static void F()
     <AS:0>{</AS:0>
         try
         {
@@ -11982,7 +12018,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main()
+    static void F()
     <AS:0>{</AS:0>
         try
         {
@@ -12011,7 +12047,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main()
+    static void F()
     <AS:0>{</AS:0>
         try
         {
@@ -12031,7 +12067,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main()
+    static void F()
     <AS:0>{</AS:0>
         try
         {
@@ -12061,7 +12097,7 @@ class C
             var src1 = @"
 class C
 {
-    static void Main()
+    static void F()
     <AS:0>{</AS:0>
         try
         {
@@ -12077,7 +12113,7 @@ class C
             var src2 = @"
 class C
 {
-    static void Main()
+    static void F()
     <AS:0>{</AS:0>
         try
         {

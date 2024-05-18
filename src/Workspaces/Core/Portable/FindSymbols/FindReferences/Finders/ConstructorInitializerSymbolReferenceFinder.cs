@@ -51,7 +51,7 @@ internal sealed class ConstructorInitializerSymbolReferenceFinder : AbstractRefe
         }, symbol.ContainingType.Name, processResult, processResultData, cancellationToken);
     }
 
-    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override void FindReferencesInDocument<TData>(
         IMethodSymbol methodSymbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -68,7 +68,7 @@ internal sealed class ConstructorInitializerSymbolReferenceFinder : AbstractRefe
             (state, methodSymbol, cancellationToken));
 
         FindReferencesInTokens(methodSymbol, state, totalTokens, processResult, processResultData, cancellationToken);
-        return ValueTaskFactory.CompletedTask;
+        return;
 
         // local functions
         static bool TokensMatch(

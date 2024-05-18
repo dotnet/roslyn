@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents the initialization setting for completion item kind
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class CompletionItemKindSetting
     {
         /// <summary>
         /// Gets or sets the <see cref="CompletionItemKind"/> values that the client supports.
         /// </summary>
-        [DataMember(Name = "valueSet")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("valueSet")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CompletionItemKind[]? ValueSet
         {
             get;

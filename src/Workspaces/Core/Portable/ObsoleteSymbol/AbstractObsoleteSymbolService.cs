@@ -31,7 +31,8 @@ internal abstract class AbstractObsoleteSymbolService(int? dimKeywordKind) : IOb
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        // Obsolete analysis doesn't need nullable information.  This saves substantial time computing obsoletion information.
+        var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         // Avoid taking a builder from the pool in the common case where there are no references to obsolete symbols

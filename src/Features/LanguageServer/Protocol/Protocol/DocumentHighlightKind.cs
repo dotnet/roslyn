@@ -4,14 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
     /// Enum representing the different types of document highlight.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentHighlightKind">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal enum DocumentHighlightKind
     {
         /// <summary>

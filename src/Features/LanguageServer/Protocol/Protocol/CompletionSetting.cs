@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents initialization setting for completion.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class CompletionSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets completion item setting.
         /// </summary>
-        [DataMember(Name = "completionItem")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("completionItem")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CompletionItemSetting? CompletionItem
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets <see cref="Protocol.CompletionItemKind"/> specific settings.
         /// </summary>
-        [DataMember(Name = "completionItemKind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("completionItemKind")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CompletionItemKindSetting? CompletionItemKind
         {
             get;
@@ -40,8 +38,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the client supports sending additional context.
         /// </summary>
-        [DataMember(Name = "contextSupport")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("contextSupport")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool ContextSupport
         {
             get;
@@ -51,8 +49,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating client's default when the completion item doesn't provide an `insertTextMode` property.
         /// </summary>
-        [DataMember(Name = "insertTextMode")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("insertTextMode")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public InsertTextMode? InsertTextMode
         {
             get;
@@ -62,8 +60,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the client supports capabilities on the completion list.
         /// </summary>
-        [DataMember(Name = "completionList")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("completionList")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CompletionListSetting? CompletionListSetting
         {
             get;

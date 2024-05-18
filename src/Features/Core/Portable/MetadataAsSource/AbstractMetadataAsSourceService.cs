@@ -85,7 +85,7 @@ internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSou
     /// <summary>
     /// provide formatting rules to be used when formatting MAS file
     /// </summary>
-    protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
+    protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document);
 
     /// <summary>
     /// Prepends a region directive at the top of the document with a name containing

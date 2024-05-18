@@ -5,14 +5,11 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System.ComponentModel;
-    using System.Runtime.Serialization;
-
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Value representing the kind of a diagnostic.
     /// </summary>
-    [DataContract]
     [JsonConverter(typeof(StringEnumConverter<VSInternalDiagnosticKind>))]
     [TypeConverter(typeof(StringEnumConverter<VSInternalDiagnosticKind>.TypeConverter))]
     internal readonly record struct VSInternalDiagnosticKind(string Value) : IStringEnum

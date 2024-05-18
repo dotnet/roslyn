@@ -4,21 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol;
 
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing a diagnostic report indicating that the last returned report is still accurate.
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#unchangedDocumentDiagnosticReport">Language Server Protocol specification</see> for additional information.
 /// </summary>
-[DataContract]
 [Kind(DocumentDiagnosticReportKind.Unchanged)]
 internal class UnchangedDocumentDiagnosticReport
 {
     /// <summary>
     /// Gets the kind of this report.
     /// </summary>
-    [DataMember(Name = "kind")]
+    [JsonPropertyName("kind")]
 #pragma warning disable CA1822 // Mark members as static
     public string Kind => DocumentDiagnosticReportKind.Unchanged;
 #pragma warning restore CA1822 // Mark members as static
@@ -26,7 +25,7 @@ internal class UnchangedDocumentDiagnosticReport
     /// <summary>
     /// Gets or sets the optional result id.
     /// </summary>
-    [DataMember(Name = "resultId")]
+    [JsonPropertyName("resultId")]
     public string ResultId
     {
         get;

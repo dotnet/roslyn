@@ -4,18 +4,17 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the parameters sent for a textDocument/_ms_onAutoInsert request.
     /// </summary>
-    [DataContract]
     internal class VSInternalDocumentOnAutoInsertParams : ITextDocumentPositionParams
     {
         /// <summary>
         /// Gets or sets the <see cref="TextDocumentIdentifier"/> representing the document to format.
         /// </summary>
-        [DataMember(Name = "_vs_textDocument")]
+        [JsonPropertyName("_vs_textDocument")]
         public TextDocumentIdentifier TextDocument
         {
             get;
@@ -25,7 +24,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="Position"/> at which the request was sent.
         /// </summary>
-        [DataMember(Name = "_vs_position")]
+        [JsonPropertyName("_vs_position")]
         public Position Position
         {
             get;
@@ -35,7 +34,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the character that was typed.
         /// </summary>
-        [DataMember(Name = "_vs_ch")]
+        [JsonPropertyName("_vs_ch")]
         public string Character
         {
             get;
@@ -45,7 +44,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="FormattingOptions"/> for the request.
         /// </summary>
-        [DataMember(Name = "_vs_options")]
+        [JsonPropertyName("_vs_options")]
         public FormattingOptions Options
         {
             get;

@@ -2,64 +2,56 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol
+using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace Roslyn.LanguageServer.Protocol;
+
+/// <summary>
+/// JsonConverter to correctly deserialize int arrays in the Label param of ParameterInformation.
+/// </summary>
+internal class ParameterInformationConverter : JsonConverter<ParameterInformation>
 {
-    using System;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-
-    /// <summary>
-    /// JsonConverter to correctly deserialize int arrays in the Label param of ParameterInformation.
-    /// </summary>
-    internal class ParameterInformationConverter : JsonConverter
+    public override ParameterInformation Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        /// <inheritdoc/>
-        public override bool CanWrite => false;
+        using var document = JsonDocument.ParseValue(ref reader);
+        var root = document.RootElement;
 
-        /// <inheritdoc/>
-        public override bool CanConvert(Type objectType)
+        var parameter = new ParameterInformation();
+
+        if (root.TryGetProperty("label", out var labelElement))
         {
-            return true;
-        }
-
-        /// <inheritdoc/>
-        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
-        {
-            var token = JToken.Load(reader);
-
-            var label = ((JObject)token).Property("label", StringComparison.Ordinal);
-            var documentation = ((JObject)token).Property("documentation", StringComparison.Ordinal);
-
-            var parameter = new ParameterInformation();
-
-            if (label != null)
+            if (labelElement.ValueKind == JsonValueKind.Array)
             {
-                var value = label.Value;
-                if (value is JArray arr)
-                {
-                    var tuple = new Tuple<int, int>(arr[0].Value<int>(), arr[1].Value<int>());
-                    parameter.Label = tuple;
-                }
-                else
-                {
-                    // If label is not an array we can serialize it normally
-                    parameter.Label = value.ToObject<SumType<string, Tuple<int, int>>>();
-                }
+                parameter.Label = new Tuple<int, int>(labelElement[0].GetInt32(), labelElement[1].GetInt32());
             }
-
-            if (documentation != null)
+            else
             {
-                var value = documentation.Value;
-                parameter.Documentation = value.ToObject<SumType<string, MarkupContent>?>();
+                parameter.Label = labelElement.Deserialize<SumType<string, Tuple<int, int>>>(options);
             }
-
-            return parameter;
         }
 
-        /// <inheritdoc/>
-        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        if (root.TryGetProperty("documentation", out var documentationElement))
         {
-            throw new NotImplementedException();
+            parameter.Documentation = documentationElement.Deserialize<SumType<string, MarkupContent>>(options);
         }
+
+        return parameter;
+    }
+
+    public override void Write(Utf8JsonWriter writer, ParameterInformation value, JsonSerializerOptions options)
+    {
+        writer.WriteStartObject();
+        writer.WritePropertyName("label");
+        JsonSerializer.Serialize(writer, value.Label, options);
+
+        if (value.Documentation != null)
+        {
+            writer.WritePropertyName("documentation");
+            JsonSerializer.Serialize(writer, value.Documentation, options);
+        }
+
+        writer.WriteEndObject();
     }
 }

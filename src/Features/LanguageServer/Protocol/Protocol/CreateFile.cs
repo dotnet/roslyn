@@ -5,29 +5,28 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing a create file operation.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#createFile">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     [Kind("create")]
     internal class CreateFile
     {
         /// <summary>
         /// Gets the kind value.
         /// </summary>
-        [DataMember(Name = "kind")]
+        [JsonPropertyName("kind")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Member can't be static since it's part of the protocol")]
         public string Kind => "create";
 
         /// <summary>
         /// Gets or sets the resource to create.
         /// </summary>
-        [DataMember(Name = "uri", IsRequired = true)]
+        [JsonPropertyName("uri")]
+        [JsonRequired]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri Uri
         {
@@ -38,8 +37,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the additional options.
         /// </summary>
-        [DataMember(Name = "options")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("options")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CreateFileOptions? Options
         {
             get;

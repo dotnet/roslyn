@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
 {
+    [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.CodeActionsInlineMethod)]
     public class CSharpInlineMethodTests
     {

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,8 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[DataContract]
-internal record class BuildOnlyDiagnosticIdsResult([property: DataMember(Name = "ids")] string[] Ids);
+internal record class BuildOnlyDiagnosticIdsResult([property: JsonPropertyName("ids")] string[] Ids);
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(BuildOnlyDiagnosticIdsHandler)), Shared]
 [Method(BuildOnlyDiagnosticIdsMethodName)]

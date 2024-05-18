@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -215,28 +216,27 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         var viableUnreferencedProjects = GetViableUnreferencedProjects(project);
 
-        // Search all unreferenced projects in parallel.
-        using var _ = ArrayBuilder<Task>.GetInstance(out var findTasks);
-
         // Create another cancellation token so we can both search all projects in parallel,
         // but also stop any searches once we get enough results.
         using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        foreach (var unreferencedProject in viableUnreferencedProjects)
-        {
-            if (!unreferencedProject.SupportsCompilation)
-                continue;
-
-            // Search in this unreferenced project.  But don't search in any of its'
-            // direct references.  i.e. we don't want to search in its metadata references
-            // or in the projects it references itself. We'll be searching those entities
-            // individually.
-            findTasks.Add(ProcessReferencesAsync(
-                allSymbolReferences, maxResults, linkedTokenSource,
-                finder.FindInSourceSymbolsInProjectAsync(projectToAssembly, unreferencedProject, exact, linkedTokenSource.Token)));
-        }
-
-        await Task.WhenAll(findTasks).ConfigureAwait(false);
+        // Defer to the ProducerConsumer.  We're search the unreferenced projects in parallel. As we get results, we'll
+        // add them to the 'allSymbolReferences' queue.  If we get enough results, we'll cancel all the other work.
+        await ProducerConsumer<ImmutableArray<SymbolReference>>.RunParallelAsync(
+            source: viableUnreferencedProjects,
+            produceItems: static async (project, onItemsFound, args, cancellationToken) =>
+            {
+                // Search in this unreferenced project.  But don't search in any of its' direct references.  i.e. we
+                // don't want to search in its metadata references or in the projects it references itself. We'll be
+                // searching those entities individually.
+                var references = await args.finder.FindInSourceSymbolsInProjectAsync(
+                    args.projectToAssembly, project, args.exact, cancellationToken).ConfigureAwait(false);
+                onItemsFound(references);
+            },
+            consumeItems: static (symbolReferencesEnumerable, args, cancellationToken) =>
+                ProcessReferencesAsync(args.allSymbolReferences, args.maxResults, symbolReferencesEnumerable, args.linkedTokenSource),
+            args: (projectToAssembly, allSymbolReferences, maxResults, finder, exact, linkedTokenSource),
+            linkedTokenSource.Token).ConfigureAwait(false);
     }
 
     private async Task FindResultsInUnreferencedMetadataSymbolsAsync(
@@ -246,7 +246,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     {
         // Only do this if none of the project searches produced any results. We may have a 
         // lot of metadata to search through, and it would be good to avoid that if we can.
-        if (allSymbolReferences.Count > 0)
+        if (!allSymbolReferences.IsEmpty)
             return;
 
         // Keep track of the references we've seen (so that we don't process them multiple times
@@ -257,29 +257,33 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         var newReferences = GetUnreferencedMetadataReferences(project, seenReferences);
 
-        // Search all metadata references in parallel.
-        using var _ = ArrayBuilder<Task>.GetInstance(out var findTasks);
-
         // Create another cancellation token so we can both search all projects in parallel,
         // but also stop any searches once we get enough results.
         using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        foreach (var (referenceProject, reference) in newReferences)
-        {
-            var compilation = referenceToCompilation.GetOrAdd(
-                reference, r => CreateCompilation(project, r));
-
-            // Ignore netmodules.  First, they're incredibly esoteric and barely used.
-            // Second, the SymbolFinder API doesn't even support searching them. 
-            if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
+        // Defer to the ProducerConsumer.  We're search the metadata references in parallel. As we get results, we'll
+        // add them to the 'allSymbolReferences' queue.  If we get enough results, we'll cancel all the other work.
+        await ProducerConsumer<ImmutableArray<SymbolReference>>.RunParallelAsync(
+            source: newReferences,
+            produceItems: static async (tuple, onItemsFound, args, cancellationToken) =>
             {
-                findTasks.Add(ProcessReferencesAsync(
-                    allSymbolReferences, maxResults, linkedTokenSource,
-                    finder.FindInMetadataSymbolsAsync(assembly, referenceProject, reference, exact, linkedTokenSource.Token)));
-            }
-        }
+                var (referenceProject, reference) = tuple;
+                var compilation = args.referenceToCompilation.GetOrAdd(
+                    reference, r => CreateCompilation(args.project, r));
 
-        await Task.WhenAll(findTasks).ConfigureAwait(false);
+                // Ignore netmodules.  First, they're incredibly esoteric and barely used.
+                // Second, the SymbolFinder API doesn't even support searching them. 
+                if (compilation.GetAssemblyOrModuleSymbol(reference) is not IAssemblySymbol assembly)
+                    return;
+
+                var references = await args.finder.FindInMetadataSymbolsAsync(
+                    assembly, referenceProject, reference, args.exact, cancellationToken).ConfigureAwait(false);
+                onItemsFound(references);
+            },
+            consumeItems: static (symbolReferencesEnumerable, args, cancellationToken) =>
+                ProcessReferencesAsync(args.allSymbolReferences, args.maxResults, symbolReferencesEnumerable, args.linkedTokenSource),
+            args: (referenceToCompilation, project, allSymbolReferences, maxResults, finder, exact, newReferences, linkedTokenSource),
+            linkedTokenSource.Token).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -290,7 +294,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     private static ImmutableArray<(Project, PortableExecutableReference)> GetUnreferencedMetadataReferences(
         Project project, HashSet<PortableExecutableReference> seenReferences)
     {
-        var result = ArrayBuilder<(Project, PortableExecutableReference)>.GetInstance();
+        using var _ = ArrayBuilder<(Project, PortableExecutableReference)>.GetInstance(out var result);
 
         var solution = project.Solution;
         foreach (var p in solution.Projects)
@@ -311,27 +315,31 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
         }
 
-        return result.ToImmutableAndFree();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task ProcessReferencesAsync(
         ConcurrentQueue<Reference> allSymbolReferences,
         int maxResults,
-        CancellationTokenSource linkedTokenSource,
-        Task<ImmutableArray<SymbolReference>> task)
+        IAsyncEnumerable<ImmutableArray<SymbolReference>> reader,
+        CancellationTokenSource linkedTokenSource)
     {
-        AddRange(allSymbolReferences, await task.ConfigureAwait(false));
-
-        // If we've gone over the max amount of items we're looking for, attempt to cancel all existing work that is
-        // still searching.
-        if (allSymbolReferences.Count >= maxResults)
+        await foreach (var symbolReferences in reader)
         {
-            try
+            linkedTokenSource.Token.ThrowIfCancellationRequested();
+            AddRange(allSymbolReferences, symbolReferences);
+
+            // If we've gone over the max amount of items we're looking for, attempt to cancel all existing work that is
+            // still searching.
+            if (allSymbolReferences.Count >= maxResults)
             {
-                linkedTokenSource.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
+                try
+                {
+                    linkedTokenSource.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
+                }
             }
         }
     }
@@ -419,7 +427,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     private static HashSet<Project> GetViableUnreferencedProjects(Project project)
     {
         var solution = project.Solution;
-        var viableProjects = new HashSet<Project>(solution.Projects);
+        var viableProjects = new HashSet<Project>(solution.Projects.Where(p => p.SupportsCompilation));
 
         // Clearly we can't reference ourselves.
         viableProjects.Remove(project);

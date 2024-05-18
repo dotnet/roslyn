@@ -14,8 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.MSBuild.Rpc;
-using Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
