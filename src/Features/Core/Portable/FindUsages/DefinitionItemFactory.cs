@@ -302,6 +302,10 @@ internal static class DefinitionItemFactory
 
         var options = await optionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
 
+        // We don't want to classify obsolete symbols as it is very expensive, and it's not necessary for find all
+        // references to strike out code in the window displaying results.
+        options = options with { ClassifyObsoleteSymbols = false };
+
         var documentSpan = new DocumentSpan(document, sourceSpan);
         var classifiedSpans = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
             documentSpan, classifiedSpans: null, options, cancellationToken).ConfigureAwait(false);
