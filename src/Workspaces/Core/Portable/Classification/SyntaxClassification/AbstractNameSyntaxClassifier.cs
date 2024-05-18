@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers;
 
 internal abstract class AbstractNameSyntaxClassifier : AbstractSyntaxClassifier
 {
-    protected abstract int? GetRightmostNameArity(SyntaxNode node);
     protected abstract bool IsParentAnAttribute(SyntaxNode node);
 
     protected ISymbol? TryGetSymbol(SyntaxNode node, SymbolInfo symbolInfo)

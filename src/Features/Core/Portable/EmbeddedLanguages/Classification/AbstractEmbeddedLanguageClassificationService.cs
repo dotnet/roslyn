@@ -89,7 +89,7 @@ internal abstract class AbstractEmbeddedLanguageClassificationService :
             while (stack.TryPop(out var currentNodeOrToken))
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                if (currentNodeOrToken.Span.IntersectsWith(_textSpan))
+                if (currentNodeOrToken.FullSpan.IntersectsWith(_textSpan))
                 {
                     if (currentNodeOrToken.IsNode)
                     {

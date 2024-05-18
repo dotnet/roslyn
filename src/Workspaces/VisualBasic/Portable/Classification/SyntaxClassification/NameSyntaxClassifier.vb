@@ -60,14 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End If
         End Sub
 
-        Protected Overrides Function GetRightmostNameArity(node As SyntaxNode) As Integer?
-            If TypeOf (node) Is ExpressionSyntax Then
-                Return DirectCast(node, ExpressionSyntax).GetRightmostName()?.Arity
-            End If
-
-            Return Nothing
-        End Function
-
         Protected Overrides Function IsParentAnAttribute(node As SyntaxNode) As Boolean
             Return node.IsParentKind(SyntaxKind.Attribute)
         End Function
