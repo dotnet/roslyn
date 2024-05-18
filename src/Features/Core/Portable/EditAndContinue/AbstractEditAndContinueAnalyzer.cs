@@ -848,7 +848,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                             Contract.ThrowIfFalse(statementPart == -1);
                             oldBody.FindStatementAndPartner(oldStatementSpan, newBody, out newStatement, out statementPart);
 
-                            // We should fine a partner statement since we are analyzing method body that has not been changed.
+                            // We should find a partner statement since we are analyzing method body that has not been changed.
                             // If this fails we should have calculated the new active statement during the analysis of the updated method body.
                             Contract.ThrowIfNull(newStatement);
                         }
