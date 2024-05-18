@@ -1,4 +1,3 @@
-content/LanguageServer/linux-musl-arm64/libe_sqlite3.so
 content/LanguageServer/linux-musl-x64/libe_sqlite3.so
 content/LanguageServer/neutral/runtimes/linux-musl-arm64/native/libe_sqlite3.so
 content/LanguageServer/neutral/runtimes/linux-musl-arm/native/libe_sqlite3.so
