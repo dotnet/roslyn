@@ -26,6 +26,7 @@ indent_size = 2
 # Xml config files
 [*.{ruleset,config,nuspec,resx,vsixmanifest,vsct,runsettings}]
 indent_size = 2
+indent_style = space
 
 # JSON files
 [*.json]
