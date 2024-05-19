@@ -151,8 +151,8 @@ internal static class PopulateSwitchStatementHelpers
                                     if (field.Field.ConstantValue is null)
                                         continue;
 
-                                    var orValue = IntegerUtilities.ToInt64(field.Field.ConstantValue);
-                                    enumValues.Remove(orValue);
+                                    var @case = IntegerUtilities.ToInt64(field.Field.ConstantValue);
+                                    enumValues.Remove(@case);
                                 }
                             }
                         }
