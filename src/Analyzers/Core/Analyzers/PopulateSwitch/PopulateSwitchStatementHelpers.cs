@@ -134,6 +134,30 @@ internal static class PopulateSwitchStatementHelpers
                         enumValues.Remove(caseValue);
 
                         break;
+
+                    case CaseKind.Pattern:
+                        foreach (var operation in clause.ChildOperations) // clause is IPatternCaseClauseOperation
+                        {
+                            foreach (var subCase in operation.ChildOperations) // operation is IBinaryPatternOperation
+                            {
+                                if (subCase.Kind is not OperationKind.ConstantPattern)
+                                    continue;
+
+                                foreach (var subCaseOp in subCase.ChildOperations)
+                                {
+                                    if (subCaseOp is not IFieldReferenceOperation field)
+                                        continue;
+
+                                    if (field.Field.ConstantValue is null)
+                                        continue;
+
+                                    var orValue = IntegerUtilities.ToInt64(field.Field.ConstantValue);
+                                    enumValues.Remove(orValue);
+                                }
+                            }
+                        }
+
+                        break;
                 }
             }
         }
