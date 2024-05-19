@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 
-internal interface ISourceGeneratorTelemetryCollectorWorkspaceService : IWorkspaceService
+public interface ISourceGeneratorTelemetryCollectorWorkspaceService : IWorkspaceService
 {
     void CollectRunResult(GeneratorDriverRunResult driverRunResult, GeneratorDriverTimingInfo driverTimingInfo, Func<ISourceGenerator, AnalyzerReference> getAnalyzerReference);
 }

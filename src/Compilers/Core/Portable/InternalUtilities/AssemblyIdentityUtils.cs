@@ -11,7 +11,7 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal static class AssemblyIdentityUtils
+    public static class AssemblyIdentityUtils
     {
         public static AssemblyIdentity? TryGetAssemblyIdentity(string filePath)
         {
