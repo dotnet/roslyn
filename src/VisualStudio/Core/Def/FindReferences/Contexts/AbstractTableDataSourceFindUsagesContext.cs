@@ -405,13 +405,13 @@ internal partial class StreamingFindUsagesPresenter
                 return null;
             }
 
-            var (guid, projectName, _) = GetGuidAndProjectInfo(documentSpan.Document);
+            var (guid, projectName) = GetGuidAndProjectName(documentSpan.Document);
 
             return new DefinitionItemEntry(
                 this,
                 definitionBucket,
-                projectName,
                 guid,
+                projectName,
                 lineText,
                 mappedDocumentSpan.Value,
                 documentSpan,
@@ -439,14 +439,13 @@ internal partial class StreamingFindUsagesPresenter
                 return null;
             }
 
-            var (guid, projectName, projectFlavor) = GetGuidAndProjectInfo(document);
+            var (guid, projectName) = GetGuidAndProjectName(document);
 
             return DocumentSpanEntry.TryCreate(
                 this,
                 definitionBucket,
                 guid,
                 projectName,
-                projectFlavor,
                 document.FilePath,
                 documentSpan.SourceSpan,
                 spanKind,

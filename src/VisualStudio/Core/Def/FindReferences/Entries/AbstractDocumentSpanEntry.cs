@@ -18,23 +18,25 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
 internal partial class StreamingFindUsagesPresenter
 {
     /// <summary>
-    /// Base type of all <see cref="Entry"/>s that represent some source location in 
-    /// a <see cref="Document"/>.  Navigation to that location is provided by this type.
-    /// Subclasses can be used to provide customized line text to display in the entry.
+    /// Base type of all <see cref="Entry"/>s that represent some source location in a <see cref="Document"/>.
+    /// Navigation to that location is provided by this type. Subclasses can be used to provide customized line text to
+    /// display in the entry.
     /// 
-    /// Implements navigation since the target document doesn't necessarily exist on disk,
-    /// and only Roslyn knows how to navigate to it.
+    /// Implements navigation since the target document doesn't necessarily exist on disk, and only Roslyn knows how to
+    /// navigate to it.
     /// </summary>
     private abstract class AbstractDocumentSpanEntry(
         AbstractTableDataSourceFindUsagesContext context,
         RoslynDefinitionBucket definitionBucket,
         Guid projectGuid,
+        string projectName,
         SourceText lineText,
         MappedSpanResult mappedSpanResult,
         IThreadingContext threadingContext)
         : AbstractItemEntry(definitionBucket, context.Presenter), ISupportsNavigation
     {
         private readonly object _boxedProjectGuid = projectGuid;
+        private readonly string _projectName = projectName;
         private string? _trimmedLineText = null;
 
         protected abstract Document Document { get; }
@@ -59,15 +61,13 @@ internal partial class StreamingFindUsagesPresenter
                 cancellationToken).ConfigureAwait(false);
         }
 
-        protected abstract string GetProjectName();
-
         protected override object? GetValueWorker(string keyName)
             => keyName switch
             {
                 StandardTableKeyNames.DocumentName => mappedSpanResult.FilePath,
                 StandardTableKeyNames.Line => mappedSpanResult.LinePositionSpan.Start.Line,
                 StandardTableKeyNames.Column => mappedSpanResult.LinePositionSpan.Start.Character,
-                StandardTableKeyNames.ProjectName => GetProjectName(),
+                StandardTableKeyNames.ProjectName => _projectName,
                 StandardTableKeyNames.ProjectGuid => _boxedProjectGuid,
                 StandardTableKeyNames.Text => _trimmedLineText ??= lineText.ToString().Trim(),
                 _ => null,
