@@ -318,7 +318,7 @@ internal enum FunctionId
     SuggestedActions_HasSuggestedActionsAsync = 260,
     SuggestedActions_GetSuggestedActions = 261,
     // AnalyzerDependencyCheckingService_LogConflict = 262, no longer use
-    // AnalyzerDependencyCheckingService_LogMissingDependency = 263, no longer use
+    // AnalyzerDependencyCheckingService_LogMissingDependency = 263, no longer used
     VirtualMemory_MemoryLow = 264,
     Extension_Exception = 265,
 
