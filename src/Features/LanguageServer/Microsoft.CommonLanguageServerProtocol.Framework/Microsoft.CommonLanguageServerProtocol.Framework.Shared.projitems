@@ -38,10 +38,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)RequestHandlerMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RequestShutdownEventArgs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SystemTextJsonLanguageServer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TypeRef.ConcreteTypeRef.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TypeRef.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TypeRef.DefaultResolver.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TypeRef.LazyTypeRef.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ITypeRefResolver.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
   </ItemGroup>

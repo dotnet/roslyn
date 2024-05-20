@@ -5,8 +5,6 @@
 // This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
 #nullable enable
 
-using System;
-
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 internal record RequestHandlerMetadata(string MethodName, TypeRef? RequestTypeRef, TypeRef? ResponseTypeRef, string Language)

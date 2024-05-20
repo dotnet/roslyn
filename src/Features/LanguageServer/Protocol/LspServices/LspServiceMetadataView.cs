@@ -58,8 +58,8 @@ internal sealed class LspServiceMetadataView
                 handlerMethods[i] = new(
                     methodName,
                     language,
-                    TypeRef.From(requestTypeName),
-                    TypeRef.From(responseTypeName),
+                    requestTypeName is not null ? TypeRef.From(requestTypeName) : null,
+                    responseTypeName is not null ? TypeRef.From(responseTypeName) : null,
                     TypeRef.From(requestContextTypeName));
             }
 

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal abstract partial class TypeRef
+internal readonly partial record struct TypeRef
 {
     private sealed class DefaultResolverImpl : ITypeRefResolver
     {
@@ -18,15 +18,16 @@ internal abstract partial class TypeRef
 
         public Type? Resolve(TypeRef? typeRef)
         {
-            if (typeRef is null)
+            var typeRefValue = typeRef.GetValueOrDefault();
+            if (typeRefValue.IsDefault)
             {
                 return null;
             }
 
+            var typeName = typeRefValue.TypeName;
+
             lock (s_typeNameToTypeMap)
             {
-                var typeName = typeRef.TypeName;
-
                 if (!s_typeNameToTypeMap.TryGetValue(typeName, out var result))
                 {
                     result = LoadType(typeName);
