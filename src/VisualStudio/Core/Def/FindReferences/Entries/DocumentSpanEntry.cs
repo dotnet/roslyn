@@ -43,7 +43,7 @@ internal partial class StreamingFindUsagesPresenter
         private readonly HighlightSpanKind _spanKind;
         private readonly ExcerptResult _excerptResult;
         private readonly SymbolReferenceKinds _symbolReferenceKinds;
-        private readonly ImmutableDictionary<string, string> _customColumnsData;
+        private readonly ImmutableArray<(string key, string value)> _customColumnsData;
         private readonly string _rawProjectName;
         private readonly List<string> _projectFlavors = [];
 
@@ -60,7 +60,7 @@ internal partial class StreamingFindUsagesPresenter
             ExcerptResult excerptResult,
             SourceText lineText,
             SymbolUsageInfo symbolUsageInfo,
-            ImmutableDictionary<string, string> customColumnsData,
+            ImmutableArray<(string key, string value)> customColumnsData,
             IThreadingContext threadingContext)
             : base(context, definitionBucket, projectGuid, lineText, mappedSpanResult, threadingContext)
         {
@@ -82,16 +82,21 @@ internal partial class StreamingFindUsagesPresenter
 
         protected override string GetProjectName()
         {
-            // Check if we have any flavors.  If we have at least 2, combine with the project name
-            // so the user can know htat in the UI.
-            lock (_projectFlavors)
+            if (_cachedProjectName is null)
             {
-                _cachedProjectName ??= _projectFlavors.Count < 2
+                // Check if we have any flavors.  If we have at least 2, combine with the project name
+                // so the user can know htat in the UI.
+                lock (_projectFlavors)
+                {
+                    _cachedProjectName ??= _projectFlavors.Count < 2
                         ? _rawProjectName
                         : $"{_rawProjectName} ({string.Join(", ", _projectFlavors)})";
 
-                return _cachedProjectName;
+                    return _cachedProjectName;
+                }
             }
+
+            return _cachedProjectName;
         }
 
         private void AddFlavor(string? projectFlavor)
@@ -123,7 +128,7 @@ internal partial class StreamingFindUsagesPresenter
             ExcerptResult excerptResult,
             SourceText lineText,
             SymbolUsageInfo symbolUsageInfo,
-            ImmutableDictionary<string, string> customColumnsData,
+            ImmutableArray<(string key, string value)> customColumnsData,
             IThreadingContext threadingContext)
         {
             var entry = new DocumentSpanEntry(
@@ -216,9 +221,10 @@ internal partial class StreamingFindUsagesPresenter
                 return _symbolReferenceKinds;
             }
 
-            if (_customColumnsData.TryGetValue(keyName, out var value))
+            foreach (var (key, value) in _customColumnsData)
             {
-                return value;
+                if (key == keyName)
+                    return value;
             }
 
             return base.GetValueWorker(keyName);

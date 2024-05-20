@@ -417,7 +417,7 @@ internal partial class StreamingFindUsagesPresenter
             ClassifiedSpansAndHighlightSpan? classifiedSpans,
             HighlightSpanKind spanKind,
             SymbolUsageInfo symbolUsageInfo,
-            ImmutableDictionary<string, string> additionalProperties,
+            ImmutableArray<(string key, string value)> additionalProperties,
             CancellationToken cancellationToken)
         {
             var document = documentSpan.Document;

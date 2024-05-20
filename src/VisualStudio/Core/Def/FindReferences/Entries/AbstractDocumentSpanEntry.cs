@@ -35,6 +35,7 @@ internal partial class StreamingFindUsagesPresenter
         : AbstractItemEntry(definitionBucket, context.Presenter), ISupportsNavigation
     {
         private readonly object _boxedProjectGuid = projectGuid;
+        private string? _trimmedLineText = null;
 
         protected abstract Document Document { get; }
 
@@ -68,7 +69,7 @@ internal partial class StreamingFindUsagesPresenter
                 StandardTableKeyNames.Column => mappedSpanResult.LinePositionSpan.Start.Character,
                 StandardTableKeyNames.ProjectName => GetProjectName(),
                 StandardTableKeyNames.ProjectGuid => _boxedProjectGuid,
-                StandardTableKeyNames.Text => lineText.ToString().Trim(),
+                StandardTableKeyNames.Text => _trimmedLineText ??= lineText.ToString().Trim(),
                 _ => null,
             };
 

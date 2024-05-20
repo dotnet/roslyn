@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             int definitionId,
             int id,
             DocumentSpan? documentSpan,
-            ImmutableDictionary<string, string> properties,
+            ImmutableArray<(string key, string value)> properties,
             ClassifiedTextElement? definitionText,
             Glyph definitionGlyph,
             SymbolUsageInfo? symbolUsageInfo,
