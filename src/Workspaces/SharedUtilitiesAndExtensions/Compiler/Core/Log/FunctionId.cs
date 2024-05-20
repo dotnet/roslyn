@@ -317,7 +317,7 @@ internal enum FunctionId
     Tagger_Diagnostics_Updated = 259,
     SuggestedActions_HasSuggestedActionsAsync = 260,
     SuggestedActions_GetSuggestedActions = 261,
-    // AnalyzerDependencyCheckingService_LogConflict = 262, no longer use
+    // AnalyzerDependencyCheckingService_LogConflict = 262, no longer used
     // AnalyzerDependencyCheckingService_LogMissingDependency = 263, no longer used
     VirtualMemory_MemoryLow = 264,
     Extension_Exception = 265,
