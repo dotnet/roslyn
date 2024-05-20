@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -133,15 +134,18 @@ internal sealed class FindUsagesServerCallback(Solution solution, IFindUsagesCon
     {
         try
         {
-            var result = new FixedSizeArrayBuilder<SourceReferenceItem>(references.Length);
-            foreach (var reference in references)
-                result.Add(await reference.RehydrateAsync(_solution, GetDefinition(reference.DefinitionId), cancellationToken).ConfigureAwait(false));
-
-            await _context.OnReferencesFoundAsync(result.MoveToImmutable(), cancellationToken).ConfigureAwait(false);
+            await _context.OnReferencesFoundAsync(ConvertAsync(references, cancellationToken), cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
         {
             throw ExceptionUtilities.Unreachable();
+        }
+
+        async IAsyncEnumerable<SourceReferenceItem> ConvertAsync(
+            ImmutableArray<SerializableSourceReferenceItem> references, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            foreach (var reference in references)
+                yield return await reference.RehydrateAsync(_solution, GetDefinition(reference.DefinitionId), cancellationToken).ConfigureAwait(false);
         }
     }
 

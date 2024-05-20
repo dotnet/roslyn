@@ -129,11 +129,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        public override async ValueTask OnReferencesFoundAsync(ImmutableArray<SourceReferenceItem> references, CancellationToken cancellationToken)
+        public override async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
         {
-            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            await foreach (var reference in references)
             {
-                foreach (var reference in references)
+                using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // Each reference should be associated with a definition. If this somehow isn't the
                     // case, we bail out early.
