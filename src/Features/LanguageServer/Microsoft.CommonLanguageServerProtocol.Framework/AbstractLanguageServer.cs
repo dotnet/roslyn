@@ -20,6 +20,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 {
     private readonly JsonRpc _jsonRpc;
     protected readonly ILspLogger Logger;
+    protected readonly ITypeRefResolver TypeRefResolver;
 
     /// <summary>
     /// These are lazy to allow implementations to define custom variables that are used by
@@ -54,10 +55,12 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
     protected AbstractLanguageServer(
         JsonRpc jsonRpc,
-        ILspLogger logger)
+        ILspLogger logger,
+        ITypeRefResolver? typeRefResolver)
     {
         Logger = logger;
         _jsonRpc = jsonRpc;
+        TypeRefResolver = typeRefResolver ?? TypeRef.DefaultResolver;
 
         _jsonRpc.AddLocalRpcTarget(this);
         _jsonRpc.Disconnected += JsonRpc_Disconnected;
@@ -86,7 +89,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         get
         {
             var lspServices = _lspServices.Value;
-            var handlerProvider = new HandlerProvider(lspServices);
+            var handlerProvider = new HandlerProvider(lspServices, TypeRefResolver);
             SetupRequestDispatcher(handlerProvider);
             return handlerProvider;
         }
@@ -179,20 +182,22 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     protected abstract class DelegatingEntryPoint
     {
         protected readonly string _method;
+        protected readonly ITypeRefResolver _typeRefResolver;
         protected readonly Lazy<FrozenDictionary<string, (MethodInfo MethodInfo, RequestHandlerMetadata Metadata)>> _languageEntryPoint;
 
         private static readonly MethodInfo s_queueExecuteAsyncMethod = typeof(RequestExecutionQueue<TRequestContext>).GetMethod(nameof(RequestExecutionQueue<TRequestContext>.ExecuteAsync))!;
 
-        public DelegatingEntryPoint(string method, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
+        public DelegatingEntryPoint(string method, ITypeRefResolver typeRefResolver, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
         {
             _method = method;
+            _typeRefResolver = typeRefResolver;
             _languageEntryPoint = new Lazy<FrozenDictionary<string, (MethodInfo, RequestHandlerMetadata)>>(() =>
             {
                 var handlerEntryPoints = new Dictionary<string, (MethodInfo, RequestHandlerMetadata)>();
                 foreach (var metadata in handlersForMethod)
                 {
-                    var requestType = metadata.RequestTypeRef?.GetResolvedType() ?? NoValue.Instance.GetType();
-                    var responseType = metadata.ResponseTypeRef?.GetResolvedType() ?? NoValue.Instance.GetType();
+                    var requestType = metadata.RequestTypeRef?.GetResolvedType(_typeRefResolver) ?? NoValue.Instance.GetType();
+                    var responseType = metadata.ResponseTypeRef?.GetResolvedType(_typeRefResolver) ?? NoValue.Instance.GetType();
                     var methodInfo = s_queueExecuteAsyncMethod.MakeGenericMethod(requestType, responseType);
                     handlerEntryPoints[metadata.Language] = (methodInfo, metadata);
                 }

@@ -32,7 +32,7 @@ internal abstract partial class TypeRef : IEquatable<TypeRef>
     /// Returns the underlying <see cref="Type"/>, potentially loading its assembly.
     /// </summary>
     public Type GetResolvedType(ITypeRefResolver? resolver = null)
-        => GetResolvedTypeCore(resolver ?? DefaultResolver.Instance);
+        => GetResolvedTypeCore(resolver ?? DefaultResolver);
 
     protected abstract Type GetResolvedTypeCore(ITypeRefResolver resolver);
 

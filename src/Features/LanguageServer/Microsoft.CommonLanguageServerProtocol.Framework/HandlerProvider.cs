@@ -14,9 +14,10 @@ using System.Linq;
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <inheritdoc/>
-internal class HandlerProvider(ILspServices lspServices) : AbstractHandlerProvider
+internal class HandlerProvider(ILspServices lspServices, ITypeRefResolver typeRefResolver) : AbstractHandlerProvider
 {
     private readonly ILspServices _lspServices = lspServices;
+    private readonly ITypeRefResolver _typeRefResolver = typeRefResolver;
     private FrozenDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>? _requestHandlers;
 
     public IMethodHandler GetMethodHandler(string method, TypeRef? requestTypeRef, TypeRef? responseTypeRef)
@@ -44,9 +45,9 @@ internal class HandlerProvider(ILspServices lspServices) : AbstractHandlerProvid
     }
 
     private FrozenDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
-        => _requestHandlers ??= CreateMethodToHandlerMap(_lspServices);
+        => _requestHandlers ??= CreateMethodToHandlerMap(_lspServices, _typeRefResolver);
 
-    private static FrozenDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> CreateMethodToHandlerMap(ILspServices lspServices)
+    private static FrozenDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> CreateMethodToHandlerMap(ILspServices lspServices, ITypeRefResolver typeRefResolver)
     {
         var builder = new Dictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>();
 
@@ -67,7 +68,7 @@ internal class HandlerProvider(ILspServices lspServices) : AbstractHandlerProvid
                         new RequestHandlerMetadata(methodName, requestTypeRef, responseTypeRef, language),
                         instance is not null
                             ? GetLazyHandlerFromInstance(instance)
-                            : GetLazyHandlerFromTypeRef(lspServices, handlerTypeRef));
+                            : GetLazyHandlerFromTypeRef(lspServices, typeRefResolver, handlerTypeRef));
                 }
             }
         }
@@ -101,11 +102,11 @@ internal class HandlerProvider(ILspServices lspServices) : AbstractHandlerProvid
             return new(() => instance);
         }
 
-        static Lazy<IMethodHandler> GetLazyHandlerFromTypeRef(ILspServices lspServices, TypeRef handlerTypeRef)
+        static Lazy<IMethodHandler> GetLazyHandlerFromTypeRef(ILspServices lspServices, ITypeRefResolver typeRefResolver, TypeRef handlerTypeRef)
         {
             return new(() =>
             {
-                if (!lspServices.TryGetService(handlerTypeRef.GetResolvedType(), out var lspService))
+                if (!lspServices.TryGetService(handlerTypeRef.GetResolvedType(typeRefResolver), out var lspService))
                 {
                     throw new InvalidOperationException($"{handlerTypeRef} could not be retrieved from service");
                 }

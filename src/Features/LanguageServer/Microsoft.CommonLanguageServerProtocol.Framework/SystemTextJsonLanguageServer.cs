@@ -15,13 +15,16 @@ using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal abstract class SystemTextJsonLanguageServer<TRequestContext>(JsonRpc jsonRpc, JsonSerializerOptions options, ILspLogger logger) : AbstractLanguageServer<TRequestContext>(jsonRpc, logger)
+internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
+    JsonRpc jsonRpc, JsonSerializerOptions options, ILspLogger logger, ITypeRefResolver? typeRefResolver = null)
+    : AbstractLanguageServer<TRequestContext>(jsonRpc, logger, typeRefResolver)
 {
     /// <summary>
     /// JsonSerializer options used by streamjsonrpc (and for serializing / deserializing the requests to streamjsonrpc).
     /// These options are specifically from the <see cref="StreamJsonRpc.SystemTextJsonFormatter"/> that added the exotic type converters.
     /// </summary>
     private readonly JsonSerializerOptions _jsonSerializerOptions = options;
+
     protected override DelegatingEntryPoint CreateDelegatingEntryPoint(string method, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
     {
         return new SystemTextJsonDelegatingEntryPoint(method, handlersForMethod, this);
@@ -36,7 +39,7 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(JsonRpc js
     private sealed class SystemTextJsonDelegatingEntryPoint(
         string method,
         IGrouping<string, RequestHandlerMetadata> handlersForMethod,
-        SystemTextJsonLanguageServer<TRequestContext> target) : DelegatingEntryPoint(method, handlersForMethod)
+        SystemTextJsonLanguageServer<TRequestContext> target) : DelegatingEntryPoint(method, target.TypeRefResolver, handlersForMethod)
     {
         private static readonly MethodInfo s_parameterlessEntryPoint = typeof(SystemTextJsonDelegatingEntryPoint).GetMethod(nameof(SystemTextJsonDelegatingEntryPoint.ExecuteRequest0Async), BindingFlags.NonPublic | BindingFlags.Instance)!;
         private static readonly MethodInfo s_entryPoint = typeof(SystemTextJsonDelegatingEntryPoint).GetMethod(nameof(SystemTextJsonDelegatingEntryPoint.ExecuteRequestAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;

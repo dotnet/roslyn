@@ -19,13 +19,11 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// <summary>
 /// Basic implementation of <see cref="AbstractLanguageServer{TRequestContext}"/> using Newtonsoft for serialization.
 /// </summary>
-internal abstract class NewtonsoftLanguageServer<TRequestContext> : AbstractLanguageServer<TRequestContext>
+internal abstract class NewtonsoftLanguageServer<TRequestContext>(
+    JsonRpc jsonRpc, JsonSerializer jsonSerializer, ILspLogger logger, ITypeRefResolver? typeRefResolver = null)
+    : AbstractLanguageServer<TRequestContext>(jsonRpc, logger, typeRefResolver)
 {
-    private readonly JsonSerializer _jsonSerializer;
-    protected NewtonsoftLanguageServer(JsonRpc jsonRpc, JsonSerializer jsonSerializer, ILspLogger logger) : base(jsonRpc, logger)
-    {
-        _jsonSerializer = jsonSerializer;
-    }
+    private readonly JsonSerializer _jsonSerializer = jsonSerializer;
 
     protected override DelegatingEntryPoint CreateDelegatingEntryPoint(string method, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
     {
@@ -41,7 +39,7 @@ internal abstract class NewtonsoftLanguageServer<TRequestContext> : AbstractLang
     private class NewtonsoftDelegatingEntryPoint(
         string method,
         IGrouping<string, RequestHandlerMetadata> handlersForMethod,
-        NewtonsoftLanguageServer<TRequestContext> target) : DelegatingEntryPoint(method, handlersForMethod)
+        NewtonsoftLanguageServer<TRequestContext> target) : DelegatingEntryPoint(method, target.TypeRefResolver, handlersForMethod)
     {
         private static readonly MethodInfo s_entryPoint = typeof(NewtonsoftDelegatingEntryPoint).GetMethod(nameof(NewtonsoftDelegatingEntryPoint.ExecuteRequestAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;
 
@@ -77,7 +75,7 @@ internal abstract class NewtonsoftLanguageServer<TRequestContext> : AbstractLang
             return JToken.FromObject(result, target._jsonSerializer);
         }
 
-        private static object DeserializeRequest(JToken? request, RequestHandlerMetadata metadata, JsonSerializer jsonSerializer)
+        private object DeserializeRequest(JToken? request, RequestHandlerMetadata metadata, JsonSerializer jsonSerializer)
         {
             if (request is null && metadata.RequestTypeRef is not null)
             {
@@ -92,7 +90,7 @@ internal abstract class NewtonsoftLanguageServer<TRequestContext> : AbstractLang
             object requestObject = NoValue.Instance;
             if (request is not null)
             {
-                requestObject = request.ToObject(metadata.RequestTypeRef!.GetResolvedType(), jsonSerializer)
+                requestObject = request.ToObject(metadata.RequestTypeRef!.GetResolvedType(_typeRefResolver), jsonSerializer)
                     ?? throw new InvalidOperationException($"Unable to deserialize {request} into {metadata.RequestTypeRef} for {metadata.HandlerDescription}");
             }
 

@@ -93,7 +93,7 @@ public class HandlerProviderTests
     }
 
     private static HandlerProvider GetHandlerProvider(bool supportsMethodHandlerProvider)
-        => new(GetLspServices(supportsMethodHandlerProvider));
+        => new(GetLspServices(supportsMethodHandlerProvider), TypeRef.DefaultResolver);
 
     private static ILspServices GetLspServices(bool supportsMethodHandlerProvider)
     {

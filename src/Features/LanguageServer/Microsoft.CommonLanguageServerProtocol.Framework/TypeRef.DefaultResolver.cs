@@ -11,14 +11,10 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 internal abstract partial class TypeRef
 {
-    private sealed class DefaultResolver : ITypeRefResolver
+    public static ITypeRefResolver DefaultResolver { get; } = new DefaultResolverImpl();
+
+    private sealed class DefaultResolverImpl : ITypeRefResolver
     {
-        public static readonly DefaultResolver Instance = new();
-
-        private DefaultResolver()
-        {
-        }
-
         public Type Resolve(TypeRef typeRef)
             => Type.GetType(typeRef.TypeName)
             ?? throw new InvalidOperationException($"Could not load type: '{typeRef.TypeName}'");
