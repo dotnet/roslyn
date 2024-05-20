@@ -13,6 +13,6 @@ internal partial class TypeRef
 {
     private sealed class ConcreteTypeRef(Type type) : TypeRef(type.AssemblyQualifiedName!)
     {
-        public override Type GetResolvedType() => type;
+        protected override Type GetResolvedTypeCore(ITypeRefResolver resolver) => type;
     }
 }

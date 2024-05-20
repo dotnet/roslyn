@@ -23,15 +23,18 @@ internal abstract partial class TypeRef : IEquatable<TypeRef>
     /// </summary>
     public string TypeName { get; }
 
-    /// <summary>
-    /// Returns the underlying <see cref="Type"/>, potentially loading its assembly.
-    /// </summary>
-    public abstract Type GetResolvedType();
-
     private TypeRef(string typeName)
     {
         TypeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
     }
+
+    /// <summary>
+    /// Returns the underlying <see cref="Type"/>, potentially loading its assembly.
+    /// </summary>
+    public Type GetResolvedType(ITypeRefResolver? resolver = null)
+        => GetResolvedTypeCore(resolver ?? DefaultResolver.Instance);
+
+    protected abstract Type GetResolvedTypeCore(ITypeRefResolver resolver);
 
     [return: NotNullIfNotNull(nameof(typeName))]
     public static TypeRef? From(string? typeName)

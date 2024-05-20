@@ -9,19 +9,7 @@ using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal partial class TypeRef
+internal interface ITypeRefResolver
 {
-    private sealed class LazyTypeRef(string typeName) : TypeRef(typeName)
-    {
-        private readonly object _gate = new();
-        private Type? _type;
-
-        protected override Type GetResolvedTypeCore(ITypeRefResolver resolver)
-        {
-            lock (_gate)
-            {
-                return _type ??= resolver.Resolve(this);
-            }
-        }
-    }
+    Type Resolve(TypeRef typeRef);
 }

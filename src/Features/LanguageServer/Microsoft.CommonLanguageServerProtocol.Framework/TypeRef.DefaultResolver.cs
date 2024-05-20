@@ -9,19 +9,18 @@ using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal partial class TypeRef
+internal abstract partial class TypeRef
 {
-    private sealed class LazyTypeRef(string typeName) : TypeRef(typeName)
+    private sealed class DefaultResolver : ITypeRefResolver
     {
-        private readonly object _gate = new();
-        private Type? _type;
+        public static readonly DefaultResolver Instance = new();
 
-        protected override Type GetResolvedTypeCore(ITypeRefResolver resolver)
+        private DefaultResolver()
         {
-            lock (_gate)
-            {
-                return _type ??= resolver.Resolve(this);
-            }
         }
+
+        public Type Resolve(TypeRef typeRef)
+            => Type.GetType(typeRef.TypeName)
+            ?? throw new InvalidOperationException($"Could not load type: '{typeRef.TypeName}'");
     }
 }
