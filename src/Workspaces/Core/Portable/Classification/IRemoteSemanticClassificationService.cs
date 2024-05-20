@@ -72,13 +72,8 @@ internal sealed class SerializableClassifiedSpans(ImmutableArray<string> classif
 
     internal static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans)
     {
-        using var _ = PooledDictionary<string, int>.GetInstance(out var classificationTypeToId);
-        return Dehydrate(classifiedSpans, classificationTypeToId);
-    }
-
-    private static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
-    {
-        using var _1 = ArrayBuilder<string>.GetInstance(out var classificationTypes);
+        using var _1 = PooledDictionary<string, int>.GetInstance(out var classificationTypeToId);
+        using var _2 = ArrayBuilder<string>.GetInstance(out var classificationTypes);
         var classificationTriples = new FixedSizeArrayBuilder<int>(classifiedSpans.Length * 3);
 
         foreach (var classifiedSpan in classifiedSpans)
