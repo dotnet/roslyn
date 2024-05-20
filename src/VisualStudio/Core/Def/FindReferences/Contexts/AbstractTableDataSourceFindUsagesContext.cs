@@ -428,9 +428,8 @@ internal partial class StreamingFindUsagesPresenter
             CancellationToken cancellationToken)
         {
             var document = documentSpan.Document;
-            var options = _globalOptions.GetClassificationOptions(document.Project.Language);
             var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, classifiedSpans, options, cancellationToken).ConfigureAwait(false);
+            var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, classifiedSpans, cancellationToken).ConfigureAwait(false);
 
             var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
             if (mappedDocumentSpan == null)
@@ -457,31 +456,39 @@ internal partial class StreamingFindUsagesPresenter
                 ThreadingContext);
         }
 
-        private static async Task<(ExcerptResult, SourceText)> ExcerptAsync(
-            SourceText sourceText, DocumentSpan documentSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, ClassificationOptions options, CancellationToken cancellationToken)
+        private async Task<(ExcerptResult, SourceText)> ExcerptAsync(
+            SourceText sourceText, DocumentSpan documentSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, CancellationToken cancellationToken)
         {
-            var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
+            var document = documentSpan.Document;
+            var sourceSpan = documentSpan.SourceSpan;
+
+            var excerptService = document.Services.GetService<IDocumentExcerptService>();
             if (excerptService != null)
             {
-                var result = await excerptService.TryExcerptAsync(documentSpan.Document, documentSpan.SourceSpan, ExcerptMode.SingleLine, options, cancellationToken).ConfigureAwait(false);
+                var options = _globalOptions.GetClassificationOptions(document.Project.Language);
+
+                var result = await excerptService.TryExcerptAsync(document, sourceSpan, ExcerptMode.SingleLine, options, cancellationToken).ConfigureAwait(false);
                 if (result != null)
-                {
                     return (result.Value, AbstractDocumentSpanEntry.GetLineContainingPosition(result.Value.Content, result.Value.MappedSpan.Start));
-                }
             }
 
-            var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-                documentSpan, classifiedSpans, options, cancellationToken).ConfigureAwait(false);
+            if (classifiedSpans is null)
+            {
+                var options = _globalOptions.GetClassificationOptions(document.Project.Language);
+
+                classifiedSpans = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                    documentSpan, classifiedSpans, options, cancellationToken).ConfigureAwait(false);
+            }
 
             // need to fix the span issue tracking here - https://github.com/dotnet/roslyn/issues/31001
             var excerptResult = new ExcerptResult(
                 sourceText,
-                classificationResult.HighlightSpan,
-                classificationResult.ClassifiedSpans,
-                documentSpan.Document,
-                documentSpan.SourceSpan);
+                classifiedSpans.Value.HighlightSpan,
+                classifiedSpans.Value.ClassifiedSpans,
+                document,
+                sourceSpan);
 
-            return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
+            return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, sourceSpan.Start));
         }
 
         public sealed override async ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
