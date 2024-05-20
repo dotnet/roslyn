@@ -247,8 +247,6 @@ internal readonly struct SerializableDefinitionItem(
 internal readonly struct SerializableClassifiedSpansAndHighlightSpan(
     SerializableClassifiedSpans classifiedSpans, TextSpan highlightSpan)
 {
-    private static readonly ObjectPool<SegmentedList<ClassifiedSpan>> s_listPool = new(() => new());
-
     [DataMember(Order = 0)]
     public readonly SerializableClassifiedSpans ClassifiedSpans = classifiedSpans;
 
