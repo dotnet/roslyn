@@ -106,7 +106,9 @@ internal sealed class BuildHost
         }
     }
 
-#if NET472 || NET6_0 // If we're compiling against net472 or net6.0, we get our MemberNotNull from the workspaces assembly. It has it in the net6.0 case since we're consuming the netstandard2.0 version of Workspaces.
+// <Metalama> Removed NET6_0
+#if NET472 // If we're compiling against net472, we get our MemberNotNull from the workspaces assembly.
+// </Metalama>
     [workspaces::System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(_buildManager))]
 #else // If we're compiling against net7.0 or higher, then we're getting it staright from the framework.
     [MemberNotNull(nameof(_buildManager))]

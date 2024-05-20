@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis
         // Matches EditorConfig property such as "indent_style = space", see https://editorconfig.org for details
         private const string s_propertyMatcherPattern = @"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$";
 
-#if NETCOREAPP
+        // <Metalama> NETCOREAPP -> NET7_0_OR_GREATER
+#if NET7_0_OR_GREATER
+        // </Metalama>
 
         [GeneratedRegex(s_sectionMatcherPattern)]
         private static partial Regex GetSectionMatcherRegex();

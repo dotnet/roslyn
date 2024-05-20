@@ -1313,7 +1313,11 @@ class C
             {
                 yield return new object[] { "", "nint", "IntPtr", Unsafe.SizeOf<nint>() };
                 yield return new object[] { "", "nuint", "UIntPtr", Unsafe.SizeOf<nuint>() };
+                // <Metalama> added #if
+#if NET7_0_OR_GREATER                
                 yield return new object[] { "", "System.Int128", "'[System.Runtime]System.Int128'", Unsafe.SizeOf<Int128>() };
+#endif
+                // </Metalama>
                 yield return new object[] { "", "System.Guid", "'[System.Runtime]System.Guid'", Unsafe.SizeOf<Guid>() };
                 yield return new object[] { "", "System.ValueTuple<int, bool>", "'[System.Runtime]System.ValueTuple`2<int32,bool>'", Unsafe.SizeOf<(int, bool)>() };
                 yield return new object[] { "struct S { }", "S", "'S'", Unsafe.SizeOf<S1>() };
