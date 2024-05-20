@@ -233,8 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     Contract.ThrowIfNull(priority);
                     var priorityProvider = new SuggestedActionPriorityProvider(priority.Value, lowPriorityAnalyzers);
 
-                    var result = await GetFixCategoryAsync(
-                        priorityProvider).ConfigureAwait(false);
+                    var result = await GetFixCategoryAsync(priorityProvider).ConfigureAwait(false);
                     if (result != null)
                         return result;
                 }
