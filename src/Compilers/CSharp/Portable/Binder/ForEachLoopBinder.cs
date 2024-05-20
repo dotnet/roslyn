@@ -1754,7 +1754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool foundMultiple)
         {
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            NamedTypeSymbol implementedIEnumerable = GetIEnumerableOfT(type, isAsync, Compilation, ref useSiteInfo, out foundMultiple);
+            NamedTypeSymbol implementedIEnumerable = GetIEnumerableOfT(type, isAsync, Compilation, ref useSiteInfo, out foundMultiple, out bool needSupportForRefStructInterfaces);
 
             // Prefer generic to non-generic, unless it is inaccessible.
             if (((object)implementedIEnumerable == null) || !this.IsAccessible(implementedIEnumerable, ref useSiteInfo))
@@ -1764,22 +1764,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!isAsync)
                 {
                     var implementedNonGeneric = this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
-                    if ((object)implementedNonGeneric != null)
+                    if ((object)implementedNonGeneric != null &&
+                        this.Conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(type, implementedNonGeneric, ref useSiteInfo, out needSupportForRefStructInterfaces))
                     {
-                        var implements = this.Conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(type, implementedNonGeneric, ref useSiteInfo, out bool needSupportForRefStructInterfaces);
-
-                        if (implements)
-                        {
-                            implementedIEnumerable = implementedNonGeneric;
-
-                            if (needSupportForRefStructInterfaces &&
-                                type.ContainingModule != Compilation.SourceModule)
-                            {
-                                CheckFeatureAvailability(collectionSyntax, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
-                            }
-                        }
+                        implementedIEnumerable = implementedNonGeneric;
                     }
                 }
+            }
+
+            if (implementedIEnumerable is not null && needSupportForRefStructInterfaces && type.ContainingModule != Compilation.SourceModule)
+            {
+                CheckFeatureAvailability(collectionSyntax, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
             }
 
             diagnostics.Add(collectionSyntax, useSiteInfo);
@@ -1788,7 +1783,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)implementedIEnumerable != null;
         }
 
-        internal static NamedTypeSymbol GetIEnumerableOfT(TypeSymbol type, bool isAsync, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool foundMultiple)
+        internal static NamedTypeSymbol GetIEnumerableOfT(
+            TypeSymbol type, bool isAsync, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            out bool foundMultiple, out bool needSupportForRefStructInterfaces)
         {
             NamedTypeSymbol implementedIEnumerable = null;
             foundMultiple = false;
@@ -1796,12 +1793,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type.TypeKind == TypeKind.TypeParameter)
             {
                 var typeParameter = (TypeParameterSymbol)type;
+                needSupportForRefStructInterfaces = typeParameter.AllowsRefLikeType;
                 var allInterfaces = typeParameter.EffectiveBaseClass(ref useSiteInfo).AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo)
                     .Concat(typeParameter.AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo));
                 GetIEnumerableOfT(allInterfaces, isAsync, compilation, ref @implementedIEnumerable, ref foundMultiple);
             }
             else
             {
+                needSupportForRefStructInterfaces = type.IsRefLikeType;
                 GetIEnumerableOfT(type.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo), isAsync, compilation, ref @implementedIEnumerable, ref foundMultiple);
             }
 
