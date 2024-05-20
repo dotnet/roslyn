@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = node.Method;
                 CheckInvocationArgMixing(
                     node.Syntax,
-                    method,
+                    MethodInfo.Create(method),
                     node.ReceiverOpt,
                     node.InitialBindingReceiverIsSubjectToCloning,
                     method.Parameters,
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     CheckInvocationArgMixing(
                         node.Syntax,
-                        constructor,
+                        MethodInfo.Create(constructor),
                         receiverOpt: null,
                         receiverIsSubjectToCloning: ThreeState.Unknown,
                         constructor.Parameters,
@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var indexer = node.Indexer;
                 CheckInvocationArgMixing(
                     node.Syntax,
-                    indexer,
+                    MethodInfo.Create(node),
                     node.ReceiverOpt,
                     node.InitialBindingReceiverIsSubjectToCloning,
                     indexer.Parameters,
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = node.FunctionPointer.Signature;
                 CheckInvocationArgMixing(
                     node.Syntax,
-                    method,
+                    MethodInfo.Create(method),
                     receiverOpt: null,
                     receiverIsSubjectToCloning: ThreeState.Unknown,
                     method.Parameters,
@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckInvocationArgMixing(
                 syntax,
-                deconstructMethod,
+                MethodInfo.Create(deconstructMethod),
                 invocation.ReceiverOpt,
                 invocation.InitialBindingReceiverIsSubjectToCloning,
                 parameters,
@@ -1011,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out arguments, out refKinds);
 
                 collectionEscape = GetInvocationEscapeScope(
-                    equivalentSignatureMethod,
+                    MethodInfo.Create(equivalentSignatureMethod),
                     receiver: null,
                     receiverIsSubjectToCloning: ThreeState.Unknown,
                     equivalentSignatureMethod.Parameters,

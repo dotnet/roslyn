@@ -9790,6 +9790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentNames,
                     argumentRefKinds,
                     expanded: resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
+                    AccessorKind.Unknown,
                     argsToParams,
                     defaultArguments: default,
                     property.Type,
