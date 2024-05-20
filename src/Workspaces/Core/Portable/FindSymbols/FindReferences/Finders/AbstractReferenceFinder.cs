@@ -791,17 +791,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         return additionalProperties.ToImmutableAndClear();
     }
 
-    //private static bool TryGetAdditionalProperty(string propertyName, ISymbol symbol, out KeyValuePair<string, string> additionalProperty)
-    //{
-    //    if (symbol == null)
-    //    {
-    //        additionalProperty = default;
-    //        return false;
-    //    }
 
-    //    additionalProperty = KeyValuePairUtil.Create(propertyName, symbol.Name);
-    //    return true;
-    //}
 }
 
 internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractReferenceFinder
