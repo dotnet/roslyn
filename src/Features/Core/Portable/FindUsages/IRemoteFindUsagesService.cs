@@ -259,11 +259,7 @@ internal readonly struct SerializableClassifiedSpansAndHighlightSpan(
         => new(SerializableClassifiedSpans.Dehydrate(classifiedSpansAndHighlightSpan.ClassifiedSpans), classifiedSpansAndHighlightSpan.HighlightSpan);
 
     public ClassifiedSpansAndHighlightSpan Rehydrate()
-    {
-        using var pooledObject = s_listPool.GetPooledObject();
-        this.ClassifiedSpans.Rehydrate(pooledObject.Object);
-        return new ClassifiedSpansAndHighlightSpan(pooledObject.Object.ToImmutableArray(), this.HighlightSpan);
-    }
+        => new(this.ClassifiedSpans.Rehydrate(), this.HighlightSpan);
 }
 
 [DataContract]

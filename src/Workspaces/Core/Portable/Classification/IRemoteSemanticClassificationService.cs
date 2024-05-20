@@ -113,4 +113,20 @@ internal sealed class SerializableClassifiedSpans(ImmutableArray<string> classif
                     ClassificationTriples[i + 2])));
         }
     }
+
+    internal ImmutableArray<ClassifiedSpan> Rehydrate()
+    {
+        var result = new FixedSizeArrayBuilder<ClassifiedSpan>(this.ClassificationTriples.Length);
+
+        for (int i = 0, n = ClassificationTriples.Length; i < n; i += 3)
+        {
+            result.Add(new ClassifiedSpan(
+                ClassificationTypes[ClassificationTriples[i + 0]],
+                new TextSpan(
+                    ClassificationTriples[i + 1],
+                    ClassificationTriples[i + 2])));
+        }
+
+        return result.MoveToImmutable();
+    }
 }
