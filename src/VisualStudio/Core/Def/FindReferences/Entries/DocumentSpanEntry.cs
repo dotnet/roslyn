@@ -43,7 +43,7 @@ internal partial class StreamingFindUsagesPresenter
         private readonly HighlightSpanKind _spanKind;
         private readonly ExcerptResult _excerptResult;
         private readonly SymbolReferenceKinds _symbolReferenceKinds;
-        private readonly ImmutableDictionary<string, string> _customColumnsData;
+        private readonly ImmutableArray<(string key, string value)> _customColumnsData;
         private readonly string _rawProjectName;
         private readonly List<string> _projectFlavors = [];
 
@@ -60,7 +60,7 @@ internal partial class StreamingFindUsagesPresenter
             ExcerptResult excerptResult,
             SourceText lineText,
             SymbolUsageInfo symbolUsageInfo,
-            ImmutableDictionary<string, string> customColumnsData,
+            ImmutableArray<(string key, string value)> customColumnsData,
             IThreadingContext threadingContext)
             : base(context, definitionBucket, projectGuid, lineText, mappedSpanResult, threadingContext)
         {
@@ -87,8 +87,8 @@ internal partial class StreamingFindUsagesPresenter
             lock (_projectFlavors)
             {
                 _cachedProjectName ??= _projectFlavors.Count < 2
-                        ? _rawProjectName
-                        : $"{_rawProjectName} ({string.Join(", ", _projectFlavors)})";
+                    ? _rawProjectName
+                    : $"{_rawProjectName} ({string.Join(", ", _projectFlavors)})";
 
                 return _cachedProjectName;
             }
@@ -123,7 +123,7 @@ internal partial class StreamingFindUsagesPresenter
             ExcerptResult excerptResult,
             SourceText lineText,
             SymbolUsageInfo symbolUsageInfo,
-            ImmutableDictionary<string, string> customColumnsData,
+            ImmutableArray<(string key, string value)> customColumnsData,
             IThreadingContext threadingContext)
         {
             var entry = new DocumentSpanEntry(
@@ -216,9 +216,10 @@ internal partial class StreamingFindUsagesPresenter
                 return _symbolReferenceKinds;
             }
 
-            if (_customColumnsData.TryGetValue(keyName, out var value))
+            foreach (var (key, value) in _customColumnsData)
             {
-                return value;
+                if (key == keyName)
+                    return value;
             }
 
             return base.GetValueWorker(keyName);

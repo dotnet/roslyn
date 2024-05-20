@@ -184,7 +184,7 @@ internal readonly struct SerializableDefinitionItem(
     ImmutableArray<SerializableDocumentSpan> sourceSpans,
     ImmutableArray<AssemblyLocation> metadataLocations,
     ImmutableDictionary<string, string> properties,
-    ImmutableDictionary<string, string> displayableProperties,
+    ImmutableArray<(string key, string value)> displayableProperties,
     bool displayIfNoReferences)
 {
     [DataMember(Order = 0)]
@@ -209,7 +209,7 @@ internal readonly struct SerializableDefinitionItem(
     public readonly ImmutableDictionary<string, string> Properties = properties;
 
     [DataMember(Order = 7)]
-    public readonly ImmutableDictionary<string, string> DisplayableProperties = displayableProperties;
+    public readonly ImmutableArray<(string key, string value)> DisplayableProperties = displayableProperties;
 
     [DataMember(Order = 8)]
     public readonly bool DisplayIfNoReferences = displayIfNoReferences;
@@ -272,7 +272,7 @@ internal readonly struct SerializableSourceReferenceItem(
     SerializableDocumentSpan sourceSpan,
     SerializableClassifiedSpansAndHighlightSpan classifiedSpans,
     SymbolUsageInfo symbolUsageInfo,
-    ImmutableDictionary<string, string> additionalProperties)
+    ImmutableArray<(string key, string value)> additionalProperties)
 {
     [DataMember(Order = 0)]
     public readonly int DefinitionId = definitionId;
@@ -287,7 +287,7 @@ internal readonly struct SerializableSourceReferenceItem(
     public readonly SymbolUsageInfo SymbolUsageInfo = symbolUsageInfo;
 
     [DataMember(Order = 4)]
-    public readonly ImmutableDictionary<string, string> AdditionalProperties = additionalProperties;
+    public readonly ImmutableArray<(string key, string value)> AdditionalProperties = additionalProperties;
 
     public static SerializableSourceReferenceItem Dehydrate(int definitionId, SourceReferenceItem item)
         => new(definitionId,
@@ -302,5 +302,5 @@ internal readonly struct SerializableSourceReferenceItem(
                await SourceSpan.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false),
                this.ClassifiedSpans.Rehydrate(),
                SymbolUsageInfo,
-               AdditionalProperties.ToImmutableDictionary(t => t.Key, t => t.Value));
+               AdditionalProperties);
 }
