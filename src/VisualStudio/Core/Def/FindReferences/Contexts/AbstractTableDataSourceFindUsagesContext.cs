@@ -109,8 +109,8 @@ internal partial class StreamingFindUsagesPresenter
         /// </summary>
         private bool _currentlyGroupingByDefinition;
 
-        protected ImmutableList<Entry> EntriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
-        protected ImmutableList<Entry> EntriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
+        protected readonly List<Entry> EntriesWhenNotGroupingByDefinition = [];
+        protected readonly List<Entry> EntriesWhenGroupingByDefinition = [];
 
         private TableEntriesSnapshot? _lastSnapshot;
         public int CurrentVersionNumber { get; protected set; }
@@ -181,6 +181,13 @@ internal partial class StreamingFindUsagesPresenter
         protected abstract Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken);
         protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken);
         protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken);
+
+        protected static void AddRange<T>(List<T> list, ArrayBuilder<T> builder)
+        {
+            list.Capacity = list.Count + builder.Count;
+            foreach (var item in builder)
+                list.Add(item);
+        }
 
         private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
         {
@@ -570,10 +577,10 @@ internal partial class StreamingFindUsagesPresenter
                     // Otherwise return the appropriate list based on how we're currently
                     // grouping.
                     var entries = _cleared
-                        ? ImmutableList<Entry>.Empty
+                        ? []
                         : _currentlyGroupingByDefinition
-                            ? EntriesWhenGroupingByDefinition
-                            : EntriesWhenNotGroupingByDefinition;
+                            ? EntriesWhenGroupingByDefinition.ToImmutableArray()
+                            : EntriesWhenNotGroupingByDefinition.ToImmutableArray();
 
                     _lastSnapshot = new TableEntriesSnapshot(entries, CurrentVersionNumber);
                 }

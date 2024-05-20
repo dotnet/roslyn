@@ -63,8 +63,8 @@ internal partial class StreamingFindUsagesPresenter
 
             lock (Gate)
             {
-                EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.Add(entry);
-                EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.Add(entry);
+                EntriesWhenGroupingByDefinition.Add(entry);
+                EntriesWhenNotGroupingByDefinition.Add(entry);
                 CurrentVersionNumber++;
             }
 
@@ -108,8 +108,8 @@ internal partial class StreamingFindUsagesPresenter
             {
                 lock (Gate)
                 {
-                    EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.AddRange(entries);
-                    EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.AddRange(entries);
+                    AddRange(EntriesWhenGroupingByDefinition, entries);
+                    AddRange(EntriesWhenNotGroupingByDefinition, entries);
                     CurrentVersionNumber++;
                 }
 
