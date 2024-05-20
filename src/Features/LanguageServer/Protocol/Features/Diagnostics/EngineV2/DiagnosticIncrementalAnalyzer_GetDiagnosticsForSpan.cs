@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // PERF: Cache the last Project and corresponding CompilationWithAnalyzers used to compute analyzer diagnostics for span.
             //       This is now required as async lightbulb will query and execute different priority buckets of analyzers with multiple
             //       calls, and we want to reuse CompilationWithAnalyzers instance if possible. 
-            private static readonly WeakReference<ProjectAndCompilationWithAnalyzers?> _lastProjectAndCompilationWithAnalyzers = new(null);
+            private static readonly WeakReference<ProjectAndCompilationWithAnalyzers?> s_lastProjectAndCompilationWithAnalyzers = new(null);
 
             private readonly DiagnosticIncrementalAnalyzer _owner;
             private readonly TextDocument _document;
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool includeSuppressedDiagnostics,
                 CancellationToken cancellationToken)
             {
-                if (_lastProjectAndCompilationWithAnalyzers.TryGetTarget(out var projectAndCompilationWithAnalyzers) &&
+                if (s_lastProjectAndCompilationWithAnalyzers.TryGetTarget(out var projectAndCompilationWithAnalyzers) &&
                     projectAndCompilationWithAnalyzers?.Project == project)
                 {
                     if (projectAndCompilationWithAnalyzers.CompilationWithAnalyzers == null)
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-                _lastProjectAndCompilationWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
+                s_lastProjectAndCompilationWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
                 return compilationWithAnalyzers;
 
                 static bool HasAllAnalyzers(IEnumerable<StateSet> stateSets, CompilationWithAnalyzers compilationWithAnalyzers)
@@ -557,9 +557,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                var analyzerTypeName = analyzer.GetType().Name;
-                var document = executor.AnalysisScope.TextDocument;
 
                 var diagnostics = await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
                 return diagnostics?.ToImmutableArrayOrEmpty() ?? [];
