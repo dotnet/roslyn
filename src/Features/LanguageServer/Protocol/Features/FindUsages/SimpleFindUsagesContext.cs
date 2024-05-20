@@ -65,11 +65,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
             return default;
         }
 
-        public override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+        public override ValueTask OnReferencesFoundAsync(ImmutableArray<SourceReferenceItem> references, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
-                _referenceItems.Add(reference);
+                _referenceItems.AddRange(references);
             }
 
             return default;

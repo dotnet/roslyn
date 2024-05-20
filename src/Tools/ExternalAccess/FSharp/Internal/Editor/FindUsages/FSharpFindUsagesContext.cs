@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsage
 
         public Task OnReferenceFoundAsync(FSharp.FindUsages.FSharpSourceReferenceItem reference)
         {
-            return _context.OnReferenceFoundAsync(reference.RoslynSourceReferenceItem, _cancellationToken).AsTask();
+            return _context.OnReferencesFoundAsync([reference.RoslynSourceReferenceItem], _cancellationToken).AsTask();
         }
 
         public Task ReportMessageAsync(string message)

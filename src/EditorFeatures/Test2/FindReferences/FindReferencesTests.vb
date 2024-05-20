@@ -249,9 +249,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return Nothing
             End Function
 
-            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem, cancellationToken As CancellationToken) As ValueTask
+            Public Overrides Function OnReferencesFoundAsync(references As ImmutableArray(Of SourceReferenceItem), cancellationToken As CancellationToken) As ValueTask
                 SyncLock gate
-                    References.Add(reference)
+                    Me.References.AddRange(references)
                 End SyncLock
 
                 Return Nothing

@@ -201,7 +201,7 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
         }
     }
 
-    ValueTask IFindUsagesContext.OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+    ValueTask IFindUsagesContext.OnReferencesFoundAsync(ImmutableArray<SourceReferenceItem> references, CancellationToken cancellationToken)
     {
         // Entirely ignored.  These features do not show references.
         Contract.Fail("GoToImpl/Base should never report a reference.");
