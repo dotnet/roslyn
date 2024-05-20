@@ -29,4 +29,10 @@
 
     <MSBuild Projects="@(ProjectToPublish)" Targets="Pack" BuildInParallel="true" />
   </Target>
+
+  <!--
+    Make sure the _GetPackageFiles target exists, since it is always expected for design time builds, but only
+    defined when ImportNuGetBuildTasksPackTargetsFromSdk is true.
+  -->
+  <Target Name="_GetPackageFiles" />
 </Project>
