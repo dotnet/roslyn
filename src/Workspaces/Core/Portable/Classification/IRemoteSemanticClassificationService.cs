@@ -116,7 +116,7 @@ internal sealed class SerializableClassifiedSpans(ImmutableArray<string> classif
 
     internal ImmutableArray<ClassifiedSpan> Rehydrate()
     {
-        var result = new FixedSizeArrayBuilder<ClassifiedSpan>(this.ClassificationTriples.Length);
+        var result = new FixedSizeArrayBuilder<ClassifiedSpan>(this.ClassificationTriples.Length / 3);
 
         for (int i = 0, n = ClassificationTriples.Length; i < n; i += 3)
         {
