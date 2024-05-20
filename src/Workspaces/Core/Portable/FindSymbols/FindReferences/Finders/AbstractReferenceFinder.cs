@@ -763,8 +763,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
 
         return additionalProperties.ToImmutableAndClear();
 
-        void TryAddAdditionalProperty(
-            SyntaxNode? node, string key)
+        void TryAddAdditionalProperty(SyntaxNode? node, string key)
         {
             if (node != null)
             {
