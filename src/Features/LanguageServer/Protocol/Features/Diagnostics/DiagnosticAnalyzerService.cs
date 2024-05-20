@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
                 document, range, diagnostics, shouldIncludeDiagnostic,
                 includeSuppressedDiagnostics, true, priorityProvider, blockForData: false,
-                addOperationScope: null, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
+                diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
             return (diagnostics.ToImmutable(), upToDate);
         }
 
@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool includeCompilerDiagnostics,
             bool includeSuppressedDiagnostics,
             ICodeActionRequestPriorityProvider priorityProvider,
-            Func<string, IDisposable?>? addOperationScope,
             DiagnosticKind diagnosticKinds,
             bool isExplicit,
             CancellationToken cancellationToken)
@@ -112,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             await TaskScheduler.Default;
             return await analyzer.GetDiagnosticsForSpanAsync(
                 document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
-                priorityProvider, blockForData: true, addOperationScope, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
+                priorityProvider, blockForData: true, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
