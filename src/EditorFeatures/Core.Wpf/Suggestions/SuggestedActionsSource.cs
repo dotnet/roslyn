@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return null;
 
-                async Task<string?> GetFixCategoryAsync(SuggestedActionPriorityProvider priorityProvider)
+                async Task<string?> GetFixCategoryAsync(ICodeActionRequestPriorityProvider priorityProvider)
                 {
                     if (state.Target.Owner._codeFixService != null &&
                         state.Target.SubjectBuffer.SupportsCodeFixes())
