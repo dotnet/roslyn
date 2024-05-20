@@ -790,8 +790,6 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
 
         return additionalProperties.ToImmutableAndClear();
     }
-
-
 }
 
 internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractReferenceFinder
