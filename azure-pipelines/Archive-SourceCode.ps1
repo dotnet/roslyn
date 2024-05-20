@@ -203,16 +203,25 @@ if ($PSCmdlet.ShouldProcess('source archival request', 'post')) {
 
     $Response = Invoke-WebRequest -Uri $SourceCodeArchivalUri -Method POST -Body $RequestJson -ContentType "application/json" -UseBasicParsing -SkipHttpErrorCheck
     Write-Host "Status Code : " -NoNewline
-    $responseContent = ConvertFrom-Json ($Response.Content)
     if ($Response.StatusCode -eq 200) {
         Write-Host $Response.StatusCode -ForegroundColor Green
         Write-Host "Ticket ID   : " -NoNewline
+        $responseContent = ConvertFrom-Json ($Response.Content)
         Write-Host $responseContent
     }
     else {
-        $responseContent = ConvertFrom-Json $Response.Content
         Write-Host $Response.StatusCode -ForegroundColor Red
-        Write-Host "Message     : $($responseContent.message)"
+        try {
+            $responseContent = ConvertFrom-Json $Response.Content
+            Write-Host "Message     : $($responseContent.message)"
+        }
+        catch {
+            Write-Host "JSON Parse Error: $($_.Exception.Message)"
+            Write-Host "Raw response content:"
+            Write-Host $Response.Content
+        }
+
+        exit 2
     }
 } elseif ($SourceCodeArchivalUri) {
     Write-Host "Would have posted to $SourceCodeArchivalUri"
