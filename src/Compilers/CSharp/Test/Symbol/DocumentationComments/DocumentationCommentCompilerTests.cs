@@ -914,6 +914,7 @@ partial class C
         [Fact]
         public void PartialMethod_NoImplementation()
         {
+            // Whole document XML does not include the member, but single symbol XML does include it
             var source = @"
 partial class C
 {
@@ -923,20 +924,25 @@ partial class C
 ";
 
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.RegularWithDocumentationComments);
-
             var comp = CreateCompilation(tree, assemblyName: "Test");
-            var actual = GetDocumentationCommentText(comp);
-            var expected = @"
-<?xml version=""1.0""?>
-<doc>
-    <assembly>
-        <name>Test</name>
-    </assembly>
-    <members>
-    </members>
-</doc>
-".Trim();
-            Assert.Equal(expected, actual);
+            var method = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+
+            AssertEx.AssertLinesEqual(expected: """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                    </members>
+                </doc>
+                """, actual: GetDocumentationCommentText(comp));
+
+            AssertEx.AssertLinesEqual("""
+                <member name="M:C.M">
+                    <summary>Summary 2</summary>
+                </member>
+                """, DocumentationCommentCompiler.GetDocumentationCommentXml(method, processIncludes: true, cancellationToken: default));
         }
 
         [Fact]
@@ -1490,6 +1496,41 @@ partial class C
             }
         }
 
+        /// <summary>Counterpart to <see cref="PartialMethod_NoImplementation"/>.</summary>
+        [Fact]
+        public void PartialProperty_NoImplementation()
+        {
+            // Whole document XML does not include the member, but single symbol XML does include it
+            var source = @"
+partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int P { get; set; }
+}
+";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.RegularWithDocumentationComments);
+            var comp = CreateCompilation(tree, assemblyName: "Test");
+            var property = comp.GlobalNamespace.GetMember<PropertySymbol>("C.P");
+
+            AssertEx.AssertLinesEqual(expected: """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                    </members>
+                </doc>
+                """, actual: GetDocumentationCommentText(comp));
+
+            AssertEx.AssertLinesEqual("""
+                <member name="P:C.P">
+                    <summary>Summary 2</summary>
+                </member>
+                """, DocumentationCommentCompiler.GetDocumentationCommentXml(property, processIncludes: true, cancellationToken: default));
+        }
+
         /// <summary>Counterpart to <see cref="ExtendedPartialMethods_MultipleFiles"/>.</summary>
         [Fact]
         public void PartialProperties_MultipleFiles()
@@ -1590,6 +1631,43 @@ public partial class C
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             var actualB = GetDocumentationCommentText(compB);
             Assert.Equal(expected, actualB);
+        }
+
+        /// <summary>Counterpart to <see cref="PartialMethod_NoImplementation"/>.</summary>
+        [Fact]
+        public void PartialIndexer_NoImplementation()
+        {
+            // Whole document XML does not include the member, but single symbol XML does include it
+            var source = """
+                partial class C
+                {
+                    /// <summary>Summary 2</summary>
+                    /// <param name="p">My param</param>
+                    public partial int this[int p] { get; set; }
+                }
+                """;
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.RegularWithDocumentationComments);
+            var comp = CreateCompilation(tree, assemblyName: "Test");
+            var property = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+
+            AssertEx.AssertLinesEqual(expected: """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                    </members>
+                </doc>
+                """, actual: GetDocumentationCommentText(comp));
+
+            AssertEx.AssertLinesEqual("""
+                <member name="P:C.Item(System.Int32)">
+                    <summary>Summary 2</summary>
+                    <param name="p">My param</param>
+                </member>
+                """, DocumentationCommentCompiler.GetDocumentationCommentXml(property, processIncludes: true, cancellationToken: default));
         }
 
         /// <summary>Counterpart to <see cref="ExtendedPartialMethods_MultipleFiles_DefinitionComment"/>.</summary>
