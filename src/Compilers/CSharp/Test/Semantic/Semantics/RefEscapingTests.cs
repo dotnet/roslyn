@@ -2605,6 +2605,41 @@ class Program
             );
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73550")]
+        public void RefLikeEscapeMixingCallLegacy()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+            using System;
+            ref struct S1
+            {
+                public void M1(Span<int> span) { }
+                public readonly void M2(Span<int> span) { }
+            }
+
+            class G
+            {
+                void Go()
+                {
+                    S1 local = default;
+                    Span<int> span = stackalloc int[] { 42 };
+                    local.M1(span); // 1
+                    local.M2(span); // 2
+                }
+            }
+
+            """, options: TestOptions.Regular8);
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (14,9): error CS8350: This combination of arguments to 'S1.M1(Span<int>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local.M1(span); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local.M1(span)").WithArguments("S1.M1(System.Span<int>)", "span").WithLocation(14, 9),
+                // (14,18): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //         local.M1(span); // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(14, 18));
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]

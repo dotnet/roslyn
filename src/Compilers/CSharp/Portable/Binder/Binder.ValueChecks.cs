@@ -2142,11 +2142,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns the set of arguments to be considered for escape analysis of a method invocation.
-        /// Each argument is returned with the corresponding parameter and ref kind. Arguments are not
-        /// filtered - all arguments are included exactly once in the array, and the caller is responsible for
-        /// determining which arguments affect escape analysis. This method is used for method invocation
-        /// analysis, regardless of whether UseUpdatedEscapeRules is set.
+        /// Returns the set of arguments to be considered for escape analysis of a method invocation. This
+        /// set potentially includes the receiver of the method call.  Each argument is returned (only once)
+        /// with the corresponding parameter and ref kind.
+        /// 
+        /// No filtering like removing non-reflike types is done by this method. It is theh responsibility of
+        /// the caller to determine which arguments impact escape analysis.
+        ///
+        /// This method is used by for old and new escape rules to collect information.
         /// </summary>
         private void GetInvocationArgumentsForEscape(
             Symbol symbol,
@@ -2546,15 +2549,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint escapeTo = scopeOfTheContainingExpression;
 
             // collect all writeable ref-like arguments, including receiver
-            var receiverType = receiverOpt?.Type;
-            if (receiverType?.IsRefLikeOrAllowsRefLikeType() == true && !IsReceiverRefReadOnly(symbol))
-            {
-                // https://github.com/dotnet/roslyn/issues/73550:
-                // We do not have a test that demonstrates that the statement below makes a difference.
-                // If it is commented out, not a single test fails 
-                escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
-            }
-
             var escapeArguments = ArrayBuilder<EscapeArgument>.GetInstance();
             GetInvocationArgumentsForEscape(
                 symbol,
@@ -2574,8 +2568,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (ShouldInferDeclarationExpressionValEscape(argument, out _))
                     {
-                        // assume any expression variable is a valid mixing destination,
-                        // since we will infer a legal val-escape for it (if it doesn't already have a narrower one).
+                        // Any variable from a declaration expression is a valid mixing destination as we 
+                        // infer a legal value escape for it. It does not contribute input as it's declared
+                        // at this point (functions like an `out` in the new escape rules)
                         continue;
                     }
 
