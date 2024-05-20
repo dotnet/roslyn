@@ -16,6 +16,8 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// </summary>
 internal abstract partial class TypeRef : IEquatable<TypeRef>
 {
+    public static ITypeRefResolver DefaultResolver { get; } = new DefaultResolverImpl();
+
     private static readonly Dictionary<string, TypeRef> s_typeNameToLazyTypeMap = [];
 
     /// <summary>

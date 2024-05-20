@@ -85,7 +85,7 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
             return serializedResult;
         }
 
-        private static object DeserializeRequest(JsonElement? request, RequestHandlerMetadata metadata, JsonSerializerOptions options)
+        private object DeserializeRequest(JsonElement? request, RequestHandlerMetadata metadata, JsonSerializerOptions options)
         {
             if (request is null && metadata.RequestTypeRef is not null)
             {
@@ -100,7 +100,7 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
             object requestObject = NoValue.Instance;
             if (request is not null)
             {
-                requestObject = JsonSerializer.Deserialize(request.Value, metadata.RequestTypeRef!.GetResolvedType(), options)
+                requestObject = JsonSerializer.Deserialize(request.Value, _typeRefResolver.Resolve(metadata.RequestTypeRef)!, options)
                     ?? throw new InvalidOperationException($"Unable to deserialize {request} into {metadata.RequestTypeRef} for {metadata.HandlerDescription}");
             }
 

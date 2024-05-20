@@ -90,7 +90,7 @@ internal abstract class NewtonsoftLanguageServer<TRequestContext>(
             object requestObject = NoValue.Instance;
             if (request is not null)
             {
-                requestObject = request.ToObject(metadata.RequestTypeRef!.GetResolvedType(_typeRefResolver), jsonSerializer)
+                requestObject = request.ToObject(_typeRefResolver.Resolve(metadata.RequestTypeRef), jsonSerializer)
                     ?? throw new InvalidOperationException($"Unable to deserialize {request} into {metadata.RequestTypeRef} for {metadata.HandlerDescription}");
             }
 

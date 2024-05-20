@@ -6,17 +6,39 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 internal abstract partial class TypeRef
 {
-    public static ITypeRefResolver DefaultResolver { get; } = new DefaultResolverImpl();
-
     private sealed class DefaultResolverImpl : ITypeRefResolver
     {
-        public Type Resolve(TypeRef typeRef)
-            => Type.GetType(typeRef.TypeName)
-            ?? throw new InvalidOperationException($"Could not load type: '{typeRef.TypeName}'");
+        private static readonly Dictionary<string, Type> s_typeNameToTypeMap = [];
+
+        public Type? Resolve(TypeRef? typeRef)
+        {
+            if (typeRef is null)
+            {
+                return null;
+            }
+
+            lock (s_typeNameToTypeMap)
+            {
+                var typeName = typeRef.TypeName;
+
+                if (!s_typeNameToTypeMap.TryGetValue(typeName, out var result))
+                {
+                    result = LoadType(typeName);
+                    s_typeNameToTypeMap.Add(typeName, result);
+                }
+
+                return result;
+            }
+        }
+
+        private static Type LoadType(string typeName)
+            => Type.GetType(typeName)
+            ?? throw new InvalidOperationException($"Could not load type: '{typeName}'");
     }
 }
