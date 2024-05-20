@@ -116,6 +116,33 @@ build_metadata.Compile.ToRetrieve = def456
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
+        public void CanGetSectionsWithDifferentDriveCasing()
+        {
+            var config = ParseConfigFile(@"is_global = true
+
+[c:\goo\file.cs]
+build_metadata.compile.toretrieve = abc123
+
+[C:\goo\other.cs]
+build_metadata.compile.toretrieve = def456
+");
+
+            var set = AnalyzerConfigSet.Create(ImmutableArray.Create(config));
+
+            var sectionOptions = set.GetOptionsForSourcePath(@"c:\goo\file.cs");
+            Assert.Equal("abc123", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+
+            sectionOptions = set.GetOptionsForSourcePath(@"C:\goo\file.cs");
+            Assert.Equal("abc123", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+
+            sectionOptions = set.GetOptionsForSourcePath(@"C:\goo\other.cs");
+            Assert.Equal("def456", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+
+            sectionOptions = set.GetOptionsForSourcePath(@"c:\goo\other.cs");
+            Assert.Equal("def456", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
         public void WindowsPath()
         {
             const string path = "Z:\\bogus\\.editorconfig";
