@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
@@ -73,7 +74,7 @@ internal interface IStreamingFindReferencesProgress
     ValueTask OnCompletedAsync(CancellationToken cancellationToken);
 
     ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken);
-    ValueTask OnReferencesFoundAsync(ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken);
+    ValueTask OnReferencesFoundAsync(IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken);
 }
 
 internal interface IStreamingFindLiteralReferencesProgress

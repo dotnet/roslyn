@@ -7,7 +7,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -110,19 +112,29 @@ internal partial class FindReferencesSearchEngine
 
         async ValueTask DirectSymbolSearchAsync(ISymbol symbol, FindReferencesDocumentState state)
         {
-            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var referencesForFinder);
+            var channel = Channel.CreateUnbounded<FinderLocation>();
+
             foreach (var finder in _finders)
             {
                 finder.FindReferencesInDocument(
-                    symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, referencesForFinder, _options, cancellationToken);
+                    symbol, state, static (finderLocation, channel) => channel.Writer.TryWrite(finderLocation), channel, _options, cancellationToken);
             }
 
-            if (referencesForFinder.Count > 0)
-            {
-                var group = await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
-                var references = referencesForFinder.SelectAsArray(r => (group, symbol, r.Location));
+            // Transform the individual finder-location objects to "group/symbol/location" tuples.
+            await _progress.OnReferencesFoundAsync(
+                ReadAllAsync(channel.Reader.ReadAllAsync(cancellationToken), symbol, cancellationToken), cancellationToken).ConfigureAwait(false);
+        }
 
-                await _progress.OnReferencesFoundAsync(references, cancellationToken).ConfigureAwait(false);
+        async IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> ReadAllAsync(
+            IAsyncEnumerable<FinderLocation> locations, ISymbol symbol, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            SymbolGroup? group = null;
+
+            await foreach (var location in locations)
+            {
+                // The first time we see the location for a symbol, report its group.
+                group ??= await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+                yield return (group, symbol, location.Location);
             }
         }
 
@@ -144,7 +156,8 @@ internal partial class FindReferencesSearchEngine
                         var candidateGroup = await ReportGroupAsync(candidate, cancellationToken).ConfigureAwait(false);
 
                         var location = AbstractReferenceFinder.CreateReferenceLocation(state, token, candidateReason, cancellationToken);
-                        await _progress.OnReferencesFoundAsync([(candidateGroup, candidate, location)], cancellationToken).ConfigureAwait(false);
+                        await _progress.OnReferencesFoundAsync(
+                            IAsyncEnumerableExtensions.AsAsyncEnumerable([(candidateGroup, candidate, location)]), cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

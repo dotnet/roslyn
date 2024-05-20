@@ -108,7 +108,7 @@ internal abstract partial class AbstractFindUsagesService
         }
 
         public async ValueTask OnReferencesFoundAsync(
-            ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
+            IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
         {
             await ProducerConsumer<SourceReferenceItem>.RunParallelAsync(
                 source: references,

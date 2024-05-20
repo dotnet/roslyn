@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -225,18 +226,23 @@ namespace Microsoft.CodeAnalysis.Remote
                     (callback, cancellationToken) => callback.OnDefinitionFoundAsync(_callbackId, dehydratedGroup, cancellationToken), cancellationToken);
             }
 
-            public ValueTask OnReferencesFoundAsync(
-                ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references,
+            public async ValueTask OnReferencesFoundAsync(
+                IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references,
                 CancellationToken cancellationToken)
             {
-                var dehydrated = references.SelectAsArray(t =>
-                    (SerializableSymbolGroup.Dehydrate(_solution, t.group, cancellationToken),
-                     SerializableSymbolAndProjectId.Dehydrate(_solution, t.symbol, cancellationToken),
-                     SerializableReferenceLocation.Dehydrate(t.location, cancellationToken)));
+                using var _ = ArrayBuilder<(SerializableSymbolGroup, SerializableSymbolAndProjectId, SerializableReferenceLocation)>.GetInstance(out var result);
+                await foreach (var (group, symbol, location) in references)
+                {
+                    result.Add((
+                        SerializableSymbolGroup.Dehydrate(_solution, group, cancellationToken),
+                         SerializableSymbolAndProjectId.Dehydrate(_solution, symbol, cancellationToken),
+                         SerializableReferenceLocation.Dehydrate(location, cancellationToken)));
+                }
 
-                return _callback.InvokeAsync(
+                var dehydrated = result.ToImmutableAndClear();
+                await _callback.InvokeAsync(
                     (callback, cancellationToken) => callback.OnReferencesFoundAsync(
-                        _callbackId, dehydrated, cancellationToken), cancellationToken);
+                        _callbackId, dehydrated, cancellationToken), cancellationToken).ConfigureAwait(false);
             }
 
             public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
