@@ -284,7 +284,7 @@ internal enum FunctionId
     WorkCoordinator_Shutdown = 229,
 
     DiagnosticAnalyzerService_Analyzers = 230,
-    DiagnosticAnalyzerDriver_AnalyzerCrash = 231,
+    // DiagnosticAnalyzerDriver_AnalyzerCrash = 231, no longer use
     DiagnosticAnalyzerDriver_AnalyzerTypeCount = 232,
     // obsolete: PersistedSemanticVersion_Info = 233,
     StorageDatabase_Exceptions = 234,
@@ -317,8 +317,8 @@ internal enum FunctionId
     Tagger_Diagnostics_Updated = 259,
     SuggestedActions_HasSuggestedActionsAsync = 260,
     SuggestedActions_GetSuggestedActions = 261,
-    AnalyzerDependencyCheckingService_LogConflict = 262,
-    AnalyzerDependencyCheckingService_LogMissingDependency = 263,
+    // AnalyzerDependencyCheckingService_LogConflict = 262, no longer use
+    // AnalyzerDependencyCheckingService_LogMissingDependency = 263, no longer use
     VirtualMemory_MemoryLow = 264,
     Extension_Exception = 265,
 
