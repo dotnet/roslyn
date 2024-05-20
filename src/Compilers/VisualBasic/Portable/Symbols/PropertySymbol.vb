@@ -621,6 +621,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IPropertySymbol_PartialDefinitionPart As IPropertySymbol Implements IPropertySymbol.PartialDefinitionPart
+            Get
+                ' Feature not supported in VB
+                Return Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_PartialImplementationPart As IPropertySymbol Implements IPropertySymbol.PartialImplementationPart
+            Get
+                ' Feature not supported in VB
+                Return Nothing
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As SymbolVisitor)
             visitor.VisitProperty(Me)
         End Sub

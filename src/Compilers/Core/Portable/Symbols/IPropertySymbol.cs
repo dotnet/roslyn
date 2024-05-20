@@ -110,5 +110,17 @@ namespace Microsoft.CodeAnalysis
         /// The list of custom modifiers, if any, associated with the type of the property. 
         /// </summary>
         ImmutableArray<CustomModifier> TypeCustomModifiers { get; }
+
+        /// <summary>
+        /// If this is a partial property implementation part, returns the corresponding
+        /// definition part.  Otherwise null.
+        /// </summary>
+        IPropertySymbol? PartialDefinitionPart { get; }
+
+        /// <summary>
+        /// If this is a partial property definition part, returns the corresponding
+        /// implementation part.  Otherwise null.
+        /// </summary>
+        IPropertySymbol? PartialImplementationPart { get; }
     }
 }
