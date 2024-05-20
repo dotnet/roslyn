@@ -284,7 +284,7 @@ internal enum FunctionId
     WorkCoordinator_Shutdown = 229,
 
     DiagnosticAnalyzerService_Analyzers = 230,
-    // DiagnosticAnalyzerDriver_AnalyzerCrash = 231, no longer use
+    // DiagnosticAnalyzerDriver_AnalyzerCrash = 231, no longer used
     DiagnosticAnalyzerDriver_AnalyzerTypeCount = 232,
     // obsolete: PersistedSemanticVersion_Info = 233,
     StorageDatabase_Exceptions = 234,
