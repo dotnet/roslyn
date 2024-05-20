@@ -7956,4 +7956,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadAllowByRefLikeEnumerator" xml:space="preserve">
     <value>foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</value>
   </data>
+  <data name="IDS_FeatureFirstClassSpan" xml:space="preserve">
+    <value>first-class Span types</value>
+  </data>
 </root>

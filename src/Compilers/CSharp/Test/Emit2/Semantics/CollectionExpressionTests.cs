@@ -20658,20 +20658,20 @@ partial class Program
                 expectedOutput: IncludeExpectedOutput("[1, 2], [3, null], "));
             verifier.VerifyIL("Program.F1<T>", """
                 {
-                    // Code size       28 (0x1c)
-                    .maxstack  4
-                    IL_0000:  ldc.i4.2
-                    IL_0001:  newarr     "T"
-                    IL_0006:  dup
-                    IL_0007:  ldc.i4.0
-                    IL_0008:  ldarg.0
-                    IL_0009:  stelem     "T"
-                    IL_000e:  dup
-                    IL_000f:  ldc.i4.1
-                    IL_0010:  ldarg.1
-                    IL_0011:  stelem     "T"
-                    IL_0016:  call       "System.Span<T> System.Span<T>.op_Implicit(T[])"
-                    IL_001b:  ret
+                  // Code size       28 (0x1c)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.2
+                  IL_0001:  newarr     "T"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldarg.0
+                  IL_0009:  stelem     "T"
+                  IL_000e:  dup
+                  IL_000f:  ldc.i4.1
+                  IL_0010:  ldarg.1
+                  IL_0011:  stelem     "T"
+                  IL_0016:  newobj     "System.Span<T>..ctor(T[])"
+                  IL_001b:  ret
                 }
                 """);
             verifier.VerifyIL("Program.F2<T>", """
@@ -20688,7 +20688,7 @@ partial class Program
                   IL_000f:  ldc.i4.1
                   IL_0010:  ldarg.1
                   IL_0011:  stelem     "T"
-                  IL_0016:  call       "System.ReadOnlySpan<T> System.ReadOnlySpan<T>.op_Implicit(T[])"
+                  IL_0016:  newobj     "System.ReadOnlySpan<T>..ctor(T[])"
                   IL_001b:  ret
                 }
                 """);
@@ -28773,7 +28773,7 @@ partial class Program
                   IL_0017:  ldc.i4.0
                   IL_0018:  ldc.i4.1
                   IL_0019:  stelem.i4
-                  IL_001a:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+                  IL_001a:  newobj     "System.Span<int>..ctor(int[])"
                   IL_001f:  pop
                   IL_0020:  ret
                 }
@@ -28797,7 +28797,7 @@ partial class Program
                   IL_0011:  ldc.i4.0
                   IL_0012:  ldc.i4.1
                   IL_0013:  stelem.i4
-                  IL_0014:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+                  IL_0014:  newobj     "System.Span<int>..ctor(int[])"
                   IL_0019:  pop
                   IL_001a:  ret
                 }

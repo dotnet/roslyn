@@ -11744,7 +11744,7 @@ class Program
                 var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("00"));
                 verifier.VerifyIL("Program.F", """
 {
-  // Code size       48 (0x30)
+  // Code size       49 (0x31)
   .maxstack  3
   .locals init (System.Span<char> V_0, //s
                 System.Span<char> V_1,
@@ -11762,20 +11762,20 @@ class Program
   IL_000d:  ldloc.2
   IL_000e:  newobj     "System.Span<char>..ctor(void*, int)"
   IL_0013:  stloc.1
-  IL_0014:  br.s       IL_0022
-  IL_0016:  ldarg.0
-  IL_0017:  newarr     "char"
-  IL_001c:  call       "System.Span<char> System.Span<char>.op_Implicit(char[])"
-  IL_0021:  stloc.1
-  IL_0022:  ldloc.1
-  IL_0023:  stloc.0
-  IL_0024:  ldloca.s   V_0
-  IL_0026:  ldarg.0
-  IL_0027:  ldc.i4.1
-  IL_0028:  sub
-  IL_0029:  call       "ref char System.Span<char>.this[int].get"
-  IL_002e:  ldind.u2
-  IL_002f:  ret
+  IL_0014:  br.s       IL_0023
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  ldarg.0
+  IL_0019:  newarr     "char"
+  IL_001e:  call       "System.Span<char>..ctor(char[])"
+  IL_0023:  ldloc.1
+  IL_0024:  stloc.0
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  ldarg.0
+  IL_0028:  ldc.i4.1
+  IL_0029:  sub
+  IL_002a:  call       "ref char System.Span<char>.this[int].get"
+  IL_002f:  ldind.u2
+  IL_0030:  ret
 }
 """);
             }

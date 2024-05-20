@@ -547,31 +547,31 @@ class Test
 
             CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
-  // Code size       45 (0x2d)
-  .maxstack  2
+  // Code size       46 (0x2e)
+  .maxstack  3
   .locals init (System.ReadOnlySpan<byte> V_0,
                 int V_1)
-  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
-  IL_0005:  ldc.i4.3
-  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
-  IL_000b:  stloc.0
-  IL_000c:  ldc.i4.0
-  IL_000d:  stloc.1
-  IL_000e:  br.s       IL_0022
-  IL_0010:  ldloca.s   V_0
-  IL_0012:  ldloc.1
-  IL_0013:  call       ""ref readonly byte System.ReadOnlySpan<byte>.this[int].get""
-  IL_0018:  ldind.u1
-  IL_0019:  call       ""void System.Console.Write(int)""
-  IL_001e:  ldloc.1
-  IL_001f:  ldc.i4.1
-  IL_0020:  add
-  IL_0021:  stloc.1
-  IL_0022:  ldloc.1
-  IL_0023:  ldloca.s   V_0
-  IL_0025:  call       ""int System.ReadOnlySpan<byte>.Length.get""
-  IL_002a:  blt.s      IL_0010
-  IL_002c:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
+  IL_0007:  ldc.i4.3
+  IL_0008:  call       ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+  IL_000d:  ldc.i4.0
+  IL_000e:  stloc.1
+  IL_000f:  br.s       IL_0023
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  ldloc.1
+  IL_0014:  call       ""ref readonly byte System.ReadOnlySpan<byte>.this[int].get""
+  IL_0019:  ldind.u1
+  IL_001a:  call       ""void System.Console.Write(int)""
+  IL_001f:  ldloc.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  add
+  IL_0022:  stloc.1
+  IL_0023:  ldloc.1
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  call       ""int System.ReadOnlySpan<byte>.Length.get""
+  IL_002b:  blt.s      IL_0011
+  IL_002d:  ret
 }");
         }
 

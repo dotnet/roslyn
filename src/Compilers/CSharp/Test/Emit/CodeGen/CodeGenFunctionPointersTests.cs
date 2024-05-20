@@ -7167,7 +7167,7 @@ public class C
   IL_0000:  ldftn      ""System.Span<char> C.ChopSpan(System.Span<char>)""
   IL_0006:  stloc.0
   IL_0007:  ldsfld     ""char[] C.chars""
-  IL_000c:  call       ""System.Span<char> System.Span<char>.op_Implicit(char[])""
+  IL_000c:  newobj     ""System.Span<char>..ctor(char[])""
   IL_0011:  ldloc.0
   IL_0012:  calli      ""delegate*<System.Span<char>, System.Span<char>>""
   IL_0017:  call       ""System.ReadOnlySpan<char> System.Span<char>.op_Implicit(System.Span<char>)""

@@ -2368,62 +2368,62 @@ Caught");
 
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size      127 (0x7f)
-  .maxstack  4
+  // Code size      128 (0x80)
+  .maxstack  5
   .locals init (System.Span<char> V_0, //s
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
-  IL_0000:  ldc.i4.1
-  IL_0001:  newarr     ""char""
-  IL_0006:  dup
-  IL_0007:  ldc.i4.0
-  IL_0008:  ldc.i4.s   105
-  IL_000a:  stelem.i2
-  IL_000b:  call       ""System.Span<char> System.Span<char>.op_Implicit(char[])""
-  IL_0010:  stloc.0
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  newarr     ""char""
+  IL_0008:  dup
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.s   105
+  IL_000c:  stelem.i2
+  IL_000d:  call       ""System.Span<char>..ctor(char[])""
   .try
   {
-    IL_0011:  ldstr      ""Starting try""
-    IL_0016:  call       ""void System.Console.WriteLine(string)""
-    IL_001b:  newobj     ""MyException..ctor()""
-    IL_0020:  dup
-    IL_0021:  ldloca.s   V_0
-    IL_0023:  constrained. ""System.Span<char>""
-    IL_0029:  callvirt   ""string object.ToString()""
-    IL_002e:  callvirt   ""void MyException.Prop.set""
-    IL_0033:  throw
+    IL_0012:  ldstr      ""Starting try""
+    IL_0017:  call       ""void System.Console.WriteLine(string)""
+    IL_001c:  newobj     ""MyException..ctor()""
+    IL_0021:  dup
+    IL_0022:  ldloca.s   V_0
+    IL_0024:  constrained. ""System.Span<char>""
+    IL_002a:  callvirt   ""string object.ToString()""
+    IL_002f:  callvirt   ""void MyException.Prop.set""
+    IL_0034:  throw
   }
   filter
   {
-    IL_0034:  isinst     ""MyException""
-    IL_0039:  dup
-    IL_003a:  brtrue.s   IL_0040
-    IL_003c:  pop
-    IL_003d:  ldc.i4.0
-    IL_003e:  br.s       IL_006f
-    IL_0040:  callvirt   ""string object.ToString()""
-    IL_0045:  ldloca.s   V_1
-    IL_0047:  ldc.i4.0
-    IL_0048:  ldc.i4.1
-    IL_0049:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
-    IL_004e:  ldloca.s   V_1
-    IL_0050:  ldloc.0
-    IL_0051:  call       ""System.ReadOnlySpan<char> System.Span<char>.op_Implicit(System.Span<char>)""
-    IL_0056:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>)""
-    IL_005b:  ldloca.s   V_1
-    IL_005d:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-    IL_0062:  callvirt   ""string string.Trim()""
-    IL_0067:  call       ""bool string.op_Equality(string, string)""
-    IL_006c:  ldc.i4.0
-    IL_006d:  cgt.un
-    IL_006f:  endfilter
+    IL_0035:  isinst     ""MyException""
+    IL_003a:  dup
+    IL_003b:  brtrue.s   IL_0041
+    IL_003d:  pop
+    IL_003e:  ldc.i4.0
+    IL_003f:  br.s       IL_0070
+    IL_0041:  callvirt   ""string object.ToString()""
+    IL_0046:  ldloca.s   V_1
+    IL_0048:  ldc.i4.0
+    IL_0049:  ldc.i4.1
+    IL_004a:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+    IL_004f:  ldloca.s   V_1
+    IL_0051:  ldloc.0
+    IL_0052:  call       ""System.ReadOnlySpan<char> System.Span<char>.op_Implicit(System.Span<char>)""
+    IL_0057:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>)""
+    IL_005c:  ldloca.s   V_1
+    IL_005e:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+    IL_0063:  callvirt   ""string string.Trim()""
+    IL_0068:  call       ""bool string.op_Equality(string, string)""
+    IL_006d:  ldc.i4.0
+    IL_006e:  cgt.un
+    IL_0070:  endfilter
   }  // end filter
   {  // handler
-    IL_0071:  pop
-    IL_0072:  ldstr      ""Caught""
-    IL_0077:  call       ""void System.Console.WriteLine(string)""
-    IL_007c:  leave.s    IL_007e
+    IL_0072:  pop
+    IL_0073:  ldstr      ""Caught""
+    IL_0078:  call       ""void System.Console.WriteLine(string)""
+    IL_007d:  leave.s    IL_007f
   }
-  IL_007e:  ret
+  IL_007f:  ret
 }
 ");
     }

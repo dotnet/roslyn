@@ -2347,6 +2347,12 @@ namespace System
 
             public ReadOnlySpan(T[] arr)
             {
+                if (arr == null)
+                {
+                    this = default;
+                    return;
+                }
+
                 this.arr = arr;
                 this.Length = arr.Length;
             }

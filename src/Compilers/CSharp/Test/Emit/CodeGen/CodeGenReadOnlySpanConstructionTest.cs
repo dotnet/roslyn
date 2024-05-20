@@ -193,38 +193,33 @@ class Test
                 expectedOutput: type == "byte" ? "TrueTrue" : null,
                 verify: type == "byte" ? Verification.Passes : Verification.Skipped).VerifyIL("Test.Main", @$"
 {{
-  // Code size       77 (0x4d)
+  // Code size       75 (0x4b)
   .maxstack  2
   .locals init (System.ReadOnlySpan<{type}> V_0, //s1
-                System.ReadOnlySpan<{type}> V_1, //s2
-                System.ReadOnlySpan<{type}> V_2)
-  IL_0000:  ldloca.s   V_2
+                System.ReadOnlySpan<{type}> V_1) //s2
+  IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""System.ReadOnlySpan<{type}>""
-  IL_0008:  ldloc.2
-  IL_0009:  stloc.0
-  IL_000a:  ldloca.s   V_2
-  IL_000c:  initobj    ""System.ReadOnlySpan<{type}>""
-  IL_0012:  ldloc.2
-  IL_0013:  stloc.1
-  IL_0014:  ldloca.s   V_0
-  IL_0016:  call       ""int System.ReadOnlySpan<{type}>.Length.get""
-  IL_001b:  ldloca.s   V_1
-  IL_001d:  call       ""int System.ReadOnlySpan<{type}>.Length.get""
-  IL_0022:  ceq
-  IL_0024:  call       ""void System.Console.Write(bool)""
-  IL_0029:  ldnull
-  IL_002a:  call       ""System.ReadOnlySpan<{type}> System.ReadOnlySpan<{type}>.op_Implicit({type}[])""
-  IL_002f:  stloc.0
-  IL_0030:  ldnull
-  IL_0031:  call       ""System.ReadOnlySpan<{type}> System.ReadOnlySpan<{type}>.op_Implicit({type}[])""
-  IL_0036:  stloc.1
-  IL_0037:  ldloca.s   V_0
-  IL_0039:  call       ""int System.ReadOnlySpan<{type}>.Length.get""
-  IL_003e:  ldloca.s   V_1
-  IL_0040:  call       ""int System.ReadOnlySpan<{type}>.Length.get""
-  IL_0045:  ceq
-  IL_0047:  call       ""void System.Console.Write(bool)""
-  IL_004c:  ret
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  initobj    ""System.ReadOnlySpan<{type}>""
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""int System.ReadOnlySpan<{type}>.Length.get""
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       ""int System.ReadOnlySpan<{type}>.Length.get""
+  IL_001e:  ceq
+  IL_0020:  call       ""void System.Console.Write(bool)""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  ldnull
+  IL_0028:  call       ""System.ReadOnlySpan<{type}>..ctor({type}[])""
+  IL_002d:  ldloca.s   V_1
+  IL_002f:  ldnull
+  IL_0030:  call       ""System.ReadOnlySpan<{type}>..ctor({type}[])""
+  IL_0035:  ldloca.s   V_0
+  IL_0037:  call       ""int System.ReadOnlySpan<{type}>.Length.get""
+  IL_003c:  ldloca.s   V_1
+  IL_003e:  call       ""int System.ReadOnlySpan<{type}>.Length.get""
+  IL_0043:  ceq
+  IL_0045:  call       ""void System.Console.Write(bool)""
+  IL_004a:  ret
 }}");
         }
 
@@ -417,40 +412,40 @@ class Test
 
             CompileAndVerify(comp, expectedOutput: "3", verify: Verification.Passes).VerifyIL("Test.Main", @"
 {
-  // Code size       72 (0x48)
-  .maxstack  4
+  // Code size       73 (0x49)
+  .maxstack  5
   .locals init (System.ReadOnlySpan<object> V_0) //s1
-  IL_0000:  ldc.i4.4
-  IL_0001:  newarr     ""object""
-  IL_0006:  dup
-  IL_0007:  ldc.i4.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  box        ""int""
-  IL_000e:  stelem.ref
-  IL_000f:  dup
-  IL_0010:  ldc.i4.1
-  IL_0011:  ldc.i4.2
-  IL_0012:  box        ""int""
-  IL_0017:  stelem.ref
-  IL_0018:  dup
-  IL_0019:  ldc.i4.2
-  IL_001a:  ldstr      ""3""
-  IL_001f:  call       ""int int.Parse(string)""
-  IL_0024:  box        ""int""
-  IL_0029:  stelem.ref
-  IL_002a:  dup
-  IL_002b:  ldc.i4.3
-  IL_002c:  ldc.i4.4
-  IL_002d:  box        ""int""
-  IL_0032:  stelem.ref
-  IL_0033:  call       ""System.ReadOnlySpan<object> System.ReadOnlySpan<object>.op_Implicit(object[])""
-  IL_0038:  stloc.0
-  IL_0039:  ldloca.s   V_0
-  IL_003b:  ldc.i4.2
-  IL_003c:  call       ""ref readonly object System.ReadOnlySpan<object>.this[int].get""
-  IL_0041:  ldind.ref
-  IL_0042:  call       ""void System.Console.Write(object)""
-  IL_0047:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.4
+  IL_0003:  newarr     ""object""
+  IL_0008:  dup
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.1
+  IL_000b:  box        ""int""
+  IL_0010:  stelem.ref
+  IL_0011:  dup
+  IL_0012:  ldc.i4.1
+  IL_0013:  ldc.i4.2
+  IL_0014:  box        ""int""
+  IL_0019:  stelem.ref
+  IL_001a:  dup
+  IL_001b:  ldc.i4.2
+  IL_001c:  ldstr      ""3""
+  IL_0021:  call       ""int int.Parse(string)""
+  IL_0026:  box        ""int""
+  IL_002b:  stelem.ref
+  IL_002c:  dup
+  IL_002d:  ldc.i4.3
+  IL_002e:  ldc.i4.4
+  IL_002f:  box        ""int""
+  IL_0034:  stelem.ref
+  IL_0035:  call       ""System.ReadOnlySpan<object>..ctor(object[])""
+  IL_003a:  ldloca.s   V_0
+  IL_003c:  ldc.i4.2
+  IL_003d:  call       ""ref readonly object System.ReadOnlySpan<object>.this[int].get""
+  IL_0042:  ldind.ref
+  IL_0043:  call       ""void System.Console.Write(object)""
+  IL_0048:  ret
 }");
         }
 
@@ -658,20 +653,20 @@ class Test
             var cv = CompileAndVerify(comp, expectedOutput: "", verify: Verification.Passes);
             cv.VerifyIL("Test.<>c__1<T>.<M1>b__1_0(T[])", @"
 {
-  // Code size       17 (0x11)
+  // Code size       18 (0x12)
   .maxstack  2
   .locals init (System.ReadOnlySpan<T> V_0) //span
-  IL_0000:  ldarg.1
-  IL_0001:  call       ""System.ReadOnlySpan<T> System.ReadOnlySpan<T>.op_Implicit(T[])""
-  IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_0
-  IL_0009:  ldc.i4.0
-  IL_000a:  call       ""ref readonly T System.ReadOnlySpan<T>.this[int].get""
-  IL_000f:  pop
-  IL_0010:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldarg.1
+  IL_0003:  call       ""System.ReadOnlySpan<T>..ctor(T[])""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.0
+  IL_000b:  call       ""ref readonly T System.ReadOnlySpan<T>.this[int].get""
+  IL_0010:  pop
+  IL_0011:  ret
 }");
             cv.VerifyIL("Test.<M2>d__2<T>.System.Collections.IEnumerator.MoveNext()", @"{
-  // Code size       42 (0x2a)
+  // Code size       43 (0x2b)
   .maxstack  2
   .locals init (int V_0,
                 System.ReadOnlySpan<T> V_1) //span
@@ -685,16 +680,16 @@ class Test
   IL_000c:  ldarg.0
   IL_000d:  ldc.i4.m1
   IL_000e:  stfld      ""int Test.<M2>d__2<T>.<>1__state""
-  IL_0013:  ldarg.0
-  IL_0014:  ldfld      ""T[] Test.<M2>d__2<T>.a""
-  IL_0019:  call       ""System.ReadOnlySpan<T> System.ReadOnlySpan<T>.op_Implicit(T[])""
-  IL_001e:  stloc.1
-  IL_001f:  ldloca.s   V_1
-  IL_0021:  ldc.i4.0
-  IL_0022:  call       ""ref readonly T System.ReadOnlySpan<T>.this[int].get""
-  IL_0027:  pop
-  IL_0028:  ldc.i4.0
-  IL_0029:  ret
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  ldarg.0
+  IL_0016:  ldfld      ""T[] Test.<M2>d__2<T>.a""
+  IL_001b:  call       ""System.ReadOnlySpan<T>..ctor(T[])""
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  ldc.i4.0
+  IL_0023:  call       ""ref readonly T System.ReadOnlySpan<T>.this[int].get""
+  IL_0028:  pop
+  IL_0029:  ldc.i4.0
+  IL_002a:  ret
 }");
         }
 
@@ -725,18 +720,18 @@ public class X
 ", WithNullableEnable(TestOptions.ReleaseExe));
             var cv = CompileAndVerify(comp, expectedOutput: "100", verify: Verification.Passes);
             cv.VerifyIL("X.<>c__DisplayClass0_0<TSrc>.<Outer>b__0(int)", @"{
-  // Code size       26 (0x1a)
+  // Code size       27 (0x1b)
   .maxstack  2
   .locals init (System.ReadOnlySpan<TSrc> V_0) //s
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""TSrc[] X.<>c__DisplayClass0_0<TSrc>.a""
-  IL_0006:  call       ""System.ReadOnlySpan<TSrc> System.ReadOnlySpan<TSrc>.op_Implicit(TSrc[])""
-  IL_000b:  stloc.0
-  IL_000c:  ldloca.s   V_0
-  IL_000e:  ldarg.1
-  IL_000f:  call       ""ref readonly TSrc System.ReadOnlySpan<TSrc>.this[int].get""
-  IL_0014:  ldobj      ""TSrc""
-  IL_0019:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldarg.0
+  IL_0003:  ldfld      ""TSrc[] X.<>c__DisplayClass0_0<TSrc>.a""
+  IL_0008:  call       ""System.ReadOnlySpan<TSrc>..ctor(TSrc[])""
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldarg.1
+  IL_0010:  call       ""ref readonly TSrc System.ReadOnlySpan<TSrc>.this[int].get""
+  IL_0015:  ldobj      ""TSrc""
+  IL_001a:  ret
 }");
         }
 
@@ -913,7 +908,7 @@ public class Test
   IL_000c:  ldc.i4.1
   IL_000d:  ldc.i4.s   20
   IL_000f:  stelem.i1
-  IL_0010:  call       ""System.ReadOnlySpan<byte> System.ReadOnlySpan<byte>.op_Implicit(byte[])""
+  IL_0010:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[])""
   IL_0015:  ret
 }
 ";
@@ -1475,7 +1470,7 @@ public class Test
         return s[0];
     }}
 }}";
-            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseDll, TestOptions.Regular12);
             compilation.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle);
             compilation.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
 
@@ -1498,6 +1493,14 @@ public class Test
   IL_0020:  ret
 }}
 ");
+
+            compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseDll);
+            compilation.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle);
+            compilation.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
+            compilation.VerifyDiagnostics(
+                // (6,38): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1..ctor'
+                //         System.ReadOnlySpan<int> s = new int[] { 1, 2, 4, 8, 16, 32, 64, 128 };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new int[] { 1, 2, 4, 8, 16, 32, 64, 128 }").WithArguments("System.ReadOnlySpan`1", ".ctor").WithLocation(6, 38));
         }
 
         [Fact]
@@ -1733,8 +1736,8 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: "34361843576", verify: Verification.Skipped, targetFramework: TargetFramework.Net70).VerifyIL("Test.Main", @"
 {
-  // Code size      528 (0x210)
-  .maxstack  2
+  // Code size      530 (0x212)
+  .maxstack  3
   .locals init (System.ReadOnlySpan<sbyte> V_0, //s1
                 System.ReadOnlySpan<byte> V_1, //s2
                 System.ReadOnlySpan<short> V_2, //s3
@@ -1764,246 +1767,246 @@ class Test
                 ulong V_26, //v8
                 System.ReadOnlySpan<char> V_27,
                 char V_28) //v9
-  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
-  IL_0005:  ldc.i4.s   32
-  IL_0007:  newobj     ""System.ReadOnlySpan<sbyte>..ctor(void*, int)""
-  IL_000c:  stloc.0
-  IL_000d:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
-  IL_0012:  ldc.i4.s   32
-  IL_0014:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
-  IL_0019:  stloc.1
-  IL_001a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32_Align=2 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40512""
-  IL_001f:  call       ""System.ReadOnlySpan<short> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<short>(System.RuntimeFieldHandle)""
-  IL_0024:  stloc.2
-  IL_0025:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32_Align=2 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40512""
-  IL_002a:  call       ""System.ReadOnlySpan<ushort> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<ushort>(System.RuntimeFieldHandle)""
-  IL_002f:  stloc.3
-  IL_0030:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32_Align=4 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40514""
-  IL_0035:  call       ""System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)""
-  IL_003a:  stloc.s    V_4
-  IL_003c:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32_Align=4 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40514""
-  IL_0041:  call       ""System.ReadOnlySpan<uint> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<uint>(System.RuntimeFieldHandle)""
-  IL_0046:  stloc.s    V_5
-  IL_0048:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32_Align=8 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40518""
-  IL_004d:  call       ""System.ReadOnlySpan<long> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<long>(System.RuntimeFieldHandle)""
-  IL_0052:  stloc.s    V_6
-  IL_0054:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32_Align=8 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40518""
-  IL_0059:  call       ""System.ReadOnlySpan<ulong> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<ulong>(System.RuntimeFieldHandle)""
-  IL_005e:  stloc.s    V_7
-  IL_0060:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32_Align=2 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40512""
-  IL_0065:  call       ""System.ReadOnlySpan<char> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<char>(System.RuntimeFieldHandle)""
-  IL_006a:  stloc.s    V_8
-  IL_006c:  ldc.i4.0
-  IL_006d:  conv.i8
-  IL_006e:  stloc.s    V_9
-  IL_0070:  ldloc.0
-  IL_0071:  stloc.s    V_10
-  IL_0073:  ldc.i4.0
-  IL_0074:  stloc.s    V_11
-  IL_0076:  br.s       IL_0092
-  IL_0078:  ldloca.s   V_10
-  IL_007a:  ldloc.s    V_11
-  IL_007c:  call       ""ref readonly sbyte System.ReadOnlySpan<sbyte>.this[int].get""
-  IL_0081:  ldind.i1
-  IL_0082:  stloc.s    V_12
-  IL_0084:  ldloc.s    V_9
-  IL_0086:  ldloc.s    V_12
-  IL_0088:  conv.i8
-  IL_0089:  add
-  IL_008a:  stloc.s    V_9
-  IL_008c:  ldloc.s    V_11
-  IL_008e:  ldc.i4.1
-  IL_008f:  add
-  IL_0090:  stloc.s    V_11
-  IL_0092:  ldloc.s    V_11
-  IL_0094:  ldloca.s   V_10
-  IL_0096:  call       ""int System.ReadOnlySpan<sbyte>.Length.get""
-  IL_009b:  blt.s      IL_0078
-  IL_009d:  ldloc.1
-  IL_009e:  stloc.s    V_13
-  IL_00a0:  ldc.i4.0
-  IL_00a1:  stloc.s    V_11
-  IL_00a3:  br.s       IL_00bf
-  IL_00a5:  ldloca.s   V_13
-  IL_00a7:  ldloc.s    V_11
-  IL_00a9:  call       ""ref readonly byte System.ReadOnlySpan<byte>.this[int].get""
-  IL_00ae:  ldind.u1
-  IL_00af:  stloc.s    V_14
-  IL_00b1:  ldloc.s    V_9
-  IL_00b3:  ldloc.s    V_14
-  IL_00b5:  conv.u8
-  IL_00b6:  add
-  IL_00b7:  stloc.s    V_9
-  IL_00b9:  ldloc.s    V_11
-  IL_00bb:  ldc.i4.1
-  IL_00bc:  add
-  IL_00bd:  stloc.s    V_11
-  IL_00bf:  ldloc.s    V_11
-  IL_00c1:  ldloca.s   V_13
-  IL_00c3:  call       ""int System.ReadOnlySpan<byte>.Length.get""
-  IL_00c8:  blt.s      IL_00a5
-  IL_00ca:  ldloc.2
-  IL_00cb:  stloc.s    V_15
-  IL_00cd:  ldc.i4.0
-  IL_00ce:  stloc.s    V_11
-  IL_00d0:  br.s       IL_00ec
-  IL_00d2:  ldloca.s   V_15
-  IL_00d4:  ldloc.s    V_11
-  IL_00d6:  call       ""ref readonly short System.ReadOnlySpan<short>.this[int].get""
-  IL_00db:  ldind.i2
-  IL_00dc:  stloc.s    V_16
-  IL_00de:  ldloc.s    V_9
-  IL_00e0:  ldloc.s    V_16
-  IL_00e2:  conv.i8
-  IL_00e3:  add
-  IL_00e4:  stloc.s    V_9
-  IL_00e6:  ldloc.s    V_11
-  IL_00e8:  ldc.i4.1
-  IL_00e9:  add
-  IL_00ea:  stloc.s    V_11
-  IL_00ec:  ldloc.s    V_11
-  IL_00ee:  ldloca.s   V_15
-  IL_00f0:  call       ""int System.ReadOnlySpan<short>.Length.get""
-  IL_00f5:  blt.s      IL_00d2
-  IL_00f7:  ldloc.3
-  IL_00f8:  stloc.s    V_17
-  IL_00fa:  ldc.i4.0
-  IL_00fb:  stloc.s    V_11
-  IL_00fd:  br.s       IL_0119
-  IL_00ff:  ldloca.s   V_17
-  IL_0101:  ldloc.s    V_11
-  IL_0103:  call       ""ref readonly ushort System.ReadOnlySpan<ushort>.this[int].get""
-  IL_0108:  ldind.u2
-  IL_0109:  stloc.s    V_18
-  IL_010b:  ldloc.s    V_9
-  IL_010d:  ldloc.s    V_18
-  IL_010f:  conv.u8
-  IL_0110:  add
-  IL_0111:  stloc.s    V_9
-  IL_0113:  ldloc.s    V_11
-  IL_0115:  ldc.i4.1
-  IL_0116:  add
-  IL_0117:  stloc.s    V_11
-  IL_0119:  ldloc.s    V_11
-  IL_011b:  ldloca.s   V_17
-  IL_011d:  call       ""int System.ReadOnlySpan<ushort>.Length.get""
-  IL_0122:  blt.s      IL_00ff
-  IL_0124:  ldloc.s    V_4
-  IL_0126:  stloc.s    V_19
-  IL_0128:  ldc.i4.0
-  IL_0129:  stloc.s    V_11
-  IL_012b:  br.s       IL_0147
-  IL_012d:  ldloca.s   V_19
-  IL_012f:  ldloc.s    V_11
-  IL_0131:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_0136:  ldind.i4
-  IL_0137:  stloc.s    V_20
-  IL_0139:  ldloc.s    V_9
-  IL_013b:  ldloc.s    V_20
-  IL_013d:  conv.i8
-  IL_013e:  add
-  IL_013f:  stloc.s    V_9
-  IL_0141:  ldloc.s    V_11
-  IL_0143:  ldc.i4.1
-  IL_0144:  add
-  IL_0145:  stloc.s    V_11
-  IL_0147:  ldloc.s    V_11
-  IL_0149:  ldloca.s   V_19
-  IL_014b:  call       ""int System.ReadOnlySpan<int>.Length.get""
-  IL_0150:  blt.s      IL_012d
-  IL_0152:  ldloc.s    V_5
-  IL_0154:  stloc.s    V_21
-  IL_0156:  ldc.i4.0
-  IL_0157:  stloc.s    V_11
-  IL_0159:  br.s       IL_0175
-  IL_015b:  ldloca.s   V_21
-  IL_015d:  ldloc.s    V_11
-  IL_015f:  call       ""ref readonly uint System.ReadOnlySpan<uint>.this[int].get""
-  IL_0164:  ldind.u4
-  IL_0165:  stloc.s    V_22
-  IL_0167:  ldloc.s    V_9
-  IL_0169:  ldloc.s    V_22
-  IL_016b:  conv.u8
-  IL_016c:  add
-  IL_016d:  stloc.s    V_9
-  IL_016f:  ldloc.s    V_11
-  IL_0171:  ldc.i4.1
-  IL_0172:  add
-  IL_0173:  stloc.s    V_11
-  IL_0175:  ldloc.s    V_11
-  IL_0177:  ldloca.s   V_21
-  IL_0179:  call       ""int System.ReadOnlySpan<uint>.Length.get""
-  IL_017e:  blt.s      IL_015b
-  IL_0180:  ldloc.s    V_6
-  IL_0182:  stloc.s    V_23
-  IL_0184:  ldc.i4.0
-  IL_0185:  stloc.s    V_11
-  IL_0187:  br.s       IL_01a2
-  IL_0189:  ldloca.s   V_23
-  IL_018b:  ldloc.s    V_11
-  IL_018d:  call       ""ref readonly long System.ReadOnlySpan<long>.this[int].get""
-  IL_0192:  ldind.i8
-  IL_0193:  stloc.s    V_24
-  IL_0195:  ldloc.s    V_9
-  IL_0197:  ldloc.s    V_24
-  IL_0199:  add
-  IL_019a:  stloc.s    V_9
-  IL_019c:  ldloc.s    V_11
-  IL_019e:  ldc.i4.1
-  IL_019f:  add
-  IL_01a0:  stloc.s    V_11
-  IL_01a2:  ldloc.s    V_11
-  IL_01a4:  ldloca.s   V_23
-  IL_01a6:  call       ""int System.ReadOnlySpan<long>.Length.get""
-  IL_01ab:  blt.s      IL_0189
-  IL_01ad:  ldloc.s    V_7
-  IL_01af:  stloc.s    V_25
-  IL_01b1:  ldc.i4.0
-  IL_01b2:  stloc.s    V_11
-  IL_01b4:  br.s       IL_01cf
-  IL_01b6:  ldloca.s   V_25
-  IL_01b8:  ldloc.s    V_11
-  IL_01ba:  call       ""ref readonly ulong System.ReadOnlySpan<ulong>.this[int].get""
-  IL_01bf:  ldind.i8
-  IL_01c0:  stloc.s    V_26
-  IL_01c2:  ldloc.s    V_9
-  IL_01c4:  ldloc.s    V_26
-  IL_01c6:  add
-  IL_01c7:  stloc.s    V_9
-  IL_01c9:  ldloc.s    V_11
-  IL_01cb:  ldc.i4.1
-  IL_01cc:  add
-  IL_01cd:  stloc.s    V_11
-  IL_01cf:  ldloc.s    V_11
-  IL_01d1:  ldloca.s   V_25
-  IL_01d3:  call       ""int System.ReadOnlySpan<ulong>.Length.get""
-  IL_01d8:  blt.s      IL_01b6
-  IL_01da:  ldloc.s    V_8
-  IL_01dc:  stloc.s    V_27
-  IL_01de:  ldc.i4.0
-  IL_01df:  stloc.s    V_11
-  IL_01e1:  br.s       IL_01fd
-  IL_01e3:  ldloca.s   V_27
-  IL_01e5:  ldloc.s    V_11
-  IL_01e7:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
-  IL_01ec:  ldind.u2
-  IL_01ed:  stloc.s    V_28
-  IL_01ef:  ldloc.s    V_9
-  IL_01f1:  ldloc.s    V_28
-  IL_01f3:  conv.u8
-  IL_01f4:  add
-  IL_01f5:  stloc.s    V_9
-  IL_01f7:  ldloc.s    V_11
-  IL_01f9:  ldc.i4.1
-  IL_01fa:  add
-  IL_01fb:  stloc.s    V_11
-  IL_01fd:  ldloc.s    V_11
-  IL_01ff:  ldloca.s   V_27
-  IL_0201:  call       ""int System.ReadOnlySpan<char>.Length.get""
-  IL_0206:  blt.s      IL_01e3
-  IL_0208:  ldloc.s    V_9
-  IL_020a:  call       ""void System.Console.Write(long)""
-  IL_020f:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
+  IL_0007:  ldc.i4.s   32
+  IL_0009:  call       ""System.ReadOnlySpan<sbyte>..ctor(void*, int)""
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
+  IL_0015:  ldc.i4.s   32
+  IL_0017:  call       ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+  IL_001c:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32_Align=2 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40512""
+  IL_0021:  call       ""System.ReadOnlySpan<short> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<short>(System.RuntimeFieldHandle)""
+  IL_0026:  stloc.2
+  IL_0027:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32_Align=2 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40512""
+  IL_002c:  call       ""System.ReadOnlySpan<ushort> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<ushort>(System.RuntimeFieldHandle)""
+  IL_0031:  stloc.3
+  IL_0032:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32_Align=4 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40514""
+  IL_0037:  call       ""System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)""
+  IL_003c:  stloc.s    V_4
+  IL_003e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32_Align=4 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40514""
+  IL_0043:  call       ""System.ReadOnlySpan<uint> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<uint>(System.RuntimeFieldHandle)""
+  IL_0048:  stloc.s    V_5
+  IL_004a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32_Align=8 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40518""
+  IL_004f:  call       ""System.ReadOnlySpan<long> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<long>(System.RuntimeFieldHandle)""
+  IL_0054:  stloc.s    V_6
+  IL_0056:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32_Align=8 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40518""
+  IL_005b:  call       ""System.ReadOnlySpan<ulong> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<ulong>(System.RuntimeFieldHandle)""
+  IL_0060:  stloc.s    V_7
+  IL_0062:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32_Align=2 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C40512""
+  IL_0067:  call       ""System.ReadOnlySpan<char> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<char>(System.RuntimeFieldHandle)""
+  IL_006c:  stloc.s    V_8
+  IL_006e:  ldc.i4.0
+  IL_006f:  conv.i8
+  IL_0070:  stloc.s    V_9
+  IL_0072:  ldloc.0
+  IL_0073:  stloc.s    V_10
+  IL_0075:  ldc.i4.0
+  IL_0076:  stloc.s    V_11
+  IL_0078:  br.s       IL_0094
+  IL_007a:  ldloca.s   V_10
+  IL_007c:  ldloc.s    V_11
+  IL_007e:  call       ""ref readonly sbyte System.ReadOnlySpan<sbyte>.this[int].get""
+  IL_0083:  ldind.i1
+  IL_0084:  stloc.s    V_12
+  IL_0086:  ldloc.s    V_9
+  IL_0088:  ldloc.s    V_12
+  IL_008a:  conv.i8
+  IL_008b:  add
+  IL_008c:  stloc.s    V_9
+  IL_008e:  ldloc.s    V_11
+  IL_0090:  ldc.i4.1
+  IL_0091:  add
+  IL_0092:  stloc.s    V_11
+  IL_0094:  ldloc.s    V_11
+  IL_0096:  ldloca.s   V_10
+  IL_0098:  call       ""int System.ReadOnlySpan<sbyte>.Length.get""
+  IL_009d:  blt.s      IL_007a
+  IL_009f:  ldloc.1
+  IL_00a0:  stloc.s    V_13
+  IL_00a2:  ldc.i4.0
+  IL_00a3:  stloc.s    V_11
+  IL_00a5:  br.s       IL_00c1
+  IL_00a7:  ldloca.s   V_13
+  IL_00a9:  ldloc.s    V_11
+  IL_00ab:  call       ""ref readonly byte System.ReadOnlySpan<byte>.this[int].get""
+  IL_00b0:  ldind.u1
+  IL_00b1:  stloc.s    V_14
+  IL_00b3:  ldloc.s    V_9
+  IL_00b5:  ldloc.s    V_14
+  IL_00b7:  conv.u8
+  IL_00b8:  add
+  IL_00b9:  stloc.s    V_9
+  IL_00bb:  ldloc.s    V_11
+  IL_00bd:  ldc.i4.1
+  IL_00be:  add
+  IL_00bf:  stloc.s    V_11
+  IL_00c1:  ldloc.s    V_11
+  IL_00c3:  ldloca.s   V_13
+  IL_00c5:  call       ""int System.ReadOnlySpan<byte>.Length.get""
+  IL_00ca:  blt.s      IL_00a7
+  IL_00cc:  ldloc.2
+  IL_00cd:  stloc.s    V_15
+  IL_00cf:  ldc.i4.0
+  IL_00d0:  stloc.s    V_11
+  IL_00d2:  br.s       IL_00ee
+  IL_00d4:  ldloca.s   V_15
+  IL_00d6:  ldloc.s    V_11
+  IL_00d8:  call       ""ref readonly short System.ReadOnlySpan<short>.this[int].get""
+  IL_00dd:  ldind.i2
+  IL_00de:  stloc.s    V_16
+  IL_00e0:  ldloc.s    V_9
+  IL_00e2:  ldloc.s    V_16
+  IL_00e4:  conv.i8
+  IL_00e5:  add
+  IL_00e6:  stloc.s    V_9
+  IL_00e8:  ldloc.s    V_11
+  IL_00ea:  ldc.i4.1
+  IL_00eb:  add
+  IL_00ec:  stloc.s    V_11
+  IL_00ee:  ldloc.s    V_11
+  IL_00f0:  ldloca.s   V_15
+  IL_00f2:  call       ""int System.ReadOnlySpan<short>.Length.get""
+  IL_00f7:  blt.s      IL_00d4
+  IL_00f9:  ldloc.3
+  IL_00fa:  stloc.s    V_17
+  IL_00fc:  ldc.i4.0
+  IL_00fd:  stloc.s    V_11
+  IL_00ff:  br.s       IL_011b
+  IL_0101:  ldloca.s   V_17
+  IL_0103:  ldloc.s    V_11
+  IL_0105:  call       ""ref readonly ushort System.ReadOnlySpan<ushort>.this[int].get""
+  IL_010a:  ldind.u2
+  IL_010b:  stloc.s    V_18
+  IL_010d:  ldloc.s    V_9
+  IL_010f:  ldloc.s    V_18
+  IL_0111:  conv.u8
+  IL_0112:  add
+  IL_0113:  stloc.s    V_9
+  IL_0115:  ldloc.s    V_11
+  IL_0117:  ldc.i4.1
+  IL_0118:  add
+  IL_0119:  stloc.s    V_11
+  IL_011b:  ldloc.s    V_11
+  IL_011d:  ldloca.s   V_17
+  IL_011f:  call       ""int System.ReadOnlySpan<ushort>.Length.get""
+  IL_0124:  blt.s      IL_0101
+  IL_0126:  ldloc.s    V_4
+  IL_0128:  stloc.s    V_19
+  IL_012a:  ldc.i4.0
+  IL_012b:  stloc.s    V_11
+  IL_012d:  br.s       IL_0149
+  IL_012f:  ldloca.s   V_19
+  IL_0131:  ldloc.s    V_11
+  IL_0133:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
+  IL_0138:  ldind.i4
+  IL_0139:  stloc.s    V_20
+  IL_013b:  ldloc.s    V_9
+  IL_013d:  ldloc.s    V_20
+  IL_013f:  conv.i8
+  IL_0140:  add
+  IL_0141:  stloc.s    V_9
+  IL_0143:  ldloc.s    V_11
+  IL_0145:  ldc.i4.1
+  IL_0146:  add
+  IL_0147:  stloc.s    V_11
+  IL_0149:  ldloc.s    V_11
+  IL_014b:  ldloca.s   V_19
+  IL_014d:  call       ""int System.ReadOnlySpan<int>.Length.get""
+  IL_0152:  blt.s      IL_012f
+  IL_0154:  ldloc.s    V_5
+  IL_0156:  stloc.s    V_21
+  IL_0158:  ldc.i4.0
+  IL_0159:  stloc.s    V_11
+  IL_015b:  br.s       IL_0177
+  IL_015d:  ldloca.s   V_21
+  IL_015f:  ldloc.s    V_11
+  IL_0161:  call       ""ref readonly uint System.ReadOnlySpan<uint>.this[int].get""
+  IL_0166:  ldind.u4
+  IL_0167:  stloc.s    V_22
+  IL_0169:  ldloc.s    V_9
+  IL_016b:  ldloc.s    V_22
+  IL_016d:  conv.u8
+  IL_016e:  add
+  IL_016f:  stloc.s    V_9
+  IL_0171:  ldloc.s    V_11
+  IL_0173:  ldc.i4.1
+  IL_0174:  add
+  IL_0175:  stloc.s    V_11
+  IL_0177:  ldloc.s    V_11
+  IL_0179:  ldloca.s   V_21
+  IL_017b:  call       ""int System.ReadOnlySpan<uint>.Length.get""
+  IL_0180:  blt.s      IL_015d
+  IL_0182:  ldloc.s    V_6
+  IL_0184:  stloc.s    V_23
+  IL_0186:  ldc.i4.0
+  IL_0187:  stloc.s    V_11
+  IL_0189:  br.s       IL_01a4
+  IL_018b:  ldloca.s   V_23
+  IL_018d:  ldloc.s    V_11
+  IL_018f:  call       ""ref readonly long System.ReadOnlySpan<long>.this[int].get""
+  IL_0194:  ldind.i8
+  IL_0195:  stloc.s    V_24
+  IL_0197:  ldloc.s    V_9
+  IL_0199:  ldloc.s    V_24
+  IL_019b:  add
+  IL_019c:  stloc.s    V_9
+  IL_019e:  ldloc.s    V_11
+  IL_01a0:  ldc.i4.1
+  IL_01a1:  add
+  IL_01a2:  stloc.s    V_11
+  IL_01a4:  ldloc.s    V_11
+  IL_01a6:  ldloca.s   V_23
+  IL_01a8:  call       ""int System.ReadOnlySpan<long>.Length.get""
+  IL_01ad:  blt.s      IL_018b
+  IL_01af:  ldloc.s    V_7
+  IL_01b1:  stloc.s    V_25
+  IL_01b3:  ldc.i4.0
+  IL_01b4:  stloc.s    V_11
+  IL_01b6:  br.s       IL_01d1
+  IL_01b8:  ldloca.s   V_25
+  IL_01ba:  ldloc.s    V_11
+  IL_01bc:  call       ""ref readonly ulong System.ReadOnlySpan<ulong>.this[int].get""
+  IL_01c1:  ldind.i8
+  IL_01c2:  stloc.s    V_26
+  IL_01c4:  ldloc.s    V_9
+  IL_01c6:  ldloc.s    V_26
+  IL_01c8:  add
+  IL_01c9:  stloc.s    V_9
+  IL_01cb:  ldloc.s    V_11
+  IL_01cd:  ldc.i4.1
+  IL_01ce:  add
+  IL_01cf:  stloc.s    V_11
+  IL_01d1:  ldloc.s    V_11
+  IL_01d3:  ldloca.s   V_25
+  IL_01d5:  call       ""int System.ReadOnlySpan<ulong>.Length.get""
+  IL_01da:  blt.s      IL_01b8
+  IL_01dc:  ldloc.s    V_8
+  IL_01de:  stloc.s    V_27
+  IL_01e0:  ldc.i4.0
+  IL_01e1:  stloc.s    V_11
+  IL_01e3:  br.s       IL_01ff
+  IL_01e5:  ldloca.s   V_27
+  IL_01e7:  ldloc.s    V_11
+  IL_01e9:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_01ee:  ldind.u2
+  IL_01ef:  stloc.s    V_28
+  IL_01f1:  ldloc.s    V_9
+  IL_01f3:  ldloc.s    V_28
+  IL_01f5:  conv.u8
+  IL_01f6:  add
+  IL_01f7:  stloc.s    V_9
+  IL_01f9:  ldloc.s    V_11
+  IL_01fb:  ldc.i4.1
+  IL_01fc:  add
+  IL_01fd:  stloc.s    V_11
+  IL_01ff:  ldloc.s    V_11
+  IL_0201:  ldloca.s   V_27
+  IL_0203:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0208:  blt.s      IL_01e5
+  IL_020a:  ldloc.s    V_9
+  IL_020c:  call       ""void System.Console.Write(long)""
+  IL_0211:  ret
 }");
         }
 
@@ -2046,7 +2049,7 @@ class Test
 
             CompileAndVerify(compilation, expectedOutput: "34361843576", verify: Verification.Skipped).VerifyIL("Test.Main", @"
 {
-  // Code size      720 (0x2d0)
+  // Code size      722 (0x2d2)
   .maxstack  3
   .locals init (System.ReadOnlySpan<sbyte> V_0, //s1
                 System.ReadOnlySpan<byte> V_1, //s2
@@ -2077,316 +2080,316 @@ class Test
                 ulong V_26, //v8
                 System.ReadOnlySpan<char> V_27,
                 char V_28) //v9
-  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
-  IL_0005:  ldc.i4.s   32
-  IL_0007:  newobj     ""System.ReadOnlySpan<sbyte>..ctor(void*, int)""
-  IL_000c:  stloc.0
-  IL_000d:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
-  IL_0012:  ldc.i4.s   32
-  IL_0014:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
-  IL_0019:  stloc.1
-  IL_001a:  ldsfld     ""short[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A5""
-  IL_001f:  dup
-  IL_0020:  brtrue.s   IL_003b
-  IL_0022:  pop
-  IL_0023:  ldc.i4.s   16
-  IL_0025:  newarr     ""short""
-  IL_002a:  dup
-  IL_002b:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
-  IL_0030:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0035:  dup
-  IL_0036:  stsfld     ""short[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A5""
-  IL_003b:  newobj     ""System.ReadOnlySpan<short>..ctor(short[])""
-  IL_0040:  stloc.2
-  IL_0041:  ldsfld     ""ushort[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A13""
-  IL_0046:  dup
-  IL_0047:  brtrue.s   IL_0062
-  IL_0049:  pop
-  IL_004a:  ldc.i4.s   16
-  IL_004c:  newarr     ""ushort""
-  IL_0051:  dup
-  IL_0052:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
-  IL_0057:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_005c:  dup
-  IL_005d:  stsfld     ""ushort[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A13""
-  IL_0062:  newobj     ""System.ReadOnlySpan<ushort>..ctor(ushort[])""
-  IL_0067:  stloc.3
-  IL_0068:  ldsfld     ""int[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A6""
-  IL_006d:  dup
-  IL_006e:  brtrue.s   IL_0088
-  IL_0070:  pop
-  IL_0071:  ldc.i4.8
-  IL_0072:  newarr     ""int""
-  IL_0077:  dup
-  IL_0078:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
-  IL_007d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0082:  dup
-  IL_0083:  stsfld     ""int[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A6""
-  IL_0088:  newobj     ""System.ReadOnlySpan<int>..ctor(int[])""
-  IL_008d:  stloc.s    V_4
-  IL_008f:  ldsfld     ""uint[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A14""
-  IL_0094:  dup
-  IL_0095:  brtrue.s   IL_00af
-  IL_0097:  pop
-  IL_0098:  ldc.i4.8
-  IL_0099:  newarr     ""uint""
-  IL_009e:  dup
-  IL_009f:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
-  IL_00a4:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_00a9:  dup
-  IL_00aa:  stsfld     ""uint[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A14""
-  IL_00af:  newobj     ""System.ReadOnlySpan<uint>..ctor(uint[])""
-  IL_00b4:  stloc.s    V_5
-  IL_00b6:  ldsfld     ""long[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A7""
-  IL_00bb:  dup
-  IL_00bc:  brtrue.s   IL_00d6
-  IL_00be:  pop
-  IL_00bf:  ldc.i4.4
-  IL_00c0:  newarr     ""long""
-  IL_00c5:  dup
-  IL_00c6:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
-  IL_00cb:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_00d0:  dup
-  IL_00d1:  stsfld     ""long[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A7""
-  IL_00d6:  newobj     ""System.ReadOnlySpan<long>..ctor(long[])""
-  IL_00db:  stloc.s    V_6
-  IL_00dd:  ldsfld     ""ulong[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A15""
-  IL_00e2:  dup
-  IL_00e3:  brtrue.s   IL_00fd
-  IL_00e5:  pop
-  IL_00e6:  ldc.i4.4
-  IL_00e7:  newarr     ""ulong""
-  IL_00ec:  dup
-  IL_00ed:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
-  IL_00f2:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_00f7:  dup
-  IL_00f8:  stsfld     ""ulong[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A15""
-  IL_00fd:  newobj     ""System.ReadOnlySpan<ulong>..ctor(ulong[])""
-  IL_0102:  stloc.s    V_7
-  IL_0104:  ldsfld     ""char[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A1""
-  IL_0109:  dup
-  IL_010a:  brtrue.s   IL_0125
-  IL_010c:  pop
-  IL_010d:  ldc.i4.s   16
-  IL_010f:  newarr     ""char""
-  IL_0114:  dup
-  IL_0115:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
-  IL_011a:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_011f:  dup
-  IL_0120:  stsfld     ""char[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A1""
-  IL_0125:  newobj     ""System.ReadOnlySpan<char>..ctor(char[])""
-  IL_012a:  stloc.s    V_8
-  IL_012c:  ldc.i4.0
-  IL_012d:  conv.i8
-  IL_012e:  stloc.s    V_9
-  IL_0130:  ldloc.0
-  IL_0131:  stloc.s    V_10
-  IL_0133:  ldc.i4.0
-  IL_0134:  stloc.s    V_11
-  IL_0136:  br.s       IL_0152
-  IL_0138:  ldloca.s   V_10
-  IL_013a:  ldloc.s    V_11
-  IL_013c:  call       ""ref readonly sbyte System.ReadOnlySpan<sbyte>.this[int].get""
-  IL_0141:  ldind.i1
-  IL_0142:  stloc.s    V_12
-  IL_0144:  ldloc.s    V_9
-  IL_0146:  ldloc.s    V_12
-  IL_0148:  conv.i8
-  IL_0149:  add
-  IL_014a:  stloc.s    V_9
-  IL_014c:  ldloc.s    V_11
-  IL_014e:  ldc.i4.1
-  IL_014f:  add
-  IL_0150:  stloc.s    V_11
-  IL_0152:  ldloc.s    V_11
-  IL_0154:  ldloca.s   V_10
-  IL_0156:  call       ""int System.ReadOnlySpan<sbyte>.Length.get""
-  IL_015b:  blt.s      IL_0138
-  IL_015d:  ldloc.1
-  IL_015e:  stloc.s    V_13
-  IL_0160:  ldc.i4.0
-  IL_0161:  stloc.s    V_11
-  IL_0163:  br.s       IL_017f
-  IL_0165:  ldloca.s   V_13
-  IL_0167:  ldloc.s    V_11
-  IL_0169:  call       ""ref readonly byte System.ReadOnlySpan<byte>.this[int].get""
-  IL_016e:  ldind.u1
-  IL_016f:  stloc.s    V_14
-  IL_0171:  ldloc.s    V_9
-  IL_0173:  ldloc.s    V_14
-  IL_0175:  conv.u8
-  IL_0176:  add
-  IL_0177:  stloc.s    V_9
-  IL_0179:  ldloc.s    V_11
-  IL_017b:  ldc.i4.1
-  IL_017c:  add
-  IL_017d:  stloc.s    V_11
-  IL_017f:  ldloc.s    V_11
-  IL_0181:  ldloca.s   V_13
-  IL_0183:  call       ""int System.ReadOnlySpan<byte>.Length.get""
-  IL_0188:  blt.s      IL_0165
-  IL_018a:  ldloc.2
-  IL_018b:  stloc.s    V_15
-  IL_018d:  ldc.i4.0
-  IL_018e:  stloc.s    V_11
-  IL_0190:  br.s       IL_01ac
-  IL_0192:  ldloca.s   V_15
-  IL_0194:  ldloc.s    V_11
-  IL_0196:  call       ""ref readonly short System.ReadOnlySpan<short>.this[int].get""
-  IL_019b:  ldind.i2
-  IL_019c:  stloc.s    V_16
-  IL_019e:  ldloc.s    V_9
-  IL_01a0:  ldloc.s    V_16
-  IL_01a2:  conv.i8
-  IL_01a3:  add
-  IL_01a4:  stloc.s    V_9
-  IL_01a6:  ldloc.s    V_11
-  IL_01a8:  ldc.i4.1
-  IL_01a9:  add
-  IL_01aa:  stloc.s    V_11
-  IL_01ac:  ldloc.s    V_11
-  IL_01ae:  ldloca.s   V_15
-  IL_01b0:  call       ""int System.ReadOnlySpan<short>.Length.get""
-  IL_01b5:  blt.s      IL_0192
-  IL_01b7:  ldloc.3
-  IL_01b8:  stloc.s    V_17
-  IL_01ba:  ldc.i4.0
-  IL_01bb:  stloc.s    V_11
-  IL_01bd:  br.s       IL_01d9
-  IL_01bf:  ldloca.s   V_17
-  IL_01c1:  ldloc.s    V_11
-  IL_01c3:  call       ""ref readonly ushort System.ReadOnlySpan<ushort>.this[int].get""
-  IL_01c8:  ldind.u2
-  IL_01c9:  stloc.s    V_18
-  IL_01cb:  ldloc.s    V_9
-  IL_01cd:  ldloc.s    V_18
-  IL_01cf:  conv.u8
-  IL_01d0:  add
-  IL_01d1:  stloc.s    V_9
-  IL_01d3:  ldloc.s    V_11
-  IL_01d5:  ldc.i4.1
-  IL_01d6:  add
-  IL_01d7:  stloc.s    V_11
-  IL_01d9:  ldloc.s    V_11
-  IL_01db:  ldloca.s   V_17
-  IL_01dd:  call       ""int System.ReadOnlySpan<ushort>.Length.get""
-  IL_01e2:  blt.s      IL_01bf
-  IL_01e4:  ldloc.s    V_4
-  IL_01e6:  stloc.s    V_19
-  IL_01e8:  ldc.i4.0
-  IL_01e9:  stloc.s    V_11
-  IL_01eb:  br.s       IL_0207
-  IL_01ed:  ldloca.s   V_19
-  IL_01ef:  ldloc.s    V_11
-  IL_01f1:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
-  IL_01f6:  ldind.i4
-  IL_01f7:  stloc.s    V_20
-  IL_01f9:  ldloc.s    V_9
-  IL_01fb:  ldloc.s    V_20
-  IL_01fd:  conv.i8
-  IL_01fe:  add
-  IL_01ff:  stloc.s    V_9
-  IL_0201:  ldloc.s    V_11
-  IL_0203:  ldc.i4.1
-  IL_0204:  add
-  IL_0205:  stloc.s    V_11
-  IL_0207:  ldloc.s    V_11
-  IL_0209:  ldloca.s   V_19
-  IL_020b:  call       ""int System.ReadOnlySpan<int>.Length.get""
-  IL_0210:  blt.s      IL_01ed
-  IL_0212:  ldloc.s    V_5
-  IL_0214:  stloc.s    V_21
-  IL_0216:  ldc.i4.0
-  IL_0217:  stloc.s    V_11
-  IL_0219:  br.s       IL_0235
-  IL_021b:  ldloca.s   V_21
-  IL_021d:  ldloc.s    V_11
-  IL_021f:  call       ""ref readonly uint System.ReadOnlySpan<uint>.this[int].get""
-  IL_0224:  ldind.u4
-  IL_0225:  stloc.s    V_22
-  IL_0227:  ldloc.s    V_9
-  IL_0229:  ldloc.s    V_22
-  IL_022b:  conv.u8
-  IL_022c:  add
-  IL_022d:  stloc.s    V_9
-  IL_022f:  ldloc.s    V_11
-  IL_0231:  ldc.i4.1
-  IL_0232:  add
-  IL_0233:  stloc.s    V_11
-  IL_0235:  ldloc.s    V_11
-  IL_0237:  ldloca.s   V_21
-  IL_0239:  call       ""int System.ReadOnlySpan<uint>.Length.get""
-  IL_023e:  blt.s      IL_021b
-  IL_0240:  ldloc.s    V_6
-  IL_0242:  stloc.s    V_23
-  IL_0244:  ldc.i4.0
-  IL_0245:  stloc.s    V_11
-  IL_0247:  br.s       IL_0262
-  IL_0249:  ldloca.s   V_23
-  IL_024b:  ldloc.s    V_11
-  IL_024d:  call       ""ref readonly long System.ReadOnlySpan<long>.this[int].get""
-  IL_0252:  ldind.i8
-  IL_0253:  stloc.s    V_24
-  IL_0255:  ldloc.s    V_9
-  IL_0257:  ldloc.s    V_24
-  IL_0259:  add
-  IL_025a:  stloc.s    V_9
-  IL_025c:  ldloc.s    V_11
-  IL_025e:  ldc.i4.1
-  IL_025f:  add
-  IL_0260:  stloc.s    V_11
-  IL_0262:  ldloc.s    V_11
-  IL_0264:  ldloca.s   V_23
-  IL_0266:  call       ""int System.ReadOnlySpan<long>.Length.get""
-  IL_026b:  blt.s      IL_0249
-  IL_026d:  ldloc.s    V_7
-  IL_026f:  stloc.s    V_25
-  IL_0271:  ldc.i4.0
-  IL_0272:  stloc.s    V_11
-  IL_0274:  br.s       IL_028f
-  IL_0276:  ldloca.s   V_25
-  IL_0278:  ldloc.s    V_11
-  IL_027a:  call       ""ref readonly ulong System.ReadOnlySpan<ulong>.this[int].get""
-  IL_027f:  ldind.i8
-  IL_0280:  stloc.s    V_26
-  IL_0282:  ldloc.s    V_9
-  IL_0284:  ldloc.s    V_26
-  IL_0286:  add
-  IL_0287:  stloc.s    V_9
-  IL_0289:  ldloc.s    V_11
-  IL_028b:  ldc.i4.1
-  IL_028c:  add
-  IL_028d:  stloc.s    V_11
-  IL_028f:  ldloc.s    V_11
-  IL_0291:  ldloca.s   V_25
-  IL_0293:  call       ""int System.ReadOnlySpan<ulong>.Length.get""
-  IL_0298:  blt.s      IL_0276
-  IL_029a:  ldloc.s    V_8
-  IL_029c:  stloc.s    V_27
-  IL_029e:  ldc.i4.0
-  IL_029f:  stloc.s    V_11
-  IL_02a1:  br.s       IL_02bd
-  IL_02a3:  ldloca.s   V_27
-  IL_02a5:  ldloc.s    V_11
-  IL_02a7:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
-  IL_02ac:  ldind.u2
-  IL_02ad:  stloc.s    V_28
-  IL_02af:  ldloc.s    V_9
-  IL_02b1:  ldloc.s    V_28
-  IL_02b3:  conv.u8
-  IL_02b4:  add
-  IL_02b5:  stloc.s    V_9
-  IL_02b7:  ldloc.s    V_11
-  IL_02b9:  ldc.i4.1
-  IL_02ba:  add
-  IL_02bb:  stloc.s    V_11
-  IL_02bd:  ldloc.s    V_11
-  IL_02bf:  ldloca.s   V_27
-  IL_02c1:  call       ""int System.ReadOnlySpan<char>.Length.get""
-  IL_02c6:  blt.s      IL_02a3
-  IL_02c8:  ldloc.s    V_9
-  IL_02ca:  call       ""void System.Console.Write(long)""
-  IL_02cf:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
+  IL_0007:  ldc.i4.s   32
+  IL_0009:  call       ""System.ReadOnlySpan<sbyte>..ctor(void*, int)""
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
+  IL_0015:  ldc.i4.s   32
+  IL_0017:  call       ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+  IL_001c:  ldsfld     ""short[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A5""
+  IL_0021:  dup
+  IL_0022:  brtrue.s   IL_003d
+  IL_0024:  pop
+  IL_0025:  ldc.i4.s   16
+  IL_0027:  newarr     ""short""
+  IL_002c:  dup
+  IL_002d:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
+  IL_0032:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0037:  dup
+  IL_0038:  stsfld     ""short[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A5""
+  IL_003d:  newobj     ""System.ReadOnlySpan<short>..ctor(short[])""
+  IL_0042:  stloc.2
+  IL_0043:  ldsfld     ""ushort[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A13""
+  IL_0048:  dup
+  IL_0049:  brtrue.s   IL_0064
+  IL_004b:  pop
+  IL_004c:  ldc.i4.s   16
+  IL_004e:  newarr     ""ushort""
+  IL_0053:  dup
+  IL_0054:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
+  IL_0059:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_005e:  dup
+  IL_005f:  stsfld     ""ushort[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A13""
+  IL_0064:  newobj     ""System.ReadOnlySpan<ushort>..ctor(ushort[])""
+  IL_0069:  stloc.3
+  IL_006a:  ldsfld     ""int[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A6""
+  IL_006f:  dup
+  IL_0070:  brtrue.s   IL_008a
+  IL_0072:  pop
+  IL_0073:  ldc.i4.8
+  IL_0074:  newarr     ""int""
+  IL_0079:  dup
+  IL_007a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
+  IL_007f:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0084:  dup
+  IL_0085:  stsfld     ""int[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A6""
+  IL_008a:  newobj     ""System.ReadOnlySpan<int>..ctor(int[])""
+  IL_008f:  stloc.s    V_4
+  IL_0091:  ldsfld     ""uint[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A14""
+  IL_0096:  dup
+  IL_0097:  brtrue.s   IL_00b1
+  IL_0099:  pop
+  IL_009a:  ldc.i4.8
+  IL_009b:  newarr     ""uint""
+  IL_00a0:  dup
+  IL_00a1:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
+  IL_00a6:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_00ab:  dup
+  IL_00ac:  stsfld     ""uint[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A14""
+  IL_00b1:  newobj     ""System.ReadOnlySpan<uint>..ctor(uint[])""
+  IL_00b6:  stloc.s    V_5
+  IL_00b8:  ldsfld     ""long[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A7""
+  IL_00bd:  dup
+  IL_00be:  brtrue.s   IL_00d8
+  IL_00c0:  pop
+  IL_00c1:  ldc.i4.4
+  IL_00c2:  newarr     ""long""
+  IL_00c7:  dup
+  IL_00c8:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
+  IL_00cd:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_00d2:  dup
+  IL_00d3:  stsfld     ""long[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A7""
+  IL_00d8:  newobj     ""System.ReadOnlySpan<long>..ctor(long[])""
+  IL_00dd:  stloc.s    V_6
+  IL_00df:  ldsfld     ""ulong[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A15""
+  IL_00e4:  dup
+  IL_00e5:  brtrue.s   IL_00ff
+  IL_00e7:  pop
+  IL_00e8:  ldc.i4.4
+  IL_00e9:  newarr     ""ulong""
+  IL_00ee:  dup
+  IL_00ef:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
+  IL_00f4:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_00f9:  dup
+  IL_00fa:  stsfld     ""ulong[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A15""
+  IL_00ff:  newobj     ""System.ReadOnlySpan<ulong>..ctor(ulong[])""
+  IL_0104:  stloc.s    V_7
+  IL_0106:  ldsfld     ""char[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A1""
+  IL_010b:  dup
+  IL_010c:  brtrue.s   IL_0127
+  IL_010e:  pop
+  IL_010f:  ldc.i4.s   16
+  IL_0111:  newarr     ""char""
+  IL_0116:  dup
+  IL_0117:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=32 <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051""
+  IL_011c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0121:  dup
+  IL_0122:  stsfld     ""char[] <PrivateImplementationDetails>.AF9613760F72635FBDB44A5A0A63C39F12AF30F950A6EE5C971BE188E89C4051_A1""
+  IL_0127:  newobj     ""System.ReadOnlySpan<char>..ctor(char[])""
+  IL_012c:  stloc.s    V_8
+  IL_012e:  ldc.i4.0
+  IL_012f:  conv.i8
+  IL_0130:  stloc.s    V_9
+  IL_0132:  ldloc.0
+  IL_0133:  stloc.s    V_10
+  IL_0135:  ldc.i4.0
+  IL_0136:  stloc.s    V_11
+  IL_0138:  br.s       IL_0154
+  IL_013a:  ldloca.s   V_10
+  IL_013c:  ldloc.s    V_11
+  IL_013e:  call       ""ref readonly sbyte System.ReadOnlySpan<sbyte>.this[int].get""
+  IL_0143:  ldind.i1
+  IL_0144:  stloc.s    V_12
+  IL_0146:  ldloc.s    V_9
+  IL_0148:  ldloc.s    V_12
+  IL_014a:  conv.i8
+  IL_014b:  add
+  IL_014c:  stloc.s    V_9
+  IL_014e:  ldloc.s    V_11
+  IL_0150:  ldc.i4.1
+  IL_0151:  add
+  IL_0152:  stloc.s    V_11
+  IL_0154:  ldloc.s    V_11
+  IL_0156:  ldloca.s   V_10
+  IL_0158:  call       ""int System.ReadOnlySpan<sbyte>.Length.get""
+  IL_015d:  blt.s      IL_013a
+  IL_015f:  ldloc.1
+  IL_0160:  stloc.s    V_13
+  IL_0162:  ldc.i4.0
+  IL_0163:  stloc.s    V_11
+  IL_0165:  br.s       IL_0181
+  IL_0167:  ldloca.s   V_13
+  IL_0169:  ldloc.s    V_11
+  IL_016b:  call       ""ref readonly byte System.ReadOnlySpan<byte>.this[int].get""
+  IL_0170:  ldind.u1
+  IL_0171:  stloc.s    V_14
+  IL_0173:  ldloc.s    V_9
+  IL_0175:  ldloc.s    V_14
+  IL_0177:  conv.u8
+  IL_0178:  add
+  IL_0179:  stloc.s    V_9
+  IL_017b:  ldloc.s    V_11
+  IL_017d:  ldc.i4.1
+  IL_017e:  add
+  IL_017f:  stloc.s    V_11
+  IL_0181:  ldloc.s    V_11
+  IL_0183:  ldloca.s   V_13
+  IL_0185:  call       ""int System.ReadOnlySpan<byte>.Length.get""
+  IL_018a:  blt.s      IL_0167
+  IL_018c:  ldloc.2
+  IL_018d:  stloc.s    V_15
+  IL_018f:  ldc.i4.0
+  IL_0190:  stloc.s    V_11
+  IL_0192:  br.s       IL_01ae
+  IL_0194:  ldloca.s   V_15
+  IL_0196:  ldloc.s    V_11
+  IL_0198:  call       ""ref readonly short System.ReadOnlySpan<short>.this[int].get""
+  IL_019d:  ldind.i2
+  IL_019e:  stloc.s    V_16
+  IL_01a0:  ldloc.s    V_9
+  IL_01a2:  ldloc.s    V_16
+  IL_01a4:  conv.i8
+  IL_01a5:  add
+  IL_01a6:  stloc.s    V_9
+  IL_01a8:  ldloc.s    V_11
+  IL_01aa:  ldc.i4.1
+  IL_01ab:  add
+  IL_01ac:  stloc.s    V_11
+  IL_01ae:  ldloc.s    V_11
+  IL_01b0:  ldloca.s   V_15
+  IL_01b2:  call       ""int System.ReadOnlySpan<short>.Length.get""
+  IL_01b7:  blt.s      IL_0194
+  IL_01b9:  ldloc.3
+  IL_01ba:  stloc.s    V_17
+  IL_01bc:  ldc.i4.0
+  IL_01bd:  stloc.s    V_11
+  IL_01bf:  br.s       IL_01db
+  IL_01c1:  ldloca.s   V_17
+  IL_01c3:  ldloc.s    V_11
+  IL_01c5:  call       ""ref readonly ushort System.ReadOnlySpan<ushort>.this[int].get""
+  IL_01ca:  ldind.u2
+  IL_01cb:  stloc.s    V_18
+  IL_01cd:  ldloc.s    V_9
+  IL_01cf:  ldloc.s    V_18
+  IL_01d1:  conv.u8
+  IL_01d2:  add
+  IL_01d3:  stloc.s    V_9
+  IL_01d5:  ldloc.s    V_11
+  IL_01d7:  ldc.i4.1
+  IL_01d8:  add
+  IL_01d9:  stloc.s    V_11
+  IL_01db:  ldloc.s    V_11
+  IL_01dd:  ldloca.s   V_17
+  IL_01df:  call       ""int System.ReadOnlySpan<ushort>.Length.get""
+  IL_01e4:  blt.s      IL_01c1
+  IL_01e6:  ldloc.s    V_4
+  IL_01e8:  stloc.s    V_19
+  IL_01ea:  ldc.i4.0
+  IL_01eb:  stloc.s    V_11
+  IL_01ed:  br.s       IL_0209
+  IL_01ef:  ldloca.s   V_19
+  IL_01f1:  ldloc.s    V_11
+  IL_01f3:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
+  IL_01f8:  ldind.i4
+  IL_01f9:  stloc.s    V_20
+  IL_01fb:  ldloc.s    V_9
+  IL_01fd:  ldloc.s    V_20
+  IL_01ff:  conv.i8
+  IL_0200:  add
+  IL_0201:  stloc.s    V_9
+  IL_0203:  ldloc.s    V_11
+  IL_0205:  ldc.i4.1
+  IL_0206:  add
+  IL_0207:  stloc.s    V_11
+  IL_0209:  ldloc.s    V_11
+  IL_020b:  ldloca.s   V_19
+  IL_020d:  call       ""int System.ReadOnlySpan<int>.Length.get""
+  IL_0212:  blt.s      IL_01ef
+  IL_0214:  ldloc.s    V_5
+  IL_0216:  stloc.s    V_21
+  IL_0218:  ldc.i4.0
+  IL_0219:  stloc.s    V_11
+  IL_021b:  br.s       IL_0237
+  IL_021d:  ldloca.s   V_21
+  IL_021f:  ldloc.s    V_11
+  IL_0221:  call       ""ref readonly uint System.ReadOnlySpan<uint>.this[int].get""
+  IL_0226:  ldind.u4
+  IL_0227:  stloc.s    V_22
+  IL_0229:  ldloc.s    V_9
+  IL_022b:  ldloc.s    V_22
+  IL_022d:  conv.u8
+  IL_022e:  add
+  IL_022f:  stloc.s    V_9
+  IL_0231:  ldloc.s    V_11
+  IL_0233:  ldc.i4.1
+  IL_0234:  add
+  IL_0235:  stloc.s    V_11
+  IL_0237:  ldloc.s    V_11
+  IL_0239:  ldloca.s   V_21
+  IL_023b:  call       ""int System.ReadOnlySpan<uint>.Length.get""
+  IL_0240:  blt.s      IL_021d
+  IL_0242:  ldloc.s    V_6
+  IL_0244:  stloc.s    V_23
+  IL_0246:  ldc.i4.0
+  IL_0247:  stloc.s    V_11
+  IL_0249:  br.s       IL_0264
+  IL_024b:  ldloca.s   V_23
+  IL_024d:  ldloc.s    V_11
+  IL_024f:  call       ""ref readonly long System.ReadOnlySpan<long>.this[int].get""
+  IL_0254:  ldind.i8
+  IL_0255:  stloc.s    V_24
+  IL_0257:  ldloc.s    V_9
+  IL_0259:  ldloc.s    V_24
+  IL_025b:  add
+  IL_025c:  stloc.s    V_9
+  IL_025e:  ldloc.s    V_11
+  IL_0260:  ldc.i4.1
+  IL_0261:  add
+  IL_0262:  stloc.s    V_11
+  IL_0264:  ldloc.s    V_11
+  IL_0266:  ldloca.s   V_23
+  IL_0268:  call       ""int System.ReadOnlySpan<long>.Length.get""
+  IL_026d:  blt.s      IL_024b
+  IL_026f:  ldloc.s    V_7
+  IL_0271:  stloc.s    V_25
+  IL_0273:  ldc.i4.0
+  IL_0274:  stloc.s    V_11
+  IL_0276:  br.s       IL_0291
+  IL_0278:  ldloca.s   V_25
+  IL_027a:  ldloc.s    V_11
+  IL_027c:  call       ""ref readonly ulong System.ReadOnlySpan<ulong>.this[int].get""
+  IL_0281:  ldind.i8
+  IL_0282:  stloc.s    V_26
+  IL_0284:  ldloc.s    V_9
+  IL_0286:  ldloc.s    V_26
+  IL_0288:  add
+  IL_0289:  stloc.s    V_9
+  IL_028b:  ldloc.s    V_11
+  IL_028d:  ldc.i4.1
+  IL_028e:  add
+  IL_028f:  stloc.s    V_11
+  IL_0291:  ldloc.s    V_11
+  IL_0293:  ldloca.s   V_25
+  IL_0295:  call       ""int System.ReadOnlySpan<ulong>.Length.get""
+  IL_029a:  blt.s      IL_0278
+  IL_029c:  ldloc.s    V_8
+  IL_029e:  stloc.s    V_27
+  IL_02a0:  ldc.i4.0
+  IL_02a1:  stloc.s    V_11
+  IL_02a3:  br.s       IL_02bf
+  IL_02a5:  ldloca.s   V_27
+  IL_02a7:  ldloc.s    V_11
+  IL_02a9:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_02ae:  ldind.u2
+  IL_02af:  stloc.s    V_28
+  IL_02b1:  ldloc.s    V_9
+  IL_02b3:  ldloc.s    V_28
+  IL_02b5:  conv.u8
+  IL_02b6:  add
+  IL_02b7:  stloc.s    V_9
+  IL_02b9:  ldloc.s    V_11
+  IL_02bb:  ldc.i4.1
+  IL_02bc:  add
+  IL_02bd:  stloc.s    V_11
+  IL_02bf:  ldloc.s    V_11
+  IL_02c1:  ldloca.s   V_27
+  IL_02c3:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_02c8:  blt.s      IL_02a5
+  IL_02ca:  ldloc.s    V_9
+  IL_02cc:  call       ""void System.Console.Write(long)""
+  IL_02d1:  ret
 }");
         }
 
@@ -2510,7 +2513,7 @@ public class Test
     }
 }";
 
-            var compilation = CreateCompilationWithIL(csharp, ilSource);
+            var compilation = CreateCompilationWithIL(csharp, ilSource, parseOptions: TestOptions.Regular12);
             var verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
 
             var expected =
@@ -2537,10 +2540,17 @@ public class Test
 
             // We should get the same IL with regular ReadOnlySpan implementation,
             // but with WellKnownMember.System_ReadOnlySpan_T__ctor_Array missing
-            compilation = CreateCompilationWithMscorlibAndSpan(csharp);
+            compilation = CreateCompilationWithMscorlibAndSpan(csharp, parseOptions: TestOptions.Regular12);
             compilation.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
             verifier = CompileAndVerify(compilation, verify: Verification.Skipped);
             verifier.VerifyIL("Test.StaticData.get", expected);
+
+            compilation = CreateCompilationWithMscorlibAndSpan(csharp);
+            compilation.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
+            compilation.VerifyDiagnostics(
+                // (6,51): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1..ctor'
+                //     public static ReadOnlySpan<int> StaticData => new int[] { 10, 20 };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new int[] { 10, 20 }").WithArguments("System.ReadOnlySpan`1", ".ctor").WithLocation(6, 51));
         }
 
         [Theory]
@@ -2761,7 +2771,7 @@ public class C
   .maxstack  1
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "object"
-  IL_0006:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.op_Implicit(object[])"
+  IL_0006:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
   IL_000b:  ret
 }
 """);
@@ -2772,7 +2782,7 @@ public class C
   .maxstack  1
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "C"
-  IL_0006:  call       "System.ReadOnlySpan<C> System.ReadOnlySpan<C>.op_Implicit(C[])"
+  IL_0006:  newobj     "System.ReadOnlySpan<C>..ctor(C[])"
   IL_000b:  ret
 }
 """);
@@ -2869,7 +2879,7 @@ public class C
         => new string[] { "hello", "world" };
 }
 """;
-            var compilation = CreateCompilationWithMscorlibAndSpan(src);
+            var compilation = CreateCompilationWithMscorlibAndSpan(src, parseOptions: TestOptions.Regular12);
             compilation.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
 
             var ilVerifyMessage = """
@@ -2897,6 +2907,13 @@ public class C
   IL_001b:  ret
 }
 """);
+
+            compilation = CreateCompilationWithMscorlibAndSpan(src);
+            compilation.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
+            compilation.VerifyDiagnostics(
+                // (7,12): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1..ctor'
+                //         => new string[] { "hello", "world" };
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new string[] { ""hello"", ""world"" }").WithArguments("System.ReadOnlySpan`1", ".ctor").WithLocation(7, 12));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
@@ -2944,7 +2961,7 @@ public class C
   IL_0017:  ldc.i4.1
   IL_0018:  ldloc.1
   IL_0019:  stelem.ref
-  IL_001a:  call       "System.ReadOnlySpan<string> System.ReadOnlySpan<string>.op_Implicit(string[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<string>..ctor(string[])"
   IL_001f:  ret
 }
 """);
@@ -3295,7 +3312,7 @@ public class C
   IL_0007:  ldc.i4.0
   IL_0008:  ldsfld     "System.DateTime C.dateTime"
   IL_000d:  stelem     "System.DateTime"
-  IL_0012:  call       "System.ReadOnlySpan<System.DateTime> System.ReadOnlySpan<System.DateTime>.op_Implicit(System.DateTime[])"
+  IL_0012:  newobj     "System.ReadOnlySpan<System.DateTime>..ctor(System.DateTime[])"
   IL_0017:  ret
 }
 """;
@@ -3415,7 +3432,7 @@ public class C
   .maxstack  1
   IL_0000:  ldc.i4.1
   IL_0001:  newarr     "S"
-  IL_0006:  call       "System.ReadOnlySpan<S> System.ReadOnlySpan<S>.op_Implicit(S[])"
+  IL_0006:  newobj     "System.ReadOnlySpan<S>..ctor(S[])"
   IL_000b:  ret
 }
 """);
@@ -3438,7 +3455,7 @@ public class C
   .maxstack  1
   IL_0000:  ldc.i4.1
   IL_0001:  newarr     "int?"
-  IL_0006:  call       "System.ReadOnlySpan<int?> System.ReadOnlySpan<int?>.op_Implicit(int?[])"
+  IL_0006:  newobj     "System.ReadOnlySpan<int?>..ctor(int?[])"
   IL_000b:  ret
 }
 """);
