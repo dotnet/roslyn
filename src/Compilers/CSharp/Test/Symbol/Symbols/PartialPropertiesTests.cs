@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -637,23 +639,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void Extern_01()
         {
-            // PROTOTYPE(partial-properties): test that appropriate flags are set in metadata for the property accessors.
-            // See ExtendedPartialMethodsTests.Extern_Symbols as a starting point.
             var source = """
-                partial class C
+                public partial class C
                 {
-                    partial int P { get; set; }
-                    extern partial int P { get; set; }
+                    public partial int P { get; set; }
+                    public extern partial int P { get; set; }
                 }
                 """;
-            var comp = CreateCompilation([source, IsExternalInitTypeDefinition]);
-            comp.VerifyEmitDiagnostics(
-                );
 
-            var prop = comp.GetMember<SourcePropertySymbol>("C.P");
-            // PROTOTYPE(partial-properties): a partial method definition should delegate to its implementation part to implement this API, i.e. return 'true' here
-            Assert.False(prop.GetPublicSymbol().IsExtern);
-            Assert.True(prop.PartialImplementationPart!.GetPublicSymbol().IsExtern);
+            var verifier = CompileAndVerify(
+                [source, IsExternalInitTypeDefinition],
+                sourceSymbolValidator: verifySource,
+                symbolValidator: verifyMetadata,
+                // PEVerify fails when extern methods lack an implementation
+                verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+
+            void verifySource(ModuleSymbol module)
+            {
+                var prop = module.GlobalNamespace.GetMember<SourcePropertySymbol>("C.P");
+                Assert.True(prop.GetPublicSymbol().IsExtern);
+                Assert.True(prop.GetMethod!.GetPublicSymbol().IsExtern);
+                Assert.True(prop.SetMethod!.GetPublicSymbol().IsExtern);
+                Assert.True(prop.PartialImplementationPart!.GetPublicSymbol().IsExtern);
+                Assert.True(prop.PartialImplementationPart!.GetMethod!.GetPublicSymbol().IsExtern);
+                Assert.True(prop.PartialImplementationPart!.SetMethod!.GetPublicSymbol().IsExtern);
+            }
+
+            void verifyMetadata(ModuleSymbol module)
+            {
+                var prop = module.GlobalNamespace.GetMember<PropertySymbol>("C.P");
+                // IsExtern doesn't round trip from metadata when DllImportAttribute is missing
+                // This is consistent with the behavior for methods
+                Assert.False(prop.GetPublicSymbol().IsExtern);
+                Assert.False(prop.GetMethod!.GetPublicSymbol().IsExtern);
+                Assert.False(prop.SetMethod!.GetPublicSymbol().IsExtern);
+            }
         }
 
         [Fact]
@@ -678,6 +699,134 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 //     extern partial int P { get; set; }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(4, 24)
                 );
+
+            var members = comp.GetMembers("C.P").SelectAsArray(m => (SourcePropertySymbol)m);
+            Assert.Equal(2, members.Length);
+            Assert.True(members[0].IsExtern);
+            Assert.True(members[0].IsPartialImplementation);
+            Assert.True(members[1].IsExtern);
+            Assert.True(members[1].IsPartialImplementation);
+        }
+
+        /// <summary>Based on <see cref="ExtendedPartialMethodsTests.Extern_Symbols" /> as a starting point.</summary>
+        [Fact]
+        public void Extern_03()
+        {
+            var source = """
+                using System.Runtime.InteropServices;
+
+                public partial class C
+                {
+                    public static partial int P { get; set; }
+                    public static extern partial int P
+                    {
+                        [DllImport("something.dll")]
+                        get;
+
+                        [DllImport("something.dll")]
+                        set;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, IsExternalInitTypeDefinition],
+                symbolValidator: module => verify(module, isSource: false),
+                sourceSymbolValidator: module => verify(module, isSource: true));
+            verifier.VerifyDiagnostics();
+
+            void verify(ModuleSymbol module, bool isSource)
+            {
+                var prop = module.GlobalNamespace.GetMember<PropertySymbol>("C.P");
+                Assert.True(prop.GetPublicSymbol().IsExtern);
+                verifyAccessor(prop.GetMethod!);
+                verifyAccessor(prop.SetMethod!);
+
+                if (isSource)
+                {
+                    var implPart = ((SourcePropertySymbol)prop).PartialImplementationPart!;
+                    Assert.True(implPart.GetPublicSymbol().IsExtern);
+                    verifyAccessor(implPart.GetMethod!);
+                    verifyAccessor(implPart.SetMethod!);
+                }
+            }
+
+            void verifyAccessor(MethodSymbol accessor)
+            {
+                Assert.True(accessor.GetPublicSymbol().IsExtern);
+
+                var importData = accessor.GetDllImportData()!;
+                Assert.NotNull(importData);
+                Assert.Equal("something.dll", importData.ModuleName);
+                Assert.Equal(accessor.MetadataName, importData.EntryPointName); // e.g. 'get_P'
+                Assert.Equal(CharSet.None, importData.CharacterSet);
+                Assert.False(importData.SetLastError);
+                Assert.False(importData.ExactSpelling);
+                Assert.Equal(MethodImplAttributes.PreserveSig, accessor.ImplementationAttributes);
+                Assert.Equal(CallingConvention.Winapi, importData.CallingConvention);
+                Assert.Null(importData.BestFitMapping);
+                Assert.Null(importData.ThrowOnUnmappableCharacter);
+            }
+        }
+
+        /// <summary>Based on 'AttributeTests_WellKnownAttributes.TestPseudoAttributes_DllImport_OperatorsAndAccessors'.</summary>
+        [Theory]
+        [CombinatorialData]
+        public void TestPseudoAttributes_DllImport(bool attributesOnDefinition)
+        {
+            var source = $$"""
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+public partial class C
+{
+    public static partial int F 
+    { 
+        {{(attributesOnDefinition ? @"[DllImport(""a"")]" : "")}} get;
+        {{(attributesOnDefinition ? @"[DllImport(""b"")]" : "")}} set;
+    }
+
+    public extern static partial int F 
+    { 
+        {{(attributesOnDefinition ? "" : @"[DllImport(""a"")]")}} get;
+        {{(attributesOnDefinition ? "" : @"[DllImport(""b"")]")}} set;
+    }
+}
+""";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
+            {
+                var metadataReader = assembly.GetMetadataReader();
+
+                // no backing fields should be generated -- all members are "extern" members:
+                Assert.Equal(0, metadataReader.FieldDefinitions.AsEnumerable().Count());
+
+                Assert.Equal(2, metadataReader.GetTableRowCount(TableIndex.ModuleRef));
+                Assert.Equal(2, metadataReader.GetTableRowCount(TableIndex.ImplMap));
+                var visitedEntryPoints = new Dictionary<string, bool>();
+
+                foreach (var method in metadataReader.GetImportedMethods())
+                {
+                    string moduleName = metadataReader.GetString(metadataReader.GetModuleReference(method.GetImport().Module).Name);
+                    string entryPointName = metadataReader.GetString(method.Name);
+                    switch (entryPointName)
+                    {
+                        case "get_F":
+                            Assert.Equal("a", moduleName);
+                            break;
+
+                        case "set_F":
+                            Assert.Equal("b", moduleName);
+                            break;
+
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(entryPointName);
+                    }
+
+                    // This throws if we visit one entry point name twice.
+                    visitedEntryPoints.Add(entryPointName, true);
+                }
+
+                Assert.Equal(2, visitedEntryPoints.Count);
+            });
         }
 
         [Fact]
@@ -4185,7 +4334,122 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(17, 30));
         }
 
+        [Fact]
+        public void IndexerParameterNameDifference()
+        {
+            var source = """
+                using System;
+
+                partial class C
+                {
+                    public partial int this[int p1] { get; set; }
+                    public partial int this[int p2] { get => p2; set { } }
+
+                    static void Main()
+                    {
+                        var c = new C();
+                        Console.Write(c[p1: 1]);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics(
+                // (6,24): warning CS9308: Partial property declarations 'int C.this[int p1]' and 'int C.this[int p2]' have signature differences.
+                //     public partial int this[int p2] { get => p2; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("int C.this[int p1]", "int C.this[int p2]").WithLocation(6, 24));
+
+            var indexer = ((CSharpCompilation)verifier.Compilation).GetMember<NamedTypeSymbol>("C").Indexers.Single();
+            Assert.Equal("p1", indexer.Parameters.Single().Name);
+        }
+
+        [Fact]
+        public void BindExpressionInPropertyWithoutAccessors()
+        {
+            // Exercise an assertion in 'BinderFactoryVisitor.VisitAccessorDeclaration'.
+            var source = """
+                class C
+                {
+                    int X = 1;
+                    public int P
+                    {
+                        Console.Write(X);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,9): warning CS0414: The field 'C.X' is assigned but its value is never used
+                //     int X = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("C.X").WithLocation(3, 9),
+                // (4,16): error CS0548: 'C.P': property or indexer must have at least one accessor
+                //     public int P
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("C.P").WithLocation(4, 16),
+                // (6,9): error CS1014: A get or set accessor expected
+                //         Console.Write(X);
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "Console").WithLocation(6, 9),
+                // (6,16): error CS1014: A get or set accessor expected
+                //         Console.Write(X);
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, ".").WithLocation(6, 16),
+                // (6,17): error CS1014: A get or set accessor expected
+                //         Console.Write(X);
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "Write").WithLocation(6, 17),
+                // (6,22): error CS1513: } expected
+                //         Console.Write(X);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(6, 22),
+                // (6,24): error CS8124: Tuple must contain at least two elements.
+                //         Console.Write(X);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(6, 24),
+                // (6,25): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //         Console.Write(X);
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 25),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.ToString() == "X").Last();
+            Assert.Equal(SyntaxKind.TupleElement, node.Parent!.Kind());
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
+        [Fact]
+        public void LangVersion_01()
+        {
+            var source = """
+                partial class C
+                {
+                    public partial int P { get; set; }
+                    public partial int P { get => 1; set { } }
+
+                    public partial int this[int i] { get; }
+                    public partial int this[int i] { get => i; }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyEmitDiagnostics(
+                // (3,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                //     public partial int P { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "preview").WithLocation(3, 24),
+                // (4,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                //     public partial int P { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "preview").WithLocation(4, 24),
+                // (6,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                //     public partial int this[int i] { get; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "preview").WithLocation(6, 24),
+                // (7,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                //     public partial int this[int i] { get => i; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "preview").WithLocation(7, 24));
+        }
+
         // PROTOTYPE(partial-properties): override partial property where base has modopt
-        // PROTOTYPE(partial-properties): test that doc comments work consistently with partial methods (and probably spec it as well)
     }
 }

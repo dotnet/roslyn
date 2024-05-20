@@ -486,9 +486,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.Abstract) != 0; }
         }
 
+        protected bool HasExternModifier
+        {
+            get
+            {
+                return (_modifiers & DeclarationModifiers.Extern) != 0;
+            }
+        }
+
         public override bool IsExtern
         {
-            get { return (_modifiers & DeclarationModifiers.Extern) != 0; }
+            get
+            {
+                return HasExternModifier;
+            }
         }
 
         public override bool IsStatic

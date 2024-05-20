@@ -384,6 +384,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasExplicitAccessMod = true;
             }
 
+            if ((mods & DeclarationModifiers.Partial) != 0)
+            {
+                Debug.Assert(location.SourceTree is not null);
+
+                LanguageVersion availableVersion = ((CSharpParseOptions)location.SourceTree.Options).LanguageVersion;
+                LanguageVersion requiredVersion = MessageID.IDS_FeaturePartialProperties.RequiredVersion();
+                if (availableVersion < requiredVersion)
+                {
+                    ModifierUtils.ReportUnsupportedModifiersForLanguageVersion(mods, DeclarationModifiers.Partial, location, diagnostics, availableVersion, requiredVersion);
+                }
+            }
+
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
 
             containingType.CheckUnsafeModifier(mods, location, diagnostics);
@@ -631,7 +643,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((!hasTypeDifferences && !MemberSignatureComparer.PartialMethodsStrictComparer.Equals(this, implementation))
-                // PROTOTYPE(partial-properties): test indexers with parameter name differences
                 || !Parameters.SequenceEqual(implementation.Parameters, (a, b) => a.Name == b.Name))
             {
                 diagnostics.Add(ErrorCode.WRN_PartialPropertySignatureDifference, implementation.GetFirstLocation(),
@@ -705,11 +716,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
             => (syntax as IndexerDeclarationSyntax)?.ParameterList;
 
+        public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : HasExternModifier;
+
         internal SourcePropertySymbol? OtherPartOfPartial => _otherPartOfPartial;
 
-        internal bool IsPartialDefinition => IsPartial && !AccessorsHaveImplementation && !IsExtern;
+        internal bool IsPartialDefinition => IsPartial && !AccessorsHaveImplementation && !HasExternModifier;
 
-        internal bool IsPartialImplementation => IsPartial && (AccessorsHaveImplementation || IsExtern);
+        internal bool IsPartialImplementation => IsPartial && (AccessorsHaveImplementation || HasExternModifier);
 
         internal SourcePropertySymbol? PartialDefinitionPart => IsPartialImplementation ? OtherPartOfPartial : null;
 

@@ -258,7 +258,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool shouldSkipPartialDefinitionComments = false;
             if (symbol.IsPartialDefinition())
             {
-                if (symbol is MethodSymbol { PartialImplementationPart: MethodSymbol implementationPart })
+                Symbol? implementationPart = symbol switch
+                {
+                    MethodSymbol method => method.PartialImplementationPart,
+                    SourcePropertySymbol property => property.PartialImplementationPart,
+                    _ => null
+                };
+
+                if (implementationPart is not null)
                 {
                     Visit(implementationPart);
 

@@ -1178,6 +1178,74 @@ public partial class C
         }
 
         [Fact]
+        public void Extern_Symbols_NoDllImport()
+        {
+            const string text1 = @"
+public partial class C
+{
+    public static partial void M1();
+
+    public static extern partial void M1();
+
+    public static void M2() { M1(); }
+}";
+
+            const string text2 = @"
+public partial class C
+{
+    public static partial void M1();
+
+    public static extern partial void M1();
+
+    public static void M2() { M1(); }
+}";
+            const string expectedIL = @"
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       ""void C.M1()""
+  IL_0005:  ret
+}";
+
+            var verifier = CompileAndVerify(
+                text1,
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                sourceSymbolValidator: module => validator(module, isSource: true),
+                symbolValidator: module => validator(module, isSource: false),
+                // PEVerify fails when extern methods lack an implementation
+                verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M2", expectedIL);
+
+            verifier = CompileAndVerify(
+                text2,
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                sourceSymbolValidator: module => validator(module, isSource: true),
+                symbolValidator: module => validator(module, isSource: false),
+                // PEVerify fails when extern methods lack an implementation
+                verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M2", expectedIL);
+
+            static void validator(ModuleSymbol module, bool isSource)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                var method = type.GetMember<MethodSymbol>("M1");
+
+                // 'IsExtern' is not round tripped when DllImport is missing
+                Assert.Equal(isSource, method.IsExtern);
+                if (method.PartialImplementationPart is MethodSymbol implementation)
+                {
+                    Assert.True(method.IsPartialDefinition());
+                    Assert.Equal(isSource, implementation.IsExtern);
+                }
+
+                var importData = method.GetDllImportData();
+                Assert.Null(importData);
+            }
+        }
+
+        [Fact]
         public void Async_01()
         {
             const string text = @"
