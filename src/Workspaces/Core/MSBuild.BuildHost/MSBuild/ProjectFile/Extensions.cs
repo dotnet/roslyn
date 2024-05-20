@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             var aliasesText = item.GetMetadata(MetadataNames.Aliases);
 
-            return !RoslynString.IsNullOrWhiteSpace(aliasesText)
+            return !string.IsNullOrWhiteSpace(aliasesText)
                 ? ImmutableArray.CreateRange(aliasesText.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(a => a.Trim()))
                 : [];
         }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             var referenceOutputAssemblyText = item.GetMetadata(MetadataNames.ReferenceOutputAssembly);
 
-            return RoslynString.IsNullOrWhiteSpace(referenceOutputAssemblyText) ||
+            return string.IsNullOrWhiteSpace(referenceOutputAssemblyText) ||
                 !string.Equals(referenceOutputAssemblyText, bool.FalseString, StringComparison.OrdinalIgnoreCase);
         }
 

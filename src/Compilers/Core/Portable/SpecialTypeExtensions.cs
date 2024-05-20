@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -364,5 +365,31 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static bool CanOptimizeBehavior(this SpecialType specialType)
             => specialType is >= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute;
+
+        /// <summary>
+        /// Convert a boxed primitive (generally of the backing type of an enum) into a ulong.
+        /// </summary>
+        internal static ulong ConvertUnderlyingValueToUInt64(this SpecialType enumUnderlyingType, object value)
+        {
+            RoslynDebug.Assert(value != null);
+            Debug.Assert(value.GetType().IsPrimitive);
+
+            unchecked
+            {
+                return enumUnderlyingType switch
+                {
+                    SpecialType.System_SByte => (ulong)(sbyte)value,
+                    SpecialType.System_Int16 => (ulong)(short)value,
+                    SpecialType.System_Int32 => (ulong)(int)value,
+                    SpecialType.System_Int64 => (ulong)(long)value,
+                    SpecialType.System_Byte => (byte)value,
+                    SpecialType.System_UInt16 => (ushort)value,
+                    SpecialType.System_UInt32 => (uint)value,
+                    SpecialType.System_UInt64 => (ulong)value,
+                    _ => throw ExceptionUtilities.UnexpectedValue(enumUnderlyingType),
+                };
+            }
+        }
+
     }
 }
