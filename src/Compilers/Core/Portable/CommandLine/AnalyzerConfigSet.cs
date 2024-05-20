@@ -185,23 +185,12 @@ namespace Microsoft.CodeAnalysis
 
             var normalizedPath = PathUtilities.CollapseWithForwardSlash(sourcePath.AsSpan());
             normalizedPath = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedPath);
+            normalizedPath = PathUtilities.NormalizeDriveLetter(normalizedPath);
 
             // If we have a global config, add any sections that match the full path. We can have at most one section since
             // we would have merged them earlier.
             foreach (var section in _globalConfig.NamedSections)
             {
-                if (!PathUtilities.IsUnixLikePlatform
-                    && section.Name.Length > 2
-                    && normalizedPath.Length > 2
-                    && normalizedPath[1] == PathUtilities.VolumeSeparatorChar
-                    && section.Name[1] == PathUtilities.VolumeSeparatorChar
-                    && char.ToUpperInvariant(normalizedPath[0]) == char.ToUpperInvariant(section.Name[0])
-                    && normalizedPath[2..].Equals(section.Name[2..], Section.NameComparer))
-                {
-                    sectionKey.Add(section);
-                    break;
-                }
-
                 if (normalizedPath.Equals(section.Name, Section.NameComparer))
                 {
                     sectionKey.Add(section);
