@@ -12,9 +12,10 @@
       - NetRoslynAll must include all .NET Core TFMS in any property below
   -->
   <PropertyGroup>
-    <!-- <Metalama> downgraded from .Net 8 to .Net 6 -->
-    <NetRoslyn>net6.0</NetRoslyn>
+    <NetRoslyn>net8.0</NetRoslyn>
+    <!-- <Metalama> added .Net 6 -->
     <NetRoslynAll>net6.0;net7.0;net8.0</NetRoslynAll>
+    <MetalamaNetRoslyn>net6.0;net8.0</MetalamaNetRoslyn>
     <!-- </Metalama> -->
     <NetVS>net8.0</NetVS>
     <NetVSCode>net8.0</NetVSCode>
@@ -64,8 +65,8 @@
     -->
     <Otherwise>
       <PropertyGroup>
-        <!-- <Metalama> downgraded -->
-        <NetRoslyn>net6.0</NetRoslyn>
+        <NetRoslyn>net8.0</NetRoslyn>
+        <!-- <Metalama> added .Net 6 -->
         <NetRoslynSourceBuild>net6.0;net7.0;net8.0</NetRoslynSourceBuild>
         <!-- </Metalama> -->
       </PropertyGroup>
