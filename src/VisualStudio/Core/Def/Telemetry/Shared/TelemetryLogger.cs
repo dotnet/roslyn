@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
@@ -27,14 +26,13 @@ internal abstract class TelemetryLogger : ILogger
             LogDelta = logDelta;
         }
 
-        public static new Implementation Create(TelemetrySession session, bool logDelta, IAsynchronousOperationListenerProvider asyncListenerProvider)
+        public static new Implementation Create(TelemetrySession session, bool logDelta)
         {
             var logger = new Implementation(session, logDelta);
-            var asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.Telemetry);
 
             // Two stage initialization as TelemetryLogProvider.Create needs access to
             //  the ILogger that this class implements.
-            TelemetryLogProvider.Create(session, logger, asyncListener);
+            TelemetryLogProvider.Create(session, logger);
 
             return logger;
         }
@@ -95,8 +93,8 @@ internal abstract class TelemetryLogger : ILogger
     private static string GetTelemetryName(FunctionId id, char separator)
         => Enum.GetName(typeof(FunctionId), id)!.Replace('_', separator).ToLowerInvariant();
 
-    public static TelemetryLogger Create(TelemetrySession session, bool logDelta, IAsynchronousOperationListenerProvider asyncListenerProvider)
-        => Implementation.Create(session, logDelta, asyncListenerProvider);
+    public static TelemetryLogger Create(TelemetrySession session, bool logDelta)
+        => Implementation.Create(session, logDelta);
 
     public abstract bool IsEnabled(FunctionId functionId);
     protected abstract void PostEvent(TelemetryEvent telemetryEvent);

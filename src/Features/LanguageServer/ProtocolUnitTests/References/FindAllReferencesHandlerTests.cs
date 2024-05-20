@@ -5,13 +5,15 @@
 #nullable disable
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
@@ -91,7 +93,7 @@ class B
             // with the test creating one, and the handler another, we have to unwrap.
             // Additionally, the VS LSP protocol specifies T from IProgress<T> as an object and not as the actual VSInternalReferenceItem
             // so we have to correctly convert the JObject into the expected type.
-            results = progress.GetValues().Select(reference => ((JArray)reference).ToObject<LSP.VSInternalReferenceItem[]>()).SelectMany(v => v).ToArray();
+            results = progress.GetValues().SelectMany(r => (List<object>)r).Select(r => JsonSerializer.Deserialize<LSP.VSInternalReferenceItem>((JsonElement)r, ProtocolConversions.LspJsonSerializerOptions)).ToArray();
 
             Assert.NotNull(results);
             Assert.NotEmpty(results);

@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the rename parameters for the textDocument/rename request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#renameParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class RenameParams : TextDocumentPositionParams
     {
         /// <summary>
         /// Gets or sets the new name of the renamed symbol.
         /// </summary>
-        [DataMember(Name = "newName")]
+        [JsonPropertyName("newName")]
         public string NewName
         {
             get;

@@ -472,7 +472,7 @@ class C
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
             Assert.False(result.HasChangesAndSyntaxErrors);
-            Assert.True(result.RudeEditErrors.IsEmpty);
+            Assert.True(result.RudeEdits.IsEmpty);
         }
 
         [Fact]
@@ -520,7 +520,7 @@ class C
                 Assert.True(result.HasChanges);
                 Assert.True(result.HasChangesAndErrors);
                 Assert.False(result.HasChangesAndSyntaxErrors);
-                Assert.Equal(RudeEditKind.ExperimentalFeaturesEnabled, result.RudeEditErrors.Single().Kind);
+                Assert.Equal(RudeEditKind.ExperimentalFeaturesEnabled, result.RudeEdits.Single().Kind);
             }
         }
 
@@ -680,7 +680,7 @@ namespace N
             }
 
             Assert.True(result.IsSingle());
-            Assert.Empty(result.Single().RudeEditErrors);
+            Assert.Empty(result.Single().RudeEdits);
         }
 
         [Fact]
@@ -726,7 +726,7 @@ class D
             }
 
             Assert.True(result.IsSingle());
-            Assert.Empty(result.Single().RudeEditErrors);
+            Assert.Empty(result.Single().RudeEdits);
         }
 
         [Theory, CombinatorialData]
@@ -765,7 +765,7 @@ class D
                 // here so that any trailing punctuation is removed from the translated template string.
                 : $"ENC0080: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1, filePath, "System.NullReferenceException: NullRef!\n")}".Split('\n').First();
 
-            AssertEx.Equal(new[] { expectedDiagnostic }, result.RudeEditErrors.Select(d => d.ToDiagnostic(newSyntaxTree))
+            AssertEx.Equal(new[] { expectedDiagnostic }, result.RudeEdits.Select(d => d.ToDiagnostic(newSyntaxTree))
                 .Select(d => $"{d.Id}: {d.GetMessage().Split(new[] { Environment.NewLine }, StringSplitOptions.None).First()}"));
         }
 
@@ -801,7 +801,7 @@ class C
 
             var result = await AnalyzeDocumentAsync(oldProject, newDocument, capabilities: EditAndContinueCapabilities.None);
 
-            Assert.Equal(RudeEditKind.NotSupportedByRuntime, result.RudeEditErrors.Single().Kind);
+            Assert.Equal(RudeEditKind.NotSupportedByRuntime, result.RudeEdits.Single().Kind);
         }
     }
 }

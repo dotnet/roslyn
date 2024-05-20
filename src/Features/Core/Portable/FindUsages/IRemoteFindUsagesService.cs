@@ -10,10 +10,12 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -182,7 +184,7 @@ internal readonly struct SerializableDefinitionItem(
     ImmutableArray<SerializableDocumentSpan> sourceSpans,
     ImmutableArray<AssemblyLocation> metadataLocations,
     ImmutableDictionary<string, string> properties,
-    ImmutableDictionary<string, string> displayableProperties,
+    ImmutableArray<(string key, string value)> displayableProperties,
     bool displayIfNoReferences)
 {
     [DataMember(Order = 0)]
@@ -207,7 +209,7 @@ internal readonly struct SerializableDefinitionItem(
     public readonly ImmutableDictionary<string, string> Properties = properties;
 
     [DataMember(Order = 7)]
-    public readonly ImmutableDictionary<string, string> DisplayableProperties = displayableProperties;
+    public readonly ImmutableArray<(string key, string value)> DisplayableProperties = displayableProperties;
 
     [DataMember(Order = 8)]
     public readonly bool DisplayIfNoReferences = displayIfNoReferences;
@@ -242,11 +244,29 @@ internal readonly struct SerializableDefinitionItem(
 }
 
 [DataContract]
+internal readonly struct SerializableClassifiedSpansAndHighlightSpan(
+    SerializableClassifiedSpans classifiedSpans, TextSpan highlightSpan)
+{
+    [DataMember(Order = 0)]
+    public readonly SerializableClassifiedSpans ClassifiedSpans = classifiedSpans;
+
+    [DataMember(Order = 1)]
+    public readonly TextSpan HighlightSpan = highlightSpan;
+
+    public static SerializableClassifiedSpansAndHighlightSpan Dehydrate(ClassifiedSpansAndHighlightSpan classifiedSpansAndHighlightSpan)
+        => new(SerializableClassifiedSpans.Dehydrate(classifiedSpansAndHighlightSpan.ClassifiedSpans), classifiedSpansAndHighlightSpan.HighlightSpan);
+
+    public ClassifiedSpansAndHighlightSpan Rehydrate()
+        => new(this.ClassifiedSpans.Rehydrate(), this.HighlightSpan);
+}
+
+[DataContract]
 internal readonly struct SerializableSourceReferenceItem(
     int definitionId,
     SerializableDocumentSpan sourceSpan,
+    SerializableClassifiedSpansAndHighlightSpan classifiedSpans,
     SymbolUsageInfo symbolUsageInfo,
-    ImmutableDictionary<string, string> additionalProperties)
+    ImmutableArray<(string key, string value)> additionalProperties)
 {
     [DataMember(Order = 0)]
     public readonly int DefinitionId = definitionId;
@@ -255,22 +275,26 @@ internal readonly struct SerializableSourceReferenceItem(
     public readonly SerializableDocumentSpan SourceSpan = sourceSpan;
 
     [DataMember(Order = 2)]
-    public readonly SymbolUsageInfo SymbolUsageInfo = symbolUsageInfo;
+    public readonly SerializableClassifiedSpansAndHighlightSpan ClassifiedSpans = classifiedSpans;
 
     [DataMember(Order = 3)]
-    public readonly ImmutableDictionary<string, string> AdditionalProperties = additionalProperties;
+    public readonly SymbolUsageInfo SymbolUsageInfo = symbolUsageInfo;
+
+    [DataMember(Order = 4)]
+    public readonly ImmutableArray<(string key, string value)> AdditionalProperties = additionalProperties;
 
     public static SerializableSourceReferenceItem Dehydrate(int definitionId, SourceReferenceItem item)
         => new(definitionId,
                SerializableDocumentSpan.Dehydrate(item.SourceSpan),
+               // We're always have classified spans for C#/VB, which are the only languages used in OOP find-references.
+               SerializableClassifiedSpansAndHighlightSpan.Dehydrate(item.ClassifiedSpans!.Value),
                item.SymbolUsageInfo,
                item.AdditionalProperties);
 
     public async Task<SourceReferenceItem> RehydrateAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
         => new(definition,
                await SourceSpan.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false),
-               // Todo: consider serializing this over.
-               classifiedSpans: null,
+               this.ClassifiedSpans.Rehydrate(),
                SymbolUsageInfo,
-               AdditionalProperties.ToImmutableDictionary(t => t.Key, t => t.Value));
+               AdditionalProperties);
 }

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -51,6 +52,7 @@ internal sealed class LanguageServerProjectSystem
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
     private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
+    private readonly ImmutableDictionary<string, string> AdditionalProperties;
 
     /// <summary>
     /// The list of loaded projects in the workspace, keyed by project file path. The outer dictionary is a concurrent dictionary since we may be loading
@@ -68,7 +70,8 @@ internal sealed class LanguageServerProjectSystem
         IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
-        ProjectLoadTelemetryReporter projectLoadTelemetry)
+        ProjectLoadTelemetryReporter projectLoadTelemetry,
+        ServerConfigurationFactory serverConfigurationFactory)
     {
         _workspaceFactory = workspaceFactory;
         _fileChangeWatcher = fileChangeWatcher;
@@ -77,6 +80,11 @@ internal sealed class LanguageServerProjectSystem
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
         _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(workspaceFactory.Workspace.CurrentSolution.Services, new DiagnosticReporter(workspaceFactory.Workspace));
+        var razorDesignTimePath = serverConfigurationFactory.ServerConfiguration?.RazorDesignTimePath;
+
+        AdditionalProperties = razorDesignTimePath is null
+            ? ImmutableDictionary<string, string>.Empty
+            : ImmutableDictionary<string, string>.Empty.Add("RazorDesignTimeTargets", razorDesignTimePath);
 
         _projectsToLoadAndReload = new AsyncBatchingWorkQueue<ProjectToLoad>(
             TimeSpan.FromMilliseconds(100),
@@ -95,7 +103,7 @@ internal sealed class LanguageServerProjectSystem
 
             // We'll load solutions out-of-proc, since it's possible we might be running on a runtime that doesn't have a matching SDK installed,
             // and we don't want any MSBuild registration to set environment variables in our process that might impact child processes.
-            await using var buildHostProcessManager = new BuildHostProcessManager(loggerFactory: _loggerFactory);
+            await using var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties: AdditionalProperties, loggerFactory: _loggerFactory);
             var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
 
             // If we don't have a .NET Core SDK on this machine at all, try .NET Framework
@@ -154,28 +162,23 @@ internal sealed class LanguageServerProjectSystem
 
         var binaryLogPath = GetMSBuildBinaryLogPath();
 
-        await using var buildHostProcessManager = new BuildHostProcessManager(binaryLogPath: binaryLogPath, loggerFactory: _loggerFactory);
+        await using var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties: AdditionalProperties, binaryLogPath: binaryLogPath, loggerFactory: _loggerFactory);
         var toastErrorReporter = new ToastErrorReporter();
 
         try
         {
-            var tasks = new List<Task>();
-
-            var projectsThatNeedRestore = new ConcurrentSet<string>();
-            foreach (var projectToLoad in projectPathsToLoadOrReload)
-            {
-                tasks.Add(Task.Run(async () =>
+            var projectsThatNeedRestore = await ProducerConsumer<string>.RunParallelAsync(
+                source: projectPathsToLoadOrReload,
+                produceItems: static async (projectToLoad, callback, args, cancellationToken) =>
                 {
-                    var projectNeedsRestore = await LoadOrReloadProjectAsync(projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
+                    var projectNeedsRestore = await args.@this.LoadOrReloadProjectAsync(
+                        projectToLoad, args.toastErrorReporter, args.buildHostProcessManager, cancellationToken);
 
                     if (projectNeedsRestore)
-                    {
-                        projectsThatNeedRestore.Add(projectToLoad.Path);
-                    }
-                }, cancellationToken));
-            }
-
-            await Task.WhenAll(tasks);
+                        callback(projectToLoad.Path);
+                },
+                args: (@this: this, toastErrorReporter, buildHostProcessManager),
+                cancellationToken).ConfigureAwait(false);
 
             if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
@@ -184,7 +187,7 @@ internal sealed class LanguageServerProjectSystem
                 // Tracking: https://github.com/dotnet/vscode-csharp/issues/6675
                 //
                 // The request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.RestoreProjectsAsync([.. projectsThatNeedRestore], cancellationToken);
+                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore, cancellationToken);
             }
         }
         finally
@@ -224,7 +227,7 @@ internal sealed class LanguageServerProjectSystem
 
             var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
             var diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
-            if (diagnosticLogItems.Any(item => item.Kind is WorkspaceDiagnosticKind.Failure))
+            if (diagnosticLogItems.Any(item => item.Kind is DiagnosticLogItemKind.Error))
             {
                 await LogDiagnosticsAsync(diagnosticLogItems);
                 // We have total failures in evaluation, no point in continuing.
@@ -296,7 +299,7 @@ internal sealed class LanguageServerProjectSystem
         {
             // Since our LogDiagnosticsAsync helper takes DiagnosticLogItems, let's just make one for this
             var message = string.Format(LanguageServerResources.Exception_thrown_0, e);
-            var diagnosticLogItem = new DiagnosticLogItem(WorkspaceDiagnosticKind.Failure, message, projectPath);
+            var diagnosticLogItem = new DiagnosticLogItem(DiagnosticLogItemKind.Error, message, projectPath);
             await LogDiagnosticsAsync([diagnosticLogItem]);
 
             return false;
@@ -307,10 +310,10 @@ internal sealed class LanguageServerProjectSystem
             foreach (var logItem in diagnosticLogItems)
             {
                 var projectName = Path.GetFileName(projectPath);
-                _logger.Log(logItem.Kind is WorkspaceDiagnosticKind.Failure ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
+                _logger.Log(logItem.Kind is DiagnosticLogItemKind.Error ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
             }
 
-            var worstLspMessageKind = diagnosticLogItems.Any(logItem => logItem.Kind is WorkspaceDiagnosticKind.Failure) ? LSP.MessageType.Error : LSP.MessageType.Warning;
+            var worstLspMessageKind = diagnosticLogItems.Any(logItem => logItem.Kind is DiagnosticLogItemKind.Error) ? LSP.MessageType.Error : LSP.MessageType.Warning;
 
             string message;
 

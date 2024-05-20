@@ -2,22 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol;
-
 using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq.Expressions;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CommonLanguageServerProtocol.Framework;
-using Newtonsoft.Json;
 
+namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// JsonConverter for serializing and deserializing string-based enums.
 /// </summary>
 /// <typeparam name="TStringEnumType">The actual type implementing <see cref="IStringEnum"/>.</typeparam>
 internal class StringEnumConverter<TStringEnumType>
-    : JsonConverter
+    : JsonConverter<TStringEnumType>
     where TStringEnumType : IStringEnum
 {
     private static readonly Func<string, TStringEnumType> CreateEnum;
@@ -36,46 +35,30 @@ internal class StringEnumConverter<TStringEnumType>
         CreateEnum = Expression.Lambda<Func<string, TStringEnumType>>(body, param).Compile();
     }
 
-    /// <inheritdoc/>
-    public override bool CanConvert(Type objectType) => objectType == typeof(TStringEnumType);
-
-    /// <inheritdoc/>
-    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+    public override TStringEnumType? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        reader = reader ?? throw new ArgumentNullException(nameof(reader));
-
-        if (reader.TokenType == JsonToken.String)
+        if (reader.TokenType == JsonTokenType.String)
         {
-            return CreateEnum((string)reader.Value!);
+            return CreateEnum(reader.GetString()!);
         }
-        else if (reader.TokenType == JsonToken.Null)
+        else if (reader.TokenType == JsonTokenType.Null)
         {
-            return default(TStringEnumType);
+            return default;
         }
 
-        throw new JsonSerializationException(string.Format(CultureInfo.InvariantCulture, LanguageServerProtocolResources.StringEnumSerializationError, reader.Value));
+        throw new JsonException(string.Format(CultureInfo.InvariantCulture, LanguageServerProtocolResources.StringEnumSerializationError, reader.GetString()));
     }
 
-    /// <inheritdoc/>
-    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, TStringEnumType value, JsonSerializerOptions options)
     {
-        writer = writer ?? throw new ArgumentNullException(nameof(writer));
-
-        if (value is TStringEnumType kind)
-        {
-            writer.WriteValue(kind.Value);
-        }
-        else
-        {
-            throw new ArgumentException($"{nameof(value)} must be of type {typeof(TStringEnumType).FullName}");
-        }
+        writer.WriteStringValue(value.Value);
     }
 
     /// <summary>
     /// Type converter from <see langword="string"/> to <typeparamref name="TStringEnumType"/>.
     /// This is required to support <see cref="DefaultValueAttribute(Type, string)"/>.
     /// </summary>
-    internal class TypeConverter
+    public class TypeConverter
         : System.ComponentModel.TypeConverter
     {
         /// <inheritdoc/>

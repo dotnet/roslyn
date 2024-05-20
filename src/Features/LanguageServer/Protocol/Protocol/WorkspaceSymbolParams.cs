@@ -5,21 +5,19 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents the parameter that's sent with the 'workspace/symbol' request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspaceSymbolParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class WorkspaceSymbolParams : IPartialResultParams<SymbolInformation[]>
     {
         /// <summary>
         /// Gets or sets the query (a non-empty string).
         /// </summary>
-        [DataMember(Name = "query")]
+        [JsonPropertyName("query")]
         public string Query
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value of the Progress instance.
         /// </summary>
-        [DataMember(Name = Methods.PartialResultTokenName)]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName(Methods.PartialResultTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<SymbolInformation[]>? PartialResultToken
         {
             get;

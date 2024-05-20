@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents parameter sent with window/showMessage requests.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#window_showMessage">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class ShowMessageParams
     {
         /// <summary>
         /// Gets or sets the type of message.
         /// </summary>
-        [DataMember(Name = "type")]
+        [JsonPropertyName("type")]
         public MessageType MessageType
         {
             get;
@@ -27,7 +26,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the message.
         /// </summary>
-        [DataMember(Name = "message")]
+        [JsonPropertyName("message")]
         public string Message
         {
             get;

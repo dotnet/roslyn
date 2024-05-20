@@ -4,14 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Report of spell checkable ranges.
     /// </summary>
-    [DataContract]
     internal class VSInternalSpellCheckableRangeReport
     {
         /// <summary>
@@ -21,8 +18,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// spell checkable ranges. The server can use this result ID to avoid resending
         /// spell checkable ranges that had previously been sent.
         /// </summary>
-        [DataMember(Name = "_vs_resultId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_resultId")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? ResultId { get; set; }
 
         /// <summary>
@@ -56,8 +53,8 @@ namespace Roslyn.LanguageServer.Protocol
         ///     5    // Span length
         /// ]
         /// </example>
-        [DataMember(Name = "_vs_ranges")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_ranges")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int[]? Ranges
         {
             get;

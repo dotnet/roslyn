@@ -35,6 +35,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             End Get
         End Property
 
+        Protected Overrides ReadOnly Property AllowsRefLikeType As Boolean
+            Get
+                Return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.AllowsRefLikeType
+            End Get
+        End Property
+
         Protected Overrides ReadOnly Property MustHaveDefaultConstructor As Boolean
             Get
                 Return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.HasConstructorConstraint

@@ -4,21 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the options for on type formatting.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentOnTypeFormattingOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class DocumentOnTypeFormattingOptions
     {
         /// <summary>
         /// Gets or sets the first trigger character.
         /// </summary>
-        [DataMember(Name = "firstTriggerCharacter")]
+        [JsonPropertyName("firstTriggerCharacter")]
         public string FirstTriggerCharacter
         {
             get;
@@ -28,8 +26,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets additional trigger characters.
         /// </summary>
-        [DataMember(Name = "moreTriggerCharacter")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("moreTriggerCharacter")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string[]? MoreTriggerCharacter
         {
             get;

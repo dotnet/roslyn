@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -144,37 +145,23 @@ internal partial class SolutionCompilationState
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
-#if NETSTANDARD
-                using var _1 = ArrayBuilder<Task>.GetInstance(this.Documents.Length, out var tasks);
-
-                // We want to parse in parallel.  But we don't want to have too many parses going on at the same time.
-                // So we use a semaphore here to only allow that many in at a time.  Once we hit that amount, it will
-                // block further parallel work.  However, as the semaphore is released, new work will be let in.
-                var semaphore = new SemaphoreSlim(initialCount: AddDocumentsBatchSize);
+                // TODO(cyrusn): Do we need to ensure that the syntax trees we add to the compilation are in the same
+                // order as the documents array we have added to the project?  If not, we can remove this map and the
+                // sorting below.
+                using var _ = PooledDictionary<DocumentState, int>.GetInstance(out var documentToIndex);
                 foreach (var document in this.Documents)
-                {
-                    tasks.Add(Task.Run(async () =>
-                    {
-                        using (await semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                            await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken));
-                }
+                    documentToIndex.Add(document, documentToIndex.Count);
 
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-#else
-                await Parallel.ForEachAsync(
-                    this.Documents,
-                    cancellationToken,
-                    static async (document, cancellationToken) =>
-                        await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
-#endif
+                var documentsAndTrees = await ProducerConsumer<(DocumentState document, SyntaxTree tree)>.RunParallelAsync(
+                    source: this.Documents,
+                    produceItems: static async (document, callback, _, cancellationToken) =>
+                        callback((document, await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))),
+                    args: default(VoidResult),
+                    cancellationToken).ConfigureAwait(false);
 
-                using var _2 = ArrayBuilder<SyntaxTree>.GetInstance(this.Documents.Length, out var trees);
-
-                foreach (var document in this.Documents)
-                    trees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-
-                return oldCompilation.AddSyntaxTrees(trees);
+                return oldCompilation.AddSyntaxTrees(documentsAndTrees
+                    .Sort((dt1, dt2) => documentToIndex[dt1.document] - documentToIndex[dt2.document])
+                    .Select(static dt => dt.tree));
             }
 
             // This action adds the specified trees, but leaves the generated trees untouched.

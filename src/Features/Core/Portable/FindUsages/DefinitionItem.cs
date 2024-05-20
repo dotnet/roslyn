@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.FindUsages;
 /// Information about a symbol's definition that can be displayed in an editor
 /// and used for navigation.
 /// 
-/// Standard implmentations can be obtained through the various <see cref="DefinitionItem"/>.Create
-/// overloads.
+/// Standard implementations can be obtained through the various <see cref="DefinitionItem"/>.Create overloads.
 /// 
 /// Subclassing is also supported for scenarios that fall outside the bounds of
 /// these common cases.
@@ -69,10 +68,10 @@ internal abstract partial class DefinitionItem
     public ImmutableDictionary<string, string> Properties { get; }
 
     /// <summary>
-    /// Additional diplayable properties that can be attached to the definition for clients that want to
-    /// display additional data.
+    /// Additional displayable properties that can be attached to the definition for clients that want to display
+    /// additional data.
     /// </summary>
-    public ImmutableDictionary<string, string> DisplayableProperties { get; }
+    public ImmutableArray<(string key, string value)> DisplayableProperties { get; }
 
     /// <summary>
     /// The DisplayParts just for the name of this definition.  Generally used only for 
@@ -124,7 +123,7 @@ internal abstract partial class DefinitionItem
         ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
         ImmutableArray<AssemblyLocation> metadataLocations,
         ImmutableDictionary<string, string>? properties,
-        ImmutableDictionary<string, string>? displayableProperties,
+        ImmutableArray<(string key, string value)> displayableProperties,
         bool displayIfNoReferences)
     {
         Tags = tags;
@@ -134,7 +133,7 @@ internal abstract partial class DefinitionItem
         ClassifiedSpans = classifiedSpans.NullToEmpty();
         MetadataLocations = metadataLocations.NullToEmpty();
         Properties = properties ?? ImmutableDictionary<string, string>.Empty;
-        DisplayableProperties = displayableProperties ?? ImmutableDictionary<string, string>.Empty;
+        DisplayableProperties = displayableProperties.NullToEmpty();
         DisplayIfNoReferences = displayIfNoReferences;
 
         Contract.ThrowIfFalse(classifiedSpans.IsEmpty || sourceSpans.Length == classifiedSpans.Length);
@@ -204,7 +203,7 @@ internal abstract partial class DefinitionItem
     {
         return Create(
             tags, displayParts, sourceSpans, classifiedSpans, ImmutableArray<AssemblyLocation>.Empty, nameDisplayParts,
-            properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences);
+            properties: null, displayableProperties: [], displayIfNoReferences: displayIfNoReferences);
     }
 
     [Obsolete("TypeScript: Use external access APIs")]
@@ -230,7 +229,7 @@ internal abstract partial class DefinitionItem
         ImmutableArray<AssemblyLocation> metadataLocations,
         ImmutableArray<TaggedText> nameDisplayParts = default,
         ImmutableDictionary<string, string>? properties = null,
-        ImmutableDictionary<string, string>? displayableProperties = null,
+        ImmutableArray<(string key, string value)> displayableProperties = default,
         bool displayIfNoReferences = true)
     {
         Contract.ThrowIfTrue(sourceSpans.IsDefault);
@@ -273,7 +272,7 @@ internal abstract partial class DefinitionItem
             classifiedSpans: [],
             metadataLocations,
             properties: properties,
-            displayableProperties: ImmutableDictionary<string, string>.Empty,
+            displayableProperties: [],
             displayIfNoReferences: displayIfNoReferences);
     }
 

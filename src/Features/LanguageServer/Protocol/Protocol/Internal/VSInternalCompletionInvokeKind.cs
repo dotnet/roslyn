@@ -4,13 +4,10 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
     /// Provides value for <see cref="VSInternalCompletionContext.InvokeKind"/> which specifies
     /// how completion was invoked.
     /// </summary>
-    [DataContract]
     internal enum VSInternalCompletionInvokeKind
     {
         /// <summary>

@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.IO;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Newtonsoft.Json;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public AbstractLanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
-            JsonSerializer jsonSerializer,
+            JsonSerializerOptions options,
             ICapabilitiesProvider capabilitiesProvider,
             WellKnownLspServerKinds serverKind,
             AbstractLspLogger logger,
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var server = new RoslynLanguageServer(
                 _lspServiceProvider,
                 jsonRpc,
-                jsonSerializer,
+                options,
                 capabilitiesProvider,
                 logger,
                 hostServices,

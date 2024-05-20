@@ -79,7 +79,7 @@ internal partial class CSharpRemoveUnnecessaryImportsService :
 #endif
             var spans = new List<TextSpan>();
             AddFormattingSpans(newRoot, spans, cancellationToken);
-            var formattedRoot = Formatter.Format(newRoot, spans, provider, formattingOptions, rules: null, cancellationToken);
+            var formattedRoot = Formatter.Format(newRoot, spans, provider, formattingOptions, rules: default, cancellationToken);
 
             return document.WithSyntaxRoot(formattedRoot);
         }

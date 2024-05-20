@@ -58,7 +58,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
         LineFormattingOptionsProvider fallbackOptions,
         CancellationToken cancellationToken);
 
-    protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
+    protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document);
 
     protected abstract T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument) where T : SyntaxNode;
 
@@ -236,7 +236,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             var engine = new FindReferencesSearchEngine(
                 solution,
                 documents: null,
-                ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
+                [.. ReferenceFinders.DefaultReferenceFinders, DelegateInvokeMethodReferenceFinder.Instance],
                 streamingProgress,
                 FindReferencesSearchOptions.Default);
 

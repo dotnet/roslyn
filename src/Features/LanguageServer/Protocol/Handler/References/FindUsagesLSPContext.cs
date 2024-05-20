@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -172,7 +171,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             int definitionId,
             int id,
             DocumentSpan? documentSpan,
-            ImmutableDictionary<string, string> properties,
+            ImmutableArray<(string key, string value)> properties,
             ClassifiedTextElement? definitionText,
             Glyph definitionGlyph,
             SymbolUsageInfo? symbolUsageInfo,

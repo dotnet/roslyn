@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynNext);net472</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">

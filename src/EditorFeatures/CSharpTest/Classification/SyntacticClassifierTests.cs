@@ -6637,5 +6637,53 @@ static T I1.operator checked >>>(T a, T b)
                 Punctuation.CloseCurly,
                 Punctuation.Semicolon);
         }
+
+        [Theory, CombinatorialData]
+        public async Task TestAllowsRefStructConstraint_01(TestHost testHost)
+        {
+            await TestAsync(
+                "class X<T> where T : allows ref struct { }",
+                testHost,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("allows"),
+                Keyword("ref"),
+                Keyword("struct"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestAllowsRefStructConstraint_02(TestHost testHost)
+        {
+            await TestAsync(
+                "class X { void M<T>() where T : allows ref struct { } }",
+                testHost,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("allows"),
+                Keyword("ref"),
+                Keyword("struct"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
     }
 }

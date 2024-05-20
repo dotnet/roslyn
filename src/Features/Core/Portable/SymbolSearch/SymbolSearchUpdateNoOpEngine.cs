@@ -13,6 +13,11 @@ internal sealed class SymbolSearchUpdateNoOpEngine : ISymbolSearchUpdateEngine
 {
     public static readonly SymbolSearchUpdateNoOpEngine Instance = new();
 
+    public void Dispose()
+    {
+        // Nothing to do for the no-op version.
+    }
+
     public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
 

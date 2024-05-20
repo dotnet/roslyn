@@ -7,9 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
-    using Newtonsoft.Json;
-    using System.Runtime.CompilerServices;
-    using Microsoft.CommonLanguageServerProtocol.Framework;
+    using System.Text.Json.Serialization;
     using Microsoft.CodeAnalysis.LanguageServer;
 
     /// <summary>

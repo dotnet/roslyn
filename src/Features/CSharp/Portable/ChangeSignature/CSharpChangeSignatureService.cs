@@ -888,8 +888,8 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
         return convertedMethodGroups;
     }
 
-    protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
-        => Formatter.GetDefaultFormattingRules(document).Concat(new ChangeSignatureFormattingRule());
+    protected override ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
+        => [.. Formatter.GetDefaultFormattingRules(document), new ChangeSignatureFormattingRule()];
 
     protected override TArgumentSyntax AddNameToArgument<TArgumentSyntax>(TArgumentSyntax newArgument, string name)
     {

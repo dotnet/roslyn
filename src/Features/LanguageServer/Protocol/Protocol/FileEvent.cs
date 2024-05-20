@@ -5,21 +5,19 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents a file change event.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#fileEvent">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class FileEvent
     {
         /// <summary>
         /// Gets or sets the URI of the file.
         /// </summary>
-        [DataMember(Name = "uri")]
+        [JsonPropertyName("uri")]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri Uri
         {
@@ -30,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the file change type.
         /// </summary>
-        [DataMember(Name = "type")]
+        [JsonPropertyName("type")]
         public FileChangeType FileChangeType
         {
             get;

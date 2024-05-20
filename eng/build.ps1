@@ -259,7 +259,7 @@ function BuildSolution() {
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
   $restoreUseStaticGraphEvaluation = $true
-  
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `

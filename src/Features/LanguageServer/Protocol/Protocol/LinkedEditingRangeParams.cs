@@ -4,14 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
     /// Class representing the parameters sent for a textDocument/linkedEditingRange request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#linkedEditingRangeParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class LinkedEditingRangeParams : TextDocumentPositionParams
     {
     }

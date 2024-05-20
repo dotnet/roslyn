@@ -6,6 +6,10 @@
           https://devdiv.pkgs.visualstudio.com/_packaging/Engineering/nuget/v3/index.json;
           https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json;
         </RestoreSources>
+        <RestoreSources>
+          $(RestoreSources);
+          https://pkgs.dev.azure.com/devdiv/_packaging/dotnet-core-internal-tooling/nuget/v3/index.json
+        </RestoreSources>
     </PropertyGroup>
     
     <ItemGroup>

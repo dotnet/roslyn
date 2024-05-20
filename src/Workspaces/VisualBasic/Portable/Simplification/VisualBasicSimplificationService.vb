@@ -6,10 +6,10 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -17,7 +17,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     <ExportLanguageService(GetType(ISimplificationService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicSimplificationService
-        Inherits AbstractSimplificationService(Of ExpressionSyntax, ExecutableStatementSyntax, CrefReferenceSyntax)
+        Inherits AbstractSimplificationService(Of CompilationUnitSyntax, ExpressionSyntax, ExecutableStatementSyntax, CrefReferenceSyntax)
 
         Private Shared ReadOnly s_reducers As ImmutableArray(Of AbstractReducer) =
             ImmutableArray.Create(Of AbstractReducer)(
@@ -177,5 +177,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Next
         End Sub
 
+        Protected Overrides Sub AddImportDeclarations(root As CompilationUnitSyntax, importDeclarations As ArrayBuilder(Of SyntaxNode))
+            importDeclarations.AddRange(root.Imports)
+        End Sub
     End Class
 End Namespace

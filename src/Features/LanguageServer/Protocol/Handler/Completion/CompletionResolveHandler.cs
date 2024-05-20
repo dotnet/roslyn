@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -11,7 +12,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private static LSP.TextDocumentIdentifier? GetTextDocumentCacheEntry(LSP.CompletionItem request)
         {
             Contract.ThrowIfNull(request.Data);
-            var resolveData = ((JToken)request.Data).ToObject<DocumentResolveData>();
+            var resolveData = JsonSerializer.Deserialize<DocumentResolveData>((JsonElement)request.Data);
             if (resolveData is null)
             {
                 Contract.Fail("Document should always be provided when resolving a completion item request.");
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)
         {
             Contract.ThrowIfNull(request.Data);
-            var resolveData = ((JToken)request.Data).ToObject<CompletionResolveData>();
+            var resolveData = JsonSerializer.Deserialize<CompletionResolveData>((JsonElement)request.Data, ProtocolConversions.LspJsonSerializerOptions);
             if (resolveData?.ResultId == null)
             {
                 Contract.Fail("Result id should always be provided when resolving a completion item we returned.");

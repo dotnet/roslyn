@@ -4,15 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
-
     /// <summary>
     /// Enum which represents the various kinds of symbols.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#symbolKind">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1720:Identifier contains type name", Justification = "Names are defined by the LSP")]
     internal enum SymbolKind
     {

@@ -331,10 +331,8 @@ internal sealed class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, IS
         var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(document.Root, textSpan);
         var service = _services.GetRequiredService<ISyntaxFormattingService>();
 
-        var rules = new List<AbstractFormattingRule>() { new PasteFormattingRule() };
-        rules.AddRange(service.GetDefaultFormattingRules());
-
-        var result = service.GetFormattingResult(document.Root, [formattingSpan], options, rules, cancellationToken);
+        var result = service.GetFormattingResult(
+            document.Root, [formattingSpan], options, [new PasteFormattingRule(), .. service.GetDefaultFormattingRules()], cancellationToken);
         return [.. result.GetTextChanges(cancellationToken)];
     }
 

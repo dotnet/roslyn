@@ -16,12 +16,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
         }
 
-        protected override SourceCodeKind GetSourceCodeKind(string documentFileName)
-            => SourceCodeKind.Regular;
-
-        public override string GetDocumentExtension(SourceCodeKind sourceCodeKind)
-            => ".cs";
-
         protected override IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject)
             => executedProject.GetItems(ItemNames.CscCommandLineArgs);
 
