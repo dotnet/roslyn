@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(4, 24)
                 );
 
-            var members = comp.GetMembers<SourcePropertySymbol>("C.P");
+            var members = comp.GetMembers("C.P").SelectAsArray(m => (SourcePropertySymbol)m);
             Assert.Equal(2, members.Length);
             Assert.True(members[0].IsExtern);
             Assert.True(members[0].IsPartialImplementation);
@@ -4431,7 +4431,7 @@ public partial class C
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions.TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
