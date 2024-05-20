@@ -8536,7 +8536,21 @@ class C
 }
 ";
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
-            comp2.VerifyEmitDiagnostics();
+
+            // Even though semantic analysis didn't produce any errors in C# 12 compiler, an attempt to emit was failing with
+            // "Unable to determine specific cause of the failure" error.
+            comp2.VerifyEmitDiagnostics(
+                // (6,27): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (var i in new S())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S()").WithArguments("ref struct interfaces").WithLocation(6, 27)
+                );
+
+            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            comp2.VerifyEmitDiagnostics(
+                // (4,23): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // public ref struct S : IEnumerable<int>
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "IEnumerable<int>").WithArguments("ref struct interfaces").WithLocation(4, 23)
+                );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
             comp2.VerifyEmitDiagnostics();
@@ -15770,18 +15784,16 @@ using System.Threading.Tasks;
 
 public ref struct S : IAsyncEnumerable<int>
 {
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token = default) => throw null;
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token) => throw null;
 }
 ";
 
             var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             var src2 = @"
-using System.Threading.Tasks;
-
 class C
 {
-    static async Task Main()
+    static async System.Threading.Tasks.Task Main()
     {
         await foreach (var i in new S())
         {
@@ -15790,7 +15802,21 @@ class C
 }
 ";
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
-            comp2.VerifyEmitDiagnostics();
+
+            // Even though semantic analysis didn't produce any errors in C# 12 compiler, an attempt to emit was failing with
+            // "Unable to determine specific cause of the failure" error.
+            comp2.VerifyEmitDiagnostics(
+                // (6,33): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await foreach (var i in new S())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S()").WithArguments("ref struct interfaces").WithLocation(6, 33)
+                );
+
+            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
+            comp2.VerifyEmitDiagnostics(
+                // (6,23): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // public ref struct S : IAsyncEnumerable<int>
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "IAsyncEnumerable<int>").WithArguments("ref struct interfaces").WithLocation(6, 23)
+                );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
             comp2.VerifyEmitDiagnostics();
