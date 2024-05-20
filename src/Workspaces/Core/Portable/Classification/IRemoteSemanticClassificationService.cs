@@ -104,6 +104,7 @@ internal sealed class SerializableClassifiedSpans(ImmutableArray<string> classif
 
     internal void Rehydrate(SegmentedList<ClassifiedSpan> classifiedSpans)
     {
+        classifiedSpans.EnsureCapacity(classifiedSpans.Count + (ClassificationTriples.Length / 3));
         for (int i = 0, n = ClassificationTriples.Length; i < n; i += 3)
         {
             classifiedSpans.Add(new ClassifiedSpan(
