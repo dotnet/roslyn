@@ -1799,10 +1799,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     zeroWidthMatch = symbol;
                 }
 
-                // Handle the case of the implementation of a partial method.
-                var partial = symbol.Kind == SymbolKind.Method
-                    ? ((MethodSymbol)symbol).PartialImplementationPart
-                    : null;
+                // Handle the case of the implementation of a partial member.
+                Symbol? partial = symbol switch
+                {
+                    MethodSymbol method => method.PartialImplementationPart,
+                    SourcePropertySymbol property => property.PartialImplementationPart,
+                    _ => null
+                };
+
                 if ((object)partial != null)
                 {
                     var loc = partial.GetFirstLocation();
