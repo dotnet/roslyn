@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 await foreach (var collection in StreamFixesAsync(
                     document, spanToDiagnostics, fixAllForInSpan: false,
-                    priorityProvider, fallbackOptions, _ => null, cancellationToken).ConfigureAwait(false))
+                    priorityProvider, fallbackOptions, cancellationToken).ConfigureAwait(false))
                 {
                     // Stop at the result error we see.
                     return collection;
@@ -176,7 +176,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             TextSpan range,
             ICodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
-            Func<string, IDisposable?> addOperationScope,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}");
@@ -202,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
                     includeCompilerDiagnostics: true, includeSuppressedDiagnostics: includeSuppressionFixes, priorityProvider,
-                    addOperationScope, DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
+                    DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
             }
 
             var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
@@ -224,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     await foreach (var collection in StreamFixesAsync(
                         document, spanToDiagnostics, fixAllForInSpan: false,
-                        priorityProvider, fallbackOptions, addOperationScope, cancellationToken).ConfigureAwait(false))
+                        priorityProvider, fallbackOptions, cancellationToken).ConfigureAwait(false))
                     {
                         yield return collection;
                     }
@@ -304,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, diagnosticId, includeSuppressedDiagnostics: false, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
-                    addOperationScope: null, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
+                    DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
             }
 
             diagnostics = diagnostics.WhereAsArray(d => d.Severity.IsMoreSevereThanOrEqualTo(minimumSeverity));
@@ -319,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             await foreach (var collection in StreamFixesAsync(
                 document, spanToDiagnostics, fixAllForInSpan: true, new DefaultCodeActionRequestPriorityProvider(),
-                fallbackOptions, addOperationScope: static _ => null, cancellationToken).ConfigureAwait(false))
+                fallbackOptions, cancellationToken).ConfigureAwait(false))
             {
                 if (collection.FixAllState is not null && collection.SupportedScopes.Contains(FixAllScope.Document))
                 {
@@ -450,7 +449,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             bool fixAllForInSpan,
             ICodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
-            Func<string, IDisposable?> addOperationScope,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -550,7 +548,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             {
                                 var fixerMetadata = TryGetMetadata(fixer);
 
-                                using (addOperationScope(fixerName))
                                 using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixerName, cancellationToken))
                                 {
                                     if (fixAllForInSpan)

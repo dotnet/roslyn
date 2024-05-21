@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             TextSpan selection,
             ICodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
-            Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
             var originalSolution = document.Project.Solution;
@@ -52,7 +51,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 selection,
                 priorityProvider,
                 fallbackOptions,
-                addOperationScope,
                 cancellationToken).ConfigureAwait(false);
 
             var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
@@ -441,7 +439,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             TextSpan selection,
             CodeActionRequestPriority? priority,
             CodeActionOptionsProvider options,
-            Func<string, IDisposable?> addOperationScope,
             bool filterOutsideSelection,
             CancellationToken cancellationToken)
         {
@@ -449,7 +446,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // this on the UI thread and potentially allow any code to take a dependency on that.
             await TaskScheduler.Default;
             var refactorings = await codeRefactoringService.GetRefactoringsAsync(
-                document, selection, priority, options, addOperationScope,
+                document, selection, priority, options,
                 cancellationToken).ConfigureAwait(false);
 
             var filteredRefactorings = FilterOnAnyThread(refactorings, selection, filterOutsideSelection);
