@@ -240,7 +240,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 args: (projectToAssembly, allSymbolReferences, maxResults, finder, exact, linkedTokenSource),
                 linkedTokenSource.Token).ConfigureAwait(false);
         }
-        catch (OperationCanceledException) when (ex.CancellationToken == linkedTokenSource.Token)
+        catch (OperationCanceledException ex) when (ex.CancellationToken == linkedTokenSource.Token)
         {
             // We'll get cancellation exceptions on our linked token source once we exceed the max results. We don't
             // want that cancellation to bubble up.  Just because we've found enough results doesn't mean we should
