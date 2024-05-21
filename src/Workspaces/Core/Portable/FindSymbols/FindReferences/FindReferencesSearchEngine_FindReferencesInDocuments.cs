@@ -118,6 +118,9 @@ internal partial class FindReferencesSearchEngine
                 ProducerConsumerOptions.SingleReaderWriterOptions,
                 static (callback, args, cancellationToken) =>
                 {
+                    // We don't bother calling into the finders in parallel as there's only ever one that applies for a
+                    // particular symbol kind.  All the rest bail out immediately after a quick type-check.  So there's
+                    // no benefit in forking out to have only one of them end up actually doing work.
                     foreach (var finder in args.@this._finders)
                     {
                         finder.FindReferencesInDocument(
