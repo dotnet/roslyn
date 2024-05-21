@@ -100,8 +100,13 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
             object requestObject = NoValue.Instance;
             if (request is not null)
             {
-                requestObject = JsonSerializer.Deserialize(request.Value, _typeRefResolver.Resolve(metadata.RequestTypeRef!), options)
-                    ?? throw new InvalidOperationException($"Unable to deserialize {request} into {metadata.RequestTypeRef} for {metadata.HandlerDescription}");
+                var requestTypeRef = metadata.RequestTypeRef.GetValueOrDefault();
+
+                var requestType = _typeRefResolver.Resolve(requestTypeRef)
+                    ?? throw new InvalidOperationException($"Could not resolve type: '{requestTypeRef}'");
+
+                requestObject = JsonSerializer.Deserialize(request.Value, requestType, options)
+                    ?? throw new InvalidOperationException($"Unable to deserialize {request} into {requestTypeRef} for {metadata.HandlerDescription}");
             }
 
             return requestObject;

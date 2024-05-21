@@ -16,15 +16,14 @@ internal readonly partial record struct TypeRef
     {
         private static readonly Dictionary<string, Type> s_typeNameToTypeMap = [];
 
-        public Type? Resolve(TypeRef? typeRef)
+        public Type? Resolve(TypeRef typeRef)
         {
-            var typeRefValue = typeRef.GetValueOrDefault();
-            if (typeRefValue.IsDefault)
+            if (typeRef.IsDefault)
             {
                 return null;
             }
 
-            var typeName = typeRefValue.TypeName;
+            var typeName = typeRef.TypeName;
 
             lock (s_typeNameToTypeMap)
             {

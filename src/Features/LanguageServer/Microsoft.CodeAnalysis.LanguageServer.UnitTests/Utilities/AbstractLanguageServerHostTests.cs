@@ -34,8 +34,8 @@ public abstract class AbstractLanguageServerHostTests
         internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, TestOutputLogger logger, bool includeDevKitComponents = true)
         {
             var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
-                logger.Factory, includeDevKitComponents, out var _);
-            var testLspServer = new TestLspServer(exportProvider, logger);
+                logger.Factory, includeDevKitComponents, out var _, out var assemblyLoader);
+            var testLspServer = new TestLspServer(exportProvider, logger, assemblyLoader);
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);
 
@@ -47,10 +47,12 @@ public abstract class AbstractLanguageServerHostTests
         internal LanguageServerHost LanguageServerHost { get; }
         public ExportProvider ExportProvider { get; }
 
-        private TestLspServer(ExportProvider exportProvider, ILogger logger)
+        private TestLspServer(ExportProvider exportProvider, ILogger logger, IAssemblyLoader assemblyLoader)
         {
+            var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader);
+
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            LanguageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, logger);
+            LanguageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, logger, typeRefResolver);
 
             var messageFormatter = LanguageServerHost.CreateJsonMessageFormatter();
             _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, messageFormatter))

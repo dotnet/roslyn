@@ -106,7 +106,10 @@ internal class HandlerProvider(ILspServices lspServices, ITypeRefResolver typeRe
         {
             return new(() =>
             {
-                if (!lspServices.TryGetService(typeRefResolver.Resolve(handlerTypeRef), out var lspService))
+                var handlerType = typeRefResolver.Resolve(handlerTypeRef)
+                    ?? throw new InvalidOperationException($"Could not load type: '{handlerTypeRef}'");
+
+                if (!lspServices.TryGetService(handlerType, out var lspService))
                 {
                     throw new InvalidOperationException($"{handlerTypeRef} could not be retrieved from service");
                 }

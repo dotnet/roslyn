@@ -15,7 +15,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    public static async Task<ExportProvider> CreateExportProviderAsync(ExtensionAssemblyManager extensionAssemblyManager, string? devKitDependencyPath, ILoggerFactory loggerFactory)
+    public static async Task<ExportProvider> CreateExportProviderAsync(
+        ExtensionAssemblyManager extensionManager,
+        IAssemblyLoader assemblyLoader,
+        string? devKitDependencyPath,
+        ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
         var baseDirectory = AppContext.BaseDirectory;
@@ -33,12 +37,12 @@ internal sealed class ExportProviderBuilder
         }
 
         // Add the extension assemblies to the MEF catalog.
-        assemblyPaths = assemblyPaths.Concat(extensionAssemblyManager.ExtensionAssemblyPaths);
+        assemblyPaths = assemblyPaths.Concat(extensionManager.ExtensionAssemblyPaths);
 
         logger.LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", assemblyPaths)}.");
 
         // Create a MEF resolver that can resolve assemblies in the extension contexts.
-        var resolver = new Resolver(new CustomExportAssemblyLoader(extensionAssemblyManager, loggerFactory));
+        var resolver = new Resolver(assemblyLoader);
 
         var discovery = PartDiscovery.Combine(
             resolver,

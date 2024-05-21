@@ -6,12 +6,10 @@
 #nullable enable
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 internal interface ITypeRefResolver
 {
-    [return: NotNullIfNotNull(nameof(typeRef))]
-    Type? Resolve(TypeRef? typeRef);
+    Type? Resolve(TypeRef typeRef);
 }

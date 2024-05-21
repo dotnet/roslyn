@@ -28,15 +28,11 @@ internal readonly partial record struct TypeRef
         TypeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
     }
 
-    public static TypeRef From(string typeName)
-    {
-        return new(typeName);
-    }
+    public override string ToString()
+        => IsDefault ? "<DEFAULT>" : TypeName;
 
-    public static TypeRef From(Type type)
-    {
-        return new(type.AssemblyQualifiedName!);
-    }
+    public static TypeRef From(string typeName) => new(typeName);
+    public static TypeRef From(Type type) => new(type.AssemblyQualifiedName!);
 
     public static TypeRef Of<T>() => From(typeof(T));
 

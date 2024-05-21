@@ -79,8 +79,10 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     logger.LogTrace($".NET Runtime Version: {RuntimeInformation.FrameworkDescription}");
     var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
+    var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
+    var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader);
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, serverConfiguration.DevKitDependencyPath, loggerFactory);
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, loggerFactory);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
     Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
@@ -125,7 +127,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     // Wait for connection from client
     await pipeServer.WaitForConnectionAsync(cancellationToken);
 
-    var server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, languageServerLogger);
+    var server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, languageServerLogger, typeRefResolver);
     server.Start();
 
     logger.LogInformation("Language server initialized");

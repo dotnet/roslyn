@@ -196,8 +196,8 @@ internal abstract class AbstractLanguageServer<TRequestContext>
                 var handlerEntryPoints = new Dictionary<string, (MethodInfo, RequestHandlerMetadata)>();
                 foreach (var metadata in handlersForMethod)
                 {
-                    var requestType = _typeRefResolver.Resolve(metadata.RequestTypeRef) ?? NoValue.Instance.GetType();
-                    var responseType = _typeRefResolver.Resolve(metadata.ResponseTypeRef) ?? NoValue.Instance.GetType();
+                    var requestType = _typeRefResolver.Resolve(metadata.RequestTypeRef.GetValueOrDefault()) ?? NoValue.Instance.GetType();
+                    var responseType = _typeRefResolver.Resolve(metadata.ResponseTypeRef.GetValueOrDefault()) ?? NoValue.Instance.GetType();
                     var methodInfo = s_queueExecuteAsyncMethod.MakeGenericMethod(requestType, responseType);
                     handlerEntryPoints[metadata.Language] = (methodInfo, metadata);
                 }

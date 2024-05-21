@@ -33,8 +33,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AbstractLspLogger logger,
             HostServices hostServices,
             ImmutableArray<string> supportedLanguages,
-            WellKnownLspServerKinds serverKind)
-            : base(jsonRpc, serializerOptions, logger)
+            WellKnownLspServerKinds serverKind,
+            ITypeRefResolver? typeRefResolver = null)
+            : base(jsonRpc, serializerOptions, logger, typeRefResolver)
         {
             _lspServiceProvider = lspServiceProvider;
             _serverKind = serverKind;

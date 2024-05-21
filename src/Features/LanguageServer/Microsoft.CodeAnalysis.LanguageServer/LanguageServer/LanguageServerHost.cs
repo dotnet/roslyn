@@ -27,7 +27,7 @@ internal sealed class LanguageServerHost
     private readonly AbstractLanguageServer<RequestContext> _roslynLanguageServer;
     private readonly JsonRpc _jsonRpc;
 
-    public LanguageServerHost(Stream inputStream, Stream outputStream, ExportProvider exportProvider, ILogger logger)
+    public LanguageServerHost(Stream inputStream, Stream outputStream, ExportProvider exportProvider, ILogger logger, ITypeRefResolver typeRefResolver)
     {
         var messageFormatter = CreateJsonMessageFormatter();
 
@@ -46,7 +46,14 @@ internal sealed class LanguageServerHost
         var lspLogger = new LspServiceLogger(_logger);
 
         var hostServices = exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
-        _roslynLanguageServer = roslynLspFactory.Create(_jsonRpc, messageFormatter.JsonSerializerOptions, capabilitiesProvider, WellKnownLspServerKinds.CSharpVisualBasicLspServer, lspLogger, hostServices);
+        _roslynLanguageServer = roslynLspFactory.Create(
+            _jsonRpc,
+            messageFormatter.JsonSerializerOptions,
+            capabilitiesProvider,
+            WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            lspLogger,
+            hostServices,
+            typeRefResolver);
     }
 
     internal static SystemTextJsonFormatter CreateJsonMessageFormatter()

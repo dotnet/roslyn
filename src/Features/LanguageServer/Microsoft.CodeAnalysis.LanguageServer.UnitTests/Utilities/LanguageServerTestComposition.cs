@@ -22,7 +22,11 @@ internal sealed class LanguageServerTestComposition
     private static string GetDevKitExtensionPath()
         => Path.Combine(AppContext.BaseDirectory, DevKitExtensionSubdirectory, DevKitAssemblyFileName);
 
-    public static Task<ExportProvider> CreateExportProviderAsync(ILoggerFactory loggerFactory, bool includeDevKitComponents, out ServerConfiguration serverConfiguration)
+    public static Task<ExportProvider> CreateExportProviderAsync(
+        ILoggerFactory loggerFactory,
+        bool includeDevKitComponents,
+        out ServerConfiguration serverConfiguration,
+        out IAssemblyLoader assemblyLoader)
     {
         var devKitDependencyPath = includeDevKitComponents ? GetDevKitExtensionPath() : null;
         serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
@@ -35,7 +39,8 @@ internal sealed class LanguageServerTestComposition
             RazorSourceGenerator: null,
             RazorDesignTimePath: null,
             ExtensionLogDirectory: string.Empty);
-        var extensionAssemblyManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
-        return ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyManager, devKitDependencyPath, loggerFactory: loggerFactory);
+        var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
+        assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
+        return ExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, devKitDependencyPath, loggerFactory);
     }
 }
