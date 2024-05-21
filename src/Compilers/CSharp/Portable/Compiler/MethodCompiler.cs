@@ -2168,34 +2168,58 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet);
             Debug.Assert(method.AssociatedSymbol is PropertySymbol);
 
-            PooledHashSet<IdentifierNameSyntax>? valueIdentifiers = null;
+            PooledDictionary<SyntaxNode, SyntaxToken>? valueIdentifiers = null;
 
-            foreach (var syntax in node.Syntax.DescendantNodesAndSelf())
+            foreach (var token in node.Syntax.DescendantTokens())
             {
-                // PROTOTYPE: Handle all syntax fields with <Kind Name="IdentifierToken"/> from syntax.xml.
+                Debug.Assert(token.Parent is { });
+                if (token.Kind() != SyntaxKind.IdentifierToken)
+                {
+                    continue;
+                }
+                var syntax = token.Parent;
                 switch (syntax)
                 {
-                    case IdentifierNameSyntax identifierName:
-                        if (isFieldOrValueInKeywordContext(method, identifierName.Identifier, out bool isValue))
+                    case IdentifierNameSyntax identifierName when identifierName.Identifier == token:
+                    case GenericNameSyntax genericName when genericName.Identifier == token:
+                    case TupleElementSyntax tupleElement when tupleElement.Identifier == token:
+                    case FromClauseSyntax fromClause when fromClause.Identifier == token:
+                    case LetClauseSyntax letClause when letClause.Identifier == token:
+                    case JoinClauseSyntax joinClause when joinClause.Identifier == token:
+                    case JoinIntoClauseSyntax joinIntoClause when joinIntoClause.Identifier == token:
+                    case QueryContinuationSyntax queryContinuation when queryContinuation.Identifier == token:
+                    case LocalFunctionStatementSyntax localFunctionStatement when localFunctionStatement.Identifier == token:
+                    case VariableDeclaratorSyntax variableDeclarator when variableDeclarator.Identifier == token:
+                    case SingleVariableDesignationSyntax singleVariable when singleVariable.Identifier == token:
+                    case LabeledStatementSyntax labeledStatement when labeledStatement.Identifier == token:
+                    case ForEachStatementSyntax forEachStatement when forEachStatement.Identifier == token:
+                    case CatchDeclarationSyntax catchDeclaration when catchDeclaration.Identifier == token:
+                    case TypeParameterSyntax typeParameter when typeParameter.Identifier == token:
+                    case ParameterSyntax parameter when parameter.Identifier == token:
+                        switch (token.Text)
                         {
-                            if (isValue)
-                            {
-                                // Report conflicts with "value" later, after collecting all references and
-                                // dropping any that refer to the implicit parameter.
-                                valueIdentifiers ??= PooledHashSet<IdentifierNameSyntax>.GetInstance();
-                                valueIdentifiers.Add(identifierName);
-                            }
-                            else
-                            {
-                                reportConflict(identifierName, identifierName.Identifier, diagnostics);
-                            }
+                            case "field":
+                                if (method.AssociatedSymbol is PropertySymbol { IsIndexer: false })
+                                {
+                                    // Report "field" conflict with keyword.
+                                    reportConflict(syntax, token, diagnostics);
+                                }
+                                break;
+                            case "value":
+                                if (method.MethodKind == MethodKind.PropertySet)
+                                {
+                                    // Record the potential "value" conflict, and report conflicts later,
+                                    // after dropping any that refer to the implicit parameter.
+                                    valueIdentifiers ??= PooledDictionary<SyntaxNode, SyntaxToken>.GetInstance();
+                                    valueIdentifiers.Add(syntax, token);
+                                }
+                                break;
                         }
                         break;
-                    case VariableDeclaratorSyntax variableDeclarator:
-                        reportConflictIfAny(method, variableDeclarator, variableDeclarator.Identifier, diagnostics);
-                        break;
-                    case ParameterSyntax parameter:
-                        reportConflictIfAny(method, parameter, parameter.Identifier, diagnostics);
+                    default:
+                        // If we reach here, add the unhandled identifier case to the
+                        // switch cases above (and test in FieldAndValueKeywordTests).
+                        Debug.Assert(false, $"Unhandled identifier: parent {syntax.Kind()}, token {token}");
                         break;
                 }
             }
@@ -2205,35 +2229,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Remove references to the implicit "value" parameter.
                 var checker = new ValueIdentifierChecker(valueIdentifiers);
                 checker.Visit(node);
-                foreach (var identifierName in valueIdentifiers)
+                // Report "value" conflicts.
+                foreach (var pair in valueIdentifiers)
                 {
-                    reportConflict(identifierName, identifierName.Identifier, diagnostics);
+                    reportConflict(pair.Key, pair.Value, diagnostics);
                 }
                 valueIdentifiers.Free();
-            }
-
-            static bool isFieldOrValueInKeywordContext(MethodSymbol method, SyntaxToken identifierToken, out bool isValue)
-            {
-                switch (identifierToken.Text)
-                {
-                    case "field":
-                        isValue = false;
-                        return method.AssociatedSymbol is PropertySymbol { IsIndexer: false };
-                    case "value":
-                        isValue = true;
-                        return method.MethodKind == MethodKind.PropertySet;
-                    default:
-                        isValue = false;
-                        return false;
-                }
-            }
-
-            static void reportConflictIfAny(MethodSymbol method, SyntaxNode syntax, SyntaxToken identifierToken, BindingDiagnosticBag diagnostics)
-            {
-                if (isFieldOrValueInKeywordContext(method, identifierToken, out _))
-                {
-                    reportConflict(syntax, identifierToken, diagnostics);
-                }
             }
 
             static void reportConflict(SyntaxNode syntax, SyntaxToken identifierToken, BindingDiagnosticBag diagnostics)
@@ -2245,20 +2246,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private sealed class ValueIdentifierChecker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
-            private readonly HashSet<IdentifierNameSyntax> _valueIdentifiers;
+            private readonly Dictionary<SyntaxNode, SyntaxToken> _valueIdentifiers;
 
-            public ValueIdentifierChecker(HashSet<IdentifierNameSyntax> valueIdentifiers)
+            public ValueIdentifierChecker(Dictionary<SyntaxNode, SyntaxToken> valueIdentifiers)
             {
                 _valueIdentifiers = valueIdentifiers;
             }
 
             public override BoundNode? VisitParameter(BoundParameter node)
             {
-                Debug.Assert(node.Syntax is IdentifierNameSyntax);
-
                 if (node.ParameterSymbol is SynthesizedPropertyAccessorValueParameterSymbol { Name: "value" })
                 {
-                    _valueIdentifiers.Remove((IdentifierNameSyntax)node.Syntax);
+                    _valueIdentifiers.Remove(node.Syntax);
                 }
 
                 return base.VisitParameter(node);
