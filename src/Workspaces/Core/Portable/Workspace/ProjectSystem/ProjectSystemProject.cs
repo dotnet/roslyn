@@ -536,6 +536,8 @@ internal sealed partial class ProjectSystemProject
             var additionalDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
             var analyzerConfigDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
 
+            var hasAnalyzerChanges = _analyzersAddedInBatch.Count > 0 || _analyzersRemovedInBatch.Count > 0;
+
             await _projectSystemProjectFactory.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync, solutionChanges =>
             {
                 _sourceFiles.UpdateSolutionForBatch(
@@ -686,6 +688,10 @@ internal sealed partial class ProjectSystemProject
             {
                 await _projectSystemProjectFactory.RaiseOnDocumentsAddedMaybeAsync(useAsync, documentFileNamesAdded.ToImmutable()).ConfigureAwait(false);
             }
+
+            // If we added or removed analyzers, then re-run all generators to bring them up to date.
+            if (hasAnalyzerChanges)
+                _projectSystemProjectFactory.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
         }
     }
 
