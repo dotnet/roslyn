@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Optional renameOptions As SymbolRenameOptions = Nothing,
                 Optional expectFailure As Boolean = False,
                 Optional sourceGenerator As ISourceGenerator = Nothing,
-                Optional executionPreference As SourceGeneratorExecutionPreference = SourceGeneratorExecutionPreference.Balanced) As RenameEngineResult
+                Optional executionPreference As SourceGeneratorExecutionPreference = SourceGeneratorExecutionPreference.Automatic) As RenameEngineResult
 
             Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
                 GetType(NoCompilationContentTypeLanguageService),

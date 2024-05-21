@@ -549,7 +549,7 @@ class D : B
             Optional resolvableConflictText As String = Nothing,
             Optional unresolvableConflictText As String = Nothing,
             Optional severity As RenameDashboardSeverity = RenameDashboardSeverity.None,
-            Optional executionPreference As SourceGeneratorExecutionPreference = SourceGeneratorExecutionPreference.Balanced) As Task
+            Optional executionPreference As SourceGeneratorExecutionPreference = SourceGeneratorExecutionPreference.Automatic) As Task
 
             Using workspace = CreateWorkspaceWithWaiter(test, host)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
