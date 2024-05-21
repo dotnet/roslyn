@@ -469,13 +469,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             var classC = classD.BaseType;
         }
 
-        [Fact]
-        public async Task TestGetCompilationOnCrossLanguageDependentProjectChanged()
+        [Theory, CombinatorialData]
+        internal async Task TestGetCompilationOnCrossLanguageDependentProjectChanged(
+            SourceGeneratorExecutionPreference preference)
         {
             using var workspace = CreateWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(TestWorkspaceConfigurationService)));
 
             var options = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            options.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic);
+            options.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, preference);
 
             var solutionX = workspace.CurrentSolution;
 
@@ -580,8 +581,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             }
         }
 
-        [WpfFact]
-        public async Task TestGetCompilationOnCrossLanguageDependentProjectChangedInProgress()
+        [WpfTheory, CombinatorialData]
+        internal async Task TestGetCompilationOnCrossLanguageDependentProjectChangedInProgress(
+            SourceGeneratorExecutionPreference preference)
         {
             var composition = EditorTestCompositions.EditorFeatures.AddParts(
                 typeof(TestDocumentTrackingService),
@@ -590,7 +592,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             using var workspace = CreateWorkspace(disablePartialSolutions: false, composition: composition);
 
             var options = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            options.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic);
+            options.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, preference);
 
             var trackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
             var solutionX = workspace.CurrentSolution;
