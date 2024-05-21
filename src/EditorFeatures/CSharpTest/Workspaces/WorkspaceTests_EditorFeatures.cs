@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -471,7 +472,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
         [Fact]
         public async Task TestGetCompilationOnCrossLanguageDependentProjectChanged()
         {
-            using var workspace = CreateWorkspace();
+            using var workspace = CreateWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(TestWorkspaceConfigurationService)));
+
+            var options = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            options.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic);
+
             var solutionX = workspace.CurrentSolution;
 
             var document1 = new EditorTestHostDocument(@"public class C { }");
@@ -578,9 +583,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
         [WpfFact]
         public async Task TestGetCompilationOnCrossLanguageDependentProjectChangedInProgress()
         {
-            var composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingService));
+            var composition = EditorTestCompositions.EditorFeatures.AddParts(
+                typeof(TestDocumentTrackingService),
+                typeof(TestWorkspaceConfigurationService));
 
             using var workspace = CreateWorkspace(disablePartialSolutions: false, composition: composition);
+
+            var options = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            options.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic);
+
             var trackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
             var solutionX = workspace.CurrentSolution;
 
