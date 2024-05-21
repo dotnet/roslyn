@@ -463,21 +463,24 @@ internal partial class StreamingFindUsagesPresenter
             var sourceSpan = documentSpan.SourceSpan;
 
             var excerptService = document.Services.GetService<IDocumentExcerptService>();
+
+            // Fetching options is expensive enough to try to avoid it if we can.  So only fetch this if absolutely necessary.
+            ClassificationOptions? options = null;
             if (excerptService != null)
             {
-                var options = _globalOptions.GetClassificationOptions(document.Project.Language);
+                options ??= _globalOptions.GetClassificationOptions(document.Project.Language);
 
-                var result = await excerptService.TryExcerptAsync(document, sourceSpan, ExcerptMode.SingleLine, options, cancellationToken).ConfigureAwait(false);
+                var result = await excerptService.TryExcerptAsync(document, sourceSpan, ExcerptMode.SingleLine, options.Value, cancellationToken).ConfigureAwait(false);
                 if (result != null)
                     return (result.Value, AbstractDocumentSpanEntry.GetLineContainingPosition(result.Value.Content, result.Value.MappedSpan.Start));
             }
 
             if (classifiedSpans is null)
             {
-                var options = _globalOptions.GetClassificationOptions(document.Project.Language);
+                options ??= _globalOptions.GetClassificationOptions(document.Project.Language);
 
                 classifiedSpans = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-                    documentSpan, classifiedSpans, options, cancellationToken).ConfigureAwait(false);
+                    documentSpan, classifiedSpans, options.Value, cancellationToken).ConfigureAwait(false);
             }
 
             // need to fix the span issue tracking here - https://github.com/dotnet/roslyn/issues/31001
