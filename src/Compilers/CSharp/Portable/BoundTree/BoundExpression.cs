@@ -327,11 +327,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal enum IndexAccessorKind
+    {
+        Get,
+        Set,
+        Both
+    }
+
     internal partial class BoundIndexerAccess
     {
         public override Symbol? ExpressionSymbol
         {
             get { return this.Indexer; }
+        }
+
+        public IndexAccessorKind IndexAccessorKind
+        {
+            get => this.value
         }
 
         public override LookupResultKind ResultKind
