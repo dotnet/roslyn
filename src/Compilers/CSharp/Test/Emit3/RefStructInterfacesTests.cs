@@ -20095,6 +20095,322 @@ class C<T, S>
         }
 
         [Fact]
+        public void ConstraintsCheck_06()
+        {
+            var src = @"
+#nullable enable
+
+class C
+{
+    static void Test1<T>(T? x) where T : allows ref struct
+    {
+    }
+
+    static void Test2<T>(T? x) where T : struct, allows ref struct
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (10,29): error CS9244: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     static void Test2<T>(T? x) where T : struct, allows ref struct
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(10, 29)
+                );
+        }
+
+        [Fact]
+        public void ConstraintsCheck_07()
+        {
+            var src1 = @"
+#line 100
+public class Helper<T> where T : allows ref struct
+{
+    public static void Test(T x)
+    {
+        System.Console.Write(""Called"");
+    }
+}
+";
+            var src2 = @"
+ref struct S1
+{
+}
+
+class C
+{
+    static void Main()
+    {
+#line 200
+        Helper<S1>.Test(new S1());
+    }
+}
+";
+            var comp = CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (100,41): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // public class Helper<T> where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(100, 41)
+                );
+
+            var comp1Ref = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).ToMetadataReference();
+
+            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (200,16): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Helper<S1>.Test(new S1());
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("ref struct interfaces").WithLocation(200, 16)
+                );
+
+            CreateCompilation([src1, src2], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (100,41): error CS9240: Target runtime doesn't support by-ref-like generics.
+                // public class Helper<T> where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 41)
+                );
+
+            var src3 = @"
+struct S1
+{
+}
+
+class C
+{
+    static void Main()
+    {
+#line 200
+        Helper<S1>.Test(new S1());
+    }
+}
+";
+
+            comp = CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation([src1, src3], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (100,41): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // public class Helper<T> where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(100, 41)
+                );
+
+            comp = CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+
+            CreateCompilation([src1, src3], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (100,41): error CS9240: Target runtime doesn't support by-ref-like generics.
+                // public class Helper<T> where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 41)
+                );
+
+            comp1Ref = CreateCompilation(src1, targetFramework: TargetFramework.DesktopLatestExtended).ToMetadataReference();
+
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (200,16): error CS9240: Target runtime doesn't support by-ref-like generics.
+                //         Helper<S1>.Test(new S1());
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "S1").WithLocation(200, 16)
+                );
+
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void IdentityConversion_01()
+        {
+            var src = @"
+class Helper1<T>
+    where T : allows ref struct
+{
+    public static T Test1(T h1)
+    {
+        return h1;
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        Helper1<S>.Test1(new S());
+        Helper1<Program>.Test1(new Program());
+        Helper1<Program>.Test1(null);
+        System.Console.Write(""Done"");
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Done" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).
+            VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper1<T>.Test1(T)",
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}
+");
+        }
+
+        [Fact]
+        public void IdentityConversion_02()
+        {
+            var src = @"
+class Helper1<T>
+    where T : allows ref struct
+{
+    public static T Test1(T h1)
+    {
+        return (T)h1;
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        Helper1<S>.Test1(new S());
+        Helper1<Program>.Test1(new Program());
+        Helper1<Program>.Test1(null);
+        System.Console.Write(""Done"");
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Done" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).
+            VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper1<T>.Test1(T)",
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}
+");
+        }
+
+        [Fact]
+        public void IdentityConversion_03()
+        {
+            var src = @"
+class Helper1<T>
+    where T : struct, allows ref struct
+{
+    public static T Test1(T h1)
+    {
+        return h1;
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        Helper1<S>.Test1(new S());
+        System.Console.Write(""Done"");
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Done" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).
+            VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper1<T>.Test1(T)",
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}
+");
+        }
+
+        [Fact]
+        public void IdentityConversion_04()
+        {
+            var src = @"
+class Helper1<T>
+    where T : struct, allows ref struct
+{
+    public static T Test1(T h1)
+    {
+        return (T)h1;
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        Helper1<S>.Test1(new S());
+        System.Console.Write(""Done"");
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Done" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).
+            VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper1<T>.Test1(T)",
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}
+");
+        }
+
+        [Fact]
         public void IllegalBoxing_01()
         {
             var src = @"
