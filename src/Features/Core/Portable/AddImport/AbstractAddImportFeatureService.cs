@@ -245,6 +245,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             // We'll get cancellation exceptions on our linked token source once we exceed the max results. We don't
             // want that cancellation to bubble up.  Just because we've found enough results doesn't mean we should
             // abort the entire operation.
+            cancellationToken.ThrowIfCancellationRequested();
         }
     }
 
@@ -301,6 +302,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             // We'll get cancellation exceptions on our linked token source once we exceed the max results. We don't
             // want that cancellation to bubble up.  Just because we've found enough results doesn't mean we should
             // abort the entire operation.
+            cancellationToken.ThrowIfCancellationRequested();
         }
     }
 
