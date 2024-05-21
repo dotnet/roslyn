@@ -327,8 +327,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal enum IndexAccessorKind
+    internal enum IndexerAccessorKind : byte
     {
+        Unknown,
         Get,
         Set,
         Both
@@ -339,11 +340,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override Symbol? ExpressionSymbol
         {
             get { return this.Indexer; }
-        }
-
-        public IndexAccessorKind IndexAccessorKind
-        {
-            get => this.value
         }
 
         public override LookupResultKind ResultKind

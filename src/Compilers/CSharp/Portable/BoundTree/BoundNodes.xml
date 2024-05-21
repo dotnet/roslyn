@@ -38,6 +38,7 @@
   <ValueType Name="InterpolatedStringHandlerData"/>
   <ValueType Name="WellKnownMember"/>
   <ValueType Name="CollectionExpressionTypeKind"/>
+  <ValueType Name="IndexerAccessorKind" />
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -2208,6 +2209,7 @@
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
+    <Field Name="IndexerAccessorKind" Type="IndexerAccessorKind" />
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="DefaultArguments" Type="BitVector" />
     <!--The set of indexer symbols from which this call's indexer was chosen.

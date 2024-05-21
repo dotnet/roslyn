@@ -294,11 +294,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string?> argumentNamesOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
+            IndexerAccessorKind indexAccessorKind,
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, originalIndexersOpt: default, type, hasErrors)
+            this(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, indexAccessorKind, argsToParamsOpt, defaultArguments, originalIndexersOpt: default, type, hasErrors)
         { }
 
         public BoundIndexerAccess Update(BoundExpression? receiverOpt,

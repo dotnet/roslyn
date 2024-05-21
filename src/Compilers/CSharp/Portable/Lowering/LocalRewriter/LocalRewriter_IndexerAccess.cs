@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
         {
+            Debug.Assert(node.IndexerAccessorKind != IndexerAccessorKind.Unknown);
             Debug.Assert(node.Indexer.IsIndexer || node.Indexer.IsIndexedProperty);
             Debug.Assert((object?)node.Indexer.GetOwnOrInheritedGetMethod() != null);
 
@@ -76,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             PropertySymbol indexer = node.Indexer;
             Debug.Assert(indexer.IsIndexer || indexer.IsIndexedProperty);
+            Debug.Assert(node.IndexerAccessorKind != IndexerAccessorKind.Unknown);
+            Debug.Assert(isLeftOfAssignment && node.IndexerAccessorKind != IndexerAccessorKind.Get);
 
             // Rewrite the receiver.
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
@@ -117,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
                 return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
-                    new BoundIndexerAccess(syntax, rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type);
+                    oldNodeOpt.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, IndexerAccessorKind.Set, argsToParamsOpt, defaultArguments, type) :
+                    new BoundIndexerAccess(syntax, rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, IndexerAccessorKind.Set, argsToParamsOpt, defaultArguments, type);
             }
             else
             {
