@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.[Shared].TestHooks
@@ -556,6 +557,7 @@ class D : B
                 globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, renameInStrings)
                 globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, renameInComments)
                 globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, renameFile)
+                globalOptions.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic)
 
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
