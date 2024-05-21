@@ -240,12 +240,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 args: (projectToAssembly, allSymbolReferences, maxResults, finder, exact, linkedTokenSource),
                 linkedTokenSource.Token).ConfigureAwait(false);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (ex.CancellationToken == linkedTokenSource.Token)
         {
             // We'll get cancellation exceptions on our linked token source once we exceed the max results. We don't
             // want that cancellation to bubble up.  Just because we've found enough results doesn't mean we should
             // abort the entire operation.
-            cancellationToken.ThrowIfCancellationRequested();
         }
     }
 
@@ -297,12 +296,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 args: (referenceToCompilation, project, allSymbolReferences, maxResults, finder, exact, newReferences, linkedTokenSource),
                 linkedTokenSource.Token).ConfigureAwait(false);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex) when (ex.CancellationToken == linkedTokenSource.Token)
         {
             // We'll get cancellation exceptions on our linked token source once we exceed the max results. We don't
             // want that cancellation to bubble up.  Just because we've found enough results doesn't mean we should
             // abort the entire operation.
-            cancellationToken.ThrowIfCancellationRequested();
         }
     }
 
