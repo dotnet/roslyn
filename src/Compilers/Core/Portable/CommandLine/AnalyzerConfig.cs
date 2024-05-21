@@ -256,6 +256,9 @@ namespace Microsoft.CodeAnalysis
             // Add the last section
             addNewSection();
 
+            // Normalize the path to file the same way we named sections are done
+            pathToFile = PathUtilities.NormalizeDriveLetter(pathToFile);
+
             return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile);
 
             void addNewSection()
