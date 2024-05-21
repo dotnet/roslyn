@@ -18585,7 +18585,7 @@ public struct CustomHandler
 }
 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            CompileAndVerify(comp, expectedOutput: "s.Prop:5 literal:literal 0");
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "s.Prop:5 literal:literal 0" : null, verify: Verification.FailsPEVerify);
         }
     }
 }

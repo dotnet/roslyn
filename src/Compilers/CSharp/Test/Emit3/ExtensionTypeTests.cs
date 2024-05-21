@@ -42905,7 +42905,7 @@ public struct CustomHandler
 """;
 
         var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(52) s.Prop:5 literal:literal 0"), 
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(52) s.Prop:5 literal:literal 0"),
                 verify: Verification.FailsPEVerify)
             .VerifyDiagnostics();
 
@@ -43066,7 +43066,7 @@ public struct CustomHandler
 """;
 
         var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("s.Prop:5 literal:literal 0"))
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("s.Prop:5 literal:literal 0"), verify: Verification.FailsPEVerify)
             .VerifyDiagnostics();
     }
 }
