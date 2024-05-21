@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public async Task<bool> TryAppendDiagnosticsForSpanAsync(
             TextDocument document, TextSpan? range, ArrayBuilder<DiagnosticData> result, Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics, bool includeCompilerDiagnostics, ICodeActionRequestPriorityProvider priorityProvider, bool blockForData,
-            Func<string, IDisposable?>? addOperationScope, DiagnosticKind diagnosticKinds, bool isExplicit, CancellationToken cancellationToken)
+            DiagnosticKind diagnosticKinds, bool isExplicit, CancellationToken cancellationToken)
         {
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(
-                this, document, range, blockForData, addOperationScope, includeSuppressedDiagnostics, includeCompilerDiagnostics,
+                this, document, range, blockForData, includeSuppressedDiagnostics, includeCompilerDiagnostics,
                 priorityProvider, shouldIncludeDiagnostic, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
             return await getter.TryGetAsync(result, cancellationToken).ConfigureAwait(false);
         }
@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             bool includeCompilerDiagnostics,
             ICodeActionRequestPriorityProvider priorityProvider,
             bool blockForData,
-            Func<string, IDisposable?>? addOperationScope,
             DiagnosticKind diagnosticKinds,
             bool isExplicit,
             CancellationToken cancellationToken)
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
             var result = await TryAppendDiagnosticsForSpanAsync(
                 document, range, list, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
-                priorityProvider, blockForData, addOperationScope, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
+                priorityProvider, blockForData, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
             Debug.Assert(result);
             return list.ToImmutableAndClear();
         }
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // PERF: Cache the last Project and corresponding CompilationWithAnalyzers used to compute analyzer diagnostics for span.
             //       This is now required as async lightbulb will query and execute different priority buckets of analyzers with multiple
             //       calls, and we want to reuse CompilationWithAnalyzers instance if possible. 
-            private static readonly WeakReference<ProjectAndCompilationWithAnalyzers?> _lastProjectAndCompilationWithAnalyzers = new(null);
+            private static readonly WeakReference<ProjectAndCompilationWithAnalyzers?> s_lastProjectAndCompilationWithAnalyzers = new(null);
 
             private readonly DiagnosticIncrementalAnalyzer _owner;
             private readonly TextDocument _document;
@@ -78,7 +77,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly ICodeActionRequestPriorityProvider _priorityProvider;
             private readonly Func<string, bool>? _shouldIncludeDiagnostic;
             private readonly bool _includeCompilerDiagnostics;
-            private readonly Func<string, IDisposable?>? _addOperationScope;
             private readonly bool _isExplicit;
             private readonly bool _logPerformanceInfo;
             private readonly bool _incrementalAnalysis;
@@ -91,7 +89,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  TextDocument document,
                  TextSpan? range,
                  bool blockForData,
-                 Func<string, IDisposable?>? addOperationScope,
                  bool includeSuppressedDiagnostics,
                  bool includeCompilerDiagnostics,
                  ICodeActionRequestPriorityProvider priorityProvider,
@@ -125,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 return new LatestDiagnosticsForSpanGetter(
                     owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,
-                    range, blockForData, addOperationScope, includeSuppressedDiagnostics, priorityProvider,
+                    range, blockForData, includeSuppressedDiagnostics, priorityProvider,
                     isExplicit, logPerformanceInfo, incrementalAnalysis, diagnosticKinds);
             }
 
@@ -136,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool includeSuppressedDiagnostics,
                 CancellationToken cancellationToken)
             {
-                if (_lastProjectAndCompilationWithAnalyzers.TryGetTarget(out var projectAndCompilationWithAnalyzers) &&
+                if (s_lastProjectAndCompilationWithAnalyzers.TryGetTarget(out var projectAndCompilationWithAnalyzers) &&
                     projectAndCompilationWithAnalyzers?.Project == project)
                 {
                     if (projectAndCompilationWithAnalyzers.CompilationWithAnalyzers == null)
@@ -152,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-                _lastProjectAndCompilationWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
+                s_lastProjectAndCompilationWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
                 return compilationWithAnalyzers;
 
                 static bool HasAllAnalyzers(IEnumerable<StateSet> stateSets, CompilationWithAnalyzers compilationWithAnalyzers)
@@ -177,7 +174,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool includeCompilerDiagnostics,
                 TextSpan? range,
                 bool blockForData,
-                Func<string, IDisposable?>? addOperationScope,
                 bool includeSuppressedDiagnostics,
                 ICodeActionRequestPriorityProvider priorityProvider,
                 bool isExplicit,
@@ -194,7 +190,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _includeCompilerDiagnostics = includeCompilerDiagnostics;
                 _range = range;
                 _blockForData = blockForData;
-                _addOperationScope = addOperationScope;
                 _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
                 _priorityProvider = priorityProvider;
                 _isExplicit = isExplicit;
@@ -563,15 +558,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var analyzerTypeName = analyzer.GetType().Name;
-                var document = executor.AnalysisScope.TextDocument;
-
-                using (_addOperationScope?.Invoke(analyzerTypeName))
-                using (_addOperationScope is object ? RoslynEventSource.LogInformationalBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, analyzerTypeName, cancellationToken) : default)
-                {
-                    var diagnostics = await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                    return diagnostics?.ToImmutableArrayOrEmpty() ?? [];
-                }
+                var diagnostics = await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                return diagnostics?.ToImmutableArrayOrEmpty() ?? [];
             }
 
             private bool ShouldInclude(DiagnosticData diagnostic)

@@ -108,7 +108,6 @@ internal sealed class CodeRefactoringService(
         TextSpan state,
         CodeActionRequestPriority? priority,
         CodeActionOptionsProvider options,
-        Func<string, IDisposable?> addOperationScope,
         CancellationToken cancellationToken)
     {
         using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeRefactoring_Summary, $"Pri{priority.GetPriorityInt()}"))
@@ -137,7 +136,6 @@ internal sealed class CodeRefactoringService(
                         m[TelemetryLogging.KeyLanguageName] = args.document.Project.Language;
                     });
 
-                    using (args.addOperationScope(providerName))
                     using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                     using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
                     {
@@ -147,7 +145,7 @@ internal sealed class CodeRefactoringService(
                             callback((provider, refactoring));
                     }
                 },
-                args: (@this: this, document, state, options, addOperationScope),
+                args: (@this: this, document, state, options),
                 cancellationToken).ConfigureAwait(false);
 
             // Order the refactorings by the order of the providers.

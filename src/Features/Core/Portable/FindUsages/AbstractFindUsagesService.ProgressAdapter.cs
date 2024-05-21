@@ -53,7 +53,8 @@ internal abstract partial class AbstractFindUsagesService
     /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
     /// </summary>
     private sealed class FindReferencesProgressAdapter(
-        Solution solution, IFindUsagesContext context, FindReferencesSearchOptions searchOptions, OptionsProvider<ClassificationOptions> classificationOptions) : IStreamingFindReferencesProgress
+        Solution solution, IFindUsagesContext context, FindReferencesSearchOptions searchOptions, OptionsProvider<ClassificationOptions> classificationOptions)
+        : IStreamingFindReferencesProgress
     {
         /// <summary>
         /// We will hear about definition symbols many times while performing FAR.  We'll

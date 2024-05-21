@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal interface ICodeFixService
     {
-        IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(TextDocument document, TextSpan textSpan, ICodeActionRequestPriorityProvider priorityProvider, CodeActionOptionsProvider options, Func<string, IDisposable?> addOperationScope, CancellationToken cancellationToken);
+        IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(TextDocument document, TextSpan textSpan, ICodeActionRequestPriorityProvider priorityProvider, CodeActionOptionsProvider options, CancellationToken cancellationToken);
 
         /// <summary>
         /// Similar to <see cref="StreamFixesAsync"/> except that instead of streaming all results, this ends with the
@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal static class ICodeFixServiceExtensions
     {
         public static IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(this ICodeFixService service, TextDocument document, TextSpan range, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-            => service.StreamFixesAsync(document, range, new DefaultCodeActionRequestPriorityProvider(), fallbackOptions, addOperationScope: _ => null, cancellationToken);
+            => service.StreamFixesAsync(document, range, new DefaultCodeActionRequestPriorityProvider(), fallbackOptions, cancellationToken);
 
         public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, TextDocument document, TextSpan range, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
             => service.StreamFixesAsync(document, range, fallbackOptions, cancellationToken).ToImmutableArrayAsync(cancellationToken);
 
-        public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, TextDocument document, TextSpan textSpan, ICodeActionRequestPriorityProvider priorityProvider, CodeActionOptionsProvider fallbackOptions, Func<string, IDisposable?> addOperationScope, CancellationToken cancellationToken)
-            => service.StreamFixesAsync(document, textSpan, priorityProvider, fallbackOptions, addOperationScope, cancellationToken).ToImmutableArrayAsync(cancellationToken);
+        public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, TextDocument document, TextSpan textSpan, ICodeActionRequestPriorityProvider priorityProvider, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            => service.StreamFixesAsync(document, textSpan, priorityProvider, fallbackOptions, cancellationToken).ToImmutableArrayAsync(cancellationToken);
 
         public static Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(this ICodeFixService service, TDocument document, string diagnosticId, IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken) where TDocument : TextDocument
             => service.ApplyCodeFixesForSpecificDiagnosticIdAsync(document, diagnosticId, DiagnosticSeverity.Hidden, progressTracker, fallbackOptions, cancellationToken);
