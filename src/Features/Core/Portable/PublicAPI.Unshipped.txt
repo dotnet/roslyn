@@ -1,5 +1,1 @@
-Microsoft.CodeAnalysis.TaggedText.Equals(Microsoft.CodeAnalysis.TaggedText other) -> bool
-override Microsoft.CodeAnalysis.TaggedText.Equals(object obj) -> bool
-override Microsoft.CodeAnalysis.TaggedText.GetHashCode() -> int
-static Microsoft.CodeAnalysis.TaggedText.operator !=(Microsoft.CodeAnalysis.TaggedText left, Microsoft.CodeAnalysis.TaggedText right) -> bool
-static Microsoft.CodeAnalysis.TaggedText.operator ==(Microsoft.CodeAnalysis.TaggedText left, Microsoft.CodeAnalysis.TaggedText right) -> bool
+
