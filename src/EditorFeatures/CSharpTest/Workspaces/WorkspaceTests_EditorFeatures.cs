@@ -683,13 +683,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             // In balanced mode the skeleton won't be regenerated.  So the downstream project won't see the change to
             // remove the class.  So it will not find the error symbol.
             if (preference is SourceGeneratorExecutionPreference.Automatic)
-            {
-                Assert.True(foundTheError, "Did not find error");
-            }
+                Assert.True(foundTheError);
             else
-            {
                 Assert.False(foundTheError);
-            }
         }
 
         [Fact]
