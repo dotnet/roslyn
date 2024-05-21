@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -124,8 +123,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        <WpfFact>
-        Public Async Function ChangeToRemoveAllGeneratedDocumentsUpdatesListCorrectly() As Task
+        <WpfTheory, CombinatorialData>
+        Friend Async Function ChangeToRemoveAllGeneratedDocumentsUpdatesListCorrectly(
+                preference As SourceGeneratorExecutionPreference) As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
@@ -137,8 +137,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     workspaceXml,
                     composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(TestWorkspaceConfigurationService)))
 
-                workspace.GlobalOptions.SetGlobalOption(
-                    WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic)
+                Dim configService = workspace.ExportProvider.GetExportedValue(Of TestWorkspaceConfigurationService)
+                configService.Options = New WorkspaceConfigurationOptions(SourceGeneratorExecution:=preference)
 
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
@@ -155,12 +155,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Await WaitForGeneratorsAndItemSourcesAsync(workspace)
 
-                Assert.IsType(Of NoSourceGeneratedFilesPlaceholderItem)(Assert.Single(generatorFilesItemSource.Items))
+                If preference = SourceGeneratorExecutionPreference.Automatic Then
+                    Assert.IsType(Of NoSourceGeneratedFilesPlaceholderItem)(Assert.Single(generatorFilesItemSource.Items))
+                Else
+                    Assert.IsType(Of SourceGeneratedFileItem)(Assert.Single(generatorFilesItemSource.Items))
+                End If
             End Using
         End Function
 
-        <WpfFact>
-        Public Async Function AddingAGeneratedDocumentUpdatesListCorrectly() As Task
+        <WpfTheory, CombinatorialData>
+        Friend Async Function AddingAGeneratedDocumentUpdatesListCorrectly(
+                preference As SourceGeneratorExecutionPreference) As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
@@ -171,8 +176,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     workspaceXml,
                     composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(TestWorkspaceConfigurationService)))
 
-                workspace.GlobalOptions.SetGlobalOption(
-                    WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic)
+                Dim configService = workspace.ExportProvider.GetExportedValue(Of TestWorkspaceConfigurationService)
+                configService.Options = New WorkspaceConfigurationOptions(SourceGeneratorExecution:=preference)
 
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
