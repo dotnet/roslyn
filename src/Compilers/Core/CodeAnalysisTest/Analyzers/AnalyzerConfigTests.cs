@@ -63,30 +63,30 @@ my_prop = my_val
         {
             var config = ParseConfigFile(@"is_global = true
 
-[c:/\{f\*i\?le1\}.cs]
+[C:/\{f\*i\?le1\}.cs]
 build_metadata.Compile.ToRetrieve = abc123
 
-[c:/f\,ile\#2.cs]
+[C:/f\,ile\#2.cs]
 build_metadata.Compile.ToRetrieve = def456
 
-[c:/f\;i\!le\[3\].cs]
+[C:/f\;i\!le\[3\].cs]
 build_metadata.Compile.ToRetrieve = ghi789
 ");
 
             var namedSections = config.NamedSections;
-            Assert.Equal("c:/\\{f\\*i\\?le1\\}.cs", namedSections[0].Name);
+            Assert.Equal("C:/\\{f\\*i\\?le1\\}.cs", namedSections[0].Name);
             AssertEx.Equal(
                 new[] { KeyValuePair.Create("build_metadata.compile.toretrieve", "abc123") },
                 namedSections[0].Properties
             );
 
-            Assert.Equal("c:/f\\,ile\\#2.cs", namedSections[1].Name);
+            Assert.Equal("C:/f\\,ile\\#2.cs", namedSections[1].Name);
             AssertEx.Equal(
                 new[] { KeyValuePair.Create("build_metadata.compile.toretrieve", "def456") },
                 namedSections[1].Properties
             );
 
-            Assert.Equal("c:/f\\;i\\!le\\[3\\].cs", namedSections[2].Name);
+            Assert.Equal("C:/f\\;i\\!le\\[3\\].cs", namedSections[2].Name);
             AssertEx.Equal(
                 new[] { KeyValuePair.Create("build_metadata.compile.toretrieve", "ghi789") },
                 namedSections[2].Properties
@@ -118,14 +118,15 @@ build_metadata.Compile.ToRetrieve = def456
         [ConditionalFact(typeof(WindowsOnly))]
         public void CanGetSectionsWithDifferentDriveCasing()
         {
-            var config = ParseConfigFile(@"is_global = true
+            var config = Parse(@"is_global = true
+build_metadata.compile.toretrieve = global
 
-[c:\goo\file.cs]
+[c:/goo/file.cs]
 build_metadata.compile.toretrieve = abc123
 
-[C:\goo\other.cs]
+[C:/goo/other.cs]
 build_metadata.compile.toretrieve = def456
-");
+", pathToFile: @"C:/.editorconfig");
 
             var set = AnalyzerConfigSet.Create(ImmutableArray.Create(config));
 
@@ -140,6 +141,12 @@ build_metadata.compile.toretrieve = def456
 
             sectionOptions = set.GetOptionsForSourcePath(@"c:\goo\other.cs");
             Assert.Equal("def456", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+
+            sectionOptions = set.GetOptionsForSourcePath(@"c:\global.cs");
+            Assert.Equal("global", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+
+            sectionOptions = set.GetOptionsForSourcePath(@"C:\global.cs");
+            Assert.Equal("global", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
