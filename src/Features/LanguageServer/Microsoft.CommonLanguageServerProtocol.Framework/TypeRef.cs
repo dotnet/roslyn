@@ -35,7 +35,4 @@ internal readonly partial record struct TypeRef
     public static TypeRef From(Type type) => new(type.AssemblyQualifiedName!);
 
     public static TypeRef Of<T>() => From(typeof(T));
-
-    public static implicit operator TypeRef(Type? type)
-        => type is not null ? From(type) : default;
 }

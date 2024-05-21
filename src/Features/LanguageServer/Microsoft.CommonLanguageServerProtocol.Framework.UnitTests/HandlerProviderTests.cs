@@ -60,7 +60,7 @@ public class HandlerProviderTests
     {
         var handlerProvider = GetHandlerProvider(supportsMethodHandlerProvider: false);
 
-        Assert.Throws<InvalidOperationException>(() => handlerProvider.GetMethodHandler(TestMethodHandler.Name, TestMethodHandler.RequestType, responseTypeRef: typeof(long), LanguageServerConstants.DefaultLanguageName));
+        Assert.Throws<InvalidOperationException>(() => handlerProvider.GetMethodHandler(TestMethodHandler.Name, TestMethodHandler.RequestType, responseTypeRef: TypeRef.Of<long>(), LanguageServerConstants.DefaultLanguageName));
     }
 
     [Theory, CombinatorialData]

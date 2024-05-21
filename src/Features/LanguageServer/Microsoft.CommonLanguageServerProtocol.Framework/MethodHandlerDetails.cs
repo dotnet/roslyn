@@ -39,7 +39,12 @@ internal sealed record MethodHandlerDetails(
 
             foreach (var language in languages)
             {
-                builder.Add(new(method, language, requestType, responseType, requestContextType));
+                builder.Add(new(
+                    method,
+                    language,
+                    requestType is not null ? TypeRef.From(requestType) : null,
+                    responseType is not null ? TypeRef.From(responseType) : null,
+                    TypeRef.From(requestContextType)));
             }
         }
 

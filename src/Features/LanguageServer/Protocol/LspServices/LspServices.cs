@@ -166,7 +166,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
             var handlerType = handler.GetType();
             var methods = MethodHandlerDetails.From(handlerType);
 
-            builder.Add((handler, handlerType, methods));
+            builder.Add((handler, TypeRef.From(handlerType), methods));
         }
 
         // Now, walk through our MEF services and add any IMethodHandlers.
