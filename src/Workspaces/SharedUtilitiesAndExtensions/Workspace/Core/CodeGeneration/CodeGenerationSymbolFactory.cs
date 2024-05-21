@@ -322,7 +322,7 @@ internal static class CodeGenerationSymbolFactory
             attributes: default, varianceKind: VarianceKind.None,
             name: name, constraintTypes: [],
             hasConstructorConstraint: false, hasReferenceConstraint: false, hasValueConstraint: false,
-            allowsRefLikeType: false, hasUnmanagedConstraint: false, hasNotNullConstraint: false,
+            hasUnmanagedConstraint: false, hasNotNullConstraint: false, allowsRefLikeType: false,
             ordinal: ordinal);
     }
 
