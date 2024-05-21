@@ -6,10 +6,8 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
-Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -62,7 +60,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
                 GetType(NoCompilationContentTypeLanguageService),
                 GetType(NoCompilationContentTypeDefinitions),
-                GetType(WorkspaceTestLogger))
+                GetType(WorkspaceTestLogger),
+                GetType(TestWorkspaceConfigurationService))
 
             If host = RenameTestHost.OutOfProcess_SingleCall OrElse host = RenameTestHost.OutOfProcess_SplitCall Then
                 composition = composition.WithTestHostParts(TestHost.OutOfProcess)
@@ -70,6 +69,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
             Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=composition)
             workspace.Services.SolutionServices.SetWorkspaceTestOutput(helper)
+            workspace.GlobalOptions.SetGlobalOption(
+                WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic)
 
             If sourceGenerator IsNot Nothing Then
                 workspace.OnAnalyzerReferenceAdded(workspace.CurrentSolution.ProjectIds.Single(), New TestGeneratorReference(sourceGenerator))

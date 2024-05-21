@@ -5,7 +5,9 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -131,7 +133,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = EditorTestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(
+                    workspaceXml,
+                    composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(TestWorkspaceConfigurationService)))
+
+                workspace.GlobalOptions.SetGlobalOption(
+                    WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic)
+
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
@@ -159,7 +167,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = EditorTestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(
+                    workspaceXml,
+                    composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(TestWorkspaceConfigurationService)))
+
+                workspace.GlobalOptions.SetGlobalOption(
+                    WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic)
+
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
