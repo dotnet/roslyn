@@ -46,7 +46,7 @@ internal sealed class VSTypeScriptFindUsagesService(IVSTypeScriptFindUsagesServi
             => _context.OnDefinitionFoundAsync(definition.UnderlyingObject, cancellationToken);
 
         public ValueTask OnReferenceFoundAsync(VSTypeScriptSourceReferenceItem reference, CancellationToken cancellationToken)
-            => _context.OnReferenceFoundAsync(reference.UnderlyingObject, cancellationToken);
+            => _context.OnReferencesFoundAsync([reference.UnderlyingObject], cancellationToken);
 
         public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
             => ValueTaskFactory.CompletedTask;

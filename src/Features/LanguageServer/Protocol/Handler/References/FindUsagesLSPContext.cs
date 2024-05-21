@@ -129,41 +129,44 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        public override async ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+        public override async ValueTask OnReferencesFoundAsync(ImmutableArray<SourceReferenceItem> references, CancellationToken cancellationToken)
         {
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                // Each reference should be associated with a definition. If this somehow isn't the
-                // case, we bail out early.
-                if (!_definitionToId.TryGetValue(reference.Definition, out var definitionId))
-                    return;
-
-                var documentSpan = reference.SourceSpan;
-                var document = documentSpan.Document;
-
-                // If this is reference to the same physical location we've already reported, just
-                // filter this out.  it will clutter the UI to show the same places.
-                if (!_referenceLocations.Add((document.FilePath, reference.SourceSpan.SourceSpan)))
-                    return;
-
-                // If the definition hasn't been reported yet, add it to our list of references to report.
-                if (_definitionsWithoutReference.TryGetValue(definitionId, out var definition))
+                foreach (var reference in references)
                 {
-                    _workQueue.AddWork(definition);
-                    _definitionsWithoutReference.Remove(definitionId);
+                    // Each reference should be associated with a definition. If this somehow isn't the
+                    // case, we bail out early.
+                    if (!_definitionToId.TryGetValue(reference.Definition, out var definitionId))
+                        return;
+
+                    var documentSpan = reference.SourceSpan;
+                    var document = documentSpan.Document;
+
+                    // If this is reference to the same physical location we've already reported, just
+                    // filter this out.  it will clutter the UI to show the same places.
+                    if (!_referenceLocations.Add((document.FilePath, reference.SourceSpan.SourceSpan)))
+                        return;
+
+                    // If the definition hasn't been reported yet, add it to our list of references to report.
+                    if (_definitionsWithoutReference.TryGetValue(definitionId, out var definition))
+                    {
+                        _workQueue.AddWork(definition);
+                        _definitionsWithoutReference.Remove(definitionId);
+                    }
+
+                    // give this reference a fresh id.
+                    _id++;
+
+                    // Creating a new VSReferenceItem for the reference
+                    var referenceItem = await GenerateVSReferenceItemAsync(
+                        definitionId, _id, reference.SourceSpan,
+                        reference.AdditionalProperties, definitionText: null,
+                        definitionGlyph: Glyph.None, reference.SymbolUsageInfo, reference.IsWrittenTo, cancellationToken).ConfigureAwait(false);
+
+                    if (referenceItem != null)
+                        _workQueue.AddWork(referenceItem.Value);
                 }
-
-                // give this reference a fresh id.
-                _id++;
-
-                // Creating a new VSReferenceItem for the reference
-                var referenceItem = await GenerateVSReferenceItemAsync(
-                    definitionId, _id, reference.SourceSpan,
-                    reference.AdditionalProperties, definitionText: null,
-                    definitionGlyph: Glyph.None, reference.SymbolUsageInfo, reference.IsWrittenTo, cancellationToken).ConfigureAwait(false);
-
-                if (referenceItem != null)
-                    _workQueue.AddWork(referenceItem.Value);
             }
         }
 

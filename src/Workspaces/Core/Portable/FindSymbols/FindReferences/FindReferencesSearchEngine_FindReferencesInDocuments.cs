@@ -7,11 +7,14 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
@@ -110,19 +113,43 @@ internal partial class FindReferencesSearchEngine
 
         async ValueTask DirectSymbolSearchAsync(ISymbol symbol, FindReferencesDocumentState state)
         {
-            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var referencesForFinder);
-            foreach (var finder in _finders)
-            {
-                finder.FindReferencesInDocument(
-                    symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, referencesForFinder, _options, cancellationToken);
-            }
+            await ProducerConsumer<FinderLocation>.RunAsync(
+                ProducerConsumerOptions.SingleReaderWriterOptions,
+                static (callback, args, cancellationToken) =>
+                {
+                    // We don't bother calling into the finders in parallel as there's only ever one that applies for a
+                    // particular symbol kind.  All the rest bail out immediately after a quick type-check.  So there's
+                    // no benefit in forking out to have only one of them end up actually doing work.
+                    foreach (var finder in args.@this._finders)
+                    {
+                        finder.FindReferencesInDocument(
+                            args.symbol, args.state,
+                            static (finderLocation, callback) => callback(finderLocation),
+                            callback, args.@this._options, cancellationToken);
+                    }
 
-            if (referencesForFinder.Count > 0)
-            {
-                var group = await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
-                var references = referencesForFinder.SelectAsArray(r => (group, symbol, r.Location));
+                    return Task.CompletedTask;
+                },
+                consumeItems: static async (values, args, cancellationToken) =>
+                {
+                    await args.@this._progress.OnReferencesFoundAsync(
+                        ReadAllAsync(args.@this, values, args.symbol, cancellationToken), cancellationToken).ConfigureAwait(false);
+                },
+                args: (@this: this, symbol, state),
+                cancellationToken).ConfigureAwait(false);
+        }
 
-                await _progress.OnReferencesFoundAsync(references, cancellationToken).ConfigureAwait(false);
+        static async IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> ReadAllAsync(
+            FindReferencesSearchEngine @this, IAsyncEnumerable<FinderLocation> locations, ISymbol symbol, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            SymbolGroup? group = null;
+
+            // Transform the individual finder-location objects to "group/symbol/location" tuples.
+            await foreach (var location in locations)
+            {
+                // The first time we see the location for a symbol, report its group.
+                group ??= await @this.ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+                yield return (group, symbol, location.Location);
             }
         }
 
@@ -144,7 +171,8 @@ internal partial class FindReferencesSearchEngine
                         var candidateGroup = await ReportGroupAsync(candidate, cancellationToken).ConfigureAwait(false);
 
                         var location = AbstractReferenceFinder.CreateReferenceLocation(state, token, candidateReason, cancellationToken);
-                        await _progress.OnReferencesFoundAsync([(candidateGroup, candidate, location)], cancellationToken).ConfigureAwait(false);
+                        await _progress.OnReferencesFoundAsync(
+                            IAsyncEnumerableExtensions.AsAsyncEnumerable([(candidateGroup, candidate, location)]), cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

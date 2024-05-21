@@ -494,11 +494,12 @@ internal partial class StreamingFindUsagesPresenter
             return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, sourceSpan.Start));
         }
 
-        public sealed override async ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+        public sealed override async ValueTask OnReferencesFoundAsync(ImmutableArray<SourceReferenceItem> references, CancellationToken cancellationToken)
         {
             try
             {
-                await OnReferenceFoundWorkerAsync(reference, cancellationToken).ConfigureAwait(false);
+                foreach (var reference in references)
+                    await OnReferenceFoundWorkerAsync(reference, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {

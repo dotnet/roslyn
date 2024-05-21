@@ -23,7 +23,7 @@ internal interface IStreamingFindUsagesPresenter
     /// <summary>
     /// Tells the presenter that a search is starting.  The returned <see cref="FindUsagesContext"/>
     /// is used to push information about the search into.  i.e. when a reference is found
-    /// <see cref="FindUsagesContext.OnReferenceFoundAsync"/> should be called.  When the
+    /// <see cref="FindUsagesContext.OnReferencesFoundAsync"/> should be called.  When the
     /// search completes <see cref="FindUsagesContext.OnCompletedAsync"/> should be called. 
     /// etc. etc.
     /// </summary>
