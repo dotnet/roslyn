@@ -18,9 +18,9 @@ internal class CodeGenerationTypeParameterSymbol(
     bool hasConstructorConstraint,
     bool hasReferenceConstraint,
     bool hasValueConstraint,
-    bool allowsRefLikeType,
     bool hasUnmanagedConstraint,
     bool hasNotNullConstraint,
+    bool allowsRefLikeType,
     int ordinal) : CodeGenerationTypeSymbol(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, default, name, SpecialType.None, nullableAnnotation), ITypeParameterSymbol
 {
     public VarianceKind Variance { get; } = varianceKind;
@@ -38,8 +38,8 @@ internal class CodeGenerationTypeParameterSymbol(
         return new CodeGenerationTypeParameterSymbol(
             this.ContainingType, this.GetAttributes(), this.Variance, this.Name, nullableAnnotation,
             this.ConstraintTypes, this.HasConstructorConstraint, this.HasReferenceTypeConstraint,
-            this.HasValueTypeConstraint, this.AllowsRefLikeType, this.HasUnmanagedTypeConstraint, 
-            this.HasNotNullConstraint, this.Ordinal);
+            this.HasValueTypeConstraint, this.HasUnmanagedTypeConstraint, this.HasNotNullConstraint,
+            this.AllowsRefLikeType, this.Ordinal);
     }
 
     public new ITypeParameterSymbol OriginalDefinition => this;

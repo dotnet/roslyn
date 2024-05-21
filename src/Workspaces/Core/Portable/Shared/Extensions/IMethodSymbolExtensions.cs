@@ -135,9 +135,9 @@ internal static partial class IMethodSymbolExtensions
                 typeParameter.HasConstructorConstraint,
                 typeParameter.HasReferenceTypeConstraint,
                 typeParameter.HasValueTypeConstraint,
-                typeParameter.AllowsRefLikeType,
                 typeParameter.HasUnmanagedTypeConstraint,
                 typeParameter.HasNotNullConstraint,
+                typeParameter.AllowsRefLikeType,
                 typeParameter.Ordinal);
 
             newTypeParameters.Add(newTypeParameter);
