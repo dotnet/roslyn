@@ -669,25 +669,17 @@ internal sealed partial class ProjectSystemProject
             }).ConfigureAwait(false);
 
             foreach (var (documentId, textContainer) in documentsToOpen)
-            {
                 await _projectSystemProjectFactory.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
-            }
 
             foreach (var (documentId, textContainer) in additionalDocumentsToOpen)
-            {
                 await _projectSystemProjectFactory.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnAdditionalDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
-            }
 
             foreach (var (documentId, textContainer) in analyzerConfigDocumentsToOpen)
-            {
                 await _projectSystemProjectFactory.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnAnalyzerConfigDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
-            }
 
             // Give the host the opportunity to check if those files are open
             if (documentFileNamesAdded.Count > 0)
-            {
                 await _projectSystemProjectFactory.RaiseOnDocumentsAddedMaybeAsync(useAsync, documentFileNamesAdded.ToImmutable()).ConfigureAwait(false);
-            }
 
             // If we added or removed analyzers, then re-run all generators to bring them up to date.
             if (hasAnalyzerChanges)
