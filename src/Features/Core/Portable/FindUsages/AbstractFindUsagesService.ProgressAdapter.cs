@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -44,7 +45,7 @@ internal abstract partial class AbstractFindUsagesService
                 documentSpan, classifiedSpans: null, options, cancellationToken).ConfigureAwait(false);
 
             await _context.OnReferencesFoundAsync(
-                [new SourceReferenceItem(_definition, documentSpan, classifiedSpans, SymbolUsageInfo.None)], cancellationToken).ConfigureAwait(false);
+                IAsyncEnumerableExtensions.SingletonAsync(new SourceReferenceItem(_definition, documentSpan, classifiedSpans, SymbolUsageInfo.None)), cancellationToken).ConfigureAwait(false);
         }
     }
 

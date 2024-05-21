@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -128,18 +129,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            public ValueTask OnReferencesFoundAsync(ImmutableArray<SourceReferenceItem> references, CancellationToken cancellationToken)
+            public async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
             {
-                var dehydrated = new FixedSizeArrayBuilder<SerializableSourceReferenceItem>(references.Length);
-                foreach (var reference in references)
+                using var _ = ArrayBuilder<SerializableSourceReferenceItem>.GetInstance(out var dehydrated);
+                await foreach (var reference in references)
                 {
                     var dehydratedReference = SerializableSourceReferenceItem.Dehydrate(
                         GetOrAddDefinitionItemId(reference.Definition), reference);
                     dehydrated.Add(dehydratedReference);
                 }
 
-                var dehydratedReferences = dehydrated.MoveToImmutable();
-                return _callback.InvokeAsync((callback, cancellationToken) => callback.OnReferencesFoundAsync(_callbackId, dehydratedReferences, cancellationToken), cancellationToken);
+                var dehydratedReferences = dehydrated.ToImmutableAndClear();
+                await _callback.InvokeAsync((callback, cancellationToken) => callback.OnReferencesFoundAsync(
+                    _callbackId, dehydratedReferences, cancellationToken), cancellationToken).ConfigureAwait(false);
             }
 
             #endregion

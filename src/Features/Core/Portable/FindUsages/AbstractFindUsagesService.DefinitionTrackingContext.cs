@@ -39,7 +39,7 @@ internal abstract partial class AbstractFindUsagesService
         public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
             => _underlyingContext.SetSearchTitleAsync(title, cancellationToken);
 
-        public ValueTask OnReferencesFoundAsync(ImmutableArray<SourceReferenceItem> references, CancellationToken cancellationToken)
+        public ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
             => _underlyingContext.OnReferencesFoundAsync(references, cancellationToken);
 
         public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
