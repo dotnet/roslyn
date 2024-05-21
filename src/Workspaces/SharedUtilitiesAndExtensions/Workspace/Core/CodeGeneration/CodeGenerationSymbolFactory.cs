@@ -322,7 +322,8 @@ internal static class CodeGenerationSymbolFactory
             attributes: default, varianceKind: VarianceKind.None,
             name: name, constraintTypes: [],
             hasConstructorConstraint: false, hasReferenceConstraint: false, hasValueConstraint: false,
-            hasUnmanagedConstraint: false, hasNotNullConstraint: false, ordinal: ordinal);
+            allowsRefLikeType: false, hasUnmanagedConstraint: false, hasNotNullConstraint: false, 
+            ordinal: ordinal);
     }
 
     /// <summary>
@@ -337,10 +338,11 @@ internal static class CodeGenerationSymbolFactory
         bool hasReferenceConstraint = false,
         bool hasUnmanagedConstraint = false,
         bool hasValueConstraint = false,
+        bool allowsRefLikeType = false,
         bool hasNotNullConstraint = false,
         int ordinal = 0)
     {
-        return new CodeGenerationTypeParameterSymbol(null, attributes, varianceKind, name, nullableAnnotation, constraintTypes, hasConstructorConstraint, hasReferenceConstraint, hasValueConstraint, hasUnmanagedConstraint, hasNotNullConstraint, ordinal);
+        return new CodeGenerationTypeParameterSymbol(null, attributes, varianceKind, name, nullableAnnotation, constraintTypes, hasConstructorConstraint, hasReferenceConstraint, hasValueConstraint, hasUnmanagedConstraint, allowsRefLikeType, hasNotNullConstraint, ordinal);
     }
 
     /// <summary>
