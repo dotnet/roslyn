@@ -13,47 +13,60 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
-            BoundExpression? rewrittenReceiverOpt = VisitExpression(node.ReceiverOpt);
-            rewrittenReceiverOpt = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiverOpt, node.Event);
+            ArrayBuilder<LocalSymbol>? temps = null;
+            var result = visitEventAssignmentOperator(node, ref temps);
 
-            BoundExpression rewrittenArgument = VisitExpression(node.Argument);
-
-            if (rewrittenReceiverOpt != null && node.Event.ContainingAssembly.IsLinked && node.Event.ContainingType.IsInterfaceType())
+            if (temps is not null)
             {
-                var @interface = node.Event.ContainingType;
+                result = _factory.Sequence(temps.ToImmutableAndFree(), [], result, syntax: node.Syntax);
+            }
 
-                foreach (var attrData in @interface.GetAttributes())
+            return result;
+
+            BoundExpression visitEventAssignmentOperator(BoundEventAssignmentOperator node, ref ArrayBuilder<LocalSymbol>? temps)
+            {
+                BoundExpression? rewrittenReceiverOpt = VisitExpression(node.ReceiverOpt);
+                rewrittenReceiverOpt = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiverOpt, node.Event, storesOpt: null, ref temps);
+
+                BoundExpression rewrittenArgument = VisitExpression(node.Argument);
+
+                if (rewrittenReceiverOpt != null && node.Event.ContainingAssembly.IsLinked && node.Event.ContainingType.IsInterfaceType())
                 {
-                    int signatureIndex = attrData.GetTargetAttributeSignatureIndex(AttributeDescription.ComEventInterfaceAttribute);
+                    var @interface = node.Event.ContainingType;
 
-                    if (signatureIndex == 0)
+                    foreach (var attrData in @interface.GetAttributes())
                     {
-                        DiagnosticInfo? errorInfo = attrData.ErrorInfo;
-                        if (errorInfo is not null)
-                        {
-                            _diagnostics.Add(errorInfo, node.Syntax.Location);
-                        }
+                        int signatureIndex = attrData.GetTargetAttributeSignatureIndex(AttributeDescription.ComEventInterfaceAttribute);
 
-                        if (!attrData.HasErrors)
+                        if (signatureIndex == 0)
                         {
-                            return RewriteNoPiaEventAssignmentOperator(node, rewrittenReceiverOpt, rewrittenArgument);
+                            DiagnosticInfo? errorInfo = attrData.ErrorInfo;
+                            if (errorInfo is not null)
+                            {
+                                _diagnostics.Add(errorInfo, node.Syntax.Location);
+                            }
+
+                            if (!attrData.HasErrors)
+                            {
+                                return RewriteNoPiaEventAssignmentOperator(node, rewrittenReceiverOpt, rewrittenArgument);
+                            }
                         }
                     }
                 }
+
+                if (node.Event.IsWindowsRuntimeEvent)
+                {
+                    EventAssignmentKind kind = node.IsAddition ? EventAssignmentKind.Addition : EventAssignmentKind.Subtraction;
+                    return RewriteWindowsRuntimeEventAssignmentOperator(node.Syntax, node.Event, kind, rewrittenReceiverOpt, rewrittenArgument);
+                }
+
+                var rewrittenArguments = ImmutableArray.Create<BoundExpression>(rewrittenArgument);
+
+                MethodSymbol? method = node.IsAddition ? node.Event.AddMethod : node.Event.RemoveMethod;
+                Debug.Assert(method is { });
+                Debug.Assert(method.ReturnType.Equals(node.Type, TypeCompareKind.AllIgnoreOptions));
+                return MakeCall(node.Syntax, rewrittenReceiverOpt, method, rewrittenArguments);
             }
-
-            if (node.Event.IsWindowsRuntimeEvent)
-            {
-                EventAssignmentKind kind = node.IsAddition ? EventAssignmentKind.Addition : EventAssignmentKind.Subtraction;
-                return RewriteWindowsRuntimeEventAssignmentOperator(node.Syntax, node.Event, kind, rewrittenReceiverOpt, rewrittenArgument);
-            }
-
-            var rewrittenArguments = ImmutableArray.Create<BoundExpression>(rewrittenArgument);
-
-            MethodSymbol? method = node.IsAddition ? node.Event.AddMethod : node.Event.RemoveMethod;
-            Debug.Assert(method is { });
-            Debug.Assert(method.ReturnType.Equals(node.Type, TypeCompareKind.AllIgnoreOptions));
-            return MakeCall(node.Syntax, rewrittenReceiverOpt, method, rewrittenArguments);
         }
 
         private enum EventAssignmentKind
@@ -221,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             TypeSymbol type)
         {
-            Debug.Assert(AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, eventSymbol) == rewrittenReceiver); // PROTOTYPE we'll probably want to adjust for `this.UnderlyingMember` receiver
+            // PROTOTYPE we'll probably want to adjust for `this.UnderlyingMember` receiver
             Debug.Assert(eventSymbol.HasAssociatedField);
 
             FieldSymbol? fieldSymbol = eventSymbol.AssociatedField;

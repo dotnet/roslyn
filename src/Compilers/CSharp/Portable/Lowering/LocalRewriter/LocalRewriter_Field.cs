@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -11,9 +13,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
-            rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, node.FieldSymbol);
+            ArrayBuilder<LocalSymbol>? temps = null;
+            rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, node.FieldSymbol, storesOpt: null, ref temps);
 
-            return MakeFieldAccess(node.Syntax, rewrittenReceiver, node.FieldSymbol, node.ConstantValueOpt, node.ResultKind, node.Type, node);
+            BoundExpression result = MakeFieldAccess(node.Syntax, rewrittenReceiver, node.FieldSymbol, node.ConstantValueOpt, node.ResultKind, node.Type, node);
+
+            if (temps is not null)
+            {
+                result = _factory.Sequence(temps.ToImmutableAndFree(), [], result, syntax: node.Syntax);
+            }
+
+            return result;
+
         }
 
         private BoundExpression MakeFieldAccess(

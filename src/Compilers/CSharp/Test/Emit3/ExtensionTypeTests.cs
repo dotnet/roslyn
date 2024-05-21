@@ -37867,8 +37867,7 @@ public class MyCollection : IEnumerable<int>
 {
   // Code size       39 (0x27)
   .maxstack  3
-  .locals init (MyCollection V_0,
-                MyCollection V_1)
+  .locals init (MyCollection V_0)
   IL_0000:  newobj     "MyCollection..ctor()"
   IL_0005:  dup
   IL_0006:  stloc.0
@@ -37877,8 +37876,8 @@ public class MyCollection : IEnumerable<int>
   IL_000e:  ldc.i4.s   42
   IL_0010:  call       "void E.Add(int)"
   IL_0015:  dup
-  IL_0016:  stloc.1
-  IL_0017:  ldloca.s   V_1
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
   IL_0019:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<MyCollection, E>(ref MyCollection)"
   IL_001e:  ldc.i4.s   43
   IL_0020:  call       "void E.Add(int)"
@@ -41875,16 +41874,16 @@ implicit extension E for string
 {
   // Code size       36 (0x24)
   .maxstack  3
-  .locals init (E V_0,
-                string V_1)
+  .locals init (string V_0,
+                E V_1)
   IL_0000:  ldstr      ""
-  IL_0005:  stloc.1
-  IL_0006:  ldloca.s   V_1
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
   IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<string, E>(ref string)"
   IL_000d:  ldobj      "E"
-  IL_0012:  stloc.0
-  IL_0013:  ldloca.s   V_0
-  IL_0015:  ldloca.s   V_0
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  ldloca.s   V_1
   IL_0017:  call       "int E.P.get"
   IL_001c:  ldc.i4.1
   IL_001d:  add
@@ -42234,19 +42233,22 @@ class C
     }
 }
 
-struct S { }
+struct S 
+{ 
+    public void M() { System.Console.Write("ran4 "); }
+}
 
 implicit extension E for S
 {
     public event System.Action Event
     {
-        add { System.Console.Write("ran1 "); value(); }
-        remove { System.Console.Write("ran3"); }
+        add { System.Console.Write("ran1 "); value(); this.M(); }
+        remove { System.Console.Write("ran3 "); this.M(); }
     }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran1 ran2 ran3"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran1 ran2 ran4 ran3 ran4"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("C.Add", """
 {
   // Code size       16 (0x10)
@@ -42468,21 +42470,21 @@ public struct CustomHandler
 {
   // Code size       62 (0x3e)
   .maxstack  6
-  .locals init (E& V_0,
-                C V_1,
+  .locals init (C V_0,
+                E& V_1,
                 CustomHandler V_2)
   IL_0000:  ldc.i4.5
   IL_0001:  newobj     "C..ctor(int)"
   IL_0006:  dup
-  IL_0007:  stloc.1
-  IL_0008:  ldloca.s   V_1
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
   IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
-  IL_000f:  stloc.0
-  IL_0010:  ldloc.0
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
   IL_0011:  ldloca.s   V_2
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.0
-  IL_0015:  ldloc.0
+  IL_0015:  ldloc.1
   IL_0016:  ldobj      "E"
   IL_001b:  call       "CustomHandler..ctor(int, int, E)"
   IL_0020:  ldloca.s   V_2
@@ -43039,7 +43041,7 @@ public struct S
 
 public implicit extension E for S
 {
-    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c) => Console.WriteLine(c.ToString());
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c) => Console.Write(c.ToString());
 }
 
 [InterpolatedStringHandler]
@@ -43056,7 +43058,7 @@ public struct CustomHandler
     private readonly StringBuilder _builder;
     public bool AppendLiteral(string literal)
     {
-        _builder.Append("literal:" + literal);
+        _builder.Append("literal:" + literal + " ");
         return true;
     }
     public override string ToString() => _builder.ToString();
@@ -43064,21 +43066,7 @@ public struct CustomHandler
 """;
 
         var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE add support for extension conversions (would be a copy, should mention in spec)
-        comp.VerifyEmitDiagnostics(
-            // (5,2): error CS1503: Argument 3: cannot convert from 'E' to 'C'
-            // (new C(5)).M((int)10, "str",  $"literal" );
-            Diagnostic(ErrorCode.ERR_BadArgType, "new C(5)").WithArguments("3", "E", "C").WithLocation(5, 2));
-        //var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("c.Prop:5 literal:literal"),
-        //        sourceSymbolValidator: validator, symbolValidator: validator)
-        //    .VerifyDiagnostics();
-
-        //static void validator(ModuleSymbol module)
-        //{
-        //    var cParam = module.GlobalNamespace.GetTypeMember("E").GetMethod("M").Parameters.Skip(2).Single();
-        //    AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
-        //                   cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
-        //    AssertEx.Equal([-1], cParam.InterpolatedStringHandlerArgumentIndexes);
-        //}
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("s.Prop:5 literal:literal 0"))
+            .VerifyDiagnostics();
     }
 }

@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiverOpt.Kind != BoundKind.TypeExpression);
 
             BoundExpression rewrittenReceiver = VisitExpression(receiverOpt);
-            var adjustedRewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, propertyOrEvent);
+            var adjustedRewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, propertyOrEvent, stores, ref temps);
 
             if (!CanChangeValueBetweenReads(receiverOpt) && adjustedRewrittenReceiver == rewrittenReceiver)
             {
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TransformCompoundAssignmentFieldOrEventAccessReceiver(Symbol fieldOrEvent, ref BoundExpression? receiver, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
         {
             Debug.Assert(fieldOrEvent.Kind == SymbolKind.Field || fieldOrEvent.Kind == SymbolKind.Event);
-            Debug.Assert(AdjustReceiverForExtensionsIfNeeded(receiver, fieldOrEvent) == receiver); // PROTOTYPE we'll probably want to adjust for `this.UnderlyingMember` receiver
+            // PROTOTYPE we'll probably want to adjust for `this.UnderlyingMember` receiver
 
             //If the receiver is static or is the receiver is of kind "Base" or "this", then we can just generate field = field + value
             if (fieldOrEvent.IsStatic)

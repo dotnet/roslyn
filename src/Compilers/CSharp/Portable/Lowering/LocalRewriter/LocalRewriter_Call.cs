@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             ArrayBuilder<BoundExpression>? storesOpt,
-            ref ArrayBuilder<LocalSymbol>? tempsOpt,
+            [NotNullIfNotNull(nameof(tempsOpt))] ref ArrayBuilder<LocalSymbol>? tempsOpt,
             BoundExpression? firstRewrittenArgument = null)
         {
             Debug.Assert(argumentRefKindsOpt.IsDefault || argumentRefKindsOpt.Length == arguments.Length);
@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!requiresInstanceReceiver || rewrittenReceiver != null || _inExpressionLambda);
             Debug.Assert(captureReceiverMode == ReceiverCaptureMode.Default || (requiresInstanceReceiver && rewrittenReceiver != null && storesOpt is object));
 
-            rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, methodOrIndexer);
+            rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, methodOrIndexer, storesOpt, ref tempsOpt);
 
             BoundLocal? receiverTemp = null;
             BoundAssignmentOperator? assignmentToTemp = null;
@@ -920,8 +920,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return refKind;
         }
 
+        // This may introduce some temps into an outer scope. The caller has to deal with that.
         [return: NotNullIfNotNull(nameof(receiver))]
-        BoundExpression? AdjustReceiverForExtensionsIfNeeded(BoundExpression? receiver, Symbol member)
+        private BoundExpression? AdjustReceiverForExtensionsIfNeeded(BoundExpression? receiver, Symbol member,
+            ArrayBuilder<BoundExpression>? storesOpt, [NotNullIfNotNull(nameof(tempsOpt))] ref ArrayBuilder<LocalSymbol>? tempsOpt)
         {
             if (receiver is null)
             {
@@ -972,32 +974,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldSyntax = _factory.Syntax;
             _factory.Syntax = receiver.Syntax;
 
-            var temps = ArrayBuilder<LocalSymbol>.GetInstance();
-            var effects = ArrayBuilder<BoundExpression>.GetInstance();
+            tempsOpt ??= ArrayBuilder<LocalSymbol>.GetInstance();
 
             // PROTOTYPE we'll want to allow extension member lookup and receiver adjustment for type parameter values
             Debug.Assert(!receiver.Type.IsTypeParameter());
             var refKind = GetRefKindForCapturedReceiverTemp(receiver);
             BoundAssignmentOperator assignmentToTemp;
             BoundLocal temp = _factory.StoreToTemp(receiver, out assignmentToTemp, refKind);
-
-            effects.Add(assignmentToTemp);
-            temps.Add(temp.LocalSymbol);
-            receiver = temp;
-
-            Debug.Assert(receiver.Type is not null);
+            tempsOpt.Add(temp.LocalSymbol);
+            Debug.Assert(temp.Type is not null);
 
             MethodSymbol method = _factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T)
-                .Construct(ImmutableArray.Create<TypeSymbol>(receiver.Type, memberExtensionType));
+                .Construct(ImmutableArray.Create<TypeSymbol>(temp.Type, memberExtensionType));
 
             method.CheckConstraints(
-                new ConstraintsHelper.CheckConstraintsArgs(_compilation, _compilation.Conversions, receiver.Syntax.GetLocation(), _factory.Diagnostics));
+                new ConstraintsHelper.CheckConstraintsArgs(_compilation, _compilation.Conversions, temp.Syntax.GetLocation(), _factory.Diagnostics));
 
-            var call = _factory.Call(null, method, receiver);
-            var result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), call);
+            var call = _factory.Call(null, method, temp);
             _factory.Syntax = oldSyntax;
 
-            return result;
+            if (storesOpt is null)
+            {
+                return _factory.Sequence([], [assignmentToTemp], call, receiver.Syntax);
+            }
+            else
+            {
+                storesOpt.Add(assignmentToTemp);
+                return call;
+            }
         }
 
         private void ReferToTempIfReferenceTypeReceiver(BoundLocal receiverTemp, ref BoundAssignmentOperator assignmentToTemp, out BoundAssignmentOperator? extraRefInitialization, ArrayBuilder<LocalSymbol> temps)

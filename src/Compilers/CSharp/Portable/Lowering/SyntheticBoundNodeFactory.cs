@@ -1078,13 +1078,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequence(Syntax, ImmutableArray<LocalSymbol>.Empty, sideEffects.AsImmutableOrNull(), result, resultType) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
+        public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result, SyntaxNode? syntax = null)
         {
             Debug.Assert(result.Type is { });
             return
                 locals.IsDefaultOrEmpty && sideEffects.IsDefaultOrEmpty
                 ? result
-                : new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
+                : new BoundSequence(syntax ?? Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }
 
         public BoundSpillSequence SpillSequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression result)

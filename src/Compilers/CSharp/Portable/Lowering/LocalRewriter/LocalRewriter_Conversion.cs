@@ -571,25 +571,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
 
-                        receiver = AdjustReceiverForExtensionsIfNeeded(receiver, method);
+                        ArrayBuilder<LocalSymbol>? temps = null;
+                        receiver = AdjustReceiverForExtensionsIfNeeded(receiver, method, storesOpt: null, ref temps);
                         var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
                                                                                         isExtensionMethod: oldNodeOpt.IsExtensionMethod, wasTargetTyped: false, type: rewrittenType);
 
                         EnsureParamCollectionAttributeExists(rewrittenOperand.Syntax, rewrittenType);
                         Debug.Assert(_factory.TopLevelMethod is { });
 
+                        BoundExpression result;
                         if (_factory.Compilation.LanguageVersion >= MessageID.IDS_FeatureCacheStaticMethodGroupConversion.RequiredVersion()
                             && !_inExpressionLambda // The tree structure / meaning for expression trees should remain untouched.
                             && _factory.TopLevelMethod.MethodKind != MethodKind.StaticConstructor // Avoid caching twice if people do it manually.
                             && DelegateCacheRewriter.CanRewrite(boundDelegateCreation))
                         {
                             var rewriter = _lazyDelegateCacheRewriter ??= new DelegateCacheRewriter(_factory, _topLevelMethodOrdinal);
-                            return rewriter.Rewrite(boundDelegateCreation);
+                            result = rewriter.Rewrite(boundDelegateCreation);
                         }
                         else
                         {
-                            return boundDelegateCreation;
+                            result = boundDelegateCreation;
                         }
+
+                        if (temps is not null)
+                        {
+                            result = _factory.Sequence(temps.ToImmutableAndFree(), [], result, syntax: syntax);
+                        }
+
+                        return result;
                     }
 
                 case ConversionKind.InlineArray:

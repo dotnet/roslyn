@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -94,15 +95,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(getMethod.ParameterCount == rewrittenArguments.Length);
                 Debug.Assert(getMethodOpt is null || ReferenceEquals(getMethod, getMethodOpt));
 
-                rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, getMethod);
+                ArrayBuilder<LocalSymbol>? temps = null;
+                rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, getMethod, storesOpt: null, ref temps);
 
-                return BoundCall.Synthesized(
+                BoundExpression result = BoundCall.Synthesized(
                     syntax,
                     rewrittenReceiver,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     getMethod,
                     rewrittenArguments,
                     argumentRefKindsOpt);
+
+                if (temps is not null)
+                {
+                    result = _factory.Sequence(temps.ToImmutableAndFree(), [], result, syntax);
+                }
+
+                return result;
             }
         }
     }
