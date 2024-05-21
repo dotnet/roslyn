@@ -130,7 +130,6 @@ internal partial class FindReferencesSearchEngine
                 },
                 consumeItems: static async (values, args, cancellationToken) =>
                 {
-                    // Transform the individual finder-location objects to "group/symbol/location" tuples.
                     await args.@this._progress.OnReferencesFoundAsync(
                         ReadAllAsync(args.@this, values, args.symbol, cancellationToken), cancellationToken).ConfigureAwait(false);
                 },
@@ -143,6 +142,7 @@ internal partial class FindReferencesSearchEngine
         {
             SymbolGroup? group = null;
 
+            // Transform the individual finder-location objects to "group/symbol/location" tuples.
             await foreach (var location in locations)
             {
                 // The first time we see the location for a symbol, report its group.
