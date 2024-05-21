@@ -18543,27 +18543,34 @@ class C
         [Fact]
         public void StructReceiver_RefReadonlyParameter()
         {
+            // There is copying when using a ref readonly parameter as receiver of a non-readonly method
+            // regardless of the interpolation handler causing the receiver to be captured
             var source = """
 using System;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-var s = new S(5);
-M(ref s);
+var s = new S() { field = 42 };
+C.M(in s);
 System.Console.Write(s.field);
 
-void M(ref readonly S s)
+class C
 {
-    s.M($"literal");
+    public static void M(ref readonly S s)
+    {
+        s.M($"literal");
+    }
 }
 
 public struct S
 {
-    public int Prop { get; }
-    public S(int i) => Prop = i;
     public int field;
     public void Increment() { field++; }
-    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c) => Console.Write(c.ToString());
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c)
+    {
+        ref S notReadOnly = ref System.Runtime.CompilerServices.Unsafe.AsRef(in this);
+        notReadOnly.Increment();
+    }
 }
 
 [System.Runtime.CompilerServices.InterpolatedStringHandler]
@@ -18571,21 +18578,176 @@ public struct CustomHandler
 {
     public CustomHandler(int literalLength, int formattedCount, S s)
     {
-        _builder = new();
-        _builder.Append("s.Prop:" + s.Prop.ToString() + " ");
+        Console.Write($"Handler({s.field}) ");
     }
 
-    private readonly StringBuilder _builder;
-    public bool AppendLiteral(string literal)
-    {
-        _builder.Append("literal:" + literal + " ");
-        return true;
-    }
-    public override string ToString() => _builder.ToString();
+    public bool AppendLiteral(string literal) => true;
 }
 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "s.Prop:5 literal:literal 0" : null, verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Handler(42) 42" : null, verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       46 (0x2e)
+  .maxstack  5
+  .locals init (S& V_0,
+                S V_1,
+                CustomHandler V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldobj      "S"
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  ldloca.s   V_2
+  IL_000d:  ldc.i4.7
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldobj      "S"
+  IL_0015:  call       "CustomHandler..ctor(int, int, S)"
+  IL_001a:  ldloca.s   V_2
+  IL_001c:  ldstr      "literal"
+  IL_0021:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_0026:  pop
+  IL_0027:  ldloc.2
+  IL_0028:  call       "void S.M(CustomHandler)"
+  IL_002d:  ret
+}
+""");
+
+            source = """
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var s = new S() { field = 42 };
+C.M(in s);
+System.Console.Write(s.field);
+
+class C
+{
+    public static void M(ref readonly S s)
+    {
+        s.M();
+    }
+}
+
+public struct S
+{
+    public int field;
+    public void Increment() { field++; }
+    public void M()
+    {
+        ref S notReadOnly = ref System.Runtime.CompilerServices.Unsafe.AsRef(in this);
+        notReadOnly.Increment();
+    }
+}
+""";
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "42" : null, verify: Verification.FailsPEVerify);
+        }
+
+        [Fact]
+        public void StructReceiver_RefReadonlyParameter_ReadonlyMethod()
+        {
+            // No copying when using a ref readonly parameter as receiver of a readonly method
+            // regardless of the interpolation handler causing the receiver to be captured
+            var source = """
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var s = new S() { field = 42 };
+C.M(in s);
+System.Console.Write(s.field);
+
+class C
+{
+    public static void M(ref readonly S s)
+    {
+        s.M($"literal");
+    }
+}
+
+public struct S
+{
+    public int field;
+    public void Increment() { field++; }
+    public readonly void M([InterpolatedStringHandlerArgument("")] CustomHandler c)
+    {
+        ref S notReadOnly = ref System.Runtime.CompilerServices.Unsafe.AsRef(in this);
+        notReadOnly.Increment();
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, S s)
+    {
+        Console.Write($"Handler({s.field}) ");
+    }
+
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Handler(42) 43" : null, verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       38 (0x26)
+  .maxstack  5
+  .locals init (S& V_0,
+                CustomHandler V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  ldc.i4.7
+  IL_0006:  ldc.i4.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldobj      "S"
+  IL_000d:  call       "CustomHandler..ctor(int, int, S)"
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  ldstr      "literal"
+  IL_0019:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_001e:  pop
+  IL_001f:  ldloc.1
+  IL_0020:  call       "readonly void S.M(CustomHandler)"
+  IL_0025:  ret
+}
+""");
+
+            source = """
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var s = new S() { field = 42 };
+C.M(in s);
+System.Console.Write(s.field);
+
+class C
+{
+    public static void M(ref readonly S s)
+    {
+        s.M();
+    }
+}
+
+public struct S
+{
+    public int field;
+    public void Increment() { field++; }
+    public readonly void M()
+    {
+        ref S notReadOnly = ref System.Runtime.CompilerServices.Unsafe.AsRef(in this);
+        notReadOnly.Increment();
+    }
+}
+""";
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "43" : null, verify: Verification.FailsPEVerify);
         }
     }
 }

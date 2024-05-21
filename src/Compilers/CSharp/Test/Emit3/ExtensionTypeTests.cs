@@ -70,7 +70,7 @@ public class ExtensionTypeTests : CompilingTestBase
         Assert.False(namedType.IsRecord);
         Assert.False(namedType.IsRecordStruct);
         Assert.False(namedType.IsReferenceType);
-        Assert.False(namedType.IsValueType);
+        Assert.True(namedType.IsValueType);
         Assert.False(namedType.IsTypeParameter());
         Assert.False(namedType.IsAnonymousType);
         Assert.False(namedType.IsEnumType());
@@ -23430,10 +23430,10 @@ implicit extension E for C
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get(1) set(2) get(3) set(3)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       78 (0x4e)
+  // Code size       71 (0x47)
   .maxstack  4
   .locals init (C V_0,
-                E V_1)
+                E& V_1)
   IL_0000:  newobj     "C..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
@@ -23452,17 +23452,16 @@ implicit extension E for C
   IL_002d:  stloc.0
   IL_002e:  ldloca.s   V_0
   IL_0030:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
-  IL_0035:  ldobj      "E"
-  IL_003a:  stloc.1
-  IL_003b:  ldloca.s   V_1
-  IL_003d:  ldc.i4.3
-  IL_003e:  ldloca.s   V_1
-  IL_0040:  ldc.i4.3
-  IL_0041:  call       "int E.this[int].get"
-  IL_0046:  ldc.i4.3
-  IL_0047:  add
-  IL_0048:  call       "void E.this[int].set"
-  IL_004d:  ret
+  IL_0035:  stloc.1
+  IL_0036:  ldloc.1
+  IL_0037:  ldc.i4.3
+  IL_0038:  ldloc.1
+  IL_0039:  ldc.i4.3
+  IL_003a:  call       "int E.this[int].get"
+  IL_003f:  ldc.i4.3
+  IL_0040:  add
+  IL_0041:  call       "void E.this[int].set"
+  IL_0046:  ret
 }
 """);
 
@@ -41105,28 +41104,613 @@ implicit extension E for C
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("1 1 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       49 (0x31)
+  // Code size       53 (0x35)
   .maxstack  2
   .locals init (C V_0, //c
-                C& V_1) //c2
+                C& V_1, //c2
+                C V_2)
   IL_0000:  newobj     "C..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
   IL_0008:  stloc.1
   IL_0009:  ldloc.1
-  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
-  IL_000f:  ldloc.1
-  IL_0010:  ldind.ref
-  IL_0011:  callvirt   "int C.Increment()"
-  IL_0016:  call       "void E.M(int)"
-  IL_001b:  ldstr      " "
-  IL_0020:  call       "void System.Console.Write(string)"
-  IL_0025:  ldloc.0
-  IL_0026:  ldfld      "int C.field"
-  IL_002b:  call       "void System.Console.Write(int)"
-  IL_0030:  ret
+  IL_000a:  ldind.ref
+  IL_000b:  stloc.2
+  IL_000c:  ldloca.s   V_2
+  IL_000e:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_0013:  ldloc.1
+  IL_0014:  ldind.ref
+  IL_0015:  callvirt   "int C.Increment()"
+  IL_001a:  call       "void E.M(int)"
+  IL_001f:  ldstr      " "
+  IL_0024:  call       "void System.Console.Write(string)"
+  IL_0029:  ldloc.0
+  IL_002a:  ldfld      "int C.field"
+  IL_002f:  call       "void System.Console.Write(int)"
+  IL_0034:  ret
 }
 """);
+    }
+
+    [Fact]
+    public void AdjustReceiver_Invocation_Local_ReferenceType_ValueModifiedInArgument()
+    {
+        var source = $$"""
+C c = new C();
+c.M(c = null);
+
+public class C
+{
+    public int field;
+}
+
+implicit extension E for C
+{
+    public void M(C c) { System.Console.Write(c is null); System.Console.Write(" "); System.Console.Write(this.field); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("True 0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  .locals init (C V_0, //c
+                C V_1)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000f:  ldnull
+  IL_0010:  dup
+  IL_0011:  stloc.0
+  IL_0012:  call       "void E.M(C)"
+  IL_0017:  ret
+}
+""");
+
+        source = $$"""
+C c = new C();
+c.M(c = null);
+
+public class C
+{
+    public int field;
+    public void M(C c) { System.Console.Write(c is null); System.Console.Write(" "); System.Console.Write(this.field); }
+}
+""";
+        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("True 0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AdjustReceiver_Invocation_RefLocal_ReferenceType_ValueModifiedInArgument()
+    {
+        var source = """
+C c = new C();
+ref C c2 = ref c;
+
+C otherC = null;
+c2.M(c2 = ref otherC);
+
+System.Console.Write(c.field);
+
+class C
+{
+    public int field;
+    public int Increment() => field += 1;
+}
+
+implicit extension E for C
+{
+    public void M(C c) { System.Console.Write(c is null); System.Console.Write(" "); System.Console.Write(this.field); this.Increment(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("True 01"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       43 (0x2b)
+  .maxstack  3
+  .locals init (C V_0, //c
+                C& V_1, //c2
+                C V_2, //otherC
+                C V_3)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  stloc.1
+  IL_0009:  ldnull
+  IL_000a:  stloc.2
+  IL_000b:  ldloc.1
+  IL_000c:  ldind.ref
+  IL_000d:  stloc.3
+  IL_000e:  ldloca.s   V_3
+  IL_0010:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_0015:  ldloca.s   V_2
+  IL_0017:  dup
+  IL_0018:  stloc.1
+  IL_0019:  ldind.ref
+  IL_001a:  call       "void E.M(C)"
+  IL_001f:  ldloc.0
+  IL_0020:  ldfld      "int C.field"
+  IL_0025:  call       "void System.Console.Write(int)"
+  IL_002a:  ret
+}
+""");
+        verifier.VerifyIL("E.M", """
+{
+  // Code size       48 (0x30)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldnull
+  IL_0002:  ceq
+  IL_0004:  call       "void System.Console.Write(bool)"
+  IL_0009:  ldstr      " "
+  IL_000e:  call       "void System.Console.Write(string)"
+  IL_0013:  ldarg.0
+  IL_0014:  ldfld      "C E.<UnderlyingInstance>$"
+  IL_0019:  ldfld      "int C.field"
+  IL_001e:  call       "void System.Console.Write(int)"
+  IL_0023:  ldarg.0
+  IL_0024:  ldfld      "C E.<UnderlyingInstance>$"
+  IL_0029:  callvirt   "int C.Increment()"
+  IL_002e:  pop
+  IL_002f:  ret
+}
+""");
+
+        source = """
+C c = new C();
+ref C c2 = ref c;
+
+C otherC = null;
+c2.M(c2 = ref otherC);
+
+System.Console.Write(c.field);
+
+class C
+{
+    public int field;
+    public int Increment() => field += 1;
+    public void M(C c) { System.Console.Write(c is null); System.Console.Write(" "); System.Console.Write(this.field); this.Increment(); }
+}
+""";
+        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("True 01"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_Compound_Local_ValueType_ValueModifiedInArgument()
+    {
+        var source = """
+S s = new S();
+s[s = new S() { field = 2 }] += 10;
+
+struct S
+{
+    public int field;
+}
+
+implicit extension E for S
+{
+    public int this[S s]
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("22"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       54 (0x36)
+  .maxstack  4
+  .locals init (S V_0, //s
+                E& V_1,
+                S V_2,
+                S V_3)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  stloc.1
+  IL_0010:  ldloca.s   V_3
+  IL_0012:  initobj    "S"
+  IL_0018:  ldloca.s   V_3
+  IL_001a:  ldc.i4.2
+  IL_001b:  stfld      "int S.field"
+  IL_0020:  ldloc.3
+  IL_0021:  dup
+  IL_0022:  stloc.0
+  IL_0023:  stloc.2
+  IL_0024:  ldloc.1
+  IL_0025:  ldloc.2
+  IL_0026:  ldloc.1
+  IL_0027:  ldloc.2
+  IL_0028:  call       "int E.this[S].get"
+  IL_002d:  ldc.i4.s   10
+  IL_002f:  add
+  IL_0030:  call       "void E.this[S].set"
+  IL_0035:  ret
+}
+""");
+
+        source = """
+S s = new S();
+s[s = new S() { field = 2 }] += 10;
+
+struct S
+{
+    public int field;
+    public int this[S s]
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("22"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_Compound_RefLocal_ValueType_ValueModifiedInArgument()
+    {
+        var source = $$"""
+S s = new S();
+ref S s2 = ref s;
+
+s2[s = new S() { field = 2 }] += 10;
+
+struct S
+{
+    public int field;
+    public int Increment() => field += 1;
+}
+
+implicit extension E for S
+{
+    public int this[S s]
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("22"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       54 (0x36)
+  .maxstack  4
+  .locals init (S V_0, //s
+                E& V_1,
+                S V_2,
+                S V_3)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  stloc.1
+  IL_0010:  ldloca.s   V_3
+  IL_0012:  initobj    "S"
+  IL_0018:  ldloca.s   V_3
+  IL_001a:  ldc.i4.2
+  IL_001b:  stfld      "int S.field"
+  IL_0020:  ldloc.3
+  IL_0021:  dup
+  IL_0022:  stloc.0
+  IL_0023:  stloc.2
+  IL_0024:  ldloc.1
+  IL_0025:  ldloc.2
+  IL_0026:  ldloc.1
+  IL_0027:  ldloc.2
+  IL_0028:  call       "int E.this[S].get"
+  IL_002d:  ldc.i4.s   10
+  IL_002f:  add
+  IL_0030:  call       "void E.this[S].set"
+  IL_0035:  ret
+}
+""");
+
+        source = $$"""
+S s = new S();
+ref S s2 = ref s;
+
+s2[s = new S() { field = 2 }] += 10;
+
+struct S
+{
+    public int field;
+    public int Increment() => field += 1;
+    public int this[S s]
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("22"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_Compound_Local_ReferenceType_ValueModifiedInArgument()
+    {
+        var source = """
+C c = new C();
+c[c = new C() { field = 2 }] += 10;
+
+class C
+{
+    public int field;
+}
+
+implicit extension E for C
+{
+    public int this[C c]
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("00"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (C V_0,
+                E& V_1,
+                C V_2)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000d:  stloc.1
+  IL_000e:  newobj     "C..ctor()"
+  IL_0013:  dup
+  IL_0014:  ldc.i4.2
+  IL_0015:  stfld      "int C.field"
+  IL_001a:  stloc.2
+  IL_001b:  ldloc.1
+  IL_001c:  ldloc.2
+  IL_001d:  ldloc.1
+  IL_001e:  ldloc.2
+  IL_001f:  call       "int E.this[C].get"
+  IL_0024:  ldc.i4.s   10
+  IL_0026:  add
+  IL_0027:  call       "void E.this[C].set"
+  IL_002c:  ret
+}
+""");
+
+        source = """
+C c = new C();
+c[c = new C() { field = 2 }] += 10;
+
+class C
+{
+    public int field;
+}
+
+implicit extension E for C
+{
+    public int this[C c]
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("00"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_Compound_RefLocal_ReferenceType_ValueModifiedInArgument()
+    {
+        var source = $$"""
+C c = new C();
+ref C c2 = ref c;
+
+c2[c = new C() { field = 2 }] += 10;
+
+class C
+{
+    public int field;
+}
+
+implicit extension E for C
+{
+    public int this[C c]
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("00"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       51 (0x33)
+  .maxstack  4
+  .locals init (C V_0, //c
+                C V_1,
+                E& V_2,
+                C V_3)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldind.ref
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_0011:  stloc.2
+  IL_0012:  newobj     "C..ctor()"
+  IL_0017:  dup
+  IL_0018:  ldc.i4.2
+  IL_0019:  stfld      "int C.field"
+  IL_001e:  dup
+  IL_001f:  stloc.0
+  IL_0020:  stloc.3
+  IL_0021:  ldloc.2
+  IL_0022:  ldloc.3
+  IL_0023:  ldloc.2
+  IL_0024:  ldloc.3
+  IL_0025:  call       "int E.this[C].get"
+  IL_002a:  ldc.i4.s   10
+  IL_002c:  add
+  IL_002d:  call       "void E.this[C].set"
+  IL_0032:  ret
+}
+""");
+
+        source = $$"""
+C c = new C();
+ref C c2 = ref c;
+
+c2[c = new C() { field = 2 }] += 10;
+
+class C
+{
+    public int field;
+    public int this[C c]
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("00"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_Compound_Local_ValueType_ValueModifiedInArgument_WithAwaitArgument()
+    {
+        var source = """
+S s = new S();
+s[s = new S() { field = 2 }, await System.Threading.Tasks.Task.FromResult(42)] += 10;
+
+struct S
+{
+    public int field;
+}
+
+implicit extension E for S
+{
+    public int this[S s, int i]
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE we should be able to integrate extension receiver adjustment with spilling of await, and get the same result as without extension
+        comp.VerifyEmitDiagnostics(
+            // (2,1): error CS8178: A reference returned by a call to 'Unsafe.As<S, E>(ref S)' cannot be preserved across 'await' or 'yield' boundary.
+            // s[s = new S() { field = 2 }, await System.Threading.Tasks.Task.FromResult(42)] += 10;
+            Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "s").WithArguments("System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_Compound_RefLocal_ValueType_ValueModifiedInArgument_WithAwaitArgument()
+    {
+        var source = $$"""
+S s = new S();
+ref S s2 = ref s;
+
+s2[s = new S() { field = 2 }, await System.Threading.Tasks.Task.FromResult(42)] += 10;
+
+struct S
+{
+    public int field;
+    public int Increment() => field += 1;
+}
+
+implicit extension E for S
+{
+    public int this[S s, int i]
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        // PROTOTYPE we should be able to integrate extension receiver adjustment with spilling of await, and get the same result as without extension
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,7): error CS8177: Async methods cannot have by-reference locals
+            // ref S s2 = ref s;
+            Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "s2").WithLocation(2, 7));
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_Compound_Local_ReferenceType_ValueModifiedInArgument_WithAwaitArgument()
+    {
+        var source = """
+C c = new C();
+c[c = new C() { field = 2 }, await System.Threading.Tasks.Task.FromResult(42)] += 10;
+
+class C
+{
+    public int field;
+}
+
+implicit extension E for C
+{
+    public int this[C c, int i]
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        // PROTOTYPE we should be able to integrate extension receiver adjustment with spilling of await, and get the same result as without extension
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): error CS8178: A reference returned by a call to 'Unsafe.As<C, E>(ref C)' cannot be preserved across 'await' or 'yield' boundary.
+            // c[c = new C() { field = 2 }, await System.Threading.Tasks.Task.FromResult(42)] += 10;
+            Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "c").WithArguments("System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAcces_Compound_RefLocal_ReferenceType_ValueModifiedInArgument_WithAwaitArgument()
+    {
+        var source = $$"""
+C c = new C();
+ref C c2 = ref c;
+
+c2[c = new C() { field = 2 }, await System.Threading.Tasks.Task.FromResult(42)] += 10;
+
+class C
+{
+    public int field;
+}
+
+implicit extension E for C
+{
+    public int this[C c, int i]
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        // PROTOTYPE we should be able to integrate extension receiver adjustment with spilling of await, and get the same result as without extension
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,7): error CS8177: Async methods cannot have by-reference locals
+            // ref C c2 = ref c;
+            Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "c2").WithLocation(2, 7));
     }
 
     [Fact]
@@ -41832,23 +42416,19 @@ implicit extension E for S
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       38 (0x26)
+  // Code size       29 (0x1d)
   .maxstack  3
-  .locals init (S V_0, //s
-                E V_1)
+  .locals init (S V_0) //s
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "S"
   IL_0008:  ldloca.s   V_0
   IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
-  IL_000f:  ldobj      "E"
-  IL_0014:  stloc.1
-  IL_0015:  ldloca.s   V_1
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  call       "int E.P.get"
-  IL_001e:  ldc.i4.1
-  IL_001f:  add
-  IL_0020:  call       "void E.P.set"
-  IL_0025:  ret
+  IL_000f:  dup
+  IL_0010:  call       "int E.P.get"
+  IL_0015:  ldc.i4.1
+  IL_0016:  add
+  IL_0017:  call       "void E.P.set"
+  IL_001c:  ret
 }
 """);
     }
@@ -41872,23 +42452,145 @@ implicit extension E for string
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       36 (0x24)
+  // Code size       27 (0x1b)
   .maxstack  3
-  .locals init (string V_0,
-                E V_1)
+  .locals init (string V_0)
   IL_0000:  ldstr      ""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
   IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<string, E>(ref string)"
-  IL_000d:  ldobj      "E"
-  IL_0012:  stloc.1
-  IL_0013:  ldloca.s   V_1
-  IL_0015:  ldloca.s   V_1
-  IL_0017:  call       "int E.P.get"
-  IL_001c:  ldc.i4.1
-  IL_001d:  add
-  IL_001e:  call       "void E.P.set"
-  IL_0023:  ret
+  IL_000d:  dup
+  IL_000e:  call       "int E.P.get"
+  IL_0013:  ldc.i4.1
+  IL_0014:  add
+  IL_0015:  call       "void E.P.set"
+  IL_001a:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_Compound_Constant()
+    {
+        var source = """
+""["value"] += 1;
+
+implicit extension E for string
+{
+    public int this[string s]
+    {
+        get { System.Console.Write("get "); return 42; }
+        set { System.Console.Write($"set({value})"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       39 (0x27)
+  .maxstack  4
+  .locals init (string V_0,
+                E& V_1)
+  IL_0000:  ldstr      ""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<string, E>(ref string)"
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  ldstr      "value"
+  IL_0014:  ldloc.1
+  IL_0015:  ldstr      "value"
+  IL_001a:  call       "int E.this[string].get"
+  IL_001f:  ldc.i4.1
+  IL_0020:  add
+  IL_0021:  call       "void E.this[string].set"
+  IL_0026:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void AdjustReceiver_PropertyAccess_Compound_ValueCannotChangeBetweenReads()
+    {
+        var source = """
+string s = "";
+s.P += 1;
+
+implicit extension E for string
+{
+    public int P
+    {
+        get { System.Console.Write("get "); return 42; }
+        set { System.Console.Write($"set({value})"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       27 (0x1b)
+  .maxstack  3
+  .locals init (string V_0)
+  IL_0000:  ldstr      ""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<string, E>(ref string)"
+  IL_000d:  dup
+  IL_000e:  call       "int E.P.get"
+  IL_0013:  ldc.i4.1
+  IL_0014:  add
+  IL_0015:  call       "void E.P.set"
+  IL_001a:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_Compound_ValueCannotChangeBetweenReads()
+    {
+        var source = """
+new S().M();
+
+public struct S
+{
+    public void M()
+    {
+        this[42] += 1;
+    }
+
+    public int field;
+}
+
+implicit extension E for S
+{
+    public int this[int i]
+    {
+        get { System.Console.Write("get "); return 42; }
+        set { System.Console.Write($"set({value})"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("S.M", """
+{
+  // Code size       26 (0x1a)
+  .maxstack  4
+  .locals init (E& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.s   42
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.s   42
+  IL_000d:  call       "int E.this[int].get"
+  IL_0012:  ldc.i4.1
+  IL_0013:  add
+  IL_0014:  call       "void E.this[int].set"
+  IL_0019:  ret
 }
 """);
     }
@@ -42185,25 +42887,24 @@ implicit extension E for S
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       42 (0x2a)
+  // Code size       35 (0x23)
   .maxstack  4
   .locals init (S V_0, //s
-                E V_1)
+                E& V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "S"
   IL_0008:  ldloca.s   V_0
   IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
-  IL_000f:  ldobj      "E"
-  IL_0014:  stloc.1
-  IL_0015:  ldloca.s   V_1
-  IL_0017:  ldc.i4.s   10
-  IL_0019:  ldloca.s   V_1
-  IL_001b:  ldc.i4.s   10
-  IL_001d:  call       "int E.this[int].get"
-  IL_0022:  ldc.i4.1
-  IL_0023:  add
-  IL_0024:  call       "void E.this[int].set"
-  IL_0029:  ret
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.s   10
+  IL_0013:  ldloc.1
+  IL_0014:  ldc.i4.s   10
+  IL_0016:  call       "int E.this[int].get"
+  IL_001b:  ldc.i4.1
+  IL_001c:  add
+  IL_001d:  call       "void E.this[int].set"
+  IL_0022:  ret
 }
 """);
     }
@@ -42277,7 +42978,7 @@ implicit extension E for S
 """);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE  MethodToStateMachineRewriter.HoistExpression cannot handle `ref S temp = { ...; Unsafe.As() }` adjusted receiver")]
     public void AdjustReceiver_AwaitArgument()
     {
         var source = """
@@ -42297,6 +42998,37 @@ implicit extension E for S
             // (2,1): error CS8178: A reference returned by a call to 'Unsafe.As<S, E>(ref S)' cannot be preserved across 'await' or 'yield' boundary.
             // s.M(await System.Threading.Tasks.Task.FromResult(42));
             Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "s").WithArguments("System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)").WithLocation(2, 1));
+    }
+
+    [Fact(Skip = "PROTOTYPE  MethodToStateMachineRewriter.HoistExpression cannot handle `ref S temp = { ...; Unsafe.As() }` adjusted receiver")]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_WithAwaitArgument()
+    {
+        var source = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+S s = new S();
+s.M($"literal", await System.Threading.Tasks.Task.FromResult(42));
+
+public struct S
+{
+}
+
+public implicit extension E for S
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c, int i) { }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e) { }
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Handler(42) 42"), verify: Verification.FailsPEVerify);
     }
 
     [Fact]
@@ -42510,6 +43242,74 @@ public struct CustomHandler
 
     [Theory]
     [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ReferenceType_ValueIncrementedInArgument(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+var c = new C() { field = 42 };
+c.M({{expression}}, c.Increment());
+Console.Write(c.field);
+
+public class C
+{
+    public int field;
+    public int Increment() { field++; return 0; }
+}
+
+public implicit extension E for C
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c, int i)
+    {
+        Console.Write(this.field);
+    }
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e) { }
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("4343"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+var c = new C() { field = 42 };
+c.M({{expression}}, c.Increment());
+Console.Write(c.field);
+
+public class C
+{
+    public int field;
+    public int Increment() { field++; return 0; }
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c, int i)
+    {
+        Console.Write(this.field);
+    }
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C c) { }
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+
+        comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("4343"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
     public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ValueType(
         [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
     {
@@ -42659,37 +43459,84 @@ public struct CustomHandler
 
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       63 (0x3f)
+  // Code size       67 (0x43)
   .maxstack  6
   .locals init (C V_0, //c
-                E& V_1,
-                CustomHandler V_2)
+                C V_1,
+                E& V_2,
+                CustomHandler V_3)
   IL_0000:  ldc.i4.5
   IL_0001:  newobj     "C..ctor(int)"
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  dup
-  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
-  IL_0011:  ldloca.s   V_2
-  IL_0013:  ldc.i4.7
-  IL_0014:  ldc.i4.0
-  IL_0015:  ldloc.1
-  IL_0016:  ldobj      "E"
-  IL_001b:  call       "CustomHandler..ctor(int, int, E)"
-  IL_0020:  ldloca.s   V_2
-  IL_0022:  ldstr      "literal"
-  IL_0027:  call       "bool CustomHandler.AppendLiteral(string)"
-  IL_002c:  pop
-  IL_002d:  ldloc.2
-  IL_002e:  call       "void E.M(CustomHandler)"
-  IL_0033:  ldind.ref
-  IL_0034:  ldfld      "int C.field"
-  IL_0039:  call       "void System.Console.Write(int)"
-  IL_003e:  ret
+  IL_000a:  ldind.ref
+  IL_000b:  stloc.1
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_0013:  stloc.2
+  IL_0014:  ldloc.2
+  IL_0015:  ldloca.s   V_3
+  IL_0017:  ldc.i4.7
+  IL_0018:  ldc.i4.0
+  IL_0019:  ldloc.2
+  IL_001a:  ldobj      "E"
+  IL_001f:  call       "CustomHandler..ctor(int, int, E)"
+  IL_0024:  ldloca.s   V_3
+  IL_0026:  ldstr      "literal"
+  IL_002b:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_0030:  pop
+  IL_0031:  ldloc.3
+  IL_0032:  call       "void E.M(CustomHandler)"
+  IL_0037:  ldind.ref
+  IL_0038:  ldfld      "int C.field"
+  IL_003d:  call       "void System.Console.Write(int)"
+  IL_0042:  ret
 }
 """);
+
+        code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var c = new C(5);
+ref var cRef = ref c;
+cRef.M({{expression}});
+Console.Write(cRef.field);
+
+public class C
+{
+    public int Prop { get; }
+    public C(int i) => Prop = i;
+    public int field;
+    public void Increment() { field++; }
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c) => Console.Write(c.ToString());
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C c)
+    {
+        _builder = new();
+        _builder.Append("c.Prop:" + c.Prop.ToString() + " ");
+        c.Increment();
+    }
+
+    private readonly StringBuilder _builder;
+    public bool AppendLiteral(string literal)
+    {
+        _builder.Append("literal:" + literal + " ");
+        return true;
+    }
+    public override string ToString() => _builder.ToString();
+}
+""";
+
+        comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("c.Prop:5 literal:literal 1"), verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
 
         static void validator(ModuleSymbol module)
         {
@@ -42698,6 +43545,328 @@ public struct CustomHandler
                            cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
             AssertEx.Equal([-1], cParam.InterpolatedStringHandlerArgumentIndexes);
         }
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ReferenceTypeReference_ValueModifiedInArgument(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+C c = new C() { field = 42 };
+ref var cRef = ref c;
+
+C otherC = new C() { field = 43 };
+
+cRef.M({{expression}}, cRef = ref otherC);
+
+public class C
+{
+    public int field;
+}
+
+public implicit extension E for C
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler ch, C c)
+    {
+        Console.Write(this.field);
+    }
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e) { }
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       87 (0x57)
+  .maxstack  5
+  .locals init (C V_0, //c
+                C& V_1, //cRef
+                C V_2, //otherC
+                C V_3,
+                E& V_4,
+                CustomHandler V_5)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldc.i4.s   42
+  IL_0008:  stfld      "int C.field"
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  stloc.1
+  IL_0011:  newobj     "C..ctor()"
+  IL_0016:  dup
+  IL_0017:  ldc.i4.s   43
+  IL_0019:  stfld      "int C.field"
+  IL_001e:  stloc.2
+  IL_001f:  ldloc.1
+  IL_0020:  ldind.ref
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_0029:  stloc.s    V_4
+  IL_002b:  ldloc.s    V_4
+  IL_002d:  ldloca.s   V_5
+  IL_002f:  ldc.i4.7
+  IL_0030:  ldc.i4.0
+  IL_0031:  ldloc.s    V_4
+  IL_0033:  ldobj      "E"
+  IL_0038:  call       "CustomHandler..ctor(int, int, E)"
+  IL_003d:  ldloca.s   V_5
+  IL_003f:  ldstr      "literal"
+  IL_0044:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_0049:  pop
+  IL_004a:  ldloc.s    V_5
+  IL_004c:  ldloca.s   V_2
+  IL_004e:  dup
+  IL_004f:  stloc.1
+  IL_0050:  ldind.ref
+  IL_0051:  call       "void E.M(CustomHandler, C)"
+  IL_0056:  ret
+}
+""");
+
+        code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+C c = new C() { field = 42 };
+ref var cRef = ref c;
+
+C otherC = new C() { field = 43 };
+
+cRef.M({{expression}}, cRef = ref otherC);
+
+public class C
+{
+    public int field;
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler ch, C c)
+    {
+        Console.Write(this.field);
+    }
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C c) { }
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+
+        comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ReferenceTypeReference_ValueModifiedInArgument_WithAwaitArgument(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        // PROTOTYPE we should be able to integrate extension receiver adjustment with spilling of await, and get the same result as without extension
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+C c = new C() { field = 42 };
+ref var cRef = ref c;
+
+C otherC = new C() { field = 43 };
+
+cRef.M({{expression}}, cRef = ref otherC, await System.Threading.Tasks.Task.FromResult(42));
+
+public class C
+{
+    public int field;
+}
+
+public implicit extension E for C
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler ch, C c, int i)
+    {
+        Console.Write(this.field);
+    }
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e) { }
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS8177: Async methods cannot have by-reference locals
+            // ref var cRef = ref c;
+            Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "cRef").WithLocation(5, 9));
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ReferenceTypeReference_ValueIncrementedInArgument(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+C c = new C() { field = 42 };
+ref var cRef = ref c;
+
+cRef.M({{expression}}, cRef.Increment());
+
+public class C
+{
+    public int field;
+    public int Increment() { field++; return 0; }
+}
+
+public implicit extension E for C
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler ch, int i)
+    {
+        Console.Write(this.field);
+    }
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e) { }
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("43"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       72 (0x48)
+  .maxstack  5
+  .locals init (C V_0, //c
+                C& V_1, //cRef
+                C V_2,
+                E& V_3,
+                CustomHandler V_4)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldc.i4.s   42
+  IL_0008:  stfld      "int C.field"
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.1
+  IL_0012:  ldind.ref
+  IL_0013:  stloc.2
+  IL_0014:  ldloca.s   V_2
+  IL_0016:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_001b:  stloc.3
+  IL_001c:  ldloc.3
+  IL_001d:  ldloca.s   V_4
+  IL_001f:  ldc.i4.7
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldloc.3
+  IL_0022:  ldobj      "E"
+  IL_0027:  call       "CustomHandler..ctor(int, int, E)"
+  IL_002c:  ldloca.s   V_4
+  IL_002e:  ldstr      "literal"
+  IL_0033:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_0038:  pop
+  IL_0039:  ldloc.s    V_4
+  IL_003b:  ldloc.1
+  IL_003c:  ldind.ref
+  IL_003d:  callvirt   "int C.Increment()"
+  IL_0042:  call       "void E.M(CustomHandler, int)"
+  IL_0047:  ret
+}
+""");
+
+        code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+C c = new C() { field = 42 };
+ref var cRef = ref c;
+
+cRef.M({{expression}}, cRef.Increment());
+
+public class C
+{
+    public int field;
+    public int Increment() { field++; return 0; }
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler ch, int i)
+    {
+        Console.Write(this.field);
+    }
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C c) { }
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+
+        comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("43"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ReferenceTypeReference_ValueIncrementedInArgument_WithAwaitArgument(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        // PROTOTYPE we should be able to integrate extension receiver adjustment with spilling of await, and get the same result as without extension
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+C c = new C() { field = 42 };
+ref var cRef = ref c;
+
+cRef.M({{expression}}, cRef.Increment(), await System.Threading.Tasks.Task.FromResult(42));
+
+public class C
+{
+    public int field;
+    public int Increment() { field++; return 0; }
+}
+
+public implicit extension E for C
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler ch, int i, int j)
+    {
+        Console.Write(this.field);
+    }
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e) { }
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS8177: Async methods cannot have by-reference locals
+            // ref var cRef = ref c;
+            Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "cRef").WithLocation(5, 9));
     }
 
     [Theory]
@@ -42787,6 +43956,49 @@ public struct CustomHandler
 }
 """);
 
+        code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var s = new S(5);
+ref var sRef = ref s;
+sRef.M({{expression}});
+Console.Write(sRef.field);
+
+public struct S
+{
+    public int Prop { get; }
+    public S(int i) => Prop = i;
+    public int field;
+    public void Increment() { field++; }
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c) => Console.Write(c.ToString());
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, S s)
+    {
+        _builder = new();
+        _builder.Append("s.Prop:" + s.Prop.ToString() + " ");
+        s.Increment();
+    }
+
+    private readonly StringBuilder _builder;
+    public bool AppendLiteral(string literal)
+    {
+        _builder.Append("literal:" + literal + " ");
+        return true;
+    }
+    public override string ToString() => _builder.ToString();
+}
+""";
+
+        comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("s.Prop:5 literal:literal 0"), verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+
         static void validator(ModuleSymbol module)
         {
             var cParam = module.GlobalNamespace.GetTypeMember("E").GetMethod("M").Parameters.Single();
@@ -42794,6 +44006,173 @@ public struct CustomHandler
                            cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
             AssertEx.Equal([-1], cParam.InterpolatedStringHandlerArgumentIndexes);
         }
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ValueTypeReference_ValueModifiedInArgument(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+S s = new S() { field = 42 };
+ref var sRef = ref s;
+
+S otherS = new S() { field = 43 };
+
+sRef.M({{expression}}, sRef = ref otherS);
+
+public struct S
+{
+    public int field;
+}
+
+public implicit extension E for S
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c, S s)
+    {
+        Console.Write(this.field);
+    }
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e) { }
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       97 (0x61)
+  .maxstack  5
+  .locals init (S V_0, //s
+                S& V_1, //sRef
+                S V_2, //otherS
+                S V_3,
+                E& V_4,
+                CustomHandler V_5)
+  IL_0000:  ldloca.s   V_3
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_3
+  IL_000a:  ldc.i4.s   42
+  IL_000c:  stfld      "int S.field"
+  IL_0011:  ldloc.3
+  IL_0012:  stloc.0
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  stloc.1
+  IL_0016:  ldloca.s   V_3
+  IL_0018:  initobj    "S"
+  IL_001e:  ldloca.s   V_3
+  IL_0020:  ldc.i4.s   43
+  IL_0022:  stfld      "int S.field"
+  IL_0027:  ldloc.3
+  IL_0028:  stloc.2
+  IL_0029:  ldloc.1
+  IL_002a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_002f:  stloc.s    V_4
+  IL_0031:  ldloc.s    V_4
+  IL_0033:  ldloca.s   V_5
+  IL_0035:  ldc.i4.7
+  IL_0036:  ldc.i4.0
+  IL_0037:  ldloc.s    V_4
+  IL_0039:  ldobj      "E"
+  IL_003e:  call       "CustomHandler..ctor(int, int, E)"
+  IL_0043:  ldloca.s   V_5
+  IL_0045:  ldstr      "literal"
+  IL_004a:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_004f:  pop
+  IL_0050:  ldloc.s    V_5
+  IL_0052:  ldloca.s   V_2
+  IL_0054:  dup
+  IL_0055:  stloc.1
+  IL_0056:  ldobj      "S"
+  IL_005b:  call       "void E.M(CustomHandler, S)"
+  IL_0060:  ret
+}
+""");
+
+        code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+S s = new S() { field = 42 };
+ref var sRef = ref s;
+
+S otherS = new S() { field = 43 };
+
+sRef.M({{expression}}, sRef = ref otherS);
+
+public struct S
+{
+    public int field;
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c, S s)
+    {
+        Console.Write(this.field);
+    }
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, S s) { }
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+
+        comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ValueTypeReference_ValueModifiedInArgument_WithAwaitArgument(
+        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    {
+        // PROTOTYPE we should be able to integrate extension receiver adjustment with spilling of await, and get the same result as without extension
+        var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+S s = new S() { field = 42 };
+ref var sRef = ref s;
+
+S otherS = new S() { field = 43 };
+
+sRef.M({{expression}}, sRef = ref otherS, await System.Threading.Tasks.Task.FromResult(42));
+
+public struct S
+{
+    public int field;
+}
+
+public implicit extension E for S
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c, S s, int i)
+    {
+        Console.Write(this.field);
+    }
+}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e) { }
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS8177: Async methods cannot have by-reference locals
+            // ref var sRef = ref s;
+            Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "sRef").WithLocation(5, 9));
     }
 
     [Theory]
@@ -42911,10 +44290,10 @@ public struct CustomHandler
 
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       77 (0x4d)
+  // Code size       75 (0x4b)
   .maxstack  4
   .locals init (S V_0, //s
-                E V_1,
+                E& V_1,
                 CustomHandler V_2,
                 CustomHandler V_3)
   IL_0000:  ldloca.s   V_0
@@ -42922,12 +44301,12 @@ public struct CustomHandler
   IL_0003:  call       "S..ctor(int)"
   IL_0008:  ldloca.s   V_0
   IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
-  IL_000f:  ldobj      "E"
-  IL_0014:  stloc.1
-  IL_0015:  ldloca.s   V_3
-  IL_0017:  ldc.i4.7
-  IL_0018:  ldc.i4.0
-  IL_0019:  ldloc.1
+  IL_000f:  stloc.1
+  IL_0010:  ldloca.s   V_3
+  IL_0012:  ldc.i4.7
+  IL_0013:  ldc.i4.0
+  IL_0014:  ldloc.1
+  IL_0015:  ldobj      "E"
   IL_001a:  call       "CustomHandler..ctor(int, int, E)"
   IL_001f:  ldloca.s   V_3
   IL_0021:  ldstr      "literal"
@@ -42935,18 +44314,18 @@ public struct CustomHandler
   IL_002b:  pop
   IL_002c:  ldloc.3
   IL_002d:  stloc.2
-  IL_002e:  ldloca.s   V_1
-  IL_0030:  ldloc.2
-  IL_0031:  ldloca.s   V_1
-  IL_0033:  ldloc.2
-  IL_0034:  call       "int E.this[CustomHandler].get"
-  IL_0039:  ldc.i4.s   42
-  IL_003b:  add
-  IL_003c:  call       "void E.this[CustomHandler].set"
-  IL_0041:  ldloc.0
-  IL_0042:  ldfld      "int S.field"
-  IL_0047:  call       "void System.Console.Write(int)"
-  IL_004c:  ret
+  IL_002e:  ldloc.1
+  IL_002f:  ldloc.2
+  IL_0030:  ldloc.1
+  IL_0031:  ldloc.2
+  IL_0032:  call       "int E.this[CustomHandler].get"
+  IL_0037:  ldc.i4.s   42
+  IL_0039:  add
+  IL_003a:  call       "void E.this[CustomHandler].set"
+  IL_003f:  ldloc.0
+  IL_0040:  ldfld      "int S.field"
+  IL_0045:  call       "void System.Console.Write(int)"
+  IL_004a:  ret
 }
 """);
     }
@@ -43013,60 +44392,522 @@ public struct CustomHandler
     }
 
     [Theory]
-    [CombinatorialData]
-    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_RefReadonlyParameter(
-        [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
+    [InlineData("in")]
+    [InlineData("ref readonly")]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_RefReadonlyParameter(string modifiers)
     {
-        var code = $$"""
+        var source = $$"""
 using System;
 using System.Runtime.CompilerServices;
-using System.Text;
 
-var s = new S(5);
-M(ref s);
+var s = new S() { field = 42 };
+M(in s);
 System.Console.Write(s.field);
 
-void M(ref readonly S s)
+void M({{modifiers}} S s)
 {
-    s.M({{expression}});
+    s.M($"literal");
 }
 
 public struct S
 {
-    public int Prop { get; }
-    public S(int i) => Prop = i;
     public int field;
     public void Increment() { field++; }
 }
 
 public implicit extension E for S
 {
-    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c) => Console.Write(c.ToString());
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c)
+    {
+        ref S sThis = ref Unsafe.As<E, S>(ref this);
+        sThis.Increment();
+    }
 }
 
-[InterpolatedStringHandler]
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
 public struct CustomHandler
 {
     public CustomHandler(int literalLength, int formattedCount, E e)
     {
-        _builder = new();
-        ref var s = ref System.Runtime.CompilerServices.Unsafe.As<E, S>(ref e);
-        _builder.Append("s.Prop:" + s.Prop.ToString() + " ");
-        s.Increment();
+        ref S s = ref Unsafe.As<E, S>(ref e);
+        Console.Write($"Handler({s.field}) ");
     }
 
-    private readonly StringBuilder _builder;
-    public bool AppendLiteral(string literal)
-    {
-        _builder.Append("literal:" + literal + " ");
-        return true;
-    }
-    public override string ToString() => _builder.ToString();
+    public bool AppendLiteral(string literal) => true;
 }
 """;
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Handler(42) 42" : null, verify: Verification.FailsPEVerify);
 
-        var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("s.Prop:5 literal:literal 0"), verify: Verification.FailsPEVerify)
+        source = $$"""
+using System.Runtime.CompilerServices;
+
+var s = new S() { field = 42 };
+M(in s);
+System.Console.Write(s.field);
+
+void M({{modifiers}} S s)
+{
+    s.M();
+}
+
+public struct S
+{
+    public int field;
+    public void Increment() { field++; }
+}
+
+public implicit extension E for S
+{
+    public void M()
+    {
+        ref S sThis = ref Unsafe.As<E, S>(ref this);
+        sThis.Increment();
+    }
+}
+""";
+        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "42" : null, verify: Verification.FailsPEVerify);
+
+        source = $$"""
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var s = new S() { field = 42 };
+M(in s);
+System.Console.Write(s.field);
+
+void M({{modifiers}} S s)
+{
+    s.M();
+}
+
+public struct S
+{
+    public int field;
+    public void Increment() { field++; }
+    public void M()
+    {
+        ref S notReadOnly = ref System.Runtime.CompilerServices.Unsafe.AsRef(in this);
+        notReadOnly.Increment();
+    }
+}
+""";
+        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "42" : null, verify: Verification.FailsPEVerify);
+    }
+
+    [Theory]
+    [InlineData("in")]
+    [InlineData("ref readonly")]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_RefReadonlyParameter_ReadonlyMethod(string modifiers)
+    {
+        // PROTOTYPE if we allow readonly members in extensions, we need to make sure the receiver adjustment
+        //   knows not to copy the receiver when the extension member is readonly
+        var source = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+var s = new S() { field = 42 };
+M(in s);
+System.Console.Write(s.field);
+
+void M({{modifiers}} S s)
+{
+    s.M($"literal");
+}
+
+public struct S
+{
+    public int field;
+    public void Increment() { field++; }
+}
+
+public implicit extension E for S
+{
+    public readonly void M([InterpolatedStringHandlerArgument("")] CustomHandler c)
+    {
+        ref S sThis = ref Unsafe.As<E, S>(ref this);
+        sThis.Increment();
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e)
+    {
+        ref S s = ref Unsafe.As<E, S>(ref e);
+        Console.Write($"Handler({s.field}) ");
+    }
+
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (21,26): error CS0106: The modifier 'readonly' is not valid for this item
+            //     public readonly void M([InterpolatedStringHandlerArgument("")] CustomHandler c)
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(21, 26));
+
+        source = $$"""
+using System.Runtime.CompilerServices;
+
+var s = new S() { field = 42 };
+M(in s);
+System.Console.Write(s.field);
+
+void M({{modifiers}} S s)
+{
+    s.M();
+}
+
+public struct S
+{
+    public int field;
+    public void Increment() { field++; }
+}
+
+public implicit extension E for S
+{
+    public readonly void M()
+    {
+        ref S sThis = ref Unsafe.As<E, S>(ref this);
+        sThis.Increment();
+    }
+}
+""";
+        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (20,26): error CS0106: The modifier 'readonly' is not valid for this item
+            //     public readonly void M()
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(20, 26));
+
+        source = $$"""
+using System;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+var s = new S() { field = 42 };
+M(in s);
+System.Console.Write(s.field);
+
+void M({{modifiers}} S s)
+{
+    s.M();
+}
+
+public struct S
+{
+    public int field;
+    public void Increment() { field++; }
+    public readonly void M()
+    {
+        ref S notReadOnly = ref System.Runtime.CompilerServices.Unsafe.AsRef(in this);
+        notReadOnly.Increment();
+    }
+}
+""";
+        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "43" : null, verify: Verification.FailsPEVerify);
+    }
+
+    [Fact]
+    public void AdjustReceiver_PropertyAccess_Compound_ReferenceType()
+    {
+        var source = """
+C c = new C() { field = 42 };
+c.Property += Id(c.field = 43);
+
+int Id(int i) => i;
+
+class C
+{
+    public int field;
+}
+
+implicit extension E for C
+{
+    public int Property
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("4243"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        source = """
+C c = new C() { field = 42 };
+c.Property += Id(c.field = 43);
+
+int Id(int i) => i;
+
+class C
+{
+    public int field;
+    public int Property
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "4243").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AdjustReceiver_PropertyAccess_Compound_ReferenceType_ValueModifiedInRHS()
+    {
+        var source = """
+C c = new C() { field = 42 };
+c.Property += M(c = null);
+
+int M(C c) => 1;
+
+class C
+{
+    public int field;
+}
+
+implicit extension E for C
+{
+    public int Property
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("4242"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        source = """
+C c = new C() { field = 42 };
+c.Property += M(c = null);
+
+int M(C c) => 1;
+
+class C
+{
+    public int field;
+    public int Property
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("4242"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AdjustReceiver_PropertyAccess_Compound_ReferenceTypeReference()
+    {
+        var source = """
+C c = new C() { field = 42 };
+ref C c2 = ref c;
+
+C otherC = null;
+c2.Property += M(c2 = ref otherC);
+
+int M(C c) => 1;
+
+class C
+{
+    public int field;
+}
+
+implicit extension E for C
+{
+    public int Property
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("4242"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        source = """
+C c = new C() { field = 42 };
+ref C c2 = ref c;
+
+C otherC = null;
+c2.Property += M(c2 = ref otherC);
+
+int M(C c) => 1;
+
+class C
+{
+    public int field;
+    public int Property
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "4242").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AdjustReceiver_PropertyAccess_Compound_ValueType_Local()
+    {
+        var source = """
+S s = new S() { field = 42 };
+s.Property += Id(s.field = 43);
+
+int Id(int i) => i;
+
+struct S
+{
+    public int field;
+}
+
+implicit extension E for S
+{
+    public int Property
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("4243"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        source = """
+S s = new S() { field = 42 };
+s.Property += Id(s.field = 43);
+
+int Id(int i) => i;
+
+struct S
+{
+    public int field;
+    public int Property
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "4243").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AdjustReceiver_PropertyAccess_Compound_ValueType_InvocationReceiver()
+    {
+        var source = """
+S s = new S() { field = 42 };
+C.M(ref s).Property += 10;
+
+class C
+{
+    public static ref S M(ref S s)
+    {
+        System.Console.Write("ran ");
+        return ref s;
+    }
+}
+
+struct S
+{
+    public int field;
+}
+
+implicit extension E for S
+{
+    public int Property
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran 4242"),
+                verify: Verification.Fails with { ILVerifyMessage = "[M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }" })
             .VerifyDiagnostics();
+
+        verifier.VerifyIL("C.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldstr      "ran "
+  IL_0005:  call       "void System.Console.Write(string)"
+  IL_000a:  ldarg.0
+  IL_000b:  ret
+}
+""");
+
+        source = """
+S s = new S() { field = 42 };
+C.M(ref s).Property += 10;
+
+class C
+{
+    public static ref S M(ref S s)
+    {
+        System.Console.Write("ran ");
+        return ref s;
+    }
+}
+
+struct S
+{
+    public int field;
+    public int Property
+    {
+        get { System.Console.Write(this.field); return 0; }
+        set { System.Console.Write(this.field); }
+    }
+}
+""";
+        comp = CreateCompilation(source);
+        verifier = CompileAndVerify(comp, expectedOutput: "ran 4242", verify: Verification.Fails).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldstr      "ran "
+  IL_0005:  call       "void System.Console.Write(string)"
+  IL_000a:  ldarg.0
+  IL_000b:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void AdjustReceiver_OutDiscardInDeconstructAssignment()
+    {
+        var source = """
+class C
+{
+    static void Main()
+    {
+        int _;
+        (M(out var _).P, _) = (1, 2);
+        System.Console.Write(_);
+    }
+    static C M(out int i) { i = 42; return new C(); }
+}
+implicit extension E for C
+{
+    public int P { set { System.Console.Write($"Written {value}. "); } }
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Written 1. 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 }

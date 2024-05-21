@@ -399,13 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parameter, IsReferenceType and IsValueType will both return false.
         /// </summary>
         public override bool IsValueType
-        {
-            get
-            {
-                var kind = TypeKind;
-                return kind == TypeKind.Struct || kind == TypeKind.Enum;
-            }
-        }
+            => TypeKind is TypeKind.Struct or TypeKind.Enum or TypeKind.Extension;
 
         internal override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {

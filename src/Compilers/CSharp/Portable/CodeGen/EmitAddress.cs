@@ -64,9 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ThisReference:
-                    Debug.Assert(expression.Type.IsValueType || expression.Type.IsExtension || IsAnyReadOnly(addressKind), "'this' is readonly in classes");
+                    Debug.Assert(expression.Type.IsValueType || IsAnyReadOnly(addressKind), "'this' is readonly in classes");
 
-                    if (expression.Type.IsValueType || expression.Type.IsExtension)
+                    if (expression.Type.IsValueType)
                     {
                         if (!HasHome(expression, addressKind))
                         {
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return null;
             }
 
-            Debug.Assert(receiverType.TypeKind == TypeKind.TypeParameter || receiverType.IsValueType || receiverType.IsExtension);
+            Debug.Assert(receiverType.TypeKind == TypeKind.TypeParameter || receiverType.IsValueType);
             return EmitAddress(receiver, addressKind);
         }
 

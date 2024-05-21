@@ -1626,7 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool IsVerifierValue(this TypeSymbol type)
         {
-            return (type.IsValueType || type.IsExtension) && type.TypeKind != TypeKind.TypeParameter;
+            return type.IsValueType && type.TypeKind != TypeKind.TypeParameter;
         }
 
         /// <summary>

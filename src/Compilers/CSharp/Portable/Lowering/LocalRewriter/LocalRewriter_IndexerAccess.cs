@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Argument, out PatternIndexOffsetLoweringStrategy strategy);
 
             var receiver = VisitExpression(node.Receiver);
-            // PROTOTYPE revisit as part of "implicit indexer access" section (we'll probably want to adjust the receiver here)
+            // PROTOTYPE revisit as part of "implicit indexer access" section (we'll probably want to adjust the receiver here, consider using VisitArgumentsAndCaptureReceiverIfNeeded)
 
             // Do not capture receiver if we're in an initializer
             if (!cacheAllArgumentsOnly)
@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var F = _factory;
 
             var receiver = VisitExpression(node.Receiver);
-            // PROTOTYPE revisit as part of "implicit indexer access" section (we'll probably want to adjust the receiver here)
+            // PROTOTYPE revisit as part of "implicit indexer access" section (we'll probably want to adjust the receiver here, consider using VisitArgumentsAndCaptureReceiverIfNeeded)
             var rangeArg = node.Argument;
 
             BoundRangeExpression? rangeExpr;

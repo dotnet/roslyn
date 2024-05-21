@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// Used for situations when additional arbitrary side-effects are possibly involved.
-            /// Think about deconstruction, etc.
+            /// Think about deconstruction, null-coalescing assignments, etc.
             /// </summary>
             UseTwiceComplex
         }
@@ -650,13 +650,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!requiresInstanceReceiver || rewrittenReceiver != null || _inExpressionLambda);
             Debug.Assert(captureReceiverMode == ReceiverCaptureMode.Default || (requiresInstanceReceiver && rewrittenReceiver != null && storesOpt is object));
 
-            rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, methodOrIndexer, storesOpt, ref tempsOpt);
+            var adjustedReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, methodOrIndexer, storesOpt, ref tempsOpt);
+            bool wasReceiverAdjusted = !object.ReferenceEquals(adjustedReceiver, rewrittenReceiver);
+            rewrittenReceiver = adjustedReceiver;
 
             BoundLocal? receiverTemp = null;
             BoundAssignmentOperator? assignmentToTemp = null;
 
             if (captureReceiverMode != ReceiverCaptureMode.Default ||
-                (requiresInstanceReceiver && arguments.Any(a => usesReceiver(a))))
+                (requiresInstanceReceiver && arguments.Any(a => usesReceiver(a))) ||
+                wasReceiverAdjusted)
             {
                 Debug.Assert(!_inExpressionLambda);
                 Debug.Assert(rewrittenReceiver is object);
@@ -678,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    refKind = GetRefKindForCapturedReceiverTemp(rewrittenReceiver);
+                    refKind = GetRefKindForCapturedReceiverTemp(rewrittenReceiver, useNoneForReferenceType: false);
                 }
 
                 receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind);
@@ -897,14 +900,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private RefKind GetRefKindForCapturedReceiverTemp(BoundExpression rewrittenReceiver)
+        private RefKind GetRefKindForCapturedReceiverTemp(BoundExpression rewrittenReceiver, bool useNoneForReferenceType)
         {
             Debug.Assert(rewrittenReceiver.Type is not null);
+
+            // If we need to capture a receiver (for compound assignment, null-coalescing assignment, extension receiver adjustment, ...)
+            // we need to make sure the capturing temp preserves the semantics of the receiver.
+            //
+            // For instance:
+            //   Struct s = ...;
+            //   s.Method(s.field = 42)
+            // must be rewritten as:
+            //   ref Struct temp = ref s;
+            //   temp.Method(s.field = 42)
+            // so that Method can have and observe the proper side-effects on the struct.
+            //
+            // Similarly:
+            //   Class c = ...;
+            //   ref Class c2 = ref c;
+            //   Class otherC = null;
+            //   c2.Method(c2 = ref otherC)
+            // must be rewritten as:
+            //   Class temp = c2; // dereferences to c
+            //   temp.Method(c2 = ref otherC)
+
+            // PROTOTYPE we may make this behavior unconditional (useNoneForReferenceType always true) in main
+            if (useNoneForReferenceType && rewrittenReceiver.Type.IsReferenceType)
+            {
+                return RefKind.None;
+            }
 
             RefKind refKind = rewrittenReceiver.GetRefKind();
             if (refKind == RefKind.RefReadOnlyParameter)
             {
-                refKind = RefKind.Ref;
+                refKind = RefKind.RefReadOnly;
             }
             else if (refKind == RefKind.None &&
                 !rewrittenReceiver.Type.IsReferenceType &&
@@ -978,7 +1007,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE we'll want to allow extension member lookup and receiver adjustment for type parameter values
             Debug.Assert(!receiver.Type.IsTypeParameter());
-            var refKind = GetRefKindForCapturedReceiverTemp(receiver);
+            var refKind = GetRefKindForCapturedReceiverTemp(receiver, useNoneForReferenceType: true);
+            // PROTOTYPE if we decide to allow readonly members in extensions, we'll need to revisit this
+            if (refKind is RefKind.RefReadOnly)
+            {
+                refKind = RefKind.Ref;
+            }
+
             BoundAssignmentOperator assignmentToTemp;
             BoundLocal temp = _factory.StoreToTemp(receiver, out assignmentToTemp, refKind);
             tempsOpt.Add(temp.LocalSymbol);
@@ -988,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .Construct(ImmutableArray.Create<TypeSymbol>(temp.Type, memberExtensionType));
 
             method.CheckConstraints(
-                new ConstraintsHelper.CheckConstraintsArgs(_compilation, _compilation.Conversions, temp.Syntax.GetLocation(), _factory.Diagnostics));
+                new ConstraintsHelper.CheckConstraintsArgs(_compilation, _compilation.Conversions, temp.Syntax.GetLocation(), _diagnostics));
 
             var call = _factory.Call(null, method, temp);
             _factory.Syntax = oldSyntax;

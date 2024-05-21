@@ -180,56 +180,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             // be classified as a variable. If we've gotten this far in the rewriting,
             // assume that was the case.
 
-            // If the property is static or if the receiver is of kind "Base" or "this", then we can just generate prop = prop + value
+            // If the property is static, then we can just generate prop = prop + value
             if (receiverOpt == null || propertyOrEvent.IsStatic)
             {
                 return receiverOpt;
             }
 
-            Debug.Assert(receiverOpt.Kind != BoundKind.TypeExpression);
+            BoundExpression transformedReceiver = VisitExpression(receiverOpt);
 
-            BoundExpression rewrittenReceiver = VisitExpression(receiverOpt);
-            var adjustedRewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, propertyOrEvent, stores, ref temps);
+            var arguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref transformedReceiver,
+                captureReceiverMode: CanChangeValueBetweenReads(receiverOpt) ?
+                         (isRegularCompoundAssignment ? ReceiverCaptureMode.CompoundAssignment : ReceiverCaptureMode.UseTwiceComplex) :
+                         ReceiverCaptureMode.Default,
+                arguments: [],
+                methodOrIndexer: propertyOrEvent,
+                argsToParamsOpt: default,
+                argumentRefKindsOpt: default,
+                stores,
+                ref temps);
 
-            if (!CanChangeValueBetweenReads(receiverOpt) && adjustedRewrittenReceiver == rewrittenReceiver)
-            {
-                return receiverOpt;
-            }
-
-            rewrittenReceiver = adjustedRewrittenReceiver;
-
-            BoundAssignmentOperator assignmentToTemp;
-
-            // SPEC VIOLATION: It is not very clear when receiver of constrained callvirt is dereferenced - when pushed (in lexical order),
-            // SPEC VIOLATION: or when actual call is executed. The actual behavior seems to be implementation specific in different JITs.
-            // SPEC VIOLATION: To not depend on that, the right thing to do here is to store the value of the variable 
-            // SPEC VIOLATION: when variable has reference type (regular temp), and store variable's location when it has a value type. (ref temp)
-            // SPEC VIOLATION: in a case of unconstrained generic type parameter a runtime test (default(T) == null) would be needed
-            // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
-            // SPEC VIOLATION: as value types.
-            Debug.Assert(rewrittenReceiver.Type is { });
-            var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
-
-            var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
-            temps.Add(receiverTemp.LocalSymbol);
-
-            if (!isRegularCompoundAssignment &&
-                receiverTemp.LocalSymbol.IsRef &&
-                CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp) &&
-                !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp))
-            {
-                BoundAssignmentOperator? extraRefInitialization;
-                ReferToTempIfReferenceTypeReceiver(receiverTemp, ref assignmentToTemp, out extraRefInitialization, temps);
-
-                if (extraRefInitialization is object)
-                {
-                    stores.Add(extraRefInitialization);
-                }
-            }
-
-            stores.Add(assignmentToTemp);
-
-            return receiverTemp;
+            Debug.Assert(arguments.IsEmpty);
+            return transformedReceiver;
         }
 
         private BoundDynamicMemberAccess TransformDynamicMemberAccess(BoundDynamicMemberAccess memberAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
