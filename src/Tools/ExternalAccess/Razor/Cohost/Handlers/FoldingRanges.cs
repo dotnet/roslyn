@@ -9,17 +9,16 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers
-{
-    internal static class FoldingRanges
-    {
-        public static Task<FoldingRange[]> GetFoldingRangesAsync(Document document, CancellationToken cancellationToken)
-        {
-            // We need to manually get the IGlobalOptionsService out of the Mef composition, because Razor has its own
-            // composition so can't import it (and its internal anyway)
-            var globalOptions = document.Project.Solution.Services.ExportProvider.GetExports<IGlobalOptionService>().First().Value;
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
-            return FoldingRangesHandler.GetFoldingRangesAsync(globalOptions, document, cancellationToken);
-        }
+internal static class FoldingRanges
+{
+    public static Task<FoldingRange[]> GetFoldingRangesAsync(Document document, CancellationToken cancellationToken)
+    {
+        // We need to manually get the IGlobalOptionsService out of the Mef composition, because Razor has its own
+        // composition so can't import it (and its internal anyway)
+        var globalOptions = document.Project.Solution.Services.ExportProvider.GetExports<IGlobalOptionService>().First().Value;
+
+        return FoldingRangesHandler.GetFoldingRangesAsync(globalOptions, document, cancellationToken);
     }
 }
