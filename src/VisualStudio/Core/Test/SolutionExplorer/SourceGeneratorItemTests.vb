@@ -155,6 +155,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Await WaitForGeneratorsAndItemSourcesAsync(workspace)
 
+                ' In balanced-mode the SG file won't go away until a save/build happens.
                 If preference = SourceGeneratorExecutionPreference.Automatic Then
                     Assert.IsType(Of NoSourceGeneratedFilesPlaceholderItem)(Assert.Single(generatorFilesItemSource.Items))
                 Else
@@ -198,7 +199,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Await WaitForGeneratorsAndItemSourcesAsync(workspace)
 
-                Assert.IsType(Of SourceGeneratedFileItem)(Assert.Single(generatorFilesItemSource.Items))
+                ' In balanced-mode the SG file won't be created until a save/build happens.
+                If preference = SourceGeneratorExecutionPreference.Automatic Then
+                    Assert.IsType(Of SourceGeneratedFileItem)(Assert.Single(generatorFilesItemSource.Items))
+                Else
+                    Assert.IsType(Of NoSourceGeneratedFilesPlaceholderItem)(Assert.Single(generatorFilesItemSource.Items))
+                End If
 
                 ' Add a second item and see if it updates correctly again
                 workspace.OnAdditionalDocumentAdded(
@@ -207,7 +213,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                         "Test2.txt"))
 
                 Await WaitForGeneratorsAndItemSourcesAsync(workspace)
-                Assert.Equal(2, generatorFilesItemSource.Items.Cast(Of SourceGeneratedFileItem)().Count())
+
+                If preference = SourceGeneratorExecutionPreference.Automatic Then
+                    Assert.Equal(2, generatorFilesItemSource.Items.Cast(Of SourceGeneratedFileItem)().Count())
+                Else
+                    Assert.Equal(1, generatorFilesItemSource.Items.Cast(Of NoSourceGeneratedFilesPlaceholderItem)().Count())
+                End If
             End Using
         End Function
 
