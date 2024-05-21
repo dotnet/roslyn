@@ -548,8 +548,8 @@ class D : B
             Optional renameFile As Boolean = False,
             Optional resolvableConflictText As String = Nothing,
             Optional unresolvableConflictText As String = Nothing,
-            Optional severity As RenameDashboardSeverity = RenameDashboardSeverity.None
-        ) As Tasks.Task
+            Optional severity As RenameDashboardSeverity = RenameDashboardSeverity.None,
+            Optional executionPreference As SourceGeneratorExecutionPreference = SourceGeneratorExecutionPreference.Balanced) As Task
 
             Using workspace = CreateWorkspaceWithWaiter(test, host)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
@@ -557,7 +557,9 @@ class D : B
                 globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, renameInStrings)
                 globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, renameInComments)
                 globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, renameFile)
-                globalOptions.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic)
+
+                Dim configService = workspace.ExportProvider.GetExportedValue(Of TestWorkspaceConfigurationService)
+                configService.Options = New WorkspaceConfigurationOptions(SourceGeneratorExecution:=executionPreference)
 
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value

@@ -55,7 +55,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 host As RenameTestHost,
                 Optional renameOptions As SymbolRenameOptions = Nothing,
                 Optional expectFailure As Boolean = False,
-                Optional sourceGenerator As ISourceGenerator = Nothing) As RenameEngineResult
+                Optional sourceGenerator As ISourceGenerator = Nothing,
+                Optional executionPreference As SourceGeneratorExecutionPreference = SourceGeneratorExecutionPreference.Balanced) As RenameEngineResult
 
             Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
                 GetType(NoCompilationContentTypeLanguageService),
@@ -68,9 +69,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End If
 
             Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=composition)
+
+            Dim configService = workspace.ExportProvider.GetExportedValue(Of TestWorkspaceConfigurationService)
+            configService.Options = New WorkspaceConfigurationOptions(SourceGeneratorExecution:=executionPreference)
+
             workspace.Services.SolutionServices.SetWorkspaceTestOutput(helper)
-            workspace.GlobalOptions.SetGlobalOption(
-                WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic)
 
             If sourceGenerator IsNot Nothing Then
                 workspace.OnAnalyzerReferenceAdded(workspace.CurrentSolution.ProjectIds.Single(), New TestGeneratorReference(sourceGenerator))
