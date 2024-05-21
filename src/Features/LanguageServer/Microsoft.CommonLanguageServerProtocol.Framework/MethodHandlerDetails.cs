@@ -13,17 +13,25 @@ using System.Threading;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal sealed record HandlerMethodDetails(
+/// <summary>
+/// Provides information about an <see cref="IMethodHandler"/>.
+/// </summary>
+/// <param name="MethodName">The name of the LSP method handled.</param>
+/// <param name="Language">The language this <see cref="IMethodHandler"/> targets.</param>
+/// <param name="RequestTypeRef">A <see cref="TypeRef"/> representing the request type, if any.</param>
+/// <param name="ResponseTypeRef">A <see cref="TypeRef"/> representing the response type, if any.</param>
+/// <param name="RequestContextTypeRef">A <see cref="TypeRef"/> representing the context type.</param>
+internal sealed record MethodHandlerDetails(
     string MethodName,
     string Language,
     TypeRef? RequestTypeRef,
     TypeRef? ResponseTypeRef,
     TypeRef RequestContextTypeRef)
 {
-    public static ImmutableArray<HandlerMethodDetails> From(Type handlerType)
+    public static ImmutableArray<MethodHandlerDetails> From(Type handlerType)
     {
         var allHandlerDetails = GetAllHandlerDetails(handlerType);
-        var builder = ImmutableArray.CreateBuilder<HandlerMethodDetails>(initialCapacity: allHandlerDetails.Length);
+        var builder = ImmutableArray.CreateBuilder<MethodHandlerDetails>(initialCapacity: allHandlerDetails.Length);
 
         foreach (var (requestType, responseType, requestContextType) in allHandlerDetails)
         {

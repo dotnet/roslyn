@@ -156,15 +156,15 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         return null;
     }
 
-    public ImmutableArray<(IMethodHandler? Instance, TypeRef HandlerTypeRef, ImmutableArray<HandlerMethodDetails> Methods)> GetMethodHandlers()
+    public ImmutableArray<(IMethodHandler? Instance, TypeRef HandlerTypeRef, ImmutableArray<MethodHandlerDetails> HandlerDetails)> GetMethodHandlers()
     {
-        using var _ = ArrayBuilder<(IMethodHandler?, TypeRef, ImmutableArray<HandlerMethodDetails>)>.GetInstance(out var builder);
+        using var _ = ArrayBuilder<(IMethodHandler?, TypeRef, ImmutableArray<MethodHandlerDetails>)>.GetInstance(out var builder);
 
         // First, add any IMethodHandlers found in base services.
         foreach (var handler in GetBaseServices<IMethodHandler>())
         {
             var handlerType = handler.GetType();
-            var methods = HandlerMethodDetails.From(handlerType);
+            var methods = MethodHandlerDetails.From(handlerType);
 
             builder.Add((handler, handlerType, methods));
         }
@@ -174,7 +174,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         {
             var metadata = lazyService.Metadata;
 
-            if (metadata.HandlerMethods is { } handlerMethods)
+            if (metadata.HandlerDetails is { } handlerMethods)
             {
                 builder.Add((null, metadata.TypeRef, handlerMethods));
             }

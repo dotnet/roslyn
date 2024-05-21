@@ -80,9 +80,9 @@ internal class HandlerProvider(ILspServices lspServices, ITypeRefResolver typeRe
             foreach (var handler in handlers)
             {
                 var handlerType = handler.GetType();
-                var methods = HandlerMethodDetails.From(handlerType);
+                var handlerDetails = MethodHandlerDetails.From(handlerType);
 
-                foreach (var (methodName, language, requestTypeRef, responseTypeRef, _) in methods)
+                foreach (var (methodName, language, requestTypeRef, responseTypeRef, _) in handlerDetails)
                 {
                     CheckForDuplicates(methodName, language, methodHash);
 

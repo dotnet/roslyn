@@ -18,12 +18,12 @@ internal sealed class LspServiceMetadataView
     public WellKnownLspServerKinds ServerKind { get; }
     public bool IsStateless { get; }
 
-    public bool IsMethodHandler => HandlerMethods is not null;
+    public bool IsMethodHandler => HandlerDetails is not null;
 
     /// <summary>
     /// Returns an array of request handler method details if this services is an <see cref="IMethodHandler"/>.
     /// </summary>
-    public ImmutableArray<HandlerMethodDetails>? HandlerMethods { get; }
+    public ImmutableArray<MethodHandlerDetails>? HandlerDetails { get; }
 
     public LspServiceMetadataView(IDictionary<string, object> metadata)
     {
@@ -36,26 +36,26 @@ internal sealed class LspServiceMetadataView
         ServerKind = (WellKnownLspServerKinds)metadata[nameof(AbstractExportLspServiceAttribute.ServerKind)];
         IsStateless = (bool)metadata[nameof(AbstractExportLspServiceAttribute.IsStateless)];
 
-        var handlerMethodData = (string[]?)metadata[nameof(AbstractExportLspServiceAttribute.HandlerMethodData)];
+        var methodHandlerData = (string[]?)metadata[nameof(AbstractExportLspServiceAttribute.MethodHandlerData)];
 
-        if (handlerMethodData is not null)
+        if (methodHandlerData is not null)
         {
-            Contract.ThrowIfFalse(handlerMethodData.Length % 5 == 0);
+            Contract.ThrowIfFalse(methodHandlerData.Length % 5 == 0);
 
-            var total = handlerMethodData.Length / 5;
+            var total = methodHandlerData.Length / 5;
 
-            var handlerMethods = new HandlerMethodDetails[total];
+            var handlerDetails = new MethodHandlerDetails[total];
 
             var index = 0;
             for (var i = 0; i < total; i++)
             {
-                var methodName = handlerMethodData[index++];
-                var language = handlerMethodData[index++];
-                var requestTypeName = handlerMethodData[index++];
-                var responseTypeName = handlerMethodData[index++];
-                var requestContextTypeName = handlerMethodData[index++];
+                var methodName = methodHandlerData[index++];
+                var language = methodHandlerData[index++];
+                var requestTypeName = methodHandlerData[index++];
+                var responseTypeName = methodHandlerData[index++];
+                var requestContextTypeName = methodHandlerData[index++];
 
-                handlerMethods[i] = new(
+                handlerDetails[i] = new(
                     methodName,
                     language,
                     requestTypeName is not null ? TypeRef.From(requestTypeName) : null,
@@ -63,11 +63,11 @@ internal sealed class LspServiceMetadataView
                     TypeRef.From(requestContextTypeName));
             }
 
-            HandlerMethods = ImmutableCollectionsMarshal.AsImmutableArray(handlerMethods);
+            HandlerDetails = ImmutableCollectionsMarshal.AsImmutableArray(handlerDetails);
         }
         else
         {
-            HandlerMethods = null;
+            HandlerDetails = null;
         }
     }
 }
