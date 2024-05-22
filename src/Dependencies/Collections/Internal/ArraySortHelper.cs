@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             // Add a try block here to detect bogus comparisons
             try
             {
-                IntrospectiveSort(keys, comparer);
+                IntrospectiveSort(keys, comparer!);
             }
             catch (IndexOutOfRangeException)
             {
