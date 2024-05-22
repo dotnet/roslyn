@@ -97,7 +97,7 @@ End Class", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentTokenTypeAsync("identifier", HangMitigatingCancellationToken);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/64672")]
+        [IdeFact]
         public async Task ProjectProperties()
         {
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(WorkspaceBase), HangMitigatingCancellationToken);
