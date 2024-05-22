@@ -5,45 +5,45 @@
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste;
+
+public class PasteUnknownSourceIntoSingleLineRawStringTests
+    : StringCopyPasteCommandHandlerUnknownSourceTests
 {
-    public class PasteUnknownSourceIntoSingleLineRawStringTests
-        : StringCopyPasteCommandHandlerUnknownSourceTests
+    [WpfFact]
+    public void TestNewLineIntoSingleLineRawString1_A()
     {
-        [WpfFact]
-        public void TestNewLineIntoSingleLineRawString1_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: "\n",
+        TestPasteUnknownSource(
+            pasteText: "\n",
 """"
 var x = """[||] """
 """",
 "var x = \"\"\"\r\n    \n    [||] \r\n    \"\"\"",
-                afterUndo:
+            afterUndo:
 "var x = \"\"\"\n[||] \"\"\"");
-        }
+    }
 
-        [WpfFact]
-        public void TestNewLineIntoSingleLineRawString1_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: "\n",
+    [WpfFact]
+    public void TestNewLineIntoSingleLineRawString1_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: "\n",
 """"
 var x = """ [||]"""
 """",
 "var x = \"\"\"\r\n     \n    \r\n    [||]\"\"\"",
-                afterUndo:
+            afterUndo:
 "var x = \"\"\" \n[||]\"\"\"");
-        }
+    }
 
-        [WpfFact]
-        public void TestNewLineIntoSingleLineRawString2_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
+    [WpfFact]
+    public void TestNewLineIntoSingleLineRawString2_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
 
 
-                """,
+            """,
 """"
 var x = """[||] """
 """",
@@ -53,21 +53,21 @@ var x = """
     [||] 
     """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """
 [||] """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNewLineIntoSingleLineRawString2_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
+    [WpfFact]
+    public void TestNewLineIntoSingleLineRawString2_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
 
 
-                """,
+            """,
 """"
 var x = """ [||]"""
 """",
@@ -77,55 +77,55 @@ var x = """
     
     [||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """ 
 [||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestSpacesIntoSingleLineRawString1_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """    """,
+    [WpfFact]
+    public void TestSpacesIntoSingleLineRawString1_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """    """,
 """"
 var x = """[||] """
 """",
 """"
 var x = """    [||] """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """[||] """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestSpacesIntoSingleLineRawString1_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """    """,
+    [WpfFact]
+    public void TestSpacesIntoSingleLineRawString1_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """    """,
 """"
 var x = """ [||]"""
 """",
 """"
 var x = """     [||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """ [||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestSpacesIntoSingleLineRawString2()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                    
+    [WpfFact]
+    public void TestSpacesIntoSingleLineRawString2()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+                
 
-                """,
+            """,
 """"
 var x = """
     [||]
@@ -137,56 +137,56 @@ var x = """
     [||]
     """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """
         
 [||]
     """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestSingleQuoteIntoSingleLineRawString_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """'""",
+    [WpfFact]
+    public void TestSingleQuoteIntoSingleLineRawString_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """'""",
 """"
 var x = """[||] """
 """",
 """"
 var x = """'[||] """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """[||] """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestSingleQuoteIntoSingleLineRawString_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """'""",
+    [WpfFact]
+    public void TestSingleQuoteIntoSingleLineRawString_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """'""",
 """"
 var x = """ [||]"""
 """",
 """"
 var x = """ '[||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """ [||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestDoubleQuoteIntoSingleLineRawString_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                "
-                """,
+    [WpfFact]
+    public void TestDoubleQuoteIntoSingleLineRawString_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            "
+            """,
 """"
 var x = """[||] """
 """",
@@ -195,19 +195,19 @@ var x = """
     "[||] 
     """
 """",
-                afterUndo:
+            afterUndo:
 """""
 var x = """"[||] """
 """"");
-        }
+    }
 
-        [WpfFact]
-        public void TestDoubleQuoteIntoSingleLineRawString_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                "
-                """,
+    [WpfFact]
+    public void TestDoubleQuoteIntoSingleLineRawString_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            "
+            """,
 """"
 var x = """ [||]"""
 """",
@@ -216,19 +216,19 @@ var x = """
      "
     [||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """ "[||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestTripleQuoteIntoSingleLineRawString1_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """"
-                """
-                """",
+    [WpfFact]
+    public void TestTripleQuoteIntoSingleLineRawString1_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """"
+            """
+            """",
 """"
 var x = """[||] """
 """",
@@ -237,19 +237,19 @@ var x = """"
     """[||] 
     """"
 """"",
-                afterUndo:
+            afterUndo:
 """""""
 var x = """"""[||] """
 """"""");
-        }
+    }
 
-        [WpfFact]
-        public void TestTripleQuoteIntoSingleLineRawString1_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """"
-                """
-                """",
+    [WpfFact]
+    public void TestTripleQuoteIntoSingleLineRawString1_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """"
+            """
+            """",
 """"
 var x = """ [||]"""
 """",
@@ -258,95 +258,95 @@ var x = """"
      """
     [||]""""
 """"",
-                afterUndo:
+            afterUndo:
 """"
 var x = """ """[||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestTwoQuotesIntoSingleLineRawString3()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                ""
-                """,
+    [WpfFact]
+    public void TestTwoQuotesIntoSingleLineRawString3()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            ""
+            """,
 """"
 var x = """ "[||] """
 """",
 """""
 var x = """" """[||] """"
 """"",
-                afterUndo:
+            afterUndo:
 """"
 var x = """ """[||] """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestTripleQuoteIntoSingleLineRawString3()
-        {
-            TestPasteUnknownSource(
-                pasteText: """"
-                """
-                """",
+    [WpfFact]
+    public void TestTripleQuoteIntoSingleLineRawString3()
+    {
+        TestPasteUnknownSource(
+            pasteText: """"
+            """
+            """",
 """"
 var x = """ "[||] """
 """",
 """"""
 var x = """"" """"[||] """""
 """""",
-                afterUndo:
+            afterUndo:
 """""
 var x = """ """"[||] """
 """"");
-        }
+    }
 
-        [WpfFact]
-        public void TestTripleQuoteIntoSingleLineRawString4()
-        {
-            TestPasteUnknownSource(
-                pasteText: """"
-                """
-                """",
+    [WpfFact]
+    public void TestTripleQuoteIntoSingleLineRawString4()
+    {
+        TestPasteUnknownSource(
+            pasteText: """"
+            """
+            """",
 """"
 var x = """ "[||]" """
 """",
 """""""
 var x = """""" """"[||]" """"""
 """"""",
-                afterUndo:
+            afterUndo:
 """""
 var x = """ """"[||]" """
 """"");
-        }
+    }
 
-        [WpfFact]
-        public void TestTripleQuoteIntoSingleLineRawString5()
-        {
-            TestPasteUnknownSource(
-                pasteText: """"
-                """
-                """",
+    [WpfFact]
+    public void TestTripleQuoteIntoSingleLineRawString5()
+    {
+        TestPasteUnknownSource(
+            pasteText: """"
+            """
+            """",
 """"
 var x = """ [||]" """
 """",
 """"""
 var x = """"" """[||]" """""
 """""",
-                afterUndo:
+            afterUndo:
 """"
 var x = """ """[||]" """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestQuadrupleQuoteIntoSingleLineRawString()
-        {
-            TestPasteUnknownSource(
-                pasteText: """""
-                """"
-                """"",
+    [WpfFact]
+    public void TestQuadrupleQuoteIntoSingleLineRawString()
+    {
+        TestPasteUnknownSource(
+            pasteText: """""
+            """"
+            """"",
 """"
 var x = """
     [||]
@@ -357,73 +357,73 @@ var x = """""
     """"[||]
     """""
 """""",
-                afterUndo:
+            afterUndo:
 """""
 var x = """
     """"[||]
     """
 """"");
-        }
+    }
 
-        [WpfFact]
-        public void TestComplexStringIntoSingleLineRawString()
-        {
-            TestPasteUnknownSource(
-                pasteText: """  ""  """,
+    [WpfFact]
+    public void TestComplexStringIntoSingleLineRawString()
+    {
+        TestPasteUnknownSource(
+            pasteText: """  ""  """,
 """"
 var x = """[||] """
 """",
 """"
 var x = """  ""  [||] """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """[||] """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawString_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """abc""",
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawString_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """abc""",
 """"
 var x = """[||] """
 """",
 """"
 var x = """abc[||] """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """[||] """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawString_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """abc""",
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawString_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """abc""",
 """"
 var x = """ [||]"""
 """",
 """"
 var x = """ abc[||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """ [||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine1_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                def
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine1_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+            def
+            """,
 """"
 var x = """[||] """
 """",
@@ -433,21 +433,21 @@ var x = """
     def[||] 
     """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """abc
 def[||] """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine1_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                def
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine1_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+            def
+            """,
 """"
 var x = """ [||]"""
 """",
@@ -457,21 +457,21 @@ var x = """
     def
     [||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """ abc
 def[||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine4()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                def
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine4()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+            def
+            """,
 """"
 var x = """goo[||]"""
 """",
@@ -481,21 +481,21 @@ var x = """
     def
     [||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """gooabc
 def[||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine5()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                def
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine5()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+            def
+            """,
 """"
 var x = """goo[||]bar"""
 """",
@@ -505,22 +505,22 @@ var x = """
     def[||]bar
     """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """gooabc
 def[||]bar"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine6()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                def
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine6()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+            def
 
-                """,
+            """,
 """"
 var x = """goo[||]bar"""
 """",
@@ -531,23 +531,23 @@ var x = """
     [||]bar
     """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """gooabc
 def
 [||]bar"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine7_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                    def
-                ghi
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine7_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+                def
+            ghi
+            """,
 """"
 var x = """[||] """
 """",
@@ -558,23 +558,23 @@ var x = """
     ghi[||] 
     """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """abc
     def
 ghi[||] """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine7_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                    def
-                ghi
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine7_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+                def
+            ghi
+            """,
 """"
 var x = """ [||]"""
 """",
@@ -585,23 +585,23 @@ var x = """
     ghi
     [||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """ abc
     def
 ghi[||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine8_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                    def
-                    ghi
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine8_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+                def
+                ghi
+            """,
 """"
 var x = """[||] """
 """",
@@ -612,23 +612,23 @@ var x = """
     ghi[||] 
     """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """abc
     def
     ghi[||] """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine8_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                    def
-                    ghi
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine8_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+                def
+                ghi
+            """,
 """"
 var x = """[||] """
 """",
@@ -639,23 +639,23 @@ var x = """
     ghi[||] 
     """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """abc
     def
     ghi[||] """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine9_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                    abc
-                    def
-                    ghi
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine9_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+                abc
+                def
+                ghi
+            """,
 """"
 var x = """[||] """
 """",
@@ -666,23 +666,23 @@ var x = """
     ghi[||] 
     """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """    abc
     def
     ghi[||] """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine9_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                    abc
-                    def
-                    ghi
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine9_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+                abc
+                def
+                ghi
+            """,
 """"
 var x = """ [||]"""
 """",
@@ -693,23 +693,23 @@ var x = """
     ghi
     [||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """     abc
     def
     ghi[||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine10_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                        abc
-                    def
-                    ghi
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine10_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+                    abc
+                def
+                ghi
+            """,
 """"
 var x = """[||] """
 """",
@@ -720,23 +720,23 @@ var x = """
     ghi[||] 
     """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """        abc
     def
     ghi[||] """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine10_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                        abc
-                    def
-                    ghi
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine10_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+                    abc
+                def
+                ghi
+            """,
 """"
 var x = """ [||]"""
 """",
@@ -747,22 +747,22 @@ var x = """
     ghi
     [||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """         abc
     def
     ghi[||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine11_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                def
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine11_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+            def
+            """,
 """"
 var x = """[||]{|Selection:    |}"""
 """",
@@ -772,21 +772,21 @@ var x = """
     def
     [||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """abc
 def[||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine11_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                def
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine11_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+            def
+            """,
 """"
 var x = """  [||]{|Selection:    |}  """
 """",
@@ -796,22 +796,22 @@ var x = """
     def[||]  
     """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """  abc
 def[||]  """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine12_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                def
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine12_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+            def
 
-                """,
+            """,
 """"
 var x = """[||]{|Selection:    |}"""
 """",
@@ -822,23 +822,23 @@ var x = """
     
     [||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """abc
 def
 [||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine12_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                def
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine12_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+            def
 
-                """,
+            """,
 """"
 var x = """  [||]{|Selection:    |}  """
 """",
@@ -849,22 +849,22 @@ var x = """
     [||]  
     """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """  abc
 def
 [||]  """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine13_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                def
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine13_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+            def
+            """,
 """"
 var x = """[||]{|Selection:    |}  """
 """",
@@ -874,21 +874,21 @@ var x = """
     def[||]  
     """
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """abc
 def[||]  """
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine13_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                abc
-                def
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine13_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            abc
+            def
+            """,
 """"
 var x = """  [||]{|Selection:    |}"""
 """",
@@ -898,20 +898,20 @@ var x = """
     def
     [||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """  abc
 def[||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringHeader1_A()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                "bar
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringHeader1_A()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            "bar
+            """,
 """"
 var x = """[||]goo"""
 """",
@@ -920,19 +920,19 @@ var x = """
     "bar[||]goo
     """
 """",
-                afterUndo:
+            afterUndo:
 """""
 var x = """"bar[||]goo"""
 """"");
-        }
+    }
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringHeader1_B()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                bar"
-                """,
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringHeader1_B()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            bar"
+            """,
 """"
 var x = """goo[||]"""
 """",
@@ -941,19 +941,19 @@ var x = """
     goobar"
     [||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"
 var x = """goobar"[||]"""
 """");
-        }
+    }
 
-        [WpfFact]
-        public void TestQuotesIntoHeader1()
-        {
-            TestPasteUnknownSource(
-                pasteText: """
-                ""
-                """,
+    [WpfFact]
+    public void TestQuotesIntoHeader1()
+    {
+        TestPasteUnknownSource(
+            pasteText: """
+            ""
+            """,
 """"
 var x = """[||]{|Selection:    |}"""
 """",
@@ -962,19 +962,19 @@ var x = """
     ""
     [||]"""
 """",
-                afterUndo:
+            afterUndo:
 """"""
 var x = """""[||]"""
 """""");
-        }
+    }
 
-        [WpfFact]
-        public void TestQuotesIntoHeader2()
-        {
-            TestPasteUnknownSource(
-                pasteText: """"
-                """
-                """",
+    [WpfFact]
+    public void TestQuotesIntoHeader2()
+    {
+        TestPasteUnknownSource(
+            pasteText: """"
+            """
+            """",
 """"
 var x = """[||]{|Selection:    |}"""
 """",
@@ -983,10 +983,9 @@ var x = """"
     """
     [||]""""
 """"",
-                afterUndo:
+            afterUndo:
 """""""
 var x = """"""[||]"""
 """"""");
-        }
     }
 }

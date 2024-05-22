@@ -9,15 +9,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+public partial class AddUsingTests
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-    public partial class AddUsingTests
+    [Fact]
+    public async Task TestSimpleQuery()
     {
-        [Fact]
-        public async Task TestSimpleQuery()
-        {
-            await TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -39,12 +39,12 @@ class Program
         var q = from x in args
                 select x}
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestSimpleWhere()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestSimpleWhere()
+    {
+        await TestInRegularAndScriptAsync(
 @"class Test
 {
     public void SimpleWhere()
@@ -75,6 +75,5 @@ class Test
                       select n;
     }
 }");
-        }
     }
 }

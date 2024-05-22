@@ -4,33 +4,32 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets;
+
+public class CSharpPropiSnippetCompletionProviderTests : AbstractCSharpAutoPropertyCompletionProviderTests
 {
-    public class CSharpPropiSnippetCompletionProviderTests : AbstractCSharpAutoPropertyCompletionProviderTests
+    protected override string ItemToCommit => "propi";
+
+    protected override string GetDefaultPropertyBlockText()
+        => "{ get; init; }";
+
+    public override async Task InsertSnippetInReadonlyStruct()
     {
-        protected override string ItemToCommit => "propi";
+        await VerifyDefaultPropertyAsync("""
+            readonly struct MyStruct
+            {
+                $$
+            }
+            """);
+    }
 
-        protected override string GetDefaultPropertyBlockText()
-            => "{ get; init; }";
-
-        public override async Task InsertSnippetInReadonlyStruct()
-        {
-            await VerifyDefaultPropertyAsync("""
-                readonly struct MyStruct
-                {
-                    $$
-                }
-                """);
-        }
-
-        public override async Task InsertSnippetInInterface()
-        {
-            await VerifyDefaultPropertyAsync("""
-                interface MyInterface
-                {
-                    $$
-                }
-                """);
-        }
+    public override async Task InsertSnippetInInterface()
+    {
+        await VerifyDefaultPropertyAsync("""
+            interface MyInterface
+            {
+                $$
+            }
+            """);
     }
 }

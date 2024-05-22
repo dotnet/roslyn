@@ -4,34 +4,33 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets;
+
+public class CSharpPropSnippetCompletionProviderTests : AbstractCSharpAutoPropertyCompletionProviderTests
 {
-    public class CSharpPropSnippetCompletionProviderTests : AbstractCSharpAutoPropertyCompletionProviderTests
+    protected override string ItemToCommit => "prop";
+
+    protected override string GetDefaultPropertyBlockText()
+        => "{ get; set; }";
+
+    public override async Task InsertSnippetInReadonlyStruct()
     {
-        protected override string ItemToCommit => "prop";
+        // Ensure we don't generate redundant `set` accessor when executed in readonly struct
+        await VerifyPropertyAsync("""
+            readonly struct MyStruct
+            {
+                $$
+            }
+            """, "public int MyProperty { get; }");
+    }
 
-        protected override string GetDefaultPropertyBlockText()
-            => "{ get; set; }";
-
-        public override async Task InsertSnippetInReadonlyStruct()
-        {
-            // Ensure we don't generate redundant `set` accessor when executed in readonly struct
-            await VerifyPropertyAsync("""
-                readonly struct MyStruct
-                {
-                    $$
-                }
-                """, "public int MyProperty { get; }");
-        }
-
-        public override async Task InsertSnippetInInterface()
-        {
-            await VerifyDefaultPropertyAsync("""
-                interface MyInterface
-                {
-                    $$
-                }
-                """);
-        }
+    public override async Task InsertSnippetInInterface()
+    {
+        await VerifyDefaultPropertyAsync("""
+            interface MyInterface
+            {
+                $$
+            }
+            """);
     }
 }

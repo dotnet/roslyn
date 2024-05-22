@@ -10,20 +10,20 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespace
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespace;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-    public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
+    [Fact]
+    public async Task ChangeNamespace_InvalidFolderName1()
     {
-        [Fact]
-        public async Task ChangeNamespace_InvalidFolderName1()
-        {
-            var defaultNamespace = "A";
-            var declaredNamespace = "Foo.Bar";
+        var defaultNamespace = "A";
+        var declaredNamespace = "Foo.Bar";
 
-            // No change namespace action because the folder name is not valid identifier
-            var (folder, filePath) = CreateDocumentFilePath(["3B", "C"], "File1.cs");
-            var code =
+        // No change namespace action because the folder name is not valid identifier
+        var (folder, filePath) = CreateDocumentFilePath(["3B", "C"], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -37,18 +37,18 @@ namespace [||]{declaredNamespace}
         </Document>
     </Project>
 </Workspace>";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_InvalidFolderName2()
-        {
-            var defaultNamespace = "A";
-            var declaredNamespace = "Foo.Bar";
+    [Fact]
+    public async Task ChangeNamespace_InvalidFolderName2()
+    {
+        var defaultNamespace = "A";
+        var declaredNamespace = "Foo.Bar";
 
-            // No change namespace action because the folder name is not valid identifier
-            var (folder, filePath) = CreateDocumentFilePath(["B.3C", "D"], "File1.cs");
-            var code =
+        // No change namespace action because the folder name is not valid identifier
+        var (folder, filePath) = CreateDocumentFilePath(["B.3C", "D"], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -62,17 +62,17 @@ namespace [||]{declaredNamespace}
         </Document>
     </Project>
 </Workspace>";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_SingleDocumentNoReference()
-        {
-            var defaultNamespace = "A";
-            var declaredNamespace = "Foo.Bar";
+    [Fact]
+    public async Task ChangeNamespace_SingleDocumentNoReference()
+    {
+        var defaultNamespace = "A";
+        var declaredNamespace = "Foo.Bar";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -86,24 +86,24 @@ namespace [||]{declaredNamespace}
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     class Class1
     {
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_SingleDocumentNoReference_FileScopedNamespace()
-        {
-            var defaultNamespace = "A";
-            var declaredNamespace = "Foo.Bar";
+    [Fact]
+    public async Task ChangeNamespace_SingleDocumentNoReference_FileScopedNamespace()
+    {
+        var defaultNamespace = "A";
+        var declaredNamespace = "Foo.Bar";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -117,24 +117,24 @@ class Class1
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C;
 
 class Class1
 {
 }
 ";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_SingleDocumentLocalReference()
-        {
-            var defaultNamespace = "A";
-            var declaredNamespace = "Foo.Bar";
+    [Fact]
+    public async Task ChangeNamespace_SingleDocumentLocalReference()
+    {
+        var defaultNamespace = "A";
+        var declaredNamespace = "Foo.Bar";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -158,7 +158,7 @@ namespace [||]{declaredNamespace}
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     delegate void D1;
@@ -175,18 +175,18 @@ namespace [||]{declaredNamespace}
         void Class1.M1() { }
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_WithCrefReference()
-        {
-            var defaultNamespace = "A";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeNamespace_WithCrefReference()
+    {
+        var defaultNamespace = "A";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -222,7 +222,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     /// <summary>
@@ -236,7 +236,7 @@ namespace Foo
         public void M1() { }
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 namespace Foo
 {
@@ -252,17 +252,17 @@ namespace Foo
     {
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_WithCrefReferencesInVB()
-        {
-            var defaultNamespace = "A.B.C";
-            var declaredNamespace = "A.B.C.D";
+    [Fact]
+    public async Task ChangeNamespace_WithCrefReferencesInVB()
+    {
+        var defaultNamespace = "A.B.C";
+        var declaredNamespace = "A.B.C.D";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -292,7 +292,7 @@ End Class</Document>
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     /// <summary>
@@ -303,7 +303,7 @@ End Class</Document>
     {
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 Imports A.B.C
 
@@ -314,18 +314,18 @@ Imports A.B.C
 Public Class VBClass
     Public ReadOnly Property C1 As Class1
 End Class";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_ReferencingTypesDeclaredInOtherDocument()
-        {
-            var defaultNamespace = "A";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeNamespace_ReferencingTypesDeclaredInOtherDocument()
+    {
+        var defaultNamespace = "A";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -357,7 +357,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"using Foo;
 using Foo.Bar;
 using Foo.Bar.Baz;
@@ -371,18 +371,18 @@ namespace A.B.C
         private Class4 c4;
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_ReferencingQualifiedTypesDeclaredInOtherDocument()
-        {
-            var defaultNamespace = "A";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeNamespace_ReferencingQualifiedTypesDeclaredInOtherDocument()
+    {
+        var defaultNamespace = "A";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -414,7 +414,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"using Foo;
 using Foo.Bar;
 using Foo.Bar.Baz;
@@ -428,18 +428,18 @@ namespace A.B.C
         private Class4 c4;
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_WithReferencesInOtherDocument()
-        {
-            var defaultNamespace = "A";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeNamespace_WithReferencesInOtherDocument()
+    {
+        var defaultNamespace = "A";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -472,7 +472,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     class Class1
@@ -483,7 +483,7 @@ namespace Foo
     {
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 using A.B.C;
 
@@ -499,18 +499,18 @@ namespace Foo
         }
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_WithQualifiedReferencesInOtherDocument()
-        {
-            var defaultNamespace = "A";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeNamespace_WithQualifiedReferencesInOtherDocument()
+    {
+        var defaultNamespace = "A";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -535,7 +535,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     interface Interface1
@@ -543,7 +543,7 @@ namespace Foo
         void M1(Interface1 c1);
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 namespace Foo
 {
@@ -554,18 +554,18 @@ namespace Foo
         void Interface1.M1(Interface1 c1){}
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_ChangeUsingsInMultipleContainers()
-        {
-            var defaultNamespace = "A";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeNamespace_ChangeUsingsInMultipleContainers()
+    {
+        var defaultNamespace = "A";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -599,14 +599,14 @@ namespace NS1
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     class Class1
     {
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 namespace NS1
 {
@@ -625,18 +625,18 @@ namespace NS1
         }
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_WithAliasReferencesInOtherDocument()
-        {
-            var defaultNamespace = "A";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeNamespace_WithAliasReferencesInOtherDocument()
+    {
+        var defaultNamespace = "A";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -670,7 +670,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     class Class1
@@ -681,7 +681,7 @@ namespace Foo
     {
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 using System;
 using A.B.C;
@@ -699,17 +699,17 @@ namespace Foo
         }
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeToGlobalNamespace_SingleDocumentNoRef()
-        {
-            var defaultNamespace = "";
-            var declaredNamespace = "Foo.Bar";
+    [Fact]
+    public async Task ChangeToGlobalNamespace_SingleDocumentNoRef()
+    {
+        var defaultNamespace = "";
+        var declaredNamespace = "Foo.Bar";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -728,7 +728,7 @@ namespace [||]{declaredNamespace}
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"
 using System;
 
@@ -740,17 +740,17 @@ class Class1
 // Comments before closing brace
 // Comments after declaration.
 ";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+    }
 
-        [Fact]
-        public async Task ChangeToGlobalNamespace_SingleDocumentLocalRef()
-        {
-            var defaultNamespace = "";
-            var declaredNamespace = "Foo.Bar";
+    [Fact]
+    public async Task ChangeToGlobalNamespace_SingleDocumentLocalRef()
+    {
+        var defaultNamespace = "";
+        var declaredNamespace = "Foo.Bar";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -774,7 +774,7 @@ namespace [||]{declaredNamespace}
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"delegate void D1;
 
 interface Class1
@@ -789,18 +789,18 @@ class Class2 : Class1
     void Class1.M1() { }
 }
 ";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+    }
 
-        [Fact]
-        public async Task ChangeToGlobalNamespace_WithReferencesInOtherDocument()
-        {
-            var defaultNamespace = "";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeToGlobalNamespace_WithReferencesInOtherDocument()
+    {
+        var defaultNamespace = "";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -833,7 +833,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"class Class1
 {
 }
@@ -842,7 +842,7 @@ class Class2
 {
 }
 ";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"namespace Foo
 {
     class RefClass
@@ -855,18 +855,18 @@ class Class2
         }
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeToGlobalNamespace_WithQualifiedReferencesInOtherDocument()
-        {
-            var defaultNamespace = "";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeToGlobalNamespace_WithQualifiedReferencesInOtherDocument()
+    {
+        var defaultNamespace = "";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -891,13 +891,13 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"interface Interface1
 {
     void M1(Interface1 c1);
 }
 ";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 namespace Foo
 {
@@ -906,18 +906,18 @@ namespace Foo
         void Interface1.M1(Interface1 c1){}
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeToGlobalNamespace_WithReferenceAndConflictDeclarationInOtherDocument()
-        {
-            var defaultNamespace = "";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeToGlobalNamespace_WithReferenceAndConflictDeclarationInOtherDocument()
+    {
+        var defaultNamespace = "";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -945,12 +945,12 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"class MyClass
 {
 }
 ";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 namespace Foo
 {
@@ -963,18 +963,18 @@ namespace Foo
     {
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeToGlobalNamespace_ReferencingTypesDeclaredInOtherDocument()
-        {
-            var defaultNamespace = "";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeToGlobalNamespace_ReferencingTypesDeclaredInOtherDocument()
+    {
+        var defaultNamespace = "";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1006,7 +1006,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"using Foo;
 using Foo.Bar;
 using Foo.Bar.Baz;
@@ -1018,18 +1018,18 @@ class Class1
     private Class4 c4;
 }
 ";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+    }
 
-        [Fact]
-        public async Task ChangeToGlobalNamespace_ChangeUsingsInMultipleContainers()
-        {
-            var defaultNamespace = "";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeToGlobalNamespace_ChangeUsingsInMultipleContainers()
+    {
+        var defaultNamespace = "";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1063,12 +1063,12 @@ namespace NS1
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"class Class1
 {
 }
 ";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 namespace NS1
 {
@@ -1085,18 +1085,18 @@ namespace NS1
         }
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeToGlobalNamespace_WithAliasReferencesInOtherDocument()
-        {
-            var defaultNamespace = "";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeToGlobalNamespace_WithAliasReferencesInOtherDocument()
+    {
+        var defaultNamespace = "";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1130,7 +1130,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"class Class1
 {
 }
@@ -1139,7 +1139,7 @@ class Class2
 {
 }
 ";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 using System;
 using Class1Alias = Class1;
@@ -1156,15 +1156,15 @@ namespace Foo
         }
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeFromGlobalNamespace_SingleDocumentNoRef()
-        {
-            var defaultNamespace = "A";
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var code =
+    [Fact]
+    public async Task ChangeFromGlobalNamespace_SingleDocumentNoRef()
+    {
+        var defaultNamespace = "A";
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1178,7 +1178,7 @@ class [||]Class1
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"
 using System;
 
@@ -1188,15 +1188,15 @@ namespace A.B.C
     {
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+    }
 
-        [Fact]
-        public async Task ChangeFromGlobalNamespace_SingleDocumentLocalRef()
-        {
-            var defaultNamespace = "A";
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var code =
+    [Fact]
+    public async Task ChangeFromGlobalNamespace_SingleDocumentLocalRef()
+    {
+        var defaultNamespace = "A";
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1217,7 +1217,7 @@ class Class2 : Class1
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     delegate void D1;
@@ -1234,17 +1234,17 @@ class Class2 : Class1
         void Class1.M1() { }
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+    }
 
-        [Fact]
-        public async Task ChangeFromGlobalNamespace_WithReferencesInOtherDocument()
-        {
-            var defaultNamespace = "A";
+    [Fact]
+    public async Task ChangeFromGlobalNamespace_WithReferencesInOtherDocument()
+    {
+        var defaultNamespace = "A";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1272,7 +1272,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     class Class1
@@ -1283,7 +1283,7 @@ namespace Foo
     {
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 using A.B.C;
 
@@ -1299,16 +1299,16 @@ namespace Foo
         }
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeFromGlobalNamespace_WithQualifiedReferencesInOtherDocument()
-        {
-            var defaultNamespace = "A";
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+    [Fact]
+    public async Task ChangeFromGlobalNamespace_WithQualifiedReferencesInOtherDocument()
+    {
+        var defaultNamespace = "A";
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1328,7 +1328,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     interface Interface1
@@ -1336,7 +1336,7 @@ namespace Foo
         void M1(Interface1 c1);
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 using A.B.C;
 
@@ -1347,16 +1347,16 @@ namespace Foo
         void Interface1.M1(Interface1 c1){}
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeFromGlobalNamespace_ReferencingQualifiedTypesDeclaredInOtherDocument()
-        {
-            var defaultNamespace = "A";
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+    [Fact]
+    public async Task ChangeFromGlobalNamespace_ReferencingQualifiedTypesDeclaredInOtherDocument()
+    {
+        var defaultNamespace = "A";
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1386,7 +1386,7 @@ namespace A
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     class Class1
@@ -1396,17 +1396,17 @@ namespace A
         private Class4 c4;
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+    }
 
-        [Fact]
-        public async Task ChangeFromGlobalNamespace_ChangeUsingsInMultipleContainers()
-        {
-            var defaultNamespace = "A";
+    [Fact]
+    public async Task ChangeFromGlobalNamespace_ChangeUsingsInMultipleContainers()
+    {
+        var defaultNamespace = "A";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1437,14 +1437,14 @@ namespace NS1
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     class Class1
     {
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 namespace NS1
 {
@@ -1466,17 +1466,17 @@ namespace NS1
         }
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeFromGlobalNamespace_WithAliasReferencesInOtherDocument()
-        {
-            var defaultNamespace = "A";
+    [Fact]
+    public async Task ChangeFromGlobalNamespace_WithAliasReferencesInOtherDocument()
+    {
+        var defaultNamespace = "A";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1508,7 +1508,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     class Class1
@@ -1519,7 +1519,7 @@ namespace Foo
     {
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 using A.B.C;
 using Class1Alias = Class1;
@@ -1538,17 +1538,17 @@ namespace Foo
         }
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_WithReferencesInVBDocument()
-        {
-            var defaultNamespace = "A.B.C";
-            var declaredNamespace = "A.B.C.D";
+    [Fact]
+    public async Task ChangeNamespace_WithReferencesInVBDocument()
+    {
+        var defaultNamespace = "A.B.C";
+        var declaredNamespace = "A.B.C.D";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1570,31 +1570,31 @@ End Class</Document>
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     public class Class1
     {
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 Imports A.B.C
 
 Public Class VBClass
     Public ReadOnly Property C1 As Class1
 End Class";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_WithQualifiedReferencesInVBDocument()
-        {
-            var defaultNamespace = "A.B.C";
-            var declaredNamespace = "A.B.C.D";
+    [Fact]
+    public async Task ChangeNamespace_WithQualifiedReferencesInVBDocument()
+    {
+        var defaultNamespace = "A.B.C";
+        var declaredNamespace = "A.B.C.D";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1614,27 +1614,27 @@ End Class</Document>
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     public class Class1
     {
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"Public Class VBClass
     Public ReadOnly Property C1 As A.B.C.Class1
 End Class";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeFromGlobalNamespace_WithReferencesInVBDocument()
-        {
-            var defaultNamespace = "A";
+    [Fact]
+    public async Task ChangeFromGlobalNamespace_WithReferencesInVBDocument()
+    {
+        var defaultNamespace = "A";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1652,30 +1652,30 @@ End Class</Document>
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     public class Class1
     {
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 Imports A.B.C
 
 Public Class VBClass
     Public ReadOnly Property C1 As Class1
 End Class";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeFromGlobalNamespace_WithCredReferences()
-        {
-            var defaultNamespace = "A";
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+    [Fact]
+    public async Task ChangeFromGlobalNamespace_WithCredReferences()
+    {
+        var defaultNamespace = "A";
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1699,7 +1699,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
 
@@ -1710,7 +1710,7 @@ namespace Foo
     {
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 using A.B.C;
 
@@ -1723,17 +1723,17 @@ namespace Foo
     {
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeToGlobalNamespace_WithReferencesInVBDocument()
-        {
-            var defaultNamespace = "";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeToGlobalNamespace_WithReferencesInVBDocument()
+    {
+        var defaultNamespace = "";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1755,26 +1755,26 @@ End Class</Document>
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"public class Class1
 {
 }
 ";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"Public Class VBClass
     Public ReadOnly Property C1 As Class1
 End Class";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeToGlobalNamespace_WithReferenceAndConflictDeclarationInVBDocument()
-        {
-            var defaultNamespace = "";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeToGlobalNamespace_WithReferenceAndConflictDeclarationInVBDocument()
+    {
+        var defaultNamespace = "";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1799,12 +1799,12 @@ End Namespace</Document>
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"public class MyClass
 {
 }
 ";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"Namespace Foo
     Public Class VBClass
         Public ReadOnly Property C1 As Global.MyClass
@@ -1813,18 +1813,18 @@ End Namespace</Document>
     Public Class MyClass
     End Class
 End Namespace";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact]
-        public async Task ChangeToGlobalNamespace_WithCredReferences()
-        {
-            var defaultNamespace = "";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact]
+    public async Task ChangeToGlobalNamespace_WithCredReferences()
+    {
+        var defaultNamespace = "";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1855,7 +1855,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"/// <summary>
 /// See <see cref=""Class1""/>
 /// See <see cref=""Class1""/>
@@ -1864,7 +1864,7 @@ public class Class1
 {
 }
 ";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 namespace Foo
 {
@@ -1876,17 +1876,17 @@ namespace Foo
     {
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
-        public async Task ChangeNamespace_ExtensionMethodInReducedForm()
-        {
-            var defaultNamespace = "A";
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
+    public async Task ChangeNamespace_ExtensionMethodInReducedForm()
+    {
+        var defaultNamespace = "A";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1911,7 +1911,7 @@ namespace {defaultNamespace}
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 $@"namespace A.B.C
 {{
     public static class Extensions
@@ -1919,7 +1919,7 @@ $@"namespace A.B.C
         public static bool Foo(this Class1 c1) => true;
     }}
 }}";
-            var expectedSourceReference =
+        var expectedSourceReference =
 $@"
 namespace {defaultNamespace}
 {{
@@ -1931,17 +1931,17 @@ namespace {defaultNamespace}
         public bool Bar(Class1 c1) => c1.Foo();
     }}
 }}";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
-        public async Task ChangeNamespace_ExternsionMethodInRegularForm()
-        {
-            var defaultNamespace = "A";
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
+    public async Task ChangeNamespace_ExternsionMethodInRegularForm()
+    {
+        var defaultNamespace = "A";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -1966,7 +1966,7 @@ namespace A
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 $@"namespace A.B.C
 {{
     public static class Extensions
@@ -1974,7 +1974,7 @@ $@"namespace A.B.C
         public static bool Foo(this Class1 c1) => true;
     }}
 }}";
-            var expectedSourceReference =
+        var expectedSourceReference =
 $@"
 using System;
 using A.B.C;
@@ -1986,17 +1986,17 @@ namespace A
         public bool Bar(Class1 c1) => Extensions.Foo(c1);
     }}
 }}";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
-        public async Task ChangeNamespace_ContainsBothTypeAndExternsionMethod()
-        {
-            var defaultNamespace = "A";
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
+    public async Task ChangeNamespace_ContainsBothTypeAndExternsionMethod()
+    {
+        var defaultNamespace = "A";
 
-            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -2024,7 +2024,7 @@ namespace A
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     public static class Extensions
@@ -2035,7 +2035,7 @@ namespace A
     public class Class2
     { }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 using System;
 using A.B.C;
@@ -2047,17 +2047,17 @@ namespace A
         public bool Bar(Class1 c1, Class2 c2) => c2 == null ? c1.Foo() : true;
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
-        public async Task ChangeNamespace_WithExtensionMethodReferencesInVBDocument()
-        {
-            var defaultNamespace = "A.B.C";
-            var declaredNamespace = "A.B.C.D";
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
+    public async Task ChangeNamespace_WithExtensionMethodReferencesInVBDocument()
+    {
+        var defaultNamespace = "A.B.C";
+        var declaredNamespace = "A.B.C.D";
 
-            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
-            var code =
+        var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -2084,7 +2084,7 @@ End Class</Document>
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 $@"
 using System;
 
@@ -2095,7 +2095,7 @@ namespace {defaultNamespace}
         public static bool Foo(this string s) => true;
     }}
 }}";
-            var expectedSourceReference =
+        var expectedSourceReference =
 $@"
 Imports {defaultNamespace}
 
@@ -2104,18 +2104,18 @@ Public Class VBClass
         Return s.Foo()
     End Function
 End Class";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
-        public async Task ChangeNamespace_WithMemberAccessReferencesInOtherDocument()
-        {
-            var defaultNamespace = "A";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
+    public async Task ChangeNamespace_WithMemberAccessReferencesInOtherDocument()
+    {
+        var defaultNamespace = "A";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(["B", "C"], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var documentPath1 = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -2143,7 +2143,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     enum Enum1
@@ -2153,7 +2153,7 @@ namespace Foo
         C
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"
 using A.B.C;
 
@@ -2167,18 +2167,18 @@ namespace Foo
         }
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
-        public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInOtherDocument()
-        {
-            var defaultNamespace = "";
-            var declaredNamespace = "Foo.Bar.Baz";
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
+    public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInOtherDocument()
+    {
+        var defaultNamespace = "";
+        var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath([], "File1.cs");
-            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
-            var code =
+        var documentPath1 = CreateDocumentFilePath([], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -2206,7 +2206,7 @@ namespace Foo
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"enum Enum1
 {
     A,
@@ -2214,7 +2214,7 @@ namespace Foo
     C
 }
 ";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"namespace Foo
 {
     class RefClass
@@ -2225,17 +2225,17 @@ namespace Foo
         }
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
-        public async Task ChangeNamespace_WithMemberAccessReferencesInVBDocument()
-        {
-            var defaultNamespace = "A.B.C";
-            var declaredNamespace = "A.B.C.D";
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
+    public async Task ChangeNamespace_WithMemberAccessReferencesInVBDocument()
+    {
+        var defaultNamespace = "A.B.C";
+        var declaredNamespace = "A.B.C.D";
 
-            var documentPath1 = CreateDocumentFilePath([], "File1.cs");
-            var code =
+        var documentPath1 = CreateDocumentFilePath([], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -2260,7 +2260,7 @@ End Class</Document>
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"namespace A.B.C
 {
     public enum Enum1
@@ -2270,23 +2270,23 @@ End Class</Document>
         C
     }
 }";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"Public Class VBClass
     Sub M()
         Dim x = A.B.C.Enum1.A
     End Sub
 End Class";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
-        public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInVBDocument()
-        {
-            var defaultNamespace = "";
-            var declaredNamespace = "A.B.C.D";
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
+    public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInVBDocument()
+    {
+        var defaultNamespace = "";
+        var declaredNamespace = "A.B.C.D";
 
-            var documentPath1 = CreateDocumentFilePath([], "File1.cs");
-            var code =
+        var documentPath1 = CreateDocumentFilePath([], "File1.cs");
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
@@ -2311,7 +2311,7 @@ End Class</Document>
     </Project>
 </Workspace>";
 
-            var expectedSourceOriginal =
+        var expectedSourceOriginal =
 @"public enum Enum1
 {
     A,
@@ -2319,25 +2319,25 @@ End Class</Document>
     C
 }
 ";
-            var expectedSourceReference =
+        var expectedSourceReference =
 @"Public Class VBClass
     Sub M()
         Dim x = Enum1.A
     End Sub
 End Class";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+    }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889796")]
-        public async Task ChangeNamespace_DoesNotThrowInDuplicateProgramDeclaration()
-        {
-            var defaultNamespace = "A";
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889796")]
+    public async Task ChangeNamespace_DoesNotThrowInDuplicateProgramDeclaration()
+    {
+        var defaultNamespace = "A";
 
-            // No change namespace action because the folder name is not valid identifier
-            var (topLevelProgramFolder, topLevelProgramFilePath) = CreateDocumentFilePath(["3B", "C"], "Program.cs");
-            var (duplicateProgramFolder, _) = CreateDocumentFilePath([], "Program.cs");
+        // No change namespace action because the folder name is not valid identifier
+        var (topLevelProgramFolder, topLevelProgramFilePath) = CreateDocumentFilePath(["3B", "C"], "Program.cs");
+        var (duplicateProgramFolder, _) = CreateDocumentFilePath([], "Program.cs");
 
-            var code =
+        var code =
 $$"""
 <Workspace>
     <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
@@ -2356,7 +2356,6 @@ Console.WriteLine("Hello Two");
     </Project>
 </Workspace>
 """;
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
-        }
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
     }
 }

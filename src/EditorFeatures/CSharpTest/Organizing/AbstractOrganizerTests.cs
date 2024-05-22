@@ -13,23 +13,22 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
-{
-    [UseExportProvider]
-    public abstract class AbstractOrganizerTests
-    {
-        protected static async Task CheckAsync(string initial, string final)
-        {
-            await CheckAsync(initial, final, options: null);
-            await CheckAsync(initial, final, Options.Script);
-        }
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing;
 
-        protected static async Task CheckAsync(string initial, string final, CSharpParseOptions options)
-        {
-            using var workspace = EditorTestWorkspace.CreateCSharp(initial, options);
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-            var newRoot = await (await OrganizingService.OrganizeAsync(document)).GetSyntaxRootAsync();
-            Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
-        }
+[UseExportProvider]
+public abstract class AbstractOrganizerTests
+{
+    protected static async Task CheckAsync(string initial, string final)
+    {
+        await CheckAsync(initial, final, options: null);
+        await CheckAsync(initial, final, Options.Script);
+    }
+
+    protected static async Task CheckAsync(string initial, string final, CSharpParseOptions options)
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp(initial, options);
+        var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+        var newRoot = await (await OrganizingService.OrganizeAsync(document)).GetSyntaxRootAsync();
+        Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
     }
 }
