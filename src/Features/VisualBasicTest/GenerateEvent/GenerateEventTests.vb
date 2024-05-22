@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateEvent
     <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
     Public Class GenerateEventTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New GenerateEventCodeFixProvider())

@@ -2,7 +2,7 @@
   "sdk": {
     "version": "8.0.101",
     "allowPrerelease": false,
-    "rollForward": "disable"
+    "rollForward": "patch"
   },
   "tools": {
     "dotnet": "8.0.101",
@@ -13,6 +13,7 @@
   },
   "msbuild-sdks": {
     "Microsoft.DotNet.Arcade.Sdk": "8.0.0-beta.24266.3",
-    "Microsoft.DotNet.Helix.Sdk": "8.0.0-beta.24266.3"
+    "Microsoft.DotNet.Helix.Sdk": "8.0.0-beta.24266.3",
+    "Microsoft.Build.Traversal": "3.4.0"
   }
 }

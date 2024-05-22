@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Server provided options for pull diagnostic requests.
     /// </summary>
     [DataContract]
-    internal class VSInternalDiagnosticOptions : IWorkDoneProgressOptions
+    internal record class VSInternalDiagnosticOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets a list of id's used to identify diagnostics that may be coming
@@ -22,32 +22,27 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [DataMember(Name = "_vs_buildOnlyDiagnosticIds")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string[]? BuildOnlyDiagnosticIds
-        {
-            get;
-            set;
-        }
+        public string[]? BuildOnlyDiagnosticIds { get; init; }
 
         /// <summary>
         /// Gets or sets a list of diagnostic kinds used to query diagnostics in each context.
         /// </summary>
         [DataMember(Name = "_vs_diagnosticKinds")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public VSInternalDiagnosticKind[]? DiagnosticKinds
-        {
-            get;
-            set;
-        }
+        public VSInternalDiagnosticKind[]? DiagnosticKinds { get; init; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the server provides support for sending diagnostics requests for all project contexts.
+        /// </summary>
+        [DataMember(Name = "_vs_supportsMultipleContextDiagnostics")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public bool SupportsMultipleContextsDiagnostics { get; init; }
 
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
         [DataMember(Name = "_vs_workDoneProgress")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public bool WorkDoneProgress
-        {
-            get;
-            set;
-        }
+        public bool WorkDoneProgress { get; init; }
     }
 }

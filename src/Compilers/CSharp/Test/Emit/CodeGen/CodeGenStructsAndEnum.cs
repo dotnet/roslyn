@@ -259,8 +259,7 @@ class Program
     }
 }
 ";
-            // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of '[...]S1', Expected = address of '[...]S1' }
-            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"");
+            var compilation = CompileAndVerify(source, expectedOutput: @"");
 
             compilation.VerifyIL("S1.Equals(object)",
 @"
@@ -449,8 +448,7 @@ namespace NS
     }
 }
 ";
-            // ILVerify: Unexpected type on the stack. { Offset = 31, Found = readonly address of '[...]NS.N2.S`2<string,uint8>', Expected = address of '[...]NS.N2.S`2<string,uint8>' }
-            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 Abc
 255
 q");
@@ -2368,8 +2366,7 @@ public class Test
     }
 
 ";
-            // ILVerify: Unexpected type on the stack. { Offset = 10, Found = readonly address of '[...]C1', Expected = address of '[...]C1' }
-            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: "0");
+            var compilation = CompileAndVerify(source, expectedOutput: "0");
 
             compilation.VerifyIL("Program.Main",
 @"

@@ -20,11 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [DataMember(Name = "workDoneProgress")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public bool WorkDoneProgress
-        {
-            get;
-            set;
-        }
+        public bool WorkDoneProgress { get; init; }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not the inlay hints support has a resolve provider.

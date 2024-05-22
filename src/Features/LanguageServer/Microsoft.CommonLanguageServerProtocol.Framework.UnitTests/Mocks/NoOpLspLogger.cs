@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
-public sealed class NoOpLspLogger : AbstractLspLogger, ILspLogger
+internal sealed class NoOpLspLogger : AbstractLspLogger, ILspLogger
 {
     public static NoOpLspLogger Instance = new();
 

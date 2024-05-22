@@ -3,10 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -21,6 +26,13 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
     private sealed class FullSolutionAnalysisDiagnosticSource(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
         : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
+        /// <summary>
+        /// Cached mapping between a project instance and all the diagnostics computed for it.  This is used so that
+        /// once we compute the diagnostics once for a particular project, we don't need to recompute them again as we
+        /// walk every document within it.
+        /// </summary>
+        private static readonly ConditionalWeakTable<Project, AsyncLazy<IReadOnlyList<DiagnosticData>>> s_projectToDiagnostics = new();
+
         /// <summary>
         /// This is a normal document source that represents live/fresh diagnostics that should supersede everything else.
         /// </summary>
@@ -40,14 +52,35 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             }
             else
             {
-                // We call GetDiagnosticsForIdsAsync as we want to ensure we get the full set of diagnostics for this document
-                // including those reported as a compilation end diagnostic.  These are not included in document pull (uses GetDiagnosticsForSpan) due to cost.
-                // However we can include them as a part of workspace pull when FSA is on.
-                var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-                    Document.Project.Solution, Document.Project.Id, Document.Id,
-                    diagnosticIds: null, shouldIncludeAnalyzer, includeSuppressedDiagnostics: false,
-                    includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
-                return documentDiagnostics;
+                var projectDiagnostics = await GetProjectDiagnosticsAsync(diagnosticAnalyzerService, cancellationToken).ConfigureAwait(false);
+                return projectDiagnostics.WhereAsArray(d => d.DocumentId == Document.Id);
+            }
+        }
+
+        private async ValueTask<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(
+            IDiagnosticAnalyzerService diagnosticAnalyzerService, CancellationToken cancellationToken)
+        {
+            if (!s_projectToDiagnostics.TryGetValue(Document.Project, out var lazyDiagnostics))
+            {
+                // Extracted into local to prevent captures.
+                lazyDiagnostics = GetLazyDiagnostics();
+            }
+
+            var result = await lazyDiagnostics.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return (ImmutableArray<DiagnosticData>)result;
+
+            AsyncLazy<IReadOnlyList<DiagnosticData>> GetLazyDiagnostics()
+            {
+                return s_projectToDiagnostics.GetValue(
+                    Document.Project,
+                    _ => AsyncLazy.Create<IReadOnlyList<DiagnosticData>>(
+                        async cancellationToken => await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
+                            Document.Project.Solution, Document.Project.Id, documentId: null,
+                            diagnosticIds: null, shouldIncludeAnalyzer,
+                            // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this project.
+                            static (project, _) => [.. project.DocumentIds.Concat(project.AdditionalDocumentIds)],
+                            includeSuppressedDiagnostics: false,
+                            includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false)));
             }
         }
     }

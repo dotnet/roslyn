@@ -8,41 +8,40 @@ using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+
+internal static class TextEditApplication
 {
-    internal static class TextEditApplication
+    internal static void UpdateText(SourceText newText, ITextBuffer buffer, EditOptions options)
     {
-        internal static void UpdateText(SourceText newText, ITextBuffer buffer, EditOptions options)
+        var oldSnapshot = buffer.CurrentSnapshot;
+        var oldText = oldSnapshot.AsText();
+        var changes = newText.GetTextChanges(oldText);
+        UpdateText(changes.ToImmutableArray(), buffer, oldSnapshot, oldText, options);
+    }
+
+    public static void UpdateText(ImmutableArray<TextChange> textChanges, ITextBuffer buffer, EditOptions options)
+    {
+        var oldSnapshot = buffer.CurrentSnapshot;
+        var oldText = oldSnapshot.AsText();
+
+        UpdateText(textChanges, buffer, oldSnapshot, oldText, options);
+    }
+
+    private static void UpdateText(ImmutableArray<TextChange> textChanges, ITextBuffer buffer, ITextSnapshot oldSnapshot, SourceText oldText, EditOptions options)
+    {
+        using var edit = buffer.CreateEdit(options, reiteratedVersionNumber: null, editTag: null);
+        if (CodeAnalysis.Workspace.TryGetWorkspace(oldText.Container, out var workspace))
         {
-            var oldSnapshot = buffer.CurrentSnapshot;
-            var oldText = oldSnapshot.AsText();
-            var changes = newText.GetTextChanges(oldText);
-            UpdateText(changes.ToImmutableArray(), buffer, oldSnapshot, oldText, options);
+            var undoService = workspace.Services.GetRequiredService<ISourceTextUndoService>();
+            undoService.BeginUndoTransaction(oldSnapshot);
         }
 
-        public static void UpdateText(ImmutableArray<TextChange> textChanges, ITextBuffer buffer, EditOptions options)
+        foreach (var change in textChanges)
         {
-            var oldSnapshot = buffer.CurrentSnapshot;
-            var oldText = oldSnapshot.AsText();
-
-            UpdateText(textChanges, buffer, oldSnapshot, oldText, options);
+            edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
         }
 
-        private static void UpdateText(ImmutableArray<TextChange> textChanges, ITextBuffer buffer, ITextSnapshot oldSnapshot, SourceText oldText, EditOptions options)
-        {
-            using var edit = buffer.CreateEdit(options, reiteratedVersionNumber: null, editTag: null);
-            if (CodeAnalysis.Workspace.TryGetWorkspace(oldText.Container, out var workspace))
-            {
-                var undoService = workspace.Services.GetRequiredService<ISourceTextUndoService>();
-                undoService.BeginUndoTransaction(oldSnapshot);
-            }
-
-            foreach (var change in textChanges)
-            {
-                edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
-            }
-
-            edit.ApplyAndLogExceptions();
-        }
+        edit.ApplyAndLogExceptions();
     }
 }

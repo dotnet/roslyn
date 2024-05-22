@@ -4,17 +4,16 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
+
+/// <summary>
+/// Register a solution crawler for a particular workspace
+/// </summary>
+internal interface IUnitTestingSolutionCrawlerRegistrationService : IWorkspaceService
 {
-    /// <summary>
-    /// Register a solution crawler for a particular workspace
-    /// </summary>
-    internal interface IUnitTestingSolutionCrawlerRegistrationService : IWorkspaceService
-    {
-        IUnitTestingWorkCoordinator Register(Solution solution);
+    IUnitTestingWorkCoordinator Register(Solution solution);
 
-        void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProvider provider, UnitTestingIncrementalAnalyzerProviderMetadata metadata);
+    void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProvider provider, UnitTestingIncrementalAnalyzerProviderMetadata metadata);
 
-        bool HasRegisteredAnalyzerProviders { get; }
-    }
+    bool HasRegisteredAnalyzerProviders { get; }
 }

@@ -850,8 +850,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+#nullable enable
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
+            if (filter?.Invoke(this) == false)
+            {
+                return;
+            }
+
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -883,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.Parameters:
                         foreach (var parameter in this.Parameters)
                         {
-                            parameter.ForceComplete(locationOpt, cancellationToken);
+                            parameter.ForceComplete(locationOpt, filter: null, cancellationToken);
                         }
 
                         state.NotePartComplete(CompletionPart.Parameters);
@@ -892,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.TypeParameters:
                         foreach (var typeParameter in this.TypeParameters)
                         {
-                            typeParameter.ForceComplete(locationOpt, cancellationToken);
+                            typeParameter.ForceComplete(locationOpt, filter: null, cancellationToken);
                         }
 
                         state.NotePartComplete(CompletionPart.TypeParameters);
@@ -926,6 +932,7 @@ done:
             CompletionPart allParts = CompletionPart.MethodSymbolAll;
             state.SpinWaitComplete(allParts, cancellationToken);
         }
+#nullable disable
 
         protected sealed override void NoteAttributesComplete(bool forReturnType)
         {

@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
-    public partial class CSharpInlineDeclarationTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class CSharpInlineDeclarationTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public CSharpInlineDeclarationTests(ITestOutputHelper logger)
           : base(logger)
@@ -2369,39 +2369,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         public async Task TestDefiniteAssignment3(string input, string output)
         {
             await TestInRegularAndScript1Async(
-$@"
-using System;
+                $$"""
+                using System;
 
-class C
-{{
-    static bool M(out bool i) => throw null;
-    static bool Use(bool i) => throw null;
+                class C
+                {
+                    static bool M(out bool i) => throw null;
+                    static bool Use(bool i) => throw null;
 
-    static void M(bool c)
-    {{
-        [|bool|] x = false;
-        if ({input})
-        {{
-            Console.WriteLine(x);
-        }}
-    }}
-}}",
-$@"
-using System;
+                    static void M(bool c)
+                    {
+                        [|bool|] x = false;
+                        if ({{input}})
+                        {
+                            Console.WriteLine(x);
+                        }
+                    }
+                }
+                """,
+                $$"""
+                using System;
 
-class C
-{{
-    static bool M(out bool i) => throw null;
-    static bool Use(bool i) => throw null;
+                class C
+                {
+                    static bool M(out bool i) => throw null;
+                    static bool Use(bool i) => throw null;
 
-    static void M(bool c)
-    {{
-        if ({output})
-        {{
-            Console.WriteLine(x);
-        }}
-    }}
-}}");
+                    static void M(bool c)
+                    {
+                        if ({{output}})
+                        {
+                            Console.WriteLine(x);
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]

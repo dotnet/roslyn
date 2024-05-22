@@ -172,11 +172,6 @@
         <target state="translated">Odebrat redundantní direktivu s možnou hodnotou null</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">Odebrat operátory potlačení</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">Odebrat nepotřebný výraz lambda</target>
@@ -457,8 +452,8 @@
         <target state="translated">Výraz „new“ může být zjednodušený.</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
         <target state="translated">typeof se dá převést na nameof.</target>
         <note />
       </trans-unit>

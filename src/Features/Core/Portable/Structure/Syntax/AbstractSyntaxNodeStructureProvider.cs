@@ -6,38 +6,37 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
-namespace Microsoft.CodeAnalysis.Structure
+namespace Microsoft.CodeAnalysis.Structure;
+
+internal abstract class AbstractSyntaxNodeStructureProvider<TSyntaxNode> : AbstractSyntaxStructureProvider
+    where TSyntaxNode : SyntaxNode
 {
-    internal abstract class AbstractSyntaxNodeStructureProvider<TSyntaxNode> : AbstractSyntaxStructureProvider
-        where TSyntaxNode : SyntaxNode
+    public sealed override void CollectBlockSpans(
+        SyntaxTrivia trivia,
+        ref TemporaryArray<BlockSpan> spans,
+        BlockStructureOptions options,
+        CancellationToken cancellationToken)
     {
-        public sealed override void CollectBlockSpans(
-            SyntaxTrivia trivia,
-            ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptions options,
-            CancellationToken cancellationToken)
-        {
-            throw new NotSupportedException();
-        }
-
-        public sealed override void CollectBlockSpans(
-            SyntaxToken previousToken,
-            SyntaxNode node,
-            ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptions options,
-            CancellationToken cancellationToken)
-        {
-            if (node is TSyntaxNode tSyntax)
-            {
-                CollectBlockSpans(previousToken, tSyntax, ref spans, options, cancellationToken);
-            }
-        }
-
-        protected abstract void CollectBlockSpans(
-            SyntaxToken previousToken,
-            TSyntaxNode node,
-            ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptions options,
-            CancellationToken cancellationToken);
+        throw new NotSupportedException();
     }
+
+    public sealed override void CollectBlockSpans(
+        SyntaxToken previousToken,
+        SyntaxNode node,
+        ref TemporaryArray<BlockSpan> spans,
+        BlockStructureOptions options,
+        CancellationToken cancellationToken)
+    {
+        if (node is TSyntaxNode tSyntax)
+        {
+            CollectBlockSpans(previousToken, tSyntax, ref spans, options, cancellationToken);
+        }
+    }
+
+    protected abstract void CollectBlockSpans(
+        SyntaxToken previousToken,
+        TSyntaxNode node,
+        ref TemporaryArray<BlockSpan> spans,
+        BlockStructureOptions options,
+        CancellationToken cancellationToken);
 }

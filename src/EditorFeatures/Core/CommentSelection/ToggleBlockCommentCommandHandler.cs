@@ -20,46 +20,45 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 
-namespace Microsoft.CodeAnalysis.CommentSelection
+namespace Microsoft.CodeAnalysis.CommentSelection;
+
+[Export(typeof(ICommandHandler))]
+[VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
+[VisualStudio.Utilities.Name(PredefinedCommandHandlerNames.ToggleBlockComment)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class ToggleBlockCommentCommandHandler(
+    ITextUndoHistoryRegistry undoHistoryRegistry,
+    IEditorOperationsFactoryService editorOperationsFactoryService,
+    ITextStructureNavigatorSelectorService navigatorSelectorService,
+    EditorOptionsService editorOptionsService) : AbstractToggleBlockCommentBase(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, editorOptionsService)
 {
-    [Export(typeof(ICommandHandler))]
-    [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
-    [VisualStudio.Utilities.Name(PredefinedCommandHandlerNames.ToggleBlockComment)]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class ToggleBlockCommentCommandHandler(
-        ITextUndoHistoryRegistry undoHistoryRegistry,
-        IEditorOperationsFactoryService editorOperationsFactoryService,
-        ITextStructureNavigatorSelectorService navigatorSelectorService,
-        EditorOptionsService editorOptionsService) : AbstractToggleBlockCommentBase(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, editorOptionsService)
+
+    /// <summary>
+    /// Gets block comments by parsing the text for comment markers.
+    /// </summary>
+    protected override ImmutableArray<TextSpan> GetBlockCommentsInDocument(Document document, ITextSnapshot snapshot,
+        TextSpan linesContainingSelections, CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
     {
+        var allText = snapshot.AsText();
+        var commentedSpans = ArrayBuilder<TextSpan>.GetInstance();
 
-        /// <summary>
-        /// Gets block comments by parsing the text for comment markers.
-        /// </summary>
-        protected override ImmutableArray<TextSpan> GetBlockCommentsInDocument(Document document, ITextSnapshot snapshot,
-            TextSpan linesContainingSelections, CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
+        var openIdx = 0;
+        while ((openIdx = allText.IndexOf(commentInfo.BlockCommentStartString, openIdx, caseSensitive: true)) >= 0)
         {
-            var allText = snapshot.AsText();
-            var commentedSpans = ArrayBuilder<TextSpan>.GetInstance();
-
-            var openIdx = 0;
-            while ((openIdx = allText.IndexOf(commentInfo.BlockCommentStartString, openIdx, caseSensitive: true)) >= 0)
+            // Retrieve the first closing marker located after the open index.
+            var closeIdx = allText.IndexOf(commentInfo.BlockCommentEndString, openIdx + commentInfo.BlockCommentStartString.Length, caseSensitive: true);
+            // If an open marker is found without a close marker, it's an unclosed comment.
+            if (closeIdx < 0)
             {
-                // Retrieve the first closing marker located after the open index.
-                var closeIdx = allText.IndexOf(commentInfo.BlockCommentEndString, openIdx + commentInfo.BlockCommentStartString.Length, caseSensitive: true);
-                // If an open marker is found without a close marker, it's an unclosed comment.
-                if (closeIdx < 0)
-                {
-                    closeIdx = allText.Length - commentInfo.BlockCommentEndString.Length;
-                }
-
-                var blockCommentSpan = new TextSpan(openIdx, closeIdx + commentInfo.BlockCommentEndString.Length - openIdx);
-                commentedSpans.Add(blockCommentSpan);
-                openIdx = closeIdx;
+                closeIdx = allText.Length - commentInfo.BlockCommentEndString.Length;
             }
 
-            return commentedSpans.ToImmutableAndFree();
+            var blockCommentSpan = new TextSpan(openIdx, closeIdx + commentInfo.BlockCommentEndString.Length - openIdx);
+            commentedSpans.Add(blockCommentSpan);
+            openIdx = closeIdx;
         }
+
+        return commentedSpans.ToImmutableAndFree();
     }
 }

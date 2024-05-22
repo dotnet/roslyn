@@ -32,11 +32,6 @@
         <target state="translated">(Re)carregamento concluído de todos os projetos em {0}</target>
         <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
-      <trans-unit id="Debugger_attached">
-        <source>Debugger attached</source>
-        <target state="translated">Depurador conectado</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Debugging_tests">
         <source>Debugging tests...</source>
         <target state="translated">Depurando testes...</target>
@@ -47,9 +42,9 @@
         <target state="translated">Detectando os testes...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Exception_thrown_while_loading_0">
-        <source>Exception thrown while loading {0}</source>
-        <target state="translated">Exceção lançada durante o carregamento {0}</target>
+      <trans-unit id="Exception_thrown_0">
+        <source>Exception thrown: {0}</source>
+        <target state="translated">Exceção gerada: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed">
@@ -62,7 +57,7 @@
         <target state="translated">Falhou:    {0}, Passou:    {1}, Ignorado:    {2}, Total:    {3}, Duração: {4}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_read_runsettings_file_at_0:1">
+      <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
         <target state="translated">Falha ao ler o arquivo .runsettings em {0}:{1}</target>
         <note />

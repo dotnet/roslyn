@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             throw ExceptionUtilities.Unreachable();
         }
 
-        public sealed override SyntaxToken CreateSeparator<TNode>(SyntaxNode element)
+        public sealed override SyntaxToken CreateSeparator(SyntaxNode element)
         {
             throw ExceptionUtilities.Unreachable();
         }

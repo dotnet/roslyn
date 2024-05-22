@@ -4,21 +4,20 @@
 
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CodeGeneration
+namespace Microsoft.CodeAnalysis.CodeGeneration;
+
+internal class TypeGenerator : ITypeGenerator
 {
-    internal class TypeGenerator : ITypeGenerator
+    public TypeGenerator()
     {
-        public TypeGenerator()
-        {
-        }
-
-        public ITypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank)
-            => CodeGenerationSymbolFactory.CreateArrayTypeSymbol(elementType, rank);
-
-        public ITypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType)
-            => CodeGenerationSymbolFactory.CreatePointerTypeSymbol(pointedAtType);
-
-        public ITypeSymbol Construct(INamedTypeSymbol namedType, ITypeSymbol[] typeArguments)
-            => namedType.ToCodeGenerationSymbol().Construct(typeArguments);
     }
+
+    public ITypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank)
+        => CodeGenerationSymbolFactory.CreateArrayTypeSymbol(elementType, rank);
+
+    public ITypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType)
+        => CodeGenerationSymbolFactory.CreatePointerTypeSymbol(pointedAtType);
+
+    public ITypeSymbol Construct(INamedTypeSymbol namedType, ITypeSymbol[] typeArguments)
+        => namedType.ToCodeGenerationSymbol().Construct(typeArguments);
 }

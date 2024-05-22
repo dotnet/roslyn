@@ -7,55 +7,54 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers;
+
+/// <summary>
+/// Interaction logic for MoveMembersToTypeDialog.xaml
+/// </summary>
+internal partial class MoveStaticMembersDialog : DialogWindow
 {
-    /// <summary>
-    /// Interaction logic for MoveMembersToTypeDialog.xaml
-    /// </summary>
-    internal partial class MoveStaticMembersDialog : DialogWindow
+    public string MoveStaticMembersDialogTitle => ServicesVSResources.Move_static_members_to_another_type_colon;
+    public string DestinationLabelText => ServicesVSResources.Type_Name;
+    public string OK => ServicesVSResources.OK;
+    public string Cancel => ServicesVSResources.Cancel;
+    public string SelectMembers => ServicesVSResources.Select_members_colon;
+
+    public MoveStaticMembersDialogViewModel ViewModel { get; }
+    public StaticMemberSelection MemberSelectionControl { get; }
+
+    internal MoveStaticMembersDialog(MoveStaticMembersDialogViewModel viewModel)
+        : base()
     {
-        public string MoveStaticMembersDialogTitle => ServicesVSResources.Move_static_members_to_another_type_colon;
-        public string DestinationLabelText => ServicesVSResources.Type_Name;
-        public string OK => ServicesVSResources.OK;
-        public string Cancel => ServicesVSResources.Cancel;
-        public string SelectMembers => ServicesVSResources.Select_members_colon;
+        ViewModel = viewModel;
+        DataContext = viewModel;
 
-        public MoveStaticMembersDialogViewModel ViewModel { get; }
-        public StaticMemberSelection MemberSelectionControl { get; }
+        MemberSelectionControl = new StaticMemberSelection(ViewModel.MemberSelectionViewModel);
 
-        internal MoveStaticMembersDialog(MoveStaticMembersDialogViewModel viewModel)
-            : base()
-        {
-            ViewModel = viewModel;
-            DataContext = viewModel;
+        // Set focus to first tab control when the window is loaded
+        Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
 
-            MemberSelectionControl = new StaticMemberSelection(ViewModel.MemberSelectionViewModel);
+        InitializeComponent();
+    }
 
-            // Set focus to first tab control when the window is loaded
-            Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+    private void Cancel_Click(object sender, RoutedEventArgs e)
+        => DialogResult = false;
 
-            InitializeComponent();
-        }
+    internal TestAccessor GetTestAccessor() => new(this);
 
-        private void Cancel_Click(object sender, RoutedEventArgs e)
-            => DialogResult = false;
+    private void OK_Click(object sender, RoutedEventArgs e)
+    {
+        DialogResult = ViewModel.CanSubmit;
+    }
 
-        internal TestAccessor GetTestAccessor() => new(this);
+    internal readonly struct TestAccessor
+    {
+        private readonly MoveStaticMembersDialog _dialog;
+        public TestAccessor(MoveStaticMembersDialog dialog)
+            => _dialog = dialog;
 
-        private void OK_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = ViewModel.CanSubmit;
-        }
+        public Button OKButton => _dialog.OKButton;
+        public Button CancelButton => _dialog.CancelButton;
 
-        internal readonly struct TestAccessor
-        {
-            private readonly MoveStaticMembersDialog _dialog;
-            public TestAccessor(MoveStaticMembersDialog dialog)
-                => _dialog = dialog;
-
-            public Button OKButton => _dialog.OKButton;
-            public Button CancelButton => _dialog.CancelButton;
-
-        }
     }
 }

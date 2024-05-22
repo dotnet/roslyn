@@ -313,9 +313,6 @@
   <data name="New_line_options_for_keywords" xml:space="preserve">
     <value>New line options for keywords</value>
   </data>
-  <data name="Use_var_when_generating_locals" xml:space="preserve">
-    <value>Use 'var' when generating locals</value>
-  </data>
   <data name="Show_procedure_line_separators" xml:space="preserve">
     <value>_Show procedure line separators</value>
   </data>
@@ -396,9 +393,6 @@
   </data>
   <data name="Suggest_usings_for_types_in_NuGet_packages" xml:space="preserve">
     <value>Suggest usings for types in _NuGet packages</value>
-  </data>
-  <data name="Type_Inference_preferences_colon" xml:space="preserve">
-    <value>Type Inference preferences:</value>
   </data>
   <data name="For_built_in_types" xml:space="preserve">
     <value>For built-in types</value>
@@ -496,12 +490,6 @@
   <data name="Prefer_pattern_matching_over_as_with_null_check" xml:space="preserve">
     <value>Prefer pattern matching over 'as' with 'null' check</value>
   </data>
-  <data name="Prefer_block_body" xml:space="preserve">
-    <value>Prefer block body</value>
-  </data>
-  <data name="Prefer_expression_body" xml:space="preserve">
-    <value>Prefer expression body</value>
-  </data>
   <data name="Automatically_format_on_return" xml:space="preserve">
     <value>Automatically format on return</value>
   </data>
@@ -546,21 +534,9 @@
   <data name="Remove_unnecessary_usings" xml:space="preserve">
     <value>Remove unnecessary usings</value>
   </data>
-  <data name="Sort_usings" xml:space="preserve">
-    <value>Sort usings</value>
-  </data>
-  <data name="Format_document_settings" xml:space="preserve">
-    <value>Format Document Settings (Experiment) </value>
-  </data>
-  <data name="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing" xml:space="preserve">
-    <value>Apply all C# formatting rules (indentation, wrapping, spacing)</value>
-  </data>
   <data name="In_relational_binary_operators" xml:space="preserve">
     <value>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</value>
     <comment>'is' and 'as' are C# keywords and should not be localized</comment>
-  </data>
-  <data name="Perform_additional_code_cleanup_during_formatting" xml:space="preserve">
-    <value>Perform additional code cleanup during formatting</value>
   </data>
   <data name="Discard" xml:space="preserve">
     <value>Discard</value>

@@ -382,12 +382,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             sb.Append("Diagnostic(");
             if (_errorCodeType == typeof(string))
             {
-                sb.Append("\"").Append(_code).Append("\"");
+                sb.Append('"').Append(_code).Append('"');
             }
             else
             {
                 sb.Append(_errorCodeType.Name);
-                sb.Append(".");
+                sb.Append('.');
                 sb.Append(Enum.GetName(_errorCodeType, _code));
             }
 
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sb.Append(", isSuppressed: true");
             }
 
-            sb.Append(")");
+            sb.Append(')');
 
             if (_arguments != null)
             {
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         sb.Append(", ");
                     }
                 }
-                sb.Append(")");
+                sb.Append(')');
             }
 
             if (_startPosition != null)
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sb.Append(_startPosition.Value.Line + 1);
                 sb.Append(", ");
                 sb.Append(_startPosition.Value.Character + 1);
-                sb.Append(")");
+                sb.Append(')');
             }
 
             if (_isWarningAsError)

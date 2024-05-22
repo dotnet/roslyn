@@ -31,7 +31,7 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId)
 {
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId];
 
     protected sealed override async Task FixAsync(
         Document document,
@@ -105,11 +105,11 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
             {
                 ImplicitArrayCreationExpressionSyntax arrayCreation
                     => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
-                        semanticModel, arrayCreation, expressionType, allowInterfaceConversion: true, cancellationToken, out _),
+                        semanticModel, arrayCreation, expressionType, allowSemanticsChange: true, cancellationToken, out _),
 
                 ArrayCreationExpressionSyntax arrayCreation
                     => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
-                        semanticModel, arrayCreation, expressionType, allowInterfaceConversion: true, cancellationToken, out _),
+                        semanticModel, arrayCreation, expressionType, allowSemanticsChange: true, cancellationToken, out _),
 
                 // We validated this is unreachable in the caller.
                 _ => throw ExceptionUtilities.Unreachable(),

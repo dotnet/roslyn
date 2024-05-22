@@ -16,76 +16,75 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+internal partial class FormatCommandHandler
 {
-    internal partial class FormatCommandHandler
+    public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextHandler)
+        => nextHandler();
+
+    public void ExecuteCommand(PasteCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextHandler)
-            => nextHandler();
+        using var _ = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_pasted_text);
+        var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
 
-        public void ExecuteCommand(PasteCommandArgs args, Action nextHandler, CommandExecutionContext context)
+        nextHandler();
+
+        var cancellationToken = context.OperationContext.UserCancellationToken;
+        if (cancellationToken.IsCancellationRequested)
         {
-            using var _ = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_pasted_text);
-            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
-
-            nextHandler();
-
-            var cancellationToken = context.OperationContext.UserCancellationToken;
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
-
-            try
-            {
-                ExecuteCommandWorker(args, caretPosition, cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                // According to Editor command handler API guidelines, it's best if we return early if cancellation
-                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
-                // calling nextHandler().
-            }
+            return;
         }
 
-        private void ExecuteCommandWorker(PasteCommandArgs args, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
+        try
         {
-            if (!caretPosition.HasValue)
-                return;
-
-            var subjectBuffer = args.SubjectBuffer;
-            if (!subjectBuffer.TryGetWorkspace(out var workspace) ||
-                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return;
-            }
-
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-                return;
-
-            if (!_globalOptions.GetOption(FormattingOptionsStorage.FormatOnPaste, document.Project.Language))
-                return;
-
-            var solution = document.Project.Solution;
-            var services = solution.Services;
-            var formattingRuleService = services.GetService<IHostDependentFormattingRuleFactoryService>();
-            if (formattingRuleService != null && formattingRuleService.ShouldNotFormatOrCommitOnPaste(document.Id))
-                return;
-
-            var formattingService = document.GetLanguageService<IFormattingInteractionService>();
-            if (formattingService == null || !formattingService.SupportsFormatOnPaste)
-                return;
-
-            var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
-            var span = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot).Span.ToTextSpan();
-
-            // Note: C# always completes synchronously, TypeScript is async
-            var changes = formattingService.GetFormattingChangesOnPasteAsync(document, subjectBuffer, span, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (changes.IsEmpty)
-                return;
-
-            subjectBuffer.ApplyChanges(changes);
+            ExecuteCommandWorker(args, caretPosition, cancellationToken);
         }
+        catch (OperationCanceledException)
+        {
+            // According to Editor command handler API guidelines, it's best if we return early if cancellation
+            // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
+            // calling nextHandler().
+        }
+    }
+
+    private void ExecuteCommandWorker(PasteCommandArgs args, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
+    {
+        if (!caretPosition.HasValue)
+            return;
+
+        var subjectBuffer = args.SubjectBuffer;
+        if (!subjectBuffer.TryGetWorkspace(out var workspace) ||
+            !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+        {
+            return;
+        }
+
+        var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+        if (document == null)
+            return;
+
+        if (!_globalOptions.GetOption(FormattingOptionsStorage.FormatOnPaste, document.Project.Language))
+            return;
+
+        var solution = document.Project.Solution;
+        var services = solution.Services;
+        var formattingRuleService = services.GetService<IHostDependentFormattingRuleFactoryService>();
+        if (formattingRuleService != null && formattingRuleService.ShouldNotFormatOrCommitOnPaste(document.Id))
+            return;
+
+        var formattingService = document.GetLanguageService<IFormattingInteractionService>();
+        if (formattingService == null || !formattingService.SupportsFormatOnPaste)
+            return;
+
+        var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
+        var span = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot).Span.ToTextSpan();
+
+        // Note: C# always completes synchronously, TypeScript is async
+        var changes = formattingService.GetFormattingChangesOnPasteAsync(document, subjectBuffer, span, cancellationToken).WaitAndGetResult(cancellationToken);
+        if (changes.IsEmpty)
+            return;
+
+        subjectBuffer.ApplyChanges(changes);
     }
 }

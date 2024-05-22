@@ -8,15 +8,46 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    public static class SyntaxList
+    {
+        public static SyntaxList<TNode> Create<TNode>(ReadOnlySpan<TNode> nodes) where TNode : SyntaxNode
+        {
+            if (nodes.Length == 0)
+                return default;
+
+            return new SyntaxList<TNode>(createGreenNode(nodes).CreateRed());
+
+            static GreenNode createGreenNode(ReadOnlySpan<TNode> nodes)
+            {
+                switch (nodes.Length)
+                {
+                    case 1: return nodes[0].Green;
+                    case 2: return Syntax.InternalSyntax.SyntaxList.List(nodes[0].Green, nodes[1].Green);
+                    case 3: return Syntax.InternalSyntax.SyntaxList.List(nodes[0].Green, nodes[1].Green, nodes[2].Green);
+                    default:
+                        {
+                            var copy = new ArrayElement<GreenNode>[nodes.Length];
+                            for (int i = 0, n = nodes.Length; i < n; i++)
+                                copy[i].Value = nodes[i].Green;
+
+                            return Syntax.InternalSyntax.SyntaxList.List(copy);
+                        }
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// A list of <see cref="SyntaxNode"/>.
     /// </summary>
+    [CollectionBuilder(typeof(SyntaxList), methodName: "Create")]
     public readonly partial struct SyntaxList<TNode> : IReadOnlyList<TNode>, IEquatable<SyntaxList<TNode>>
         where TNode : SyntaxNode
     {

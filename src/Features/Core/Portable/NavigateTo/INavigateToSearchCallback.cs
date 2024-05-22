@@ -5,15 +5,14 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.NavigateTo
+namespace Microsoft.CodeAnalysis.NavigateTo;
+
+internal interface INavigateToSearchCallback
 {
-    internal interface INavigateToSearchCallback
-    {
-        void Done(bool isFullyLoaded);
-        void ReportIncomplete();
+    void Done(bool isFullyLoaded);
+    void ReportIncomplete();
 
-        Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken);
+    Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken);
 
-        void ReportProgress(int current, int maximum);
-    }
+    void ReportProgress(int current, int maximum);
 }

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                         c.$$
                     }
                 }
-                """, "this", displayTextSuffix: "[]", matchingFilters: new List<CompletionFilter> { FilterSet.PropertyFilter });
+                """, "this", displayTextSuffix: "[]", matchingFilters: [FilterSet.PropertyFilter]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                         s.$$
                     }
                 }
-                """, "this", displayTextSuffix: "[]", matchingFilters: new List<CompletionFilter> { FilterSet.PropertyFilter });
+                """, "this", displayTextSuffix: "[]", matchingFilters: [FilterSet.PropertyFilter]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]

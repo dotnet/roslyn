@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.VisualStudio.Threading.ThreadingTools;
@@ -39,12 +37,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        protected override void Dispose(bool finalize)
-        {
-            base.Dispose(finalize);
-            Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this);
-        }
-
         public AssetProvider CreateAssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource)
         {
             var serializerService = Services.GetRequiredService<ISerializerService>();
@@ -56,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Syncs over the solution corresponding to <paramref name="solutionChecksum"/> and sets it as the current
         /// solution for <see langword="this"/> workspace.  This will also end up updating <see
-        /// cref="_lastRequestedAnyBranchSolution"/> and <see cref="_lastRequestedPrimaryBranchSolution"/>, allowing
+        /// cref="_lastRequestedAnyBranchSolutions"/> and <see cref="_lastRequestedPrimaryBranchSolution"/>, allowing
         /// them to be pre-populated for feature requests that come in soon after this call completes.
         /// </summary>
         public async Task UpdatePrimaryBranchSolutionAsync(
@@ -172,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (updatePrimaryBranch)
                         _lastRequestedPrimaryBranchSolution = (solutionChecksum, solution);
                     else
-                        _lastRequestedAnyBranchSolution = (solutionChecksum, solution);
+                        _lastRequestedAnyBranchSolutions.Add(solutionChecksum, solution);
                 }
 
                 // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from

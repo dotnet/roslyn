@@ -7,52 +7,51 @@
 using System;
 using Microsoft.VisualStudio.OLE.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.VisualStudio.LanguageServices.Implementation;
+
+internal sealed class ComEventSink
 {
-    internal sealed class ComEventSink
+    public static ComEventSink Advise<T>(object obj, T sink) where T : class
     {
-        public static ComEventSink Advise<T>(object obj, T sink) where T : class
+        if (!typeof(T).IsInterface)
         {
-            if (!typeof(T).IsInterface)
-            {
-                throw new InvalidOperationException();
-            }
-
-            if (obj is not IConnectionPointContainer connectionPointContainer)
-            {
-                throw new ArgumentException("Not an IConnectionPointContainer", nameof(obj));
-            }
-
-            connectionPointContainer.FindConnectionPoint(typeof(T).GUID, out var connectionPoint);
-            if (connectionPoint == null)
-            {
-                throw new InvalidOperationException("Could not find connection point for " + typeof(T).FullName);
-            }
-
-            connectionPoint.Advise(sink, out var cookie);
-
-            return new ComEventSink(connectionPoint, cookie);
+            throw new InvalidOperationException();
         }
 
-        private readonly IConnectionPoint _connectionPoint;
-        private readonly uint _cookie;
-        private bool _unadvised;
-
-        public ComEventSink(IConnectionPoint connectionPoint, uint cookie)
+        if (obj is not IConnectionPointContainer connectionPointContainer)
         {
-            _connectionPoint = connectionPoint;
-            _cookie = cookie;
+            throw new ArgumentException("Not an IConnectionPointContainer", nameof(obj));
         }
 
-        public void Unadvise()
+        connectionPointContainer.FindConnectionPoint(typeof(T).GUID, out var connectionPoint);
+        if (connectionPoint == null)
         {
-            if (_unadvised)
-            {
-                throw new InvalidOperationException("Already unadvised.");
-            }
-
-            _connectionPoint.Unadvise(_cookie);
-            _unadvised = true;
+            throw new InvalidOperationException("Could not find connection point for " + typeof(T).FullName);
         }
+
+        connectionPoint.Advise(sink, out var cookie);
+
+        return new ComEventSink(connectionPoint, cookie);
+    }
+
+    private readonly IConnectionPoint _connectionPoint;
+    private readonly uint _cookie;
+    private bool _unadvised;
+
+    public ComEventSink(IConnectionPoint connectionPoint, uint cookie)
+    {
+        _connectionPoint = connectionPoint;
+        _cookie = cookie;
+    }
+
+    public void Unadvise()
+    {
+        if (_unadvised)
+        {
+            throw new InvalidOperationException("Already unadvised.");
+        }
+
+        _connectionPoint.Unadvise(_cookie);
+        _unadvised = true;
     }
 }

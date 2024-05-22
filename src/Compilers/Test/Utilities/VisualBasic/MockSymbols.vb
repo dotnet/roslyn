@@ -800,7 +800,7 @@ Friend Class MockAssemblySymbol
         End Get
     End Property
 
-    Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
+    Friend Overrides Function GetDeclaredSpecialType(type As ExtendedSpecialType) As NamedTypeSymbol
         Throw New NotImplementedException()
     End Function
 

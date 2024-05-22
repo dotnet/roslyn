@@ -4,12 +4,11 @@
 
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
+
+internal partial class AbstractLegacyProject : IIntellisenseBuildTarget
 {
-    internal partial class AbstractLegacyProject : IIntellisenseBuildTarget
+    void IIntellisenseBuildTarget.SetIntellisenseBuildResult(bool succeeded, string reason)
     {
-        void IIntellisenseBuildTarget.SetIntellisenseBuildResult(bool succeeded, string reason)
-        {
-        }
     }
 }

@@ -8,28 +8,27 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 
-namespace Microsoft.CodeAnalysis.ErrorReporting
+namespace Microsoft.CodeAnalysis.ErrorReporting;
+
+[ExportWorkspaceService(typeof(IErrorReportingService), ServiceLayer.Editor), Shared]
+internal sealed class EditorErrorReportingService : IErrorReportingService
 {
-    [ExportWorkspaceService(typeof(IErrorReportingService), ServiceLayer.Editor), Shared]
-    internal sealed class EditorErrorReportingService : IErrorReportingService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public EditorErrorReportingService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorErrorReportingService()
-        {
-        }
+    }
 
-        public string HostDisplayName => "host";
+    public string HostDisplayName => "host";
 
-        public void ShowDetailedErrorInfo(Exception exception)
-            => Logger.Log(FunctionId.Extension_Exception, exception.StackTrace);
+    public void ShowDetailedErrorInfo(Exception exception)
+        => Logger.Log(FunctionId.Extension_Exception, exception.StackTrace);
 
-        public void ShowGlobalErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception, params InfoBarUI[] items)
-            => Logger.Log(FunctionId.Extension_Exception, message);
+    public void ShowGlobalErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception, params InfoBarUI[] items)
+        => Logger.Log(FunctionId.Extension_Exception, message);
 
-        public void ShowFeatureNotAvailableErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception)
-        {
-            // telemetry has already been reported
-        }
+    public void ShowFeatureNotAvailableErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception)
+    {
+        // telemetry has already been reported
     }
 }

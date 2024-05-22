@@ -258,13 +258,14 @@ End Module",
             comp1.VerifyDiagnostics()
             Dim comp2 = CreateVisualBasicCompilation(
                 Nothing,
-"Module M
+"Imports System.Globalization
+Module M
     Sub Main()
         Dim d = 1.5  ' must not be stack local
         C(Of Double).P = d
         C(Of Double).P = d  ' assign second time, should not be on stack
         C(Of Double).P += 2.0
-        System.Console.Write(C(Of Double).P)
+        System.Console.Write(C(Of Double).P.ToString(CultureInfo.InvariantCulture))
     End Sub
 End Module",
                 referencedCompilations:={comp1},
@@ -273,7 +274,7 @@ End Module",
             verifier.VerifyIL("M.Main",
             <![CDATA[
 {
-  // Code size       58 (0x3a)
+  // Code size       67 (0x43)
   .maxstack  3
   .locals init (Double V_0) //d
   IL_0000:  ldc.r8     1.5
@@ -291,9 +292,10 @@ End Module",
   IL_002c:  add
   IL_002d:  stind.r8
   IL_002e:  call       "ByRef Function C(Of Double).get_P() As Double"
-  IL_0033:  ldind.r8
-  IL_0034:  call       "Sub System.Console.Write(Double)"
-  IL_0039:  ret
+  IL_0033:  call       "Function System.Globalization.CultureInfo.get_InvariantCulture() As System.Globalization.CultureInfo"
+  IL_0038:  call       "Function Double.ToString(System.IFormatProvider) As String"
+  IL_003d:  call       "Sub System.Console.Write(String)"
+  IL_0042:  ret
 }
 ]]>)
             verifier.VerifyDiagnostics()

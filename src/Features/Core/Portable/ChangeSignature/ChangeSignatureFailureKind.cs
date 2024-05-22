@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.ChangeSignature
+namespace Microsoft.CodeAnalysis.ChangeSignature;
+
+internal enum ChangeSignatureFailureKind
 {
-    internal enum ChangeSignatureFailureKind
-    {
-        None,
-        DefinedInMetadata,
-        IncorrectKind,
-    }
+    None,
+    DefinedInMetadata,
+    IncorrectKind,
 }

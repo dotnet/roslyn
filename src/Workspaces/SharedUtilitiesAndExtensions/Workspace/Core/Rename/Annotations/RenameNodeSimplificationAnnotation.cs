@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
+namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
+
+internal class RenameNodeSimplificationAnnotation : RenameAnnotation
 {
-    internal class RenameNodeSimplificationAnnotation : RenameAnnotation
-    {
-        public TextSpan OriginalTextSpan { get; set; }
-    }
+    public TextSpan OriginalTextSpan { get; set; }
 }

@@ -7,29 +7,28 @@
 using System.Windows;
 using System.Windows.Media;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.VisualStudio.LanguageServices.Implementation;
+
+internal static class DependencyObjectExtensions
 {
-    internal static class DependencyObjectExtensions
+    public static DependencyObject TryGetParent(this DependencyObject obj)
     {
-        public static DependencyObject TryGetParent(this DependencyObject obj)
+        return (obj is Visual) ? VisualTreeHelper.GetParent(obj) : null;
+    }
+
+    public static T GetParentOfType<T>(this DependencyObject element) where T : Visual
+    {
+        var parent = element.TryGetParent();
+        if (parent is T)
         {
-            return (obj is Visual) ? VisualTreeHelper.GetParent(obj) : null;
+            return (T)parent;
         }
 
-        public static T GetParentOfType<T>(this DependencyObject element) where T : Visual
+        if (parent == null)
         {
-            var parent = element.TryGetParent();
-            if (parent is T)
-            {
-                return (T)parent;
-            }
-
-            if (parent == null)
-            {
-                return null;
-            }
-
-            return parent.GetParentOfType<T>();
+            return null;
         }
+
+        return parent.GetParentOfType<T>();
     }
 }

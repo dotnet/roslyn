@@ -38,42 +38,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpressi
         {
             await new VerifyCS.Test
             {
-                TestCode = $@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{{
-    static void Main()
-    {{
-        static IEnumerable<int> Data()
-        {{
-            yield return 1;
-            yield return 2;
-        }}
+                TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
 
-        var test = [|Data().Where({lambda}).{methodName}()|];
-    }}
-}}",
-                FixedCode = $@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{{
-    static void Main()
-    {{
-        static IEnumerable<int> Data()
-        {{
-            yield return 1;
-            yield return 2;
-        }}
+                class Test
+                {
+                    static void Main()
+                    {
+                        static IEnumerable<int> Data()
+                        {
+                            yield return 1;
+                            yield return 2;
+                        }
 
-        var test = Data().{methodName}({lambda});
-    }}
-}}"
+                        var test = [|Data().Where({{lambda}}).{{methodName}}()|];
+                    }
+                }
+                """,
+                FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+
+                class Test
+                {
+                    static void Main()
+                    {
+                        static IEnumerable<int> Data()
+                        {
+                            yield return 1;
+                            yield return 2;
+                        }
+
+                        var test = Data().{{methodName}}({{lambda}});
+                    }
+                }
+                """
             }.RunAsync();
         }
 
@@ -94,24 +96,25 @@ class Test
                 "LastOrDefault")]
             string methodName)
         {
-            var testCode = $@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{{
-    static void Main()
-    {{
-        static IEnumerable<int> Data()
-        {{
-            yield return 1;
-            yield return 2;
-        }}
+            var testCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
 
-        var test = Data().Where({lambda}).{methodName}();
-    }}
-}}";
+                class Test
+                {
+                    static void Main()
+                    {
+                        static IEnumerable<int> Data()
+                        {
+                            yield return 1;
+                            yield return 2;
+                        }
+
+                        var test = Data().Where({{lambda}}).{{methodName}}();
+                    }
+                }
+                """;
             await VerifyCS.VerifyAnalyzerAsync(testCode);
         }
 
@@ -134,26 +137,28 @@ class Test
         {
             await new VerifyCS.Test
             {
-                TestCode = $@"
-using System.Linq;
+                TestCode = $$"""
+                using System.Linq;
 
-class Test
-{{
-    static void M()
-    {{
-        var test1 = [|(from value in Enumerable.Range(0, 10) select value).Where({lambda}).{methodName}()|];
-    }}
-}}",
-                FixedCode = $@"
-using System.Linq;
+                class Test
+                {
+                    static void M()
+                    {
+                        var test1 = [|(from value in Enumerable.Range(0, 10) select value).Where({{lambda}}).{{methodName}}()|];
+                    }
+                }
+                """,
+                FixedCode = $$"""
+                using System.Linq;
 
-class Test
-{{
-    static void M()
-    {{
-        var test1 = (from value in Enumerable.Range(0, 10) select value).{methodName}({lambda});
-    }}
-}}"
+                class Test
+                {
+                    static void M()
+                    {
+                        var test1 = (from value in Enumerable.Range(0, 10) select value).{{methodName}}({{lambda}});
+                    }
+                }
+                """
             }.RunAsync();
         }
 
@@ -170,50 +175,52 @@ class Test
         {
             await new VerifyCS.Test
             {
-                TestCode = $@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+                TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
 
-class Test
-{{
-    static void Main()
-    {{
-        static IEnumerable<int> Data()
-        {{
-            yield return 1;
-            yield return 2;
-        }}
+                class Test
+                {
+                    static void Main()
+                    {
+                        static IEnumerable<int> Data()
+                        {
+                            yield return 1;
+                            yield return 2;
+                        }
 
-        var test = [|Data().Where(x => 
-        {{ 
-            Console.Write(x);
-            return x == 1;
-        }}).{methodName}()|];
-    }}
-}}",
-                FixedCode = $@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+                        var test = [|Data().Where(x => 
+                        { 
+                            Console.Write(x);
+                            return x == 1;
+                        }).{{methodName}}()|];
+                    }
+                }
+                """,
+                FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
 
-class Test
-{{
-    static void Main()
-    {{
-        static IEnumerable<int> Data()
-        {{
-            yield return 1;
-            yield return 2;
-        }}
+                class Test
+                {
+                    static void Main()
+                    {
+                        static IEnumerable<int> Data()
+                        {
+                            yield return 1;
+                            yield return 2;
+                        }
 
-        var test = Data().{methodName}(x => 
-        {{ 
-            Console.Write(x);
-            return x == 1;
-        }});
-    }}
-}}"
+                        var test = Data().{{methodName}}(x => 
+                        { 
+                            Console.Write(x);
+                            return x == 1;
+                        });
+                    }
+                }
+                """
             }.RunAsync();
         }
 
@@ -230,36 +237,38 @@ class Test
         {
             await new VerifyCS.Test
             {
-                TestCode = $@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+                TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
 
-class Test
-{{
-    public static bool FooTest(string input)
-    {{
-        return true;
-    }}
+                class Test
+                {
+                    public static bool FooTest(string input)
+                    {
+                        return true;
+                    }
 
-    static IEnumerable<string> test = new List<string> {{ ""hello"", ""world"", ""!"" }};
-    {returnType} result = [|test.Where(x => FooTest(x)).{methodName}()|];
-}}",
-                FixedCode = $@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+                    static IEnumerable<string> test = new List<string> { "hello", "world", "!" };
+                    {{returnType}} result = [|test.Where(x => FooTest(x)).{{methodName}}()|];
+                }
+                """,
+                FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
 
-class Test
-{{
-    public static bool FooTest(string input)
-    {{
-        return true;
-    }}
+                class Test
+                {
+                    public static bool FooTest(string input)
+                    {
+                        return true;
+                    }
 
-    static IEnumerable<string> test = new List<string> {{ ""hello"", ""world"", ""!"" }};
-    {returnType} result = test.{methodName}(x => FooTest(x));
-}}"
+                    static IEnumerable<string> test = new List<string> { "hello", "world", "!" };
+                    {{returnType}} result = test.{{methodName}}(x => FooTest(x));
+                }
+                """
             }.RunAsync();
         }
 
@@ -274,22 +283,23 @@ class Test
         [InlineData("LastOrDefault")]
         public async Task TestQueryableIsNotConsidered(string methodName)
         {
-            var source = $@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-namespace demo
-{{
-    class Test
-    {{
-        void M()
-        {{
-            List<int> testvar1 = new List<int> {{ 1, 2, 3, 4, 5, 6, 7, 8 }};
-            IQueryable<int> testvar2 = testvar1.AsQueryable().Where(x => x % 2 == 0);
-            var output = testvar2.Where(x => x == 4).{methodName}();
-        }}
-    }}
-}}";
+            var source = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                namespace demo
+                {
+                    class Test
+                    {
+                        void M()
+                        {
+                            List<int> testvar1 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
+                            IQueryable<int> testvar2 = testvar1.AsQueryable().Where(x => x % 2 == 0);
+                            var output = testvar2.Where(x => x == 4).{{methodName}}();
+                        }
+                    }
+                }
+                """;
             await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
@@ -316,32 +326,34 @@ namespace demo
                 "LastOrDefault")]
             string secondMethod)
         {
-            var testCode = $@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            var testCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
 
-class Test
-{{
-    void M()
-    {{
-        IEnumerable<string> test = new List<string> {{ ""hello"", ""world"", ""!"" }};
-        var test5 = [|test.Where(a => [|a.Where(s => s.Equals(""hello"")).{secondMethod}()|].Equals(""hello"")).{firstMethod}()|];
-    }}
-}}";
-            var fixedCode = $@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+                class Test
+                {
+                    void M()
+                    {
+                        IEnumerable<string> test = new List<string> { "hello", "world", "!" };
+                        var test5 = [|test.Where(a => [|a.Where(s => s.Equals("hello")).{{secondMethod}}()|].Equals("hello")).{{firstMethod}}()|];
+                    }
+                }
+                """;
+            var fixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
 
-class Test
-{{
-    void M()
-    {{
-        IEnumerable<string> test = new List<string> {{ ""hello"", ""world"", ""!"" }};
-        var test5 = test.{firstMethod}(a => a.{secondMethod}(s => s.Equals(""hello"")).Equals(""hello""));
-    }}
-}}";
+                class Test
+                {
+                    void M()
+                    {
+                        IEnumerable<string> test = new List<string> { "hello", "world", "!" };
+                        var test5 = test.{{firstMethod}}(a => a.{{secondMethod}}(s => s.Equals("hello")).Equals("hello"));
+                    }
+                }
+                """;
             await VerifyCS.VerifyCodeFixAsync(
                 testCode,
                 fixedCode);
@@ -360,34 +372,36 @@ class Test
         {
             await new VerifyCS.Test
             {
-                TestCode = $@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Linq.Expressions;
+                TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
 
-class Test
-{{
-    static void Main()
-    {{
-        IEnumerable<int> test = new List<int> {{ 1, 2, 3, 4, 5}};
-        [|Enumerable.Where(test, (x => x == 1)).{methodName}()|];
-    }}
-}}",
-                FixedCode = $@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Linq.Expressions;
+                class Test
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
+                        [|Enumerable.Where(test, (x => x == 1)).{{methodName}}()|];
+                    }
+                }
+                """,
+                FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
 
-class Test
-{{
-    static void Main()
-    {{
-        IEnumerable<int> test = new List<int> {{ 1, 2, 3, 4, 5}};
-        Enumerable.{methodName}(test, (x => x == 1));
-    }}
-}}"
+                class Test
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
+                        Enumerable.{{methodName}}(test, (x => x == 1));
+                    }
+                }
+                """
             }.RunAsync();
         }
 
@@ -439,19 +453,20 @@ class Test
         [InlineData("LastOrDefault")]
         public async Task TestArgumentsInSecondCall(string methodName)
         {
-            var source = $@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            var source = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
 
-class Test
-{{
-    static void M()
-    {{
-        IEnumerable<string> test1 = new List<string>{{ ""hello"", ""world"", ""!"" }};
-        var test2 = test1.Where(x => x == ""!"").{methodName}(x => x.Length == 1);
-    }}
-}}";
+                class Test
+                {
+                    static void M()
+                    {
+                        IEnumerable<string> test1 = new List<string>{ "hello", "world", "!" };
+                        var test2 = test1.Where(x => x == "!").{{methodName}}(x => x.Length == 1);
+                    }
+                }
+                """;
             await VerifyCS.VerifyAnalyzerAsync(source);
         }
 

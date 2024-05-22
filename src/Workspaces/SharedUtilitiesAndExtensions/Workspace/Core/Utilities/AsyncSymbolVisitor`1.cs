@@ -5,16 +5,15 @@
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal abstract class AsyncSymbolVisitor<TResult> : SymbolVisitor<ValueTask<TResult>>
 {
-    internal abstract class AsyncSymbolVisitor<TResult> : SymbolVisitor<ValueTask<TResult>>
-    {
-        protected abstract TResult DefaultResult { get; }
+    protected abstract TResult DefaultResult { get; }
 
-        public override ValueTask<TResult> Visit(ISymbol? symbol)
-            => symbol?.Accept(this) ?? ValueTaskFactory.FromResult(DefaultResult);
+    public override ValueTask<TResult> Visit(ISymbol? symbol)
+        => symbol?.Accept(this) ?? ValueTaskFactory.FromResult(DefaultResult);
 
-        public override ValueTask<TResult> DefaultVisit(ISymbol symbol)
-            => ValueTaskFactory.FromResult(DefaultResult);
-    }
+    public override ValueTask<TResult> DefaultVisit(ISymbol symbol)
+        => ValueTaskFactory.FromResult(DefaultResult);
 }

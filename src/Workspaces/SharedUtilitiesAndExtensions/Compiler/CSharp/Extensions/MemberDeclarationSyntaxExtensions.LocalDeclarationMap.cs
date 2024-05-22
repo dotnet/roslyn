@@ -7,25 +7,24 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal partial class MemberDeclarationSyntaxExtensions
 {
-    internal partial class MemberDeclarationSyntaxExtensions
+    public readonly struct LocalDeclarationMap
     {
-        public readonly struct LocalDeclarationMap
+        private readonly Dictionary<string, ImmutableArray<SyntaxToken>> _dictionary;
+
+        internal LocalDeclarationMap(Dictionary<string, ImmutableArray<SyntaxToken>> dictionary)
+            => _dictionary = dictionary;
+
+        public ImmutableArray<SyntaxToken> this[string identifier]
         {
-            private readonly Dictionary<string, ImmutableArray<SyntaxToken>> _dictionary;
-
-            internal LocalDeclarationMap(Dictionary<string, ImmutableArray<SyntaxToken>> dictionary)
-                => _dictionary = dictionary;
-
-            public ImmutableArray<SyntaxToken> this[string identifier]
+            get
             {
-                get
-                {
-                    return _dictionary.TryGetValue(identifier, out var result)
-                        ? result
-                        : ImmutableArray.Create<SyntaxToken>();
-                }
+                return _dictionary.TryGetValue(identifier, out var result)
+                    ? result
+                    : [];
             }
         }
     }

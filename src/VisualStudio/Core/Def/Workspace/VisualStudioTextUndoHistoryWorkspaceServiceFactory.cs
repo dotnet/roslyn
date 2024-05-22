@@ -16,70 +16,69 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.VisualStudio.LanguageServices.Implementation;
+
+using Workspace = Microsoft.CodeAnalysis.Workspace;
+
+[ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), ServiceLayer.Host), Shared]
+internal class VisualStudioTextUndoHistoryWorkspaceServiceFactory : IWorkspaceServiceFactory
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
+    private readonly ITextUndoHistoryWorkspaceService _serviceSingleton;
 
-    [ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), ServiceLayer.Host), Shared]
-    internal class VisualStudioTextUndoHistoryWorkspaceServiceFactory : IWorkspaceServiceFactory
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioTextUndoHistoryWorkspaceServiceFactory(ITextUndoHistoryRegistry undoHistoryRegistry)
+        => _serviceSingleton = new TextUndoHistoryWorkspaceService(undoHistoryRegistry);
+
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => _serviceSingleton;
+
+    private class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
     {
-        private readonly ITextUndoHistoryWorkspaceService _serviceSingleton;
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioTextUndoHistoryWorkspaceServiceFactory(ITextUndoHistoryRegistry undoHistoryRegistry)
-            => _serviceSingleton = new TextUndoHistoryWorkspaceService(undoHistoryRegistry);
+        public TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry undoHistoryRegistry)
+            => _undoHistoryRegistry = undoHistoryRegistry;
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => _serviceSingleton;
-
-        private class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
+        public bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, out ITextUndoHistory undoHistory)
         {
-            private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-
-            public TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry undoHistoryRegistry)
-                => _undoHistoryRegistry = undoHistoryRegistry;
-
-            public bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, out ITextUndoHistory undoHistory)
+            switch (editorWorkspace)
             {
-                switch (editorWorkspace)
-                {
-                    case VisualStudioWorkspaceImpl:
+                case VisualStudioWorkspaceImpl:
 
-                        // TODO: Handle undo if context changes
-                        var documentId = editorWorkspace.GetDocumentIdInCurrentContext(textBuffer.AsTextContainer());
-                        if (documentId == null)
-                        {
-                            undoHistory = null;
-                            return false;
-                        }
-
-                        // In the Visual Studio case, there might be projection buffers involved for Venus,
-                        // where we associate undo history with the surface buffer and not the subject buffer.
-                        var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
-
-                        if (containedDocument != null)
-                        {
-                            textBuffer = containedDocument.DataBuffer;
-                        }
-
-                        break;
-
-                    case MiscellaneousFilesWorkspace _:
-
-                        // Nothing to do in this case: textBuffer is correct!
-
-                        break;
-
-                    default:
-
+                    // TODO: Handle undo if context changes
+                    var documentId = editorWorkspace.GetDocumentIdInCurrentContext(textBuffer.AsTextContainer());
+                    if (documentId == null)
+                    {
                         undoHistory = null;
                         return false;
+                    }
 
-                }
+                    // In the Visual Studio case, there might be projection buffers involved for Venus,
+                    // where we associate undo history with the surface buffer and not the subject buffer.
+                    var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
 
-                return _undoHistoryRegistry.TryGetHistory(textBuffer, out undoHistory);
+                    if (containedDocument != null)
+                    {
+                        textBuffer = containedDocument.DataBuffer;
+                    }
+
+                    break;
+
+                case MiscellaneousFilesWorkspace _:
+
+                    // Nothing to do in this case: textBuffer is correct!
+
+                    break;
+
+                default:
+
+                    undoHistory = null;
+                    return false;
+
             }
+
+            return _undoHistoryRegistry.TryGetHistory(textBuffer, out undoHistory);
         }
     }
 }

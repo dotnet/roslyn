@@ -4,13 +4,12 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
+
+internal class RQIndexer(
+    RQUnconstructedType containingType,
+    RQMethodPropertyOrEventName memberName,
+    int typeParameterCount,
+    IList<RQParameter> parameters) : RQPropertyBase(containingType, memberName, typeParameterCount, parameters)
 {
-    internal class RQIndexer(
-        RQUnconstructedType containingType,
-        RQMethodPropertyOrEventName memberName,
-        int typeParameterCount,
-        IList<RQParameter> parameters) : RQPropertyBase(containingType, memberName, typeParameterCount, parameters)
-    {
-    }
 }

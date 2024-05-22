@@ -192,14 +192,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
         }
 
-        public async Task<string[]> GetAssemblyReferencesAsync(string projectName, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<(string name, string version, string publicKeyToken)>> GetAssemblyReferencesAsync(string projectName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var project = await GetProjectAsync(projectName, cancellationToken);
             var references = ((VSProject)project.Object).References.Cast<Reference>()
                 .Where(x => x.SourceProject == null)
-                .Select(x => x.Name + "," + x.Version + "," + x.PublicKeyToken).ToArray();
+                .Select(x => (x.Name, x.Version, x.PublicKeyToken)).ToImmutableArray();
             return references;
         }
 

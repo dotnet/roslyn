@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        private async Task<CompletionData> WriteBuildResponseAsync(IClientConnection clientConnection, Guid requestId, BuildResponse response, CompletionData completionData, CancellationToken cancellationToken)
+        private async Task<CompletionData> WriteBuildResponseAsync(IClientConnection clientConnection, string requestId, BuildResponse response, CompletionData completionData, CancellationToken cancellationToken)
         {
             var message = response switch
             {

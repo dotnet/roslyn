@@ -13,38 +13,37 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+
+[ExportWorkspaceService(typeof(INavigateToLinkService), layer: ServiceLayer.Host)]
+[Shared]
+internal sealed class VisualStudioNavigateToLinkService : INavigateToLinkService
 {
-    [ExportWorkspaceService(typeof(INavigateToLinkService), layer: ServiceLayer.Host)]
-    [Shared]
-    internal sealed class VisualStudioNavigateToLinkService : INavigateToLinkService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioNavigateToLinkService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioNavigateToLinkService()
-        {
-        }
-
-        public Task<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken)
-        {
-            if (!uri.IsAbsoluteUri)
-            {
-                return SpecializedTasks.False;
-            }
-
-            if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
-            {
-                return SpecializedTasks.False;
-            }
-
-            StartBrowser(uri);
-            return SpecializedTasks.True;
-        }
-
-        public static void StartBrowser(string uri)
-            => VsShellUtilities.OpenSystemBrowser(uri);
-
-        public static void StartBrowser(Uri uri)
-            => VsShellUtilities.OpenSystemBrowser(uri.AbsoluteUri);
     }
+
+    public Task<bool> TryNavigateToLinkAsync(Uri uri, CancellationToken cancellationToken)
+    {
+        if (!uri.IsAbsoluteUri)
+        {
+            return SpecializedTasks.False;
+        }
+
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+        {
+            return SpecializedTasks.False;
+        }
+
+        StartBrowser(uri);
+        return SpecializedTasks.True;
+    }
+
+    public static void StartBrowser(string uri)
+        => VsShellUtilities.OpenSystemBrowser(uri);
+
+    public static void StartBrowser(Uri uri)
+        => VsShellUtilities.OpenSystemBrowser(uri.AbsoluteUri);
 }

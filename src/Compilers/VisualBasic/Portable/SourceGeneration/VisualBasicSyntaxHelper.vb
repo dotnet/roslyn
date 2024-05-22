@@ -2,11 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.SourceGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -19,8 +15,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides ReadOnly Property IsCaseSensitive As Boolean = False
-
-        Protected Overrides ReadOnly Property AttributeListKind As Integer = SyntaxKind.AttributeList
 
         Public Overrides Function IsValidIdentifier(name As String) As Boolean
             Return SyntaxFacts.IsValidIdentifier(name)
