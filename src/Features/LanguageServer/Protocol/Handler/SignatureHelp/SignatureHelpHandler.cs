@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Roslyn.Text.Adornments;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -22,12 +21,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [Method(LSP.Methods.TextDocumentSignatureHelpName)]
     internal class SignatureHelpHandler : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
     {
+        private readonly ISignatureHelpService _signatureHelpService;
         private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SignatureHelpHandler(IGlobalOptionService globalOptions)
+        public SignatureHelpHandler(
+            ISignatureHelpService signatureHelpService,
+            IGlobalOptionService globalOptions)
         {
+            _signatureHelpService = signatureHelpService;
             _globalOptions = globalOptions;
         }
 
@@ -43,13 +46,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (document == null)
                 return null;
 
-            var service = document.GetRequiredLanguageService<SignatureHelpService>();
-
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
             var options = _globalOptions.GetSignatureHelpOptions(document.Project.Language);
 
-            var (_, sigItems) = await service.GetSignatureHelpAsync(document, position, triggerInfo, options, cancellationToken).ConfigureAwait(false);
+            var (_, sigItems) = await _signatureHelpService.GetSignatureHelpAsync(document, position, triggerInfo, options, cancellationToken).ConfigureAwait(false);
             if (sigItems is null)
             {
                 return null;

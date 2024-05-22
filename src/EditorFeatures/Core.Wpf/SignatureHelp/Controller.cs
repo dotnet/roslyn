@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         private ImmutableArray<ISignatureHelpProvider> _providers;
         private IContentType _lastSeenContentType;
 
+        public ISignatureHelpService SignatureHelpService { get; }
         public string DisplayName => EditorFeaturesResources.Signature_Help;
 
         public Controller(
@@ -45,11 +46,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
+            ISignatureHelpService signatureHelpService,
             IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders,
             IAsyncCompletionBroker completionBroker)
             : base(globalOptions, threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
         {
             _completionBroker = completionBroker;
+            SignatureHelpService = signatureHelpService;
             _allProviders = allProviders;
         }
 
@@ -62,10 +65,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
+            ISignatureHelpService signatureHelpService,
             IList<ISignatureHelpProvider> providers,
             IAsyncCompletionBroker completionBroker)
             : base(globalOptions, threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
         {
+            SignatureHelpService = signatureHelpService;
             _providers = providers.ToImmutableArray();
             _completionBroker = completionBroker;
         }
