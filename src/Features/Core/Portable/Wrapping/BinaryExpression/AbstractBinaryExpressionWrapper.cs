@@ -8,10 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Precedence;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 #if DEBUG

@@ -4,9 +4,7 @@
 
 #pragma warning disable CS0618 // Type or member is obsolete
 
-using System;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;

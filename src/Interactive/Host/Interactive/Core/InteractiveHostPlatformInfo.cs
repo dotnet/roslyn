@@ -7,7 +7,6 @@ extern alias Scripting;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using Roslyn.Utilities;
 using Scripting::Microsoft.CodeAnalysis.Scripting.Hosting;

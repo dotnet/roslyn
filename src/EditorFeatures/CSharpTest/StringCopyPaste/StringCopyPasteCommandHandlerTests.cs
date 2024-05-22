@@ -4,13 +4,11 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.ServiceModel.Syndication;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
 using Microsoft.CodeAnalysis.Editor.StringCopyPaste;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -20,7 +18,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 

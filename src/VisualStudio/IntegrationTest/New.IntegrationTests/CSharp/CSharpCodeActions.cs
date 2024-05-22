@@ -22,7 +22,6 @@ using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
-using Xunit.Harness;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 {
