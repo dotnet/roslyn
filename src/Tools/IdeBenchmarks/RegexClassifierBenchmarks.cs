@@ -68,11 +68,9 @@ class Program
 
         protected Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions parseOptions)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions))
-            {
-                var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-                return GetSemanticClassificationsAsync(document, span);
-            }
+            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions);
+            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            return GetSemanticClassificationsAsync(document, span);
         }
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)

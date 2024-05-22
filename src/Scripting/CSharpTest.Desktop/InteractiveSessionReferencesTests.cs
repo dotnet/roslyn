@@ -573,19 +573,17 @@ x
             var globalsType = libAssembly.GetType("C");
             var globals = Activator.CreateInstance(globalsType);
 
-            using (var loader = new InteractiveAssemblyLoader())
-            {
-                loader.RegisterDependency(libAssembly);
+            using var loader = new InteractiveAssemblyLoader();
+            loader.RegisterDependency(libAssembly);
 
-                var script = CSharpScript.Create<int>(
-                    "X+Y",
-                    ScriptOptions.Default.WithReferences(libRef),
-                    globalsType: globalsType,
-                    assemblyLoader: loader);
+            var script = CSharpScript.Create<int>(
+                "X+Y",
+                ScriptOptions.Default.WithReferences(libRef),
+                globalsType: globalsType,
+                assemblyLoader: loader);
 
-                int result = script.RunAsync(globals).Result.ReturnValue;
-                Assert.Equal(3, result);
-            }
+            int result = script.RunAsync(globals).Result.ReturnValue;
+            Assert.Equal(3, result);
         }
 
         [Fact]

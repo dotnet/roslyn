@@ -30,9 +30,8 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         [IdeFact]
         public async Task AlignOpenBraceWithMethodDeclaration()
         {
-            await using (var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken))
-            {
-                await SetUpEditorAsync(@"
+            await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
+            await SetUpEditorAsync(@"
 $$class C
 {
     void Main()
@@ -40,16 +39,15 @@ $$class C
     }
 }", HangMitigatingCancellationToken);
 
-                await TestServices.Editor.FormatDocumentAsync(HangMitigatingCancellationToken);
-                await TestServices.EditorVerifier.TextContainsAsync(@"
+            await TestServices.Editor.FormatDocumentAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextContainsAsync(@"
 class C
 {
     void Main()
     {
     }
 }", cancellationToken: HangMitigatingCancellationToken);
-                await telemetry.VerifyFiredAsync(["vs/ide/vbcs/commandhandler/formatcommand"], HangMitigatingCancellationToken);
-            }
+            await telemetry.VerifyFiredAsync(["vs/ide/vbcs/commandhandler/formatcommand"], HangMitigatingCancellationToken);
         }
 
         [IdeFact]

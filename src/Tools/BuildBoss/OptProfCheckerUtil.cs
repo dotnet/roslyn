@@ -100,15 +100,13 @@ namespace BuildBoss
         {
             try
             {
-                using (var archive = new ZipArchive(File.Open(vsixFullPath, FileMode.Open), ZipArchiveMode.Read))
-                {
-                    var entry = archive.GetEntry("manifest.json");
-                    using var stream = entry.Open();
-                    using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 2048, leaveOpen: true);
-                    var content = reader.ReadToEnd();
-                    var manifest = JObject.Parse(content);
-                    return manifest["files"].Select(f => f["fileName"].ToString()).ToHashSet();
-                }
+                using var archive = new ZipArchive(File.Open(vsixFullPath, FileMode.Open), ZipArchiveMode.Read);
+                var entry = archive.GetEntry("manifest.json");
+                using var stream = entry.Open();
+                using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 2048, leaveOpen: true);
+                var content = reader.ReadToEnd();
+                var manifest = JObject.Parse(content);
+                return manifest["files"].Select(f => f["fileName"].ToString()).ToHashSet();
             }
             catch (Exception)
             {

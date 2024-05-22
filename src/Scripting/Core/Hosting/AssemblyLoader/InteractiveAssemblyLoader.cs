@@ -380,15 +380,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             try
             {
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-                {
-                    using (var peReader = new PEReader(stream))
-                    {
-                        var metadataReader = peReader.GetMetadataReader();
-                        mvid = metadataReader.GetGuid(metadataReader.GetModuleDefinition().Mvid);
-                        return true;
-                    }
-                }
+                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var peReader = new PEReader(stream);
+                var metadataReader = peReader.GetMetadataReader();
+                mvid = metadataReader.GetGuid(metadataReader.GetModuleDefinition().Mvid);
+                return true;
             }
             catch
             {

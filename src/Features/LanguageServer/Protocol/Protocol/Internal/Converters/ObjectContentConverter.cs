@@ -45,26 +45,24 @@ internal class ObjectContentConverter : JsonConverter<object>
         else if (reader.TokenType == JsonTokenType.StartObject)
         {
             var clonedReader = reader;
-            using (var jsonDocument = JsonDocument.ParseValue(ref reader))
-            {
-                var data = jsonDocument.RootElement;
-                var type = data.GetProperty(TypeProperty).GetString() ?? throw new JsonException();
+            using var jsonDocument = JsonDocument.ParseValue(ref reader);
+            var data = jsonDocument.RootElement;
+            var type = data.GetProperty(TypeProperty).GetString() ?? throw new JsonException();
 
-                switch (type)
-                {
-                    case nameof(ImageId):
-                        return ImageIdConverter.Instance.Read(ref clonedReader, typeof(ImageId), options);
-                    case nameof(ImageElement):
-                        return ImageElementConverter.Instance.Read(ref clonedReader, typeof(ImageElement), options);
-                    case nameof(ContainerElement):
-                        return ContainerElementConverter.Instance.Read(ref clonedReader, typeof(ContainerElementConverter), options);
-                    case nameof(ClassifiedTextElement):
-                        return ClassifiedTextElementConverter.Instance.Read(ref clonedReader, typeof(ClassifiedTextElementConverter), options);
-                    case nameof(ClassifiedTextRun):
-                        return ClassifiedTextRunConverter.Instance.Read(ref clonedReader, typeof(ClassifiedTextRunConverter), options);
-                    default:
-                        return data;
-                }
+            switch (type)
+            {
+                case nameof(ImageId):
+                    return ImageIdConverter.Instance.Read(ref clonedReader, typeof(ImageId), options);
+                case nameof(ImageElement):
+                    return ImageElementConverter.Instance.Read(ref clonedReader, typeof(ImageElement), options);
+                case nameof(ContainerElement):
+                    return ContainerElementConverter.Instance.Read(ref clonedReader, typeof(ContainerElementConverter), options);
+                case nameof(ClassifiedTextElement):
+                    return ClassifiedTextElementConverter.Instance.Read(ref clonedReader, typeof(ClassifiedTextElementConverter), options);
+                case nameof(ClassifiedTextRun):
+                    return ClassifiedTextRunConverter.Instance.Read(ref clonedReader, typeof(ClassifiedTextRunConverter), options);
+                default:
+                    return data;
             }
         }
         else if (reader.TokenType == JsonTokenType.String)

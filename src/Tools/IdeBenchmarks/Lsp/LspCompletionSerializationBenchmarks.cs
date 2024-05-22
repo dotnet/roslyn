@@ -156,13 +156,11 @@ class A
 
             stream.Seek(0, SeekOrigin.Begin);
 
-            using (var sr = new StreamReader(stream))
-            using (var jsonReader = new JsonTextReader(sr))
-            {
-                var list = serializer.Deserialize<LSP.CompletionList>(jsonReader);
-                if (list!.Items.Length != _list!.Items.Length)
-                    throw new System.Exception();
-            }
+            using var sr = new StreamReader(stream);
+            using var jsonReader = new JsonTextReader(sr);
+            var list = serializer.Deserialize<LSP.CompletionList>(jsonReader);
+            if (list!.Items.Length != _list!.Items.Length)
+                throw new System.Exception();
         }
 
         [Fact]

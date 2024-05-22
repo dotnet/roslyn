@@ -194,10 +194,8 @@ namespace RunTests
             try
             {
                 Directory.CreateDirectory(options.LogFilesDirectory);
-                using (var writer = new StreamWriter(logFilePath, append: false))
-                {
-                    Logger.WriteTo(writer);
-                }
+                using var writer = new StreamWriter(logFilePath, append: false);
+                Logger.WriteTo(writer);
             }
             catch (Exception ex)
             {

@@ -106,16 +106,14 @@ comp.goo()", HangMitigatingCancellationToken);
         {
             await TestServices.InteractiveWindow.SubmitTextAsync("#r \"System.Numerics\"", HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.SubmitTextAsync("using System.Numerics;", HangMitigatingCancellationToken);
-            using (var temporaryTextFile = new TemporaryTextFile(
+            using var temporaryTextFile = new TemporaryTextFile(
                 "directivesScenario4.csx",
-                "class Complex { public int goo() { return 4; } }"))
-            {
-                temporaryTextFile.Create();
-                await TestServices.InteractiveWindow.SubmitTextAsync(string.Format("#load \"{0}\"", temporaryTextFile.FullName), HangMitigatingCancellationToken);
-                await TestServices.InteractiveWindow.SubmitTextAsync(@"var comp = new Complex();
+                "class Complex { public int goo() { return 4; } }");
+            temporaryTextFile.Create();
+            await TestServices.InteractiveWindow.SubmitTextAsync(string.Format("#load \"{0}\"", temporaryTextFile.FullName), HangMitigatingCancellationToken);
+            await TestServices.InteractiveWindow.SubmitTextAsync(@"var comp = new Complex();
 comp.goo()", HangMitigatingCancellationToken);
-                await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("4", HangMitigatingCancellationToken);
-            }
+            await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("4", HangMitigatingCancellationToken);
         }
 
         [IdeFact]
@@ -129,16 +127,14 @@ Process.GetCurrentProcess().ProcessName", HangMitigatingCancellationToken);
         [IdeFact]
         public async Task VerifyHashLoadDirective()
         {
-            using (var temporaryTextFile = new TemporaryTextFile(
+            using var temporaryTextFile = new TemporaryTextFile(
                 "directivesScenario6.csx",
-                "System.Console.WriteLine(2);"))
-            {
-                temporaryTextFile.Create();
-                await TestServices.InteractiveWindow.SubmitTextAsync(string.Format("#load \"{0}\"", temporaryTextFile.FullName), HangMitigatingCancellationToken);
-                await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("2", HangMitigatingCancellationToken);
-                await TestServices.InteractiveWindow.SubmitTextAsync("#load text", HangMitigatingCancellationToken);
-                await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("(1,7): error CS7010: Quoted file name expected", HangMitigatingCancellationToken);
-            }
+                "System.Console.WriteLine(2);");
+            temporaryTextFile.Create();
+            await TestServices.InteractiveWindow.SubmitTextAsync(string.Format("#load \"{0}\"", temporaryTextFile.FullName), HangMitigatingCancellationToken);
+            await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("2", HangMitigatingCancellationToken);
+            await TestServices.InteractiveWindow.SubmitTextAsync("#load text", HangMitigatingCancellationToken);
+            await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("(1,7): error CS7010: Quoted file name expected", HangMitigatingCancellationToken);
         }
 
         [IdeFact]
