@@ -16,26 +16,26 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+public class FullyQualifyUnboundIdentifierTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-    public class FullyQualifyUnboundIdentifierTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+    public FullyQualifyUnboundIdentifierTests(ITestOutputHelper logger)
+       : base(logger)
     {
-        public FullyQualifyUnboundIdentifierTests(ITestOutputHelper logger)
-           : base(logger)
-        {
-        }
+    }
 
-        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new CSharpFullyQualifyCodeFixProvider());
+    internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new CSharpFullyQualifyCodeFixProvider());
 
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
-            => FlattenActions(actions);
+    protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        => FlattenActions(actions);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26887")]
-        public async Task TestFullyQualifyUnboundIdentifier1()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26887")]
+    public async Task TestFullyQualifyUnboundIdentifier1()
+    {
+        await TestInRegularAndScriptAsync(
 @"public class Program
 {
     public class Inner
@@ -58,12 +58,12 @@ class Test
 {
     Program.Inner
 }");
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26887")]
-        public async Task TestFullyQualifyUnboundIdentifier2()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26887")]
+    public async Task TestFullyQualifyUnboundIdentifier2()
+    {
+        await TestInRegularAndScriptAsync(
 @"public class Program
 {
     public class Inner
@@ -86,6 +86,5 @@ class Test
 {
     public Program.Inner
 }");
-        }
     }
 }

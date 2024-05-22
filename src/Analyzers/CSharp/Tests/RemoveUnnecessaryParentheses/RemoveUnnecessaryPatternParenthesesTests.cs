@@ -15,324 +15,323 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParentheses
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParentheses;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+public partial class RemoveUnnecessaryPatternParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
-    public partial class RemoveUnnecessaryPatternParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+    public RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper logger)
+      : base(logger)
     {
-        public RemoveUnnecessaryPatternParenthesesTests(ITestOutputHelper logger)
-          : base(logger)
+    }
+
+    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (new CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryParenthesesCodeFixProvider());
+
+    private async Task TestAsync(string initial, string expected, bool offeredWhenRequireForClarityIsEnabled, int index = 0)
+    {
+        await TestInRegularAndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses, index: index);
+
+        if (offeredWhenRequireForClarityIsEnabled)
         {
+            await TestInRegularAndScriptAsync(initial, expected, options: RequireAllParenthesesForClarity, index: index);
         }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryParenthesesCodeFixProvider());
-
-        private async Task TestAsync(string initial, string expected, bool offeredWhenRequireForClarityIsEnabled, int index = 0)
+        else
         {
-            await TestInRegularAndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses, index: index);
+            await TestMissingAsync(initial, parameters: new TestParameters(options: RequireAllParenthesesForClarity));
+        }
+    }
 
-            if (offeredWhenRequireForClarityIsEnabled)
+    internal override bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
+        => descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary) && descriptor.DefaultSeverity == DiagnosticSeverity.Hidden;
+
+    [Fact]
+    public async Task TestArithmeticRequiredForClarity2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
             {
-                await TestInRegularAndScriptAsync(initial, expected, options: RequireAllParenthesesForClarity, index: index);
+                void M(object o)
+                {
+                    bool x = o is a or $$(b and c);
+                }
             }
-            else
+            """,
+            """
+            class C
             {
-                await TestMissingAsync(initial, parameters: new TestParameters(options: RequireAllParenthesesForClarity));
+                void M(object o)
+                {
+                    bool x = o is a or b and c;
+                }
             }
-        }
+            """, parameters: new TestParameters(options: RequireArithmeticBinaryParenthesesForClarity));
+    }
 
-        internal override bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
-            => descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary) && descriptor.DefaultSeverity == DiagnosticSeverity.Hidden;
+    [Fact]
+    public async Task TestLogicalRequiredForClarity1()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M(object o)
+                {
+                    bool x = o is a or $$(b and c);
+                }
+            }
+            """, new TestParameters(options: RequireOtherBinaryParenthesesForClarity));
+    }
 
-        [Fact]
-        public async Task TestArithmeticRequiredForClarity2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+    [Fact]
+    public async Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame1()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        bool x = o is a or $$(b and c);
-                    }
+                    bool x = o is a or $$(b or c);
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        bool x = o is a or b and c;
-                    }
+                    bool x = o is a or b or c;
                 }
-                """, parameters: new TestParameters(options: RequireArithmeticBinaryParenthesesForClarity));
-        }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+    }
 
-        [Fact]
-        public async Task TestLogicalRequiredForClarity1()
-        {
-            await TestMissingAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame2()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        bool x = o is a or $$(b and c);
-                    }
+                    bool x = o is $$(a or b) or c;
                 }
-                """, new TestParameters(options: RequireOtherBinaryParenthesesForClarity));
-        }
+            }
+            """,
+            """
+            class C
+            {
+                void M(object o)
+                {
+                    bool x = o is a or b or c;
+                }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+    }
 
-        [Fact]
-        public async Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame1()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestAlwaysUnnecessaryForIsPattern()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        bool x = o is a or $$(b or c);
-                    }
+                    bool x = o is $$(a or b);
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        bool x = o is a or b or c;
-                    }
+                    bool x = o is a or b;
                 }
-                """, offeredWhenRequireForClarityIsEnabled: true);
-        }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+    }
 
-        [Fact]
-        public async Task TestLogicalNotRequiredForClarityWhenPrecedenceStaysTheSame2()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestAlwaysUnnecessaryForCasePattern()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
+                    switch (o)
                     {
-                        bool x = o is $$(a or b) or c;
+                        case $$(a or b):
+                            return;
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
+                    switch (o)
                     {
-                        bool x = o is a or b or c;
+                        case a or b:
+                            return;
                     }
                 }
-                """, offeredWhenRequireForClarityIsEnabled: true);
-        }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+    }
 
-        [Fact]
-        public async Task TestAlwaysUnnecessaryForIsPattern()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestAlwaysUnnecessaryForSwitchArmPattern()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                int M(object o)
                 {
-                    void M(object o)
+                    return o switch
                     {
-                        bool x = o is $$(a or b);
-                    }
+                        $$(a or b) => 0,
+                    };
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                int M(object o)
                 {
-                    void M(object o)
+                    return o switch
                     {
-                        bool x = o is a or b;
-                    }
+                        a or b => 0,
+                    };
                 }
-                """, offeredWhenRequireForClarityIsEnabled: true);
-        }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+    }
 
-        [Fact]
-        public async Task TestAlwaysUnnecessaryForCasePattern()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestAlwaysUnnecessaryForSubPattern()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        switch (o)
-                        {
-                            case $$(a or b):
-                                return;
-                        }
-                    }
+                    bool x = o is { X: $$(a or b) };
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        switch (o)
-                        {
-                            case a or b:
-                                return;
-                        }
-                    }
+                    bool x = o is { X: a or b };
                 }
-                """, offeredWhenRequireForClarityIsEnabled: true);
-        }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+    }
 
-        [Fact]
-        public async Task TestAlwaysUnnecessaryForSwitchArmPattern()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNotAlwaysUnnecessaryForUnaryPattern1()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    int M(object o)
-                    {
-                        return o switch
-                        {
-                            $$(a or b) => 0,
-                        };
-                    }
+                    bool x = o is a or $$(not b);
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    int M(object o)
-                    {
-                        return o switch
-                        {
-                            a or b => 0,
-                        };
-                    }
+                    bool x = o is a or not b;
                 }
-                """, offeredWhenRequireForClarityIsEnabled: true);
-        }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: false);
+    }
 
-        [Fact]
-        public async Task TestAlwaysUnnecessaryForSubPattern()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNotAlwaysUnnecessaryForUnaryPattern2()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        bool x = o is { X: $$(a or b) };
-                    }
+                    bool x = o is $$(not a) or b;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        bool x = o is { X: a or b };
-                    }
+                    bool x = o is not a or b;
                 }
-                """, offeredWhenRequireForClarityIsEnabled: true);
-        }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: false);
+    }
 
-        [Fact]
-        public async Task TestNotAlwaysUnnecessaryForUnaryPattern1()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52589")]
+    public async Task TestAlwaysNecessaryForDiscard()
+    {
+        await TestDiagnosticMissingAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
+                    if (o is $$(_))
                     {
-                        bool x = o is a or $$(not b);
                     }
                 }
-                """,
-                """
-                class C
-                {
-                    void M(object o)
-                    {
-                        bool x = o is a or not b;
-                    }
-                }
-                """, offeredWhenRequireForClarityIsEnabled: false);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestNotAlwaysUnnecessaryForUnaryPattern2()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestUnnecessaryForDiscardInSubpattern()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
+                    if (o is string { Length: $$(_) })
                     {
-                        bool x = o is $$(not a) or b;
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
+                    if (o is string { Length: _ })
                     {
-                        bool x = o is not a or b;
                     }
                 }
-                """, offeredWhenRequireForClarityIsEnabled: false);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52589")]
-        public async Task TestAlwaysNecessaryForDiscard()
-        {
-            await TestDiagnosticMissingAsync(
-                """
-                class C
-                {
-                    void M(object o)
-                    {
-                        if (o is $$(_))
-                        {
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestUnnecessaryForDiscardInSubpattern()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M(object o)
-                    {
-                        if (o is string { Length: $$(_) })
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M(object o)
-                    {
-                        if (o is string { Length: _ })
-                        {
-                        }
-                    }
-                }
-                """, offeredWhenRequireForClarityIsEnabled: true);
-        }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
     }
 }
