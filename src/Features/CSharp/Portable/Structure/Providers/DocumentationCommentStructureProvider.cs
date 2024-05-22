@@ -9,42 +9,41 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Structure
+namespace Microsoft.CodeAnalysis.CSharp.Structure;
+
+internal class DocumentationCommentStructureProvider : AbstractSyntaxNodeStructureProvider<DocumentationCommentTriviaSyntax>
 {
-    internal class DocumentationCommentStructureProvider : AbstractSyntaxNodeStructureProvider<DocumentationCommentTriviaSyntax>
+    protected override void CollectBlockSpans(
+        SyntaxToken previousToken,
+        DocumentationCommentTriviaSyntax documentationComment,
+        ref TemporaryArray<BlockSpan> spans,
+        BlockStructureOptions options,
+        CancellationToken cancellationToken)
     {
-        protected override void CollectBlockSpans(
-            SyntaxToken previousToken,
-            DocumentationCommentTriviaSyntax documentationComment,
-            ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptions options,
-            CancellationToken cancellationToken)
+        // In metadata as source we want to treat documentation comments slightly differently, and collapse them
+        // to just "..." in front of the decalaration they're attached to. That happens in CSharpStructureHelper.CollectCommentBlockSpans
+        // so we don't need to do anything here
+        if (options.IsMetadataAsSource)
         {
-            // In metadata as source we want to treat documentation comments slightly differently, and collapse them
-            // to just "..." in front of the decalaration they're attached to. That happens in CSharpStructureHelper.CollectCommentBlockSpans
-            // so we don't need to do anything here
-            if (options.IsMetadataAsSource)
-            {
-                return;
-            }
-
-            var startPos = documentationComment.FullSpan.Start;
-
-            // The trailing newline is included in XmlDocCommentSyntax, so we need to strip it.
-            var endPos = documentationComment.SpanStart + documentationComment.ToString().TrimEnd().Length;
-
-            var span = TextSpan.FromBounds(startPos, endPos);
-
-            var bannerLength = options.MaximumBannerLength;
-            var bannerText = CSharpFileBannerFacts.Instance.GetBannerText(
-                documentationComment, bannerLength, cancellationToken);
-
-            spans.Add(new BlockSpan(
-                isCollapsible: true,
-                textSpan: span,
-                type: BlockTypes.Comment,
-                bannerText: bannerText,
-                autoCollapse: true));
+            return;
         }
+
+        var startPos = documentationComment.FullSpan.Start;
+
+        // The trailing newline is included in XmlDocCommentSyntax, so we need to strip it.
+        var endPos = documentationComment.SpanStart + documentationComment.ToString().TrimEnd().Length;
+
+        var span = TextSpan.FromBounds(startPos, endPos);
+
+        var bannerLength = options.MaximumBannerLength;
+        var bannerText = CSharpFileBannerFacts.Instance.GetBannerText(
+            documentationComment, bannerLength, cancellationToken);
+
+        spans.Add(new BlockSpan(
+            isCollapsible: true,
+            textSpan: span,
+            type: BlockTypes.Comment,
+            bannerText: bannerText,
+            autoCollapse: true));
     }
 }

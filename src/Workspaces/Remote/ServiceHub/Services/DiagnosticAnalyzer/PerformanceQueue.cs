@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             public Snapshot(IEnumerable<(int assignedAnalyzerNumber, TimeSpan timeSpan)> rawData, int unitCount)
             {
-                _performanceMap = new Dictionary<int, double>();
+                _performanceMap = [];
 
                 Reset(_performanceMap, rawData, unitCount);
             }
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             private AnalyzerNumberAssigner()
             {
                 _currentId = 0;
-                _idMap = new Dictionary<string, int>();
+                _idMap = [];
             }
 
             public int GetUniqueNumber(DiagnosticAnalyzer analyzer)

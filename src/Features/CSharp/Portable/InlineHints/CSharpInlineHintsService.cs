@@ -7,18 +7,17 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 
-namespace Microsoft.CodeAnalysis.CSharp.InlineHints
+namespace Microsoft.CodeAnalysis.CSharp.InlineHints;
+
+/// <summary>
+/// The service to locate all positions where inline hints should be placed.
+/// </summary>
+[ExportLanguageService(typeof(IInlineHintsService), LanguageNames.CSharp), Shared]
+internal class CSharpInlineHintsService : AbstractInlineHintsService
 {
-    /// <summary>
-    /// The service to locate all positions where inline hints should be placed.
-    /// </summary>
-    [ExportLanguageService(typeof(IInlineHintsService), LanguageNames.CSharp), Shared]
-    internal class CSharpInlineHintsService : AbstractInlineHintsService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpInlineHintsService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpInlineHintsService()
-        {
-        }
     }
 }

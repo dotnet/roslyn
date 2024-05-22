@@ -190,7 +190,12 @@ internal sealed class TotalClassificationTaggerProvider(
                 // Only need to ask for the spans that overlapped the string literals.
                 using var _1 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var embeddedClassifications);
 
-                var stringLiteralSpans = new NormalizedSnapshotSpanCollection(stringLiterals.Select(s => s.Span));
+                var stringLiteralSpansFull = new NormalizedSnapshotSpanCollection(stringLiterals.Select(s => s.Span));
+
+                // The spans of the string literal itself may be far off screen.  Intersect the string literal spans
+                // with the view spans to get the actual spans we want to classify.
+                var stringLiteralSpans = NormalizedSnapshotSpanCollection.Intersection(stringLiteralSpansFull, spans);
+
                 embeddedTagger.AddTags(stringLiteralSpans, embeddedClassifications);
 
                 // Nothing complex to do if we got no embedded classifications back.  Just add in all the string

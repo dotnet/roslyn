@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             BadExpression(node.Syntax, byteArray, ImmutableArray<BoundExpression>.Empty) :
                                             MakeUnderlyingArrayForUtf8Span(node.Syntax, byteArray, bytes, out length);
 
-            if (!TryGetWellKnownTypeMember<MethodSymbol>(node.Syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length, out MethodSymbol ctor))
+            if (!TryGetWellKnownTypeMember<MethodSymbol>(node.Syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length, out MethodSymbol? ctor))
             {
                 result = BadExpression(node.Syntax, node.Type, ImmutableArray<BoundExpression>.Empty);
             }
@@ -574,6 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
                                                                                         isExtensionMethod: oldNodeOpt.IsExtensionMethod, wasTargetTyped: false, type: rewrittenType);
 
+                        EnsureParamCollectionAttributeExists(rewrittenOperand.Syntax, rewrittenType);
                         Debug.Assert(_factory.TopLevelMethod is { });
 
                         if (_factory.Compilation.LanguageVersion >= MessageID.IDS_FeatureCacheStaticMethodGroupConversion.RequiredVersion()
@@ -637,6 +638,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversionGroupOpt: null, // BoundConversion.ConversionGroup is not used in lowered tree
                     constantValueOpt: constantValueOpt,
                     type: rewrittenType);
+        }
+
+        private void EnsureParamCollectionAttributeExists(SyntaxNode node, TypeSymbol delegateType)
+        {
+            Debug.Assert(_factory.ModuleBuilderOpt is { });
+
+            if (delegateType.IsAnonymousType && delegateType.ContainingModule == _compilation.SourceModule &&
+                delegateType.DelegateInvokeMethod() is MethodSymbol delegateInvoke &&
+                delegateInvoke.Parameters.Any(static (p) => p.IsParamsCollection))
+            {
+                _factory.ModuleBuilderOpt.EnsureParamCollectionAttributeExists(_diagnostics, node.Location);
+            }
         }
 
         // Determine if the conversion can actually overflow at runtime.  If not, no need to generate a checked instruction.
@@ -1408,9 +1421,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             rewrittenOperand = MakeConversionNode(rewrittenOperand, method.GetParameterType(0), @checked);
 
-            var returnType = method.ReturnType;
-            Debug.Assert((object)returnType != null);
-
             if (_inExpressionLambda)
             {
                 return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, constantValueOpt, rewrittenType);
@@ -1420,8 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: syntax,
                     rewrittenReceiver: null,
                     method: method,
-                    rewrittenArguments: ImmutableArray.Create(rewrittenOperand),
-                    type: returnType);
+                    rewrittenArguments: ImmutableArray.Create(rewrittenOperand));
 
             return MakeConversionNode(rewrittenCall, rewrittenType, @checked, markAsChecked: true);
         }

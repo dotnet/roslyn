@@ -354,5 +354,15 @@ namespace Microsoft.CodeAnalysis
 
             return SpecialType.None;
         }
+
+        /// <summary>
+        /// Tells whether a different code path can be taken based on the fact, that a given type is a special type.
+        /// This method is called in places where conditions like <c>specialType != SpecialType.None</c> were previously used.
+        /// The main reason for this method to exist is to prevent such conditions, which introduce silent code changes every time a new special type is added.
+        /// This doesn't mean the checked special type range of this method cannot be modified,
+        /// but rather that each usage of this method needs to be reviewed to make sure everything works as expected in such cases
+        /// </summary>
+        public static bool CanOptimizeBehavior(this SpecialType specialType)
+            => specialType is >= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute;
     }
 }

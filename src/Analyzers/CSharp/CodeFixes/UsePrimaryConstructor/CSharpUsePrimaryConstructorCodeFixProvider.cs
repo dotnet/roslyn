@@ -36,7 +36,7 @@ using static SyntaxFactory;
 internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
-        => ImmutableArray.Create(IDEDiagnosticIds.UsePrimaryConstructorDiagnosticId);
+        => [IDEDiagnosticIds.UsePrimaryConstructorDiagnosticId];
 
     public override FixAllProvider? GetFixAllProvider()
 #if CODE_STYLE
@@ -374,7 +374,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                             return currentTypeDeclaration
                                 .WithIdentifier(currentTypeDeclaration.Identifier.WithoutTrailingTrivia())
                                 .WithTypeParameterList(typeParameterList?.WithoutTrailingTrivia())
-                                .WithBaseList(BaseList(SingletonSeparatedList<BaseTypeSyntax>(baseTypeSyntax)).WithLeadingTrivia(Space).WithTrailingTrivia(triviaAfterName));
+                                .WithBaseList(BaseList([baseTypeSyntax]).WithLeadingTrivia(Space).WithTrailingTrivia(triviaAfterName));
                         }
                         else
                         {
@@ -576,7 +576,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                 {
                     var paramRefTag = seeTag
                         .ReplaceToken(seeTag.Name.LocalName, Identifier("paramref").WithTriviaFrom(seeTag.Name.LocalName))
-                        .WithAttributes(SingletonList<XmlAttributeSyntax>(XmlNameAttribute(parameterName)));
+                        .WithAttributes([XmlNameAttribute(parameterName)]);
 
                     documentEditor.ReplaceNode(seeTag, paramRefTag);
                 }

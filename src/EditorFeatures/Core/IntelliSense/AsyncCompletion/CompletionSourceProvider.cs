@@ -14,32 +14,31 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
+
+[Export(typeof(IAsyncCompletionSourceProvider))]
+[Name("Roslyn Completion Source Provider")]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class CompletionSourceProvider(
+    IThreadingContext threadingContext,
+    IUIThreadOperationExecutor operationExecutor,
+    IAsynchronousOperationListenerProvider listenerProvider,
+    Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
+    EditorOptionsService editorOptionsService) : IAsyncCompletionSourceProvider
 {
-    [Export(typeof(IAsyncCompletionSourceProvider))]
-    [Name("Roslyn Completion Source Provider")]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class CompletionSourceProvider(
-        IThreadingContext threadingContext,
-        IUIThreadOperationExecutor operationExecutor,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
-        EditorOptionsService editorOptionsService) : IAsyncCompletionSourceProvider
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IUIThreadOperationExecutor _operationExecutor = operationExecutor;
+    private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
+    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.CompletionSet);
+    private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+
+    public IAsyncCompletionSource? GetOrCreate(ITextView textView)
     {
-        private readonly IThreadingContext _threadingContext = threadingContext;
-        private readonly IUIThreadOperationExecutor _operationExecutor = operationExecutor;
-        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
-        private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.CompletionSet);
-        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+        if (textView.IsInLspEditorContext())
+            return null;
 
-        public IAsyncCompletionSource? GetOrCreate(ITextView textView)
-        {
-            if (textView.IsInLspEditorContext())
-                return null;
-
-            return new CompletionSource(textView, _streamingPresenter, _threadingContext, _operationExecutor, _listener, _editorOptionsService);
-        }
+        return new CompletionSource(textView, _streamingPresenter, _threadingContext, _operationExecutor, _listener, _editorOptionsService);
     }
 }

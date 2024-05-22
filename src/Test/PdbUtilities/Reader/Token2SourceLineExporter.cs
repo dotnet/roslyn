@@ -1236,7 +1236,7 @@ namespace Roslyn.Test.PdbUtilities
 
         private static Dictionary<string, int> LoadNameIndex(BitAccess bits)
         {
-            Dictionary<string, int> result = new Dictionary<string, int>();
+            Dictionary<string, int> result = [];
             bits.ReadInt32(out var ver);    //  0..3  Version
             bits.ReadInt32(out var sig);    //  4..7  Signature
             bits.ReadInt32(out var age);    //  8..11 Age

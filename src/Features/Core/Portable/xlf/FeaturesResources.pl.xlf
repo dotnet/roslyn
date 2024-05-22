@@ -320,6 +320,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Klasy podstawowe zawierają niedostępne niezaimplementowane składowe</target>
         <note />
       </trans-unit>
+      <trans-unit id="Built_in_Copilot_analysis">
+        <source>Built-in Copilot analysis</source>
+        <target state="translated">Wbudowana analiza funkcji Copilot</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
         <source>C# and Visual Basic References</source>
         <target state="translated">Dokumentacja języków C# i Visual Basic</target>
@@ -648,6 +653,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Directives_from_0">
         <source>Directives from '{0}'</source>
         <target state="translated">Dyrektywy z „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Dismiss">
+        <source>Dismiss</source>
+        <target state="translated">Odrzuć</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -2043,7 +2053,7 @@ Można połączyć dwa lub więcej zakresów znaków. Na przykład aby określi�
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
         <source>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="translated">Konstrukcja wyrażenia regularnego \P{ nazwa } pasuje do dowolnego znaku, który nie należy do kategorii ogólnej znaków Unicode ani do bloku nazwanego, gdzie „nazwa” to skrót kategorii lub nazwa bloku nazwanego.</target>
+        <target state="translated">Konstrukcja wyrażenia regularnego \P{ name } pasuje do dowolnego znaku, który nie należy do kategorii ogólnej znaków Unicode ani do bloku nazwanego, gdzie „nazwa” to skrót kategorii lub nazwa bloku nazwanego.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_short">
@@ -2335,7 +2345,7 @@ Istnieje niejednoznaczność między ósemkowymi kodami ucieczki (takimi jak \16
       </trans-unit>
       <trans-unit id="Regex_unicode_category_long">
         <source>The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="translated">Konstrukcja wyrażenia regularnego \p{ nazwa } pasuje do dowolnego znaku należącego do ogólnej kategorii Unicode lub bloku nazwanego, gdzie „nazwa” to skrót kategorii lub nazwa bloku nazwanego.</target>
+        <target state="translated">Konstrukcja wyrażenia regularnego \p{ name } pasuje do dowolnego znaku należącego do ogólnej kategorii Unicode lub bloku nazwanego, gdzie „nazwa” to skrót kategorii lub nazwa bloku nazwanego.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_category_short">
@@ -2578,11 +2588,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="Resolve_0">
         <source>Resolve: '{0}'</source>
         <target state="translated">Rozpoznaj: „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Resolve_conflict_markers">
-        <source>Resolve conflict markers</source>
-        <target state="translated">Rozwiąż znaczniki konfliktów</target>
         <note />
       </trans-unit>
       <trans-unit id="Resolve_module_0_of_1">

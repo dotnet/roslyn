@@ -14,35 +14,34 @@ using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.LanguageServices.CodeLens;
 
-namespace Microsoft.CodeAnalysis.UnitTesting.ExternalAccess
+namespace Microsoft.CodeAnalysis.UnitTesting.ExternalAccess;
+
+internal class UnitTestingReferencesService
 {
-    internal class UnitTestingReferencesService
+    private static readonly IEnumerable<(string MethodFullyQualifedName, string MethodFilePath, string MethodOutputFilePath)> Empty =
+        Enumerable.Empty<(string MethodFullyQualifedName, string MethodFilePath, string MethodOutputFilePath)>();
+
+    internal static async Task<IEnumerable<(string MethodFullyQualifedName, string MethodFilePath, string MethodOutputFilePath)>> GetCallerMethodsAsync(
+        IAsyncCodeLensDataPointProvider provider,
+        ICodeLensCallbackService callbackService,
+        CodeLensDescriptor descriptor,
+        CodeLensDescriptorContext descriptorContext,
+        CancellationToken cancellationToken)
     {
-        private static readonly IEnumerable<(string MethodFullyQualifedName, string MethodFilePath, string MethodOutputFilePath)> Empty =
-            Enumerable.Empty<(string MethodFullyQualifedName, string MethodFilePath, string MethodOutputFilePath)>();
+        var callerMethods = await callbackService.InvokeAsync<ImmutableArray<ReferenceMethodDescriptor>?>(
+            provider,
+            nameof(ICodeLensContext.FindReferenceMethodsAsync),
+            new object[] { descriptor, descriptorContext },
+            cancellationToken).ConfigureAwait(false);
 
-        internal static async Task<IEnumerable<(string MethodFullyQualifedName, string MethodFilePath, string MethodOutputFilePath)>> GetCallerMethodsAsync(
-            IAsyncCodeLensDataPointProvider provider,
-            ICodeLensCallbackService callbackService,
-            CodeLensDescriptor descriptor,
-            CodeLensDescriptorContext descriptorContext,
-            CancellationToken cancellationToken)
+        if (!callerMethods.HasValue || callerMethods.Value.IsEmpty)
         {
-            var callerMethods = await callbackService.InvokeAsync<ImmutableArray<ReferenceMethodDescriptor>?>(
-                provider,
-                nameof(ICodeLensContext.FindReferenceMethodsAsync),
-                new object[] { descriptor, descriptorContext },
-                cancellationToken).ConfigureAwait(false);
-
-            if (!callerMethods.HasValue || callerMethods.Value.IsEmpty)
-            {
-                return Empty;
-            }
-
-            return callerMethods.Value.SelectAsArray(m => (
-                MethodFullyQualifiedName: m.FullName,
-                MethodFilePath: m.FilePath,
-                MethodOutputFilePath: m.OutputFilePath));
+            return Empty;
         }
+
+        return callerMethods.Value.SelectAsArray(m => (
+            MethodFullyQualifiedName: m.FullName,
+            MethodFilePath: m.FilePath,
+            MethodOutputFilePath: m.OutputFilePath));
     }
 }

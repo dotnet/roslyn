@@ -9,23 +9,22 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings
+namespace Microsoft.CodeAnalysis.CodeRefactorings;
+
+[ExportWorkspaceServiceFactory(typeof(ICodeRefactoringHelpersService), ServiceLayer.Default), Shared]
+internal class ServicesLayerCodeActionHelpersService : IWorkspaceServiceFactory
 {
-    [ExportWorkspaceServiceFactory(typeof(ICodeRefactoringHelpersService), ServiceLayer.Default), Shared]
-    internal class ServicesLayerCodeActionHelpersService : IWorkspaceServiceFactory
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public ServicesLayerCodeActionHelpersService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ServicesLayerCodeActionHelpersService()
-        {
-        }
+    }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new CodeActionHelpersService();
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new CodeActionHelpersService();
 
-        private class CodeActionHelpersService : ICodeRefactoringHelpersService
-        {
-            public bool ActiveInlineRenameSession => false;
-        }
+    private class CodeActionHelpersService : ICodeRefactoringHelpersService
+    {
+        public bool ActiveInlineRenameSession => false;
     }
 }

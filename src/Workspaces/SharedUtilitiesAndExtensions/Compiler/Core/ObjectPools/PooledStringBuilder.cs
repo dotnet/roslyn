@@ -4,15 +4,14 @@
 
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.PooledObjects
+namespace Microsoft.CodeAnalysis.PooledObjects;
+
+internal partial class PooledStringBuilder : IPooled
 {
-    internal partial class PooledStringBuilder : IPooled
+    public static PooledDisposer<PooledStringBuilder> GetInstance(out StringBuilder instance)
     {
-        public static PooledDisposer<PooledStringBuilder> GetInstance(out StringBuilder instance)
-        {
-            var pooledInstance = GetInstance();
-            instance = pooledInstance;
-            return new PooledDisposer<PooledStringBuilder>(pooledInstance);
-        }
+        var pooledInstance = GetInstance();
+        instance = pooledInstance;
+        return new PooledDisposer<PooledStringBuilder>(pooledInstance);
     }
 }

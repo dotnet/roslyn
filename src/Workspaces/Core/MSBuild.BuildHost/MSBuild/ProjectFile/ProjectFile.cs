@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (_loadedProject is null)
             {
-                return ImmutableArray.Create(ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath));
+                return [ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath)];
             }
 
             var targetFrameworkValue = _loadedProject.GetPropertyValue(PropertyNames.TargetFramework);
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
                 projectFileInfo ??= ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath);
-                return ImmutableArray.Create(projectFileInfo);
+                return [projectFileInfo];
             }
         }
 
@@ -114,11 +114,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var project = await _buildManager.BuildProjectAsync(_loadedProject, Log, cancellationToken).ConfigureAwait(false);
 
             return project != null
-                ? CreateProjectFileInfo(project, _loadedProject)
+                ? CreateProjectFileInfo(project)
                 : ProjectFileInfo.CreateEmpty(Language, _loadedProject.FullPath);
         }
 
-        private ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project, MSB.Evaluation.Project loadedProject)
+        private ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project)
         {
             var commandLineArgs = GetCommandLineArgs(project);
 
@@ -174,7 +174,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var projectCapabilities = project.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
             var contentFileInfo = GetContentFiles(project);
-            var isSdkStyle = IsSdkStyleProject(loadedProject);
 
             return ProjectFileInfo.Create(
                 Language,
@@ -193,8 +192,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 project.GetProjectReferences().ToImmutableArray(),
                 packageReferences,
                 projectCapabilities,
-                contentFileInfo,
-                isSdkStyle);
+                contentFileInfo);
         }
 
         private static ImmutableArray<string> GetContentFiles(MSB.Execution.ProjectInstance project)
@@ -203,18 +201,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 .GetItems(ItemNames.Content)
                 .SelectAsArray(item => item.GetMetadataValue(MetadataNames.FullPath));
             return contentFiles;
-        }
-
-        private static bool IsSdkStyleProject(MSB.Evaluation.Project loadedProject)
-        {
-            // To see if a project is an SDK style project we check for either of two things
-            //   1.  If it has a TargetFramework / TargetFrameworks property.  This isn't fully complete
-            //       as this property could come from a different props file
-            //   2.  If it imports an SDK.  This can be defined multiple ways in the project file, but
-            //       we can look at the resolved imports after evaluation to see if any are SDK based.
-            var hasTargetFrameworkProperty = loadedProject.Properties.Any(property => property.Name is "TargetFramework" or "TargetFrameworks");
-            var importsSdk = loadedProject.Imports.Any(import => import.SdkResult != null);
-            return hasTargetFrameworkProperty || importsSdk;
         }
 
         private ImmutableArray<string> GetCommandLineArgs(MSB.Execution.ProjectInstance project)
@@ -272,7 +258,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 var filePath = documentItem.ItemSpec;
                 var relativePath = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_projectDirectory, filePath));
-                var folders = relativePath == null ? ImmutableArray<string>.Empty : relativePath.Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
+                var folders = relativePath == null ? [] : relativePath.Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
                 return folders;
             }
         }

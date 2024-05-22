@@ -100,17 +100,6 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the server provides support for multiple context requests.
-        /// </summary>
-        [DataMember(Name = "_vs_MultipleContextSupportProvider")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public VSInternalMultipleContextFeatures? MultipleContextSupportProvider
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Gets or sets a value indicating whether the server provides support for inline completion requests.
         /// </summary>
         [DataMember(Name = "_vs_inlineCompletionOptions")]
@@ -160,6 +149,17 @@ namespace Roslyn.LanguageServer.Protocol
         [DataMember(Name = "_vs_textPresentationProvider")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool TextPresentationProvider
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets the value which indicates what support the server has for code mapping.
+        /// </summary>
+        [DataMember(Name = "_vs_mapCodeProvider")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public bool MapCodeProvider
         {
             get;
             set;

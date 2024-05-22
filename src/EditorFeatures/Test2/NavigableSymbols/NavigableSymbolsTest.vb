@@ -38,7 +38,7 @@ class {|target:C|}
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateCSharp(text, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.CreateCSharp(text, composition:=s_composition)
                 Await TestNavigated(workspace, position.Value, spans)
             End Using
         End Function
@@ -51,7 +51,7 @@ class {|target:C|}
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateCSharp(text, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.CreateCSharp(text, composition:=s_composition)
                 Await TestNavigated(workspace, position.Value, spans)
             End Using
         End Function
@@ -64,7 +64,7 @@ class {|target:C|}
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateCSharp(text, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.CreateCSharp(text, composition:=s_composition)
                 Await TestNavigated(workspace, position.Value, spans)
             End Using
         End Function
@@ -80,7 +80,7 @@ End Class"
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(text, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(text, composition:=s_composition)
                 Await TestNavigated(workspace, position.Value, spans)
             End Using
         End Function
@@ -93,7 +93,7 @@ End Class"
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(text, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(text, composition:=s_composition)
                 Await TestNavigated(workspace, position.Value, spans)
             End Using
         End Function
@@ -106,12 +106,12 @@ End Class"
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(text, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(text, composition:=s_composition)
                 Await TestNavigated(workspace, position.Value, spans)
             End Using
         End Function
 
-        Private Shared Function ExtractSymbol(workspace As TestWorkspace, position As Integer) As Task(Of INavigableSymbol)
+        Private Shared Function ExtractSymbol(workspace As EditorTestWorkspace, position As Integer) As Task(Of INavigableSymbol)
             Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
             Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
             Dim service = New NavigableSymbolService(workspace.ExportProvider.GetExportedValue(Of IUIThreadOperationExecutor)(), threadingContext, listenerProvider)
@@ -122,7 +122,7 @@ End Class"
             Return source.GetNavigableSymbolAsync(triggerSpan, CancellationToken.None)
         End Function
 
-        Private Shared Async Function TestNavigated(workspace As TestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task
+        Private Shared Async Function TestNavigated(workspace As EditorTestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task
             Dim symbol = Await ExtractSymbol(workspace, position)
 
             Dim highlightedSpan = spans("highlighted").First()

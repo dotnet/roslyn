@@ -20,11 +20,7 @@ internal class DiagnosticOptions : IWorkDoneProgressOptions
     /// </summary>
     [DataMember(Name = "workDoneProgress")]
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public bool WorkDoneProgress
-    {
-        get;
-        set;
-    }
+    public bool WorkDoneProgress { get; init; }
 
     /// <summary>
     /// Gets or sets the identifier in which the diagnostics are bucketed by the client.

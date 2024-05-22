@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-    public class FullyQualifyUnboundIdentifierTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class FullyQualifyUnboundIdentifierTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public FullyQualifyUnboundIdentifierTests(ITestOutputHelper logger)
            : base(logger)

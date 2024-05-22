@@ -6,13 +6,12 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.CodeFixes
+namespace Microsoft.CodeAnalysis.CodeFixes;
+
+/// <summary>
+/// CodeFixProvider factory. if an analyzer reference implements this, we call this to get CodeFixProviders
+/// </summary>
+internal interface ICodeFixProviderFactory
 {
-    /// <summary>
-    /// CodeFixProvider factory. if an analyzer reference implements this, we call this to get CodeFixProviders
-    /// </summary>
-    internal interface ICodeFixProviderFactory
-    {
-        ImmutableArray<CodeFixProvider> GetFixers();
-    }
+    ImmutableArray<CodeFixProvider> GetFixers();
 }

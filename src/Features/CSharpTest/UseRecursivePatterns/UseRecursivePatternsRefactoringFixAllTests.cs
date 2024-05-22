@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseRecursivePatterns)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public class UseRecursivePatternsRefactoringFixAllTests : AbstractCSharpCodeActionTest
+    public class UseRecursivePatternsRefactoringFixAllTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new UseRecursivePatternsCodeRefactoringProvider();
 
         [Fact]

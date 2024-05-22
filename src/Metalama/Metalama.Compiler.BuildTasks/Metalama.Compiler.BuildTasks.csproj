@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Metalama.Compiler.BuildTasks</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <TargetFrameworks>$(MetalamaNetRoslyn);net472</TargetFrameworks>
     <!-- <Metalama> -->
     <AutoGenerateAssemblyVersion>false</AutoGenerateAssemblyVersion>
     <!-- </Metalama> -->

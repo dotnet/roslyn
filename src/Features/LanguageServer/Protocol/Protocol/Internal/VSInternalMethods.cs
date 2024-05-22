@@ -70,6 +70,11 @@ namespace Roslyn.LanguageServer.Protocol
         public const string WorkspaceSpellCheckableRangesName = "workspace/_vs_spellCheckableRanges";
 
         /// <summary>
+        /// Method name for 'workspace/_vs_mapCode'.
+        /// </summary>
+        public const string WorkspaceMapCodeName = "workspace/_vs_mapCode";
+
+        /// <summary>
         /// Strongly typed message object for 'textDocument/_vs_onAutoInsert'.
         /// </summary>
         public static readonly LspRequest<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem> OnAutoInsert = new LspRequest<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(OnAutoInsertName);
@@ -118,5 +123,10 @@ namespace Roslyn.LanguageServer.Protocol
         /// Strongly typed message object for 'workspace/_vs_spellCheckableRanges'.
         /// </summary>
         public static readonly LspRequest<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]> WorkspaceSpellCheckableRanges = new LspRequest<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]>(WorkspaceSpellCheckableRangesName);
+
+        /// <summary>
+        /// Strongly typed message object for 'workspace/_vs_mapCode'
+        /// </summary>
+        public static readonly LspRequest<VSInternalMapCodeParams, WorkspaceEdit?> WorkspaceMapCode = new(WorkspaceMapCodeName);
     }
 }

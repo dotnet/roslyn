@@ -177,7 +177,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            await TestServices.Shell.ExecuteCommandAsync("View.C#Interactive", cancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync<OpenInteractiveWindowCommand>(cancellationToken);
 
             if (waitForPrompt)
             {

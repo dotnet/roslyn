@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.OrderModifiers
     <Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
     Public Class OrderModifiersTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicOrderModifiersDiagnosticAnalyzer(),

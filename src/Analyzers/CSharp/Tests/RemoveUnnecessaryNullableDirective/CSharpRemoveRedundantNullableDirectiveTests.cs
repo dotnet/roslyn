@@ -182,9 +182,93 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 """
                 // File Header
 
-
                 class Program
                 {
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantDirectiveBetweenUsingAndNamespace()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                using System;
+                
+                [|#nullable enable|]
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantDirectiveBetweenUsingAndNamespace2()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                using System;
+                [|#nullable enable|]
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantDirectiveBetweenUsingAndNamespace3()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                using System;
+
+                [|#nullable enable|]
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
                 }
                 """);
         }
@@ -213,6 +297,155 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 namespace X.Y
                 {
                     class ProgramException : Exception
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantDirectiveMultiple1()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                using System;
+
+                [|#nullable enable|]
+                [|#nullable enable|]
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantDirectiveMultiple2()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                using System;
+
+                [|#nullable enable|]
+
+                [|#nullable enable|]
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantDirectiveMultiple3()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                using System;
+                [|#nullable enable|]
+                [|#nullable enable|]
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantDirectiveMultiple4()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                using System;
+                [|#nullable enable|]
+
+                [|#nullable enable|]
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantDirectiveMultiple5()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                using System;
+
+                [|#nullable enable|]
+                [|#nullable enable|]
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
+
+                namespace MyNamespace
+                {
+                    class MyClass
                     {
                     }
                 }

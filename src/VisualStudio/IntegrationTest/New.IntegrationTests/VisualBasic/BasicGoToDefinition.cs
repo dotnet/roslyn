@@ -44,7 +44,7 @@ End Class", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("SomeClass", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
             Assert.Equal($"FileDef.vb", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
-            await TestServices.EditorVerifier.TextContainsAsync(@"Class SomeClass$$", assertCaretPosition: true, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextContainsAsync(@"Class $$SomeClass", assertCaretPosition: true, HangMitigatingCancellationToken);
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
@@ -101,7 +101,7 @@ End Class", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Overrides", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
             Assert.Equal("Object [from metadata] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
-            await TestServices.EditorVerifier.TextContainsAsync(@"Public Overridable Function ToString$$() As String", assertCaretPosition: true);
+            await TestServices.EditorVerifier.TextContainsAsync(@"Public Overridable Function $$ToString() As String", assertCaretPosition: true);
         }
     }
 }

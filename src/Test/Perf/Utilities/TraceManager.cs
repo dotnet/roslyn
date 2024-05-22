@@ -129,7 +129,7 @@ namespace Roslyn.Test.Performance.Utilities
 
     public class WallClockTraceManager : ITraceManager
     {
-        private readonly List<long> _durations = new List<long>();
+        private readonly List<long> _durations = [];
         private string _testName = "";
 
         private Stopwatch _stopwatch;

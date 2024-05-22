@@ -4,13 +4,12 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Indicates whether a type has checksum or not
+/// </summary>
+internal interface IChecksummedObject
 {
-    /// <summary>
-    /// Indicates whether a type has checksum or not
-    /// </summary>
-    internal interface IChecksummedObject
-    {
-        Checksum Checksum { get; }
-    }
+    Checksum Checksum { get; }
 }

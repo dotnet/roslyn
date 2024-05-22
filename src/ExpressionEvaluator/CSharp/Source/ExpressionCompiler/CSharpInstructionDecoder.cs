@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override void AppendFullName(StringBuilder builder, MethodSymbol method)
         {
-            var displayFormat = (method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.PropertySet)
+            var displayFormat = method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet
                 ? s_propertyDisplayFormat
                 : DisplayFormat;
 

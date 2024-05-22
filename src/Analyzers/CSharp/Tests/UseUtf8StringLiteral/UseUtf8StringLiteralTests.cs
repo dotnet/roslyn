@@ -824,12 +824,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
             await new VerifyCS.Test
             {
                 TestCode =
-$@"
-public class C
-{{
-    private static readonly byte[] _bytes = new byte[] {{ {string.Join(", ", bytes)} }};
-}}
-",
+                $$"""
+                public class C
+                {
+                    private static readonly byte[] _bytes = new byte[] { {{string.Join(", ", bytes)}} };
+                }
+                """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.CSharp12

@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             try
             {
-                var requestId = Guid.NewGuid();
+                var requestId = Guid.NewGuid().ToString();
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     _language,

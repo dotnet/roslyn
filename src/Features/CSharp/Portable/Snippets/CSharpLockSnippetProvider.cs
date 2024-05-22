@@ -14,43 +14,42 @@ using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+internal sealed class CSharpLockSnippetProvider : AbstractLockSnippetProvider
 {
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpLockSnippetProvider : AbstractLockSnippetProvider
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpLockSnippetProvider()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpLockSnippetProvider()
-        {
-        }
+    }
 
-        public override string Identifier => "lock";
+    public override string Identifier => "lock";
 
-        public override string Description => CSharpFeaturesResources.lock_statement;
+    public override string Description => CSharpFeaturesResources.lock_statement;
 
-        protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        {
-            var lockStatement = (LockStatementSyntax)node;
-            var expression = lockStatement.Expression;
-            return ImmutableArray.Create(new SnippetPlaceholder(expression.ToString(), expression.SpanStart));
-        }
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    {
+        var lockStatement = (LockStatementSyntax)node;
+        var expression = lockStatement.Expression;
+        return [new SnippetPlaceholder(expression.ToString(), expression.SpanStart)];
+    }
 
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-        {
-            return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<LockStatementSyntax>(
-                caretTarget,
-                static s => (BlockSyntax)s.Statement,
-                sourceText);
-        }
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
+    {
+        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<LockStatementSyntax>(
+            caretTarget,
+            static s => (BlockSyntax)s.Statement,
+            sourceText);
+    }
 
-        protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<LockStatementSyntax>(
-                document,
-                FindSnippetAnnotation,
-                static s => (BlockSyntax)s.Statement,
-                cancellationToken);
-        }
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
+    {
+        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<LockStatementSyntax>(
+            document,
+            FindSnippetAnnotation,
+            static s => (BlockSyntax)s.Statement,
+            cancellationToken);
     }
 }

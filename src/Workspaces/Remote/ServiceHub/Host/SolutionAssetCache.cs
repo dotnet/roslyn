@@ -111,6 +111,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        public bool ContainsAsset(Checksum checksum)
+            => _assets.ContainsKey(checksum);
+
         public void UpdateLastActivityTime()
             => _lastActivityTime = DateTime.UtcNow;
 

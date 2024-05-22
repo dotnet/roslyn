@@ -795,17 +795,18 @@ End Module
 <compilation>
     <file name="a.vb">
 Imports System
+Imports System.Globalization
 Module C
     Sub Main()
         const temp1 as single = 23334800f / 5.5f
         console.WriteLine(Microsoft.VisualBasic.Int(temp1))
         console.WriteLine(Microsoft.VisualBasic.Int(23334800f / 5.5f))
-        console.WriteLine(temp1 * 5.5)
+        console.WriteLine((temp1 * 5.5).ToString(CultureInfo.InvariantCulture))
 
         const temp2 as double = 23334800.0 / 5.5
         console.WriteLine(Microsoft.VisualBasic.Int(temp2))
         console.WriteLine(Microsoft.VisualBasic.Int(23334800.0 / 5.5))
-        console.WriteLine(temp2 * 5.5)
+        console.WriteLine((temp2 * 5.5).ToString(CultureInfo.InvariantCulture))
     End Sub
 End Module
     </file>

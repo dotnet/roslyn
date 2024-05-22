@@ -102,7 +102,7 @@ End Class</code>
 
         Friend Overloads Shared Function CreateSession(code As String) As Holder
             Return AbstractAutomaticBraceCompletionTests.CreateSession(
-                TestWorkspace.CreateVisualBasic(code),
+                EditorTestWorkspace.CreateVisualBasic(code),
                 CurlyBrace.OpenCharacter, CurlyBrace.CloseCharacter)
         End Function
     End Class

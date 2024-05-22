@@ -6,9 +6,8 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+
+internal class StackFrameTree(VirtualCharSequence text, StackFrameCompilationUnit root) : EmbeddedSyntaxTree<StackFrameKind, StackFrameNode, StackFrameCompilationUnit>(text, root, ImmutableArray<EmbeddedDiagnostic>.Empty)
 {
-    internal class StackFrameTree(VirtualCharSequence text, StackFrameCompilationUnit root) : EmbeddedSyntaxTree<StackFrameKind, StackFrameNode, StackFrameCompilationUnit>(text, root, ImmutableArray<EmbeddedDiagnostic>.Empty)
-    {
-    }
 }

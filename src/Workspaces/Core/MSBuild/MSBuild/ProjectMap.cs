@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             _projectPathToProjectIdsMap = new Dictionary<string, HashSet<ProjectId>>(PathUtilities.Comparer);
             _projectPathToProjectInfosMap = new Dictionary<string, ImmutableArray<ProjectInfo>>(PathUtilities.Comparer);
-            _projectIdToOutputFilePathMap = new Dictionary<ProjectId, string>();
-            _projectIdToOutputRefFilePathMap = new Dictionary<ProjectId, string>();
+            _projectIdToOutputFilePathMap = [];
+            _projectIdToOutputRefFilePathMap = [];
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             if (!_projectPathToProjectInfosMap.TryGetValue(projectFilePath, out var projectInfos))
             {
-                projectInfos = ImmutableArray<ProjectInfo>.Empty;
+                projectInfos = [];
             }
 
             if (projectInfos.Contains(pi => pi.Id == projectInfo.Id))
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (!_projectPathToProjectIdsMap.TryGetValue(projectPath, out var projectIds))
             {
-                projectIds = new HashSet<ProjectId>();
+                projectIds = [];
                 _projectPathToProjectIdsMap.Add(projectPath, projectIds);
             }
 

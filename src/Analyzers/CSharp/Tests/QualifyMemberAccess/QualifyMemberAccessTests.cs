@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-    public partial class QualifyMemberAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class QualifyMemberAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public QualifyMemberAccessTests(ITestOutputHelper logger)
           : base(logger)
@@ -2017,8 +2017,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
 CodeStyleOptions2.QualifyFieldAccess);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22776")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22776")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/64374")]
         public async Task DoReportToQualify_InObjectInitializer2()
         {

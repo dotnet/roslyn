@@ -9,16 +9,15 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal interface ISignatureHelpPresenterSession : IIntelliSensePresenterSession
 {
-    internal interface ISignatureHelpPresenterSession : IIntelliSensePresenterSession
-    {
-        void PresentItems(ITrackingSpan triggerSpan, IList<SignatureHelpItem> items, SignatureHelpItem selectedItem, int? selectedParameter);
-        void SelectPreviousItem();
-        void SelectNextItem();
+    void PresentItems(ITrackingSpan triggerSpan, IList<SignatureHelpItem> items, SignatureHelpItem selectedItem, int? selectedParameter);
+    void SelectPreviousItem();
+    void SelectNextItem();
 
-        event EventHandler<SignatureHelpItemEventArgs> ItemSelected;
+    event EventHandler<SignatureHelpItemEventArgs> ItemSelected;
 
-        bool EditorSessionIsActive { get; }
-    }
+    bool EditorSessionIsActive { get; }
 }

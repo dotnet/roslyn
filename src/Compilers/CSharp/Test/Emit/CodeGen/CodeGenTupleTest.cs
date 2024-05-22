@@ -3266,7 +3266,7 @@ class C
         public void HugeTupleCreationParses()
         {
             StringBuilder b = new StringBuilder();
-            b.Append("(");
+            b.Append('(');
             for (int i = 0; i < 3000; i++)
             {
                 b.Append("1, ");
@@ -3292,7 +3292,7 @@ class C
         public void HugeTupleDeclarationParses()
         {
             StringBuilder b = new StringBuilder();
-            b.Append("(");
+            b.Append('(');
             for (int i = 0; i < 3000; i++)
             {
                 b.Append("int, ");
@@ -27935,7 +27935,7 @@ class C
             Assert.False(field.HasComplete(CompletionPart.All));
             Assert.False(underlyingField.HasComplete(CompletionPart.All));
 
-            field.ForceComplete(null, default);
+            field.ForceComplete(null, filter: null, default);
 
             Assert.True(field.RequiresCompletion);
             Assert.True(underlyingField.RequiresCompletion);

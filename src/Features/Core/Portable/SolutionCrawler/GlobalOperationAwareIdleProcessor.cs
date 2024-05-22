@@ -9,45 +9,44 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SolutionCrawler
+namespace Microsoft.CodeAnalysis.SolutionCrawler;
+
+internal abstract class GlobalOperationAwareIdleProcessor : IdleProcessor
 {
-    internal abstract class GlobalOperationAwareIdleProcessor : IdleProcessor
+    /// <summary>
+    /// We're not at a layer where we are guaranteed to have an IGlobalOperationNotificationService.  So allow for
+    /// it being null.
+    /// </summary>
+    private readonly IGlobalOperationNotificationService? _globalOperationNotificationService;
+
+    public GlobalOperationAwareIdleProcessor(
+        IAsynchronousOperationListener listener,
+        IGlobalOperationNotificationService? globalOperationNotificationService,
+        TimeSpan backOffTimeSpan,
+        CancellationToken shutdownToken)
+        : base(listener, backOffTimeSpan, shutdownToken)
     {
-        /// <summary>
-        /// We're not at a layer where we are guaranteed to have an IGlobalOperationNotificationService.  So allow for
-        /// it being null.
-        /// </summary>
-        private readonly IGlobalOperationNotificationService? _globalOperationNotificationService;
+        _globalOperationNotificationService = globalOperationNotificationService;
 
-        public GlobalOperationAwareIdleProcessor(
-            IAsynchronousOperationListener listener,
-            IGlobalOperationNotificationService? globalOperationNotificationService,
-            TimeSpan backOffTimeSpan,
-            CancellationToken shutdownToken)
-            : base(listener, backOffTimeSpan, shutdownToken)
+        if (_globalOperationNotificationService != null)
         {
-            _globalOperationNotificationService = globalOperationNotificationService;
-
-            if (_globalOperationNotificationService != null)
-            {
-                _globalOperationNotificationService.Started += OnGlobalOperationStarted;
-                _globalOperationNotificationService.Stopped += OnGlobalOperationStopped;
-            }
+            _globalOperationNotificationService.Started += OnGlobalOperationStarted;
+            _globalOperationNotificationService.Stopped += OnGlobalOperationStopped;
         }
-
-        public virtual void Shutdown()
-        {
-            if (_globalOperationNotificationService != null)
-            {
-                _globalOperationNotificationService.Started -= OnGlobalOperationStarted;
-                _globalOperationNotificationService.Stopped -= OnGlobalOperationStopped;
-            }
-        }
-
-        private void OnGlobalOperationStarted(object? sender, EventArgs e)
-            => this.SetIsPaused(isPaused: true);
-
-        private void OnGlobalOperationStopped(object? sender, EventArgs e)
-            => this.SetIsPaused(isPaused: false);
     }
+
+    public virtual void Shutdown()
+    {
+        if (_globalOperationNotificationService != null)
+        {
+            _globalOperationNotificationService.Started -= OnGlobalOperationStarted;
+            _globalOperationNotificationService.Stopped -= OnGlobalOperationStopped;
+        }
+    }
+
+    private void OnGlobalOperationStarted(object? sender, EventArgs e)
+        => this.SetIsPaused(isPaused: true);
+
+    private void OnGlobalOperationStopped(object? sender, EventArgs e)
+        => this.SetIsPaused(isPaused: false);
 }

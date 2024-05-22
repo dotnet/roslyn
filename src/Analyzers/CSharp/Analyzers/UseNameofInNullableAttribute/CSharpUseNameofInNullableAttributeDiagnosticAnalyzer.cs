@@ -107,6 +107,7 @@ internal sealed class CSharpUseNameofInAttributeDiagnosticAnalyzer : AbstractBui
                     this.Descriptor,
                     argument.Expression.GetLocation(),
                     NotificationOption2.Suggestion,
+                    context.Options,
                     additionalLocations: null,
                     ImmutableDictionary<string, string?>.Empty.Add(NameKey, stringValue)));
             }

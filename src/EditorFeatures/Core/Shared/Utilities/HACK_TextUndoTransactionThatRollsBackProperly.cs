@@ -7,132 +7,131 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Text.Operations;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+
+/// <summary>
+/// An implementation of <see cref="ITextUndoTransaction" /> that wraps another
+/// <see cref="ITextUndoTransaction" />. Some undo implementations (notably the VS implementation)
+/// violate the specified contract for Cancel(), which states that cancelling an active transaction
+/// should undo the primitives that we already added. This works around that problem; calling Cancel()
+/// on this forwards the cancellation to the inner transaction, and if it failed to roll back we
+/// do it ourselves.
+/// </summary>
+internal sealed class HACK_TextUndoTransactionThatRollsBackProperly(ITextUndoTransaction innerTransaction) : ITextUndoTransaction
 {
-    /// <summary>
-    /// An implementation of <see cref="ITextUndoTransaction" /> that wraps another
-    /// <see cref="ITextUndoTransaction" />. Some undo implementations (notably the VS implementation)
-    /// violate the specified contract for Cancel(), which states that cancelling an active transaction
-    /// should undo the primitives that we already added. This works around that problem; calling Cancel()
-    /// on this forwards the cancellation to the inner transaction, and if it failed to roll back we
-    /// do it ourselves.
-    /// </summary>
-    internal sealed class HACK_TextUndoTransactionThatRollsBackProperly(ITextUndoTransaction innerTransaction) : ITextUndoTransaction
+    private readonly ITextUndoTransaction _innerTransaction = innerTransaction;
+    private readonly RollbackDetectingUndoPrimitive _undoPrimitive = new();
+
+    private bool _transactionOpen = true;
+
+    public bool CanRedo => _innerTransaction.CanRedo;
+
+    public bool CanUndo => _innerTransaction.CanUndo;
+
+    public string Description
     {
-        private readonly ITextUndoTransaction _innerTransaction = innerTransaction;
-        private readonly RollbackDetectingUndoPrimitive _undoPrimitive = new();
-
-        private bool _transactionOpen = true;
-
-        public bool CanRedo => _innerTransaction.CanRedo;
-
-        public bool CanUndo => _innerTransaction.CanUndo;
-
-        public string Description
+        get
         {
-            get
-            {
-                return _innerTransaction.Description;
-            }
-
-            set
-            {
-                _innerTransaction.Description = value;
-            }
+            return _innerTransaction.Description;
         }
 
-        public ITextUndoHistory History => _innerTransaction.History;
-
-        public IMergeTextUndoTransactionPolicy MergePolicy
+        set
         {
-            get
-            {
-                return _innerTransaction.MergePolicy;
-            }
+            _innerTransaction.Description = value;
+        }
+    }
 
-            set
-            {
-                _innerTransaction.MergePolicy = value;
-            }
+    public ITextUndoHistory History => _innerTransaction.History;
+
+    public IMergeTextUndoTransactionPolicy MergePolicy
+    {
+        get
+        {
+            return _innerTransaction.MergePolicy;
         }
 
-        public ITextUndoTransaction Parent => _innerTransaction.Parent;
-
-        public UndoTransactionState State => _innerTransaction.State;
-
-        public IList<ITextUndoPrimitive> UndoPrimitives => _innerTransaction.UndoPrimitives;
-
-        public void AddUndo(ITextUndoPrimitive undo)
-            => _innerTransaction.AddUndo(undo);
-
-        public void Cancel()
+        set
         {
-            var transactionWasOpen = _transactionOpen;
-            _transactionOpen = false;
+            _innerTransaction.MergePolicy = value;
+        }
+    }
 
-            // First, add an undo primitive so we can detect whether or not undo gets called
-            if (transactionWasOpen)
-            {
-                _innerTransaction.AddUndo(_undoPrimitive);
-            }
+    public ITextUndoTransaction Parent => _innerTransaction.Parent;
 
-            _innerTransaction.Cancel();
+    public UndoTransactionState State => _innerTransaction.State;
 
-            if (transactionWasOpen && !_undoPrimitive.UndoCalled)
-            {
-                // Undo each of the primitives in reverse order to clean up. This is slimy.
-                foreach (var primitive in _innerTransaction.UndoPrimitives.Reverse())
-                {
-                    primitive.Undo();
-                }
-            }
+    public IList<ITextUndoPrimitive> UndoPrimitives => _innerTransaction.UndoPrimitives;
+
+    public void AddUndo(ITextUndoPrimitive undo)
+        => _innerTransaction.AddUndo(undo);
+
+    public void Cancel()
+    {
+        var transactionWasOpen = _transactionOpen;
+        _transactionOpen = false;
+
+        // First, add an undo primitive so we can detect whether or not undo gets called
+        if (transactionWasOpen)
+        {
+            _innerTransaction.AddUndo(_undoPrimitive);
         }
 
-        public void Complete()
-        {
-            _transactionOpen = false;
-            _innerTransaction.Complete();
-        }
+        _innerTransaction.Cancel();
 
-        public void Dispose()
+        if (transactionWasOpen && !_undoPrimitive.UndoCalled)
         {
-            if (_transactionOpen)
+            // Undo each of the primitives in reverse order to clean up. This is slimy.
+            foreach (var primitive in _innerTransaction.UndoPrimitives.Reverse())
             {
-                // Call our cancel method first to ensure we handle it properly
-                Cancel();
+                primitive.Undo();
             }
-
-            _innerTransaction.Dispose();
         }
+    }
+
+    public void Complete()
+    {
+        _transactionOpen = false;
+        _innerTransaction.Complete();
+    }
+
+    public void Dispose()
+    {
+        if (_transactionOpen)
+        {
+            // Call our cancel method first to ensure we handle it properly
+            Cancel();
+        }
+
+        _innerTransaction.Dispose();
+    }
+
+    public void Do()
+        => _innerTransaction.Do();
+
+    public void Undo()
+        => _innerTransaction.Undo();
+
+    private class RollbackDetectingUndoPrimitive : ITextUndoPrimitive
+    {
+        internal bool UndoCalled = false;
+
+        public bool CanRedo => true;
+
+        public bool CanUndo => true;
+
+        public ITextUndoTransaction? Parent { get; set; }
+
+        public bool CanMerge(ITextUndoPrimitive older)
+            => false;
 
         public void Do()
-            => _innerTransaction.Do();
+        {
+        }
+
+        public ITextUndoPrimitive Merge(ITextUndoPrimitive older)
+            => throw new NotSupportedException();
 
         public void Undo()
-            => _innerTransaction.Undo();
-
-        private class RollbackDetectingUndoPrimitive : ITextUndoPrimitive
-        {
-            internal bool UndoCalled = false;
-
-            public bool CanRedo => true;
-
-            public bool CanUndo => true;
-
-            public ITextUndoTransaction? Parent { get; set; }
-
-            public bool CanMerge(ITextUndoPrimitive older)
-                => false;
-
-            public void Do()
-            {
-            }
-
-            public ITextUndoPrimitive Merge(ITextUndoPrimitive older)
-                => throw new NotSupportedException();
-
-            public void Undo()
-                => UndoCalled = true;
-        }
+            => UndoCalled = true;
     }
 }

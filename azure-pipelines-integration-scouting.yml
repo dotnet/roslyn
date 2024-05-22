@@ -11,6 +11,12 @@ schedules:
     - main
     - main-vs-deps
 
+variables:
+- name: Codeql.Enabled
+  value: false
+- name: Codeql.SkipTaskAutoInjection
+  value: true
+
 parameters:
 - name: poolName
   displayName: Pool Name

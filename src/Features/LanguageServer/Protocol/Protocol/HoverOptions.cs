@@ -20,10 +20,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [DataMember(Name = "workDoneProgress")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public bool WorkDoneProgress
-        {
-            get;
-            set;
-        }
+        public bool WorkDoneProgress { get; init; }
     }
 }

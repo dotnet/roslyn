@@ -331,7 +331,7 @@ namespace A { namespace N { } }
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             var symbols = GetDeclaredSymbols(compilation);
             Assert.Equal(5, symbols.Count());
-            Assert.Equal(new[] { "N", "A", "A.B", "A.B.C", "A.N" },
+            Assert.Equal(["N", "A", "A.B", "A.B.C", "A.N"],
                 symbols.Select(s => s.ToDisplayString()));
             TestRoundTrip(symbols, compilation);
         }
@@ -1085,8 +1085,8 @@ class C
 }";
 
             // We don't add metadata references, so even `int` will be an error type.
-            var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs", Array.Empty<MetadataReference>());
-            var compilation2 = GetCompilation(source, LanguageNames.CSharp, "File2.cs", Array.Empty<MetadataReference>());
+            var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs", []);
+            var compilation2 = GetCompilation(source, LanguageNames.CSharp, "File2.cs", []);
 
             var symbol = (IPropertySymbol)GetAllSymbols(
                 compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
@@ -1120,8 +1120,8 @@ class C
 end class";
 
             // We don't add metadata references, so even `int` will be an error type.
-            var compilation1 = GetCompilation(source, LanguageNames.VisualBasic, "File1.vb", Array.Empty<MetadataReference>());
-            var compilation2 = GetCompilation(source, LanguageNames.VisualBasic, "File2.vb", Array.Empty<MetadataReference>());
+            var compilation1 = GetCompilation(source, LanguageNames.VisualBasic, "File1.vb", []);
+            var compilation2 = GetCompilation(source, LanguageNames.VisualBasic, "File2.vb", []);
 
             var symbol = (IPropertySymbol)GetAllSymbols(
                 compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
@@ -1479,12 +1479,12 @@ public class C
             if (language == LanguageNames.CSharp)
             {
                 var tree = CSharp.SyntaxFactory.ParseSyntaxTree(source, path: path);
-                return CSharp.CSharpCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
+                return CSharp.CSharpCompilation.Create("Test", syntaxTrees: [tree], references: references);
             }
             else if (language == LanguageNames.VisualBasic)
             {
                 var tree = VisualBasic.SyntaxFactory.ParseSyntaxTree(source, path: path);
-                return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
+                return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: [tree], references: references);
             }
 
             throw new NotSupportedException();

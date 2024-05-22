@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Dim dir = "Z:\" & ChrW(&HE25B)
 
             Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
+                EditorTestWorkspace.CreateWorkspace(
                     <Workspace>
                         <Project Language="C#" Name="TestProject" FilePath=<%= dir & "\TestProject.csproj" %>>
                             <Document Name="A.cs" FilePath=<%= dir & "\a.cs" %>/>
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Using jsonWriter = New JsonModeLsifJsonWriter(stringWriter)
 
                 Await TestLsifOutput.GenerateForWorkspaceAsync(
-                    TestWorkspace.CreateWorkspace(
+                    EditorTestWorkspace.CreateWorkspace(
                         <Workspace>
                             <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj">
                                 <Document Name="A.cs" FilePath="Z:\A.cs"/>

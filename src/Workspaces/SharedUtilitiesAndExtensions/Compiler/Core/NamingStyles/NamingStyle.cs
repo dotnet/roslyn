@@ -18,476 +18,475 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.NamingStyles
+namespace Microsoft.CodeAnalysis.NamingStyles;
+
+[DataContract]
+internal readonly partial record struct NamingStyle
 {
-    [DataContract]
-    internal readonly partial record struct NamingStyle
+    [DataMember(Order = 0)]
+    public Guid ID { get; init; }
+
+    [DataMember(Order = 1)]
+    public string Name { get; init; }
+
+    [DataMember(Order = 2)]
+    public string Prefix { get; init; }
+
+    [DataMember(Order = 3)]
+    public string Suffix { get; init; }
+
+    [DataMember(Order = 4)]
+    public string WordSeparator { get; init; }
+
+    [DataMember(Order = 5)]
+    public Capitalization CapitalizationScheme { get; init; }
+
+    public NamingStyle(
+        Guid id,
+        string name = null,
+        string prefix = null,
+        string suffix = null,
+        string wordSeparator = null,
+        Capitalization capitalizationScheme = Capitalization.PascalCase)
     {
-        [DataMember(Order = 0)]
-        public Guid ID { get; init; }
+        ID = id;
+        Name = name;
+        Prefix = prefix ?? "";
+        Suffix = suffix ?? "";
+        WordSeparator = wordSeparator ?? "";
+        CapitalizationScheme = capitalizationScheme;
+    }
 
-        [DataMember(Order = 1)]
-        public string Name { get; init; }
+    public string CreateName(ImmutableArray<string> words)
+    {
+        var wordsWithCasing = ApplyCapitalization(words);
+        var combinedWordsWithCasing = string.Join(WordSeparator, wordsWithCasing);
+        return Prefix + combinedWordsWithCasing + Suffix;
+    }
 
-        [DataMember(Order = 2)]
-        public string Prefix { get; init; }
-
-        [DataMember(Order = 3)]
-        public string Suffix { get; init; }
-
-        [DataMember(Order = 4)]
-        public string WordSeparator { get; init; }
-
-        [DataMember(Order = 5)]
-        public Capitalization CapitalizationScheme { get; init; }
-
-        public NamingStyle(
-            Guid id,
-            string name = null,
-            string prefix = null,
-            string suffix = null,
-            string wordSeparator = null,
-            Capitalization capitalizationScheme = Capitalization.PascalCase)
+    private IEnumerable<string> ApplyCapitalization(IEnumerable<string> words)
+    {
+        switch (CapitalizationScheme)
         {
-            ID = id;
-            Name = name;
-            Prefix = prefix ?? "";
-            Suffix = suffix ?? "";
-            WordSeparator = wordSeparator ?? "";
-            CapitalizationScheme = capitalizationScheme;
+            case Capitalization.PascalCase:
+                return words.Select(CapitalizeFirstLetter);
+            case Capitalization.CamelCase:
+                return words.Take(1).Select(DecapitalizeFirstLetter).Concat(words.Skip(1).Select(CapitalizeFirstLetter));
+            case Capitalization.FirstUpper:
+                return words.Take(1).Select(CapitalizeFirstLetter).Concat(words.Skip(1).Select(DecapitalizeFirstLetter));
+            case Capitalization.AllUpper:
+                return words.Select(w => w.ToUpper());
+            case Capitalization.AllLower:
+                return words.Select(w => w.ToLower());
+            default:
+                throw new InvalidOperationException();
+        }
+    }
+
+    private string CapitalizeFirstLetter(string word)
+    {
+        if (word.Length == 0)
+        {
+            return word;
         }
 
-        public string CreateName(ImmutableArray<string> words)
+        if (char.IsUpper(word[0]))
         {
-            var wordsWithCasing = ApplyCapitalization(words);
-            var combinedWordsWithCasing = string.Join(WordSeparator, wordsWithCasing);
-            return Prefix + combinedWordsWithCasing + Suffix;
+            return word;
         }
 
-        private IEnumerable<string> ApplyCapitalization(IEnumerable<string> words)
+        var chars = word.ToCharArray();
+        chars[0] = char.ToUpper(chars[0]);
+
+        return new string(chars);
+    }
+
+    private string DecapitalizeFirstLetter(string word)
+    {
+        if (word.Length == 0)
         {
-            switch (CapitalizationScheme)
-            {
-                case Capitalization.PascalCase:
-                    return words.Select(CapitalizeFirstLetter);
-                case Capitalization.CamelCase:
-                    return words.Take(1).Select(DecapitalizeFirstLetter).Concat(words.Skip(1).Select(CapitalizeFirstLetter));
-                case Capitalization.FirstUpper:
-                    return words.Take(1).Select(CapitalizeFirstLetter).Concat(words.Skip(1).Select(DecapitalizeFirstLetter));
-                case Capitalization.AllUpper:
-                    return words.Select(w => w.ToUpper());
-                case Capitalization.AllLower:
-                    return words.Select(w => w.ToLower());
-                default:
-                    throw new InvalidOperationException();
-            }
+            return word;
         }
 
-        private string CapitalizeFirstLetter(string word)
+        if (char.IsLower(word[0]))
         {
-            if (word.Length == 0)
-            {
-                return word;
-            }
-
-            if (char.IsUpper(word[0]))
-            {
-                return word;
-            }
-
-            var chars = word.ToCharArray();
-            chars[0] = char.ToUpper(chars[0]);
-
-            return new string(chars);
+            return word;
         }
 
-        private string DecapitalizeFirstLetter(string word)
+        var chars = word.ToCharArray();
+        chars[0] = char.ToLower(chars[0]);
+
+        return new string(chars);
+    }
+
+    public bool IsNameCompliant(string name, out string failureReason)
+    {
+        if (!name.StartsWith(Prefix))
         {
-            if (word.Length == 0)
-            {
-                return word;
-            }
-
-            if (char.IsLower(word[0]))
-            {
-                return word;
-            }
-
-            var chars = word.ToCharArray();
-            chars[0] = char.ToLower(chars[0]);
-
-            return new string(chars);
+            failureReason = string.Format(CompilerExtensionsResources.Missing_prefix_colon_0, Prefix);
+            return false;
         }
 
-        public bool IsNameCompliant(string name, out string failureReason)
+        if (!name.EndsWith(Suffix))
         {
-            if (!name.StartsWith(Prefix))
+            failureReason = string.Format(CompilerExtensionsResources.Missing_suffix_colon_0, Suffix);
+            return false;
+        }
+
+        if (name.Length <= Prefix.Length + Suffix.Length)
+        {
+            // name consists of Prefix and Suffix and no base name
+            // Prefix and Suffix can overlap
+            // Example: Prefix = "s_", Suffix = "_t", name "s_t"
+            failureReason = null;
+            return true;
+        }
+
+        // remove specified Prefix, then look for any other common prefixes
+        name = StripCommonPrefixes(name[Prefix.Length..], out var prefix);
+
+        if (prefix != string.Empty)
+        {
+            // name started with specified prefix, but has at least one additional common prefix 
+            // Example: specified prefix "test_", actual prefix "test_m_"
+            failureReason = Prefix == string.Empty
+                ? string.Format(CompilerExtensionsResources.Prefix_0_is_not_expected, prefix)
+                : string.Format(CompilerExtensionsResources.Prefix_0_does_not_match_expected_prefix_1, prefix, Prefix);
+            return false;
+        }
+
+        // specified and common prefixes have been removed. Now see that the base name has correct capitalization
+        var spanToCheck = TextSpan.FromBounds(0, name.Length - Suffix.Length);
+        Debug.Assert(spanToCheck.Length > 0);
+
+        switch (CapitalizationScheme)
+        {
+            case Capitalization.PascalCase: return CheckPascalCase(name, spanToCheck, out failureReason);
+            case Capitalization.CamelCase: return CheckCamelCase(name, spanToCheck, out failureReason);
+            case Capitalization.FirstUpper: return CheckFirstUpper(name, spanToCheck, out failureReason);
+            case Capitalization.AllUpper: return CheckAllUpper(name, spanToCheck, out failureReason);
+            case Capitalization.AllLower: return CheckAllLower(name, spanToCheck, out failureReason);
+            default: throw new InvalidOperationException();
+        }
+    }
+
+    private WordSpanEnumerable GetWordSpans(string name, TextSpan nameSpan)
+        => new(name, nameSpan, WordSeparator);
+
+    private static string Substring(string name, TextSpan wordSpan)
+        => name.Substring(wordSpan.Start, wordSpan.Length);
+
+    private static readonly Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsLower(val[span.Start]);
+    private static readonly Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsUpper(val[span.Start]);
+
+    private static readonly Func<string, TextSpan, bool> s_wordIsAllUpperCase = (val, span) =>
+    {
+        for (int i = span.Start, n = span.End; i < n; i++)
+        {
+            if (DoesCharacterHaveCasing(val[i]) && !char.IsUpper(val[i]))
             {
-                failureReason = string.Format(CompilerExtensionsResources.Missing_prefix_colon_0, Prefix);
                 return false;
             }
+        }
 
-            if (!name.EndsWith(Suffix))
+        return true;
+    };
+
+    private static readonly Func<string, TextSpan, bool> s_wordIsAllLowerCase = (val, span) =>
+    {
+        for (int i = span.Start, n = span.End; i < n; i++)
+        {
+            if (DoesCharacterHaveCasing(val[i]) && !char.IsLower(val[i]))
             {
-                failureReason = string.Format(CompilerExtensionsResources.Missing_suffix_colon_0, Suffix);
                 return false;
-            }
-
-            if (name.Length <= Prefix.Length + Suffix.Length)
-            {
-                // name consists of Prefix and Suffix and no base name
-                // Prefix and Suffix can overlap
-                // Example: Prefix = "s_", Suffix = "_t", name "s_t"
-                failureReason = null;
-                return true;
-            }
-
-            // remove specified Prefix, then look for any other common prefixes
-            name = StripCommonPrefixes(name[Prefix.Length..], out var prefix);
-
-            if (prefix != string.Empty)
-            {
-                // name started with specified prefix, but has at least one additional common prefix 
-                // Example: specified prefix "test_", actual prefix "test_m_"
-                failureReason = Prefix == string.Empty
-                    ? string.Format(CompilerExtensionsResources.Prefix_0_is_not_expected, prefix)
-                    : string.Format(CompilerExtensionsResources.Prefix_0_does_not_match_expected_prefix_1, prefix, Prefix);
-                return false;
-            }
-
-            // specified and common prefixes have been removed. Now see that the base name has correct capitalization
-            var spanToCheck = TextSpan.FromBounds(0, name.Length - Suffix.Length);
-            Debug.Assert(spanToCheck.Length > 0);
-
-            switch (CapitalizationScheme)
-            {
-                case Capitalization.PascalCase: return CheckPascalCase(name, spanToCheck, out failureReason);
-                case Capitalization.CamelCase: return CheckCamelCase(name, spanToCheck, out failureReason);
-                case Capitalization.FirstUpper: return CheckFirstUpper(name, spanToCheck, out failureReason);
-                case Capitalization.AllUpper: return CheckAllUpper(name, spanToCheck, out failureReason);
-                case Capitalization.AllLower: return CheckAllLower(name, spanToCheck, out failureReason);
-                default: throw new InvalidOperationException();
             }
         }
 
-        private WordSpanEnumerable GetWordSpans(string name, TextSpan nameSpan)
-            => new(name, nameSpan, WordSeparator);
+        return true;
+    };
 
-        private static string Substring(string name, TextSpan wordSpan)
-            => name.Substring(wordSpan.Start, wordSpan.Length);
+    private bool CheckAllWords(
+        string name, TextSpan nameSpan, Func<string, TextSpan, bool> wordCheck,
+        string resourceId, out string reason)
+    {
+        reason = null;
+        using var _ = ArrayBuilder<string>.GetInstance(out var violations);
 
-        private static readonly Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsLower(val[span.Start]);
-        private static readonly Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsUpper(val[span.Start]);
-
-        private static readonly Func<string, TextSpan, bool> s_wordIsAllUpperCase = (val, span) =>
+        foreach (var wordSpan in GetWordSpans(name, nameSpan))
         {
-            for (int i = span.Start, n = span.End; i < n; i++)
+            if (!wordCheck(name, wordSpan))
             {
-                if (DoesCharacterHaveCasing(val[i]) && !char.IsUpper(val[i]))
+                violations.Add(Substring(name, wordSpan));
+            }
+        }
+
+        if (violations.Count > 0)
+        {
+            reason = string.Format(resourceId, string.Join(", ", violations));
+        }
+
+        return reason == null;
+    }
+
+    private bool CheckPascalCase(string name, TextSpan nameSpan, out string reason)
+        => CheckAllWords(
+            name, nameSpan, s_firstCharIsUpperCase,
+            CompilerExtensionsResources.These_words_must_begin_with_upper_case_characters_colon_0, out reason);
+
+    private bool CheckAllUpper(string name, TextSpan nameSpan, out string reason)
+        => CheckAllWords(
+            name, nameSpan, s_wordIsAllUpperCase,
+            CompilerExtensionsResources.These_words_cannot_contain_lower_case_characters_colon_0, out reason);
+
+    private bool CheckAllLower(string name, TextSpan nameSpan, out string reason)
+        => CheckAllWords(
+            name, nameSpan, s_wordIsAllLowerCase,
+            CompilerExtensionsResources.These_words_cannot_contain_upper_case_characters_colon_0, out reason);
+
+    private bool CheckFirstAndRestWords(
+        string name, TextSpan nameSpan,
+        Func<string, TextSpan, bool> firstWordCheck,
+        Func<string, TextSpan, bool> restWordCheck,
+        string firstResourceId,
+        string restResourceId,
+        out string reason)
+    {
+        reason = null;
+        using var _ = ArrayBuilder<string>.GetInstance(out var violations);
+
+        var first = true;
+
+        foreach (var wordSpan in GetWordSpans(name, nameSpan))
+        {
+            if (first)
+            {
+                if (!firstWordCheck(name, wordSpan))
                 {
-                    return false;
+                    reason = string.Format(firstResourceId, Substring(name, wordSpan));
                 }
             }
-
-            return true;
-        };
-
-        private static readonly Func<string, TextSpan, bool> s_wordIsAllLowerCase = (val, span) =>
-        {
-            for (int i = span.Start, n = span.End; i < n; i++)
+            else
             {
-                if (DoesCharacterHaveCasing(val[i]) && !char.IsLower(val[i]))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        };
-
-        private bool CheckAllWords(
-            string name, TextSpan nameSpan, Func<string, TextSpan, bool> wordCheck,
-            string resourceId, out string reason)
-        {
-            reason = null;
-            using var _ = ArrayBuilder<string>.GetInstance(out var violations);
-
-            foreach (var wordSpan in GetWordSpans(name, nameSpan))
-            {
-                if (!wordCheck(name, wordSpan))
+                if (!restWordCheck(name, wordSpan))
                 {
                     violations.Add(Substring(name, wordSpan));
                 }
             }
 
-            if (violations.Count > 0)
-            {
-                reason = string.Format(resourceId, string.Join(", ", violations));
-            }
-
-            return reason == null;
+            first = false;
         }
 
-        private bool CheckPascalCase(string name, TextSpan nameSpan, out string reason)
-            => CheckAllWords(
-                name, nameSpan, s_firstCharIsUpperCase,
-                CompilerExtensionsResources.These_words_must_begin_with_upper_case_characters_colon_0, out reason);
-
-        private bool CheckAllUpper(string name, TextSpan nameSpan, out string reason)
-            => CheckAllWords(
-                name, nameSpan, s_wordIsAllUpperCase,
-                CompilerExtensionsResources.These_words_cannot_contain_lower_case_characters_colon_0, out reason);
-
-        private bool CheckAllLower(string name, TextSpan nameSpan, out string reason)
-            => CheckAllWords(
-                name, nameSpan, s_wordIsAllLowerCase,
-                CompilerExtensionsResources.These_words_cannot_contain_upper_case_characters_colon_0, out reason);
-
-        private bool CheckFirstAndRestWords(
-            string name, TextSpan nameSpan,
-            Func<string, TextSpan, bool> firstWordCheck,
-            Func<string, TextSpan, bool> restWordCheck,
-            string firstResourceId,
-            string restResourceId,
-            out string reason)
+        if (violations.Count > 0)
         {
-            reason = null;
-            using var _ = ArrayBuilder<string>.GetInstance(out var violations);
+            var restString = string.Format(restResourceId, string.Join(", ", violations));
+            reason = reason == null
+                ? restString
+                : reason + Environment.NewLine + restString;
+        }
 
-            var first = true;
+        return reason == null;
+    }
 
-            foreach (var wordSpan in GetWordSpans(name, nameSpan))
+    private bool CheckCamelCase(string name, TextSpan nameSpan, out string reason)
+        => CheckFirstAndRestWords(
+            name, nameSpan, s_firstCharIsLowerCase, s_firstCharIsUpperCase,
+            CompilerExtensionsResources.The_first_word_0_must_begin_with_a_lower_case_character,
+            CompilerExtensionsResources.These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0,
+            out reason);
+
+    private bool CheckFirstUpper(string name, TextSpan nameSpan, out string reason)
+        => CheckFirstAndRestWords(
+            name, nameSpan, s_firstCharIsUpperCase, s_firstCharIsLowerCase,
+            CompilerExtensionsResources.The_first_word_0_must_begin_with_an_upper_case_character,
+            CompilerExtensionsResources.These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0,
+            out reason);
+
+    private static bool DoesCharacterHaveCasing(char c) => char.ToLower(c) != char.ToUpper(c);
+
+    private string CreateCompliantNameDirectly(string name)
+    {
+        // Example: for specified prefix = "Test_" and name = "Test_m_BaseName", we remove "Test_m_"
+        // "Test_" will be added back later in this method
+        name = StripCommonPrefixes(name.StartsWith(Prefix) ? name[Prefix.Length..] : name, out _);
+
+        var addPrefix = !name.StartsWith(Prefix);
+        var addSuffix = !name.EndsWith(Suffix);
+
+        name = addPrefix ? (Prefix + name) : name;
+        name = addSuffix ? (name + Suffix) : name;
+
+        return FinishFixingName(name);
+    }
+
+    public IEnumerable<string> MakeCompliant(string name)
+    {
+        var name1 = CreateCompliantNameReusingPartialPrefixesAndSuffixes(name);
+        yield return name1;
+
+        var name2 = CreateCompliantNameDirectly(name);
+        if (name2 != name1)
+        {
+            yield return name2;
+        }
+    }
+
+    private string CreateCompliantNameReusingPartialPrefixesAndSuffixes(string name)
+    {
+        name = StripCommonPrefixes(name, out _);
+        name = EnsurePrefix(name);
+        name = EnsureSuffix(name);
+
+        return FinishFixingName(name);
+    }
+
+    public static string StripCommonPrefixes(string name, out string prefix)
+    {
+        var index = 0;
+        while (index + 1 < name.Length)
+        {
+            switch (char.ToLowerInvariant(name[index]))
             {
-                if (first)
-                {
-                    if (!firstWordCheck(name, wordSpan))
+                case 'm':
+                case 's':
+                case 't':
+                    if (index + 2 < name.Length && name[index + 1] == '_')
                     {
-                        reason = string.Format(firstResourceId, Substring(name, wordSpan));
+                        index++;
+                        continue;
                     }
-                }
-                else
-                {
-                    if (!restWordCheck(name, wordSpan))
+
+                    break;
+
+                case '_':
+                    if (index + 1 < name.Length && !char.IsDigit(name[index + 1]))
                     {
-                        violations.Add(Substring(name, wordSpan));
+                        index++;
+                        continue;
                     }
-                }
 
-                first = false;
+                    break;
+
+                default:
+                    break;
             }
 
-            if (violations.Count > 0)
-            {
-                var restString = string.Format(restResourceId, string.Join(", ", violations));
-                reason = reason == null
-                    ? restString
-                    : reason + Environment.NewLine + restString;
-            }
-
-            return reason == null;
+            // If we reach this point, the current iteration did not strip any additional characters
+            break;
         }
 
-        private bool CheckCamelCase(string name, TextSpan nameSpan, out string reason)
-            => CheckFirstAndRestWords(
-                name, nameSpan, s_firstCharIsLowerCase, s_firstCharIsUpperCase,
-                CompilerExtensionsResources.The_first_word_0_must_begin_with_a_lower_case_character,
-                CompilerExtensionsResources.These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0,
-                out reason);
+        prefix = name[..index];
+        return name[index..];
+    }
 
-        private bool CheckFirstUpper(string name, TextSpan nameSpan, out string reason)
-            => CheckFirstAndRestWords(
-                name, nameSpan, s_firstCharIsUpperCase, s_firstCharIsLowerCase,
-                CompilerExtensionsResources.The_first_word_0_must_begin_with_an_upper_case_character,
-                CompilerExtensionsResources.These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0,
-                out reason);
-
-        private static bool DoesCharacterHaveCasing(char c) => char.ToLower(c) != char.ToUpper(c);
-
-        private string CreateCompliantNameDirectly(string name)
+    private string FinishFixingName(string name)
+    {
+        // Edge case: prefix "as", suffix "sa", name "asa"
+        if (Suffix.Length + Prefix.Length >= name.Length)
         {
-            // Example: for specified prefix = "Test_" and name = "Test_m_BaseName", we remove "Test_m_"
-            // "Test_" will be added back later in this method
-            name = StripCommonPrefixes(name.StartsWith(Prefix) ? name[Prefix.Length..] : name, out _);
-
-            var addPrefix = !name.StartsWith(Prefix);
-            var addSuffix = !name.EndsWith(Suffix);
-
-            name = addPrefix ? (Prefix + name) : name;
-            name = addSuffix ? (name + Suffix) : name;
-
-            return FinishFixingName(name);
+            return name;
         }
 
-        public IEnumerable<string> MakeCompliant(string name)
+        name = name[Prefix.Length..^Suffix.Length];
+        IEnumerable<string> words = [name];
+
+        if (!string.IsNullOrEmpty(WordSeparator))
         {
-            var name1 = CreateCompliantNameReusingPartialPrefixesAndSuffixes(name);
-            yield return name1;
+            words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
 
-            var name2 = CreateCompliantNameDirectly(name);
-            if (name2 != name1)
-            {
-                yield return name2;
-            }
-        }
-
-        private string CreateCompliantNameReusingPartialPrefixesAndSuffixes(string name)
-        {
-            name = StripCommonPrefixes(name, out _);
-            name = EnsurePrefix(name);
-            name = EnsureSuffix(name);
-
-            return FinishFixingName(name);
-        }
-
-        public static string StripCommonPrefixes(string name, out string prefix)
-        {
-            var index = 0;
-            while (index + 1 < name.Length)
-            {
-                switch (char.ToLowerInvariant(name[index]))
-                {
-                    case 'm':
-                    case 's':
-                    case 't':
-                        if (index + 2 < name.Length && name[index + 1] == '_')
-                        {
-                            index++;
-                            continue;
-                        }
-
-                        break;
-
-                    case '_':
-                        if (index + 1 < name.Length && !char.IsDigit(name[index + 1]))
-                        {
-                            index++;
-                            continue;
-                        }
-
-                        break;
-
-                    default:
-                        break;
-                }
-
-                // If we reach this point, the current iteration did not strip any additional characters
-                break;
-            }
-
-            prefix = name[..index];
-            return name[index..];
-        }
-
-        private string FinishFixingName(string name)
-        {
-            // Edge case: prefix "as", suffix "sa", name "asa"
-            if (Suffix.Length + Prefix.Length >= name.Length)
+            // Edge case: the only character(s) in the name is(are) the WordSeparator
+            if (!words.Any())
             {
                 return name;
             }
 
-            name = name[Prefix.Length..^Suffix.Length];
-            IEnumerable<string> words = new[] { name };
-
-            if (!string.IsNullOrEmpty(WordSeparator))
+            if (words.Count() == 1) // Only Split if words have not been split before 
             {
-                words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
-
-                // Edge case: the only character(s) in the name is(are) the WordSeparator
-                if (!words.Any())
+                var isWord = true;
+                using var parts = TemporaryArray<TextSpan>.Empty;
+                StringBreaker.AddParts(name, isWord, ref parts.AsRef());
+                var newWords = new string[parts.Count];
+                for (var i = 0; i < parts.Count; i++)
                 {
-                    return name;
+                    newWords[i] = name[parts[i].Start..parts[i].End];
                 }
 
-                if (words.Count() == 1) // Only Split if words have not been split before 
-                {
-                    var isWord = true;
-                    using var parts = TemporaryArray<TextSpan>.Empty;
-                    StringBreaker.AddParts(name, isWord, ref parts.AsRef());
-                    var newWords = new string[parts.Count];
-                    for (var i = 0; i < parts.Count; i++)
-                    {
-                        newWords[i] = name[parts[i].Start..parts[i].End];
-                    }
-
-                    words = newWords;
-                }
+                words = newWords;
             }
-
-            words = ApplyCapitalization(words);
-
-            return Prefix + string.Join(WordSeparator, words) + Suffix;
         }
 
-        private string EnsureSuffix(string name)
+        words = ApplyCapitalization(words);
+
+        return Prefix + string.Join(WordSeparator, words) + Suffix;
+    }
+
+    private string EnsureSuffix(string name)
+    {
+        // If the name already ends with any prefix of the Suffix, only append the suffix of
+        // the Suffix not contained in the longest such Suffix prefix. For example, if the 
+        // required suffix is "_catdog" and the name is "test_cat", then only append "dog".
+        for (var i = Suffix.Length; i > 0; i--)
         {
-            // If the name already ends with any prefix of the Suffix, only append the suffix of
-            // the Suffix not contained in the longest such Suffix prefix. For example, if the 
-            // required suffix is "_catdog" and the name is "test_cat", then only append "dog".
-            for (var i = Suffix.Length; i > 0; i--)
+            if (name.EndsWith(Suffix[..i]))
             {
-                if (name.EndsWith(Suffix[..i]))
-                {
-                    return name + Suffix[i..];
-                }
+                return name + Suffix[i..];
             }
-
-            return name + Suffix;
         }
 
-        private string EnsurePrefix(string name)
+        return name + Suffix;
+    }
+
+    private string EnsurePrefix(string name)
+    {
+        // If the name already starts with any suffix of the Prefix, only prepend the prefix of
+        // the Prefix not contained in the longest such Prefix suffix. For example, if the 
+        // required prefix is "catdog_" and the name is "dog_test", then only prepend "cat".
+        for (var i = 0; i < Prefix.Length; i++)
         {
-            // If the name already starts with any suffix of the Prefix, only prepend the prefix of
-            // the Prefix not contained in the longest such Prefix suffix. For example, if the 
-            // required prefix is "catdog_" and the name is "dog_test", then only prepend "cat".
-            for (var i = 0; i < Prefix.Length; i++)
+            if (name.StartsWith(Prefix[i..]))
             {
-                if (name.StartsWith(Prefix[i..]))
-                {
-                    return Prefix[..i] + name;
-                }
+                return Prefix[..i] + name;
             }
-
-            return Prefix + name;
         }
 
-        internal XElement CreateXElement()
-            => new(nameof(NamingStyle),
-                new XAttribute(nameof(ID), ID),
-                new XAttribute(nameof(Name), Name),
-                new XAttribute(nameof(Prefix), Prefix ?? string.Empty),
-                new XAttribute(nameof(Suffix), Suffix ?? string.Empty),
-                new XAttribute(nameof(WordSeparator), WordSeparator ?? string.Empty),
-                new XAttribute(nameof(CapitalizationScheme), CapitalizationScheme));
+        return Prefix + name;
+    }
 
-        internal static NamingStyle FromXElement(XElement namingStyleElement)
-            => new(
-                id: Guid.Parse(namingStyleElement.Attribute(nameof(ID)).Value),
-                name: namingStyleElement.Attribute(nameof(Name)).Value,
-                prefix: namingStyleElement.Attribute(nameof(Prefix)).Value,
-                suffix: namingStyleElement.Attribute(nameof(Suffix)).Value,
-                wordSeparator: namingStyleElement.Attribute(nameof(WordSeparator)).Value,
-                capitalizationScheme: (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value));
+    internal XElement CreateXElement()
+        => new(nameof(NamingStyle),
+            new XAttribute(nameof(ID), ID),
+            new XAttribute(nameof(Name), Name),
+            new XAttribute(nameof(Prefix), Prefix ?? string.Empty),
+            new XAttribute(nameof(Suffix), Suffix ?? string.Empty),
+            new XAttribute(nameof(WordSeparator), WordSeparator ?? string.Empty),
+            new XAttribute(nameof(CapitalizationScheme), CapitalizationScheme));
 
-        public void WriteTo(ObjectWriter writer)
-        {
-            writer.WriteGuid(ID);
-            writer.WriteString(Name);
-            writer.WriteString(Prefix ?? string.Empty);
-            writer.WriteString(Suffix ?? string.Empty);
-            writer.WriteString(WordSeparator ?? string.Empty);
-            writer.WriteInt32((int)CapitalizationScheme);
-        }
+    internal static NamingStyle FromXElement(XElement namingStyleElement)
+        => new(
+            id: Guid.Parse(namingStyleElement.Attribute(nameof(ID)).Value),
+            name: namingStyleElement.Attribute(nameof(Name)).Value,
+            prefix: namingStyleElement.Attribute(nameof(Prefix)).Value,
+            suffix: namingStyleElement.Attribute(nameof(Suffix)).Value,
+            wordSeparator: namingStyleElement.Attribute(nameof(WordSeparator)).Value,
+            capitalizationScheme: (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value));
 
-        public static NamingStyle ReadFrom(ObjectReader reader)
-        {
-            return new NamingStyle(
-                reader.ReadGuid(),
-                reader.ReadString(),
-                reader.ReadString(),
-                reader.ReadString(),
-                reader.ReadString(),
-                (Capitalization)reader.ReadInt32());
-        }
+    public void WriteTo(ObjectWriter writer)
+    {
+        writer.WriteGuid(ID);
+        writer.WriteString(Name);
+        writer.WriteString(Prefix ?? string.Empty);
+        writer.WriteString(Suffix ?? string.Empty);
+        writer.WriteString(WordSeparator ?? string.Empty);
+        writer.WriteInt32((int)CapitalizationScheme);
+    }
+
+    public static NamingStyle ReadFrom(ObjectReader reader)
+    {
+        return new NamingStyle(
+            reader.ReadGuid(),
+            reader.ReadString(),
+            reader.ReadString(),
+            reader.ReadString(),
+            reader.ReadString(),
+            (Capitalization)reader.ReadInt32());
     }
 }

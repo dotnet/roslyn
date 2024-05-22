@@ -10,15 +10,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers
+namespace Microsoft.CodeAnalysis.Completion.Providers;
+
+internal interface IImportCompletionCacheService<TProject, TPortableExecutable> : IWorkspaceService
 {
-    internal interface IImportCompletionCacheService<TProject, TPortableExecutable> : IWorkspaceService
-    {
-        // PE references are keyed on assembly path.
-        IDictionary<string, TPortableExecutable> PEItemsCache { get; }
+    // PE references are keyed on assembly path.
+    IDictionary<string, TPortableExecutable> PEItemsCache { get; }
 
-        IDictionary<ProjectId, TProject> ProjectItemsCache { get; }
+    IDictionary<ProjectId, TProject> ProjectItemsCache { get; }
 
-        AsyncBatchingWorkQueue<Project> WorkQueue { get; }
-    }
+    AsyncBatchingWorkQueue<Project> WorkQueue { get; }
 }

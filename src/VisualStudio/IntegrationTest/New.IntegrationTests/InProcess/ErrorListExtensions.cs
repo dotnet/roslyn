@@ -14,11 +14,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             return tableEntry.GetValueOrDefault(StandardTableKeyNames.ErrorSeverity, (__VSERRORCATEGORY)(-1));
         }
 
-        public static string GetBuildTool(this ITableEntry tableEntry)
-        {
-            return tableEntry.GetValueOrDefault(StandardTableKeyNames.BuildTool, "<unknown>");
-        }
-
         public static ItemOrigin? GetItemOrigin(this ITableEntry tableEntry)
         {
             return tableEntry.GetValueOrNull<ItemOrigin>(StandardTableKeyNames.ItemOrigin);
@@ -32,6 +27,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public static string? GetDocumentName(this ITableEntry tableEntry)
         {
             return tableEntry.GetValueOrDefault<string?>(StandardTableKeyNames.DocumentName, null);
+        }
+
+        public static string? GetDisplayPath(this ITableEntry tableEntry)
+        {
+            return tableEntry.GetValueOrDefault<string?>(StandardTableKeyNames.DisplayPath, null);
         }
 
         public static int? GetLine(this ITableEntry tableEntry)
