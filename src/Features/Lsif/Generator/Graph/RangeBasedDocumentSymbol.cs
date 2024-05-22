@@ -41,7 +41,7 @@ internal sealed class RangeBasedDocumentSymbol(Id<Range> id, TextSpan span)
 
             if (last.Span.Contains(symbol.Span))
             {
-                last.Children ??= new List<RangeBasedDocumentSymbol>();
+                last.Children ??= [];
                 AddNestedFromDocumentOrderTraversal(last.Children, symbol);
             }
             else

@@ -26,7 +26,7 @@ using static SimplifyBooleanExpressionConstants;
 internal sealed class SimplifyConditionalCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        ImmutableArray.Create(IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId);
+        [IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId];
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {

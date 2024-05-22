@@ -14,198 +14,197 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Formatting
+namespace Microsoft.CodeAnalysis.CSharp.Formatting;
+
+internal class TriviaRewriter : CSharpSyntaxRewriter
 {
-    internal class TriviaRewriter : CSharpSyntaxRewriter
+    private readonly SyntaxNode _node;
+    private readonly TextSpanIntervalTree _spans;
+    private readonly CancellationToken _cancellationToken;
+
+    private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _trailingTriviaMap = [];
+    private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _leadingTriviaMap = [];
+
+    public TriviaRewriter(
+        SyntaxNode node,
+        TextSpanIntervalTree spanToFormat,
+        Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map,
+        CancellationToken cancellationToken)
     {
-        private readonly SyntaxNode _node;
-        private readonly TextSpanIntervalTree _spans;
-        private readonly CancellationToken _cancellationToken;
+        Contract.ThrowIfNull(node);
+        Contract.ThrowIfNull(map);
 
-        private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _trailingTriviaMap = new();
-        private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _leadingTriviaMap = new();
+        _node = node;
+        _spans = spanToFormat;
+        _cancellationToken = cancellationToken;
 
-        public TriviaRewriter(
-            SyntaxNode node,
-            TextSpanIntervalTree spanToFormat,
-            Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map,
-            CancellationToken cancellationToken)
+        PreprocessTriviaListMap(map, cancellationToken);
+    }
+
+    public SyntaxNode Transform()
+        => Visit(_node);
+
+    private void PreprocessTriviaListMap(
+        Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map,
+        CancellationToken cancellationToken)
+    {
+        foreach (var pair in map)
         {
-            Contract.ThrowIfNull(node);
-            Contract.ThrowIfNull(map);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            _node = node;
-            _spans = spanToFormat;
-            _cancellationToken = cancellationToken;
+            var (trailingTrivia, leadingTrivia) = GetTrailingAndLeadingTrivia(pair, cancellationToken);
 
-            PreprocessTriviaListMap(map, cancellationToken);
-        }
-
-        public SyntaxNode Transform()
-            => Visit(_node);
-
-        private void PreprocessTriviaListMap(
-            Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map,
-            CancellationToken cancellationToken)
-        {
-            foreach (var pair in map)
+            if (pair.Key.Item1.RawKind != 0)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                _trailingTriviaMap.Add(pair.Key.Item1, trailingTrivia);
+            }
 
-                var (trailingTrivia, leadingTrivia) = GetTrailingAndLeadingTrivia(pair, cancellationToken);
-
-                if (pair.Key.Item1.RawKind != 0)
-                {
-                    _trailingTriviaMap.Add(pair.Key.Item1, trailingTrivia);
-                }
-
-                if (pair.Key.Item2.RawKind != 0)
-                {
-                    _leadingTriviaMap.Add(pair.Key.Item2, leadingTrivia);
-                }
+            if (pair.Key.Item2.RawKind != 0)
+            {
+                _leadingTriviaMap.Add(pair.Key.Item2, leadingTrivia);
             }
         }
+    }
 
-        private (SyntaxTriviaList trailingTrivia, SyntaxTriviaList leadingTrivia) GetTrailingAndLeadingTrivia(
-            KeyValuePair<ValueTuple<SyntaxToken, SyntaxToken>,
-            TriviaData> pair,
-            CancellationToken cancellationToken)
+    private (SyntaxTriviaList trailingTrivia, SyntaxTriviaList leadingTrivia) GetTrailingAndLeadingTrivia(
+        KeyValuePair<ValueTuple<SyntaxToken, SyntaxToken>,
+        TriviaData> pair,
+        CancellationToken cancellationToken)
+    {
+        if (pair.Key.Item1.RawKind == 0)
         {
-            if (pair.Key.Item1.RawKind == 0)
-            {
-                return (default(SyntaxTriviaList), GetLeadingTriviaAtBeginningOfTree(pair.Key, pair.Value, cancellationToken));
-            }
-
-            if (pair.Value is TriviaDataWithList csharpTriviaData)
-            {
-                var triviaList = csharpTriviaData.GetTriviaList(cancellationToken);
-                var index = GetFirstEndOfLineIndexOrRightBeforeComment(triviaList);
-
-                return (TriviaHelpers.CreateTriviaListFromTo(triviaList, 0, index),
-                        TriviaHelpers.CreateTriviaListFromTo(triviaList, index + 1, triviaList.Count - 1));
-            }
-
-            // whitespace trivia case such as spaces/tabs/new lines
-            // these will always have a single text change
-            var text = pair.Value.GetTextChanges(GetTextSpan(pair.Key)).Single().NewText ?? "";
-            var trailingTrivia = SyntaxFactory.ParseTrailingTrivia(text);
-
-            var width = trailingTrivia.GetFullWidth();
-            var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(text[width..]);
-
-            return (trailingTrivia, leadingTrivia);
+            return (default(SyntaxTriviaList), GetLeadingTriviaAtBeginningOfTree(pair.Key, pair.Value, cancellationToken));
         }
 
-        private TextSpan GetTextSpan(ValueTuple<SyntaxToken, SyntaxToken> pair)
+        if (pair.Value is TriviaDataWithList csharpTriviaData)
         {
-            if (pair.Item1.RawKind == 0)
-            {
-                return TextSpan.FromBounds(_node.FullSpan.Start, pair.Item2.SpanStart);
-            }
+            var triviaList = csharpTriviaData.GetTriviaList(cancellationToken);
+            var index = GetFirstEndOfLineIndexOrRightBeforeComment(triviaList);
 
-            if (pair.Item2.RawKind == 0)
-            {
-                return TextSpan.FromBounds(pair.Item1.Span.End, _node.FullSpan.End);
-            }
-
-            return TextSpan.FromBounds(pair.Item1.Span.End, pair.Item2.SpanStart);
+            return (TriviaHelpers.CreateTriviaListFromTo(triviaList, 0, index),
+                    TriviaHelpers.CreateTriviaListFromTo(triviaList, index + 1, triviaList.Count - 1));
         }
 
-        private static int GetFirstEndOfLineIndexOrRightBeforeComment(SyntaxTriviaList triviaList)
+        // whitespace trivia case such as spaces/tabs/new lines
+        // these will always have a single text change
+        var text = pair.Value.GetTextChanges(GetTextSpan(pair.Key)).Single().NewText ?? "";
+        var trailingTrivia = SyntaxFactory.ParseTrailingTrivia(text);
+
+        var width = trailingTrivia.GetFullWidth();
+        var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(text[width..]);
+
+        return (trailingTrivia, leadingTrivia);
+    }
+
+    private TextSpan GetTextSpan(ValueTuple<SyntaxToken, SyntaxToken> pair)
+    {
+        if (pair.Item1.RawKind == 0)
         {
-            for (var i = 0; i < triviaList.Count; i++)
-            {
-                var trivia = triviaList[i];
-
-                if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
-                {
-                    return i;
-                }
-
-                if (trivia.IsDocComment())
-                {
-                    return i - 1;
-                }
-            }
-
-            return triviaList.Count - 1;
+            return TextSpan.FromBounds(_node.FullSpan.Start, pair.Item2.SpanStart);
         }
 
-        private SyntaxTriviaList GetLeadingTriviaAtBeginningOfTree(
-            ValueTuple<SyntaxToken, SyntaxToken> pair,
-            TriviaData triviaData,
-            CancellationToken cancellationToken)
+        if (pair.Item2.RawKind == 0)
         {
-            if (triviaData is TriviaDataWithList csharpTriviaData)
-            {
-                return csharpTriviaData.GetTriviaList(cancellationToken);
-            }
-
-            // whitespace trivia case such as spaces/tabs/new lines
-            // these will always have single text changes
-            var text = triviaData.GetTextChanges(GetTextSpan(pair)).Single().NewText ?? "";
-            return SyntaxFactory.ParseLeadingTrivia(text);
+            return TextSpan.FromBounds(pair.Item1.Span.End, _node.FullSpan.End);
         }
 
-        [return: NotNullIfNotNull(nameof(node))]
-        public override SyntaxNode? Visit(SyntaxNode? node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
+        return TextSpan.FromBounds(pair.Item1.Span.End, pair.Item2.SpanStart);
+    }
 
-            if (node == null || !_spans.HasIntervalThatIntersectsWith(node.FullSpan))
+    private static int GetFirstEndOfLineIndexOrRightBeforeComment(SyntaxTriviaList triviaList)
+    {
+        for (var i = 0; i < triviaList.Count; i++)
+        {
+            var trivia = triviaList[i];
+
+            if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
             {
-                return node;
+                return i;
             }
 
-            return base.Visit(node);
+            if (trivia.IsDocComment())
+            {
+                return i - 1;
+            }
         }
 
-        public override SyntaxToken VisitToken(SyntaxToken token)
+        return triviaList.Count - 1;
+    }
+
+    private SyntaxTriviaList GetLeadingTriviaAtBeginningOfTree(
+        ValueTuple<SyntaxToken, SyntaxToken> pair,
+        TriviaData triviaData,
+        CancellationToken cancellationToken)
+    {
+        if (triviaData is TriviaDataWithList csharpTriviaData)
         {
-            _cancellationToken.ThrowIfCancellationRequested();
+            return csharpTriviaData.GetTriviaList(cancellationToken);
+        }
 
-            if (!_spans.HasIntervalThatIntersectsWith(token.FullSpan))
-            {
-                return token;
-            }
+        // whitespace trivia case such as spaces/tabs/new lines
+        // these will always have single text changes
+        var text = triviaData.GetTextChanges(GetTextSpan(pair)).Single().NewText ?? "";
+        return SyntaxFactory.ParseLeadingTrivia(text);
+    }
 
-            var hasChanges = false;
+    [return: NotNullIfNotNull(nameof(node))]
+    public override SyntaxNode? Visit(SyntaxNode? node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
 
-            // get token span
+        if (node == null || !_spans.HasIntervalThatIntersectsWith(node.FullSpan))
+        {
+            return node;
+        }
 
-            // check whether we have trivia info belongs to this token
-            if (_trailingTriviaMap.TryGetValue(token, out var trailingTrivia))
-            {
-                // okay, we have this situation
-                // token|trivia
-                hasChanges = true;
-            }
-            else
-            {
-                trailingTrivia = token.TrailingTrivia;
-            }
+        return base.Visit(node);
+    }
 
-            if (_leadingTriviaMap.TryGetValue(token, out var leadingTrivia))
-            {
-                // okay, we have this situation
-                // trivia|token
-                hasChanges = true;
-            }
-            else
-            {
-                leadingTrivia = token.LeadingTrivia;
-            }
+    public override SyntaxToken VisitToken(SyntaxToken token)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
 
-            if (hasChanges)
-            {
-                return CreateNewToken(leadingTrivia, token, trailingTrivia);
-            }
-
-            // we have no trivia belongs to this one
+        if (!_spans.HasIntervalThatIntersectsWith(token.FullSpan))
+        {
             return token;
         }
 
-        private static SyntaxToken CreateNewToken(SyntaxTriviaList leadingTrivia, SyntaxToken token, SyntaxTriviaList trailingTrivia)
-            => token.With(leadingTrivia, trailingTrivia);
+        var hasChanges = false;
+
+        // get token span
+
+        // check whether we have trivia info belongs to this token
+        if (_trailingTriviaMap.TryGetValue(token, out var trailingTrivia))
+        {
+            // okay, we have this situation
+            // token|trivia
+            hasChanges = true;
+        }
+        else
+        {
+            trailingTrivia = token.TrailingTrivia;
+        }
+
+        if (_leadingTriviaMap.TryGetValue(token, out var leadingTrivia))
+        {
+            // okay, we have this situation
+            // trivia|token
+            hasChanges = true;
+        }
+        else
+        {
+            leadingTrivia = token.LeadingTrivia;
+        }
+
+        if (hasChanges)
+        {
+            return CreateNewToken(leadingTrivia, token, trailingTrivia);
+        }
+
+        // we have no trivia belongs to this one
+        return token;
     }
+
+    private static SyntaxToken CreateNewToken(SyntaxTriviaList leadingTrivia, SyntaxToken token, SyntaxTriviaList trailingTrivia)
+        => token.With(leadingTrivia, trailingTrivia);
 }

@@ -62,27 +62,27 @@ class Program
             Assert.False(predefined.IsPossibleMatch(typeIdentifier, QuickAttributes.None));
 
             var alias1 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias1"));
-            var checker1 = WithAliases(predefined, "using alias1 = TypeForwardedToAttribute;");
+            var checker1 = withAliases(predefined, "using alias1 = TypeForwardedToAttribute;");
             Assert.True(checker1.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
             Assert.False(checker1.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
 
-            var checker1a = WithAliases(checker1, "using alias1 = TypeIdentifierAttribute;");
+            var checker1a = withAliases(checker1, "using alias1 = TypeIdentifierAttribute;");
             Assert.True(checker1a.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
             Assert.True(checker1a.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
 
-            var checker1b = WithAliases(checker1, "using alias2 = TypeIdentifierAttribute;");
+            var checker1b = withAliases(checker1, "using alias2 = TypeIdentifierAttribute;");
             var alias2 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias2"));
             Assert.True(checker1b.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
             Assert.False(checker1b.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
             Assert.False(checker1b.IsPossibleMatch(alias2, QuickAttributes.TypeForwardedTo));
             Assert.True(checker1b.IsPossibleMatch(alias2, QuickAttributes.TypeIdentifier));
 
-            var checker3 = WithAliases(predefined, "using alias3 = TypeForwardedToAttribute; using alias3 = TypeIdentifierAttribute;");
+            var checker3 = withAliases(predefined, "using alias3 = TypeForwardedToAttribute; using alias3 = TypeIdentifierAttribute;");
             var alias3 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias3"));
             Assert.True(checker3.IsPossibleMatch(alias3, QuickAttributes.TypeForwardedTo));
             Assert.True(checker3.IsPossibleMatch(alias3, QuickAttributes.TypeIdentifier));
 
-            QuickAttributeChecker WithAliases(QuickAttributeChecker checker, string aliases)
+            QuickAttributeChecker withAliases(QuickAttributeChecker checker, string aliases)
             {
                 var nodes = Parse(aliases).GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>();
                 var list = new SyntaxList<UsingDirectiveSyntax>().AddRange(nodes);
@@ -651,7 +651,8 @@ class Program
             Assert.True(attributeData.HasErrors);
             Assert.Equal("AAttribute..ctor(params System.Int32[] args)", attributeData.AttributeConstructor.ToTestDisplayString());
             Assert.Equal(1, attributeData.AttributeConstructor.ParameterCount);
-            Assert.Equal(new object[] { 1, 2, 3 }, attributeData.ConstructorArguments.Select(arg => arg.Value));
+            Assert.Equal(TypedConstantKind.Array, attributeData.ConstructorArguments.Single().Kind);
+            Assert.Equal(new object[] { 1, 2, 3 }, attributeData.ConstructorArguments.Single().Values.Select(arg => arg.Value));
             // `SourceAttributeData.GetAttributeArgumentSyntax` asserts in debug mode when the attributeData has errors, so we don't test it here.
         }
 
@@ -1025,12 +1026,14 @@ class Program { }
             Assert.Equal(3, arguments0.Length);
             Assert.Equal(true, arguments0[0].Value);
             Assert.Equal(1, arguments0[1].Value);
+            Assert.Equal(TypedConstantKind.Array, arguments0[2].Kind);
             Assert.Empty(arguments0[2].Values);
 
             var arguments1 = attrs[1].ConstructorArguments.ToArray();
             Assert.Equal(3, arguments1.Length);
             Assert.Equal(true, arguments1[0].Value);
             Assert.Equal(1, arguments1[1].Value);
+            Assert.Equal(TypedConstantKind.Array, arguments1[2].Kind);
             Assert.Equal("a", arguments1[2].Values.Single().Value);
         }
 
@@ -3449,6 +3452,8 @@ namespace AttributeTest
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "" });
 
                 Assert.True(attrs.First().AttributeConstructor.Parameters.Last().IsParams);
+                Assert.True(attrs.First().AttributeConstructor.Parameters.Last().IsParamsArray);
+                Assert.False(attrs.First().AttributeConstructor.Parameters.Last().IsParamsCollection);
             };
 
             Action<ModuleSymbol> mdAttributeValidator = (ModuleSymbol m) =>
@@ -3586,6 +3591,8 @@ namespace AttributeTest
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "whatever" });
 
                 Assert.True(attrs.First().AttributeConstructor.Parameters.Last().IsParams);
+                Assert.True(attrs.First().AttributeConstructor.Parameters.Last().IsParamsArray);
+                Assert.False(attrs.First().AttributeConstructor.Parameters.Last().IsParamsCollection);
             };
 
             Action<ModuleSymbol> mdAttributeValidator = (ModuleSymbol m) =>
@@ -5892,9 +5899,9 @@ class A
                 // (35,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
                 // [X(1)]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(35, 2),
-                // (37,2): error CS0121: The call is ambiguous between the following methods or properties: 'XAttribute.XAttribute(ref int)' and 'XAttribute.XAttribute(e1)'
+                // (37,2): error CS0121: The call is ambiguous between the following methods or properties: 'XAttribute.XAttribute(decimal)' and 'XAttribute.XAttribute(e1)'
                 // [X(A.dyn)]
-                Diagnostic(ErrorCode.ERR_AmbigCall, "X(A.dyn)").WithArguments("XAttribute.XAttribute(ref int)", "XAttribute.XAttribute(e1)").WithLocation(37, 2),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "X(A.dyn)").WithArguments("XAttribute.XAttribute(decimal)", "XAttribute.XAttribute(e1)").WithLocation(37, 2),
                 // (38,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
                 // [X(m.NotAConstant() + 2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(38, 2));
@@ -8806,6 +8813,8 @@ public class IA
             Assert.Equal(0, method.GetAttributes().Length);
             var yParam = method.Parameters[1];
             Assert.True(yParam.IsParams);
+            Assert.True(yParam.IsParamsArray);
+            Assert.False(yParam.IsParamsCollection);
             Assert.Equal(0, yParam.GetAttributes().Length);
         }
 

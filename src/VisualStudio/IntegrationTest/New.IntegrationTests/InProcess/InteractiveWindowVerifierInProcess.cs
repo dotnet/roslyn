@@ -13,7 +13,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
     [TestService]
     internal partial class InteractiveWindowVerifierInProcess : ITextViewWindowVerifierInProcess
     {
-        private static readonly char[] s_lineSeparators = { '\r', '\n' };
+        private static readonly char[] s_lineSeparators = ['\r', '\n'];
 
         TestServices ITextViewWindowVerifierInProcess.TestServices => TestServices;
 

@@ -8,16 +8,15 @@ using Microsoft.CodeAnalysis.BracePairs;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.BracePairs
+namespace Microsoft.CodeAnalysis.CSharp.BracePairs;
+
+[ExportLanguageService(typeof(IBracePairsService), LanguageNames.CSharp), Shared]
+internal sealed class CSharpBracePairsService : AbstractBracePairsService
 {
-    [ExportLanguageService(typeof(IBracePairsService), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpBracePairsService : AbstractBracePairsService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpBracePairsService()
+        : base(CSharpSyntaxKinds.Instance)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpBracePairsService()
-            : base(CSharpSyntaxKinds.Instance)
-        {
-        }
     }
 }

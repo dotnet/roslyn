@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 {
-    public sealed class OrderModifiersCompilerErrorTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public sealed class OrderModifiersCompilerErrorTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public OrderModifiersCompilerErrorTests(ITestOutputHelper logger)
           : base(logger)

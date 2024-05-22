@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellCheck;
 [UseExportProvider]
 public class SpellCheckSpanTests : AbstractSpellCheckSpanTests
 {
-    protected override TestWorkspace CreateWorkspace(string content)
-        => TestWorkspace.CreateCSharp(content);
+    protected override EditorTestWorkspace CreateWorkspace(string content)
+        => EditorTestWorkspace.CreateCSharp(content);
 
     [Fact]
     public async Task TestSingleLineComment1()

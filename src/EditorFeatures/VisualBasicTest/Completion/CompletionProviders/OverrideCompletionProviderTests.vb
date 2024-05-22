@@ -1847,7 +1847,7 @@ public class C
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspace.Create(text, composition:=GetComposition())
+            Using workspace = EditorTestWorkspace.Create(text, composition:=GetComposition())
                 Dim hostDocument = workspace.Documents.First()
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)

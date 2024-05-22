@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeGeneration
         {
             var g = CSharpSyntaxGenerator.Instance;
 
-            using var workspace = TestWorkspace.CreateCSharp("""
+            using var workspace = EditorTestWorkspace.CreateCSharp("""
                 class C
                 {
                     string M()
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeGeneration
         {
             var g = CSharpSyntaxGenerator.Instance;
 
-            using var workspace = TestWorkspace.CreateCSharp("""
+            using var workspace = EditorTestWorkspace.CreateCSharp("""
                 class C
                 {
                     string M()

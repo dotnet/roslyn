@@ -8,13 +8,12 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Completion;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal class ExportCompletionProviderMef1Attribute(string name, string language) : ExportAttribute(typeof(CompletionProvider))
 {
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportCompletionProviderMef1Attribute(string name, string language) : ExportAttribute(typeof(CompletionProvider))
-    {
-        public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
-        public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
-    }
+    public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
+    public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
 }

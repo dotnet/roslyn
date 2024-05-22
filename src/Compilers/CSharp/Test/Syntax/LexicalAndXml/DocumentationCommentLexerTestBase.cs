@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
             }
 
-            builder.Append(")");
+            builder.Append(')');
 
             return builder.ToString();
         }

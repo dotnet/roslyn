@@ -5,40 +5,39 @@
 using System;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
-{
-    internal static partial class DiagnosticSeverityExtensions
-    {
-        /// <summary>
-        /// Returns the equivalent <see cref="ReportDiagnostic"/> for a <see cref="DiagnosticSeverity"/> value.
-        /// </summary>
-        /// <param name="diagnosticSeverity">The <see cref="DiagnosticSeverity"/> value.</param>
-        /// <returns>
-        /// The equivalent <see cref="ReportDiagnostic"/> for the <see cref="DiagnosticSeverity"/> value.
-        /// </returns>
-        /// <exception cref="InvalidOperationException">
-        /// If <paramref name="diagnosticSeverity"/> is not one of the expected values.
-        /// </exception>
-        public static ReportDiagnostic ToReportDiagnostic(this DiagnosticSeverity diagnosticSeverity)
-            => diagnosticSeverity switch
-            {
-                DiagnosticSeverity.Hidden => ReportDiagnostic.Hidden,
-                DiagnosticSeverity.Info => ReportDiagnostic.Info,
-                DiagnosticSeverity.Warning => ReportDiagnostic.Warn,
-                DiagnosticSeverity.Error => ReportDiagnostic.Error,
-                _ => throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity),
-            };
+namespace Microsoft.CodeAnalysis.Diagnostics;
 
-        public static string ToEditorConfigString(this DiagnosticSeverity diagnosticSeverity)
+internal static partial class DiagnosticSeverityExtensions
+{
+    /// <summary>
+    /// Returns the equivalent <see cref="ReportDiagnostic"/> for a <see cref="DiagnosticSeverity"/> value.
+    /// </summary>
+    /// <param name="diagnosticSeverity">The <see cref="DiagnosticSeverity"/> value.</param>
+    /// <returns>
+    /// The equivalent <see cref="ReportDiagnostic"/> for the <see cref="DiagnosticSeverity"/> value.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// If <paramref name="diagnosticSeverity"/> is not one of the expected values.
+    /// </exception>
+    public static ReportDiagnostic ToReportDiagnostic(this DiagnosticSeverity diagnosticSeverity)
+        => diagnosticSeverity switch
         {
-            return diagnosticSeverity switch
-            {
-                DiagnosticSeverity.Hidden => EditorConfigSeverityStrings.Silent,
-                DiagnosticSeverity.Info => EditorConfigSeverityStrings.Suggestion,
-                DiagnosticSeverity.Warning => EditorConfigSeverityStrings.Warning,
-                DiagnosticSeverity.Error => EditorConfigSeverityStrings.Error,
-                _ => throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity)
-            };
-        }
+            DiagnosticSeverity.Hidden => ReportDiagnostic.Hidden,
+            DiagnosticSeverity.Info => ReportDiagnostic.Info,
+            DiagnosticSeverity.Warning => ReportDiagnostic.Warn,
+            DiagnosticSeverity.Error => ReportDiagnostic.Error,
+            _ => throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity),
+        };
+
+    public static string ToEditorConfigString(this DiagnosticSeverity diagnosticSeverity)
+    {
+        return diagnosticSeverity switch
+        {
+            DiagnosticSeverity.Hidden => EditorConfigSeverityStrings.Silent,
+            DiagnosticSeverity.Info => EditorConfigSeverityStrings.Suggestion,
+            DiagnosticSeverity.Warning => EditorConfigSeverityStrings.Warning,
+            DiagnosticSeverity.Error => EditorConfigSeverityStrings.Error,
+            _ => throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity)
+        };
     }
 }

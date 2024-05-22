@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -42,18 +43,20 @@ internal sealed class RazorCohostLanguageClient(
 
     public override object? CustomMessageTarget => razorCustomMessageTarget;
 
-    public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+    public override Task OnLoadedAsync()
     {
         if (razorCohostLanguageClientActivationService?.ShouldActivateCohostServer() != true)
         {
-            // A default return would still opt us in to TextDocumentSync for open files, but even that's
-            // wasteful if we don't want to handle anything, as we'd track document content.
-            return new()
-            {
-                TextDocumentSync = new TextDocumentSyncOptions { OpenClose = false, Change = TextDocumentSyncKind.None, Save = false, WillSave = false, WillSaveWaitUntil = false }
-            };
+            // By not calling the base implementation, we avoid firing the StartAsync event, which means
+            // the platform will never trigger the creation of an instance of the language server.
+            return Task.CompletedTask;
         }
 
+        return base.OnLoadedAsync();
+    }
+
+    public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+    {
         Contract.ThrowIfNull(razorCapabilitiesProvider);
 
         // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
@@ -76,7 +79,7 @@ internal sealed class RazorCohostLanguageClient(
     /// <summary>
     /// If the cohost server is expected to activate then any failures are catastrophic as no razor features will work.
     /// </summary>
-    public override bool ShowNotificationOnInitializeFailed => razorCohostLanguageClientActivationService?.ShouldActivateCohostServer() == true;
+    public override bool ShowNotificationOnInitializeFailed => true;
 
     public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.RazorCohostServer;
 }

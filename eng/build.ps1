@@ -32,8 +32,7 @@ param (
 
   # Options
   [switch]$bootstrap,
-  [string]$bootstrapConfiguration = "Release",
-  [string]$bootstrapToolset = "",
+  [string]$bootstrapDir = "",
   [switch][Alias('bl')]$binaryLog,
   [string]$binaryLogName = "",
   [switch]$ci,
@@ -105,7 +104,7 @@ function Print-Usage() {
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
   Write-Host "  -bootstrap                Build using a bootstrap compilers"
-  Write-Host "  -bootstrapConfiguration   Build configuration for bootstrap compiler: 'Debug' or 'Release'"
+  Write-Host "  -bootstrapDir             Build using bootstrap compiler at specified location"
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
   Write-Host "  -collectDumps             Collect dumps from test runs"
   Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
@@ -178,6 +177,10 @@ function Process-Arguments() {
 
   if ($binaryLog -and ($binaryLogName -eq "")) {
     $script:binaryLogName = "Build.binlog"
+  }
+
+  if ($bootstrapDir -ne "") {
+    $script:bootstrap = $true
   }
 
   $anyUnit = $testDesktop -or $testCoreClr
@@ -349,6 +352,7 @@ function GetCompilerTestAssembliesIncludePaths() {
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
@@ -388,7 +392,7 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
   }
 
-  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net7.0"
+  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net8.0"
 
   if (!(Test-Path $runTests)) {
     Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
@@ -401,17 +405,16 @@ function TestUsingRunTests() {
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
-    $args += " --tfm net6.0 --tfm net7.0 --tfm net8.0"
+    $args += " --runtime core"
     $args += " --timeout 90"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
     } else {
-      $args += " --tfm net6.0-windows"
       $args += " --include '\.UnitTests'"
     }
   }
   elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
-    $args += " --tfm net472"
+    $args += " --runtime framework"
     $args += " --timeout 90"
 
     if ($testCompilerOnly) {
@@ -426,8 +429,7 @@ function TestUsingRunTests() {
 
   } elseif ($testVsi) {
     $args += " --timeout 110"
-    $args += " --tfm net472"
-    $args += " --tfm net6.0-windows" # For the MSBuildWorkspace tests, since we support .NET Core processes analyzing projects with the Visual Studio MSBuild
+    $args += " --runtime both"
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
@@ -467,7 +469,7 @@ function TestUsingRunTests() {
 
   try {
     Write-Host "$runTests $args"
-    Exec-Console $dotnetExe "$runTests $args"
+    Exec-Command $dotnetExe "$runTests $args"
   } finally {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($ci) {
@@ -542,7 +544,7 @@ function EnablePreviewSdks() {
 # deploying at build time.
 function Deploy-VsixViaTool() {
 
-  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net7.0\VSIXExpInstaller\VSIXExpInstaller.exe"
+  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net8.0\VSIXExpInstaller\VSIXExpInstaller.exe"
   Write-Host "VSIX EXE path: " $vsixExe
   if (-not (Test-Path $vsixExe)) {
     Write-Host "VSIX EXE not found: '$vsixExe'." -ForegroundColor Red
@@ -592,7 +594,7 @@ function Deploy-VsixViaTool() {
     $vsixFile = Join-Path $VSSetupDir $vsixFileName
     $fullArg = "$baseArgs $vsixFile"
     Write-Host "`tInstalling $vsixFileName"
-    Exec-Console $vsixExe $fullArg
+    Exec-Command $vsixExe $fullArg
   }
 
   # Set up registry
@@ -616,7 +618,7 @@ function Deploy-VsixViaTool() {
   # Configure LSP
   $lspRegistryValue = [int]$lspEditor.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\LSP\Editor" Value dword $lspRegistryValue
-  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Lsp\PullDiagnostics" Value dword $lspRegistryValue
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Lsp\PullDiagnostics" Value dword 1
 
   # Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
   # custom handler or fail silently and continue testing.
@@ -743,26 +745,18 @@ try {
       Setup-IntegrationTestRun
     }
 
-    $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
-    InstallDotNetSdk $global:_DotNetInstallDir $GlobalJson.tools.dotnet
+    $dotnet = (InitializeDotNetCli -install:$true)
   }
 
   if ($restore) {
     &(Ensure-DotNetSdk) tool restore
   }
 
-  try
-  {
-    if ($bootstrap) {
-      $bootstrapDir = Make-BootstrapBuild $bootstrapToolset
-    }
-  }
-  catch
-  {
-    if ($ci) {
-      Write-LogIssue -Type "error" -Message "(NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
-    }
-    throw $_
+  if ($bootstrap -and $bootstrapDir -eq "") {
+    Write-Host "Building bootstrap Compiler"
+    $bootstrapDir = Join-Path (Join-Path $ArtifactsDir "bootstrap") "build"
+    & eng/make-bootstrap.ps1 -output $bootstrapDir -force -ci:$ci
+    Test-LastExitCode
   }
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish) {
@@ -801,10 +795,6 @@ catch {
   ExitWithExitCode 1
 }
 finally {
-  if ($ci) {
-    Stop-Processes
-  }
-
   if (Test-Path Function:\Unsubst-TempDir) {
     Unsubst-TempDir
   }

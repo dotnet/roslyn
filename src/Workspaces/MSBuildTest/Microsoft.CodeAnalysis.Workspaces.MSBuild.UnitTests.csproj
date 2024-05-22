@@ -4,8 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.MSBuild.UnitTests</RootNamespace>
-    <!-- <Metalama /> Project retargetted to .NET 7. -->
-    <TargetFrameworks>net7.0-windows;net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

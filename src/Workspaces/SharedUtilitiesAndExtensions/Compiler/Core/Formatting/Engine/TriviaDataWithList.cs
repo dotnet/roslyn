@@ -5,10 +5,9 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+internal abstract class TriviaDataWithList(SyntaxFormattingOptions options, string language) : TriviaData(options, language)
 {
-    internal abstract class TriviaDataWithList(SyntaxFormattingOptions options, string language) : TriviaData(options, language)
-    {
-        public abstract SyntaxTriviaList GetTriviaList(CancellationToken cancellationToken);
-    }
+    public abstract SyntaxTriviaList GetTriviaList(CancellationToken cancellationToken);
 }

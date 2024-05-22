@@ -4,6 +4,7 @@
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
+Imports System.Diagnostics.CodeAnalysis
 Imports System.IO
 Imports System.Reflection.Emit
 Imports System.Reflection.Metadata
@@ -1952,9 +1953,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Get symbol for predefined type from Cor Library referenced by this compilation.
         ''' </summary>
-        Friend Shadows Function GetSpecialType(typeId As SpecialType) As NamedTypeSymbol
+        Friend Shadows Function GetSpecialType(typeId As ExtendedSpecialType) As NamedTypeSymbol
             Dim result = Assembly.GetSpecialType(typeId)
-            Debug.Assert(result.SpecialType = typeId)
+            Debug.Assert(result.ExtendedSpecialType = typeId)
             Return result
         End Function
 
@@ -2040,16 +2041,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False) As SemanticModel
             Dim model As SemanticModel = Nothing
             If SemanticModelProvider IsNot Nothing Then
-                model = SemanticModelProvider.GetSemanticModel(syntaxTree, Me, ignoreAccessibility)
+#Disable Warning RSEXPERIMENTAL001 'internal use of experimental API
+                model = SemanticModelProvider.GetSemanticModel(syntaxTree, Me, If(ignoreAccessibility, SemanticModelOptions.IgnoreAccessibility, SemanticModelOptions.None))
                 Debug.Assert(model IsNot Nothing)
             End If
 
-            Return If(model, CreateSemanticModel(syntaxTree, ignoreAccessibility))
+            Return If(model, CreateSemanticModel(syntaxTree, If(ignoreAccessibility, SemanticModelOptions.IgnoreAccessibility, SemanticModelOptions.None)))
         End Function
 
-        Friend Overrides Function CreateSemanticModel(syntaxTree As SyntaxTree, ignoreAccessibility As Boolean) As SemanticModel
-            Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree, ignoreAccessibility)
+        Friend Overrides Function CreateSemanticModel(syntaxTree As SyntaxTree, options As SemanticModelOptions) As SemanticModel
+            Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree, ignoreAccessibility:=(options And SemanticModelOptions.IgnoreAccessibility) <> 0)
         End Function
+#Enable Warning RSEXPERIMENTAL001
 
         Friend ReadOnly Property FeatureStrictEnabled As Boolean
             Get
@@ -2740,8 +2743,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree, ignoreAccessibility As Boolean) As SemanticModel
-            Return Me.GetSemanticModel(syntaxTree, ignoreAccessibility)
+        <Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat:=RoslynExperiments.NullableDisabledSemanticModel_Url)>
+        Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree, options As SemanticModelOptions) As SemanticModel
+            Return Me.GetSemanticModel(syntaxTree, ignoreAccessibility:=(options And SemanticModelOptions.IgnoreAccessibility) <> 0)
         End Function
 
         Protected Overrides ReadOnly Property CommonSyntaxTrees As ImmutableArray(Of SyntaxTree)

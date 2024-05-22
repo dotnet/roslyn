@@ -2,21 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue;
+
+/// <summary>
+/// Grants capabilities. 
+/// </summary>
+internal sealed class EditAndContinueCapabilitiesGrantor(EditAndContinueCapabilities availableCapabilities)
 {
-    /// <summary>
-    /// Grants capabilities. 
-    /// </summary>
-    internal sealed class EditAndContinueCapabilitiesGrantor(EditAndContinueCapabilities availableCapabilities)
+    private readonly EditAndContinueCapabilities _availableCapabilities = availableCapabilities;
+
+    public EditAndContinueCapabilities GrantedCapabilities { get; private set; } = 0;
+
+    public bool Grant(EditAndContinueCapabilities capabilities)
     {
-        private readonly EditAndContinueCapabilities _availableCapabilities = availableCapabilities;
-
-        public EditAndContinueCapabilities GrantedCapabilities { get; private set; } = 0;
-
-        public bool Grant(EditAndContinueCapabilities capabilities)
-        {
-            GrantedCapabilities |= capabilities;
-            return (_availableCapabilities & capabilities) == capabilities;
-        }
+        GrantedCapabilities |= capabilities;
+        return (_availableCapabilities & capabilities) == capabilities;
     }
 }

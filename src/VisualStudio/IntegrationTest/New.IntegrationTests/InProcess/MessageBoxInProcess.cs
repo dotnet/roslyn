@@ -129,6 +129,9 @@ internal partial class MessageBoxInProcess
                 }
             }
 
+            // Make sure to set pidButton to a non-zero value or it will fall back to showing a dialog.
+            pidButton = (int)DialogResult.Cancel;
+
             Assert.True(
                 false,
                 $"""

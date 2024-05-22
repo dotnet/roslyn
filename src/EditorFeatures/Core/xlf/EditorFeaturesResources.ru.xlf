@@ -17,34 +17,14 @@
         <target state="translated">Не удается перейти к символу, на котором находится курсор.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Change_configuration">
-        <source>Change configuration</source>
-        <target state="translated">Изменить конфигурацию</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_cleanup_is_not_configured">
-        <source>Code cleanup is not configured</source>
-        <target state="translated">Очистка кода не настроена</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">Вычисление сведений "Инкапсуляция поля"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Configure_it_now">
-        <source>Configure it now</source>
-        <target state="translated">Настройте ее сейчас</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
         <source>Do not prefer 'this.' or 'Me.'</source>
         <target state="translated">Не предпочитать "this." или "Me".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_show_this_message_again">
-        <source>Do not show this message again</source>
-        <target state="translated">Больше не показывать это сообщение</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
@@ -77,24 +57,9 @@
         <target state="translated">Фильтр</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
-      <trans-unit id="Format_document_performed_additional_cleanup">
-        <source>Format Document performed additional cleanup</source>
-        <target state="translated">При форматировании документа была выполнена дополнительная очистка</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
         <target state="translated">Получить справку для "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Gathering_Suggestions_0">
-        <source>Gathering Suggestions - '{0}'</source>
-        <target state="translated">Сбор предложений — "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
-        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
-        <target state="translated">Сбор предложений — ожидается полная загрузка решения</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -290,6 +255,11 @@
       <trans-unit id="Reassigned_variable">
         <source>Reassigned variable</source>
         <target state="translated">Переназначенная переменная</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Refine_using_Copilot">
+        <source>Refine using Copilot</source>
+        <target state="translated">Уточнить с помощью Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
@@ -577,11 +547,6 @@
         <target state="translated">Комментарии XML Doc — значения атрибутов</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unnecessary_Code">
-        <source>Unnecessary Code</source>
-        <target state="translated">Ненужный код</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
         <target state="translated">Грубая редакция</target>
@@ -635,11 +600,6 @@
       <trans-unit id="_0_unresolvable_conflict_s">
         <source>{0} unresolvable conflict(s)</source>
         <target state="translated">{0} неразрешимые конфликты</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Applying_0">
-        <source>Applying "{0}"...</source>
-        <target state="translated">Применение "{0}"...</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_to_1_with_content_colon">
@@ -697,11 +657,6 @@
         <target state="translated">Инкапсулировать поле</target>
         <note />
       </trans-unit>
-      <trans-unit id="Applying_Encapsulate_Field_refactoring">
-        <source>Applying "Encapsulate Field" refactoring...</source>
-        <target state="translated">Применение рефакторинга "инкапсулирования поля" ...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Please_select_the_definition_of_the_field_to_encapsulate">
         <source>Please select the definition of the field to encapsulate.</source>
         <target state="translated">Выберите определение поля, которое нужно инкапсулировать.</target>
@@ -727,11 +682,6 @@
         <target state="translated">Информация не найдена.</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_usages_found">
-        <source>No usages found.</source>
-        <target state="translated">Использований не обнаружено.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implements_">
         <source>Implements</source>
         <target state="translated">Реализует</target>
@@ -752,84 +702,14 @@
         <target state="translated">Переопределяется</target>
         <note />
       </trans-unit>
-      <trans-unit id="Directly_Called_In">
-        <source>Directly Called In</source>
-        <target state="translated">Прямой вызов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indirectly_Called_In">
-        <source>Indirectly Called In</source>
-        <target state="translated">Неявный вызов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Called_In">
-        <source>Called In</source>
-        <target state="translated">Вызов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Referenced_In">
-        <source>Referenced In</source>
-        <target state="translated">Имеются ссылки в</target>
-        <note />
-      </trans-unit>
       <trans-unit id="No_references_found">
         <source>No references found.</source>
         <target state="translated">Ссылки не найдены.</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_derived_types_found">
-        <source>No derived types found.</source>
-        <target state="translated">Производных типов не найдено.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_implementations_found">
-        <source>No implementations found.</source>
-        <target state="translated">Реализаций не найдено.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_Line_1">
-        <source>{0} - (Line {1})</source>
-        <target state="translated">{0} — (Строка {1})</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Class_Parts">
-        <source>Class Parts</source>
-        <target state="translated">Части класса</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Struct_Parts">
-        <source>Struct Parts</source>
-        <target state="translated">Части структуры</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_Parts">
-        <source>Interface Parts</source>
-        <target state="translated">Части интерфейса</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Parts">
-        <source>Type Parts</source>
-        <target state="translated">Части типа</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inherits_">
         <source>Inherits</source>
         <target state="translated">Наследует</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inherited_By">
-        <source>Inherited By</source>
-        <target state="translated">Наследуется</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Already_tracking_document_with_identical_key">
-        <source>Already tracking document with identical key</source>
-        <target state="translated">Документ с идентичным ключом уже отслеживается.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="document_is_not_currently_being_tracked">
-        <source>document is not currently being tracked</source>
-        <target state="translated">Документ в настоящее время не отслеживается.</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_Rename_information">
@@ -887,24 +767,9 @@
         <target state="translated">Автоматическое завершение...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatic_Pair_Completion">
-        <source>Automatic Pair Completion</source>
-        <target state="translated">Автоматическое завершение пары</target>
-        <note />
-      </trans-unit>
       <trans-unit id="An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one">
         <source>An active inline rename session is still active. Complete it before starting a new one.</source>
         <target state="translated">Встроенный сеанс переименования еще активен. Завершите его прежде, чем начинать новый.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_buffer_is_not_part_of_a_workspace">
-        <source>The buffer is not part of a workspace.</source>
-        <target state="translated">Этот буфер не является частью рабочей области.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_token_is_not_contained_in_the_workspace">
-        <source>The token is not contained in the workspace.</source>
-        <target state="translated">Этот токен не помещен в рабочую область.</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigation_Bars">
@@ -917,24 +782,9 @@
         <target state="translated">Идет обновление панелей переходов...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Token">
-        <source>Format Token</source>
-        <target state="translated">Токен формата</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Find_References">
         <source>Find References</source>
         <target state="translated">Найти ссылки</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Finding_references">
-        <source>Finding references...</source>
-        <target state="translated">Поиск ссылок...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Finding_references_of_0">
-        <source>Finding references of "{0}"...</source>
-        <target state="translated">Поиск ссылок на "{0}"...</target>
         <note />
       </trans-unit>
       <trans-unit id="Comment_Selection">
@@ -982,11 +832,6 @@
         <target state="translated">Применение рефакторинга "метода извлечения"...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">Форматировать документ</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document...</source>
         <target state="translated">Идет форматирование документа...</target>
@@ -995,11 +840,6 @@
       <trans-unit id="Formatting">
         <source>Formatting</source>
         <target state="translated">Форматирование</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_Selection">
-        <source>Format Selection</source>
-        <target state="translated">Форматировать выделенный фрагмент</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_currently_selected_text">
@@ -1042,11 +882,6 @@
         <target state="translated">Исправление встроенного переименования</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Rename_Resolved_Conflict">
-        <source>Inline Rename Resolved Conflict</source>
-        <target state="translated">Разрешенный конфликт встроенного переименования</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inline_Rename">
         <source>Inline Rename</source>
         <target state="translated">Встроенное переименование</target>
@@ -1060,11 +895,6 @@
       <trans-unit id="Start_Rename">
         <source>Start Rename</source>
         <target state="translated">Начать переименование</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Display_conflict_resolutions">
-        <source>Display conflict resolutions</source>
-        <target state="translated">Отобразить разрешение конфликтов</target>
         <note />
       </trans-unit>
       <trans-unit id="Finding_token_to_rename">
@@ -1107,29 +937,9 @@
         <target state="translated">Переименовать: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Light_bulb_session_is_already_dismissed">
-        <source>Light bulb session is already dismissed.</source>
-        <target state="translated">Сеанс лампочки уже закрыт.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatic_Pair_Completion_End_Point_Marker_Color">
-        <source>Automatic Pair Completion End Point Marker Color</source>
-        <target state="translated">Цвет маркера конечной точки автоматического завершения пары.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">Модуль должен быть подключен к Интерактивному окну.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changes_the_current_prompt_settings">
-        <source>Changes the current prompt settings.</source>
-        <target state="translated">Изменения текущих настроек командной строки.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unexpected_text_colon_0">
-        <source>Unexpected text: '{0}'</source>
-        <target state="translated">Непредвиденный текст: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="The_triggerSpan_is_not_included_in_the_given_workspace">
@@ -1145,11 +955,6 @@
       <trans-unit id="The_transaction_is_already_complete">
         <source>The transaction is already complete.</source>
         <target state="translated">Транзакция уже выполнена.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_a_source_error_line_column_unavailable">
-        <source>Not a source error, line/column unavailable</source>
-        <target state="translated">Не ошибка источника, строка или столбец недоступны</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_compare_positions_from_different_text_snapshots">
@@ -1232,11 +1037,6 @@
         <target state="translated">Просмотреть изменения</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Paste">
-        <source>Format Paste</source>
-        <target state="translated">Форматировать при вставке</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_pasted_text">
         <source>Formatting pasted text...</source>
         <target state="translated">Идет форматирование вставленного текста...</target>
@@ -1294,11 +1094,6 @@ Do you want to proceed?</source>
         <target state="translated">Вызовы реализации интерфейса "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Computing_Call_Hierarchy_Information">
-        <source>Computing Call Hierarchy Information</source>
-        <target state="translated">Вычисление сведений об иерархии вызовов</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implements_0">
         <source>Implements '{0}'</source>
         <target state="translated">Реализует "{0}"</target>
@@ -1349,11 +1144,6 @@ Do you want to proceed?</source>
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="IntelliSense_Commit_Formatting">
-        <source>IntelliSense Commit Formatting</source>
-        <target state="translated">Форматирование при фиксации IntelliSense</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_Tracking">
         <source>Rename Tracking</source>
         <target state="translated">Отслеживание переименования</target>
@@ -1362,11 +1152,6 @@ Do you want to proceed?</source>
       <trans-unit id="Removing_0_from_1_with_content_colon">
         <source>Removing '{0}' from '{1}' with content:</source>
         <target state="translated">Идет удаление "{0}" из "{1}" с содержимым:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
-        <source>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</source>
-        <target state="translated">"{0}" не поддерживает операцию "{1}", но может содержать вложенные "{2}" (см. "{2}.{3}"), которые поддерживают эту операцию.</target>
         <note />
       </trans-unit>
       <trans-unit id="Brace_Completion">
@@ -1429,11 +1214,6 @@ Do you want to proceed?</source>
         <target state="translated">Идет переход...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggestion_ellipses">
-        <source>Suggestion ellipses (…)</source>
-        <target state="translated">Предложение с многоточием (…)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="_0_declarations">
         <source>'{0}' declarations</source>
         <target state="translated">'Объявления "{0}"</target>
@@ -1462,11 +1242,6 @@ Do you want to proceed?</source>
       <trans-unit id="Comment_Uncomment_Selection">
         <source>Comment/Uncomment Selection</source>
         <target state="translated">Закомментировать/раскомментировать выбранный фрагмент</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_Completion">
-        <source>Code Completion</source>
-        <target state="translated">Завершение кода</target>
         <note />
       </trans-unit>
       <trans-unit id="Execute_In_Interactive">
@@ -1557,11 +1332,6 @@ Do you want to proceed?</source>
       <trans-unit id="Signature_Help">
         <source>Signature Help</source>
         <target state="translated">Справка по сигнатурам</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Token_Formatter">
-        <source>Smart Token Formatter</source>
-        <target state="translated">Средство форматирования смарт-токена</target>
         <note />
       </trans-unit>
     </body>

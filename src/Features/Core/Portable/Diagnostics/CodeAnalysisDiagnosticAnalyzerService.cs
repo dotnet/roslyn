@@ -38,7 +38,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         /// these through <see cref="GetLastComputedDocumentDiagnosticsAsync"/> and <see
         /// cref="GetLastComputedProjectDiagnosticsAsync"/>.
         /// </summary>
-        private readonly ConcurrentSet<ProjectId> _analyzedProjectIds = new();
+        private readonly ConcurrentSet<ProjectId> _analyzedProjectIds = [];
 
         /// <summary>
         /// Previously analyzed projects that we no longer want to report results for.  This happens when an explicit
@@ -47,7 +47,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         /// still think it should process it, as that will the cause the diagnostics to be removed when they now
         /// transition to an empty list returned from this type.
         /// </summary>
-        private readonly ConcurrentSet<ProjectId> _clearedProjectIds = new();
+        private readonly ConcurrentSet<ProjectId> _clearedProjectIds = [];
 
         public CodeAnalysisDiagnosticAnalyzerService(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,

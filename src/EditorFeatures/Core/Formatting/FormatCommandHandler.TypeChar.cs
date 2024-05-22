@@ -6,14 +6,13 @@ using System;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-namespace Microsoft.CodeAnalysis.Formatting
-{
-    internal partial class FormatCommandHandler
-    {
-        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
-            => nextHandler();
+namespace Microsoft.CodeAnalysis.Formatting;
 
-        public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
-            => ExecuteReturnOrTypeCommand(args, nextHandler, context.OperationContext.UserCancellationToken);
-    }
+internal partial class FormatCommandHandler
+{
+    public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+        => nextHandler();
+
+    public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
+        => ExecuteReturnOrTypeCommand(args, nextHandler, context.OperationContext.UserCancellationToken);
 }

@@ -21,60 +21,59 @@ using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp;
+
+[ExportWorkspaceService(typeof(IPullMemberUpOptionsService), ServiceLayer.Host), Shared]
+internal class VisualStudioPullMemberUpService : IPullMemberUpOptionsService
 {
-    [ExportWorkspaceService(typeof(IPullMemberUpOptionsService), ServiceLayer.Host), Shared]
-    internal class VisualStudioPullMemberUpService : IPullMemberUpOptionsService
+    private readonly IGlyphService _glyphService;
+    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioPullMemberUpService(IGlyphService glyphService, IUIThreadOperationExecutor uiThreadOperationExecutor)
     {
-        private readonly IGlyphService _glyphService;
-        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+        _glyphService = glyphService;
+        _uiThreadOperationExecutor = uiThreadOperationExecutor;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioPullMemberUpService(IGlyphService glyphService, IUIThreadOperationExecutor uiThreadOperationExecutor)
+    public PullMembersUpOptions GetPullMemberUpOptions(Document document, ImmutableArray<ISymbol> selectedMembers)
+    {
+        // all selected members must have the same containing type
+        var containingType = selectedMembers[0].ContainingType;
+        var membersInType = containingType.GetMembers().
+            WhereAsArray(MemberAndDestinationValidator.IsMemberValid);
+        var memberViewModels = membersInType
+            .SelectAsArray(member =>
+                new MemberSymbolViewModel(member, _glyphService)
+                {
+                    // The member user selected will be checked at the beginning.
+                    IsChecked = selectedMembers.Any(SymbolEquivalenceComparer.Instance.Equals, member),
+                    MakeAbstract = false,
+                    IsMakeAbstractCheckable = !member.IsKind(SymbolKind.Field) && !member.IsAbstract,
+                    IsCheckable = true
+                });
+
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var baseTypeRootViewModel = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(
+            _glyphService,
+            document.Project.Solution,
+            containingType,
+            cancellationTokenSource.Token);
+        var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
+        var viewModel = new PullMemberUpDialogViewModel(_uiThreadOperationExecutor, memberViewModels, baseTypeRootViewModel, memberToDependentsMap);
+        var dialog = new PullMemberUpDialog(viewModel);
+        var result = dialog.ShowModal();
+
+        // Dialog has finshed its work, cancel finding dependents task.
+        cancellationTokenSource.Cancel();
+        if (result.GetValueOrDefault())
         {
-            _glyphService = glyphService;
-            _uiThreadOperationExecutor = uiThreadOperationExecutor;
+            return dialog.ViewModel.CreatePullMemberUpOptions();
         }
-
-        public PullMembersUpOptions GetPullMemberUpOptions(Document document, ImmutableArray<ISymbol> selectedMembers)
+        else
         {
-            // all selected members must have the same containing type
-            var containingType = selectedMembers[0].ContainingType;
-            var membersInType = containingType.GetMembers().
-                WhereAsArray(MemberAndDestinationValidator.IsMemberValid);
-            var memberViewModels = membersInType
-                .SelectAsArray(member =>
-                    new MemberSymbolViewModel(member, _glyphService)
-                    {
-                        // The member user selected will be checked at the beginning.
-                        IsChecked = selectedMembers.Any(SymbolEquivalenceComparer.Instance.Equals, member),
-                        MakeAbstract = false,
-                        IsMakeAbstractCheckable = !member.IsKind(SymbolKind.Field) && !member.IsAbstract,
-                        IsCheckable = true
-                    });
-
-            using var cancellationTokenSource = new CancellationTokenSource();
-            var baseTypeRootViewModel = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(
-                _glyphService,
-                document.Project.Solution,
-                containingType,
-                cancellationTokenSource.Token);
-            var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
-            var viewModel = new PullMemberUpDialogViewModel(_uiThreadOperationExecutor, memberViewModels, baseTypeRootViewModel, memberToDependentsMap);
-            var dialog = new PullMemberUpDialog(viewModel);
-            var result = dialog.ShowModal();
-
-            // Dialog has finshed its work, cancel finding dependents task.
-            cancellationTokenSource.Cancel();
-            if (result.GetValueOrDefault())
-            {
-                return dialog.ViewModel.CreatePullMemberUpOptions();
-            }
-            else
-            {
-                return null;
-            }
+            return null;
         }
     }
 }

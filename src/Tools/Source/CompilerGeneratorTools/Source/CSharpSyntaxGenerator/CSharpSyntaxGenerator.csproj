@@ -3,9 +3,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>CSharpSyntaxGenerator</RootNamespace>
-    <!-- We build this against net8.0 to build the console app version, and against netstandard2.0 for
+    <!-- We build this against $(NetRoslyn) to build the console app version, and against netstandard2.0 for
          the Source Generator version. -->
-    <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslyn);netstandard2.0</TargetFrameworks>
     <OutputType Condition="'$(TargetFramework)' != 'netstandard2.0'">Exe</OutputType>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <IsShipping>false</IsShipping>
@@ -13,7 +13,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Make sure to reference the same version of Microsoft.CodeAnalysis.Analyzers as the rest of the build -->
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <!-- If we're building the command line tool, we have to include some dependencies used for grammar generation -->
@@ -22,6 +22,6 @@
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKind.cs" Link="Grammar\SyntaxKind.cs" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs" Link="Grammar\SyntaxKindFacts.cs" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
 
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(SourceGeneratorMicrosoftCodeAnalysisVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
 </Project>

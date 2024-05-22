@@ -5,85 +5,73 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols;
+
+internal sealed partial class TopLevelSyntaxTreeIndex
 {
-    internal sealed partial class TopLevelSyntaxTreeIndex
+    private readonly struct ExtensionMethodInfo(ImmutableDictionary<string, ImmutableArray<int>> receiverTypeNameToExtensionMethodMap)
     {
-        private readonly struct ExtensionMethodInfo(ImmutableDictionary<string, ImmutableArray<int>> receiverTypeNameToExtensionMethodMap)
+        // We divide extension methods into two categories, simple and complex, for filtering purpose.
+        // Whether a method is simple is determined based on if we can determine it's receiver type easily
+        // with a pure text matching. For complex methods, we will need to rely on symbol to decide if it's 
+        // feasible.
+        //
+        // Complex methods include:
+        // - Method declared in the document which includes using alias directive
+        // - Generic method where the receiver type is a type-paramter (e.g. List<T> would be considered simple, not complex)
+        // - If the receiver type name is Pointer type (i.e. name of the type for the first parameter) 
+        //
+        // The rest of methods are considered simple.
+
+        /// <summary>
+        /// Name of the extension method's receiver type to the index of its DeclaredSymbolInfo in `_declarationInfo`.
+        /// 
+        /// For simple types, the receiver type name is it's metadata name. All predefined types are converted to its metadata form.
+        /// e.g. int => Int32. For generic types, type parameters are ignored.
+        /// 
+        /// For complex types, the receiver type name is "".
+        /// 
+        /// For any kind of array types, it's "{element's receiver type name}[]".
+        /// e.g. 
+        /// int[][,] => "Int32[]"
+        /// T (where T is a type parameter) => ""
+        /// T[,] (where T is a type parameter) => "T[]"
+        /// </summary>
+        public readonly ImmutableDictionary<string, ImmutableArray<int>> ReceiverTypeNameToExtensionMethodMap { get; } = receiverTypeNameToExtensionMethodMap;
+
+        public bool ContainsExtensionMethod => !ReceiverTypeNameToExtensionMethodMap.IsEmpty;
+
+        public void WriteTo(ObjectWriter writer)
         {
-            // We divide extension methods into two categories, simple and complex, for filtering purpose.
-            // Whether a method is simple is determined based on if we can determine it's receiver type easily
-            // with a pure text matching. For complex methods, we will need to rely on symbol to decide if it's 
-            // feasible.
-            //
-            // Complex methods include:
-            // - Method declared in the document which includes using alias directive
-            // - Generic method where the receiver type is a type-paramter (e.g. List<T> would be considered simple, not complex)
-            // - If the receiver type name is Pointer type (i.e. name of the type for the first parameter) 
-            //
-            // The rest of methods are considered simple.
+            writer.WriteInt32(ReceiverTypeNameToExtensionMethodMap.Count);
 
-            /// <summary>
-            /// Name of the extension method's receiver type to the index of its DeclaredSymbolInfo in `_declarationInfo`.
-            /// 
-            /// For simple types, the receiver type name is it's metadata name. All predefined types are converted to its metadata form.
-            /// e.g. int => Int32. For generic types, type parameters are ignored.
-            /// 
-            /// For complex types, the receiver type name is "".
-            /// 
-            /// For any kind of array types, it's "{element's receiver type name}[]".
-            /// e.g. 
-            /// int[][,] => "Int32[]"
-            /// T (where T is a type parameter) => ""
-            /// T[,] (where T is a type parameter) => "T[]"
-            /// </summary>
-            public readonly ImmutableDictionary<string, ImmutableArray<int>> ReceiverTypeNameToExtensionMethodMap { get; } = receiverTypeNameToExtensionMethodMap;
-
-            public bool ContainsExtensionMethod => !ReceiverTypeNameToExtensionMethodMap.IsEmpty;
-
-            public void WriteTo(ObjectWriter writer)
+            foreach (var (name, indices) in ReceiverTypeNameToExtensionMethodMap)
             {
-                writer.WriteInt32(ReceiverTypeNameToExtensionMethodMap.Count);
+                writer.WriteString(name);
+                writer.WriteArray(indices, static (w, i) => w.WriteInt32(i));
+            }
+        }
 
-                foreach (var (name, indices) in ReceiverTypeNameToExtensionMethodMap)
-                {
-                    writer.WriteString(name);
-                    writer.WriteInt32(indices.Length);
+        public static ExtensionMethodInfo? TryReadFrom(ObjectReader reader)
+        {
+            try
+            {
+                var receiverTypeNameToExtensionMethodMapBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<int>>();
+                var count = reader.ReadInt32();
 
-                    foreach (var declaredSymbolInfoIndex in indices)
-                        writer.WriteInt32(declaredSymbolInfoIndex);
-                }
+                for (var i = 0; i < count; ++i)
+                    receiverTypeNameToExtensionMethodMapBuilder[reader.ReadRequiredString()] = reader.ReadArray(static r => r.ReadInt32());
+
+                return new ExtensionMethodInfo(receiverTypeNameToExtensionMethodMapBuilder.ToImmutable());
+            }
+            catch (Exception)
+            {
             }
 
-            public static ExtensionMethodInfo? TryReadFrom(ObjectReader reader)
-            {
-                try
-                {
-                    var receiverTypeNameToExtensionMethodMapBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<int>>();
-                    var count = reader.ReadInt32();
-
-                    for (var i = 0; i < count; ++i)
-                    {
-                        var typeName = reader.ReadString();
-                        var arrayLength = reader.ReadInt32();
-                        using var _ = ArrayBuilder<int>.GetInstance(arrayLength, out var builder);
-
-                        for (var j = 0; j < arrayLength; ++j)
-                            builder.Add(reader.ReadInt32());
-
-                        receiverTypeNameToExtensionMethodMapBuilder[typeName] = builder.ToImmutableAndClear();
-                    }
-
-                    return new ExtensionMethodInfo(receiverTypeNameToExtensionMethodMapBuilder.ToImmutable());
-                }
-                catch (Exception)
-                {
-                }
-
-                return null;
-            }
+            return null;
         }
     }
 }

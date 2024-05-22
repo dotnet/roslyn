@@ -6,17 +6,16 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.SymbolSearch
+namespace Microsoft.CodeAnalysis.SymbolSearch;
+
+internal partial class SymbolSearchUpdateEngine
 {
-    internal partial class SymbolSearchUpdateEngine
+    private class DelayService : IDelayService
     {
-        private class DelayService : IDelayService
-        {
-            public TimeSpan CachePollDelay { get; } = TimeSpan.FromMinutes(1);
-            public TimeSpan FileWriteDelay { get; } = TimeSpan.FromSeconds(10);
-            public TimeSpan ExpectedFailureDelay { get; } = TimeSpan.FromMinutes(1);
-            public TimeSpan CatastrophicFailureDelay { get; } = TimeSpan.FromDays(1);
-            public TimeSpan UpdateSucceededDelay { get; } = TimeSpan.FromDays(1);
-        }
+        public TimeSpan CachePollDelay { get; } = TimeSpan.FromMinutes(1);
+        public TimeSpan FileWriteDelay { get; } = TimeSpan.FromSeconds(10);
+        public TimeSpan ExpectedFailureDelay { get; } = TimeSpan.FromMinutes(1);
+        public TimeSpan CatastrophicFailureDelay { get; } = TimeSpan.FromDays(1);
+        public TimeSpan UpdateSucceededDelay { get; } = TimeSpan.FromDays(1);
     }
 }

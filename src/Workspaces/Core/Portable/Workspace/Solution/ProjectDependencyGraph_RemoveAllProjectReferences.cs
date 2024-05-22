@@ -6,119 +6,118 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+public partial class ProjectDependencyGraph
 {
-    public partial class ProjectDependencyGraph
+    internal ProjectDependencyGraph WithAllProjectReferencesRemoved(ProjectId projectId)
     {
-        internal ProjectDependencyGraph WithAllProjectReferencesRemoved(ProjectId projectId)
+        Contract.ThrowIfFalse(_projectIds.Contains(projectId));
+
+        if (!_referencesMap.TryGetValue(projectId, out var referencedProjectIds))
+            return this;
+
+        // Removing a project reference doesn't change the set of projects
+        var projectIds = _projectIds;
+
+        // Incrementally update the graph
+        var referencesMap = ComputeNewReferencesMapForRemovedAllProjectReferences(_referencesMap, projectId);
+        var reverseReferencesMap = ComputeNewReverseReferencesMapForRemovedAllProjectReferences(_lazyReverseReferencesMap, projectId, referencedProjectIds);
+        var transitiveReferencesMap = ComputeNewTransitiveReferencesMapForRemovedAllProjectReferences(_transitiveReferencesMap, projectId, referencedProjectIds);
+        var reverseTransitiveReferencesMap = ComputeNewReverseTransitiveReferencesMapForRemovedAllProjectReferences(_reverseTransitiveReferencesMap, projectId);
+
+        return new ProjectDependencyGraph(
+            projectIds,
+            referencesMap,
+            reverseReferencesMap,
+            transitiveReferencesMap,
+            reverseTransitiveReferencesMap,
+            topologicallySortedProjects: default,
+            dependencySets: default);
+    }
+
+    private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReferencesMapForRemovedAllProjectReferences(
+        ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingForwardReferencesMap,
+        ProjectId projectId)
+    {
+        // Projects with no references do not have an entry in the forward references map
+        return existingForwardReferencesMap.Remove(projectId);
+    }
+
+    /// <summary>
+    /// Computes a new <see cref="_lazyReverseReferencesMap"/> for the removal of all project references from a
+    /// project.
+    /// </summary>
+    /// <param name="existingReverseReferencesMap">The <see cref="_lazyReverseReferencesMap"/> prior to the removal,
+    /// or <see langword="null"/> if the reverse references map was not computed for the prior graph.</param>
+    /// <param name="projectId">The project ID from which a project reference is being removed.</param>
+    /// <param name="referencedProjectIds">The targets of the project references which are being removed.</param>
+    /// <returns>The updated (complete) reverse references map, or <see langword="null"/> if the reverse references
+    /// map could not be incrementally updated.</returns>
+    private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForRemovedAllProjectReferences(
+        ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
+        ProjectId projectId,
+        ImmutableHashSet<ProjectId> referencedProjectIds)
+    {
+        if (existingReverseReferencesMap is null)
         {
-            Contract.ThrowIfFalse(_projectIds.Contains(projectId));
-
-            if (!_referencesMap.TryGetValue(projectId, out var referencedProjectIds))
-                return this;
-
-            // Removing a project reference doesn't change the set of projects
-            var projectIds = _projectIds;
-
-            // Incrementally update the graph
-            var referencesMap = ComputeNewReferencesMapForRemovedAllProjectReferences(_referencesMap, projectId);
-            var reverseReferencesMap = ComputeNewReverseReferencesMapForRemovedAllProjectReferences(_lazyReverseReferencesMap, projectId, referencedProjectIds);
-            var transitiveReferencesMap = ComputeNewTransitiveReferencesMapForRemovedAllProjectReferences(_transitiveReferencesMap, projectId, referencedProjectIds);
-            var reverseTransitiveReferencesMap = ComputeNewReverseTransitiveReferencesMapForRemovedAllProjectReferences(_reverseTransitiveReferencesMap, projectId);
-
-            return new ProjectDependencyGraph(
-                projectIds,
-                referencesMap,
-                reverseReferencesMap,
-                transitiveReferencesMap,
-                reverseTransitiveReferencesMap,
-                topologicallySortedProjects: default,
-                dependencySets: default);
+            return null;
         }
 
-        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReferencesMapForRemovedAllProjectReferences(
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingForwardReferencesMap,
-            ProjectId projectId)
+        var builder = existingReverseReferencesMap.ToBuilder();
+        foreach (var referencedProjectId in referencedProjectIds)
         {
-            // Projects with no references do not have an entry in the forward references map
-            return existingForwardReferencesMap.Remove(projectId);
+            builder.MultiRemove(referencedProjectId, projectId);
         }
 
-        /// <summary>
-        /// Computes a new <see cref="_lazyReverseReferencesMap"/> for the removal of all project references from a
-        /// project.
-        /// </summary>
-        /// <param name="existingReverseReferencesMap">The <see cref="_lazyReverseReferencesMap"/> prior to the removal,
-        /// or <see langword="null"/> if the reverse references map was not computed for the prior graph.</param>
-        /// <param name="projectId">The project ID from which a project reference is being removed.</param>
-        /// <param name="referencedProjectIds">The targets of the project references which are being removed.</param>
-        /// <returns>The updated (complete) reverse references map, or <see langword="null"/> if the reverse references
-        /// map could not be incrementally updated.</returns>
-        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForRemovedAllProjectReferences(
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
-            ProjectId projectId,
-            ImmutableHashSet<ProjectId> referencedProjectIds)
+        return builder.ToImmutable();
+    }
+
+    private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewTransitiveReferencesMapForRemovedAllProjectReferences(
+        ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingTransitiveReferencesMap,
+        ProjectId projectId,
+        ImmutableHashSet<ProjectId> referencedProjectIds)
+    {
+        var builder = existingTransitiveReferencesMap.ToBuilder();
+
+        // Invalidate the transitive references from every project referencing the changed project (transitively)
+        foreach (var (project, references) in existingTransitiveReferencesMap)
         {
-            if (existingReverseReferencesMap is null)
+            if (!references.Contains(projectId))
             {
-                return null;
+                // This is the forward-references-equivalent of the optimization in the update of reverse transitive
+                // references.
+                continue;
             }
 
-            var builder = existingReverseReferencesMap.ToBuilder();
-            foreach (var referencedProjectId in referencedProjectIds)
-            {
-                builder.MultiRemove(referencedProjectId, projectId);
-            }
-
-            return builder.ToImmutable();
+            Debug.Assert(references.IsSupersetOf(referencedProjectIds));
+            builder.Remove(project);
         }
 
-        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewTransitiveReferencesMapForRemovedAllProjectReferences(
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingTransitiveReferencesMap,
-            ProjectId projectId,
-            ImmutableHashSet<ProjectId> referencedProjectIds)
+        // Invalidate the transitive references from the changed project
+        builder.Remove(projectId);
+
+        return builder.ToImmutable();
+    }
+
+    private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseTransitiveReferencesMapForRemovedAllProjectReferences(
+        ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseTransitiveReferencesMap,
+        ProjectId projectId)
+    {
+        var builder = existingReverseTransitiveReferencesMap.ToBuilder();
+
+        // Invalidate the transitive reverse references from every project previously referenced by the original
+        // project (transitively).
+        foreach (var (project, references) in existingReverseTransitiveReferencesMap)
         {
-            var builder = existingTransitiveReferencesMap.ToBuilder();
-
-            // Invalidate the transitive references from every project referencing the changed project (transitively)
-            foreach (var (project, references) in existingTransitiveReferencesMap)
+            if (!references.Contains(projectId))
             {
-                if (!references.Contains(projectId))
-                {
-                    // This is the forward-references-equivalent of the optimization in the update of reverse transitive
-                    // references.
-                    continue;
-                }
-
-                Debug.Assert(references.IsSupersetOf(referencedProjectIds));
-                builder.Remove(project);
+                continue;
             }
 
-            // Invalidate the transitive references from the changed project
-            builder.Remove(projectId);
-
-            return builder.ToImmutable();
+            builder.Remove(project);
         }
 
-        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseTransitiveReferencesMapForRemovedAllProjectReferences(
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseTransitiveReferencesMap,
-            ProjectId projectId)
-        {
-            var builder = existingReverseTransitiveReferencesMap.ToBuilder();
-
-            // Invalidate the transitive reverse references from every project previously referenced by the original
-            // project (transitively).
-            foreach (var (project, references) in existingReverseTransitiveReferencesMap)
-            {
-                if (!references.Contains(projectId))
-                {
-                    continue;
-                }
-
-                builder.Remove(project);
-            }
-
-            return builder.ToImmutable();
-        }
+        return builder.ToImmutable();
     }
 }

@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMethod;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-public class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest(logger)
+public class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new GenerateMethodCodeFixProvider());
@@ -1108,7 +1108,7 @@ public class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagn
             """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task TestPointArgument()
     {
         await TestInRegularAndScriptAsync(
@@ -1141,7 +1141,7 @@ public class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagn
             """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task TestArgumentWithPointerName()
     {
         await TestInRegularAndScriptAsync(
@@ -1174,7 +1174,7 @@ public class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagn
             """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task TestArgumentWithPointTo()
     {
         await TestInRegularAndScriptAsync(
@@ -1207,7 +1207,7 @@ public class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagn
             """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task TestArgumentWithAddress()
     {
         await TestInRegularAndScriptAsync(
@@ -8036,8 +8036,7 @@ new TestParameters(Options.Regular));
             """);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/643")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/14467")]
     public async Task TestGenerateMethodWithConfigureAwaitFalse()
     {
@@ -8077,8 +8076,7 @@ new TestParameters(Options.Regular));
             """);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/643")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/14467")]
     public async Task TestGenerateMethodWithMethodChaining()
     {
@@ -8118,8 +8116,7 @@ new TestParameters(Options.Regular));
             """);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/643")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/14467")]
     public async Task TestGenerateMethodWithMethodChaining2()
     {
@@ -10836,6 +10833,257 @@ new TestParameters(Options.Regular));
                 }
 
                 private static void Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71980")]
+    public async Task AssignToTuple1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int M()
+                {
+                    var (x, y, ) = [|NewExpr()|];
+                }
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                int M()
+                {
+                    var (x, y, ) = NewExpr();
+                }
+            
+                private object NewExpr()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71980")]
+    public async Task AssignToTuple2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int M()
+                {
+                    var (x, y, , z) = [|NewExpr()|];
+                }
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                int M()
+                {
+                    var (x, y, , z) = NewExpr();
+                }
+            
+                private object NewExpr()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71980")]
+    public async Task AssignToTuple3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int M()
+                {
+                    var (x, y, 0) = [|NewExpr()|];
+                }
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                int M()
+                {
+                    var (x, y, 0) = NewExpr();
+                }
+            
+                private object NewExpr()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71980")]
+    public async Task AssignToTuple4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int M()
+                {
+                    var (x, y, (z, w)) = [|NewExpr()|];
+                }
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                int M()
+                {
+                    var (x, y, (z, w)) = NewExpr();
+                }
+            
+                private (object x, object y, (object z, object w)) NewExpr()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71980")]
+    public async Task AssignToTuple5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int M()
+                {
+                    var (x, y, (z, w, )) = [|NewExpr()|];
+                }
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                int M()
+                {
+                    var (x, y, (z, w, )) = NewExpr();
+                }
+            
+                private object NewExpr()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71980")]
+    public async Task AssignToTuple6()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int M()
+                {
+                    var (x, y, (z, w), ) = [|NewExpr()|];
+                }
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                int M()
+                {
+                    var (x, y, (z, w), ) = NewExpr();
+                }
+            
+                private object NewExpr()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71980")]
+    public async Task AssignToTuple7()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task<int> M()
+                {
+                    var ([|NewExpr|]) = await G();
+                }
+
+                Task<(int, string)> G() => default;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71980")]
+    public async Task AssignToTuple8()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int M()
+                {
+                    var (x) = [|NewExpr()|];
+                }
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                int M()
+                {
+                    var (x) = NewExpr();
+                }
+            
+                private (object x, object) NewExpr()
                 {
                     throw new NotImplementedException();
                 }

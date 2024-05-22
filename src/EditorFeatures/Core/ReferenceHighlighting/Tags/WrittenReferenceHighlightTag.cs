@@ -5,17 +5,16 @@
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.ReferenceHighlighting;
 
-namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
+
+internal sealed class WrittenReferenceHighlightTag : NavigableHighlightTag
 {
-    internal sealed class WrittenReferenceHighlightTag : NavigableHighlightTag
+    public const string TagId = ReferenceHighlightingConstants.WrittenReferenceTagId;
+
+    public static readonly WrittenReferenceHighlightTag Instance = new();
+
+    private WrittenReferenceHighlightTag()
+        : base(TagId)
     {
-        public const string TagId = ReferenceHighlightingConstants.WrittenReferenceTagId;
-
-        public static readonly WrittenReferenceHighlightTag Instance = new();
-
-        private WrittenReferenceHighlightTag()
-            : base(TagId)
-        {
-        }
     }
 }

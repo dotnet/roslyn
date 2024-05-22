@@ -9,52 +9,51 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ValueTracking
+namespace Microsoft.CodeAnalysis.ValueTracking;
+
+[DataContract]
+internal sealed class SerializableValueTrackedItem(
+    SymbolKey symbolKey,
+    TextSpan textSpan,
+    DocumentId documentId,
+    SerializableValueTrackedItem? parent = null)
 {
-    [DataContract]
-    internal sealed class SerializableValueTrackedItem(
-        SymbolKey symbolKey,
-        TextSpan textSpan,
-        DocumentId documentId,
-        SerializableValueTrackedItem? parent = null)
+    [DataMember(Order = 0)]
+    public SymbolKey SymbolKey { get; } = symbolKey;
+
+    [DataMember(Order = 1)]
+    public TextSpan TextSpan { get; } = textSpan;
+
+    [DataMember(Order = 2)]
+    public DocumentId DocumentId { get; } = documentId;
+
+    [DataMember(Order = 3)]
+    public SerializableValueTrackedItem? Parent { get; } = parent;
+
+    public static SerializableValueTrackedItem Dehydrate(Solution solution, ValueTrackedItem valueTrackedItem, CancellationToken cancellationToken)
     {
-        [DataMember(Order = 0)]
-        public SymbolKey SymbolKey { get; } = symbolKey;
+        cancellationToken.ThrowIfCancellationRequested();
 
-        [DataMember(Order = 1)]
-        public TextSpan TextSpan { get; } = textSpan;
+        var parent = valueTrackedItem.Parent is null
+            ? null
+            : Dehydrate(solution, valueTrackedItem.Parent, cancellationToken);
 
-        [DataMember(Order = 2)]
-        public DocumentId DocumentId { get; } = documentId;
+        return new SerializableValueTrackedItem(valueTrackedItem.SymbolKey, valueTrackedItem.Span, valueTrackedItem.DocumentId, parent);
+    }
 
-        [DataMember(Order = 3)]
-        public SerializableValueTrackedItem? Parent { get; } = parent;
+    public async ValueTask<ValueTrackedItem> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
+    {
+        var document = solution.GetRequiredDocument(DocumentId);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var symbolResolution = SymbolKey.Resolve(semanticModel.Compilation, cancellationToken: cancellationToken);
+        Contract.ThrowIfNull(symbolResolution.Symbol);
 
-        public static SerializableValueTrackedItem Dehydrate(Solution solution, ValueTrackedItem valueTrackedItem, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+        cancellationToken.ThrowIfCancellationRequested();
+        var parent = Parent is null ? null : await Parent.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
 
-            var parent = valueTrackedItem.Parent is null
-                ? null
-                : Dehydrate(solution, valueTrackedItem.Parent, cancellationToken);
+        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            return new SerializableValueTrackedItem(valueTrackedItem.SymbolKey, valueTrackedItem.Span, valueTrackedItem.DocumentId, parent);
-        }
-
-        public async ValueTask<ValueTrackedItem> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
-        {
-            var document = solution.GetRequiredDocument(DocumentId);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var symbolResolution = SymbolKey.Resolve(semanticModel.Compilation, cancellationToken: cancellationToken);
-            Contract.ThrowIfNull(symbolResolution.Symbol);
-
-            cancellationToken.ThrowIfCancellationRequested();
-            var parent = Parent is null ? null : await Parent.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            return new ValueTrackedItem(SymbolKey, sourceText, TextSpan, DocumentId, symbolResolution.Symbol.GetGlyph(), parent);
-        }
+        return new ValueTrackedItem(SymbolKey, sourceText, TextSpan, DocumentId, symbolResolution.Symbol.GetGlyph(), parent);
     }
 }

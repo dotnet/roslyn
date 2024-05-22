@@ -7,24 +7,23 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.Simplification
-{
-    internal partial class CSharpParenthesizedExpressionReducer
-    {
-        private class Rewriter : AbstractReductionRewriter
-        {
-            public Rewriter(ObjectPool<IReductionRewriter> pool)
-                : base(pool)
-            {
-            }
+namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
-            public override SyntaxNode VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
-            {
-                return SimplifyNode(
-                    node,
-                    newNode: base.VisitParenthesizedExpression(node),
-                    simplifier: s_simplifyParentheses);
-            }
+internal partial class CSharpParenthesizedExpressionReducer
+{
+    private class Rewriter : AbstractReductionRewriter
+    {
+        public Rewriter(ObjectPool<IReductionRewriter> pool)
+            : base(pool)
+        {
+        }
+
+        public override SyntaxNode VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
+        {
+            return SimplifyNode(
+                node,
+                newNode: base.VisitParenthesizedExpression(node),
+                simplifier: s_simplifyParentheses);
         }
     }
 }

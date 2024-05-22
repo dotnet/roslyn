@@ -17,8 +17,6 @@
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.VisualBasic.dll" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" />
 
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll" />
-
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(TargetFramework)\publish\csc.dll" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(TargetFramework)\publish\csc.deps.json" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(TargetFramework)\publish\csc.runtimeconfig.json" />

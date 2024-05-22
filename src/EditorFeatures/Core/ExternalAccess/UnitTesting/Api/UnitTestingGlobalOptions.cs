@@ -8,16 +8,15 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
-{
-    [Export(typeof(UnitTestingGlobalOptions)), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class UnitTestingGlobalOptions(IGlobalOptionService globalOptions)
-    {
-        private readonly IGlobalOptionService _globalOptions = globalOptions;
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
-        public bool IsServiceHubProcessCoreClr
-            => _globalOptions.GetOption(RemoteHostOptionsStorage.OOPCoreClr);
-    }
+[Export(typeof(UnitTestingGlobalOptions)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class UnitTestingGlobalOptions(IGlobalOptionService globalOptions)
+{
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
+
+    public bool IsServiceHubProcessCoreClr
+        => _globalOptions.GetOption(RemoteHostOptionsStorage.OOPCoreClr);
 }

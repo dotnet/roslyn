@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TextStructureNavigation
     public abstract class AbstractTextStructureNavigatorTests
     {
         protected abstract string ContentType { get; }
-        protected abstract TestWorkspace CreateWorkspace(string code);
+        protected abstract EditorTestWorkspace CreateWorkspace(string code);
 
         protected StringBuilder result = new StringBuilder();
 

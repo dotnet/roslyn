@@ -6,42 +6,41 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.DocumentationComments
+namespace Microsoft.CodeAnalysis.DocumentationComments;
+
+internal interface IDocumentationCommentSnippetService : ILanguageService
 {
-    internal interface IDocumentationCommentSnippetService : ILanguageService
-    {
-        /// <summary>
-        /// A single character string indicating what the comment character is for the documentation comments
-        /// </summary>
-        string DocumentationCommentCharacter { get; }
+    /// <summary>
+    /// A single character string indicating what the comment character is for the documentation comments
+    /// </summary>
+    string DocumentationCommentCharacter { get; }
 
-        DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
-            SyntaxTree syntaxTree,
-            SourceText text,
-            int position,
-            in DocumentationCommentOptions options,
-            CancellationToken cancellationToken,
-            bool addIndentation = true);
+    DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
+        SyntaxTree syntaxTree,
+        SourceText text,
+        int position,
+        in DocumentationCommentOptions options,
+        CancellationToken cancellationToken,
+        bool addIndentation = true);
 
-        DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(
-            SyntaxTree syntaxTree,
-            SourceText text,
-            int position,
-            in DocumentationCommentOptions options,
-            CancellationToken cancellationToken);
+    DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(
+        SyntaxTree syntaxTree,
+        SourceText text,
+        int position,
+        in DocumentationCommentOptions options,
+        CancellationToken cancellationToken);
 
-        DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(
-            SyntaxTree syntaxTree,
-            SourceText text,
-            int position,
-            in DocumentationCommentOptions options,
-            CancellationToken cancellationToken);
+    DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(
+        SyntaxTree syntaxTree,
+        SourceText text,
+        int position,
+        in DocumentationCommentOptions options,
+        CancellationToken cancellationToken);
 
-        DocumentationCommentSnippet? GetDocumentationCommentSnippetFromPreviousLine(
-            in DocumentationCommentOptions options,
-            TextLine currentLine,
-            TextLine previousLine);
+    DocumentationCommentSnippet? GetDocumentationCommentSnippetFromPreviousLine(
+        in DocumentationCommentOptions options,
+        TextLine currentLine,
+        TextLine previousLine);
 
-        bool IsValidTargetMember(SyntaxTree syntaxTree, SourceText text, int caretPosition, CancellationToken cancellationToken);
-    }
+    bool IsValidTargetMember(SyntaxTree syntaxTree, SourceText text, int caretPosition, CancellationToken cancellationToken);
 }

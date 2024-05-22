@@ -1730,9 +1730,9 @@ public class A
 ";
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics(
-                // (4,28): error CS0225: The params parameter must be a single dimensional array
+                // (4,28): error CS0225: The params parameter must have a valid collection type
                 //     public static void Goo(params int a) {}
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(4, 28),
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(4, 28),
                 // (8,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'A.Goo(params int)'
                 //         Goo();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("a", "A.Goo(params int)").WithLocation(8, 9))

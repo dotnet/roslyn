@@ -180,7 +180,7 @@ End Module
             await TestServices.Editor.PlaceCaretAsync("a.bar", charsOffset: 1, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync("Add project reference to 'ClassLibrary3'.", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
-            await TestServices.SolutionVerifier.ProjectReferencePresent(
+            await TestServices.SolutionVerifier.ProjectReferencePresentAsync(
                projectName: ConsoleProjectName,
                referencedProjectName: ClassLibrary3Name,
                HangMitigatingCancellationToken);

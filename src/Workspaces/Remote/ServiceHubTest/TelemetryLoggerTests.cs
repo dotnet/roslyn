@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             }
 
-            public List<TelemetryEvent> PostedEvents = new();
-            public HashSet<TestScope> OpenedScopes = new();
+            public List<TelemetryEvent> PostedEvents = [];
+            public HashSet<TestScope> OpenedScopes = [];
 
             public override bool IsEnabled(FunctionId functionId)
                 => true;

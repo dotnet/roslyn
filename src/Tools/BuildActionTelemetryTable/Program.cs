@@ -678,7 +678,7 @@ namespace BuildActionTelemetryTable
                 builder.AppendLine(@$"            {{ ""{actionOrProviderTypeName}"", ""{description}"" }},");
             }
 
-            builder.Append("}");
+            builder.Append('}');
 
             return builder.ToString();
         }

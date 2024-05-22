@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSystemHashCode
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
-    public partial class UseSystemHashCodeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class UseSystemHashCodeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public UseSystemHashCodeTests(ITestOutputHelper logger)
            : base(logger)
@@ -1334,7 +1334,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSystemHashCode
                         return hash.ToHashCode();
                     }
                 }
-                """, new TestParameters(options: UseVarTestExtensions.PreferImplicitTypeWithInfo(this)));
+                """, new TestParameters(options: this.PreferImplicitTypeWithInfo()));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39916")]

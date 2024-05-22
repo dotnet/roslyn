@@ -8,10 +8,9 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal interface ITextUndoHistoryWorkspaceService : IWorkspaceService
 {
-    internal interface ITextUndoHistoryWorkspaceService : IWorkspaceService
-    {
-        bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, out ITextUndoHistory undoHistory);
-    }
+    bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, out ITextUndoHistory undoHistory);
 }

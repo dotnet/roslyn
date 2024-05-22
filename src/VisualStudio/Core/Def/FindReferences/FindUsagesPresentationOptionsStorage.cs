@@ -4,17 +4,16 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindUsages
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
+
+internal static class FindUsagesPresentationOptionsStorage
 {
-    internal static class FindUsagesPresentationOptionsStorage
-    {
-        /// <summary>
-        /// Used to store the user's explicit 'grouping priority' for the 'Definition' column.
-        /// We store this because we'll disable this grouping sometimes (i.e. for GoToImplementation),
-        /// and we want to restore the value back to its original state when the user does the
-        /// next FindReferences call.
-        /// </summary>
-        public static readonly Option2<int> DefinitionGroupingPriority = new(
-            "dotnet_find_usage_definition_grouping_priority", defaultValue: -1);
-    }
+    /// <summary>
+    /// Used to store the user's explicit 'grouping priority' for the 'Definition' column.
+    /// We store this because we'll disable this grouping sometimes (i.e. for GoToImplementation),
+    /// and we want to restore the value back to its original state when the user does the
+    /// next FindReferences call.
+    /// </summary>
+    public static readonly Option2<int> DefinitionGroupingPriority = new(
+        "dotnet_find_usage_definition_grouping_priority", defaultValue: -1);
 }

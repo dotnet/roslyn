@@ -15,6 +15,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -942,28 +943,28 @@ namespace Microsoft.CodeAnalysis.Text
         internal sealed class LineInfo : TextLineCollection
         {
             private readonly SourceText _text;
-            private readonly int[] _lineStarts;
+            private readonly SegmentedList<int> _lineStarts;
             private int _lastLineNumber;
 
-            public LineInfo(SourceText text, int[] lineStarts)
+            public LineInfo(SourceText text, SegmentedList<int> lineStarts)
             {
                 _text = text;
                 _lineStarts = lineStarts;
             }
 
-            public override int Count => _lineStarts.Length;
+            public override int Count => _lineStarts.Count;
 
             public override TextLine this[int index]
             {
                 get
                 {
-                    if (index < 0 || index >= _lineStarts.Length)
+                    if (index < 0 || index >= _lineStarts.Count)
                     {
                         throw new ArgumentOutOfRangeException(nameof(index));
                     }
 
                     int start = _lineStarts[index];
-                    if (index == _lineStarts.Length - 1)
+                    if (index == _lineStarts.Count - 1)
                     {
                         return TextLine.FromSpan(_text, TextSpan.FromBounds(start, _text.Length));
                     }
@@ -989,7 +990,7 @@ namespace Microsoft.CodeAnalysis.Text
                 var lastLineNumber = _lastLineNumber;
                 if (position >= _lineStarts[lastLineNumber])
                 {
-                    var limit = Math.Min(_lineStarts.Length, lastLineNumber + 4);
+                    var limit = Math.Min(_lineStarts.Count, lastLineNumber + 4);
                     for (int i = lastLineNumber; i < limit; i++)
                     {
                         if (position < _lineStarts[i])
@@ -1040,16 +1041,18 @@ namespace Microsoft.CodeAnalysis.Text
             s_charArrayPool.Free(buffer);
         }
 
-        private int[] ParseLineStarts()
+        private SegmentedList<int> ParseLineStarts()
         {
             // Corner case check
             if (0 == this.Length)
             {
-                return new[] { 0 };
+                return [0];
             }
 
-            var lineStarts = ArrayBuilder<int>.GetInstance();
-            lineStarts.Add(0); // there is always the first line
+            var lineStarts = new SegmentedList<int>()
+            {
+                0 // there is always the first line
+            };
 
             var lastWasCR = false;
 
@@ -1107,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             });
 
-            return lineStarts.ToArrayAndFree();
+            return lineStarts;
         }
         #endregion
 

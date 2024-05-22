@@ -5,22 +5,21 @@
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+
+/// <summary>
+/// Extension methods for the editor Span struct
+/// </summary>
+internal static class SpanExtensions
 {
     /// <summary>
-    /// Extension methods for the editor Span struct
+    /// Convert the editor Span instance to the corresponding TextSpan instance
     /// </summary>
-    internal static class SpanExtensions
-    {
-        /// <summary>
-        /// Convert the editor Span instance to the corresponding TextSpan instance
-        /// </summary>
-        /// <param name="span"></param>
-        /// <returns></returns>
-        public static TextSpan ToTextSpan(this Span span)
-            => new(span.Start, span.Length);
+    /// <param name="span"></param>
+    /// <returns></returns>
+    public static TextSpan ToTextSpan(this Span span)
+        => new(span.Start, span.Length);
 
-        public static bool IntersectsWith(this Span span, int position)
-            => position >= span.Start && position <= span.End;
-    }
+    public static bool IntersectsWith(this Span span, int position)
+        => position >= span.Start && position <= span.End;
 }

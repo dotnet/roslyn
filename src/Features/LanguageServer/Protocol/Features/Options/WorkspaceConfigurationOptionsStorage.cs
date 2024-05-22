@@ -12,27 +12,20 @@ internal static class WorkspaceConfigurationOptionsStorage
 {
     public static WorkspaceConfigurationOptions GetWorkspaceConfigurationOptions(this IGlobalOptionService globalOptions)
         => new(
-            CacheStorage: globalOptions.GetOption(CloudCacheFeatureFlag) ? StorageDatabase.CloudCache : globalOptions.GetOption(Database),
+            CacheStorage: globalOptions.GetOption(Database),
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
             DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText),
-            ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates),
-            RunSourceGeneratorsInSameProcessOnly: globalOptions.GetOption(RunSourceGeneratorsInSameProcessOnly));
+            ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates));
 
     public static readonly Option2<StorageDatabase> Database = new(
         "dotnet_storage_database", WorkspaceConfigurationOptions.Default.CacheStorage, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<StorageDatabase>());
-
-    public static readonly Option2<bool> CloudCacheFeatureFlag = new(
-        "dotnet_storage_cloud_cache", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache);
 
     public static readonly Option2<bool> DisableRecoverableText = new(
         "dotnet_disable_recoverable_text", WorkspaceConfigurationOptions.Default.DisableRecoverableText);
 
     public static readonly Option2<bool> ValidateCompilationTrackerStates = new(
         "dotnet_validate_compilation_tracker_states", WorkspaceConfigurationOptions.Default.ValidateCompilationTrackerStates);
-
-    public static readonly Option2<bool> RunSourceGeneratorsInSameProcessOnly = new(
-        "dotnet_run_source_generators_in_same_process_only", WorkspaceConfigurationOptions.Default.RunSourceGeneratorsInSameProcessOnly);
 
     /// <summary>
     /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions

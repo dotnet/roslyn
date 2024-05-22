@@ -11,22 +11,21 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+internal class CSharpPropiSnippetProvider : AbstractCSharpAutoPropertySnippetProvider
 {
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpPropiSnippetProvider : AbstractCSharpAutoPropertySnippetProvider
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpPropiSnippetProvider()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpPropiSnippetProvider()
-        {
-        }
-
-        public override string Identifier => "propi";
-
-        public override string Description => CSharpFeaturesResources.init_only_property;
-
-        protected override AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
-            => SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
+
+    public override string Identifier => "propi";
+
+    public override string Description => CSharpFeaturesResources.init_only_property;
+
+    protected override AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
+        => SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 }

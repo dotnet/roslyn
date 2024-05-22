@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             return !RoslynString.IsNullOrWhiteSpace(aliasesText)
                 ? ImmutableArray.CreateRange(aliasesText.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(a => a.Trim()))
-                : ImmutableArray<string>.Empty;
+                : [];
         }
 
         public static bool ReferenceOutputAssemblyIsTrue(this MSB.Framework.ITaskItem item)

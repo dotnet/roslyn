@@ -686,7 +686,7 @@ dedicated input node that instead exposes a sub-set of the syntax they are
 interested in. The syntax provider is specialized in this way to achieve a
 desired level of performance.
 
-**CreateSyntaxProvider**:
+#### CreateSyntaxProvider
 
 Currently the provider exposes a single method `CreateSyntaxProvider` that
 allows the author to construct an input node.
@@ -780,6 +780,48 @@ due to cross file dependencies. Because the initial syntactic check
 allows the driver to substantially filter the number of nodes on which the
 semantic checks have to be re-run, significantly improved performance
 characteristics are still observed when editing a syntax tree.
+
+#### ForAttributeWithMetadataName (FAWMN)
+
+One extremely common action we observe generators being written for is taking
+actions driven on attributes applied to specific syntax constructs.
+
+```csharp
+public readonly struct SyntaxValueProvider
+{
+    public IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
+        string fullyQualifiedMetadataName,
+        Func<SyntaxNode, CancellationToken, bool> predicate,
+        Func<GeneratorAttributeSyntaxContext, CancellationToken, T> transform);
+}
+```
+
+This area is particularly nice for optimization, as we can efficiently eliminate
+a significant number of syntax nodes and edits before even needing to call the
+provided `predicate` from the user, avoiding realizing a significant number of
+`SyntaxNode` instances. Roslyn can even further optimize this by tracking whether or
+not a given attribute could possibly be the attribute the generator cares about by
+maintaining a small index and comparing type names as an initial heuristic.
+This index is cheap to maintain and, importantly, can only have false positives, not
+false negatives. This allows us to eliminate 99% of syntax in a Compilation from ever
+needing to be checked for semantic information (to eliminate false positives from the
+heuristic cache) or by the user `predicate` function (saving a significant number of
+allocations of `SyntaxNode` instances).
+
+Given this, when at all possible, it is recommended to use attributes to drive source
+generators, rather than other syntax constructs. Real world testing has indicated this
+approach is usually 99x more efficient than `CreateSyntaxProvider`, even when the
+generator is otherwise not well-behaved; some pathological scenarios are even more efficient
+than that.
+
+Attributes are provided by the user as the fully-qualified metadata name, without the
+assembly name portion. For example, given the C# type `My.Namespace.MyAttribute<T>`,
+the fully-qualified metadata-name would be ``My.Namespace.MyAttribute`1``. Given that
+attributes are usually restricted to specific constructs by an `AttributeUsage`
+attribute, it is common that the `predicate` a user provides will simply return `true`.
+For the transformation step, everything stated in the [previous section](#createsyntaxprovider)
+is still relevant; that step will still be rerun with every change to ensure that changed
+semantics are observed.
 
 ## Outputting values
 

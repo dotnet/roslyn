@@ -7,14 +7,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
-namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
+namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+
+/// <summary>
+/// Represents a FixAllProvider for code fixes or refactorings. 
+/// </summary>
+internal interface IFixAllProvider
 {
-    /// <summary>
-    /// Represents a FixAllProvider for code fixes or refactorings. 
-    /// </summary>
-    internal interface IFixAllProvider
-    {
-        IEnumerable<FixAllScope> GetSupportedFixAllScopes();
-        Task<CodeAction?> GetFixAsync(IFixAllContext fixAllContext);
-    }
+    IEnumerable<FixAllScope> GetSupportedFixAllScopes();
+    Task<CodeAction?> GetFixAsync(IFixAllContext fixAllContext);
 }

@@ -610,7 +610,7 @@ class Program
             bool useTabs)
         {
             // create tree service
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code);
 
             var buffer = workspace.Documents.First().GetTextBuffer();
 

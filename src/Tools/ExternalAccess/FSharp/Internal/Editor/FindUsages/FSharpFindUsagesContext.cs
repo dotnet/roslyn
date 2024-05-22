@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsage
 
         public Task ReportMessageAsync(string message)
         {
-            return _context.ReportMessageAsync(message, _cancellationToken).AsTask();
+            return _context.ReportNoResultsAsync(message, _cancellationToken).AsTask();
         }
 
         public Task ReportProgressAsync(int current, int maximum)

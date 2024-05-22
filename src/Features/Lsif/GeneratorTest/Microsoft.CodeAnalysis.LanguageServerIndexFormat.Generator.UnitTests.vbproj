@@ -42,7 +42,7 @@
     <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" PrivateAssets="all" />
+    <PackageReference Include="Xunit.Combinatorial" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.Utilities" />

@@ -62,6 +62,11 @@
         <target state="translated">Ścieżka projektu dla pliku "{0}" miała wartość null</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_build_host_could_not_be_found_at_0">
+        <source>The build host could not be found at '{0}'</source>
+        <target state="translated">Nie można odnaleźć hosta kompilacji w lokalizacji „{0}”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unable_to_add_metadata_reference_0">
         <source>Unable to add metadata reference '{0}'</source>
         <target state="translated">Nie można dodać odwołania do metadanych "{0}"</target>

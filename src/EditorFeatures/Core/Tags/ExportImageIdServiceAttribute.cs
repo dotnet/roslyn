@@ -7,24 +7,23 @@
 using System;
 using System.ComponentModel.Composition;
 
-namespace Microsoft.CodeAnalysis.Editor.Tags
+namespace Microsoft.CodeAnalysis.Editor.Tags;
+
+/// <summary>
+/// Use this attribute to declare an <see cref="IImageIdService"/> implementation 
+/// so that it can be discovered by the host.
+/// </summary>
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal sealed class ExportImageIdServiceAttribute : ExportAttribute
 {
     /// <summary>
-    /// Use this attribute to declare an <see cref="IImageIdService"/> implementation 
-    /// so that it can be discovered by the host.
+    /// The name of the <see cref="IImageIdService"/>.  
     /// </summary>
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportImageIdServiceAttribute : ExportAttribute
-    {
-        /// <summary>
-        /// The name of the <see cref="IImageIdService"/>.  
-        /// </summary>
-        public string Name { get; set; }
+    public string Name { get; set; }
 
-        public ExportImageIdServiceAttribute()
-            : base(typeof(IImageIdService))
-        {
-        }
+    public ExportImageIdServiceAttribute()
+        : base(typeof(IImageIdService))
+    {
     }
 }

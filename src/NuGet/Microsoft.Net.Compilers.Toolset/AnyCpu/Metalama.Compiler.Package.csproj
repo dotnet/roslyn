@@ -7,7 +7,7 @@
  
 
   <PropertyGroup>
-    <TargetFrameworks>net472;$(SourceBuildToolsetTargetFramework)</TargetFrameworks>
+    <TargetFrameworks>net472;$(MetalamaNetRoslyn)</TargetFrameworks>
 
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -73,28 +73,30 @@
     <Exec Command="dotnet run $(RoslynVersion)" WorkingDirectory="..\..\..\..\eng-Metalama\DownloadNetSdkAnalyzers" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="NetSdkAnalyzersPath" />
     </Exec>
-    <!-- </Metalama> -->
+    <PropertyGroup>
+      <NetCore Condition="'$(TargetFramework)' == 'net6.0'">netcore</NetCore>
+      <NetCore Condition="'$(TargetFramework)' != 'net6.0'">$(TargetFramework)</NetCore>
+    </PropertyGroup>
     <ItemGroup>
       <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
       <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
-      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/netcore"/>
-      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/netcore"/>
-      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/netcore/bincore"/>
-      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcore/bincore/runtimes"/>
+      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/$(NetCore)"/>
+      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/$(NetCore)"/>
+      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/$(NetCore)/bincore"/>
+      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/$(NetCore)/bincore/runtimes"/>
 
-      <!-- <Metalama> -->
       <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="build" />
       <_File Include="$(MSBuildProjectDirectory)\buildTransitive\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildTransitive" />
       <_File Include="$(MSBuildProjectDirectory)\buildMultiTargeting\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildMultiTargeting" />
       <_File Include="@(CommonMetalamaCompilerBinArtifact)" TargetDir="tasks/net472" Condition="'$(TargetFramework)' == 'net472'" />
       <_File Include="@(DesktopMetalamaCompilerBinArtifact)" TargetDir="tasks/net472" Condition="'$(TargetFramework)' == 'net472'" />
-      <_File Include="@(CommonMetalamaCompilerBinArtifact)" TargetDir="tasks/netcore/bincore" Condition="'$(TargetFramework)' == 'net6.0'" />
-      <_File Include="@(CoreClrMetalamaCompilerBinArtifact)" TargetDir="tasks/netcore/bincore" Condition="'$(TargetFramework)' == 'net6.0'" />
+      <_File Include="@(CommonMetalamaCompilerBinArtifact)" TargetDir="tasks/$(NetCore)/bincore" Condition="'$(TargetFramework)' != 'net472'" />
+      <_File Include="@(CoreClrMetalamaCompilerBinArtifact)" TargetDir="tasks/$(NetCore)/bincore" Condition="'$(TargetFramework)' != 'net472'" />
       <_File Include="$(NetSdkAnalyzersPath)\*.dll" TargetDir="sdkAnalyzers" />
-      <!-- </Metalama> -->
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>
+    <!-- </Metalama> -->
   </Target>
 
   <Import Project="..\DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />

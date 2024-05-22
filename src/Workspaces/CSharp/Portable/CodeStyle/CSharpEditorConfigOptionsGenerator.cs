@@ -11,24 +11,23 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
-{
-    [EditorConfigGenerator(LanguageNames.CSharp), Shared]
-    internal sealed class CSharpEditorConfigFileGenerator
-        : IEditorConfigOptionsCollection
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpEditorConfigFileGenerator()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.CodeStyle;
 
-        public IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetOptions()
-        {
-            var builder = ArrayBuilder<(string, ImmutableArray<IOption2>)>.GetInstance();
-            builder.Add((CSharpWorkspaceResources.CSharp_Coding_Conventions, CSharpCodeStyleOptions.AllOptions));
-            builder.Add((CSharpWorkspaceResources.CSharp_Formatting_Rules, CSharpFormattingOptions2.AllOptions));
-            return builder.ToArrayAndFree();
-        }
+[EditorConfigGenerator(LanguageNames.CSharp), Shared]
+internal sealed class CSharpEditorConfigFileGenerator
+    : IEditorConfigOptionsCollection
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpEditorConfigFileGenerator()
+    {
+    }
+
+    public IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetOptions()
+    {
+        var builder = ArrayBuilder<(string, ImmutableArray<IOption2>)>.GetInstance();
+        builder.Add((CSharpWorkspaceResources.CSharp_Coding_Conventions, CSharpCodeStyleOptions.AllOptions));
+        builder.Add((CSharpWorkspaceResources.CSharp_Formatting_Rules, CSharpFormattingOptions2.AllOptions));
+        return builder.ToArrayAndFree();
     }
 }

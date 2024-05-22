@@ -34,7 +34,7 @@ namespace BuildBoss
             var allGood = true;
             if (ProjectType is ProjectFileType.CSharp or ProjectFileType.Basic)
             {
-                if (!_projectUtil.IsNewSdk)
+                if (!_projectUtil.IsNewSdk())
                 {
                     textWriter.WriteLine($"Project must new .NET SDK based");
                     allGood = false;
@@ -64,7 +64,6 @@ namespace BuildBoss
 
                 allGood &= CheckTargetFrameworks(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
-                allGood &= CheckPackageReferences(textWriter);
 
                 if (_isPrimarySolution)
                 {
@@ -72,10 +71,6 @@ namespace BuildBoss
                 }
 
                 allGood &= CheckDeploymentSettings(textWriter);
-            }
-            else if (ProjectType == ProjectFileType.Tool)
-            {
-                allGood &= CheckPackageReferences(textWriter);
             }
 
             return allGood;
@@ -121,44 +116,6 @@ namespace BuildBoss
             }
 
             return allGood;
-        }
-
-        private bool CheckPackageReferences(TextWriter textWriter)
-        {
-            var allGood = true;
-            foreach (var packageRef in _projectUtil.GetPackageReferences())
-            {
-                var allowedPackageVersions = GetAllowedPackageReferenceVersions(packageRef).ToList();
-
-                if (!allowedPackageVersions.Contains(packageRef.Version))
-                {
-                    textWriter.WriteLine($"PackageReference {packageRef.Name} has incorrect version {packageRef.Version}");
-                    textWriter.WriteLine($"Allowed values are " + string.Join(" or", allowedPackageVersions));
-                    allGood = false;
-                }
-            }
-
-            return allGood;
-        }
-
-        private IEnumerable<string> GetAllowedPackageReferenceVersions(PackageReference packageReference)
-        {
-            // If this is a generator project, if it has a reference to Microsoft.CodeAnalysis.Common, that means it's
-            // a source generator. In that case, we require the version of the API being built against to match the toolset
-            // version, so that way the source generator can actually be loaded by the toolset. We don't apply this rule to
-            // any other project, as any other project having a reason to reference a version of Roslyn via a PackageReference
-            // probably doesn't fall under this rule.
-            if (ProjectFilePath.Contains("CompilerGeneratorTools") && packageReference.Name == "Microsoft.CodeAnalysis.Common")
-            {
-                yield return "$(SourceGeneratorMicrosoftCodeAnalysisVersion)";
-            }
-            else
-            {
-                var name = packageReference.Name.Replace(".", "").Replace("-", "");
-                yield return $"$({name}Version)";
-                yield return $"$({name}FixedVersion)";
-                yield return $"$(RefOnly{name}Version)";
-            }
         }
 
         private bool CheckInternalsVisibleTo(TextWriter textWriter)
@@ -217,7 +174,7 @@ namespace BuildBoss
 
         /// <summary>
         /// It's important that every reference be included in the solution.  MSBuild does not necessarily
-        /// apply all configuration entries to projects which are compiled via referenes but not included
+        /// apply all configuration entries to projects which are compiled via references but not included
         /// in the solution.
         /// </summary>
         private bool CheckProjectReferencesComplete(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
@@ -277,23 +234,36 @@ namespace BuildBoss
 
         private bool CheckTargetFrameworks(TextWriter textWriter)
         {
-            if (!_data.IsUnitTestProject)
-            {
-                return true;
-            }
-
             var allGood = true;
             foreach (var targetFramework in _projectUtil.GetAllTargetFrameworks())
             {
+                // !!!NOTE!!!
+                // This check ensures that projects match the target framework expectations laid out in 
+                // Target Framework Strategy.md. Before changing this list, even simply adding a new 
+                // tfm, please consult with the infrastructure team so they can validate the change is in
+                // line with how the product is constructed.
                 switch (targetFramework)
                 {
                     case "net472":
-                    case "netcoreapp3.1":
-                    case "net6.0":
-                    case "net6.0-windows":
-                    case "net7.0":
-                    case "net8.0":
+                    case "netstandard2.0":
+                    case "$(NetRoslyn)":
+                    case "$(NetRoslynSourceBuild)":
+                    case "$(NetRoslynToolset)":
+                    case "$(NetRoslynAll)":
+                    case "$(NetVS)":
+                    case "$(NetVS)-windows":
+                    case "$(NetVSCode)":
+                    case "$(NetVSShared)":
                         continue;
+
+                    case "$(NetRoslynBuildHostNetCoreVersion)":
+                        {
+                            // This property should only be used in one specific project
+                            if (_data.FileName == "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj")
+                                continue;
+                            else
+                                break;
+                        }
                 }
 
                 textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");

@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
     Public Class GoToDefinitionApiTests
 
         Private Shared Async Function TestAsync(workspaceDefinition As XElement, expectSuccess As Boolean) As Tasks.Task
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=GoToTestHelpers.Composition)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=GoToTestHelpers.Composition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -41,7 +41,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
                 Assert.NotNull(symbolInfo.Symbol)
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
-                Dim presenter = New MockStreamingFindUsagesPresenter(workspace.GlobalOptions, Sub() Exit Sub)
+                Dim presenter = New MockStreamingFindUsagesPresenter(Sub() Exit Sub)
 
                 WpfTestRunner.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.GetDefinitionLocationAsync)} assumes it's on the UI thread with a {NameOf(TaskExtensions.WaitAndGetResult)} call")
                 Dim location = Await GoToDefinitionHelpers.GetDefinitionLocationAsync(

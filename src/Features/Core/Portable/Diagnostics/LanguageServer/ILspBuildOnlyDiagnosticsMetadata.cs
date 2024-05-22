@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+/// <inheritdoc cref="ILspBuildOnlyDiagnostics"/>
+internal interface ILspBuildOnlyDiagnosticsMetadata
 {
-    /// <inheritdoc cref="ILspBuildOnlyDiagnostics"/>
-    internal interface ILspBuildOnlyDiagnosticsMetadata
-    {
-        string LanguageName { get; }
-        string[] BuildOnlyDiagnostics { get; }
-    }
+    string LanguageName { get; }
+    string[] BuildOnlyDiagnostics { get; }
 }

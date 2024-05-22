@@ -4,45 +4,44 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Completion
+namespace Microsoft.CodeAnalysis.Completion;
+
+/// <summary>
+/// A rule that modifies a set of characters.
+/// </summary>
+public readonly struct CharacterSetModificationRule
 {
     /// <summary>
-    /// A rule that modifies a set of characters.
+    /// The kind of modification.
     /// </summary>
-    public readonly struct CharacterSetModificationRule
+    public CharacterSetModificationKind Kind { get; }
+
+    /// <summary>
+    /// One or more characters.
+    /// </summary>
+    public ImmutableArray<char> Characters { get; }
+
+    private CharacterSetModificationRule(CharacterSetModificationKind kind, ImmutableArray<char> characters)
     {
-        /// <summary>
-        /// The kind of modification.
-        /// </summary>
-        public CharacterSetModificationKind Kind { get; }
-
-        /// <summary>
-        /// One or more characters.
-        /// </summary>
-        public ImmutableArray<char> Characters { get; }
-
-        private CharacterSetModificationRule(CharacterSetModificationKind kind, ImmutableArray<char> characters)
-        {
-            Kind = kind;
-            Characters = characters;
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="CharacterSetModificationRule"/> instance.
-        /// </summary>
-        /// <param name="kind">The kind of rule.</param>
-        /// <param name="characters">One or more characters. These are typically punctuation characters.</param>
-        /// <returns></returns>
-        public static CharacterSetModificationRule Create(CharacterSetModificationKind kind, ImmutableArray<char> characters)
-            => new(kind, characters);
-
-        /// <summary>
-        /// Creates a new <see cref="CharacterSetModificationRule"/> instance.
-        /// </summary>
-        /// <param name="kind">The kind of rule.</param>
-        /// <param name="characters">One or more characters. These are typically punctuation characters.</param>
-        /// <returns></returns>
-        public static CharacterSetModificationRule Create(CharacterSetModificationKind kind, params char[] characters)
-            => new(kind, characters.ToImmutableArray());
+        Kind = kind;
+        Characters = characters;
     }
+
+    /// <summary>
+    /// Creates a new <see cref="CharacterSetModificationRule"/> instance.
+    /// </summary>
+    /// <param name="kind">The kind of rule.</param>
+    /// <param name="characters">One or more characters. These are typically punctuation characters.</param>
+    /// <returns></returns>
+    public static CharacterSetModificationRule Create(CharacterSetModificationKind kind, ImmutableArray<char> characters)
+        => new(kind, characters);
+
+    /// <summary>
+    /// Creates a new <see cref="CharacterSetModificationRule"/> instance.
+    /// </summary>
+    /// <param name="kind">The kind of rule.</param>
+    /// <param name="characters">One or more characters. These are typically punctuation characters.</param>
+    /// <returns></returns>
+    public static CharacterSetModificationRule Create(CharacterSetModificationKind kind, params char[] characters)
+        => new(kind, characters.ToImmutableArray());
 }

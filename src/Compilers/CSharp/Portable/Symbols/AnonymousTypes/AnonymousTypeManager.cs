@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new AnonymousTypePublicSymbol(this, typeDescr);
         }
 
-        public NamedTypeSymbol ConstructAnonymousDelegateSymbol(AnonymousTypeDescriptor typeDescr)
+        public NamedTypeSymbol ConstructAnonymousDelegateSymbol(AnonymousTypeDescriptor typeDescr, bool checkParamsCollectionsFeatureAvailability)
         {
-            return new AnonymousDelegatePublicSymbol(this, typeDescr);
+            return new AnonymousDelegatePublicSymbol(this, typeDescr, checkParamsCollectionsFeatureAvailability);
         }
 
         /// <summary>

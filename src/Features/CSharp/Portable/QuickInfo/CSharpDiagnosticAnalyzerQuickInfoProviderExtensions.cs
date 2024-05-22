@@ -7,45 +7,44 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
+namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
+
+internal static class CSharpDiagnosticAnalyzerQuickInfoProviderExtensions
 {
-    internal static class CSharpDiagnosticAnalyzerQuickInfoProviderExtensions
+    public static string? ToStringOrNull(this LocalizableString @this)
     {
-        public static string? ToStringOrNull(this LocalizableString @this)
+        var result = @this.ToString();
+        if (string.IsNullOrWhiteSpace(result))
         {
-            var result = @this.ToString();
-            if (string.IsNullOrWhiteSpace(result))
-            {
-                return null;
-            }
-
-            return result;
+            return null;
         }
 
-        public static bool IsSuppressMessageAttribute(this NameSyntax? name)
-        {
-            if (name == null)
-            {
-                return false;
-            }
+        return result;
+    }
 
-            var nameValue = name.GetNameToken().ValueText;
-            var stringComparer = StringComparer.Ordinal;
-            return
-                stringComparer.Equals(nameValue, nameof(SuppressMessageAttribute)) ||
-                stringComparer.Equals(nameValue, "SuppressMessage");
+    public static bool IsSuppressMessageAttribute(this NameSyntax? name)
+    {
+        if (name == null)
+        {
+            return false;
         }
 
-        public static string ExtractErrorCodeFromCheckId(this string checkId)
-        {
-            // checkId short and long name rules:
-            // https://docs.microsoft.com/en-us/visualstudio/code-quality/in-source-suppression-overview?view=vs-2019#suppressmessage-attribute
-            var position = checkId.IndexOf(':');
-            var errorCode = position == -1
-                ? checkId
-                : checkId[..position];
-            errorCode = errorCode.Trim();
-            return errorCode;
-        }
+        var nameValue = name.GetNameToken().ValueText;
+        var stringComparer = StringComparer.Ordinal;
+        return
+            stringComparer.Equals(nameValue, nameof(SuppressMessageAttribute)) ||
+            stringComparer.Equals(nameValue, "SuppressMessage");
+    }
+
+    public static string ExtractErrorCodeFromCheckId(this string checkId)
+    {
+        // checkId short and long name rules:
+        // https://docs.microsoft.com/en-us/visualstudio/code-quality/in-source-suppression-overview?view=vs-2019#suppressmessage-attribute
+        var position = checkId.IndexOf(':');
+        var errorCode = position == -1
+            ? checkId
+            : checkId[..position];
+        errorCode = errorCode.Trim();
+        return errorCode;
     }
 }

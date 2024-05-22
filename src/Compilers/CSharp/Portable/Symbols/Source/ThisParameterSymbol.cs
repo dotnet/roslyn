@@ -80,7 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public override bool IsParams
+        public override bool IsParamsArray
+        {
+            get { return false; }
+        }
+
+        public override bool IsParamsCollection
         {
             get { return false; }
         }
