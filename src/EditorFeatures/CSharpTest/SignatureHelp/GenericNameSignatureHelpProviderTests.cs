@@ -451,6 +451,30 @@ public class GenericNameSignatureHelpProviderTests : AbstractCSharpSignatureHelp
         await TestAsync(markup, expectedOrderedItems);
     }
 
+    [Fact]
+    public async Task DeclaringGenericTypeWithConstraintsAllowRefStruct()
+    {
+        var markup = """
+            class G<S> where S : allows ref struct
+            { };
+
+            class C
+            {
+                void Goo()
+                {
+                    [|G<$$|]>
+                }
+            }
+            """;
+
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new SignatureHelpTestItem("G<S> where S : allows ref struct", string.Empty, string.Empty, currentParameterIndex: 0)
+        };
+
+        await TestAsync(markup, expectedOrderedItems);
+    }
+
     #endregion
 
     #region "Generic member invocation"

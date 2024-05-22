@@ -1689,9 +1689,9 @@ public class [|C|]
 
         using var context = TestContext.Create();
         await Assert.ThrowsAsync<ArgumentException>(async () =>
-{
-await context.GenerateSourceAsync(namespaceSymbol);
-});
+        {
+            await context.GenerateSourceAsync(namespaceSymbol);
+        });
     }
 
     [WpfFact]

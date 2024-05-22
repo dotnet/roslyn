@@ -80,6 +80,12 @@ public abstract class AbstractCSharpAutoPropertyCompletionProviderTests : Abstra
     [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
     public abstract Task InsertSnippetInReadonlyStruct();
 
+    [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+    public abstract Task InsertSnippetInReadonlyStruct_ReadonlyModifierInOtherPartialDeclaration();
+
+    [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+    public abstract Task InsertSnippetInReadonlyStruct_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier();
+
     // This case might produce non-default results for different snippets (e.g. no `set` accessor in 'propg' snippet),
     // so it is tested separately for all of them
     [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]

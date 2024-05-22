@@ -2,17 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Text.PatternMatching;
 using Roslyn.Test.EditorUtilities.NavigateTo;
@@ -692,111 +688,111 @@ public interface IGoo
     public async Task FindTopLevelLocalFunction(TestHost testHost, Composition composition)
     {
         await TestAsync(
-testHost, composition, """
-void Goo()
-{
-}
-""", async w =>
-{
-var item = (await _aggregator.GetItemsAsync("Goo")).Single();
-VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
-});
+            testHost, composition, """
+            void Goo()
+            {
+            }
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+            });
     }
 
     [Theory, CombinatorialData]
     public async Task FindTopLevelLocalFunction_WithParameters(TestHost testHost, Composition composition)
     {
         await TestAsync(
-testHost, composition, """
-void Goo(int i)
-{
-}
-""", async w =>
-{
-var item = (await _aggregator.GetItemsAsync("Goo")).Single();
-VerifyNavigateToResultItem(item, "Goo", "[|Goo|](int)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
-});
+            testHost, composition, """
+            void Goo(int i)
+            {
+            }
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|](int)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+            });
     }
 
     [Theory, CombinatorialData]
     public async Task FindTopLevelLocalFunction_WithTypeArgumentsAndParameters(TestHost testHost, Composition composition)
     {
         await TestAsync(
-testHost, composition, """
-void Goo<T>(int i)
-{
-}
-""", async w =>
-{
-var item = (await _aggregator.GetItemsAsync("Goo")).Single();
-VerifyNavigateToResultItem(item, "Goo", "[|Goo|]<T>(int)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
-});
+            testHost, composition, """
+            void Goo<T>(int i)
+            {
+            }
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]<T>(int)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+            });
     }
 
     [Theory, CombinatorialData]
     public async Task FindNestedLocalFunctionTopLevelStatements(TestHost testHost, Composition composition)
     {
         await TestAsync(
-testHost, composition, """
-void Goo()
-{
-    void Bar()
-    {
-    }
-}
-""", async w =>
-{
-var item = (await _aggregator.GetItemsAsync("Bar")).Single();
-VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
-});
+            testHost, composition, """
+            void Goo()
+            {
+                void Bar()
+                {
+                }
+            }
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Bar")).Single();
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+            });
     }
 
     [Theory, CombinatorialData]
     public async Task FindLocalFunctionInMethod(TestHost testHost, Composition composition)
     {
         await TestAsync(
-testHost, composition, """
-class C
-{
-    void M()
-    {
-        void Goo()
-        {
-            void Bar()
+            testHost, composition, """
+            class C
             {
+                void M()
+                {
+                    void Goo()
+                    {
+                        void Bar()
+                        {
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-""", async w =>
-{
-var item = (await _aggregator.GetItemsAsync("Goo")).Single();
-VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
-});
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+            });
     }
 
     [Theory, CombinatorialData]
     public async Task FindNestedLocalFunctionInMethod(TestHost testHost, Composition composition)
     {
         await TestAsync(
-testHost, composition, """
-class C
-{
-    void M()
-    {
-        void Goo()
-        {
-            void Bar()
+            testHost, composition, """
+            class C
             {
+                void M()
+                {
+                    void Goo()
+                    {
+                        void Bar()
+                        {
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-""", async w =>
-{
-var item = (await _aggregator.GetItemsAsync("Bar")).Single();
-VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
-});
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Bar")).Single();
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate);
+            });
     }
 
     [Theory, CombinatorialData]
@@ -1348,18 +1344,18 @@ class C
     public async Task Test__arglist(TestHost testHost, Composition composition)
     {
         await TestAsync(
-testHost, composition, """
-class C
-{
-    public void ToError(__arglist)
-    {
-    }
-}
-""", async w =>
-{
-var item = (await _aggregator.GetItemsAsync("ToError")).Single();
-VerifyNavigateToResultItem(item, "ToError", "[|ToError|](__arglist)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic);
-});
+            testHost, composition, """
+            class C
+            {
+                public void ToError(__arglist)
+                {
+                }
+            }
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("ToError")).Single();
+                VerifyNavigateToResultItem(item, "ToError", "[|ToError|](__arglist)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic);
+            });
     }
 
     [Fact]
@@ -1636,20 +1632,20 @@ VerifyNavigateToResultItem(item, "ToError", "[|ToError|](__arglist)", PatternMat
     public async Task FindMethodWithTuple(TestHost testHost, Composition composition)
     {
         await TestAsync(
-testHost, composition, """
-class Goo
-{
-    public void Method(
-        (int x, Dictionary<int,string> y) t1,
-        (bool b, global::System.Int32 c) t2)
-    {
-    }
-}
-""", async w =>
-{
-var item = (await _aggregator.GetItemsAsync("Method")).Single();
-VerifyNavigateToResultItem(item, "Method", "[|Method|]((int x, Dictionary<int,string> y), (bool b, global::System.Int32 c))", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
-});
+            testHost, composition, """
+            class Goo
+            {
+                public void Method(
+                    (int x, Dictionary<int,string> y) t1,
+                    (bool b, global::System.Int32 c) t2)
+                {
+                }
+            }
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Method")).Single();
+                VerifyNavigateToResultItem(item, "Method", "[|Method|]((int x, Dictionary<int,string> y), (bool b, global::System.Int32 c))", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+            });
     }
 
     [Theory, CombinatorialData]
@@ -1657,15 +1653,15 @@ VerifyNavigateToResultItem(item, "Method", "[|Method|]((int x, Dictionary<int,st
     public async Task FindRecordMember1(TestHost testHost, Composition composition)
     {
         await TestAsync(
-testHost, composition, """
-record Goo(int Member)
-{
-}
-""", async w =>
-{
-var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Property);
-VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
-});
+            testHost, composition, """
+            record Goo(int Member)
+            {
+            }
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Property);
+                VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
+            });
     }
 
     [Theory, CombinatorialData]
@@ -1673,16 +1669,16 @@ VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact,
     public async Task FindRecordMember2(TestHost testHost, Composition composition)
     {
         await TestAsync(
-testHost, composition, """
-record Goo(int Member)
-{
-    public int Member { get; } = Member;
-}
-""", async w =>
-{
-var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Property);
-VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
-});
+            testHost, composition, """
+            record Goo(int Member)
+            {
+                public int Member { get; } = Member;
+            }
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Property);
+                VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
+            });
     }
 
     [Theory, CombinatorialData]
@@ -1690,16 +1686,16 @@ VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact,
     public async Task FindRecordMember3(TestHost testHost, Composition composition)
     {
         await TestAsync(
-testHost, composition, """
-record Goo(int Member)
-{
-    public int Member = Member;
-}
-""", async w =>
-{
-var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Field);
-VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPublic);
-});
+            testHost, composition, """
+            record Goo(int Member)
+            {
+                public int Member = Member;
+            }
+            """, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Field);
+                VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPublic);
+            });
     }
 
     private static bool IsFromFile(NavigateToItem item, string fileName)

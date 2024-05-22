@@ -346,11 +346,11 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 Base IInterface.Inner { get; }
             }
             """,
-[
-FeaturesResources.Implement_abstract_class,
-string.Format(FeaturesResources.Implement_through_0, "Inner"),
-string.Format(FeaturesResources.Implement_through_0, "IInterface.Inner"),
-]);
+            [
+                FeaturesResources.Implement_abstract_class,
+                string.Format(FeaturesResources.Implement_through_0, "Inner"),
+                string.Format(FeaturesResources.Implement_through_0, "IInterface.Inner"),
+            ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]

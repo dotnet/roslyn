@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.GenerateVariable;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -92,13 +91,13 @@ public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDi
                 }
             }
             """,
-[
-string.Format(FeaturesResources.Generate_field_0, "goo"),
-string.Format(FeaturesResources.Generate_read_only_field_0, "goo"),
-string.Format(FeaturesResources.Generate_property_0, "goo"),
-string.Format(FeaturesResources.Generate_local_0, "goo"),
-string.Format(FeaturesResources.Generate_parameter_0, "goo"),
-]);
+            [
+                string.Format(FeaturesResources.Generate_field_0, "goo"),
+                string.Format(FeaturesResources.Generate_read_only_field_0, "goo"),
+                string.Format(FeaturesResources.Generate_property_0, "goo"),
+                string.Format(FeaturesResources.Generate_local_0, "goo"),
+                string.Format(FeaturesResources.Generate_parameter_0, "goo"),
+            ]);
     }
 
     [Fact]
@@ -114,10 +113,10 @@ string.Format(FeaturesResources.Generate_parameter_0, "goo"),
                 }
             }
             """,
-[
-string.Format(FeaturesResources.Generate_field_0, "_goo"),
-string.Format(FeaturesResources.Generate_read_only_field_0, "_goo"),
-]);
+            [
+                string.Format(FeaturesResources.Generate_field_0, "_goo"),
+                string.Format(FeaturesResources.Generate_read_only_field_0, "_goo"),
+            ]);
     }
 
     [Fact]
@@ -10551,10 +10550,10 @@ class Class
                 }
             }
             """,
-[
-string.Format(FeaturesResources.Generate_property_0, "Field"),
-string.Format(FeaturesResources.Generate_field_0, "Field"),
-]);
+            [
+                string.Format(FeaturesResources.Generate_property_0, "Field"),
+                string.Format(FeaturesResources.Generate_field_0, "Field"),
+            ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26502")]
@@ -10575,10 +10574,10 @@ string.Format(FeaturesResources.Generate_field_0, "Field"),
                 }
             }
             """,
-[
-string.Format(FeaturesResources.Generate_property_0, "Field"),
-string.Format(FeaturesResources.Generate_field_0, "Field"),
-]);
+            [
+                string.Format(FeaturesResources.Generate_property_0, "Field"),
+                string.Format(FeaturesResources.Generate_field_0, "Field"),
+            ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45367")]
@@ -10598,10 +10597,10 @@ string.Format(FeaturesResources.Generate_field_0, "Field"),
                     Offset = offset;
                 }
             """,
-[
-string.Format(FeaturesResources.Generate_local_0, "Error", "MyException"),
-string.Format(FeaturesResources.Generate_parameter_0, "Error", "MyException"),
-]);
+            [
+                string.Format(FeaturesResources.Generate_local_0, "Error", "MyException"),
+                string.Format(FeaturesResources.Generate_parameter_0, "Error", "MyException"),
+            ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48172")]
