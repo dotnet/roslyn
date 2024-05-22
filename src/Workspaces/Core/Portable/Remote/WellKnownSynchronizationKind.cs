@@ -8,7 +8,11 @@ internal enum WellKnownSynchronizationKind
 {
     // Start at a different value from 0 so that if we ever get 0 we know it's a bug.
 
-    SolutionState = 1,
+    // Solution snapshot state, including generator info (like frozen generated documents).
+    SolutionCompilationState = 1,
+
+    // Solution snapshot state, only referencing actual user (non-generated) documents, options, and references.
+    SolutionState,
     ProjectState,
     DocumentState,
 

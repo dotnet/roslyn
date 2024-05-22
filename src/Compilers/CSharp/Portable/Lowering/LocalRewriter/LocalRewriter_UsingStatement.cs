@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -470,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     disposeInfo = MethodArgumentInfo.CreateParameterlessMethod(disposeMethod);
                 }
 
-                disposeCall = MakeCallWithNoExplicitArgument(disposeInfo, resourceSyntax, disposedExpression);
+                disposeCall = MakeCallWithNoExplicitArgument(disposeInfo, resourceSyntax, disposedExpression, firstRewrittenArgument: null);
 
                 if (awaitOpt is object)
                 {
@@ -486,10 +487,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Synthesize a call `expression.Method()`, but with some extra smarts to handle extension methods, and to fill-in optional and params parameters. This call expects that the
+        /// Synthesize a call `expression.Method()`, but with some extra smarts to handle extension methods. This call expects that the
         /// receiver parameter has already been visited.
         /// </summary>
-        private BoundExpression MakeCallWithNoExplicitArgument(MethodArgumentInfo methodArgumentInfo, SyntaxNode syntax, BoundExpression? expression, bool assertParametersAreOptional = true)
+        private BoundExpression MakeCallWithNoExplicitArgument(MethodArgumentInfo methodArgumentInfo, SyntaxNode syntax, BoundExpression? expression, BoundExpression? firstRewrittenArgument)
         {
             MethodSymbol method = methodArgumentInfo.Method;
 
@@ -497,29 +498,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method.IsExtensionMethod)
             {
                 Debug.Assert(expression == null);
-                Debug.Assert(method.Parameters.AsSpan()[1..].All(assertParametersAreOptional, (p, assertOptional) => (p.IsOptional || p.IsParams || !assertOptional) && p.RefKind == RefKind.None));
-                Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] is RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None);
+                Debug.Assert(method.Parameters.AsSpan()[1..].All(static (p) => (p.IsOptional || p.IsParams) && p.RefKind is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter));
             }
             else
             {
-                Debug.Assert(!assertParametersAreOptional || method.Parameters.All(p => p.IsOptional || p.IsParams));
-                Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty);
+                Debug.Assert(method.Parameters.All(p => p.IsOptional || p.IsParams));
             }
 
+            Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds.All(static refKind => refKind is RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None));
             Debug.Assert(methodArgumentInfo.Arguments.All(arg => arg is not BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler }));
 #endif
 
-            return MakeArgumentsAndCall(
-                syntax,
-                expression,
-                method,
+            ArrayBuilder<LocalSymbol>? temps = null;
+            ImmutableArray<RefKind> argumentRefKindsOpt = default;
+
+            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref expression,
+                captureReceiverMode: ReceiverCaptureMode.Default,
                 methodArgumentInfo.Arguments,
-                argumentRefKindsOpt: default,
-                expanded: methodArgumentInfo.Expanded,
-                invokedAsExtensionMethod: method.IsExtensionMethod,
-                resultKind: LookupResultKind.Viable,
-                type: method.ReturnType,
-                temps: null);
+                method,
+                argsToParamsOpt: default,
+                argumentRefKindsOpt: argumentRefKindsOpt,
+                storesOpt: null,
+                ref temps,
+                firstRewrittenArgument: firstRewrittenArgument);
+
+            rewrittenArguments = MakeArguments(
+                rewrittenArguments,
+                method,
+                methodArgumentInfo.Expanded,
+                argsToParamsOpt: default,
+                ref argumentRefKindsOpt,
+                ref temps,
+                invokedAsExtensionMethod: method.IsExtensionMethod);
+
+            return MakeCall(null, syntax, expression, method, rewrittenArguments, argumentRefKindsOpt, LookupResultKind.Viable, temps.ToImmutableAndFree());
         }
     }
 }

@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyBooleanExpression
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
-    public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public SimplifyConditionalTests(ITestOutputHelper logger)
           : base(logger)

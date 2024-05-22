@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public abstract class AbstractCSharpClassifierTests : AbstractClassifierTests
     {
-        protected static TestWorkspace CreateWorkspace(string code, ParseOptions options, TestHost testHost)
+        protected static EditorTestWorkspace CreateWorkspace(string code, ParseOptions options, TestHost testHost)
         {
             var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost);
-            return TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition, isMarkup: false);
+            return EditorTestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition, isMarkup: false);
         }
 
         protected override async Task DefaultTestAsync(string code, string allCode, TestHost testHost, FormattedClassification[] expected)

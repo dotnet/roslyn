@@ -320,7 +320,7 @@ BC37283: Invalid assembly name: Name contains invalid characters.
 
         <Fact>
         Public Sub GetSpecialType()
-            Dim comp = VisualBasicCompilation.Create("compilation", Nothing, Nothing, Nothing)
+            Dim comp = DirectCast(VisualBasicCompilation.Create("compilation", Nothing, Nothing, Nothing), Compilation)
             ' Get Special Type by enum
             Dim ntSmb = comp.GetSpecialType(typeId:=SpecialType.Count)
             Assert.Equal(SpecialType.Count, ntSmb.SpecialType)

@@ -10,68 +10,67 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Rename;
 
-namespace Microsoft.CodeAnalysis.CSharp.Rename
+namespace Microsoft.CodeAnalysis.CSharp.Rename;
+
+[ExportLanguageService(typeof(IRenameIssuesService), LanguageNames.CSharp), Shared]
+internal sealed class CSharpRenameIssuesService : IRenameIssuesService
 {
-    [ExportLanguageService(typeof(IRenameIssuesService), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpRenameIssuesService : IRenameIssuesService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpRenameIssuesService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpRenameIssuesService()
+    }
+
+    public bool CheckLanguageSpecificIssues(
+        SemanticModel semanticModel, ISymbol symbol, SyntaxToken triggerToken, [NotNullWhen(true)] out string? langError)
+    {
+        if (triggerToken.IsTypeNamedDynamic() &&
+            symbol.Kind == SymbolKind.DynamicType)
         {
+            langError = FeaturesResources.You_cannot_rename_this_element;
+            return true;
         }
 
-        public bool CheckLanguageSpecificIssues(
-            SemanticModel semanticModel, ISymbol symbol, SyntaxToken triggerToken, [NotNullWhen(true)] out string? langError)
+        if (IsTypeNamedVarInVariableOrFieldDeclaration(triggerToken))
         {
-            if (triggerToken.IsTypeNamedDynamic() &&
-                symbol.Kind == SymbolKind.DynamicType)
+            // To check if var in this context is a real type, or the keyword, we need to 
+            // speculatively bind the identifier "var". If it returns a symbol, it's a real type,
+            // if not, it's the keyword.
+            // see bugs 659683 (compiler API) and 659705 (rename/workspace api) for examples
+            var symbolForVar = semanticModel.GetSpeculativeSymbolInfo(
+                triggerToken.SpanStart,
+                triggerToken.Parent!,
+                SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
+
+            if (symbolForVar == null)
             {
                 langError = FeaturesResources.You_cannot_rename_this_element;
                 return true;
             }
-
-            if (IsTypeNamedVarInVariableOrFieldDeclaration(triggerToken))
-            {
-                // To check if var in this context is a real type, or the keyword, we need to 
-                // speculatively bind the identifier "var". If it returns a symbol, it's a real type,
-                // if not, it's the keyword.
-                // see bugs 659683 (compiler API) and 659705 (rename/workspace api) for examples
-                var symbolForVar = semanticModel.GetSpeculativeSymbolInfo(
-                    triggerToken.SpanStart,
-                    triggerToken.Parent!,
-                    SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
-
-                if (symbolForVar == null)
-                {
-                    langError = FeaturesResources.You_cannot_rename_this_element;
-                    return true;
-                }
-            }
-
-            langError = null;
-            return false;
         }
 
-        private static bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token)
+        langError = null;
+        return false;
+    }
+
+    private static bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token)
+    {
+        var parent = token.Parent;
+        if (parent.IsKind(SyntaxKind.IdentifierName))
         {
-            var parent = token.Parent;
-            if (parent.IsKind(SyntaxKind.IdentifierName))
+            TypeSyntax? declaredType = null;
+            if (parent?.Parent is VariableDeclarationSyntax varDecl)
             {
-                TypeSyntax? declaredType = null;
-                if (parent?.Parent is VariableDeclarationSyntax varDecl)
-                {
-                    declaredType = varDecl.Type;
-                }
-                else if (parent?.Parent is FieldDeclarationSyntax fieldDecl)
-                {
-                    declaredType = fieldDecl.Declaration.Type;
-                }
-
-                return declaredType == parent && token.Text == "var";
+                declaredType = varDecl.Type;
+            }
+            else if (parent?.Parent is FieldDeclarationSyntax fieldDecl)
+            {
+                declaredType = fieldDecl.Declaration.Type;
             }
 
-            return false;
+            return declaredType == parent && token.Text == "var";
         }
+
+        return false;
     }
 }

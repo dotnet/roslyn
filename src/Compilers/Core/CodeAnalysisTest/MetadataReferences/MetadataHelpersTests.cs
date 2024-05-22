@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 TypeNameConfig typeNameConfig = typeNameConfigs[index];
 
                 string expectedTopLevelTypeName = "X";
-                typeNameBuilder.Append("X");
+                typeNameBuilder.Append('X');
 
                 string[] expectedNestedTypes = null;
                 if (typeNameConfig.NestingLevel > 0)
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         expectedNestedTypes[typeNameConfig.NestingLevel - 1] += genericArityStr;
                     }
 
-                    typeNameBuilder.Append("[");
+                    typeNameBuilder.Append('[');
 
                     for (int i = 0; i < genericParamsToDecode.Length; i++)
                     {
@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                         if (typeNameConfig.GenericParamsConfig[i].AssemblyQualified)
                         {
-                            typeNameBuilder.Append("[");
+                            typeNameBuilder.Append('[');
                             typeNameBuilder.Append(genericParamsToDecode[i]);
-                            typeNameBuilder.Append("]");
+                            typeNameBuilder.Append(']');
                         }
                         else
                         {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         }
                     }
 
-                    typeNameBuilder.Append("]");
+                    typeNameBuilder.Append(']');
                 }
 
                 int expectedPointerCount = typeNameConfig.PointerCount;

@@ -32,7 +32,7 @@ namespace Metalama.Compiler.UnitTests
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("temp.cs").WriteAllText("class C {  int _f;  }");
 
-            var args = new[] { "/t:library", src.Path };
+            var args = new[] { "/t:library", "/preferreduilang:en-us", src.Path };
 
             var transformers = new ISourceTransformer[] { new AppendTransformer("class D { int _f; }") };
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);

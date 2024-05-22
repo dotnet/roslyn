@@ -8,33 +8,32 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols.Finders
+namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
+
+internal sealed class ExplicitInterfaceMethodReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
 {
-    internal sealed class ExplicitInterfaceMethodReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+    protected override bool CanFind(IMethodSymbol symbol)
+        => symbol.MethodKind == MethodKind.ExplicitInterfaceImplementation;
+
+    protected sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+        IMethodSymbol symbol,
+        HashSet<string>? globalAliases,
+        Project project,
+        IImmutableSet<Document>? documents,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
     {
-        protected override bool CanFind(IMethodSymbol symbol)
-            => symbol.MethodKind == MethodKind.ExplicitInterfaceImplementation;
+        // An explicit method can't be referenced anywhere.
+        return SpecializedTasks.EmptyImmutableArray<Document>();
+    }
 
-        protected sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            IMethodSymbol symbol,
-            HashSet<string>? globalAliases,
-            Project project,
-            IImmutableSet<Document>? documents,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            // An explicit method can't be referenced anywhere.
-            return SpecializedTasks.EmptyImmutableArray<Document>();
-        }
-
-        protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            IMethodSymbol symbol,
-            FindReferencesDocumentState state,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            // An explicit method can't be referenced anywhere.
-            return new(ImmutableArray<FinderLocation>.Empty);
-        }
+    protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        IMethodSymbol symbol,
+        FindReferencesDocumentState state,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        // An explicit method can't be referenced anywhere.
+        return new([]);
     }
 }

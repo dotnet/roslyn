@@ -8,17 +8,16 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification;
+
+[Export(typeof(IGlobalOperationNotificationService)), Shared]
+internal partial class VisualStudioGlobalOperationNotificationService : AbstractGlobalOperationNotificationService
 {
-    [Export(typeof(IGlobalOperationNotificationService)), Shared]
-    internal partial class VisualStudioGlobalOperationNotificationService : AbstractGlobalOperationNotificationService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioGlobalOperationNotificationService(
+        IAsynchronousOperationListenerProvider listenerProvider)
+        : base(listenerProvider)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioGlobalOperationNotificationService(
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(listenerProvider)
-        {
-        }
     }
 }

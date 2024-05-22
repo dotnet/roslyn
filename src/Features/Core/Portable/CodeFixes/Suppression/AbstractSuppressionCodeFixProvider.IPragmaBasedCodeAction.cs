@@ -7,16 +7,15 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
+namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
+
+internal partial class AbstractSuppressionCodeFixProvider
 {
-    internal partial class AbstractSuppressionCodeFixProvider
+    /// <summary>
+    /// Suppression code action based on pragma add/remove/edit.
+    /// </summary>
+    internal interface IPragmaBasedCodeAction
     {
-        /// <summary>
-        /// Suppression code action based on pragma add/remove/edit.
-        /// </summary>
-        internal interface IPragmaBasedCodeAction
-        {
-            Task<Document> GetChangedDocumentAsync(bool includeStartTokenChange, bool includeEndTokenChange, CancellationToken cancellationToken);
-        }
+        Task<Document> GetChangedDocumentAsync(bool includeStartTokenChange, bool includeEndTokenChange, CancellationToken cancellationToken);
     }
 }

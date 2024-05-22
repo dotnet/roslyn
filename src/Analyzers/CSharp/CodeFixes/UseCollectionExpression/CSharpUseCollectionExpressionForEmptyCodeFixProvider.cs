@@ -29,7 +29,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyCodeFixProvid
 {
     private static readonly CollectionExpressionSyntax s_emptyCollection = CollectionExpression();
 
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForEmptyDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForEmptyDiagnosticId];
 
     protected override Task FixAsync(
         Document document,

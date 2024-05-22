@@ -32,12 +32,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N")
                  },
                  presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N")
                  })
         End Function
 
@@ -57,14 +57,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C")
                  },
                  presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C")
                  })
         End Function
 
@@ -87,16 +87,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M()")
                  },
                  presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M()")
                  })
         End Function
 
@@ -122,16 +122,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M(int, int)")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M(int, int)")
                  },
                  presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M(int, int)")
+                    PackageNode("CSharpTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M(int, int)")
                  })
         End Function
 
@@ -152,14 +152,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String")
                  })
         End Function
 
@@ -180,15 +180,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Namespace]("Text"),
-                    [Class]("StringBuilder")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    NamespaceNode("Text"),
+                    ClassNode("StringBuilder")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System.Text"),
-                    [Class]("StringBuilder")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System.Text"),
+                    ClassNode("StringBuilder")
                  })
         End Function
 
@@ -209,17 +209,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Namespace]("Text"),
-                    [Class]("StringBuilder"),
-                    Member("StringBuilder()")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    NamespaceNode("Text"),
+                    ClassNode("StringBuilder"),
+                    MemberNode("StringBuilder()")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System.Text"),
-                    [Class]("StringBuilder"),
-                    Member("StringBuilder()")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System.Text"),
+                    ClassNode("StringBuilder"),
+                    MemberNode("StringBuilder()")
                  })
         End Function
 
@@ -240,16 +240,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("String(char, int)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("String(char, int)")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("String(char, int)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("String(char, int)")
                  })
         End Function
 
@@ -270,16 +270,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("Replace(char, char)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("Replace(char, char)")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("Replace(char, char)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("Replace(char, char)")
                  })
         End Function
 
@@ -300,16 +300,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Namespace]("Collections"),
-                    [Namespace]("Generic"),
-                    [Class]("List<T>")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    NamespaceNode("Collections"),
+                    NamespaceNode("Generic"),
+                    ClassNode("List<T>")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System.Collections.Generic"),
-                    [Class]("List<T>")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System.Collections.Generic"),
+                    ClassNode("List<T>")
                  })
         End Function
 
@@ -334,16 +334,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("Array"),
-                    Member("AsReadOnly<T>(T[])")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("Array"),
+                    MemberNode("AsReadOnly<T>(T[])")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("Array"),
-                    Member("AsReadOnly<T>(T[])")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("Array"),
+                    MemberNode("AsReadOnly<T>(T[])")
                  })
         End Function
 
@@ -423,12 +423,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N")
                  },
                  presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N")
                  })
         End Function
 
@@ -448,14 +448,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C")
                  },
                  presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C")
                  })
         End Function
 
@@ -477,16 +477,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M()")
                  },
                  presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M()")
                  })
         End Function
 
@@ -508,16 +508,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M() As Integer")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M() As Integer")
                  },
                  presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M() As Integer")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M() As Integer")
                  })
         End Function
 
@@ -539,16 +539,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M(Integer, Integer) As Integer")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M(Integer, Integer) As Integer")
                  },
                  presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M(Integer, Integer) As Integer")
+                    PackageNode("VBTestAssembly"),
+                    NamespaceNode("N"),
+                    ClassNode("C"),
+                    MemberNode("M(Integer, Integer) As Integer")
                  })
         End Function
 
@@ -568,14 +568,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String")
                  })
         End Function
 
@@ -595,15 +595,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Namespace]("Text"),
-                    [Class]("StringBuilder")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    NamespaceNode("Text"),
+                    ClassNode("StringBuilder")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System.Text"),
-                    [Class]("StringBuilder")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System.Text"),
+                    ClassNode("StringBuilder")
                  })
         End Function
 
@@ -623,17 +623,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Namespace]("Text"),
-                    [Class]("StringBuilder"),
-                    Member("New()")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    NamespaceNode("Text"),
+                    ClassNode("StringBuilder"),
+                    MemberNode("New()")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System.Text"),
-                    [Class]("StringBuilder"),
-                    Member("New()")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System.Text"),
+                    ClassNode("StringBuilder"),
+                    MemberNode("New()")
                  })
         End Function
 
@@ -653,16 +653,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("New(Char, Integer)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("New(Char, Integer)")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("New(Char, Integer)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("New(Char, Integer)")
                  })
         End Function
 
@@ -682,16 +682,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("Replace(Char, Char) As String")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("Replace(Char, Char) As String")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("String"),
-                    Member("Replace(Char, Char) As String")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("String"),
+                    MemberNode("Replace(Char, Char) As String")
                  })
         End Function
 
@@ -711,16 +711,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Namespace]("Collections"),
-                    [Namespace]("Generic"),
-                    [Class]("List(Of T)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    NamespaceNode("Collections"),
+                    NamespaceNode("Generic"),
+                    ClassNode("List(Of T)")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System.Collections.Generic"),
-                    [Class]("List(Of T)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System.Collections.Generic"),
+                    ClassNode("List(Of T)")
                  })
         End Function
 
@@ -743,16 +743,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
             Await TestAsync(workspace,
                  canonicalNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("Array"),
-                    Member("AsReadOnly(Of T)(T()) As System.Collections.ObjectModel.ReadOnlyCollection(Of T)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("Array"),
+                    MemberNode("AsReadOnly(Of T)(T()) As System.Collections.ObjectModel.ReadOnlyCollection(Of T)")
                  },
                  presentationNodes:={
-                    Package("Z:\FxReferenceAssembliesUri"),
-                    [Namespace]("System"),
-                    [Class]("Array"),
-                    Member("AsReadOnly(Of T)(T()) As System.Collections.ObjectModel.ReadOnlyCollection(Of T)")
+                    PackageNode("Z:\FxReferenceAssembliesUri"),
+                    NamespaceNode("System"),
+                    ClassNode("Array"),
+                    MemberNode("AsReadOnly(Of T)(T()) As System.Collections.ObjectModel.ReadOnlyCollection(Of T)")
                  })
         End Function
 
@@ -822,7 +822,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
             Optional presentationNodes As NodeVerifier() = Nothing
         ) As Task
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=VisualStudioTestCompositions.LanguageServices)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Assert.True(hostDocument IsNot Nothing, "Test defined without cursor position")
 
@@ -860,7 +860,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
             Optional useExpandedHierarchy As Boolean = False
         ) As Task
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=VisualStudioTestCompositions.LanguageServices)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Assert.True(hostDocument IsNot Nothing, "Test defined without cursor position")
 

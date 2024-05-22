@@ -29,55 +29,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void FindAssemblySet_SingleAssembly()
-        {
-            var directory = Temp.CreateDirectory();
-
-            var alphaDll = directory.CopyFile(_testFixture.Alpha).Path;
-            var results = AssemblyUtilities.FindAssemblySet(alphaDll);
-
-            AssertEx.SetEqual(new[] { alphaDll }, results);
-        }
-
-        [Fact]
-        public void FindAssemblySet_TwoUnrelatedAssemblies()
-        {
-            var directory = Temp.CreateDirectory();
-
-            var alphaDll = directory.CopyFile(_testFixture.Alpha).Path;
-            var betaDll = directory.CopyFile(_testFixture.Beta).Path;
-            var results = AssemblyUtilities.FindAssemblySet(alphaDll);
-
-            AssertEx.SetEqual(new[] { alphaDll }, results);
-        }
-
-        [Fact]
-        public void FindAssemblySet_SimpleDependency()
-        {
-            var directory = Temp.CreateDirectory();
-
-            var alphaDll = directory.CopyFile(_testFixture.Alpha).Path;
-            var gammaDll = directory.CopyFile(_testFixture.Gamma).Path;
-
-            var results = AssemblyUtilities.FindAssemblySet(alphaDll);
-
-            AssertEx.SetEqual(new[] { alphaDll, gammaDll }, results, StringComparer.OrdinalIgnoreCase);
-        }
-
-        [Fact]
-        public void FindAssemblySet_TransitiveDependencies()
-        {
-            var results = AssemblyUtilities.FindAssemblySet(_testFixture.Alpha);
-
-            AssertEx.SetEqual(new[]
-            {
-                _testFixture.Alpha,
-                _testFixture.Gamma,
-                _testFixture.Delta1
-            }, results, StringComparer.OrdinalIgnoreCase);
-        }
-
-        [Fact]
         public void ReadMVid()
         {
             var assembly = Assembly.Load(File.ReadAllBytes(_testFixture.Alpha));

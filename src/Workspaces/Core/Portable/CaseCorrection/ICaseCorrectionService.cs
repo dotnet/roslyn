@@ -9,18 +9,17 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CaseCorrection
-{
-    internal interface ICaseCorrectionService : ILanguageService
-    {
-        /// <summary>
-        /// Case corrects all names found in the spans in the provided document.
-        /// </summary>
-        Task<Document> CaseCorrectAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken);
+namespace Microsoft.CodeAnalysis.CaseCorrection;
 
-        /// <summary>
-        /// Case corrects only things that don't require semantic information
-        /// </summary>
-        SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken);
-    }
+internal interface ICaseCorrectionService : ILanguageService
+{
+    /// <summary>
+    /// Case corrects all names found in the spans in the provided document.
+    /// </summary>
+    Task<Document> CaseCorrectAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Case corrects only things that don't require semantic information
+    /// </summary>
+    SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken);
 }

@@ -221,7 +221,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+#nullable enable
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
             while (true)
             {
@@ -235,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.StartValidatingReferencedAssemblies:
                         {
-                            BindingDiagnosticBag diagnostics = null;
+                            BindingDiagnosticBag? diagnostics = null;
 
                             if (AnyReferencedAssembliesAreLinked)
                             {
@@ -268,15 +269,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.MembersCompleted:
-                        this.GlobalNamespace.ForceComplete(locationOpt, cancellationToken);
+                        this.GlobalNamespace.ForceComplete(locationOpt, filter, cancellationToken);
 
                         if (this.GlobalNamespace.HasComplete(CompletionPart.MembersCompleted))
                         {
+                            // Completing the global namespace members means all InterceptsLocationAttributes have been bound.
+                            Volatile.Write(ref DeclaringCompilation.InterceptorsDiscoveryComplete, true);
+
                             _state.NotePartComplete(CompletionPart.MembersCompleted);
                         }
                         else
                         {
-                            Debug.Assert(locationOpt != null, "If no location was specified, then the namespace members should be completed");
+                            Debug.Assert(locationOpt != null || filter != null, "If no location or filter was specified, then the namespace members should be completed");
                             return;
                         }
 
@@ -319,6 +323,82 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        internal void DiscoverInterceptorsIfNeeded()
+        {
+            if (!Volatile.Read(ref DeclaringCompilation.InterceptorsDiscoveryComplete))
+            {
+                discoverInterceptors();
+                Volatile.Write(ref DeclaringCompilation.InterceptorsDiscoveryComplete, true);
+            }
+
+            void discoverInterceptors()
+            {
+                var location = this.GlobalNamespace.GetFirstLocationOrNone();
+                if (!location.IsInSource)
+                {
+                    return;
+                }
+
+                var toVisit = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
+
+                // Search the namespaces which were indicated to contain interceptors.
+                ImmutableArray<ImmutableArray<string>> interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsPreviewNamespaces;
+                foreach (ImmutableArray<string> namespaceParts in interceptorsNamespaces)
+                {
+                    if (namespaceParts is ["global"])
+                    {
+                        toVisit.Clear();
+                        toVisit.Add(GlobalNamespace);
+                        // No point in continuing, we already are going to search the entire module in this case.
+                        break;
+                    }
+
+                    var cursor = GlobalNamespace;
+                    foreach (string namespacePart in namespaceParts)
+                    {
+                        cursor = (NamespaceSymbol?)cursor.GetNestedNamespace(namespacePart);
+                        if (cursor is null)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (cursor is not null)
+                    {
+                        toVisit.Add(cursor);
+                    }
+                }
+
+                while (toVisit.Count > 0)
+                {
+                    var item = toVisit.Pop();
+                    if (item is SourceMemberContainerTypeSymbol type)
+                    {
+                        type.DiscoverInterceptors(toVisit);
+                    }
+                    else if (item is SourceNamespaceSymbol @namespace)
+                    {
+                        foreach (var member in @namespace.GetMembers())
+                        {
+                            if (member is not NamespaceOrTypeSymbol namespaceOrType)
+                            {
+                                throw ExceptionUtilities.UnexpectedValue(member);
+                            }
+
+                            toVisit.Add(namespaceOrType);
+                        }
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(item);
+                    }
+                }
+
+                toVisit.Free();
+            }
+        }
+#nullable disable
 
         public override ImmutableArray<Location> Locations
         {

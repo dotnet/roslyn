@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                     FileList FrameworkName="MyPack">
                     """);
 
-                var workspace = (TestWorkspace)project.Solution.Workspace;
+                var workspace = (EditorTestWorkspace)project.Solution.Workspace;
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
                 Assert.False(service.TryFindImplementationAssemblyPath(GetDllPath(packDir), out var implementationDll));
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                     </FileList>
                     """);
 
-                var workspace = (TestWorkspace)project.Solution.Workspace;
+                var workspace = (EditorTestWorkspace)project.Solution.Workspace;
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
                 Assert.True(service.TryFindImplementationAssemblyPath(GetDllPath(packDir), out var implementationDll));
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                     </FileList>
                     """);
 
-                var workspace = (TestWorkspace)project.Solution.Workspace;
+                var workspace = (EditorTestWorkspace)project.Solution.Workspace;
                 var service = workspace.GetService<IImplementationAssemblyLookupService>();
 
                 Assert.True(service.TryFindImplementationAssemblyPath(GetDllPath(packDir), out var implementationDll));
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
                 var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
 
-                var workspace = TestWorkspace.Create(@$"
+                var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
@@ -229,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 var pdbFilePath = Path.Combine(path, "implementation.pdb");
                 var assemblyName = "implementation";
 
-                var workspace = TestWorkspace.Create(@$"
+                var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
@@ -290,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 var pdbFilePath = Path.Combine(path, "implementation.pdb");
                 var assemblyName = "implementation";
 
-                var workspace = TestWorkspace.Create(@$"
+                var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
@@ -345,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 var pdbFilePath = Path.Combine(path, "implementation.pdb");
                 var assemblyName = "implementation";
 
-                var workspace = TestWorkspace.Create(@$"
+                var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
@@ -396,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 var pdbFilePath = Path.Combine(path, "implementation.pdb");
                 var assemblyName = "implementation";
 
-                var workspace = TestWorkspace.Create(@$"
+                var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
@@ -419,8 +420,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
                 // We need the DLLs to exist, in order for some checks to pass correct, but to ensure
                 // that the file isn't read, we just zero it out.
-                File.WriteAllBytes(typeForwardDllFilePath, Array.Empty<byte>());
-                File.WriteAllBytes(dllFilePath, Array.Empty<byte>());
+                File.WriteAllBytes(typeForwardDllFilePath, []);
+                File.WriteAllBytes(dllFilePath, []);
 
                 Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
             });
@@ -461,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 var pdbFilePath = Path.Combine(path, "implementation.pdb");
                 var assemblyName = "implementation";
 
-                var workspace = TestWorkspace.Create(@$"
+                var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
@@ -484,8 +485,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
                 // We need the DLLs to exist, in order for some checks to pass correct, but to ensure
                 // that the file isn't read, we just zero it out.
-                File.WriteAllBytes(typeForwardDllFilePath, Array.Empty<byte>());
-                File.WriteAllBytes(dllFilePath, Array.Empty<byte>());
+                File.WriteAllBytes(typeForwardDllFilePath, []);
+                File.WriteAllBytes(dllFilePath, []);
 
                 Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
             });
@@ -519,7 +520,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 var pdbFilePath = Path.Combine(path, "implementation.pdb");
                 var assemblyName = "implementation";
 
-                var workspace = TestWorkspace.Create(@$"
+                var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
@@ -556,9 +557,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
                 // We need the DLLs to exist, in order for some checks to pass correct, but to ensure
                 // that the file isn't read, we just zero it out.
-                File.WriteAllBytes(typeForwardDllFilePath, Array.Empty<byte>());
-                File.WriteAllBytes(realImplementationDllFilePath, Array.Empty<byte>());
-                File.WriteAllBytes(dllFilePath, Array.Empty<byte>());
+                File.WriteAllBytes(typeForwardDllFilePath, []);
+                File.WriteAllBytes(realImplementationDllFilePath, []);
+                File.WriteAllBytes(dllFilePath, []);
 
                 foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger());
                 Assert.Equal(realImplementationDllFilePath, foundImplementationFilePath);
@@ -570,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         /// </summary>
         private class NoDuplicatesLogger : IPdbSourceDocumentLogger
         {
-            private readonly HashSet<string> _logs = new();
+            private readonly HashSet<string> _logs = [];
             public void Clear()
             {
                 _logs.Clear();

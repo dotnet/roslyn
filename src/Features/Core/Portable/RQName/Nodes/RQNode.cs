@@ -5,19 +5,18 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
+
+internal abstract class RQNode
 {
-    internal abstract class RQNode
+    protected abstract string RQKeyword { get; }
+
+    protected abstract void AppendChildren(List<SimpleTreeNode> childList);
+
+    public SimpleGroupNode ToSimpleTree()
     {
-        protected abstract string RQKeyword { get; }
-
-        protected abstract void AppendChildren(List<SimpleTreeNode> childList);
-
-        public SimpleGroupNode ToSimpleTree()
-        {
-            var childList = new List<SimpleTreeNode>();
-            AppendChildren(childList);
-            return new SimpleGroupNode(RQKeyword, childList);
-        }
+        var childList = new List<SimpleTreeNode>();
+        AppendChildren(childList);
+        return new SimpleGroupNode(RQKeyword, childList);
     }
 }

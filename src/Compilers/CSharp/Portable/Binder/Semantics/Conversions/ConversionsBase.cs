@@ -1490,7 +1490,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     for (int p = 0; p < delegateParameters.Length; ++p)
                     {
-                        if (!OverloadResolution.AreRefsCompatibleForMethodConversion(delegateParameters[p].RefKind, anonymousFunction.RefKind(p), compilation) ||
+                        if (!OverloadResolution.AreRefsCompatibleForMethodConversion(
+                                candidateMethodParameterRefKind: anonymousFunction.RefKind(p),
+                                delegateParameterRefKind: delegateParameters[p].RefKind,
+                                compilation) ||
                             !delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), TypeCompareKind.AllIgnoreOptions))
                         {
                             return LambdaConversionResult.MismatchedParameterType;
@@ -1650,12 +1653,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((destination as NamedTypeSymbol)?.HasCollectionBuilderAttribute(out _, out _) == true)
             {
-                return CollectionExpressionTypeKind.CollectionBuilder;
-            }
-            else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_Generic_IEnumerable_T))
-            {
                 elementType = default;
-                return CollectionExpressionTypeKind.ImplementsIEnumerableT;
+                return CollectionExpressionTypeKind.CollectionBuilder;
             }
             else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
             {

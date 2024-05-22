@@ -59,8 +59,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Collection of known response kind modifier strings.
         /// </summary>
-        public static readonly IReadOnlyCollection<string> AllModifiers = new[]
-        {
+        public static readonly IReadOnlyCollection<string> AllModifiers =
+        [
             Public,
             Private,
             Protected,
@@ -70,6 +70,6 @@ namespace Roslyn.LanguageServer.Protocol
             Snippet,
             Friend,
             Declaration,
-        };
+        ];
     }
 }

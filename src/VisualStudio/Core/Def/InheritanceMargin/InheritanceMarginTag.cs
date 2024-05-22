@@ -14,62 +14,61 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin;
+
+internal class InheritanceMarginTag : IGlyphTag, IEquatable<InheritanceMarginTag>
 {
-    internal class InheritanceMarginTag : IGlyphTag, IEquatable<InheritanceMarginTag>
+    /// <summary>
+    /// Margin moniker.
+    /// </summary>
+    public ImageMoniker Moniker { get; }
+
+    /// <summary>
+    /// Members needs to be shown on this line. There might be multiple members.
+    /// For example:
+    /// interface IBar { void Foo1(); void Foo2(); }
+    /// class Bar : IBar { void Foo1() { } void Foo2() { } }
+    /// </summary>
+    public readonly ImmutableArray<InheritanceMarginItem> MembersOnLine;
+
+    /// <summary>
+    /// Used for accessibility purpose.
+    /// </summary>
+    public readonly int LineNumber;
+
+    public InheritanceMarginTag(int lineNumber, ImmutableArray<InheritanceMarginItem> membersOnLine)
     {
-        /// <summary>
-        /// Margin moniker.
-        /// </summary>
-        public ImageMoniker Moniker { get; }
+        Contract.ThrowIfTrue(membersOnLine.IsEmpty);
 
-        /// <summary>
-        /// Members needs to be shown on this line. There might be multiple members.
-        /// For example:
-        /// interface IBar { void Foo1(); void Foo2(); }
-        /// class Bar : IBar { void Foo1() { } void Foo2() { } }
-        /// </summary>
-        public readonly ImmutableArray<InheritanceMarginItem> MembersOnLine;
+        LineNumber = lineNumber;
+        MembersOnLine = membersOnLine;
 
-        /// <summary>
-        /// Used for accessibility purpose.
-        /// </summary>
-        public readonly int LineNumber;
+        // The common case is that one line has one member.
+        using var _ = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var allItems);
+        foreach (var marginItem in membersOnLine)
+            allItems.AddRange(marginItem.TargetItems);
 
-        public InheritanceMarginTag(int lineNumber, ImmutableArray<InheritanceMarginItem> membersOnLine)
-        {
-            Contract.ThrowIfTrue(membersOnLine.IsEmpty);
+        var relationship = allItems[0].RelationToMember;
+        for (var i = 1; i < allItems.Count; i++)
+            relationship |= allItems[i].RelationToMember;
 
-            LineNumber = lineNumber;
-            MembersOnLine = membersOnLine;
+        Moniker = InheritanceMarginHelpers.GetMoniker(relationship);
+    }
 
-            // The common case is that one line has one member.
-            using var _ = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var allItems);
-            foreach (var marginItem in membersOnLine)
-                allItems.AddRange(marginItem.TargetItems);
+    // Intentionally throwing, we have never supported this facility, and there is no contract around placing
+    // these tags in sets or maps.
+    public override int GetHashCode()
+        => throw new NotImplementedException();
 
-            var relationship = allItems[0].RelationToMember;
-            for (var i = 1; i < allItems.Count; i++)
-                relationship |= allItems[i].RelationToMember;
+    public override bool Equals(object? obj)
+        => Equals(obj as InheritanceMarginTag);
 
-            Moniker = InheritanceMarginHelpers.GetMoniker(relationship);
-        }
-
-        // Intentionally throwing, we have never supported this facility, and there is no contract around placing
-        // these tags in sets or maps.
-        public override int GetHashCode()
-            => throw new NotImplementedException();
-
-        public override bool Equals(object? obj)
-            => Equals(obj as InheritanceMarginTag);
-
-        public bool Equals(InheritanceMarginTag? other)
-        {
-            return other != null &&
-                this.LineNumber == other.LineNumber &&
-                this.Moniker.Guid == other.Moniker.Guid &&
-                this.Moniker.Id == other.Moniker.Id &&
-                this.MembersOnLine.SequenceEqual(other.MembersOnLine);
-        }
+    public bool Equals(InheritanceMarginTag? other)
+    {
+        return other != null &&
+            this.LineNumber == other.LineNumber &&
+            this.Moniker.Guid == other.Moniker.Guid &&
+            this.Moniker.Id == other.Moniker.Id &&
+            this.MembersOnLine.SequenceEqual(other.MembersOnLine);
     }
 }

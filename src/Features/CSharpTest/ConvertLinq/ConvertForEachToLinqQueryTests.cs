@@ -13,9 +13,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
-    public class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTest
+    public class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery.CSharpConvertForEachToLinqQueryProvider();
 
         #region Query Expressions

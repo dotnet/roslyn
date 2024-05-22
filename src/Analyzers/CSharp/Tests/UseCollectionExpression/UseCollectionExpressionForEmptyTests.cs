@@ -120,6 +120,35 @@ public class UseCollectionExpressionForEmptyTests
         await new VerifyCS.Test
         {
             TestCode = """
+                using System;
+                class C
+                {
+                    void M()
+                    {
+                        object[] v = Array.[|Empty|]<string>();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                class C
+                {
+                    void M()
+                    {
+                        object[] v = [];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task ArrayEmpty3_Strict()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             class C
             {
@@ -130,6 +159,10 @@ public class UseCollectionExpressionForEmptyTests
             }
             """,
             LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
         }.RunAsync();
     }
 
@@ -1600,36 +1633,66 @@ public class UseCollectionExpressionForEmptyTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
-    public async Task TestInterfaceOn()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOn(
+        [CombinatorialValues("IEnumerable<int>", "IReadOnlyCollection<int>", "IReadOnlyList<int>")] string type,
+        [CombinatorialValues("Array.[|Empty|]<int>()", "ImmutableArray<int>.[|Empty|]")] string expression)
     {
         await new VerifyCS.Test
         {
-            TestCode = """
-            using System;
-            using System.Collections.Generic;
+            TestCode = $$"""
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
 
-            class C
-            {
-                void M()
+                class C
                 {
-                    IEnumerable<int> v = Array.[|Empty|]<int>();
+                    void M()
+                    {
+                        {{type}} v = {{expression}};
+                    }
                 }
-            }
-            """,
-            FixedCode = """
-            using System;
-            using System.Collections.Generic;
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
 
-            class C
-            {
-                void M()
+                class C
                 {
-                    IEnumerable<int> v = [];
+                    void M()
+                    {
+                        {{type}} v = [];
+                    }
                 }
-            }
-            """,
+                """,
             LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70996")]
+    public async Task TestInterfaceOn_ReadWriteDestination(
+        [CombinatorialValues("IList<int>", "ICollection<int>")] string type,
+        [CombinatorialValues("Array.Empty<int>()", "ImmutableArray<int>.Empty")] string expression)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        {{type}} v = {{expression}};
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 

@@ -8293,7 +8293,7 @@ class Program
                 var lam = (params int[] xs = null) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS1751: Cannot specify a default value for a parameter array
+                // (1,12): error CS1751: Cannot specify a default value for a parameter collection
                 // var lam = (params int[] xs = null) => xs.Length;
                 Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(1, 12));
         }
@@ -8305,9 +8305,9 @@ class Program
                 var lam = ([System.ParamArray] int[] xs) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,13): error CS0674: Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.
+                // (1,13): error CS0674: Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.
                 // var lam = ([System.ParamArray] int[] xs) => xs.Length;
-                Diagnostic(ErrorCode.ERR_ExplicitParamArray, "System.ParamArray").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_ExplicitParamArrayOrCollection, "System.ParamArray").WithLocation(1, 13));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66060")]
@@ -8353,13 +8353,21 @@ class Program
             Assert.Equal(3, lambdas.Length);
             // lam1
             Assert.True(((SourceParameterSymbol)lambdas[0].Parameters.Single()).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters.Single()).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters.Single()).IsParamsCollection);
             // lam2
             Assert.False(((SourceParameterSymbol)lambdas[1].Parameters.Single()).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters.Single()).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters.Single()).IsParamsCollection);
             // lam3
             Assert.Equal(2, lambdas[2].ParameterCount);
             Assert.Equal(2, lambdas[2].Parameters.Length);
             Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[0]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[0]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[0]).IsParamsCollection);
             Assert.True(((SourceParameterSymbol)lambdas[2].Parameters[1]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[2].Parameters[1]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[1]).IsParamsCollection);
         }
 
         [Fact]
@@ -8380,14 +8388,26 @@ class Program
             Assert.Equal(3, lambdas[0].ParameterCount);
             Assert.Equal(3, lambdas[0].Parameters.Length);
             Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[0]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[0]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[0]).IsParamsCollection);
             Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[1]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[1]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[1]).IsParamsCollection);
             Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[2]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[2]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[2]).IsParamsCollection);
             // lam2
             Assert.Equal(3, lambdas[1].ParameterCount);
             Assert.Equal(3, lambdas[1].Parameters.Length);
             Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParamsCollection);
             Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParamsCollection);
             Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParamsCollection);
         }
 
         [Fact]
@@ -8410,12 +8430,20 @@ class Program
                 {
                     var lam1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate0");
                     Assert.True(lam1.DelegateParameters().Single().IsParams);
+                    Assert.True(lam1.DelegateParameters().Single().IsParamsArray);
+                    Assert.False(lam1.DelegateParameters().Single().IsParamsCollection);
+                    AssertEx.Equal("TResult <>f__AnonymousDelegate0<T1, TResult>.Invoke(params T1[] arg)", lam1.DelegateInvokeMethod.ToTestDisplayString());
 
                     var lam3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate1");
                     var lam3Parameters = lam3.DelegateParameters();
                     Assert.Equal(2, lam3Parameters.Length);
                     Assert.False(lam3Parameters[0].IsParams);
+                    Assert.False(lam3Parameters[0].IsParamsArray);
+                    Assert.False(lam3Parameters[0].IsParamsCollection);
                     Assert.True(lam3Parameters[1].IsParams);
+                    Assert.True(lam3Parameters[1].IsParamsArray);
+                    Assert.False(lam3Parameters[1].IsParamsCollection);
+                    AssertEx.Equal("TResult <>f__AnonymousDelegate1<T1, T2, TResult>.Invoke(T1 arg1, params T2[] arg2)", lam3.DelegateInvokeMethod.ToTestDisplayString());
                 });
         }
 
@@ -8450,9 +8478,10 @@ class Program
                 var lam = (params int x) => x;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS0225: The params parameter must be a single dimensional array
+                // (1,12): error CS0225: The params parameter must have a valid collection type
                 // var lam = (params int x) => x;
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(1, 12)
+                );
         }
 
         [Fact]
@@ -8462,9 +8491,10 @@ class Program
                 var lam = (params int[,] xs) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS0225: The params parameter must be a single dimensional array
+                // (1,12): error CS0225: The params parameter must have a valid collection type
                 // var lam = (params int[,] xs) => xs.Length;
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(1, 12)
+                );
         }
 
         [Fact]

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public ImmutableArray<DocumentId> GetVisibleDocuments()
         {
             Fail("Code should not be attempting to obtain visible documents from a stateless remote invocation.");
-            return ImmutableArray<DocumentId>.Empty;
+            return [];
         }
 
         public DocumentId? TryGetActiveDocument()

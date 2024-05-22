@@ -130,16 +130,6 @@ Používat rozšířené barvy;Barevné schéma editoru;Okraj dědičnosti;Direk
         <target state="translated">Nástroje Visual Basicu</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">Prázdný soubor skriptu Visual Basicu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Skript Visual Basicu</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

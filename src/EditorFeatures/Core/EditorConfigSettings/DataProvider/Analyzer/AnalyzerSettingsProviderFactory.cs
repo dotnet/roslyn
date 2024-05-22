@@ -6,17 +6,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyzer
-{
-    internal class AnalyzerSettingsProviderFactory(Workspace workspace, IDiagnosticAnalyzerService analyzerService) : IWorkspaceSettingsProviderFactory<AnalyzerSetting>
-    {
-        private readonly Workspace _workspace = workspace;
-        private readonly IDiagnosticAnalyzerService _analyzerService = analyzerService;
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyzer;
 
-        public ISettingsProvider<AnalyzerSetting> GetForFile(string filePath)
-        {
-            var updater = new AnalyzerSettingsUpdater(_workspace, filePath);
-            return new AnalyzerSettingsProvider(filePath, updater, _workspace, _analyzerService);
-        }
+internal class AnalyzerSettingsProviderFactory(Workspace workspace, IDiagnosticAnalyzerService analyzerService) : IWorkspaceSettingsProviderFactory<AnalyzerSetting>
+{
+    private readonly Workspace _workspace = workspace;
+    private readonly IDiagnosticAnalyzerService _analyzerService = analyzerService;
+
+    public ISettingsProvider<AnalyzerSetting> GetForFile(string filePath)
+    {
+        var updater = new AnalyzerSettingsUpdater(_workspace, filePath);
+        return new AnalyzerSettingsProvider(filePath, updater, _workspace, _analyzerService);
     }
 }

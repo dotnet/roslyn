@@ -124,6 +124,9 @@ dotnet_diagnostic.VSTHRD010.severity = none
 # VSTHRD110: Observe result of async calls
 dotnet_diagnostic.VSTHRD110.severity = none
 
+# Workaround for old Microsoft.VisualStudio.Progression.* packages: https://github.com/dotnet/roslyn/issues/71404
+dotnet_diagnostic.VSIXCompatibility1001.severity = none
+
 dotnet_diagnostic.HAA0101.severity = none
 dotnet_diagnostic.HAA0102.severity = none
 dotnet_diagnostic.HAA0201.severity = none

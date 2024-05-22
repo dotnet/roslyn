@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
     Public Class MoveStaticMembersViewModelTest
         Private Shared Async Function GetViewModelAsync(xmlElement As XElement) As Task(Of MoveStaticMembersDialogViewModel)
             Dim workspaceXml = xmlElement.Value
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim doc = workspace.Documents.ElementAt(0)
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
                 If Not doc.CursorPosition.HasValue Then

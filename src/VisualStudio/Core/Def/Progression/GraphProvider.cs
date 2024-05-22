@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -25,7 +25,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
-internal abstract class AbstractGraphProvider : IGraphProvider
+[GraphProvider(Name = nameof(RoslynGraphProvider), ProjectCapability = "(CSharp | VB)")]
+internal sealed class RoslynGraphProvider : IGraphProvider
 {
     private readonly IThreadingContext _threadingContext;
     private readonly IGlyphService _glyphService;
@@ -37,11 +38,13 @@ internal abstract class AbstractGraphProvider : IGraphProvider
 
     private bool _initialized = false;
 
-    protected AbstractGraphProvider(
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RoslynGraphProvider(
         IThreadingContext threadingContext,
         IGlyphService glyphService,
         SVsServiceProvider serviceProvider,
-        Workspace workspace,
+        VisualStudioWorkspace workspace,
         Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
@@ -354,7 +357,7 @@ internal abstract class AbstractGraphProvider : IGraphProvider
     private static readonly GraphCommandDefinition s_implementedByCommandDefinition =
         new("ImplementedBy", ServicesVSResources.Implemented_By, GraphContextDirection.Source, 600);
 
-    public T GetExtension<T>(GraphObject graphObject, T previous) where T : class
+    public T? GetExtension<T>(GraphObject graphObject, T previous) where T : class
     {
         if (graphObject is GraphNode graphNode)
         {
@@ -379,7 +382,7 @@ internal abstract class AbstractGraphProvider : IGraphProvider
         return null;
     }
 
-    public Graph Schema
+    public Graph? Schema
     {
         get { return null; }
     }

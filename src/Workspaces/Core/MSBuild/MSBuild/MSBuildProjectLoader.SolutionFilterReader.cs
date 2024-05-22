@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     if (solutionPath is null || Path.GetDirectoryName(filterFilename) is not string baseDirectory)
                     {
                         solutionFilename = string.Empty;
-                        projectFilter = ImmutableHashSet<string>.Empty;
+                        projectFilter = [];
                         return false;
                     }
 
@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     {
                         // TryGetAbsoluteSolutionPath should throw before we get here.
                         solutionFilename = string.Empty;
-                        projectFilter = ImmutableHashSet<string>.Empty;
+                        projectFilter = [];
                         return false;
                     }
 
                     if (!File.Exists(solutionFilename))
                     {
-                        projectFilter = ImmutableHashSet<string>.Empty;
+                        projectFilter = [];
                         return false;
                     }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 catch
                 {
                     solutionFilename = string.Empty;
-                    projectFilter = ImmutableHashSet<string>.Empty;
+                    projectFilter = [];
                     return false;
                 }
             }

@@ -9,97 +9,96 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols;
+
+internal static class ReferenceLocationExtensions
 {
-    internal static class ReferenceLocationExtensions
+    public static async Task<Dictionary<ISymbol, List<Location>>> FindReferencingSymbolsAsync(
+        this IEnumerable<ReferenceLocation> referenceLocations,
+        CancellationToken cancellationToken)
     {
-        public static async Task<Dictionary<ISymbol, List<Location>>> FindReferencingSymbolsAsync(
-            this IEnumerable<ReferenceLocation> referenceLocations,
-            CancellationToken cancellationToken)
+        var documentGroups = referenceLocations.GroupBy(loc => loc.Document);
+        var projectGroups = documentGroups.GroupBy(g => g.Key.Project);
+        var result = new Dictionary<ISymbol, List<Location>>();
+
+        foreach (var projectGroup in projectGroups)
         {
-            var documentGroups = referenceLocations.GroupBy(loc => loc.Document);
-            var projectGroups = documentGroups.GroupBy(g => g.Key.Project);
-            var result = new Dictionary<ISymbol, List<Location>>();
+            cancellationToken.ThrowIfCancellationRequested();
 
-            foreach (var projectGroup in projectGroups)
+            var project = projectGroup.Key;
+            if (project.SupportsCompilation)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var project = projectGroup.Key;
-                if (project.SupportsCompilation)
+                foreach (var documentGroup in projectGroup)
                 {
-                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                    foreach (var documentGroup in projectGroup)
-                    {
-                        var document = documentGroup.Key;
-                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                        AddSymbols(semanticModel, documentGroup, result);
-                    }
-
-                    // Keep compilation alive so that GetSemanticModelAsync remains cheap
-                    GC.KeepAlive(compilation);
+                    var document = documentGroup.Key;
+                    var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    AddSymbols(semanticModel, documentGroup, result);
                 }
-            }
 
-            return result;
-        }
-
-        private static void AddSymbols(
-            SemanticModel semanticModel,
-            IEnumerable<ReferenceLocation> references,
-            Dictionary<ISymbol, List<Location>> result)
-        {
-            foreach (var reference in references)
-            {
-                var containingSymbol = GetEnclosingMethodOrPropertyOrField(semanticModel, reference);
-                if (containingSymbol != null)
-                {
-                    if (!result.TryGetValue(containingSymbol, out var locations))
-                    {
-                        locations = new List<Location>();
-                        result.Add(containingSymbol, locations);
-                    }
-
-                    locations.Add(reference.Location);
-                }
+                // Keep compilation alive so that GetSemanticModelAsync remains cheap
+                GC.KeepAlive(compilation);
             }
         }
 
-        private static ISymbol? GetEnclosingMethodOrPropertyOrField(
-            SemanticModel semanticModel,
-            ReferenceLocation reference)
+        return result;
+    }
+
+    private static void AddSymbols(
+        SemanticModel semanticModel,
+        IEnumerable<ReferenceLocation> references,
+        Dictionary<ISymbol, List<Location>> result)
+    {
+        foreach (var reference in references)
         {
-            var enclosingSymbol = semanticModel.GetEnclosingSymbol(reference.Location.SourceSpan.Start);
-
-            for (var current = enclosingSymbol; current != null; current = current.ContainingSymbol)
+            var containingSymbol = GetEnclosingMethodOrPropertyOrField(semanticModel, reference);
+            if (containingSymbol != null)
             {
-                if (current.Kind == SymbolKind.Field)
+                if (!result.TryGetValue(containingSymbol, out var locations))
                 {
-                    return current;
+                    locations = [];
+                    result.Add(containingSymbol, locations);
                 }
 
-                if (current.Kind == SymbolKind.Property)
-                {
-                    return current;
-                }
+                locations.Add(reference.Location);
+            }
+        }
+    }
 
-                if (current.Kind == SymbolKind.Method)
-                {
-                    var method = (IMethodSymbol)current;
-                    if (method.IsAccessor())
-                    {
-                        return method.AssociatedSymbol;
-                    }
+    private static ISymbol? GetEnclosingMethodOrPropertyOrField(
+        SemanticModel semanticModel,
+        ReferenceLocation reference)
+    {
+        var enclosingSymbol = semanticModel.GetEnclosingSymbol(reference.Location.SourceSpan.Start);
 
-                    if (method.MethodKind != MethodKind.AnonymousFunction)
-                    {
-                        return method;
-                    }
-                }
+        for (var current = enclosingSymbol; current != null; current = current.ContainingSymbol)
+        {
+            if (current.Kind == SymbolKind.Field)
+            {
+                return current;
             }
 
-            return null;
+            if (current.Kind == SymbolKind.Property)
+            {
+                return current;
+            }
+
+            if (current.Kind == SymbolKind.Method)
+            {
+                var method = (IMethodSymbol)current;
+                if (method.IsAccessor())
+                {
+                    return method.AssociatedSymbol;
+                }
+
+                if (method.MethodKind != MethodKind.AnonymousFunction)
+                {
+                    return method;
+                }
+            }
         }
+
+        return null;
     }
 }

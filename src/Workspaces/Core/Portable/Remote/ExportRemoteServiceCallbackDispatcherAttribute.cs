@@ -8,20 +8,19 @@ using System.Composition;
 using System.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal sealed class ExportRemoteServiceCallbackDispatcherAttribute : ExportAttribute
 {
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportRemoteServiceCallbackDispatcherAttribute : ExportAttribute
+    public Type ServiceInterface { get; }
+
+    public ExportRemoteServiceCallbackDispatcherAttribute(Type serviceInterface)
+        : base(typeof(IRemoteServiceCallbackDispatcher))
     {
-        public Type ServiceInterface { get; }
+        Contract.ThrowIfFalse(serviceInterface.IsInterface);
 
-        public ExportRemoteServiceCallbackDispatcherAttribute(Type serviceInterface)
-            : base(typeof(IRemoteServiceCallbackDispatcher))
-        {
-            Contract.ThrowIfFalse(serviceInterface.IsInterface);
-
-            ServiceInterface = serviceInterface;
-        }
+        ServiceInterface = serviceInterface;
     }
 }

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), expectedResults)
         End Function
 
-        Protected Shared Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
+        Protected Shared Async Function TestSharedAsync(workspace As EditorTestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim service = workspace.Services _
                 .GetLanguageServices(LanguageNames.VisualBasic) _
                 .GetService(Of QuickInfoService)
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             End If
         End Function
 
-        Private Shared Async Function TestSharedAsync(workspace As TestWorkspace, service As QuickInfoService, position As Integer, expectedResults() As Action(Of QuickInfoItem)) As Task
+        Private Shared Async Function TestSharedAsync(workspace As EditorTestWorkspace, service As QuickInfoService, position As Integer, expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim info = Await service.GetQuickInfoAsync(
                 workspace.CurrentSolution.Projects.First().Documents.First(),
                 position, SymbolDescriptionOptions.Default, CancellationToken.None)
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Function
 
         Private Shared Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of QuickInfoItem)()) As Task
-            Using workspace = TestWorkspace.Create(markup)
+            Using workspace = EditorTestWorkspace.Create(markup)
                 Await TestSharedAsync(workspace, workspace.Documents.First().CursorPosition.Value, expectedResults)
             End Using
         End Function
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Dim position As Integer = Nothing
             MarkupTestFile.GetPosition(markup, code, position)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(code, Nothing, metadataReferences:=metadataReferences)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(code, Nothing, metadataReferences:=metadataReferences)
                 Await TestSharedAsync(workspace, position, expectedResults)
             End Using
         End Function

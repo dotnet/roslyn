@@ -3032,7 +3032,7 @@ Keyword("async"));
         [WpfFact]
         public async Task TestTotalClassifier()
         {
-            using var workspace = TestWorkspace.CreateCSharp(""""
+            using var workspace = EditorTestWorkspace.CreateCSharp(""""
                 using System.Text.RegularExpressions;
 
                 class C

@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -23,11 +22,13 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// Workspace kind this event listener is initialized for
         /// </summary>
-        private readonly HashSet<string> _eventListenerInitialized = new();
+        private readonly HashSet<string> _eventListenerInitialized = [];
         private readonly ImmutableArray<Lazy<IEventListener, EventListenerMetadata>> _eventListeners = eventListeners.Where(el => el.Metadata.Service == kind).ToImmutableArray();
 
         public void EnsureEventListener(Workspace workspace, TService serviceOpt)
         {
+            Contract.ThrowIfNull(workspace.Kind);
+
             lock (_eventListenerInitialized)
             {
                 if (!_eventListenerInitialized.Add(workspace.Kind))
@@ -37,18 +38,19 @@ namespace Microsoft.CodeAnalysis.Host
                 }
             }
 
-            foreach (var listener in GetListeners(workspace, _eventListeners))
+            foreach (var listener in GetListeners(workspace.Kind, _eventListeners))
             {
                 listener.StartListening(workspace, serviceOpt);
             }
         }
 
         public static IEnumerable<IEventListener<TService>> GetListeners(
-            Workspace workspace, IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
+            string? workspaceKind, IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
-            return eventListeners.Where(l => l.Metadata.WorkspaceKinds.Contains(workspace.Kind))
-                                 .Select(l => l.Value)
-                                 .OfType<IEventListener<TService>>();
+            return (workspaceKind == null) ? [] : eventListeners
+                .Where(l => l.Metadata.WorkspaceKinds.Contains(workspaceKind))
+                .Select(l => l.Value)
+                .OfType<IEventListener<TService>>();
         }
 
         internal TestAccessor GetTestAccessor()

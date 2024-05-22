@@ -12,16 +12,6 @@
         <target state="translated">Добавление недостающих директив import…</target>
         <note>Thread awaited dialog text. "imports" is a language specific term and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Case_Correction">
-        <source>Case Correction</source>
-        <target state="translated">Исправление регистра</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Correcting_word_casing">
-        <source>Correcting word casing...</source>
-        <target state="translated">Идет исправление регистра слов...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_call_is_required_by_the_designer">
         <source>This call is required by the designer.</source>
         <target state="translated">Этот вызов является обязательным для конструктора.</target>
@@ -37,11 +27,6 @@
         <target state="translated">Закончить конструкцию</target>
         <note />
       </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">Интеллектуальные отступы</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
         <target state="translated">Идет форматирование документа...</target>
@@ -50,11 +35,6 @@
       <trans-unit id="Insert_new_line">
         <source>Insert new line</source>
         <target state="translated">Вставить новую строку</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_Paste">
-        <source>Format Paste</source>
-        <target state="translated">Форматировать при вставке</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_pasted_text">

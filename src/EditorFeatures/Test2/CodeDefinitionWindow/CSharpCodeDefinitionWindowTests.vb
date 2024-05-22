@@ -95,8 +95,31 @@ class C
 
         End Function
 
-        Protected Overrides Function CreateWorkspace(code As String, testComposition As TestComposition) As TestWorkspace
-            Return TestWorkspace.CreateCSharp(code, composition:=testComposition)
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71680")>
+        <InlineData("ValueTuple<int> valueTuple1;", "System.ValueTuple<int>")>
+        <InlineData("ValueTuple<int, int> valueTuple2;", "(int, int)")>
+        <InlineData("ValueTuple<int, int, int> valueTuple3;", "(int, int, int)")>
+        <InlineData("ValueTuple<int, int, int, int> valueTuple4;", "(int, int, int, int)")>
+        <InlineData("ValueTuple<int, int, int, int, int> valueTuple5;", "(int, int, int, int, int)")>
+        <InlineData("ValueTuple<int, int, int, int, int, int> valueTuple6;", "(int, int, int, int, int, int)")>
+        <InlineData("ValueTuple<int, int, int, int, int, int, int> valueTuple7;", "(int, int, int, int, int, int, int)")>
+        <InlineData("ValueTuple<int, int, int, int, int, int, int, int> valueTuple8;", "System.ValueTuple<int, int, int, int, int, int, int, int>")>
+        Public Async Function ToValueTupleMetadataAsSource(expression As String, expectedDisplayName As String) As Task
+            Dim code As String = $"using System;
+class C
+{{
+    void M()
+    {{
+        $${expression} valueTuple;
+    }}
+}}"
+
+            Await VerifyContextLocationInMetadataAsSource(code, expectedDisplayName, "ValueTuple.cs")
+
+        End Function
+
+        Protected Overrides Function CreateWorkspace(code As String, testComposition As TestComposition) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateCSharp(code, composition:=testComposition)
         End Function
     End Class
 End Namespace

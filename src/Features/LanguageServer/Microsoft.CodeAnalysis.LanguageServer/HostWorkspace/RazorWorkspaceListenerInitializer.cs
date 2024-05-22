@@ -22,7 +22,7 @@ internal sealed class RazorWorkspaceListenerInitializer
 
     // Locks all access to _razorWorkspaceListener and _projectIdWithDynamicFiles
     private readonly object _initializeGate = new();
-    private HashSet<ProjectId> _projectIdWithDynamicFiles = new();
+    private HashSet<ProjectId> _projectIdWithDynamicFiles = [];
 
     private RazorWorkspaceListener? _razorWorkspaceListener;
 
@@ -53,7 +53,7 @@ internal sealed class RazorWorkspaceListenerInitializer
 
             projectsToInitialize = _projectIdWithDynamicFiles;
             // May as well clear out the collection, it will never get used again anyway.
-            _projectIdWithDynamicFiles = new();
+            _projectIdWithDynamicFiles = [];
         }
 
         foreach (var projectId in projectsToInitialize)

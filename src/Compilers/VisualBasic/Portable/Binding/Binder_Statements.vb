@@ -4731,6 +4731,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagnostics,
                                      lockExpression.Syntax,
                                      ErrorFactory.ErrorInfo(ERRID.ERR_SyncLockRequiresReferenceType1, lockExpressionType))
+                ElseIf lockExpressionType.IsWellKnownTypeLock() Then
+                    ReportDiagnostic(diagnostics, lockExpression.Syntax, ERRID.ERR_LockTypeUnsupported)
                 End If
             End If
 

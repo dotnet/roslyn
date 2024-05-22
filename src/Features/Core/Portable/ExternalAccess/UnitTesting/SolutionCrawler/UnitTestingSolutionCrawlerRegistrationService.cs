@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         private readonly UnitTestingSolutionCrawlerProgressReporter _progressReporter = new();
 
         private readonly IAsynchronousOperationListener _listener;
-        private readonly Dictionary<(string workspaceKind, SolutionServices services), UnitTestingWorkCoordinator> _documentWorkCoordinatorMap = new();
+        private readonly Dictionary<(string workspaceKind, SolutionServices services), UnitTestingWorkCoordinator> _documentWorkCoordinatorMap = [];
 
         private ImmutableDictionary<string, ImmutableArray<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>>> _analyzerProviders;
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 var lazyProvider = new Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>(() => provider, metadata);
 
                 // update existing map for future solution crawler registration - no need for interlock but this makes add or update easier
-                ImmutableInterlocked.AddOrUpdate(ref _analyzerProviders, metadata.Name, n => ImmutableArray.Create(lazyProvider), (n, v) => v.Add(lazyProvider));
+                ImmutableInterlocked.AddOrUpdate(ref _analyzerProviders, metadata.Name, n => [lazyProvider], (n, v) => v.Add(lazyProvider));
 
                 // assert map integrity
                 AssertAnalyzerProviders(_analyzerProviders);
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             {
                 foreach (var provider in lazyProviders)
                 {
-                    if (provider.Metadata.WorkspaceKinds?.Any(wk => wk == kind) == true)
+                    if (provider.Metadata.WorkspaceKinds.Any(wk => wk == kind))
                     {
                         lazyProvider = provider;
                         return true;
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         continue;
                     }
 
-                    foreach (var kind in lazyProvider.Metadata.WorkspaceKinds!)
+                    foreach (var kind in lazyProvider.Metadata.WorkspaceKinds)
                     {
                         Debug.Assert(set.Add(kind));
                     }
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         }
 
         private static bool IsDefaultProvider(UnitTestingIncrementalAnalyzerProviderMetadata providerMetadata)
-            => providerMetadata.WorkspaceKinds == null || providerMetadata.WorkspaceKinds.Count == 0;
+            => providerMetadata.WorkspaceKinds is [];
 
         internal TestAccessor GetTestAccessor()
         {

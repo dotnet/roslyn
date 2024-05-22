@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 propertyStringBuilder.Append($", Checked");
             }
-            propertyStringBuilder.Append(")");
+            propertyStringBuilder.Append(')');
             LogString(propertyStringBuilder.ToString());
             LogCommonPropertiesAndNewLine(operation);
 

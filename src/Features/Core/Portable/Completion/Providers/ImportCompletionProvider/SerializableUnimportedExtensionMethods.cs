@@ -6,29 +6,28 @@ using System;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers
+namespace Microsoft.CodeAnalysis.Completion.Providers;
+
+[DataContract]
+internal sealed class SerializableUnimportedExtensionMethods(
+    ImmutableArray<SerializableImportCompletionItem> completionItems,
+    bool isPartialResult,
+    TimeSpan getSymbolsTime,
+    TimeSpan createItemsTime,
+    TimeSpan? remoteAssetSyncTime)
 {
-    [DataContract]
-    internal sealed class SerializableUnimportedExtensionMethods(
-        ImmutableArray<SerializableImportCompletionItem> completionItems,
-        bool isPartialResult,
-        TimeSpan getSymbolsTime,
-        TimeSpan createItemsTime,
-        TimeSpan? remoteAssetSyncTime)
-    {
-        [DataMember(Order = 0)]
-        public readonly ImmutableArray<SerializableImportCompletionItem> CompletionItems = completionItems;
+    [DataMember(Order = 0)]
+    public readonly ImmutableArray<SerializableImportCompletionItem> CompletionItems = completionItems;
 
-        [DataMember(Order = 1)]
-        public readonly bool IsPartialResult = isPartialResult;
+    [DataMember(Order = 1)]
+    public readonly bool IsPartialResult = isPartialResult;
 
-        [DataMember(Order = 2)]
-        public TimeSpan GetSymbolsTime { get; set; } = getSymbolsTime;
+    [DataMember(Order = 2)]
+    public TimeSpan GetSymbolsTime { get; set; } = getSymbolsTime;
 
-        [DataMember(Order = 3)]
-        public readonly TimeSpan CreateItemsTime = createItemsTime;
+    [DataMember(Order = 3)]
+    public readonly TimeSpan CreateItemsTime = createItemsTime;
 
-        [DataMember(Order = 4)]
-        public readonly TimeSpan? RemoteAssetSyncTime = remoteAssetSyncTime;
-    }
+    [DataMember(Order = 4)]
+    public readonly TimeSpan? RemoteAssetSyncTime = remoteAssetSyncTime;
 }

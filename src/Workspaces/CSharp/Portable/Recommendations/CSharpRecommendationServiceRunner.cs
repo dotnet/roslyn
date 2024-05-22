@@ -104,7 +104,7 @@ internal partial class CSharpRecommendationService
             else if (_context.IsDestructorTypeContext)
             {
                 var symbol = _context.SemanticModel.GetDeclaredSymbol(_context.ContainingTypeOrEnumDeclaration!, _cancellationToken);
-                return symbol == null ? ImmutableArray<ISymbol>.Empty : ImmutableArray.Create<ISymbol>(symbol);
+                return symbol == null ? [] : [symbol];
             }
             else if (_context.IsNamespaceDeclarationNameContext)
             {
@@ -115,7 +115,7 @@ internal partial class CSharpRecommendationService
                 return GetSymbolsForEnumBaseList(container: null);
             }
 
-            return ImmutableArray<ISymbol>.Empty;
+            return [];
         }
 
         private RecommendedSymbols GetSymbolsOffOfContainer()
@@ -276,7 +276,7 @@ internal partial class CSharpRecommendationService
 
             var symbols = enclosingSymbol != null
                 ? enclosingSymbol.GetTypeArguments()
-                : ImmutableArray<ITypeSymbol>.Empty;
+                : [];
 
             return ImmutableArray<ISymbol>.CastUp(symbols);
         }
@@ -375,7 +375,7 @@ internal partial class CSharpRecommendationService
 
                 if (symbol.IsExtensionMethod() &&
                     !Equals(enclosingNamedType, symbol.ContainingType) &&
-                    !outerTypes.Any(outerType => outerType.Equals(symbol.ContainingType)))
+                    !outerTypes.Contains(symbol.ContainingType))
                 {
                     return true;
                 }
@@ -531,13 +531,17 @@ internal partial class CSharpRecommendationService
             if (boundSymbol is not INamespaceOrTypeSymbol namespaceOrType)
                 return default;
 
+            var containingType = _context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
+            if (containingType == null)
+                return default;
+
             // The RHS of an `is` pattern may only include qualifications to
             // - namespaces (from other namespaces or aliases),
             // - types (from aliases, namespaces or other types),
             // - constant fields (from types)
-            // Methods, proprties, events, non-constant fields etc. are excluded since they may not be present in the RHS of an `is` pattern
+            // Methods, properties, events, non-constant fields etc. are excluded since they may not be present in the RHS of an `is` pattern
             var symbols = namespaceOrType.GetMembers()
-                .WhereAsArray(s => s is INamespaceOrTypeSymbol or IFieldSymbol { IsConst: true });
+                .WhereAsArray(s => s is INamespaceOrTypeSymbol or IFieldSymbol { IsConst: true } && s.IsAccessibleWithin(containingType));
             return new RecommendedSymbols(symbols);
         }
 
@@ -806,7 +810,7 @@ internal partial class CSharpRecommendationService
             var semanticModel = _context.SemanticModel;
             var container = GetContainerForUnnamedSymbols(semanticModel, originalExpression);
             if (container == null)
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             // In a case like `x?.Y` if we bind the type of `.Y` we will get a value type back (like `int`), and not
             // `int?`.  However, we want to think of the constructed type as that's the type of the overall expression

@@ -4,58 +4,57 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets
+namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets;
+
+// These classes model enough of the version 3 project.assets.json file that we can
+// parse out the dependency tree and compilation assemblies that each reference brings
+// in to the project.
+
+internal class ProjectAssetsFile
 {
-    // These classes model enough of the version 3 project.assets.json file that we can
-    // parse out the dependency tree and compilation assemblies that each reference brings
-    // in to the project.
+    public int Version { get; set; }
+    public Dictionary<string, Dictionary<string, ProjectAssetsTargetLibrary>>? Targets { get; set; }
+    public Dictionary<string, ProjectAssetsLibrary>? Libraries { get; set; }
+    public Dictionary<string, List<string>>? ProjectFileDependencyGroups { get; set; }
+    public ProjectAssetsProject? Project { get; set; }
+}
 
-    internal class ProjectAssetsFile
-    {
-        public int Version { get; set; }
-        public Dictionary<string, Dictionary<string, ProjectAssetsTargetLibrary>>? Targets { get; set; }
-        public Dictionary<string, ProjectAssetsLibrary>? Libraries { get; set; }
-        public Dictionary<string, List<string>>? ProjectFileDependencyGroups { get; set; }
-        public ProjectAssetsProject? Project { get; set; }
-    }
+internal class ProjectAssetsTargetLibrary
+{
+    public string? Type { get; set; }
+    public Dictionary<string, string>? Dependencies { get; set; }
+    public Dictionary<string, ProjectAssetsTargetLibraryCompile>? Compile { get; set; }
+}
 
-    internal class ProjectAssetsTargetLibrary
-    {
-        public string? Type { get; set; }
-        public Dictionary<string, string>? Dependencies { get; set; }
-        public Dictionary<string, ProjectAssetsTargetLibraryCompile>? Compile { get; set; }
-    }
+internal class ProjectAssetsTargetLibraryCompile
+{
 
-    internal class ProjectAssetsTargetLibraryCompile
-    {
+}
 
-    }
+internal class ProjectAssetsLibrary
+{
+    public string? Path { get; set; }
+}
 
-    internal class ProjectAssetsLibrary
-    {
-        public string? Path { get; set; }
-    }
+internal class ProjectAssetsProject
+{
+    public ProjectAssetsProjectRestore? Restore { get; set; }
+    public Dictionary<string, ProjectAssetsProjectFramework>? Frameworks { get; set; }
+}
 
-    internal class ProjectAssetsProject
-    {
-        public ProjectAssetsProjectRestore? Restore { get; set; }
-        public Dictionary<string, ProjectAssetsProjectFramework>? Frameworks { get; set; }
-    }
+internal class ProjectAssetsProjectRestore
+{
+    public string? ProjectPath { get; set; }
+    public string? PackagesPath { get; set; }
+}
 
-    internal class ProjectAssetsProjectRestore
-    {
-        public string? ProjectPath { get; set; }
-        public string? PackagesPath { get; set; }
-    }
+internal class ProjectAssetsProjectFramework
+{
+    public string? TargetAlias { get; set; }
+    public Dictionary<string, ProjectAssetsProjectFrameworkDependency>? Dependencies { get; set; }
+}
 
-    internal class ProjectAssetsProjectFramework
-    {
-        public string? TargetAlias { get; set; }
-        public Dictionary<string, ProjectAssetsProjectFrameworkDependency>? Dependencies { get; set; }
-    }
-
-    internal class ProjectAssetsProjectFrameworkDependency
-    {
-        public bool AutoReferenced { get; set; }
-    }
+internal class ProjectAssetsProjectFrameworkDependency
+{
+    public bool AutoReferenced { get; set; }
 }

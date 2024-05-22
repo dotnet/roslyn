@@ -11,26 +11,14 @@ using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed partial class RemoteRenamerService : BrokeredServiceBase, IRemoteRenamerService
+    internal sealed partial class RemoteRenamerService(in BrokeredServiceBase.ServiceConstructionArguments arguments, RemoteCallback<IRemoteRenamerService.ICallback> callback)
+        : BrokeredServiceBase(arguments), IRemoteRenamerService
     {
         internal sealed class Factory : FactoryBase<IRemoteRenamerService, IRemoteRenamerService.ICallback>
         {
             protected override IRemoteRenamerService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteRenamerService.ICallback> callback)
                 => new RemoteRenamerService(arguments, callback);
         }
-
-        private readonly RemoteCallback<IRemoteRenamerService.ICallback> _callback;
-
-        public RemoteRenamerService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteRenamerService.ICallback> callback)
-            : base(arguments)
-        {
-            _callback = callback;
-        }
-
-        // TODO: Use generic IRemoteOptionsCallback<TOptions> once https://github.com/microsoft/vs-streamjsonrpc/issues/789 is fixed
-        private CodeCleanupOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
-            => new ClientCodeCleanupOptionsProvider(
-                (callbackId, language, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
 
         public ValueTask<SerializableConflictResolution?> RenameSymbolAsync(
             Checksum solutionChecksum,
@@ -49,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol == null)
                     return null;
 
-                var fallbackOptions = GetClientOptionsProvider(callbackId);
+                var fallbackOptions = GetClientOptionsProvider<CodeCleanupOptions, IRemoteRenamerService.ICallback>(callback, callbackId).ToCodeCleanupOptionsProvider();
 
                 var result = await Renamer.RenameSymbolAsync(
                     solution, symbol, newName, options, fallbackOptions, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
@@ -103,8 +91,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (locations is null)
                     return null;
 
+                var fallbackOptions = GetClientOptionsProvider<CodeCleanupOptions, IRemoteRenamerService.ICallback>(callback, callbackId).ToCodeCleanupOptionsProvider();
+
                 var result = await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(
-                    locations, replacementText, nonConflictSymbolKeys, GetClientOptionsProvider(callbackId), cancellationToken).ConfigureAwait(false);
+                    locations, replacementText, nonConflictSymbolKeys, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }

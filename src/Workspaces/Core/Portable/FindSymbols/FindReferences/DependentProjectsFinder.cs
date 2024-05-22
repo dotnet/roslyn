@@ -17,344 +17,343 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols;
+
+/// <summary>
+/// Provides helper methods for finding dependent projects across a solution that a given symbol can be referenced within.
+/// </summary>
+internal static partial class DependentProjectsFinder
 {
     /// <summary>
-    /// Provides helper methods for finding dependent projects across a solution that a given symbol can be referenced within.
+    /// Cache from the <see cref="MetadataId"/> for a particular <see cref="PortableExecutableReference"/> to the
+    /// name of the <see cref="IAssemblySymbol"/> defined by it.
     /// </summary>
-    internal static partial class DependentProjectsFinder
+    private static ImmutableDictionary<MetadataId, string> s_metadataIdToAssemblyName = ImmutableDictionary<MetadataId, string>.Empty;
+
+    public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
+        Solution solution, ImmutableArray<ISymbol> symbols, IImmutableSet<Project> projects, CancellationToken cancellationToken)
     {
-        /// <summary>
-        /// Cache from the <see cref="MetadataId"/> for a particular <see cref="PortableExecutableReference"/> to the
-        /// name of the <see cref="IAssemblySymbol"/> defined by it.
-        /// </summary>
-        private static ImmutableDictionary<MetadataId, string> s_metadataIdToAssemblyName = ImmutableDictionary<MetadataId, string>.Empty;
+        // namespaces are visible in all projects.
+        if (symbols.Any(static s => s.Kind == SymbolKind.Namespace))
+            return projects.ToImmutableArray();
 
-        public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
-            Solution solution, ImmutableArray<ISymbol> symbols, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+        var dependentProjects = await GetDependentProjectsWorkerAsync(solution, symbols, cancellationToken).ConfigureAwait(false);
+        return dependentProjects.WhereAsArray(projects.Contains);
+    }
+
+    /// <summary>
+    /// This method computes the dependent projects that need to be searched for references of the given <paramref
+    /// name="symbols"/>.
+    /// <para/>
+    /// This computation depends on the given symbol's visibility:
+    /// <list type="number">
+    /// <item>Public: Dependent projects include the symbol definition project and all the referencing
+    /// projects.</item>
+    /// <item>Internal: Dependent projects include the symbol definition project and all the referencing projects
+    /// that have internals access to the definition project..</item>
+    /// <item>Private: Dependent projects include the symbol definition project and all the referencing submission
+    /// projects (which are special and can reference private fields of the previous submission).</item>
+    /// </list>
+    /// We perform this computation in two stages:
+    /// <list type="number">
+    /// <item>Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.</item>
+    /// <item>Filter the above computed dependent projects based on symbol visibility.</item>
+    /// Dependent projects computed in stage (1) are cached to avoid recomputation.
+    /// </list>
+    /// </summary>
+    private static async Task<ImmutableArray<Project>> GetDependentProjectsWorkerAsync(
+        Solution solution, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var symbolOriginations = GetSymbolOriginations(solution, symbols, cancellationToken);
+
+        using var _ = PooledHashSet<Project>.GetInstance(out var result);
+
+        foreach (var (assembly, (sourceProject, maxVisibility)) in symbolOriginations)
         {
-            // namespaces are visible in all projects.
-            if (symbols.Any(static s => s.Kind == SymbolKind.Namespace))
-                return projects.ToImmutableArray();
+            // 1) Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.
+            var dependentProjects = await ComputeDependentProjectsAsync(
+                solution, (assembly, sourceProject), maxVisibility, cancellationToken).ConfigureAwait(false);
 
-            var dependentProjects = await GetDependentProjectsWorkerAsync(solution, symbols, cancellationToken).ConfigureAwait(false);
-            return dependentProjects.WhereAsArray(projects.Contains);
+            // 2) Filter the above computed dependent projects based on symbol visibility.
+            var filteredProjects = maxVisibility == SymbolVisibility.Internal
+                ? dependentProjects.WhereAsArray(dp => dp.hasInternalsAccess)
+                : dependentProjects;
+
+            result.AddRange(filteredProjects.Select(p => p.project));
         }
 
-        /// <summary>
-        /// This method computes the dependent projects that need to be searched for references of the given <paramref
-        /// name="symbols"/>.
-        /// <para/>
-        /// This computation depends on the given symbol's visibility:
-        /// <list type="number">
-        /// <item>Public: Dependent projects include the symbol definition project and all the referencing
-        /// projects.</item>
-        /// <item>Internal: Dependent projects include the symbol definition project and all the referencing projects
-        /// that have internals access to the definition project..</item>
-        /// <item>Private: Dependent projects include the symbol definition project and all the referencing submission
-        /// projects (which are special and can reference private fields of the previous submission).</item>
-        /// </list>
-        /// We perform this computation in two stages:
-        /// <list type="number">
-        /// <item>Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.</item>
-        /// <item>Filter the above computed dependent projects based on symbol visibility.</item>
-        /// Dependent projects computed in stage (1) are cached to avoid recomputation.
-        /// </list>
-        /// </summary>
-        private static async Task<ImmutableArray<Project>> GetDependentProjectsWorkerAsync(
-            Solution solution, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
+        return result.ToImmutableArray();
+    }
+
+    /// <summary>
+    /// Returns information about where <paramref name="symbols"/> originate from.  It's <see
+    /// cref="IAssemblySymbol"/> for both source and metadata symbols, and an optional <see cref="Project"/> if this
+    /// was a symbol from source. 
+    /// </summary>
+    private static Dictionary<IAssemblySymbol, (Project? sourceProject, SymbolVisibility maxVisibility)> GetSymbolOriginations(
+        Solution solution, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
+    {
+        var result = new Dictionary<IAssemblySymbol, (Project? sourceProject, SymbolVisibility visibility)>();
+
+        foreach (var symbol in symbols)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            var assembly = symbol.OriginalDefinition.ContainingAssembly;
+            if (assembly == null)
+                continue;
 
-            var symbolOriginations = GetSymbolOriginations(solution, symbols, cancellationToken);
-
-            using var _ = PooledHashSet<Project>.GetInstance(out var result);
-
-            foreach (var (assembly, (sourceProject, maxVisibility)) in symbolOriginations)
+            if (!result.TryGetValue(assembly, out var projectAndVisibility))
             {
-                // 1) Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.
-                var dependentProjects = await ComputeDependentProjectsAsync(
-                    solution, (assembly, sourceProject), maxVisibility, cancellationToken).ConfigureAwait(false);
-
-                // 2) Filter the above computed dependent projects based on symbol visibility.
-                var filteredProjects = maxVisibility == SymbolVisibility.Internal
-                    ? dependentProjects.WhereAsArray(dp => dp.hasInternalsAccess)
-                    : dependentProjects;
-
-                result.AddRange(filteredProjects.Select(p => p.project));
+                // First, if this was a source-symbol try to get the original project for this assembly
+                // (GetOriginatingProject).  If this is a metadata symbol, also see if we can find the original
+                // source-project for it (GetProject) which happens in cross language P2P references.
+                var project = assembly.Locations.Any(static loc => loc.IsInMetadata)
+                    ? solution.GetProject(assembly, cancellationToken)
+                    : solution.GetOriginatingProject(assembly);
+                projectAndVisibility = (project, symbol.GetResultantVisibility());
             }
 
-            return result.ToImmutableArray();
+            // Visibility enum has higher visibility as a lower number, so choose the minimum of both.
+            projectAndVisibility.visibility = (SymbolVisibility)Math.Min((int)projectAndVisibility.visibility, (int)symbol.GetResultantVisibility());
+            result[assembly] = projectAndVisibility;
         }
 
-        /// <summary>
-        /// Returns information about where <paramref name="symbols"/> originate from.  It's <see
-        /// cref="IAssemblySymbol"/> for both source and metadata symbols, and an optional <see cref="Project"/> if this
-        /// was a symbol from source. 
-        /// </summary>
-        private static Dictionary<IAssemblySymbol, (Project? sourceProject, SymbolVisibility maxVisibility)> GetSymbolOriginations(
-            Solution solution, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
-        {
-            var result = new Dictionary<IAssemblySymbol, (Project? sourceProject, SymbolVisibility visibility)>();
+        return result;
+    }
 
-            foreach (var symbol in symbols)
+    private static async Task<ImmutableArray<(Project project, bool hasInternalsAccess)>> ComputeDependentProjectsAsync(
+        Solution solution,
+        (IAssemblySymbol assembly, Project? sourceProject) symbolOrigination,
+        SymbolVisibility visibility,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var dependentProjects = new HashSet<(Project, bool hasInternalsAccess)>();
+
+        // If a symbol was defined in source, then it is always visible to the project it
+        // was defined in.
+        if (symbolOrigination.sourceProject != null)
+            dependentProjects.Add((symbolOrigination.sourceProject, hasInternalsAccess: true));
+
+        // If it's not private, then we need to find possible references.
+        if (visibility != SymbolVisibility.Private)
+            AddNonSubmissionDependentProjects(solution, symbolOrigination, dependentProjects, cancellationToken);
+
+        // submission projects are special here. The fields generated inside the Script object is private, but
+        // further submissions can bind to them.
+        await AddSubmissionDependentProjectsAsync(solution, symbolOrigination.sourceProject, dependentProjects, cancellationToken).ConfigureAwait(false);
+
+        return dependentProjects.ToImmutableArray();
+    }
+
+    private static async Task AddSubmissionDependentProjectsAsync(
+        Solution solution, Project? sourceProject, HashSet<(Project project, bool hasInternalsAccess)> dependentProjects, CancellationToken cancellationToken)
+    {
+        if (sourceProject?.IsSubmission != true)
+            return;
+
+        var projectIdsToReferencingSubmissionIds = new Dictionary<ProjectId, List<ProjectId>>();
+
+        // search only submission project
+        foreach (var projectId in solution.ProjectIds)
+        {
+            var project = solution.GetRequiredProject(projectId);
+            if (project.IsSubmission && project.SupportsCompilation)
             {
-                var assembly = symbol.OriginalDefinition.ContainingAssembly;
-                if (assembly == null)
-                    continue;
+                cancellationToken.ThrowIfCancellationRequested();
 
-                if (!result.TryGetValue(assembly, out var projectAndVisibility))
+                // If we are referencing another project, store the link in the other direction
+                // so we walk across it later
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+
+                if (previous != null)
                 {
-                    // First, if this was a source-symbol try to get the original project for this assembly
-                    // (GetOriginatingProject).  If this is a metadata symbol, also see if we can find the original
-                    // source-project for it (GetProject) which happens in cross language P2P references.
-                    var project = assembly.Locations.Any(static loc => loc.IsInMetadata)
-                        ? solution.GetProject(assembly, cancellationToken)
-                        : solution.GetOriginatingProject(assembly);
-                    projectAndVisibility = (project, symbol.GetResultantVisibility());
-                }
-
-                // Visibility enum has higher visibility as a lower number, so choose the minimum of both.
-                projectAndVisibility.visibility = (SymbolVisibility)Math.Min((int)projectAndVisibility.visibility, (int)symbol.GetResultantVisibility());
-                result[assembly] = projectAndVisibility;
-            }
-
-            return result;
-        }
-
-        private static async Task<ImmutableArray<(Project project, bool hasInternalsAccess)>> ComputeDependentProjectsAsync(
-            Solution solution,
-            (IAssemblySymbol assembly, Project? sourceProject) symbolOrigination,
-            SymbolVisibility visibility,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var dependentProjects = new HashSet<(Project, bool hasInternalsAccess)>();
-
-            // If a symbol was defined in source, then it is always visible to the project it
-            // was defined in.
-            if (symbolOrigination.sourceProject != null)
-                dependentProjects.Add((symbolOrigination.sourceProject, hasInternalsAccess: true));
-
-            // If it's not private, then we need to find possible references.
-            if (visibility != SymbolVisibility.Private)
-                AddNonSubmissionDependentProjects(solution, symbolOrigination, dependentProjects, cancellationToken);
-
-            // submission projects are special here. The fields generated inside the Script object is private, but
-            // further submissions can bind to them.
-            await AddSubmissionDependentProjectsAsync(solution, symbolOrigination.sourceProject, dependentProjects, cancellationToken).ConfigureAwait(false);
-
-            return dependentProjects.ToImmutableArray();
-        }
-
-        private static async Task AddSubmissionDependentProjectsAsync(
-            Solution solution, Project? sourceProject, HashSet<(Project project, bool hasInternalsAccess)> dependentProjects, CancellationToken cancellationToken)
-        {
-            if (sourceProject?.IsSubmission != true)
-                return;
-
-            var projectIdsToReferencingSubmissionIds = new Dictionary<ProjectId, List<ProjectId>>();
-
-            // search only submission project
-            foreach (var projectId in solution.ProjectIds)
-            {
-                var project = solution.GetRequiredProject(projectId);
-                if (project.IsSubmission && project.SupportsCompilation)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    // If we are referencing another project, store the link in the other direction
-                    // so we walk across it later
-                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
-
-                    if (previous != null)
+                    var referencedProject = solution.GetProject(previous.Assembly, cancellationToken);
+                    if (referencedProject != null)
                     {
-                        var referencedProject = solution.GetProject(previous.Assembly, cancellationToken);
-                        if (referencedProject != null)
+                        if (!projectIdsToReferencingSubmissionIds.TryGetValue(referencedProject.Id, out var referencingSubmissions))
                         {
-                            if (!projectIdsToReferencingSubmissionIds.TryGetValue(referencedProject.Id, out var referencingSubmissions))
-                            {
-                                referencingSubmissions = new List<ProjectId>();
-                                projectIdsToReferencingSubmissionIds.Add(referencedProject.Id, referencingSubmissions);
-                            }
-
-                            referencingSubmissions.Add(project.Id);
+                            referencingSubmissions = [];
+                            projectIdsToReferencingSubmissionIds.Add(referencedProject.Id, referencingSubmissions);
                         }
-                    }
-                }
-            }
 
-            // Submission compilations are special. If we have submissions 0, 1 and 2 chained in
-            // the natural way, and we have a symbol in submission 0, we need to search both 1
-            // and 2, even though 2 doesn't have a direct reference to 1. Hence we need to take
-            // our current set of projects and find the transitive closure over backwards
-            // submission previous references.
-            var projectIdsToProcess = new Stack<ProjectId>(dependentProjects.Select(dp => dp.project.Id));
-
-            while (projectIdsToProcess.Count > 0)
-            {
-                var toProcess = projectIdsToProcess.Pop();
-
-                if (projectIdsToReferencingSubmissionIds.TryGetValue(toProcess, out var submissionIds))
-                {
-                    foreach (var pId in submissionIds)
-                    {
-                        if (!dependentProjects.Any(dp => dp.project.Id == pId))
-                        {
-                            dependentProjects.Add((solution.GetRequiredProject(pId), hasInternalsAccess: true));
-                            projectIdsToProcess.Push(pId);
-                        }
+                        referencingSubmissions.Add(project.Id);
                     }
                 }
             }
         }
 
-        private static bool IsInternalsVisibleToAttribute(AttributeData attr)
-        {
-            var attrType = attr.AttributeClass;
-            return attrType?.Name == nameof(InternalsVisibleToAttribute) &&
-                   attrType.ContainingNamespace?.Name == nameof(System.Runtime.CompilerServices) &&
-                   attrType.ContainingNamespace.ContainingNamespace?.Name == nameof(System.Runtime) &&
-                   attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace?.Name == nameof(System) &&
-                   attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
-        }
+        // Submission compilations are special. If we have submissions 0, 1 and 2 chained in
+        // the natural way, and we have a symbol in submission 0, we need to search both 1
+        // and 2, even though 2 doesn't have a direct reference to 1. Hence we need to take
+        // our current set of projects and find the transitive closure over backwards
+        // submission previous references.
+        var projectIdsToProcess = new Stack<ProjectId>(dependentProjects.Select(dp => dp.project.Id));
 
-        private static void AddNonSubmissionDependentProjects(
-            Solution solution,
-            (IAssemblySymbol assembly, Project? sourceProject) symbolOrigination,
-            HashSet<(Project project, bool hasInternalsAccess)> dependentProjects,
-            CancellationToken cancellationToken)
+        while (projectIdsToProcess.Count > 0)
         {
-            if (symbolOrigination.sourceProject?.IsSubmission == true)
-                return;
+            var toProcess = projectIdsToProcess.Pop();
 
-            // Set of assembly names that `assembly` has IVT to.  Computed on demand once needed.
-            HashSet<string>? internalsVisibleToSet = null;
-            foreach (var project in solution.Projects)
+            if (projectIdsToReferencingSubmissionIds.TryGetValue(toProcess, out var submissionIds))
             {
-                if (!project.SupportsCompilation ||
-                    !HasReferenceTo(symbolOrigination, project, cancellationToken))
+                foreach (var pId in submissionIds)
                 {
-                    continue;
+                    if (!dependentProjects.Any(dp => dp.project.Id == pId))
+                    {
+                        dependentProjects.Add((solution.GetRequiredProject(pId), hasInternalsAccess: true));
+                        projectIdsToProcess.Push(pId);
+                    }
                 }
-
-                // Ok, we have some project that at least references this assembly.  Add it to the result, keeping track
-                // if it can see internals or not as well.
-                internalsVisibleToSet ??= GetInternalsVisibleToSet(symbolOrigination.assembly);
-                var hasInternalsAccess = internalsVisibleToSet.Contains(project.AssemblyName);
-                dependentProjects.Add((project, hasInternalsAccess));
             }
         }
+    }
 
-        private static HashSet<string> GetInternalsVisibleToSet(IAssemblySymbol assembly)
+    private static bool IsInternalsVisibleToAttribute(AttributeData attr)
+    {
+        var attrType = attr.AttributeClass;
+        return attrType?.Name == nameof(InternalsVisibleToAttribute) &&
+               attrType.ContainingNamespace?.Name == nameof(System.Runtime.CompilerServices) &&
+               attrType.ContainingNamespace.ContainingNamespace?.Name == nameof(System.Runtime) &&
+               attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace?.Name == nameof(System) &&
+               attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
+    }
+
+    private static void AddNonSubmissionDependentProjects(
+        Solution solution,
+        (IAssemblySymbol assembly, Project? sourceProject) symbolOrigination,
+        HashSet<(Project project, bool hasInternalsAccess)> dependentProjects,
+        CancellationToken cancellationToken)
+    {
+        if (symbolOrigination.sourceProject?.IsSubmission == true)
+            return;
+
+        // Set of assembly names that `assembly` has IVT to.  Computed on demand once needed.
+        HashSet<string>? internalsVisibleToSet = null;
+        foreach (var project in solution.Projects)
         {
-            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var attr in assembly.GetAttributes().Where(IsInternalsVisibleToAttribute))
+            if (!project.SupportsCompilation ||
+                !HasReferenceTo(symbolOrigination, project, cancellationToken))
             {
-                var typeNameConstant = attr.ConstructorArguments.FirstOrDefault();
-                if (typeNameConstant.Type == null ||
-                    typeNameConstant.Type.SpecialType != SpecialType.System_String ||
-                    typeNameConstant.Value is not string value)
-                {
-                    continue;
-                }
-
-                var commaIndex = value.IndexOf(',');
-                var assemblyName = commaIndex >= 0 ? value[..commaIndex].Trim() : value;
-
-                set.Add(assemblyName);
+                continue;
             }
 
-            return set;
+            // Ok, we have some project that at least references this assembly.  Add it to the result, keeping track
+            // if it can see internals or not as well.
+            internalsVisibleToSet ??= GetInternalsVisibleToSet(symbolOrigination.assembly);
+            var hasInternalsAccess = internalsVisibleToSet.Contains(project.AssemblyName);
+            dependentProjects.Add((project, hasInternalsAccess));
+        }
+    }
+
+    private static HashSet<string> GetInternalsVisibleToSet(IAssemblySymbol assembly)
+    {
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var attr in assembly.GetAttributes().Where(IsInternalsVisibleToAttribute))
+        {
+            var typeNameConstant = attr.ConstructorArguments.FirstOrDefault();
+            if (typeNameConstant.Type == null ||
+                typeNameConstant.Type.SpecialType != SpecialType.System_String ||
+                typeNameConstant.Value is not string value)
+            {
+                continue;
+            }
+
+            var commaIndex = value.IndexOf(',');
+            var assemblyName = commaIndex >= 0 ? value[..commaIndex].Trim() : value;
+
+            set.Add(assemblyName);
         }
 
-        private static bool HasReferenceTo(
-            (IAssemblySymbol assembly, Project? sourceProject) symbolOrigination,
-            Project project,
-            CancellationToken cancellationToken)
+        return set;
+    }
+
+    private static bool HasReferenceTo(
+        (IAssemblySymbol assembly, Project? sourceProject) symbolOrigination,
+        Project project,
+        CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfNull(symbolOrigination.assembly);
+        Contract.ThrowIfNull(project);
+        Contract.ThrowIfFalse(project.SupportsCompilation);
+
+        // If our symbol was from a project, then just check if this current project has a direct reference to it.
+        if (symbolOrigination.sourceProject != null)
+            return project.ProjectReferences.Any(p => p.ProjectId == symbolOrigination.sourceProject.Id);
+
+        // Otherwise, if the symbol is from metadata, see if the project's compilation references that metadata assembly.
+        return HasReferenceToAssembly(project, symbolOrigination.assembly.Name, cancellationToken);
+    }
+
+    private static bool HasReferenceToAssembly(Project project, string assemblyName, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfFalse(project.SupportsCompilation);
+
+        // Do two passes.  One that attempts to find a result without ever realizing a Compilation, and one that
+        // tries again, but which is willing to create the Compilation if necessary.
+
+        using var _ = ArrayBuilder<(PortableExecutableReference reference, MetadataId metadataId)>.GetInstance(out var uncomputedReferences);
+
+        foreach (var reference in project.MetadataReferences)
         {
-            Contract.ThrowIfNull(symbolOrigination.assembly);
-            Contract.ThrowIfNull(project);
-            Contract.ThrowIfFalse(project.SupportsCompilation);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            // If our symbol was from a project, then just check if this current project has a direct reference to it.
-            if (symbolOrigination.sourceProject != null)
-                return project.ProjectReferences.Any(p => p.ProjectId == symbolOrigination.sourceProject.Id);
+            if (reference is not PortableExecutableReference peReference)
+                continue;
 
-            // Otherwise, if the symbol is from metadata, see if the project's compilation references that metadata assembly.
-            return HasReferenceToAssembly(project, symbolOrigination.assembly.Name, cancellationToken);
+            var metadataId = SymbolTreeInfo.GetMetadataIdNoThrow(peReference);
+            if (metadataId is null)
+                continue;
+
+            if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
+            {
+                uncomputedReferences.Add((peReference, metadataId));
+                continue;
+            }
+
+            if (name == assemblyName)
+                return true;
         }
 
-        private static bool HasReferenceToAssembly(Project project, string assemblyName, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfFalse(project.SupportsCompilation);
-
-            // Do two passes.  One that attempts to find a result without ever realizing a Compilation, and one that
-            // tries again, but which is willing to create the Compilation if necessary.
-
-            using var _ = ArrayBuilder<(PortableExecutableReference reference, MetadataId metadataId)>.GetInstance(out var uncomputedReferences);
-
-            foreach (var reference in project.MetadataReferences)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (reference is not PortableExecutableReference peReference)
-                    continue;
-
-                var metadataId = SymbolTreeInfo.GetMetadataIdNoThrow(peReference);
-                if (metadataId is null)
-                    continue;
-
-                if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
-                {
-                    uncomputedReferences.Add((peReference, metadataId));
-                    continue;
-                }
-
-                if (name == assemblyName)
-                    return true;
-            }
-
-            if (uncomputedReferences.Count == 0)
-                return false;
-
-            Compilation? compilation = null;
-
-            foreach (var (peReference, metadataId) in uncomputedReferences)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
-                {
-                    // Defer creating the compilation till needed.
-                    CreateCompilation(project, ref compilation);
-                    if (compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol { Name: string metadataAssemblyName })
-                        name = ImmutableInterlocked.GetOrAdd(ref s_metadataIdToAssemblyName, metadataId, metadataAssemblyName);
-                }
-
-                if (name == assemblyName)
-                    return true;
-            }
-
+        if (uncomputedReferences.Count == 0)
             return false;
 
-            static void CreateCompilation(Project project, [NotNull] ref Compilation? compilation)
+        Compilation? compilation = null;
+
+        foreach (var (peReference, metadataId) in uncomputedReferences)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!s_metadataIdToAssemblyName.TryGetValue(metadataId, out var name))
             {
-                if (compilation != null)
-                    return;
-
-                // Use the project's compilation if it has one.
-                if (project.TryGetCompilation(out compilation))
-                    return;
-
-                // Perf: check metadata reference using newly created empty compilation with only metadata references.
-                var factory = project.Services.GetRequiredService<ICompilationFactoryService>();
-                compilation = factory
-                    .CreateCompilation(project.AssemblyName, project.CompilationOptions!)
-                    .AddReferences(project.MetadataReferences);
+                // Defer creating the compilation till needed.
+                CreateCompilation(project, ref compilation);
+                if (compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol { Name: string metadataAssemblyName })
+                    name = ImmutableInterlocked.GetOrAdd(ref s_metadataIdToAssemblyName, metadataId, metadataAssemblyName);
             }
+
+            if (name == assemblyName)
+                return true;
+        }
+
+        return false;
+
+        static void CreateCompilation(Project project, [NotNull] ref Compilation? compilation)
+        {
+            if (compilation != null)
+                return;
+
+            // Use the project's compilation if it has one.
+            if (project.TryGetCompilation(out compilation))
+                return;
+
+            // Perf: check metadata reference using newly created empty compilation with only metadata references.
+            var factory = project.Services.GetRequiredService<ICompilationFactoryService>();
+            compilation = factory
+                .CreateCompilation(project.AssemblyName, project.CompilationOptions!)
+                .AddReferences(project.MetadataReferences);
         }
     }
 }

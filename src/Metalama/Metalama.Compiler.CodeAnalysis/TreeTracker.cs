@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using SyntaxList = Microsoft.CodeAnalysis.Syntax.SyntaxList;
 
 #nullable enable
 

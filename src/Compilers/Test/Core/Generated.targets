@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
     <ItemGroup>
         <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net20)\build\.NETFramework\v2.0\mscorlib.dll">
           <LogicalName>net20.mscorlib.dll</LogicalName>
@@ -124,15 +124,15 @@
           <LogicalName>net451.System.Threading.Tasks.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\net451\System.Threading.Tasks.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)\ref\netstandard1.0\Microsoft.CSharp.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_CSharp)\ref\netstandard1.0\Microsoft.CSharp.dll">
           <LogicalName>netstandard10.microsoftcsharp.Microsoft.CSharp.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\microsoftcsharp\Microsoft.CSharp.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)\lib\netstandard1.3\Microsoft.CSharp.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_CSharp)\lib\netstandard1.3\Microsoft.CSharp.dll">
           <LogicalName>netstandard13lib.microsoftcsharp.Microsoft.CSharp.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\microsoftcsharp\Microsoft.CSharp.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(NuGetPackageRoot)\microsoft.visualbasic\$(MicrosoftVisualBasicVersion)\ref\netstandard1.1\Microsoft.VisualBasic.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_VisualBasic)\ref\netstandard1.1\Microsoft.VisualBasic.dll">
           <LogicalName>netstandard11.microsoftvisualbasic.Microsoft.VisualBasic.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\microsoftvisualbasic\Microsoft.VisualBasic.dll</Link>
         </EmbeddedResource>

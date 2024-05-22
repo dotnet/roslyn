@@ -5,23 +5,22 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+
+internal partial class VisualStudioWorkspaceImpl
 {
-    internal partial class VisualStudioWorkspaceImpl
+
+    private class AddAdditionalDocumentUndoUnit : AbstractAddDocumentUndoUnit
     {
-
-        private class AddAdditionalDocumentUndoUnit : AbstractAddDocumentUndoUnit
+        public AddAdditionalDocumentUndoUnit(
+            VisualStudioWorkspaceImpl workspace,
+            DocumentInfo docInfo,
+            SourceText text)
+            : base(workspace, docInfo, text)
         {
-            public AddAdditionalDocumentUndoUnit(
-                VisualStudioWorkspaceImpl workspace,
-                DocumentInfo docInfo,
-                SourceText text)
-                : base(workspace, docInfo, text)
-            {
-            }
-
-            protected override Project AddDocument(Project fromProject)
-                => fromProject.AddAdditionalDocument(DocumentInfo.Name, Text, DocumentInfo.Folders, DocumentInfo.FilePath).Project;
         }
+
+        protected override Project AddDocument(Project fromProject)
+            => fromProject.AddAdditionalDocument(DocumentInfo.Name, Text, DocumentInfo.Folders, DocumentInfo.FilePath).Project;
     }
 }

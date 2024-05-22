@@ -6,21 +6,20 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
+
+internal class TypeListItem : SymbolListItem<INamedTypeSymbol>
 {
-    internal class TypeListItem : SymbolListItem<INamedTypeSymbol>
+    private readonly TypeKind _typeKind;
+
+    internal TypeListItem(ProjectId projectId, INamedTypeSymbol typeSymbol, string displayText, string fullNameText, string searchText, bool isHidden)
+        : base(projectId, typeSymbol, displayText, fullNameText, searchText, isHidden)
     {
-        private readonly TypeKind _typeKind;
+        _typeKind = typeSymbol.TypeKind;
+    }
 
-        internal TypeListItem(ProjectId projectId, INamedTypeSymbol typeSymbol, string displayText, string fullNameText, string searchText, bool isHidden)
-            : base(projectId, typeSymbol, displayText, fullNameText, searchText, isHidden)
-        {
-            _typeKind = typeSymbol.TypeKind;
-        }
-
-        public TypeKind Kind
-        {
-            get { return _typeKind; }
-        }
+    public TypeKind Kind
+    {
+        get { return _typeKind; }
     }
 }

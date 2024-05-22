@@ -5,13 +5,12 @@
 using System;
 using Microsoft.VisualStudio.Language.Intellisense;
 
-namespace Microsoft.CodeAnalysis.Editor
-{
-    internal interface IDebuggerTextView
-    {
-        bool IsImmediateWindow { get; }
+namespace Microsoft.CodeAnalysis.Editor;
 
-        uint StartBufferUpdate();
-        void EndBufferUpdate(uint cookie);
-    }
+internal interface IDebuggerTextView
+{
+    bool IsImmediateWindow { get; }
+
+    uint StartBufferUpdate();
+    void EndBufferUpdate(uint cookie);
 }

@@ -6,114 +6,113 @@ using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal partial struct SymbolKey
 {
-    internal partial struct SymbolKey
+    private sealed class NamespaceSymbolKey : AbstractSymbolKey<INamespaceSymbol>
     {
-        private sealed class NamespaceSymbolKey : AbstractSymbolKey<INamespaceSymbol>
+        public static readonly NamespaceSymbolKey Instance = new();
+
+        // The containing symbol can be one of many things. 
+        // 1) Null when this is the global namespace for a compilation.  
+        // 2) The SymbolId for an assembly symbol if this is the global namespace for an
+        //    assembly.
+        // 3) The SymbolId for a module symbol if this is the global namespace for a module.
+        // 4) The SymbolId for the containing namespace symbol if this is not a global
+        //    namespace.
+
+        public sealed override void Create(INamespaceSymbol symbol, SymbolKeyWriter visitor)
         {
-            public static readonly NamespaceSymbolKey Instance = new();
+            visitor.WriteString(symbol.MetadataName);
 
-            // The containing symbol can be one of many things. 
-            // 1) Null when this is the global namespace for a compilation.  
-            // 2) The SymbolId for an assembly symbol if this is the global namespace for an
-            //    assembly.
-            // 3) The SymbolId for a module symbol if this is the global namespace for a module.
-            // 4) The SymbolId for the containing namespace symbol if this is not a global
-            //    namespace.
-
-            public sealed override void Create(INamespaceSymbol symbol, SymbolKeyWriter visitor)
+            if (symbol.ContainingNamespace != null)
             {
-                visitor.WriteString(symbol.MetadataName);
-
-                if (symbol.ContainingNamespace != null)
+                visitor.WriteInteger(0);
+                visitor.WriteSymbolKey(symbol.ContainingNamespace);
+            }
+            else
+            {
+                // A global namespace can either belong to a module or to a compilation.
+                Debug.Assert(symbol.IsGlobalNamespace);
+                switch (symbol.NamespaceKind)
                 {
-                    visitor.WriteInteger(0);
-                    visitor.WriteSymbolKey(symbol.ContainingNamespace);
-                }
-                else
-                {
-                    // A global namespace can either belong to a module or to a compilation.
-                    Debug.Assert(symbol.IsGlobalNamespace);
-                    switch (symbol.NamespaceKind)
-                    {
-                        case NamespaceKind.Module:
-                            visitor.WriteInteger(1);
-                            visitor.WriteSymbolKey(symbol.ContainingModule);
-                            break;
-                        case NamespaceKind.Assembly:
-                            visitor.WriteInteger(2);
-                            visitor.WriteSymbolKey(symbol.ContainingAssembly);
-                            break;
-                        case NamespaceKind.Compilation:
-                            visitor.WriteInteger(3);
-                            visitor.WriteSymbolKey(null);
-                            break;
-                        default:
-                            throw new NotImplementedException();
-                    }
+                    case NamespaceKind.Module:
+                        visitor.WriteInteger(1);
+                        visitor.WriteSymbolKey(symbol.ContainingModule);
+                        break;
+                    case NamespaceKind.Assembly:
+                        visitor.WriteInteger(2);
+                        visitor.WriteSymbolKey(symbol.ContainingAssembly);
+                        break;
+                    case NamespaceKind.Compilation:
+                        visitor.WriteInteger(3);
+                        visitor.WriteSymbolKey(null);
+                        break;
+                    default:
+                        throw new NotImplementedException();
                 }
             }
+        }
 
-            protected sealed override SymbolKeyResolution Resolve(
-                SymbolKeyReader reader, INamespaceSymbol? contextualSymbol, out string? failureReason)
+        protected sealed override SymbolKeyResolution Resolve(
+            SymbolKeyReader reader, INamespaceSymbol? contextualSymbol, out string? failureReason)
+        {
+            var metadataName = reader.ReadRequiredString();
+            var containerKind = reader.ReadInteger();
+
+            var containingContextualSymbol = containerKind switch
             {
-                var metadataName = reader.ReadRequiredString();
-                var containerKind = reader.ReadInteger();
+                0 => contextualSymbol?.ContainingNamespace,
+                1 => contextualSymbol?.ContainingModule,
+                2 => contextualSymbol?.ContainingAssembly,
+                3 => (ISymbol?)null,
+                _ => throw ExceptionUtilities.UnexpectedValue(containerKind),
+            };
 
-                var containingContextualSymbol = containerKind switch
+            // Namespaces are never parented by types, so there can be no contextual type to resolve our container.
+            var containingSymbolResolution = reader.ReadSymbolKey(
+                containingContextualSymbol, out var containingSymbolFailureReason);
+
+            if (containingSymbolFailureReason != null)
+            {
+                failureReason = $"({nameof(EventSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
+                return default;
+            }
+
+            if (containerKind == 3)
+            {
+                failureReason = null;
+                return new SymbolKeyResolution(reader.Compilation.GlobalNamespace);
+            }
+
+            using var result = PooledArrayBuilder<INamespaceSymbol>.GetInstance();
+            foreach (var container in containingSymbolResolution)
+            {
+                switch (container)
                 {
-                    0 => contextualSymbol?.ContainingNamespace,
-                    1 => contextualSymbol?.ContainingModule,
-                    2 => contextualSymbol?.ContainingAssembly,
-                    3 => (ISymbol?)null,
-                    _ => throw ExceptionUtilities.UnexpectedValue(containerKind),
-                };
-
-                // Namespaces are never parented by types, so there can be no contextual type to resolve our container.
-                var containingSymbolResolution = reader.ReadSymbolKey(
-                    containingContextualSymbol, out var containingSymbolFailureReason);
-
-                if (containingSymbolFailureReason != null)
-                {
-                    failureReason = $"({nameof(EventSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
-                    return default;
-                }
-
-                if (containerKind == 3)
-                {
-                    failureReason = null;
-                    return new SymbolKeyResolution(reader.Compilation.GlobalNamespace);
-                }
-
-                using var result = PooledArrayBuilder<INamespaceSymbol>.GetInstance();
-                foreach (var container in containingSymbolResolution)
-                {
-                    switch (container)
-                    {
-                        case IAssemblySymbol assembly:
-                            Debug.Assert(metadataName == string.Empty);
-                            result.AddIfNotNull(assembly.GlobalNamespace);
-                            break;
-                        case IModuleSymbol module:
-                            Debug.Assert(metadataName == string.Empty);
-                            result.AddIfNotNull(module.GlobalNamespace);
-                            break;
-                        case INamespaceSymbol namespaceSymbol:
-                            foreach (var member in namespaceSymbol.GetMembers(metadataName))
+                    case IAssemblySymbol assembly:
+                        Debug.Assert(metadataName == string.Empty);
+                        result.AddIfNotNull(assembly.GlobalNamespace);
+                        break;
+                    case IModuleSymbol module:
+                        Debug.Assert(metadataName == string.Empty);
+                        result.AddIfNotNull(module.GlobalNamespace);
+                        break;
+                    case INamespaceSymbol namespaceSymbol:
+                        foreach (var member in namespaceSymbol.GetMembers(metadataName))
+                        {
+                            if (member is INamespaceSymbol childNamespace)
                             {
-                                if (member is INamespaceSymbol childNamespace)
-                                {
-                                    result.AddIfNotNull(childNamespace);
-                                }
+                                result.AddIfNotNull(childNamespace);
                             }
+                        }
 
-                            break;
-                    }
+                        break;
                 }
-
-                return CreateResolution(result, $"({nameof(NamespaceSymbolKey)} '{metadataName}' not found)", out failureReason);
             }
+
+            return CreateResolution(result, $"({nameof(NamespaceSymbolKey)} '{metadataName}' not found)", out failureReason);
         }
     }
 }

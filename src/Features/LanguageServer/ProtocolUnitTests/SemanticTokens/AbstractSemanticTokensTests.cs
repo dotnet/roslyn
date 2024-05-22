@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -58,12 +59,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
                 Ranges = ranges
             };
-
-        protected static async Task UpdateDocumentTextAsync(string updatedText, Workspace workspace)
-        {
-            var docId = ((TestWorkspace)workspace).Documents.First().Id;
-            await ((TestWorkspace)workspace).ChangeDocumentAsync(docId, SourceText.From(updatedText));
-        }
 
         // VS doesn't currently support multi-line tokens, so we want to verify that we aren't
         // returning any in the tokens array.

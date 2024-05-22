@@ -7,13 +7,8 @@ namespace Microsoft.CodeAnalysis
     // Members of well known types
     internal enum WellKnownMember
     {
-        System_Object__ToString,
-
         System_Math__RoundDouble,
         System_Math__PowDoubleDouble,
-
-        System_Array__get_Length,
-        System_Array__Empty,
 
         System_Convert__ToBooleanDecimal,
         System_Convert__ToBooleanInt32,
@@ -64,8 +59,6 @@ namespace Microsoft.CodeAnalysis
         System_Reflection_MethodBase__GetMethodFromHandle,
         System_Reflection_MethodBase__GetMethodFromHandle2,
         System_Reflection_MethodInfo__CreateDelegate,
-        System_Delegate__CreateDelegate,
-        System_Delegate__CreateDelegate4,
         System_Reflection_FieldInfo__GetFieldFromHandle,
         System_Reflection_FieldInfo__GetFieldFromHandle2,
 
@@ -430,8 +423,6 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames,
 
-        System_String__Format_IFormatProvider,
-
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
 
@@ -558,6 +549,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
 
         System_Threading_CancellationToken__Equals,
+        System_Threading_CancellationToken__ThrowIfCancellationRequested,
         System_Threading_CancellationTokenSource__CreateLinkedTokenSource,
         System_Threading_CancellationTokenSource__Token,
         System_Threading_CancellationTokenSource__Dispose,
@@ -586,6 +578,8 @@ namespace Microsoft.CodeAnalysis
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
 
         System_NotSupportedException__ctor,
+        System_IndexOutOfRangeException__ctor,
+
         System_MissingMethodException__ctorString,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 
@@ -603,20 +597,6 @@ namespace Microsoft.CodeAnalysis
         System_Collections_IList__Insert,
         System_Collections_IList__Remove,
         System_Collections_IList__RemoveAt,
-
-        System_Collections_Generic_IReadOnlyCollection_T__Count,
-        System_Collections_Generic_IReadOnlyList_T__get_Item,
-        System_Collections_Generic_ICollection_T__Count,
-        System_Collections_Generic_ICollection_T__IsReadOnly,
-        System_Collections_Generic_ICollection_T__Add,
-        System_Collections_Generic_ICollection_T__Clear,
-        System_Collections_Generic_ICollection_T__Contains,
-        System_Collections_Generic_ICollection_T__CopyTo,
-        System_Collections_Generic_ICollection_T__Remove,
-        System_Collections_Generic_IList_T__get_Item,
-        System_Collections_Generic_IList_T__IndexOf,
-        System_Collections_Generic_IList_T__Insert,
-        System_Collections_Generic_IList_T__RemoveAt,
 
         System_Collections_Generic_List_T__ctor,
         System_Collections_Generic_List_T__ctorInt32,
@@ -638,6 +618,8 @@ namespace Microsoft.CodeAnalysis
         System_ReadOnlySpan_T__CopyTo_Span_T,
         System_Collections_Immutable_ImmutableArray_T__AsSpan,
         System_Collections_Generic_List_T__AddRange,
+
+        System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
 
         Count,
 

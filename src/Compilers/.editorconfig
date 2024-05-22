@@ -25,6 +25,10 @@ csharp_style_var_when_type_is_apparent = true:none
 csharp_style_var_elsewhere = false:none
 csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = true
 
+# RS0062: Do not capture primary constructor parameters
+# Warning so that it doesn't block local F5, but will fail in CI with WarnAsError
+dotnet_diagnostic.RS0062.severity = warning
+
 # XML files
 [*.xml]
 indent_size = 2
