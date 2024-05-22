@@ -279,8 +279,8 @@ internal static class FormattingExtensions
         {
             foreach (var nodeOrToken in node.GetAnnotatedNodesAndTokens(annotation))
             {
-                var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
+                var firstToken = nodeOrToken.AsNode(out var childNode) ? childNode.GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
+                var lastToken = nodeOrToken.AsNode(out childNode) ? childNode.GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
                 yield return GetSpan(firstToken, lastToken);
             }
         }

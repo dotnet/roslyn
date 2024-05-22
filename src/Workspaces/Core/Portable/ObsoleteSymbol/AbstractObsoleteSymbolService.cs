@@ -75,10 +75,8 @@ internal abstract class AbstractObsoleteSymbolService(int? dimKeywordKind) : IOb
 
                     foreach (var child in current.ChildNodesAndTokens())
                     {
-                        if (child.IsNode)
-                        {
-                            stack.Add(child.AsNode()!);
-                        }
+                        if (child.AsNode(out var childNode))
+                            stack.Add(childNode);
 
                         var token = child.AsToken();
                         if (token != tokenFromNode)

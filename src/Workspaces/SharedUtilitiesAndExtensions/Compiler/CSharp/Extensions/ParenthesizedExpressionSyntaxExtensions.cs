@@ -348,9 +348,10 @@ internal static class ParenthesizedExpressionSyntaxExtensions
             foreach (var nodeOrToken in expression.ChildNodesAndTokens())
             {
                 // Note: There's no need drill into other parenthesized expressions, since any colons in them would be unambiguous.
-                if (nodeOrToken.IsNode && !nodeOrToken.IsKind(SyntaxKind.ParenthesizedExpression))
+                if (nodeOrToken.AsNode(out var childNode))
                 {
-                    stack.Push(nodeOrToken.AsNode()!);
+                    if (!childNode.IsKind(SyntaxKind.ParenthesizedExpression))
+                        stack.Push(childNode);
                 }
                 else if (nodeOrToken.IsToken)
                 {
