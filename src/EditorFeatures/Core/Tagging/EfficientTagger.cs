@@ -22,7 +22,7 @@ internal abstract class EfficientTagger<TTag> : ITagger<TTag>, IDisposable where
     /// <summary>
     /// Produce the set of tags with the requested <paramref name="spans"/>, adding those tags to <paramref name="tags"/>.
     /// </summary>
-    public abstract void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<TTag>> tags);
+    public abstract void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<TagSpan<TTag>> tags);
 
     public abstract void Dispose();
 
@@ -30,7 +30,7 @@ internal abstract class EfficientTagger<TTag> : ITagger<TTag>, IDisposable where
     /// Default impl of the core <see cref="ITagger{T}"/> interface.  Forces an allocation.
     /// </summary>
     public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
-        => SegmentedListPool<ITagSpan<TTag>>.ComputeList(
+        => SegmentedListPool<TagSpan<TTag>>.ComputeList(
             static (args, tags) => args.@this.AddTags(args.spans, tags),
             (@this: this, spans));
 
