@@ -83,6 +83,8 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                         resourceName = relativeDir.Replace(Path.DirectorySeparatorChar, '.').Replace(Path.AltDirectorySeparatorChar, '.') + resourceName;
                     }
 
+                    options.TryGetValue("build_metadata.AdditionalFiles.ClassName", out var resourceClassName);
+
                     if (!options.TryGetValue("build_metadata.AdditionalFiles.OmitGetResourceString", out var omitGetResourceStringText)
                         || !bool.TryParse(omitGetResourceStringText, out var omitGetResourceString))
                     {
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                             ResourceFile: resourceFile,
                             ResourceName: string.Join(".", rootNamespace, resourceName),
                             ResourceHintName: resourceHintName,
-                            ResourceClassName: null,
+                            ResourceClassName: resourceClassName,
                             OmitGetResourceString: omitGetResourceString,
                             AsConstants: asConstants,
                             IncludeDefaultValues: includeDefaultValues,
