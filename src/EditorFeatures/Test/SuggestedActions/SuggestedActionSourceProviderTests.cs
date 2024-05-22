@@ -9,18 +9,17 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.SuggestedActions
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.SuggestedActions;
+
+public class SuggestedActionSourceProviderTests
 {
-    public class SuggestedActionSourceProviderTests
+    [Fact]
+    public void EnsureAttributesMatchData()
     {
-        [Fact]
-        public void EnsureAttributesMatchData()
-        {
-            // Ensure that the list of orderings on this type matches the set we expose in SuggestedActionsSourceProvider.Orderings
-            var attributes = typeof(SuggestedActionsSourceProvider).GetCustomAttributes(inherit: false)
-                .OfType<SuggestedActionPriorityAttribute>()
-                .ToImmutableArray();
-            AssertEx.SetEqual(attributes.Select(a => a.Priority), SuggestedActionsSourceProvider.Orderings);
-        }
+        // Ensure that the list of orderings on this type matches the set we expose in SuggestedActionsSourceProvider.Orderings
+        var attributes = typeof(SuggestedActionsSourceProvider).GetCustomAttributes(inherit: false)
+            .OfType<SuggestedActionPriorityAttribute>()
+            .ToImmutableArray();
+        AssertEx.SetEqual(attributes.Select(a => a.Priority), SuggestedActionsSourceProvider.Orderings);
     }
 }

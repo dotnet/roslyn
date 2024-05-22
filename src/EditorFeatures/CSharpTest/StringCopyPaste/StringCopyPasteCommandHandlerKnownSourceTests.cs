@@ -4,49 +4,48 @@
 
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste;
+
+public abstract class StringCopyPasteCommandHandlerKnownSourceTests
+    : StringCopyPasteCommandHandlerTests
 {
-    public abstract class StringCopyPasteCommandHandlerKnownSourceTests
-        : StringCopyPasteCommandHandlerTests
+    protected static void TestCopyPaste(
+        string copyFileMarkup, string pasteFileMarkup, string expectedMarkup, string afterUndo, bool mockCopyPasteService = true)
     {
-        protected static void TestCopyPaste(
-            string copyFileMarkup, string pasteFileMarkup, string expectedMarkup, string afterUndo, bool mockCopyPasteService = true)
-        {
-            using var state = StringCopyPasteTestState.CreateTestState(
-                copyFileMarkup, pasteFileMarkup, mockCopyPasteService);
+        using var state = StringCopyPasteTestState.CreateTestState(
+            copyFileMarkup, pasteFileMarkup, mockCopyPasteService);
 
-            state.TestCopyPaste(expectedMarkup, pasteText: null, pasteTextIsKnown: false, afterUndo);
-        }
+        state.TestCopyPaste(expectedMarkup, pasteText: null, pasteTextIsKnown: false, afterUndo);
+    }
 
-        protected static void TestPasteKnownSource(string pasteText, string markup, string expectedMarkup, string afterUndo)
-        {
-            using var state = StringCopyPasteTestState.CreateTestState(copyFileMarkup: null, pasteFileMarkup: markup, mockCopyPasteService: true);
+    protected static void TestPasteKnownSource(string pasteText, string markup, string expectedMarkup, string afterUndo)
+    {
+        using var state = StringCopyPasteTestState.CreateTestState(copyFileMarkup: null, pasteFileMarkup: markup, mockCopyPasteService: true);
 
-            state.TestCopyPaste(expectedMarkup, pasteText, pasteTextIsKnown: true, afterUndo);
-        }
+        state.TestCopyPaste(expectedMarkup, pasteText, pasteTextIsKnown: true, afterUndo);
+    }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61316")]
-        public void TestLineCopyPaste()
-        {
-            TestCopyPaste(
-                """
-                Debug.Assert(adjustment != 0, $"Indentation with[||]{|Copy:|} no adjustment should be represented by {nameof(BaseIndentationData)} directly.");
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61316")]
+    public void TestLineCopyPaste()
+    {
+        TestCopyPaste(
+            """
+            Debug.Assert(adjustment != 0, $"Indentation with[||]{|Copy:|} no adjustment should be represented by {nameof(BaseIndentationData)} directly.");
 
-                """,
-                """
-                Debug.Assert(adjustment != 0, $"Indentation with[||] no adjustment should be represented by {nameof(BaseIndentationData)} directly.");
+            """,
+            """
+            Debug.Assert(adjustment != 0, $"Indentation with[||] no adjustment should be represented by {nameof(BaseIndentationData)} directly.");
 
-                """,
-                """
-                Debug.Assert(adjustment != 0, $"Indentation with no adjustment should be represented by {nameof(BaseIndentationData)} directly.");
-                Debug.Assert(adjustment != 0, $"Indentation with[||] no adjustment should be represented by {nameof(BaseIndentationData)} directly.");
-                
-                """,
-                """
-                Debug.Assert(adjustment != 0, $"Indentation with[||] no adjustment should be represented by {nameof(BaseIndentationData)} directly.");
+            """,
+            """
+            Debug.Assert(adjustment != 0, $"Indentation with no adjustment should be represented by {nameof(BaseIndentationData)} directly.");
+            Debug.Assert(adjustment != 0, $"Indentation with[||] no adjustment should be represented by {nameof(BaseIndentationData)} directly.");
+            
+            """,
+            """
+            Debug.Assert(adjustment != 0, $"Indentation with[||] no adjustment should be represented by {nameof(BaseIndentationData)} directly.");
 
-                """,
-                mockCopyPasteService: false);
-        }
+            """,
+            mockCopyPasteService: false);
     }
 }

@@ -9,16 +9,15 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+
+public class IDEDiagnosticIDUniquenessTest
 {
-    public class IDEDiagnosticIDUniquenessTest
+    [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+    public void UniqueIDEDiagnosticIds()
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        public void UniqueIDEDiagnosticIds()
-        {
-            var type = typeof(IDEDiagnosticIds);
-            var listOfIDEDiagnosticIds = type.GetFields().Select(x => x.GetValue(null).ToString()).ToList();
-            Assert.Equal(listOfIDEDiagnosticIds.Count, listOfIDEDiagnosticIds.Distinct().Count());
-        }
+        var type = typeof(IDEDiagnosticIds);
+        var listOfIDEDiagnosticIds = type.GetFields().Select(x => x.GetValue(null).ToString()).ToList();
+        Assert.Equal(listOfIDEDiagnosticIds.Count, listOfIDEDiagnosticIds.Distinct().Count());
     }
 }

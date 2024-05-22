@@ -13,23 +13,23 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateDeconstructMethod
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateDeconstructMethod;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+public class GenerateDeconstructMethodTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-    public class GenerateDeconstructMethodTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+    public GenerateDeconstructMethodTests(ITestOutputHelper logger)
+       : base(logger)
     {
-        public GenerateDeconstructMethodTests(ITestOutputHelper logger)
-           : base(logger)
-        {
-        }
+    }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new GenerateDeconstructMethodCodeFixProvider());
+    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (null, new GenerateDeconstructMethodCodeFixProvider());
 
-        [Fact]
-        public async Task TestDeconstructionDeclaration_Simple()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestDeconstructionDeclaration_Simple()
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -51,12 +51,12 @@ class Class
         (int x, int y) = this;
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestDeconstructionDeclaration_Simple_Record()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestDeconstructionDeclaration_Simple_Record()
+    {
+        await TestInRegularAndScriptAsync(
 @"record R
 {
     void Method()
@@ -78,12 +78,12 @@ record R
         (int x, int y) = this;
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestDeconstructionDeclaration_TypeParameters()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestDeconstructionDeclaration_TypeParameters()
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class<T>
 {
     void Method<U>()
@@ -105,12 +105,12 @@ class Class<T>
         (T x, U y) = this;
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestDeconstructionDeclaration_OtherDeconstructMethods()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestDeconstructionDeclaration_OtherDeconstructMethods()
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -136,12 +136,12 @@ class Class
         throw new NotImplementedException();
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestDeconstructionDeclaration_AlreadySuccessfull()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestDeconstructionDeclaration_AlreadySuccessfull()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -150,12 +150,12 @@ class Class
     }
     void Deconstruct(out int x, out int y) => throw null;
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestDeconstructionDeclaration_UndeterminedType()
-        {
-            await TestInRegularAndScript1Async(
+    [Fact]
+    public async Task TestDeconstructionDeclaration_UndeterminedType()
+    {
+        await TestInRegularAndScript1Async(
 @"class Class
 {
     void Method()
@@ -177,12 +177,12 @@ class Class
         (var x, var y) = this;
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestDeconstructionDeclaration_UndeterminedType2()
-        {
-            await TestInRegularAndScript1Async(
+    [Fact]
+    public async Task TestDeconstructionDeclaration_UndeterminedType2()
+    {
+        await TestInRegularAndScript1Async(
 @"class Class
 {
     void Method()
@@ -204,12 +204,12 @@ class Class
         var (x, y) = this;
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestDeconstructionDeclaration_BuiltinType()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestDeconstructionDeclaration_BuiltinType()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -217,12 +217,12 @@ class Class
         (int x, int y) = [|1|];
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestDeconstructionAssignment()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestDeconstructionAssignment()
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -246,13 +246,13 @@ class Class
         (x, y) = this;
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestDeconstructionAssignment_Nested()
-        {
-            // We only offer a fix for non-nested deconstruction, at the moment
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestDeconstructionAssignment_Nested()
+    {
+        // We only offer a fix for non-nested deconstruction, at the moment
+        await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -261,12 +261,12 @@ class Class
         ((x, y), z) = ([|this|], 0);
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestDeconstructionAssignment_Array()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestDeconstructionAssignment_Array()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -275,12 +275,12 @@ class Class
         (x, y) = [|new[] { this }|];
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestSimpleDeconstructionForeach()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestSimpleDeconstructionForeach()
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -302,12 +302,12 @@ class Class
         foreach ((int x, int y) in new[] { this }) { }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestSimpleDeconstructionForeach_AnotherType()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestSimpleDeconstructionForeach_AnotherType()
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method(D d)
@@ -334,12 +334,12 @@ class D
         throw new NotImplementedException();
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestDeconstructionPositionalPattern()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestDeconstructionPositionalPattern()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void Method()
@@ -361,12 +361,12 @@ class C
         if(this is C(""""[||])) { }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestDeconstructionPositionalPattern_NullExpression()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestDeconstructionPositionalPattern_NullExpression()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void Method()
@@ -388,12 +388,12 @@ class C
         if(this is C(""""[||], ref 0)) { }
     }
 }");
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32510")]
-        public async Task TestDeconstructionAssignment_InvalidDeclaration()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32510")]
+    public async Task TestDeconstructionAssignment_InvalidDeclaration()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"
 using System.Collections.Generic;
 
@@ -407,6 +407,5 @@ class C
         }
     }
 }");
-        }
     }
 }

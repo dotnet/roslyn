@@ -10,1253 +10,1252 @@ using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
+
+[Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+public class LoopHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-    public class LoopHighlighterTests : AbstractCSharpKeywordHighlighterTests
+    internal override Type GetHighlighterType()
+        => typeof(LoopHighlighter);
+
+    [Fact]
+    public async Task TestExample1_1()
     {
-        internal override Type GetHighlighterType()
-            => typeof(LoopHighlighter);
-
-        [Fact]
-        public async Task TestExample1_1()
-        {
-            await TestAsync(
-                """
-                class C
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    {|Cursor:[|while|]|} (true)
                     {
-                        {|Cursor:[|while|]|} (true)
+                        if (x)
                         {
-                            if (x)
-                            {
-                                [|break|];
-                            }
-                            else
-                            {
-                                [|continue|];
-                            }
+                            [|break|];
+                        }
+                        else
+                        {
+                            [|continue|];
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestExample1_2()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestExample1_2()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    [|while|] (true)
                     {
-                        [|while|] (true)
+                        if (x)
                         {
-                            if (x)
-                            {
-                                {|Cursor:[|break|]|};
-                            }
-                            else
-                            {
-                                [|continue|];
-                            }
+                            {|Cursor:[|break|]|};
+                        }
+                        else
+                        {
+                            [|continue|];
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestExample1_3()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestExample1_3()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    [|while|] (true)
                     {
-                        [|while|] (true)
+                        if (x)
                         {
-                            if (x)
-                            {
-                                [|break|];
-                            }
-                            else
-                            {
-                                {|Cursor:[|continue|]|};
-                            }
+                            [|break|];
+                        }
+                        else
+                        {
+                            {|Cursor:[|continue|]|};
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestExample2_1()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestExample2_1()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    {|Cursor:[|do|]|}
                     {
-                        {|Cursor:[|do|]|}
+                        if (x)
                         {
-                            if (x)
-                            {
-                                [|break|];
-                            }
-                            else
-                            {
-                                [|continue|];
-                            }
+                            [|break|];
                         }
-                        [|while|] (true);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestExample2_2()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|do|]
+                        else
                         {
-                            if (x)
-                            {
-                                {|Cursor:[|break|]|};
-                            }
-                            else
-                            {
-                                [|continue|];
-                            }
-                        }
-                        [|while|] (true);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestExample2_3()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|do|]
-                        {
-                            if (x)
-                            {
-                                [|break|];
-                            }
-                            else
-                            {
-                                {|Cursor:[|continue|]|};
-                            }
-                        }
-                        [|while|] (true);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestExample2_4()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|do|]
-                        {
-                            if (x)
-                            {
-                                [|break|];
-                            }
-                            else
-                            {
-                                [|continue|];
-                            }
-                        }
-                        {|Cursor:[|while|]|} (true);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestExample2_5()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        do
-                        {
-                            if (x)
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                continue;
-                            }
-                        }
-                        while {|Cursor:(true)|};
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestExample2_6()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|do|]
-                        {
-                            if (x)
-                            {
-                                [|break|];
-                            }
-                            else
-                            {
-                                [|continue|];
-                            }
-                        }
-                        [|while|] (true);{|Cursor:|}
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestExample3_1()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        {|Cursor:[|for|]|} (int i = 0; i < 10; i++)
-                        {
-                            if (x)
-                            {
-                                [|break|];
-                            }
-                            else
-                            {
-                                [|continue|];
-                            }
+                            [|continue|];
                         }
                     }
+                    [|while|] (true);
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestExample3_2()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestExample2_2()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    [|do|]
                     {
-                        [|for|] (int i = 0; i < 10; i++)
+                        if (x)
                         {
-                            if (x)
-                            {
-                                {|Cursor:[|break|];|}
-                            }
-                            else
-                            {
-                                [|continue|];
-                            }
+                            {|Cursor:[|break|]|};
+                        }
+                        else
+                        {
+                            [|continue|];
+                        }
+                    }
+                    [|while|] (true);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestExample2_3()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|do|]
+                    {
+                        if (x)
+                        {
+                            [|break|];
+                        }
+                        else
+                        {
+                            {|Cursor:[|continue|]|};
+                        }
+                    }
+                    [|while|] (true);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestExample2_4()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|do|]
+                    {
+                        if (x)
+                        {
+                            [|break|];
+                        }
+                        else
+                        {
+                            [|continue|];
+                        }
+                    }
+                    {|Cursor:[|while|]|} (true);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestExample2_5()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    do
+                    {
+                        if (x)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                    while {|Cursor:(true)|};
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestExample2_6()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|do|]
+                    {
+                        if (x)
+                        {
+                            [|break|];
+                        }
+                        else
+                        {
+                            [|continue|];
+                        }
+                    }
+                    [|while|] (true);{|Cursor:|}
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestExample3_1()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    {|Cursor:[|for|]|} (int i = 0; i < 10; i++)
+                    {
+                        if (x)
+                        {
+                            [|break|];
+                        }
+                        else
+                        {
+                            [|continue|];
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestExample3_3()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestExample3_2()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    [|for|] (int i = 0; i < 10; i++)
                     {
-                        [|for|] (int i = 0; i < 10; i++)
+                        if (x)
                         {
-                            if (x)
-                            {
-                                [|break|];
-                            }
-                            else
-                            {
-                                {|Cursor:[|continue|];|}
-                            }
+                            {|Cursor:[|break|];|}
+                        }
+                        else
+                        {
+                            [|continue|];
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestExample4_1()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestExample3_3()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    [|for|] (int i = 0; i < 10; i++)
                     {
-                        {|Cursor:[|foreach|]|} (var a in x)
+                        if (x)
                         {
-                            if (x)
-                            {
-                                [|break|];
-                            }
-                            else
-                            {
-                                [|continue|];
-                            }
+                            [|break|];
+                        }
+                        else
+                        {
+                            {|Cursor:[|continue|];|}
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestExample4_2()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestExample4_1()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    {|Cursor:[|foreach|]|} (var a in x)
                     {
-                        [|foreach|] (var a in x)
+                        if (x)
                         {
-                            if (x)
-                            {
-                                {|Cursor:[|break|];|}
-                            }
-                            else
-                            {
-                                [|continue|];
-                            }
+                            [|break|];
+                        }
+                        else
+                        {
+                            [|continue|];
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestExample4_3()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestExample4_2()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    [|foreach|] (var a in x)
                     {
-                        [|foreach|] (var a in x)
+                        if (x)
                         {
-                            if (x)
-                            {
-                                [|break|];
-                            }
-                            else
-                            {
-                                {|Cursor:[|continue|];|}
-                            }
+                            {|Cursor:[|break|];|}
+                        }
+                        else
+                        {
+                            [|continue|];
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestNestedExample1_1()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestExample4_3()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    [|foreach|] (var a in x)
                     {
-                        {|Cursor:[|foreach|]|} (var a in x)
+                        if (x)
                         {
-                            if (a)
+                            [|break|];
+                        }
+                        else
+                        {
+                            {|Cursor:[|continue|];|}
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNestedExample1_1()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    {|Cursor:[|foreach|]|} (var a in x)
+                    {
+                        if (a)
+                        {
+                            [|break|];
+                        }
+                        else
+                        {
+                            switch (b)
                             {
-                                [|break|];
-                            }
-                            else
-                            {
-                                switch (b)
-                                {
-                                    case 0:
-                                        while (true)
+                                case 0:
+                                    while (true)
+                                    {
+                                        do
                                         {
-                                            do
-                                            {
-                                                break;
-                                            }
-                                            while (false);
                                             break;
                                         }
-
+                                        while (false);
                                         break;
-                                }
-                            }
+                                    }
 
-                            for (int i = 0; i < 10; i++)
-                            {
-                                break;
+                                    break;
                             }
+                        }
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            break;
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestNestedExample1_2()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNestedExample1_2()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    [|foreach|] (var a in x)
                     {
-                        [|foreach|] (var a in x)
+                        if (a)
                         {
-                            if (a)
+                            {|Cursor:[|break|];|}
+                        }
+                        else
+                        {
+                            switch (b)
                             {
-                                {|Cursor:[|break|];|}
-                            }
-                            else
-                            {
-                                switch (b)
-                                {
-                                    case 0:
-                                        while (true)
+                                case 0:
+                                    while (true)
+                                    {
+                                        do
                                         {
-                                            do
-                                            {
-                                                break;
-                                            }
-                                            while (false);
                                             break;
                                         }
-
+                                        while (false);
                                         break;
-                                }
-                            }
+                                    }
 
-                            for (int i = 0; i < 10; i++)
-                            {
-                                break;
+                                    break;
                             }
+                        }
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            break;
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestNestedExample1_3()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNestedExample1_3()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    foreach (var a in x)
                     {
-                        foreach (var a in x)
+                        if (a)
                         {
-                            if (a)
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                switch (b)
-                                {
-                                    case 0:
-                                        while (true)
-                                        {
-                                            {|Cursor:[|do|]|}
-                                            {
-                                                [|break|];
-                                            }
-                                            [|while|] (false);
-                                            break;
-                                        }
-
-                                        break;
-                                }
-                            }
-
-                            for (int i = 0; i < 10; i++)
-                            {
-                                break;
-                            }
+                            break;
                         }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestNestedExample1_4()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        foreach (var a in x)
+                        else
                         {
-                            if (a)
+                            switch (b)
                             {
-                                break;
-                            }
-                            else
-                            {
-                                switch (b)
-                                {
-                                    case 0:
-                                        while (true)
+                                case 0:
+                                    while (true)
+                                    {
+                                        {|Cursor:[|do|]|}
                                         {
-                                            [|do|]
-                                            {
-                                                {|Cursor:[|break|];|}
-                                            }
-                                            [|while|] (false);
-                                            break;
-                                        }
-
-                                        break;
-                                }
-                            }
-
-                            for (int i = 0; i < 10; i++)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestNestedExample1_5()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        foreach (var a in x)
-                        {
-                            if (a)
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                switch (b)
-                                {
-                                    case 0:
-                                        while (true)
-                                        {
-                                            [|do|]
-                                            {
-                                                [|break|];
-                                            }
-                                            {|Cursor:[|while|]|} (false);
-                                            break;
-                                        }
-
-                                        break;
-                                }
-                            }
-
-                            for (int i = 0; i < 10; i++)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestNestedExample1_6()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        foreach (var a in x)
-                        {
-                            if (a)
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                switch (b)
-                                {
-                                    case 0:
-                                        while (true)
-                                        {
-                                            [|do|]
-                                            {
-                                                [|break|];
-                                            }
-                                            [|while|] (false);{|Cursor:|}
-                                            break;
-                                        }
-
-                                        break;
-                                }
-                            }
-
-                            for (int i = 0; i < 10; i++)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestNestedExample1_7()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        foreach (var a in x)
-                        {
-                            if (a)
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                switch (b)
-                                {
-                                    case 0:
-                                        {|Cursor:[|while|]|} (true)
-                                        {
-                                            do
-                                            {
-                                                break;
-                                            }
-                                            while (false);
                                             [|break|];
                                         }
-
+                                        [|while|] (false);
                                         break;
-                                }
-                            }
+                                    }
 
-                            for (int i = 0; i < 10; i++)
-                            {
-                                break;
+                                    break;
                             }
+                        }
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            break;
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestNestedExample1_8()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNestedExample1_4()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    foreach (var a in x)
                     {
-                        foreach (var a in x)
+                        if (a)
                         {
-                            if (a)
+                            break;
+                        }
+                        else
+                        {
+                            switch (b)
                             {
-                                break;
-                            }
-                            else
-                            {
-                                switch (b)
-                                {
-                                    case 0:
-                                        [|while|] (true)
+                                case 0:
+                                    while (true)
+                                    {
+                                        [|do|]
                                         {
-                                            do
-                                            {
-                                                break;
-                                            }
-                                            while (false);
                                             {|Cursor:[|break|];|}
                                         }
-
+                                        [|while|] (false);
                                         break;
-                                }
-                            }
+                                    }
 
-                            for (int i = 0; i < 10; i++)
-                            {
-                                break;
+                                    break;
                             }
+                        }
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            break;
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        // TestNestedExample1 9-13 are in SwitchStatementHighlighterTests.cs
-
-        [Fact]
-        public async Task TestNestedExample1_14()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNestedExample1_5()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    foreach (var a in x)
                     {
-                        foreach (var a in x)
+                        if (a)
                         {
-                            if (a)
+                            break;
+                        }
+                        else
+                        {
+                            switch (b)
                             {
-                                break;
-                            }
-                            else
-                            {
-                                switch (b)
-                                {
-                                    case 0:
-                                        while (true)
+                                case 0:
+                                    while (true)
+                                    {
+                                        [|do|]
                                         {
-                                            do
-                                            {
-                                                break;
-                                            }
-                                            while (false);
+                                            [|break|];
+                                        }
+                                        {|Cursor:[|while|]|} (false);
+                                        break;
+                                    }
+
+                                    break;
+                            }
+                        }
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNestedExample1_6()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    foreach (var a in x)
+                    {
+                        if (a)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            switch (b)
+                            {
+                                case 0:
+                                    while (true)
+                                    {
+                                        [|do|]
+                                        {
+                                            [|break|];
+                                        }
+                                        [|while|] (false);{|Cursor:|}
+                                        break;
+                                    }
+
+                                    break;
+                            }
+                        }
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNestedExample1_7()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    foreach (var a in x)
+                    {
+                        if (a)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            switch (b)
+                            {
+                                case 0:
+                                    {|Cursor:[|while|]|} (true)
+                                    {
+                                        do
+                                        {
                                             break;
                                         }
+                                        while (false);
+                                        [|break|];
+                                    }
 
-                                        break;
-                                }
+                                    break;
                             }
+                        }
 
-                            {|Cursor:[|for|]|} (int i = 0; i < 10; i++)
-                            {
-                                [|break|];
-                            }
+                        for (int i = 0; i < 10; i++)
+                        {
+                            break;
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestNestedExample1_15()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNestedExample1_8()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    foreach (var a in x)
                     {
-                        foreach (var a in x)
+                        if (a)
                         {
-                            if (a)
+                            break;
+                        }
+                        else
+                        {
+                            switch (b)
                             {
-                                break;
-                            }
-                            else
-                            {
-                                switch (b)
-                                {
-                                    case 0:
-                                        while (true)
+                                case 0:
+                                    [|while|] (true)
+                                    {
+                                        do
                                         {
-                                            do
-                                            {
-                                                break;
-                                            }
-                                            while (false);
                                             break;
                                         }
+                                        while (false);
+                                        {|Cursor:[|break|];|}
+                                    }
 
+                                    break;
+                            }
+                        }
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    // TestNestedExample1 9-13 are in SwitchStatementHighlighterTests.cs
+
+    [Fact]
+    public async Task TestNestedExample1_14()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    foreach (var a in x)
+                    {
+                        if (a)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            switch (b)
+                            {
+                                case 0:
+                                    while (true)
+                                    {
+                                        do
+                                        {
+                                            break;
+                                        }
+                                        while (false);
                                         break;
-                                }
-                            }
+                                    }
 
-                            [|for|] (int i = 0; i < 10; i++)
-                            {
-                                {|Cursor:[|break|];|}
+                                    break;
                             }
+                        }
+
+                        {|Cursor:[|for|]|} (int i = 0; i < 10; i++)
+                        {
+                            [|break|];
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestNestedExample2_1()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNestedExample1_15()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    foreach (var a in x)
                     {
-                        {|Cursor:[|foreach|]|} (var a in x)
+                        if (a)
                         {
-                            if (a)
+                            break;
+                        }
+                        else
+                        {
+                            switch (b)
                             {
-                                [|continue|];
-                            }
-                            else
-                            {
-                                while (true)
-                                {
-                                    do
+                                case 0:
+                                    while (true)
                                     {
-                                        continue;
+                                        do
+                                        {
+                                            break;
+                                        }
+                                        while (false);
+                                        break;
                                     }
-                                    while (false);
+
+                                    break;
+                            }
+                        }
+
+                        [|for|] (int i = 0; i < 10; i++)
+                        {
+                            {|Cursor:[|break|];|}
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNestedExample2_1()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    {|Cursor:[|foreach|]|} (var a in x)
+                    {
+                        if (a)
+                        {
+                            [|continue|];
+                        }
+                        else
+                        {
+                            while (true)
+                            {
+                                do
+                                {
                                     continue;
                                 }
-                            }
-
-                            for (int i = 0; i < 10; i++)
-                            {
+                                while (false);
                                 continue;
                             }
                         }
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            continue;
+                        }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestNestedExample2_2()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNestedExample2_2()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    [|foreach|] (var a in x)
                     {
-                        [|foreach|] (var a in x)
+                        if (a)
                         {
-                            if (a)
+                            {|Cursor:[|continue|];|}
+                        }
+                        else
+                        {
+                            while (true)
                             {
-                                {|Cursor:[|continue|];|}
-                            }
-                            else
-                            {
-                                while (true)
+                                do
                                 {
-                                    do
-                                    {
-                                        continue;
-                                    }
-                                    while (false);
                                     continue;
                                 }
-                            }
-
-                            for (int i = 0; i < 10; i++)
-                            {
+                                while (false);
                                 continue;
                             }
                         }
-                    }
-                }
-                """);
-        }
 
-        [Fact]
-        public async Task TestNestedExample2_3()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        foreach (var a in x)
+                        for (int i = 0; i < 10; i++)
                         {
-                            if (a)
-                            {
-                                continue;
-                            }
-                            else
-                            {
-                                while (true)
-                                {
-                                    {|Cursor:[|do|]|}
-                                    {
-                                        [|continue|];
-                                    }
-                                    [|while|] (false);
-                                    continue;
-                                }
-                            }
-
-                            for (int i = 0; i < 10; i++)
-                            {
-                                continue;
-                            }
+                            continue;
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestNestedExample2_4()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNestedExample2_3()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    foreach (var a in x)
                     {
-                        foreach (var a in x)
+                        if (a)
                         {
-                            if (a)
-                            {
-                                continue;
-                            }
-                            else
-                            {
-                                while (true)
-                                {
-                                    [|do|]
-                                    {
-                                        {|Cursor:[|continue|];|}
-                                    }
-                                    [|while|] (false);
-                                    continue;
-                                }
-                            }
-
-                            for (int i = 0; i < 10; i++)
-                            {
-                                continue;
-                            }
+                            continue;
                         }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestNestedExample2_5()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        foreach (var a in x)
+                        else
                         {
-                            if (a)
+                            while (true)
                             {
-                                continue;
-                            }
-                            else
-                            {
-                                while (true)
+                                {|Cursor:[|do|]|}
                                 {
-                                    [|do|]
-                                    {
-                                        [|continue|];
-                                    }
-                                    {|Cursor:[|while|]|} (false);
-                                    continue;
-                                }
-                            }
-
-                            for (int i = 0; i < 10; i++)
-                            {
-                                continue;
-                            }
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestNestedExample2_6()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        foreach (var a in x)
-                        {
-                            if (a)
-                            {
-                                continue;
-                            }
-                            else
-                            {
-                                while (true)
-                                {
-                                    do
-                                    {
-                                        continue;
-                                    }
-                                    while {|Cursor:(false)|};
-                                    continue;
-                                }
-                            }
-
-                            for (int i = 0; i < 10; i++)
-                            {
-                                continue;
-                            }
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestNestedExample2_7()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        foreach (var a in x)
-                        {
-                            if (a)
-                            {
-                                continue;
-                            }
-                            else
-                            {
-                                while (true)
-                                {
-                                    [|do|]
-                                    {
-                                        [|continue|];
-                                    }
-                                    [|while|] (false);{|Cursor:|}
-                                    continue;
-                                }
-                            }
-
-                            for (int i = 0; i < 10; i++)
-                            {
-                                continue;
-                            }
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestNestedExample2_8()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        foreach (var a in x)
-                        {
-                            if (a)
-                            {
-                                continue;
-                            }
-                            else
-                            {
-                                {|Cursor:[|while|]|} (true)
-                                {
-                                    do
-                                    {
-                                        continue;
-                                    }
-                                    while (false);
                                     [|continue|];
                                 }
-                            }
-
-                            for (int i = 0; i < 10; i++)
-                            {
+                                [|while|] (false);
                                 continue;
                             }
                         }
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            continue;
+                        }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestNestedExample2_9()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNestedExample2_4()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    foreach (var a in x)
                     {
-                        foreach (var a in x)
+                        if (a)
                         {
-                            if (a)
+                            continue;
+                        }
+                        else
+                        {
+                            while (true)
                             {
-                                continue;
-                            }
-                            else
-                            {
-                                [|while|] (true)
+                                [|do|]
                                 {
-                                    do
-                                    {
-                                        continue;
-                                    }
-                                    while (false);
                                     {|Cursor:[|continue|];|}
                                 }
-                            }
-
-                            for (int i = 0; i < 10; i++)
-                            {
+                                [|while|] (false);
                                 continue;
                             }
                         }
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            continue;
+                        }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestNestedExample2_10()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNestedExample2_5()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    foreach (var a in x)
                     {
-                        foreach (var a in x)
+                        if (a)
                         {
-                            if (a)
+                            continue;
+                        }
+                        else
+                        {
+                            while (true)
                             {
+                                [|do|]
+                                {
+                                    [|continue|];
+                                }
+                                {|Cursor:[|while|]|} (false);
                                 continue;
                             }
-                            else
+                        }
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            continue;
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNestedExample2_6()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    foreach (var a in x)
+                    {
+                        if (a)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            while (true)
                             {
-                                while (true)
+                                do
                                 {
-                                    do
-                                    {
-                                        continue;
-                                    }
-                                    while (false);
                                     continue;
                                 }
+                                while {|Cursor:(false)|};
+                                continue;
                             }
+                        }
 
-                            {|Cursor:[|for|]|} (int i = 0; i < 10; i++)
+                        for (int i = 0; i < 10; i++)
+                        {
+                            continue;
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNestedExample2_7()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    foreach (var a in x)
+                    {
+                        if (a)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            while (true)
                             {
+                                [|do|]
+                                {
+                                    [|continue|];
+                                }
+                                [|while|] (false);{|Cursor:|}
+                                continue;
+                            }
+                        }
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            continue;
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNestedExample2_8()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    foreach (var a in x)
+                    {
+                        if (a)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            {|Cursor:[|while|]|} (true)
+                            {
+                                do
+                                {
+                                    continue;
+                                }
+                                while (false);
                                 [|continue|];
                             }
                         }
-                    }
-                }
-                """);
-        }
 
-        [Fact]
-        public async Task TestNestedExample2_11()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        foreach (var a in x)
+                        for (int i = 0; i < 10; i++)
                         {
-                            if (a)
-                            {
-                                continue;
-                            }
-                            else
-                            {
-                                while (true)
-                                {
-                                    do
-                                    {
-                                        continue;
-                                    }
-                                    while (false);
-                                    continue;
-                                }
-                            }
-
-                            [|for|] (int i = 0; i < 10; i++)
-                            {
-                                {|Cursor:[|continue|];|}
-                            }
+                            continue;
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNestedExample2_9()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    foreach (var a in x)
+                    {
+                        if (a)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            [|while|] (true)
+                            {
+                                do
+                                {
+                                    continue;
+                                }
+                                while (false);
+                                {|Cursor:[|continue|];|}
+                            }
+                        }
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            continue;
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNestedExample2_10()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    foreach (var a in x)
+                    {
+                        if (a)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            while (true)
+                            {
+                                do
+                                {
+                                    continue;
+                                }
+                                while (false);
+                                continue;
+                            }
+                        }
+
+                        {|Cursor:[|for|]|} (int i = 0; i < 10; i++)
+                        {
+                            [|continue|];
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNestedExample2_11()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    foreach (var a in x)
+                    {
+                        if (a)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            while (true)
+                            {
+                                do
+                                {
+                                    continue;
+                                }
+                                while (false);
+                                continue;
+                            }
+                        }
+
+                        [|for|] (int i = 0; i < 10; i++)
+                        {
+                            {|Cursor:[|continue|];|}
+                        }
+                    }
+                }
+            }
+            """);
     }
 }
