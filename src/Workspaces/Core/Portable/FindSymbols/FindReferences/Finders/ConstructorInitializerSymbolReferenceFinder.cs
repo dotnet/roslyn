@@ -59,7 +59,7 @@ internal sealed class ConstructorInitializerSymbolReferenceFinder : AbstractRefe
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        var tokens = state.Cache.GetConstructorInitializerTokens(state.SyntaxFacts, state.Root, cancellationToken);
+        var tokens = state.Cache.GetConstructorInitializerTokens(cancellationToken);
         if (state.SemanticModel.Language == LanguageNames.VisualBasic)
             tokens = tokens.Concat(FindMatchingIdentifierTokens(state, "New", cancellationToken)).Distinct();
 

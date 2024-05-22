@@ -74,6 +74,12 @@ internal static class ITypeParameterSymbolExtensions
             constraints.Add(ConstructorConstraint());
         }
 
+        if (typeParameter.AllowsRefLikeType)
+        {
+            // "allows ref struct" anti-constraint must be last
+            constraints.Add(AllowsConstraintClause([RefStructConstraint()]));
+        }
+
         if (constraints.Count == 0)
         {
             return;
