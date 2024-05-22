@@ -33,7 +33,10 @@ internal abstract partial class AbstractInProcLanguageClient(
     AbstractLanguageClientMiddleLayer? middleLayer = null) : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
+    // https://github.com/dotnet/roslyn/issues/73626 tracks removal
+#pragma warning disable CS0618 // Type or member is obsolete
     private readonly ILanguageClientMiddleLayer? _middleLayer = middleLayer;
+#pragma warning restore CS0618 // Type or member is obsolete
     private readonly ILspServiceLoggerFactory _lspLoggerFactory = lspLoggerFactory;
     private readonly ExportProvider _exportProvider = exportProvider;
 
