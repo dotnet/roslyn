@@ -80,10 +80,25 @@ internal readonly ref partial struct Worker
 
     private void ClassifyNode(SyntaxNode node)
     {
-        foreach (var token in node.DescendantTokens(span: _textSpan, descendIntoTrivia: false))
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+        stack.Push(node);
+
+        while (stack.TryPop(out var current))
         {
             _cancellationToken.ThrowIfCancellationRequested();
-            ClassifyToken(token);
+
+            // It's ok that we're not pushing in reverse.  The caller (TotalClassificationTaggerProvider) will be
+            // sorting the results before doing anything with them.
+            foreach (var child in current.ChildNodesAndTokens())
+            {
+                if (!child.FullSpan.IntersectsWith(_textSpan))
+                    continue;
+
+                if (child.IsNode)
+                    stack.Push(child.AsNode()!);
+                else
+                    ClassifyToken(child.AsToken());
+            }
         }
     }
 
