@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 /// </summary>
 internal abstract class AbstractRegexDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
-    // <Metalama> Renamed from RE0001
-    public const string DiagnosticId = "LAMA0601";
-    // </Metalama>
+    public const string DiagnosticId = "RE0001";
 
     private readonly EmbeddedLanguageInfo _info;
 

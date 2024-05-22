@@ -134,8 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     if (descriptor.DefaultSeverity == DiagnosticSeverity.Hidden && descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
                         continue;
 
-                    // <Metalama /> RE0001 renamed to LAMA0601
-                    if (descriptor.Id is "LAMA0601" or "JSON001" or "JSON002") // Currently not documented. https://github.com/dotnet/roslyn/issues/48530
+                    if (descriptor.Id is "RE0001" or "JSON001" or "JSON002") // Currently not documented. https://github.com/dotnet/roslyn/issues/48530
                         continue;
 
                     if (descriptor.Id == "IDE0043") // Intentionally undocumented. It will be removed in favor of CA2241

@@ -211,6 +211,10 @@
     "9.0.100-preview.3": {
       "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/b50c34cf-e50a-4e64-9bdc-cbd984d44acb/9cba57d4130ef9451e2a9ec218d2c83d/dotnet-sdk-9.0.100-preview.3.24204.13-win-x64.zip",
       "roslyn-version": "4.10.0-3.24202.15"
+    },
+    "9.0.100-preview.4": {
+      "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/5bb0c9db-5ddb-44e7-90d1-bf34c1ac688f/8ba52405d812250c4b31e81e94c62334/dotnet-sdk-9.0.100-preview.4.24267.66-win-x64.zip",
+      "roslyn-version": "4.11.0-2.24252.3"
     }
   }
 }
