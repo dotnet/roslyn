@@ -2137,36 +2137,32 @@ Position GetName for item '2'
             verifier.VerifyIL("Program.Call1<T>",
 @"
 {
-  // Code size       70 (0x46)
+  // Code size       61 (0x3d)
   .maxstack  6
-  .locals init (T& V_0,
-            T V_1,
-            DummyHandler V_2)
+  .locals init (T V_0,
+                DummyHandler V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldobj      ""T""
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  ldarg.0
-  IL_000c:  call       ""int Program.GetOffset<T>(ref T)""
-  IL_0011:  ldloca.s   V_2
-  IL_0013:  ldc.i4.4
-  IL_0014:  ldc.i4.1
-  IL_0015:  ldloc.0
-  IL_0016:  ldobj      ""T""
-  IL_001b:  box        ""T""
-  IL_0020:  call       ""DummyHandler..ctor(int, int, IMoveable)""
-  IL_0025:  ldloca.s   V_2
-  IL_0027:  ldstr      ""log:""
-  IL_002c:  call       ""void DummyHandler.AppendLiteral(string)""
-  IL_0031:  ldloca.s   V_2
-  IL_0033:  ldc.i4.0
-  IL_0034:  call       ""void DummyHandler.AppendFormatted<int>(int)""
-  IL_0039:  ldloc.2
-  IL_003a:  constrained. ""T""
-  IL_0040:  callvirt   ""void IMoveable.GetName(int, DummyHandler)""
-  IL_0045:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  box        ""T""
+  IL_000d:  ldarg.0
+  IL_000e:  call       ""int Program.GetOffset<T>(ref T)""
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  ldc.i4.4
+  IL_0016:  ldc.i4.1
+  IL_0017:  ldloc.0
+  IL_0018:  box        ""T""
+  IL_001d:  call       ""DummyHandler..ctor(int, int, IMoveable)""
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  ldstr      ""log:""
+  IL_0029:  call       ""void DummyHandler.AppendLiteral(string)""
+  IL_002e:  ldloca.s   V_1
+  IL_0030:  ldc.i4.0
+  IL_0031:  call       ""void DummyHandler.AppendFormatted<int>(int)""
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""void IMoveable.GetName(int, DummyHandler)""
+  IL_003c:  ret
 }
 ");
 
