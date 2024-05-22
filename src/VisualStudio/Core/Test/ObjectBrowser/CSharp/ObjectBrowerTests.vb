@@ -762,7 +762,6 @@ vbTab & "where T : IDisposable, allows ref struct" & vbCrLf &
 $"    {String.Format(ServicesVSResources.Member_of_0, "C")}"
 
                 list.VerifyImmediateMemberDescriptions(memberDescription1, memberDescription2)
-
             End Using
         End Sub
 
