@@ -175,22 +175,27 @@ public class FirstClassSpanTests : CSharpTestBase
     public void BreakingChange_ExtensionMethodLookup_SpanVsIEnumerable()
     {
         var source = """
+            using System;
+            using System.Collections.Generic;
+
             var arr = new char[] { '/' };
             arr.M('/');
 
             static class E
             {
-                public static void M<T>(this System.Span<T> s, T x) { }
-                public static void M<T>(this System.Collections.Generic.IEnumerable<T> e, T x) { }
+                public static void M<T>(this Span<T> s, T x) => Console.Write(1);
+                public static void M<T>(this IEnumerable<T> e, T x) => Console.Write(2);
             }
             """;
-        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
 
         var expectedDiagnostics = new[]
         {
-            // (2,5): error CS0121: The call is ambiguous between the following methods or properties: 'E.M<T>(Span<T>, T)' and 'E.M<T>(IEnumerable<T>, T)'
+            // (5,5): error CS0121: The call is ambiguous between the following methods or properties: 'E.M<T>(Span<T>, T)' and 'E.M<T>(IEnumerable<T>, T)'
             // arr.M('/');
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.M<T>(System.Span<T>, T)", "E.M<T>(System.Collections.Generic.IEnumerable<T>, T)").WithLocation(2, 5)
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.M<T>(System.Span<T>, T)", "E.M<T>(System.Collections.Generic.IEnumerable<T>, T)").WithLocation(5, 5)
         };
 
         CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -201,18 +206,21 @@ public class FirstClassSpanTests : CSharpTestBase
     public void BreakingChange_ExtensionMethodLookup_SpanVsIEnumerable_Workaround(LanguageVersion langVersion)
     {
         var source = """
+            using System;
+            using System.Collections.Generic;
+
             var arr = new char[] { '/' };
             arr.M('/');
 
             static class E
             {
-                public static void M<T>(this System.Span<T> s, T x) { }
-                public static void M<T>(this System.Collections.Generic.IEnumerable<T> e, T x) { }
-                public static void M<T>(this T[] a, T x) { }
+                public static void M<T>(this Span<T> s, T x) => Console.Write(1);
+                public static void M<T>(this IEnumerable<T> e, T x) => Console.Write(2);
+                public static void M<T>(this T[] a, T x) => Console.Write(3);
             }
             """;
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "3").VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
             {
               // Code size       19 (0x13)
@@ -228,6 +236,60 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0012:  ret
             }
             """);
+    }
+
+    [Fact]
+    public void BreakingChange_ExtensionMethodLookup_SpanVsIEnumerable_MethodConversion()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            var arr = new int[] { 123 };
+            E.R(arr.M);
+
+            static class E
+            {
+                public static void R(Action<int> a) => a(-1);
+                public static void M<T>(this Span<T> s, T x) => Console.Write(1);
+                public static void M<T>(this IEnumerable<T> e, T x) => Console.Write(2);
+            }
+            """;
+
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // (5,5): error CS0121: The call is ambiguous between the following methods or properties: 'E.M<T>(Span<T>, T)' and 'E.M<T>(IEnumerable<T>, T)'
+            // E.R(arr.M);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "arr.M").WithArguments("E.M<T>(System.Span<T>, T)", "E.M<T>(System.Collections.Generic.IEnumerable<T>, T)").WithLocation(5, 5)
+        };
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void BreakingChange_ExtensionMethodLookup_SpanVsIEnumerable_MethodConversion_Workaround(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            
+            var arr = new int[] { 123 };
+            E.R(arr.M);
+            
+            static class E
+            {
+                public static void R(Action<int> a) => a(-1);
+                public static void M<T>(this Span<T> s, T x) => Console.Write(1);
+                public static void M<T>(this IEnumerable<T> e, T x) => Console.Write(2);
+                public static void M<T>(this T[] a, T x) => Console.Write(3);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "3").VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -869,6 +931,114 @@ public class FirstClassSpanTests : CSharpTestBase
             // (11,43): error CS0029: Cannot implicitly convert type 'string[][][]' to 'System.Span<string[*,*]>'
             //     Span<string[,]> M7(string[][][] a) => a;
             Diagnostic(ErrorCode.ERR_NoImplicitConv, "a").WithArguments("string[][][]", "System.Span<string[*,*]>").WithLocation(11, 43));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Implicit_MethodGroup_ReturnType(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            C.R(C.M);
+            C.R(() => C.M());
+
+            static class C
+            {
+                public static int[] M() => new int[] { 1, 2, 3 };
+                public static void R(D f) => Console.Write(f()[1]);
+            }
+
+            delegate Span<int> D();
+            """;
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (3,5): error CS0407: 'int[] C.M()' has the wrong return type
+            // C.R(C.M);
+            Diagnostic(ErrorCode.ERR_BadRetType, "C.M").WithArguments("C.M()", "int[]").WithLocation(3, 5));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Implicit_MethodGroup_ParameterType(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            C.R(C.M);
+            C.R(x => C.M(x));
+
+            static class C
+            {
+                public static void M(Span<int> x) => Console.Write(x[1]);
+                public static void R(D a) => a(new int[] { 1, 2, 3 });
+            }
+
+            delegate void D(int[] x);
+            """;
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (3,5): error CS0123: No overload for 'C.M(Span<int>)' matches delegate 'D'
+            // C.R(C.M);
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "C.M").WithArguments("C.M(System.Span<int>)", "D").WithLocation(3, 5));
+    }
+
+    [Fact]
+    public void Conversion_Array_Span_Implicit_MethodGroup_ExtensionMethodReceiver()
+    {
+        var source = """
+            using System;
+
+            var a = new[] { 1, 2, 3 };
+            C.R(a.M);
+            C.R(x => a.M(x));
+
+            static class C
+            {
+                public static int M(this Span<int> x, int y) => x[y];
+                public static void R(Func<int, int> f) => Console.Write(f(1));
+            }
+            """;
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (4,5): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Func<int, int>'
+            // C.R(a.M);
+            Diagnostic(ErrorCode.ERR_BadArgType, "a.M").WithArguments("1", "method group", "System.Func<int, int>").WithLocation(4, 5),
+            // (5,10): error CS1929: 'int[]' does not contain a definition for 'M' and the best extension method overload 'C.M(Span<int>, int)' requires a receiver of type 'System.Span<int>'
+            // C.R(x => a.M(x));
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("int[]", "M", "C.M(System.Span<int>, int)", "System.Span<int>").WithLocation(5, 10));
+
+        var expectedDiagnostics = new[]
+        {
+            // (4,5): error CS1113: Extension method 'C.M(Span<int>, int)' defined on value type 'Span<int>' cannot be used to create delegates
+            // C.R(a.M);
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "a.M").WithArguments("C.M(System.Span<int>, int)", "System.Span<int>").WithLocation(4, 5)
+        };
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Implicit_MethodGroup_FunctionPointer(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            unsafe
+            {
+                C.R(&C.M);
+            }
+
+            unsafe static class C
+            {
+                public static void M(Span<int> x) => Console.Write(x[1]);
+                public static void R(delegate*<int[], void> a) => a(new int[] { 1, 2, 3 });
+            }
+            """;
+
+        CreateCompilationWithSpan(source, TestOptions.UnsafeReleaseExe, TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (5,9): error CS8757: No overload for 'C.M(Span<int>)' matches function pointer 'delegate*<int[], void>'
+            //     C.R(&C.M);
+            Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.M").WithArguments("C.M(System.Span<int>)", "delegate*<int[], void>").WithLocation(5, 9));
     }
 
     [Theory, CombinatorialData]
@@ -1751,5 +1921,11 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_000b:  ret
             }
             """);
+    }
+
+    [Fact]
+    public void Conversion_Array_Span_MethodGroup()
+    {
+
     }
 }
