@@ -20,7 +20,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 {
     private readonly JsonRpc _jsonRpc;
     protected readonly ILspLogger Logger;
-    protected readonly ITypeRefResolver TypeRefResolver;
+    protected readonly AbstractTypeRefResolver TypeRefResolver;
 
     /// <summary>
     /// These are lazy to allow implementations to define custom variables that are used by
@@ -56,7 +56,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     protected AbstractLanguageServer(
         JsonRpc jsonRpc,
         ILspLogger logger,
-        ITypeRefResolver? typeRefResolver)
+        AbstractTypeRefResolver? typeRefResolver)
     {
         Logger = logger;
         _jsonRpc = jsonRpc;
@@ -182,12 +182,12 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     protected abstract class DelegatingEntryPoint
     {
         protected readonly string _method;
-        protected readonly ITypeRefResolver _typeRefResolver;
+        protected readonly AbstractTypeRefResolver _typeRefResolver;
         protected readonly Lazy<FrozenDictionary<string, (MethodInfo MethodInfo, RequestHandlerMetadata Metadata)>> _languageEntryPoint;
 
         private static readonly MethodInfo s_queueExecuteAsyncMethod = typeof(RequestExecutionQueue<TRequestContext>).GetMethod(nameof(RequestExecutionQueue<TRequestContext>.ExecuteAsync))!;
 
-        public DelegatingEntryPoint(string method, ITypeRefResolver typeRefResolver, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
+        public DelegatingEntryPoint(string method, AbstractTypeRefResolver typeRefResolver, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
         {
             _method = method;
             _typeRefResolver = typeRefResolver;

@@ -200,7 +200,7 @@ internal abstract partial class AbstractInProcLanguageClient(
         Stream outputStream,
         WellKnownLspServerKinds serverKind,
         ILspServiceLoggerFactory lspLoggerFactory,
-        ITypeRefResolver? typeRefResolver,
+        AbstractTypeRefResolver? typeRefResolver,
         CancellationToken cancellationToken)
     {
         var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
@@ -235,7 +235,7 @@ internal abstract partial class AbstractInProcLanguageClient(
         WellKnownLspServerKinds serverKind,
         AbstractLspLogger logger,
         HostServices hostServices,
-        ITypeRefResolver? typeRefResolver = null)
+        AbstractTypeRefResolver? typeRefResolver = null)
     {
         var server = new RoslynLanguageServer(
             LspServiceProvider,

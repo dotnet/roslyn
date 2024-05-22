@@ -7,15 +7,13 @@ using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal sealed class ExtensionTypeRefResolver(IAssemblyLoader assemblyLoader) : ITypeRefResolver
+internal sealed class ExtensionTypeRefResolver(IAssemblyLoader assemblyLoader) : AbstractTypeRefResolver
 {
-    public Type? Resolve(TypeRef typeRef)
+    protected override Type? ResolveCore(TypeRef typeRef)
     {
-        if (typeRef.IsDefault)
-        {
-            return null;
-        }
-
-        return Type.GetType(typeRef.TypeName, assemblyResolver: assemblyLoader.LoadAssembly, typeResolver: null);
+        return Type.GetType(
+            typeRef.TypeName,
+            assemblyResolver: assemblyLoader.LoadAssembly,
+            typeResolver: null);
     }
 }

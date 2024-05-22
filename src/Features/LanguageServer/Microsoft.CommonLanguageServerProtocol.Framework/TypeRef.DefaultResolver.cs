@@ -6,35 +6,16 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 internal readonly partial record struct TypeRef
 {
-    private sealed class DefaultResolverImpl : ITypeRefResolver
+    private sealed class DefaultResolverImpl : AbstractTypeRefResolver
     {
-        private static readonly Dictionary<string, Type> s_typeNameToTypeMap = [];
-
-        public Type? Resolve(TypeRef typeRef)
+        protected override Type? ResolveCore(TypeRef typeRef)
         {
-            if (typeRef.IsDefault)
-            {
-                return null;
-            }
-
-            var typeName = typeRef.TypeName;
-
-            lock (s_typeNameToTypeMap)
-            {
-                if (!s_typeNameToTypeMap.TryGetValue(typeName, out var result))
-                {
-                    result = LoadType(typeName);
-                    s_typeNameToTypeMap.Add(typeName, result);
-                }
-
-                return result;
-            }
+            return LoadType(typeRef.TypeName);
         }
 
         private static Type LoadType(string typeName)

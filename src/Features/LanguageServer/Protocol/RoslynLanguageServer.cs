@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             HostServices hostServices,
             ImmutableArray<string> supportedLanguages,
             WellKnownLspServerKinds serverKind,
-            ITypeRefResolver? typeRefResolver = null)
+            AbstractTypeRefResolver? typeRefResolver = null)
             : base(jsonRpc, serializerOptions, logger, typeRefResolver)
         {
             _lspServiceProvider = lspServiceProvider;

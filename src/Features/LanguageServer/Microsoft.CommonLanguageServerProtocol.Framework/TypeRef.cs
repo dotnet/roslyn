@@ -14,7 +14,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// </summary>
 internal readonly partial record struct TypeRef
 {
-    public static ITypeRefResolver DefaultResolver { get; } = new DefaultResolverImpl();
+    public static AbstractTypeRefResolver DefaultResolver { get; } = new DefaultResolverImpl();
 
     /// <summary>
     /// Returns the full assembly-qualified name of this type.

@@ -27,7 +27,7 @@ internal sealed class LanguageServerHost
     private readonly AbstractLanguageServer<RequestContext> _roslynLanguageServer;
     private readonly JsonRpc _jsonRpc;
 
-    public LanguageServerHost(Stream inputStream, Stream outputStream, ExportProvider exportProvider, ILogger logger, ITypeRefResolver typeRefResolver)
+    public LanguageServerHost(Stream inputStream, Stream outputStream, ExportProvider exportProvider, ILogger logger, AbstractTypeRefResolver typeRefResolver)
     {
         var messageFormatter = CreateJsonMessageFormatter();
 

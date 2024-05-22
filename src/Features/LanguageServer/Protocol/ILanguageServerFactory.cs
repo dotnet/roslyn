@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             WellKnownLspServerKinds serverKind,
             AbstractLspLogger logger,
             HostServices hostServices,
-            ITypeRefResolver? typeRefResolver = null);
+            AbstractTypeRefResolver? typeRefResolver = null);
     }
 }

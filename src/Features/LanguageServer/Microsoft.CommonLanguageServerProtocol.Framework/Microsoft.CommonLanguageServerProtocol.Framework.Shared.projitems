@@ -40,7 +40,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SystemTextJsonLanguageServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TypeRef.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TypeRef.DefaultResolver.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ITypeRefResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AbstractTypeRefResolver.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
   </ItemGroup>
 </Project>

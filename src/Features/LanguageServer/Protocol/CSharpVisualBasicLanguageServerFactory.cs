@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             WellKnownLspServerKinds serverKind,
             AbstractLspLogger logger,
             HostServices hostServices,
-            ITypeRefResolver? typeRefResolver)
+            AbstractTypeRefResolver? typeRefResolver)
         {
             var server = new RoslynLanguageServer(
                 _lspServiceProvider,

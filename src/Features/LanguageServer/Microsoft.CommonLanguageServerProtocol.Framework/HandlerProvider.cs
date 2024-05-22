@@ -14,10 +14,10 @@ using System.Linq;
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <inheritdoc/>
-internal class HandlerProvider(ILspServices lspServices, ITypeRefResolver typeRefResolver) : AbstractHandlerProvider
+internal class HandlerProvider(ILspServices lspServices, AbstractTypeRefResolver typeRefResolver) : AbstractHandlerProvider
 {
     private readonly ILspServices _lspServices = lspServices;
-    private readonly ITypeRefResolver _typeRefResolver = typeRefResolver;
+    private readonly AbstractTypeRefResolver _typeRefResolver = typeRefResolver;
     private FrozenDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>? _requestHandlers;
 
     public IMethodHandler GetMethodHandler(string method, TypeRef? requestTypeRef, TypeRef? responseTypeRef)
@@ -47,7 +47,7 @@ internal class HandlerProvider(ILspServices lspServices, ITypeRefResolver typeRe
     private FrozenDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
         => _requestHandlers ??= CreateMethodToHandlerMap(_lspServices, _typeRefResolver);
 
-    private static FrozenDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> CreateMethodToHandlerMap(ILspServices lspServices, ITypeRefResolver typeRefResolver)
+    private static FrozenDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> CreateMethodToHandlerMap(ILspServices lspServices, AbstractTypeRefResolver typeRefResolver)
     {
         var builder = new Dictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>();
 
@@ -102,7 +102,7 @@ internal class HandlerProvider(ILspServices lspServices, ITypeRefResolver typeRe
             return new(() => instance);
         }
 
-        static Lazy<IMethodHandler> GetLazyHandlerFromTypeRef(ILspServices lspServices, ITypeRefResolver typeRefResolver, TypeRef handlerTypeRef)
+        static Lazy<IMethodHandler> GetLazyHandlerFromTypeRef(ILspServices lspServices, AbstractTypeRefResolver typeRefResolver, TypeRef handlerTypeRef)
         {
             return new(() =>
             {

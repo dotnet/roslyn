@@ -20,7 +20,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// Basic implementation of <see cref="AbstractLanguageServer{TRequestContext}"/> using Newtonsoft for serialization.
 /// </summary>
 internal abstract class NewtonsoftLanguageServer<TRequestContext>(
-    JsonRpc jsonRpc, JsonSerializer jsonSerializer, ILspLogger logger, ITypeRefResolver? typeRefResolver = null)
+    JsonRpc jsonRpc, JsonSerializer jsonSerializer, ILspLogger logger, AbstractTypeRefResolver? typeRefResolver = null)
     : AbstractLanguageServer<TRequestContext>(jsonRpc, logger, typeRefResolver)
 {
     private readonly JsonSerializer _jsonSerializer = jsonSerializer;
