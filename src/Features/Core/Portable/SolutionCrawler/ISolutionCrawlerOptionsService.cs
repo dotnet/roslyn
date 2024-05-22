@@ -7,10 +7,9 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.SolutionCrawler
+namespace Microsoft.CodeAnalysis.SolutionCrawler;
+
+internal interface ISolutionCrawlerOptionsService : IWorkspaceService
 {
-    internal interface ISolutionCrawlerOptionsService : IWorkspaceService
-    {
-        bool EnableDiagnosticsInSourceGeneratedFiles { get; }
-    }
+    bool EnableDiagnosticsInSourceGeneratedFiles { get; }
 }

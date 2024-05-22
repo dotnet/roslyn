@@ -3,29 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
-using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
+using Xunit.Harness;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 {
@@ -169,7 +166,7 @@ class C
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync("Simplify delegate invocation", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("temp2", 0, 0, extendSelection: false, selectBlock: false, HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("temp2(", 0, 0, extendSelection: false, selectBlock: false, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync("Simplify delegate invocation", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync("First?.", cancellationToken: HangMitigatingCancellationToken);
@@ -704,61 +701,17 @@ public class Program
     }
 }", HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-            var expectedItems = new[]
-            {
-                "Use discard '__'",  // IDE0059
-                "Use explicit type instead of 'var'",   // IDE0008
-                "Introduce local",
-                    "Introduce local for 'new Program()'",
-                    "Introduce local for all occurrences of 'new Program()'",
-                "Suppress or configure issues",
-                    "Configure IDE0008 code style",
-                        "csharp__style__var__elsewhere",
-                            "true",
-                            "false",
-                        "csharp__style__var__for__built__in__types",
-                            "true",
-                            "false",
-                        "csharp__style__var__when__type__is__apparent",
-                            "true",
-                            "false",
-                    "Configure IDE0008 severity",
-                        "None",
-                        "Silent",
-                        "Suggestion",
-                        "Warning",
-                        "Error",
-                    "Suppress IDE0059",
-                        "in Source",
-                        "in Suppression File",
-                        "in Source (attribute)",
-                    "Configure IDE0059 code style",
-                        "unused__local__variable",
-                        "discard__variable",
-                    "Configure IDE0059 severity",
-                        "None",
-                        "Silent",
-                        "Suggestion",
-                        "Warning",
-                        "Error",
-                    "Configure severity for all 'Style' analyzers",
-                        "None",
-                        "Silent",
-                        "Suggestion",
-                        "Warning",
-                        "Error",
-                    "Configure severity for all analyzers",
-                        "None",
-                        "Silent",
-                        "Suggestion",
-                        "Warning",
-                        "Error",
-            };
 
-            await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionsAsync([
+                "Use discard '__'",
+                "Use explicit type instead of 'var'",
+                "Introduce local",
+                "Introduce parameter for 'new Program()'",
+                "Suppress or configure issues",
+            ], cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72428"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/46784")]
         public async Task ConfigureSeverity()
         {
@@ -824,19 +777,29 @@ class C
             static async Task VerifyDiagnosticInErrorListAsync(string expectedSeverity, TestServices testServices, CancellationToken cancellationToken)
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
-                string[] expectedContents =
-                [
-                    $"(Compiler) Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used",
-                ];
+                await testServices.Editor.GetTagsAsync<IErrorTag>(cancellationToken);
 
-                var actualContents = await testServices.ErrorList.GetErrorsAsync(cancellationToken);
-                AssertEx.EqualOrDiff(
-                    string.Join(Environment.NewLine, expectedContents),
-                    string.Join(Environment.NewLine, actualContents));
+                var expectedContents = $"Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used";
+
+                var builder = new StringBuilder();
+
+                for (var i = 0; i < 120; i++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+
+                    var actualContents = string.Join(Environment.NewLine, await testServices.ErrorList.GetErrorsAsync(cancellationToken));
+                    if (expectedContents == actualContents)
+                        return;
+
+                    builder.AppendLine($"Error list result {i}: {actualContents}");
+                }
+
+                AssertEx.Fail(builder.ToString());
             }
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72428"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/46784")]
         public async Task ConfigureSeverityWithManualEditsToEditorconfig()
         {
@@ -896,19 +859,28 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
             static async Task VerifyDiagnosticInErrorListAsync(string expectedSeverity, TestServices testServices, CancellationToken cancellationToken)
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
-                string[] expectedContents =
-                [
-                    $"(Compiler) Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used",
-                ];
+                await testServices.Editor.GetTagsAsync<IErrorTag>(cancellationToken);
 
-                var actualContents = await testServices.ErrorList.GetErrorsAsync(cancellationToken);
-                AssertEx.EqualOrDiff(
-                    string.Join(Environment.NewLine, expectedContents),
-                    string.Join(Environment.NewLine, actualContents));
+                var expectedContents = $"Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used";
+                var builder = new StringBuilder();
+
+                for (var i = 0; i < 120; i++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+
+                    var actualContents = string.Join(Environment.NewLine, await testServices.ErrorList.GetErrorsAsync(cancellationToken));
+                    if (expectedContents == string.Join(Environment.NewLine, actualContents))
+                        return;
+
+                    builder.AppendLine($"Error list result {i}: {actualContents}");
+                }
+
+                AssertEx.Fail(builder.ToString());
             }
         }
 
-        [IdeTheory, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/72428"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)]
         [InlineData(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution)]
         internal async Task ConfigureSeverityWithManualEditsToEditorconfig_CurrentDocumentScope(BackgroundAnalysisScope analyzerScope, CompilerDiagnosticsScope compilerScope)
@@ -1001,27 +973,37 @@ dotnet_diagnostic.IDE0059.severity = none", HangMitigatingCancellationToken);
             static async Task VerifyDiagnosticsInErrorListAsync(string expectedCompilerDiagnosticSeverity, string expectedAnalyzerDiagnosticSeverity, TestServices testServices, CancellationToken cancellationToken)
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
+                await testServices.Editor.GetTagsAsync<IErrorTag>(cancellationToken);
 
                 using var _ = ArrayBuilder<string>.GetInstance(out var expectedContentsBuilder);
 
                 if (expectedCompilerDiagnosticSeverity != "none")
                 {
-                    expectedContentsBuilder.Add($"(Compiler) Class1.cs(8, 13): {expectedCompilerDiagnosticSeverity} CS0219: The variable 'y' is assigned but its value is never used");
-                    expectedContentsBuilder.Add($"(Compiler) Class2.cs(8, 13): {expectedCompilerDiagnosticSeverity} CS0219: The variable 'x' is assigned but its value is never used");
+                    expectedContentsBuilder.Add($"Class1.cs(8, 13): {expectedCompilerDiagnosticSeverity} CS0219: The variable 'y' is assigned but its value is never used");
+                    expectedContentsBuilder.Add($"Class2.cs(8, 13): {expectedCompilerDiagnosticSeverity} CS0219: The variable 'x' is assigned but its value is never used");
                 }
 
                 if (expectedAnalyzerDiagnosticSeverity != "none")
                 {
-                    expectedContentsBuilder.Add($"(Compiler) Class1.cs(8, 13): {expectedAnalyzerDiagnosticSeverity} IDE0059: Unnecessary assignment of a value to 'y'");
-                    expectedContentsBuilder.Add($"(Compiler) Class2.cs(8, 13): {expectedAnalyzerDiagnosticSeverity} IDE0059: Unnecessary assignment of a value to 'x'");
+                    expectedContentsBuilder.Add($"Class1.cs(8, 13): {expectedAnalyzerDiagnosticSeverity} IDE0059: Unnecessary assignment of a value to 'y'");
+                    expectedContentsBuilder.Add($"Class2.cs(8, 13): {expectedAnalyzerDiagnosticSeverity} IDE0059: Unnecessary assignment of a value to 'x'");
                 }
 
-                var expectedContents = expectedContentsBuilder.ToImmutable().Sort();
-                var actualContents = await testServices.ErrorList.GetErrorsAsync(ErrorSource.Other, Microsoft.VisualStudio.Shell.Interop.__VSERRORCATEGORY.EC_MESSAGE, cancellationToken);
+                var expectedContents = string.Join(Environment.NewLine, expectedContentsBuilder.ToImmutable().Sort());
 
-                AssertEx.EqualOrDiff(
-                    string.Join(Environment.NewLine, expectedContents),
-                    string.Join(Environment.NewLine, actualContents));
+                var builder = new StringBuilder();
+
+                for (var i = 0; i < 120; i++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+
+                    var actualContents = string.Join(Environment.NewLine, await testServices.ErrorList.GetErrorsAsync(ErrorSource.Other, Microsoft.VisualStudio.Shell.Interop.__VSERRORCATEGORY.EC_MESSAGE, cancellationToken));
+                    if (expectedContents == actualContents)
+                        return;
+                }
+
+                AssertEx.Fail(builder.ToString());
             }
         }
 

@@ -7,37 +7,36 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel;
+
+internal partial class CodeStyleSettingsViewModel
 {
-    internal partial class CodeStyleSettingsViewModel
+    internal class SettingsEntriesSnapshot : SettingsEntriesSnapshotBase<CodeStyleSetting>
     {
-        internal class SettingsEntriesSnapshot : SettingsEntriesSnapshotBase<CodeStyleSetting>
+        public SettingsEntriesSnapshot(ImmutableArray<CodeStyleSetting> data, int currentVersionNumber) : base(data, currentVersionNumber) { }
+
+        protected override bool TryGetValue(CodeStyleSetting result, string keyName, out object? content)
         {
-            public SettingsEntriesSnapshot(ImmutableArray<CodeStyleSetting> data, int currentVersionNumber) : base(data, currentVersionNumber) { }
-
-            protected override bool TryGetValue(CodeStyleSetting result, string keyName, out object? content)
+            content = keyName switch
             {
-                content = keyName switch
-                {
-                    ColumnDefinitions.CodeStyle.Description => result.Description,
-                    ColumnDefinitions.CodeStyle.Category => result.Category,
-                    ColumnDefinitions.CodeStyle.Severity => result,
-                    ColumnDefinitions.CodeStyle.Value => result,
-                    ColumnDefinitions.CodeStyle.Location => GetLocationString(result.Location),
-                    _ => null,
-                };
+                ColumnDefinitions.CodeStyle.Description => result.Description,
+                ColumnDefinitions.CodeStyle.Category => result.Category,
+                ColumnDefinitions.CodeStyle.Severity => result,
+                ColumnDefinitions.CodeStyle.Value => result,
+                ColumnDefinitions.CodeStyle.Location => GetLocationString(result.Location),
+                _ => null,
+            };
 
-                return content is not null;
-            }
+            return content is not null;
+        }
 
-            private static string? GetLocationString(SettingLocation location)
+        private static string? GetLocationString(SettingLocation location)
+        {
+            return location.LocationKind switch
             {
-                return location.LocationKind switch
-                {
-                    LocationKind.EditorConfig or LocationKind.GlobalConfig => location.Path,
-                    _ => ServicesVSResources.Visual_Studio_Settings
-                };
-            }
+                LocationKind.EditorConfig or LocationKind.GlobalConfig => location.Path,
+                _ => ServicesVSResources.Visual_Studio_Settings
+            };
         }
     }
 }

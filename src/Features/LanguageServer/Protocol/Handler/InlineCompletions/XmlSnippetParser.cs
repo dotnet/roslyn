@@ -24,7 +24,7 @@ internal partial class XmlSnippetParser
     /// <summary>
     /// Cache to hold onto the parsed XML for a particular snippet.
     /// </summary>
-    private readonly ConcurrentDictionary<string, ParsedXmlSnippet?> _parsedSnippetsCache = new();
+    private readonly ConcurrentDictionary<string, ParsedXmlSnippet?> _parsedSnippetsCache = [];
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

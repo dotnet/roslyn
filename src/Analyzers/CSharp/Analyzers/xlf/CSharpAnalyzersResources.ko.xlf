@@ -172,11 +172,6 @@
         <target state="translated">중복 null 허용 지시문 제거</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">비표시 오류(Suppression) 연산자 제거</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">불필요한 람다 식 제거</target>
@@ -457,8 +452,8 @@
         <target state="translated">'new' 식을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
         <target state="translated">'typeof'를 'nameof'로 변환할 수 있습니다.</target>
         <note />
       </trans-unit>

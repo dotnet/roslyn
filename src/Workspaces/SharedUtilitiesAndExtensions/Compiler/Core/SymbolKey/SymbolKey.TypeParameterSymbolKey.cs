@@ -4,73 +4,72 @@
 
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal partial struct SymbolKey
 {
-    internal partial struct SymbolKey
+    private sealed class TypeParameterSymbolKey : AbstractSymbolKey<ITypeParameterSymbol>
     {
-        private sealed class TypeParameterSymbolKey : AbstractSymbolKey<ITypeParameterSymbol>
+        public static readonly TypeParameterSymbolKey Instance = new();
+
+        public sealed override void Create(ITypeParameterSymbol symbol, SymbolKeyWriter visitor)
         {
-            public static readonly TypeParameterSymbolKey Instance = new();
-
-            public sealed override void Create(ITypeParameterSymbol symbol, SymbolKeyWriter visitor)
+            if (symbol.TypeParameterKind == TypeParameterKind.Cref)
             {
-                if (symbol.TypeParameterKind == TypeParameterKind.Cref)
-                {
-                    visitor.WriteBoolean(true);
-                    visitor.WriteLocation(symbol.Locations[0]);
-                }
-                else
-                {
-                    visitor.WriteBoolean(false);
-                    visitor.WriteString(symbol.MetadataName);
-                    visitor.WriteSymbolKey(symbol.ContainingSymbol);
-                }
+                visitor.WriteBoolean(true);
+                visitor.WriteLocation(symbol.Locations[0]);
             }
-
-            protected sealed override SymbolKeyResolution Resolve(
-                SymbolKeyReader reader, ITypeParameterSymbol? contextualSymbol, out string? failureReason)
+            else
             {
-                var isCref = reader.ReadBoolean();
+                visitor.WriteBoolean(false);
+                visitor.WriteString(symbol.MetadataName);
+                visitor.WriteSymbolKey(symbol.ContainingSymbol);
+            }
+        }
 
-                if (isCref)
+        protected sealed override SymbolKeyResolution Resolve(
+            SymbolKeyReader reader, ITypeParameterSymbol? contextualSymbol, out string? failureReason)
+        {
+            var isCref = reader.ReadBoolean();
+
+            if (isCref)
+            {
+                var location = reader.ReadLocation(out var locationFailureReason)!;
+                if (locationFailureReason != null)
                 {
-                    var location = reader.ReadLocation(out var locationFailureReason)!;
-                    if (locationFailureReason != null)
-                    {
-                        failureReason = $"({nameof(TypeParameterSymbolKey)} {nameof(location)} failed -> {locationFailureReason})";
-                        return default;
-                    }
-
-                    var resolution = reader.ResolveLocation(location);
-
-                    failureReason = null;
-                    return resolution.GetValueOrDefault();
+                    failureReason = $"({nameof(TypeParameterSymbolKey)} {nameof(location)} failed -> {locationFailureReason})";
+                    return default;
                 }
-                else
+
+                var resolution = reader.ResolveLocation(location);
+
+                failureReason = null;
+                return resolution.GetValueOrDefault();
+            }
+            else
+            {
+                var metadataName = reader.ReadString();
+                var containingSymbolResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingSymbol, out var containingSymbolFailureReason);
+
+                if (containingSymbolFailureReason != null)
                 {
-                    var metadataName = reader.ReadString();
-                    var containingSymbolResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingSymbol, out var containingSymbolFailureReason);
+                    failureReason = $"({nameof(TypeParameterSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
+                    return default;
+                }
 
-                    if (containingSymbolFailureReason != null)
+                using var result = PooledArrayBuilder<ITypeParameterSymbol>.GetInstance();
+                foreach (var containingSymbol in containingSymbolResolution)
+                {
+                    foreach (var typeParam in containingSymbol.GetTypeParameters())
                     {
-                        failureReason = $"({nameof(TypeParameterSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
-                        return default;
-                    }
-
-                    using var result = PooledArrayBuilder<ITypeParameterSymbol>.GetInstance();
-                    foreach (var containingSymbol in containingSymbolResolution)
-                    {
-                        foreach (var typeParam in containingSymbol.GetTypeParameters())
+                        if (typeParam.MetadataName == metadataName)
                         {
-                            if (typeParam.MetadataName == metadataName)
-                            {
-                                result.AddIfNotNull(typeParam);
-                            }
+                            result.AddIfNotNull(typeParam);
                         }
                     }
-
-                    return CreateResolution(result, $"({nameof(TypeParameterSymbolKey)} '{metadataName}' not found)", out failureReason);
                 }
+
+                return CreateResolution(result, $"({nameof(TypeParameterSymbolKey)} '{metadataName}' not found)", out failureReason);
             }
         }
     }

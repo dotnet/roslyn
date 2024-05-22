@@ -12,67 +12,66 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Storage;
 
-namespace Microsoft.CodeAnalysis.NavigateTo
+namespace Microsoft.CodeAnalysis.NavigateTo;
+
+internal interface IRemoteNavigateToSearchService
 {
-    internal interface IRemoteNavigateToSearchService
+    ValueTask SearchDocumentAsync(Checksum solutionChecksum, DocumentId documentId, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+    ValueTask SearchProjectsAsync(Checksum solutionChecksum, ImmutableArray<ProjectId> projectIds, ImmutableArray<DocumentId> priorityDocumentIds, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+
+    ValueTask SearchGeneratedDocumentsAsync(Checksum solutionChecksum, ImmutableArray<ProjectId> projectIds, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+    ValueTask SearchCachedDocumentsAsync(ImmutableArray<DocumentKey> documentKeys, ImmutableArray<DocumentKey> priorityDocumentKeys, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+
+    ValueTask HydrateAsync(Checksum solutionChecksum, CancellationToken cancellationToken);
+
+    public interface ICallback
     {
-        ValueTask SearchDocumentAsync(Checksum solutionChecksum, DocumentId documentId, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
-        ValueTask SearchProjectsAsync(Checksum solutionChecksum, ImmutableArray<ProjectId> projectIds, ImmutableArray<DocumentId> priorityDocumentIds, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+        ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result);
+        ValueTask OnProjectCompletedAsync(RemoteServiceCallbackId callbackId);
+    }
+}
 
-        ValueTask SearchGeneratedDocumentsAsync(Checksum solutionChecksum, ImmutableArray<ProjectId> projectIds, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
-        ValueTask SearchCachedDocumentsAsync(ImmutableArray<DocumentKey> documentKeys, ImmutableArray<DocumentKey> priorityDocumentKeys, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+[ExportRemoteServiceCallbackDispatcher(typeof(IRemoteNavigateToSearchService)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class NavigateToSearchServiceServerCallbackDispatcher() : RemoteServiceCallbackDispatcher, IRemoteNavigateToSearchService.ICallback
+{
+    private new NavigateToSearchServiceCallback GetCallback(RemoteServiceCallbackId callbackId)
+        => (NavigateToSearchServiceCallback)base.GetCallback(callbackId);
 
-        ValueTask HydrateAsync(Checksum solutionChecksum, CancellationToken cancellationToken);
+    public ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result)
+        => GetCallback(callbackId).OnResultFoundAsync(result);
 
-        public interface ICallback
+    public ValueTask OnProjectCompletedAsync(RemoteServiceCallbackId callbackId)
+        => GetCallback(callbackId).OnProjectCompletedAsync();
+}
+
+internal sealed class NavigateToSearchServiceCallback(
+    Func<RoslynNavigateToItem, Task> onResultFound,
+    Func<Task>? onProjectCompleted)
+{
+    public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result)
+    {
+        try
         {
-            ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result);
-            ValueTask OnProjectCompletedAsync(RemoteServiceCallbackId callbackId);
+            await onResultFound(result).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
+        {
         }
     }
 
-    [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteNavigateToSearchService)), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class NavigateToSearchServiceServerCallbackDispatcher() : RemoteServiceCallbackDispatcher, IRemoteNavigateToSearchService.ICallback
+    public async ValueTask OnProjectCompletedAsync()
     {
-        private new NavigateToSearchServiceCallback GetCallback(RemoteServiceCallbackId callbackId)
-            => (NavigateToSearchServiceCallback)base.GetCallback(callbackId);
-
-        public ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result)
-            => GetCallback(callbackId).OnResultFoundAsync(result);
-
-        public ValueTask OnProjectCompletedAsync(RemoteServiceCallbackId callbackId)
-            => GetCallback(callbackId).OnProjectCompletedAsync();
-    }
-
-    internal sealed class NavigateToSearchServiceCallback(
-        Func<RoslynNavigateToItem, Task> onResultFound,
-        Func<Task>? onProjectCompleted)
-    {
-        public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result)
+        try
         {
-            try
-            {
-                await onResultFound(result).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
-            {
-            }
+            if (onProjectCompleted is null)
+                return;
+
+            await onProjectCompleted().ConfigureAwait(false);
         }
-
-        public async ValueTask OnProjectCompletedAsync()
+        catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
         {
-            try
-            {
-                if (onProjectCompleted is null)
-                    return;
-
-                await onProjectCompleted().ConfigureAwait(false);
-            }
-            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
-            {
-            }
         }
     }
 }

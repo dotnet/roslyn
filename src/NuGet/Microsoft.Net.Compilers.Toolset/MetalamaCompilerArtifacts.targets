@@ -9,37 +9,37 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Composition.AttributedModel" Version="$(SystemCompositionVersion)" PrivateAssets="all">
+    <PackageReference Include="System.Composition.AttributedModel" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
-     <PackageReference Include="System.Composition.Convention" Version="$(SystemCompositionVersion)" PrivateAssets="all">
+     <PackageReference Include="System.Composition.Convention" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
-    <PackageReference Include="System.Composition.Hosting" Version="$(SystemCompositionVersion)" PrivateAssets="all">
+    <PackageReference Include="System.Composition.Hosting" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
-    <PackageReference Include="System.Composition.Runtime" Version="$(SystemCompositionVersion)" PrivateAssets="all">
+    <PackageReference Include="System.Composition.Runtime" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
-    <PackageReference Include="System.Composition.TypedParts" Version="$(SystemCompositionVersion)" PrivateAssets="all">
+    <PackageReference Include="System.Composition.TypedParts" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
-    <PackageReference Include="Humanizer.Core" Version="$(HumanizerCoreVersion)" PrivateAssets="all">
+    <PackageReference Include="Humanizer.Core" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
-     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" PrivateAssets="all">
+     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
-     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" PrivateAssets="all">
+     <PackageReference Include="System.ValueTuple" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
-    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" PrivateAssets="all">
+    <PackageReference Include="Microsoft.DiaSymReader" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" PrivateAssets="all">
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" PrivateAssets="all">
+    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
 
@@ -56,17 +56,12 @@
     </ItemGroup>
 
     <ItemGroup>
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\Newtonsoft.Json.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\net6.0\Microsoft.CodeAnalysis.Workspaces.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\net6.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\net6.0\Microsoft.CodeAnalysis.Features.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Features\$(Configuration)\net6.0\Microsoft.CodeAnalysis.CSharp.Features.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\net6.0\Microsoft.CodeAnalysis.Scripting.dll"/>
-      <CoreClrMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_AttributedModel)\lib\netstandard1.0\System.Composition.AttributedModel.dll"/>
-      <CoreClrMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Convention)\lib\netstandard1.0\System.Composition.Convention.dll"/>
-      <CoreClrMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Hosting)\lib\netstandard1.0\System.Composition.Hosting.dll"/>
-      <CoreClrMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Runtime)\lib\netstandard1.0\System.Composition.Runtime.dll"/>
-      <CoreClrMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_TypedParts)\lib\netstandard1.0\System.Composition.TypedParts.dll"/>
+      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(TargetFramework)\publish\Newtonsoft.Json.dll" />
+      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Workspaces.dll" />
+      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" />
+      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Features.dll" />
+      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Features\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CSharp.Features.dll" />
+      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Scripting.dll"/>
       <CoreClrMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_Bcl_AsyncInterfaces)\lib\netstandard2.1\Microsoft.Bcl.AsyncInterfaces.dll"/>
     </ItemGroup>
 
@@ -77,11 +72,6 @@
       <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Features.dll" />
       <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Features.dll" />
       <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Scripting.dll"/>
-      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_AttributedModel)\lib\net462\System.Composition.AttributedModel.dll"/>
-      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Convention)\lib\net462\System.Composition.Convention.dll"/>
-      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Hosting)\lib\net462\System.Composition.Hosting.dll"/>
-      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Runtime)\lib\net462\System.Composition.Runtime.dll"/>
-      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_TypedParts)\lib\net462\System.Composition.TypedParts.dll"/>
       <DesktopMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_Bcl_AsyncInterfaces)\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll"/>
       <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_ValueTuple)\lib\net47\System.ValueTuple.dll"/>
     </ItemGroup>

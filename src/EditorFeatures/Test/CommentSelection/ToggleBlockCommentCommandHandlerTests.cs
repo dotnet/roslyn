@@ -1500,13 +1500,13 @@ class C
             ToggleCommentMultiple(markup, expectedText);
         }
 
-        internal override AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace)
+        internal override AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(EditorTestWorkspace workspace)
         {
             return (AbstractCommentSelectionBase<ValueTuple>)workspace.ExportProvider.GetExportedValues<ICommandHandler>()
                 .First(export => typeof(ToggleBlockCommentCommandHandler).Equals(export.GetType()));
         }
 
-        internal override TestWorkspace GetWorkspace(string markup, TestComposition composition)
-            => TestWorkspace.CreateCSharp(markup, composition: composition);
+        internal override EditorTestWorkspace GetWorkspace(string markup, TestComposition composition)
+            => EditorTestWorkspace.CreateCSharp(markup, composition: composition);
     }
 }

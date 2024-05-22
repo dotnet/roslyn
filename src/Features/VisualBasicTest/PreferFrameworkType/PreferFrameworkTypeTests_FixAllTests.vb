@@ -4,7 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.PreferFrameworkTypeTests
     Partial Public Class PreferFrameworkTypeTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>

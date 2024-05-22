@@ -1053,5 +1053,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnreachableCode
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
+        public async Task TestIncompleteBinaryExpression()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    public class C { }
+                
+                    {|CS8803:throw new System.Exception();|}
+                    [|1+1|]{|CS1002:|}
+                    """,
+                FixedCode = """
+                    public class C { }
+                
+                    {|CS8803:throw new System.Exception();|}
+
+                    """,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }

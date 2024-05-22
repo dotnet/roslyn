@@ -4,12 +4,11 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.EditorConfig
+namespace Microsoft.CodeAnalysis.EditorConfig;
+
+[Flags]
+internal enum Language
 {
-    [Flags]
-    internal enum Language
-    {
-        CSharp = 1,
-        VisualBasic = 2,
-    }
+    CSharp = 1,
+    VisualBasic = 2,
 }

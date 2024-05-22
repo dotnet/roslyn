@@ -10,85 +10,84 @@ using System.Diagnostics;
 using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// An identifier that can be used to refer to the same Solution across versions. 
+/// </summary>
+[DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+[DataContract]
+public sealed class SolutionId : IEquatable<SolutionId>
 {
     /// <summary>
-    /// An identifier that can be used to refer to the same Solution across versions. 
+    /// The unique id of the solution.
     /// </summary>
-    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    [DataContract]
-    public sealed class SolutionId : IEquatable<SolutionId>
+    [DataMember(Order = 0)]
+    public Guid Id { get; }
+
+    [DataMember(Order = 1)]
+    private readonly string _debugName;
+
+    private SolutionId(Guid id, string debugName)
     {
-        /// <summary>
-        /// The unique id of the solution.
-        /// </summary>
-        [DataMember(Order = 0)]
-        public Guid Id { get; }
+        this.Id = id;
+        _debugName = debugName;
+    }
 
-        [DataMember(Order = 1)]
-        private readonly string _debugName;
+    /// <summary>
+    /// Create a new Solution Id
+    /// </summary>
+    /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
+    public static SolutionId CreateNewId(string debugName = null)
+        => CreateFromSerialized(Guid.NewGuid(), debugName);
 
-        private SolutionId(Guid id, string debugName)
+    public static SolutionId CreateFromSerialized(Guid id, string debugName = null)
+    {
+        if (id == Guid.Empty)
         {
-            this.Id = id;
-            _debugName = debugName;
+            throw new ArgumentException(nameof(id));
         }
 
-        /// <summary>
-        /// Create a new Solution Id
-        /// </summary>
-        /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
-        public static SolutionId CreateNewId(string debugName = null)
-            => CreateFromSerialized(Guid.NewGuid(), debugName);
+        debugName ??= "unsaved";
 
-        public static SolutionId CreateFromSerialized(Guid id, string debugName = null)
-        {
-            if (id == Guid.Empty)
-            {
-                throw new ArgumentException(nameof(id));
-            }
+        return new SolutionId(id, debugName);
+    }
 
-            debugName ??= "unsaved";
+    internal string DebugName => _debugName;
 
-            return new SolutionId(id, debugName);
-        }
+    private string GetDebuggerDisplay()
+        => string.Format("({0}, #{1} - {2})", GetType().Name, this.Id, _debugName);
 
-        internal string DebugName => _debugName;
+    public override bool Equals(object obj)
+        => this.Equals(obj as SolutionId);
 
-        private string GetDebuggerDisplay()
-            => string.Format("({0}, #{1} - {2})", GetType().Name, this.Id, _debugName);
+    public bool Equals(SolutionId other)
+    {
+        return
+            other is object &&
+            this.Id == other.Id;
+    }
 
-        public override bool Equals(object obj)
-            => this.Equals(obj as SolutionId);
+    public static bool operator ==(SolutionId left, SolutionId right)
+        => EqualityComparer<SolutionId>.Default.Equals(left, right);
 
-        public bool Equals(SolutionId other)
-        {
-            return
-                other is object &&
-                this.Id == other.Id;
-        }
+    public static bool operator !=(SolutionId left, SolutionId right)
+        => !(left == right);
 
-        public static bool operator ==(SolutionId left, SolutionId right)
-            => EqualityComparer<SolutionId>.Default.Equals(left, right);
+    public override int GetHashCode()
+        => this.Id.GetHashCode();
 
-        public static bool operator !=(SolutionId left, SolutionId right)
-            => !(left == right);
+    internal void WriteTo(ObjectWriter writer)
+    {
+        writer.WriteGuid(Id);
+        writer.WriteString(DebugName);
+    }
 
-        public override int GetHashCode()
-            => this.Id.GetHashCode();
+    internal static SolutionId ReadFrom(ObjectReader reader)
+    {
+        var guid = reader.ReadGuid();
+        var debugName = reader.ReadString();
 
-        internal void WriteTo(ObjectWriter writer)
-        {
-            writer.WriteGuid(Id);
-            writer.WriteString(DebugName);
-        }
-
-        internal static SolutionId ReadFrom(ObjectReader reader)
-        {
-            var guid = reader.ReadGuid();
-            var debugName = reader.ReadString();
-
-            return CreateFromSerialized(guid, debugName);
-        }
+        return CreateFromSerialized(guid, debugName);
     }
 }

@@ -17,6 +17,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class SourceTextExtensions
 {
+    // char pooled memory : 8K * 256 = 2MB
+    private const int CharArrayLength = 4 * 1024;
+
+    /// <summary>
+    /// Note: there is a strong invariant that you only get arrays back from this that are exactly <see
+    /// cref="CharArrayLength"/> long.  Putting arrays back into this of the wrong length will result in broken
+    /// behavior.  Do not expose this pool outside of this class.
+    /// </summary>
+    private static readonly ObjectPool<char[]> s_charArrayPool = new(() => new char[CharArrayLength], 256);
+
     public static void GetLineAndOffset(this SourceText text, int position, out int lineNumber, out int offset)
     {
         var line = text.Lines.GetLineFromPosition(position);
@@ -182,46 +192,39 @@ internal static partial class SourceTextExtensions
     private static void WriteChunksTo(SourceText sourceText, ObjectWriter writer, int length, CancellationToken cancellationToken)
     {
         // chunk size
-        var buffer = SharedPools.CharArray.Allocate();
-        writer.WriteInt32(buffer.Length);
+        using var pooledObject = s_charArrayPool.GetPooledObject();
+        var buffer = pooledObject.Object;
+        Contract.ThrowIfTrue(buffer.Length != CharArrayLength);
+
+        // We write out the chunk size for sanity purposes.
+        writer.WriteInt32(CharArrayLength);
 
         // number of chunks
         var numberOfChunks = 1 + (length / buffer.Length);
         writer.WriteInt32(numberOfChunks);
 
         // write whole chunks
-        try
+        var offset = 0;
+        for (var i = 0; i < numberOfChunks; i++)
         {
-            var offset = 0;
-            for (var i = 0; i < numberOfChunks; i++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
-                var count = Math.Min(buffer.Length, length - offset);
-                if ((i < numberOfChunks - 1) || (count == buffer.Length))
-                {
-                    // chunks before last chunk or last chunk match buffer size
-                    sourceText.CopyTo(offset, buffer, 0, buffer.Length);
-                    writer.WriteValue(buffer);
-                }
-                else if (i == numberOfChunks - 1)
-                {
-                    // last chunk which size is not buffer size
-                    var tempArray = new char[count];
+            var count = Math.Min(buffer.Length, length - offset);
+            sourceText.CopyTo(offset, buffer, 0, count);
 
-                    sourceText.CopyTo(offset, tempArray, 0, tempArray.Length);
-                    writer.WriteValue(tempArray);
-                }
+            // In the case where the array is entirely full, we can pass that as is to the ObjectWriter.  It already
+            // supports sending the array all the way through to the underlying stream without allocations. In the case
+            // where it's partially full, we pass in a span to the section that is filled.  This will fast path on
+            // netcore, though will incur a copy to pooled memory on netfx.
+            if (count == buffer.Length)
+                writer.WriteCharArray(buffer);
+            else
+                writer.WriteSpan(buffer.AsSpan()[..count]);
 
-                offset += count;
-            }
-
-            Contract.ThrowIfFalse(offset == length);
+            offset += count;
         }
-        finally
-        {
-            SharedPools.CharArray.Free(buffer);
-        }
+
+        Contract.ThrowIfFalse(offset == length);
     }
 
     public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
@@ -231,7 +234,7 @@ internal static partial class SourceTextExtensions
         return textService.CreateText(textReader, encoding, checksumAlgorithm, cancellationToken);
     }
 
-    private class ObjectReaderTextReader : TextReaderWithLength
+    private sealed class ObjectReaderTextReader : TextReaderWithLength
     {
         private readonly ImmutableArray<char[]> _chunks;
         private readonly int _chunkSize;
@@ -245,33 +248,38 @@ internal static partial class SourceTextExtensions
             if (length < SourceTextLengthThreshold)
             {
                 // small size, read as string
-                return new StringReader(reader.ReadString());
+                return new StringReader(reader.ReadRequiredString());
             }
 
-            // read as chunks
-            using var _ = ArrayBuilder<char[]>.GetInstance(out var builder);
-
             var chunkSize = reader.ReadInt32();
+            Contract.ThrowIfTrue(chunkSize != CharArrayLength);
             var numberOfChunks = reader.ReadInt32();
+
+            // read as chunks
+            using var _ = ArrayBuilder<char[]>.GetInstance(numberOfChunks, out var chunks);
 
             var offset = 0;
             for (var i = 0; i < numberOfChunks; i++)
             {
-                var (currentChunk, currentChunkLength) = reader.ReadCharArray(static length =>
-                {
-                    if (length <= SharedPools.CharBufferSize)
-                        return SharedPools.CharArray.Allocate();
+                // Shared pool array will be freed in the Dispose method below.
+                var (currentChunk, currentChunkLength) = reader.ReadCharArray(
+                    static length =>
+                    {
+                        Contract.ThrowIfTrue(length > CharArrayLength);
+                        return s_charArrayPool.Allocate();
+                    });
 
-                    return new char[length];
-                });
+                Contract.ThrowIfTrue(currentChunk.Length != CharArrayLength);
 
-                builder.Add(currentChunk);
+                // All but the last chunk must be completely filled.
+                Contract.ThrowIfTrue(i < numberOfChunks - 1 && currentChunkLength != CharArrayLength);
 
+                chunks.Add(currentChunk);
                 offset += currentChunkLength;
             }
 
             Contract.ThrowIfFalse(offset == length);
-            return new ObjectReaderTextReader(builder.ToImmutable(), chunkSize, length);
+            return new ObjectReaderTextReader(chunks.ToImmutableAndClear(), chunkSize, length);
         }
 
         private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length)
@@ -280,6 +288,8 @@ internal static partial class SourceTextExtensions
             _chunks = chunks;
             _chunkSize = chunkSize;
             _disposed = false;
+            Contract.ThrowIfTrue(chunkSize != CharArrayLength);
+            Contract.ThrowIfTrue(chunks.Any(static (c, s) => c.Length != s, chunkSize));
         }
 
         protected override void Dispose(bool disposing)
@@ -287,11 +297,10 @@ internal static partial class SourceTextExtensions
             if (!_disposed)
             {
                 _disposed = true;
+
+                // Constructor already validated that all chunks are the right size to go back into the pool.
                 foreach (var chunk in _chunks)
-                {
-                    if (chunk.Length <= SharedPools.CharBufferSize)
-                        SharedPools.CharArray.Free(chunk);
-                }
+                    s_charArrayPool.Free(chunk);
             }
 
             base.Dispose(disposing);

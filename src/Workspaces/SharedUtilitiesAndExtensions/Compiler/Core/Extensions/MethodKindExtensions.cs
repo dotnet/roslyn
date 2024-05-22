@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal static class MethodKindExtensions
 {
-    internal static class MethodKindExtensions
-    {
-        public static bool IsPropertyAccessor(this MethodKind kind)
-            => kind is MethodKind.PropertyGet or MethodKind.PropertySet;
-    }
+    public static bool IsPropertyAccessor(this MethodKind kind)
+        => kind is MethodKind.PropertyGet or MethodKind.PropertySet;
 }

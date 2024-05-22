@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MoveToTopOfFile
     Public Class MoveToTopOfFileTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New MoveToTopOfFileCodeFixProvider())

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Xunit;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
@@ -39,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     </Project>
 </Workspace>";
 
-        protected override TestWorkspace CreateWorkspace(string fileContents)
-            => TestWorkspace.CreateCSharp(fileContents, composition: GetComposition());
+        protected override EditorTestWorkspace CreateWorkspace(string fileContents)
+            => EditorTestWorkspace.CreateCSharp(fileContents, composition: GetComposition());
 
         internal override CompletionService GetCompletionService(Project project)
             => Assert.IsType<CSharpCompletionService>(base.GetCompletionService(project));

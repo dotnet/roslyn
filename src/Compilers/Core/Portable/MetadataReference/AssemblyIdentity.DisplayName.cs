@@ -81,11 +81,11 @@ namespace Microsoft.CodeAnalysis
 
             sb.Append(", Version=");
             sb.Append(_version.Major);
-            sb.Append(".");
+            sb.Append('.');
             sb.Append(_version.Minor);
-            sb.Append(".");
+            sb.Append('.');
             sb.Append(_version.Build);
-            sb.Append(".");
+            sb.Append('.');
             sb.Append(_version.Revision);
 
             sb.Append(", Culture=");
@@ -848,15 +848,15 @@ namespace Microsoft.CodeAnalysis
                     return true;
 
                 case 't':
-                    sb.Append("\t");
+                    sb.Append('\t');
                     return true;
 
                 case 'n':
-                    sb.Append("\n");
+                    sb.Append('\n');
                     return true;
 
                 case 'r':
-                    sb.Append("\r");
+                    sb.Append('\r');
                     return true;
 
                 case 'u':

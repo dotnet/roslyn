@@ -11,27 +11,26 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ChangeSignature
-{
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-        Name = PredefinedCodeRefactoringProviderNames.ChangeSignature), Shared]
-    internal class ChangeSignatureCodeRefactoringProvider : CodeRefactoringProvider
-    {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public ChangeSignatureCodeRefactoringProvider()
-        {
-        }
+namespace Microsoft.CodeAnalysis.ChangeSignature;
 
-        public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
+    Name = PredefinedCodeRefactoringProviderNames.ChangeSignature), Shared]
+internal class ChangeSignatureCodeRefactoringProvider : CodeRefactoringProvider
+{
+    [ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    public ChangeSignatureCodeRefactoringProvider()
+    {
+    }
+
+    public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+    {
+        var (document, span, cancellationToken) = context;
+        if (span.IsEmpty)
         {
-            var (document, span, cancellationToken) = context;
-            if (span.IsEmpty)
-            {
-                var service = document.GetLanguageService<AbstractChangeSignatureService>();
-                var actions = await service.GetChangeSignatureCodeActionAsync(document, span, context.Options, cancellationToken).ConfigureAwait(false);
-                context.RegisterRefactorings(actions);
-            }
+            var service = document.GetLanguageService<AbstractChangeSignatureService>();
+            var actions = await service.GetChangeSignatureCodeActionAsync(document, span, context.Options, cancellationToken).ConfigureAwait(false);
+            context.RegisterRefactorings(actions);
         }
     }
 }

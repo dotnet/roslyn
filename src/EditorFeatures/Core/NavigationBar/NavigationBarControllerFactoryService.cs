@@ -11,31 +11,30 @@ using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
-{
-    [Export(typeof(INavigationBarControllerFactoryService))]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class NavigationBarControllerFactoryService(
-        IThreadingContext threadingContext,
-        [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-        IUIThreadOperationExecutor uIThreadOperationExecutor,
-        IAsynchronousOperationListenerProvider listenerProvider) : INavigationBarControllerFactoryService
-    {
-        private readonly IThreadingContext _threadingContext = threadingContext;
-        private readonly ITextBufferVisibilityTracker? _visibilityTracker = visibilityTracker;
-        private readonly IUIThreadOperationExecutor _uIThreadOperationExecutor = uIThreadOperationExecutor;
-        private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigationBar);
+namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar;
 
-        public IDisposable CreateController(INavigationBarPresenter presenter, ITextBuffer textBuffer)
-        {
-            return new NavigationBarController(
-                _threadingContext,
-                presenter,
-                textBuffer,
-                _visibilityTracker,
-                _uIThreadOperationExecutor,
-                _asyncListener);
-        }
+[Export(typeof(INavigationBarControllerFactoryService))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class NavigationBarControllerFactoryService(
+    IThreadingContext threadingContext,
+    [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+    IUIThreadOperationExecutor uIThreadOperationExecutor,
+    IAsynchronousOperationListenerProvider listenerProvider) : INavigationBarControllerFactoryService
+{
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly ITextBufferVisibilityTracker? _visibilityTracker = visibilityTracker;
+    private readonly IUIThreadOperationExecutor _uIThreadOperationExecutor = uIThreadOperationExecutor;
+    private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigationBar);
+
+    public IDisposable CreateController(INavigationBarPresenter presenter, ITextBuffer textBuffer)
+    {
+        return new NavigationBarController(
+            _threadingContext,
+            presenter,
+            textBuffer,
+            _visibilityTracker,
+            _uIThreadOperationExecutor,
+            _asyncListener);
     }
 }

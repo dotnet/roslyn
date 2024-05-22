@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             Return False
         End Function
 
-        Protected Overrides Function CanUseCollectionExpression(semanticModel As SemanticModel, objectCreationExpression As ObjectCreationExpressionSyntax, expressionType As INamedTypeSymbol, allowInterfaceConversion As Boolean, cancellationToken As CancellationToken, ByRef changesSemantics As Boolean) As Boolean
+        Protected Overrides Function CanUseCollectionExpression(semanticModel As SemanticModel, objectCreationExpression As ObjectCreationExpressionSyntax, expressionType As INamedTypeSymbol, allowSemanticsChange As Boolean, cancellationToken As CancellationToken, ByRef changesSemantics As Boolean) As Boolean
             Throw ExceptionUtilities.Unreachable()
         End Function
     End Class

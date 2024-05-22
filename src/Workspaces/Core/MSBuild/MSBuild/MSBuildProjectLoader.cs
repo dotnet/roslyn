@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.MSBuild.Build;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -24,6 +23,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly SolutionServices _solutionServices;
 
         private readonly DiagnosticReporter _diagnosticReporter;
+        private readonly Microsoft.Extensions.Logging.ILoggerFactory _loggerFactory;
         private readonly PathResolver _pathResolver;
         private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
 
@@ -33,13 +33,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
         internal MSBuildProjectLoader(
             SolutionServices solutionServices,
             DiagnosticReporter diagnosticReporter,
-            ProjectFileExtensionRegistry? projectFileExtensionRegistry,
+            Microsoft.Extensions.Logging.ILoggerFactory loggerFactory,
+            ProjectFileExtensionRegistry projectFileExtensionRegistry,
             ImmutableDictionary<string, string>? properties)
         {
             _solutionServices = solutionServices;
             _diagnosticReporter = diagnosticReporter;
+            _loggerFactory = loggerFactory;
             _pathResolver = new PathResolver(_diagnosticReporter);
-            _projectFileExtensionRegistry = projectFileExtensionRegistry ?? new ProjectFileExtensionRegistry(solutionServices, _diagnosticReporter);
+            _projectFileExtensionRegistry = projectFileExtensionRegistry;
 
             Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -56,8 +58,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="properties">An optional dictionary of additional MSBuild properties and values to use when loading projects.
         /// These are the same properties that are passed to MSBuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
         public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string>? properties = null)
-            : this(workspace.Services.SolutionServices, new DiagnosticReporter(workspace), projectFileExtensionRegistry: null, properties)
         {
+            _solutionServices = workspace.Services.SolutionServices;
+            _diagnosticReporter = new DiagnosticReporter(workspace);
+            _loggerFactory = DiagnosticReporterLoggerProvider.CreateLoggerFactoryForDiagnosticReporter(_diagnosticReporter);
+            _pathResolver = new PathResolver(_diagnosticReporter);
+            _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(_solutionServices, _diagnosticReporter);
+
+            Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            if (properties != null)
+            {
+                Properties = Properties.AddRange(properties);
+            }
         }
 
         /// <summary>
@@ -199,7 +212,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
-            var buildHostProcessManager = new BuildHostProcessManager(Properties);
+            var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
             await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
             var worker = new Worker(
@@ -261,7 +274,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 onPathFailure: reportingMode,
                 onLoaderFailure: reportingMode);
 
-            var buildHostProcessManager = new BuildHostProcessManager(Properties);
+            var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
             await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
             var worker = new Worker(
@@ -270,7 +283,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _pathResolver,
                 _projectFileExtensionRegistry,
                 buildHostProcessManager,
-                requestedProjectPaths: ImmutableArray.Create(projectFilePath),
+                requestedProjectPaths: [projectFilePath],
                 baseDirectory: Directory.GetCurrentDirectory(),
                 globalProperties: Properties,
                 projectMap,

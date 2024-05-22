@@ -6,14 +6,13 @@ using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.RemoveRedundantEquality;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantEquality
+namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantEquality;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpRemoveRedundantEqualityDiagnosticAnalyzer
+    : AbstractRemoveRedundantEqualityDiagnosticAnalyzer
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpRemoveRedundantEqualityDiagnosticAnalyzer
-        : AbstractRemoveRedundantEqualityDiagnosticAnalyzer
+    public CSharpRemoveRedundantEqualityDiagnosticAnalyzer() : base(CSharpSyntaxFacts.Instance)
     {
-        public CSharpRemoveRedundantEqualityDiagnosticAnalyzer() : base(CSharpSyntaxFacts.Instance)
-        {
-        }
     }
 }

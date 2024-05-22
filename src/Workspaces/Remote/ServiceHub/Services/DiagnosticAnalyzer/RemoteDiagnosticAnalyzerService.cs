@@ -35,21 +35,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Remote API.
-        /// </summary>
-        public ValueTask StartSolutionCrawlerAsync(CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(cancellationToken =>
-            {
-                // register solution crawler:
-                var workspace = GetWorkspace();
-                workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(workspace);
-
-                return ValueTaskFactory.CompletedTask;
-            }, cancellationToken);
-        }
-
-        /// <summary>
         /// Calculate diagnostics. this works differently than other ones such as todo comments or designer attribute scanner
         /// since in proc and out of proc runs quite differently due to concurrency and due to possible amount of data
         /// that needs to pass through between processes

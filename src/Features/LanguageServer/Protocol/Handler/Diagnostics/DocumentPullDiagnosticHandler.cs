@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             => diagnosticsParams.TextDocument;
 
         protected override VSInternalDiagnosticReport[] CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
-            => new[]
-            {
+            => [
                 new VSInternalDiagnosticReport
                 {
                     Diagnostics = diagnostics,
@@ -45,13 +44,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     // values which are cached and may be out of date.
                     Supersedes = WorkspaceDiagnosticIdentifier,
                 }
-            };
+            ];
 
         protected override VSInternalDiagnosticReport[] CreateRemovedReport(TextDocumentIdentifier identifier)
             => CreateReport(identifier, diagnostics: null, resultId: null);
 
-        protected override VSInternalDiagnosticReport[] CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
-            => CreateReport(identifier, diagnostics: null, resultId);
+        protected override bool TryCreateUnchangedReport(TextDocumentIdentifier identifier, string resultId, out VSInternalDiagnosticReport[] report)
+        {
+            report = CreateReport(identifier, diagnostics: null, resultId);
+            return true;
+        }
 
         protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalDocumentDiagnosticsParams diagnosticsParams)
         {
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             };
 
             if (diagnosticKind is null)
-                return new(ImmutableArray<IDiagnosticSource>.Empty);
+                return new([]);
 
             return new(GetDiagnosticSources(diagnosticKind.Value, nonLocalDocumentDiagnostics: false, taskList: false, context, GlobalOptions));
         }
@@ -109,25 +111,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             //
             // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
             // handler treats those as separate worlds that they are responsible for.
-            var document = context.Document;
-            if (document is null)
+            var textDocument = context.TextDocument;
+            if (textDocument is null)
             {
-                context.TraceInformation("Ignoring diagnostics request because no document was provided");
-                return ImmutableArray<IDiagnosticSource>.Empty;
+                context.TraceInformation("Ignoring diagnostics request because no text document was provided");
+                return [];
             }
 
-            if (!context.IsTracking(document.GetURI()))
+            var document = textDocument as Document;
+            if (taskList && document is null)
             {
-                context.TraceWarning($"Ignoring diagnostics request for untracked document: {document.GetURI()}");
-                return ImmutableArray<IDiagnosticSource>.Empty;
+                context.TraceInformation("Ignoring task list diagnostics request because no document was provided");
+                return [];
+            }
+
+            if (!context.IsTracking(textDocument.GetURI()))
+            {
+                context.TraceWarning($"Ignoring diagnostics request for untracked document: {textDocument.GetURI()}");
+                return [];
             }
 
             if (nonLocalDocumentDiagnostics)
                 return GetNonLocalDiagnosticSources();
 
             return taskList
-                ? ImmutableArray.Create<IDiagnosticSource>(new TaskListDiagnosticSource(document, globalOptions))
-                : ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(diagnosticKind, document));
+                ? [new TaskListDiagnosticSource(document!, globalOptions)]
+                : [new DocumentDiagnosticSource(diagnosticKind, textDocument)];
 
             ImmutableArray<IDiagnosticSource> GetNonLocalDiagnosticSources()
             {
@@ -137,10 +146,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Debug.Assert(diagnosticKind == DiagnosticKind.All);
 
                 // Non-local document diagnostics are reported only when full solution analysis is enabled for analyzer execution.
-                if (globalOptions.GetBackgroundAnalysisScope(document.Project.Language) != BackgroundAnalysisScope.FullSolution)
-                    return ImmutableArray<IDiagnosticSource>.Empty;
+                if (globalOptions.GetBackgroundAnalysisScope(textDocument.Project.Language) != BackgroundAnalysisScope.FullSolution)
+                    return [];
 
-                return ImmutableArray.Create<IDiagnosticSource>(new NonLocalDocumentDiagnosticSource(document, ShouldIncludeAnalyzer));
+                return [new NonLocalDocumentDiagnosticSource(textDocument, ShouldIncludeAnalyzer)];
 
                 // NOTE: Compiler does not report any non-local diagnostics, so we bail out for compiler analyzer.
                 bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !analyzer.IsCompilerAnalyzer();

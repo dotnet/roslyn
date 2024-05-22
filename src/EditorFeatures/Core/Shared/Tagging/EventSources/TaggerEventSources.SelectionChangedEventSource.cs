@@ -5,22 +5,21 @@
 using System;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal partial class TaggerEventSources
 {
-    internal partial class TaggerEventSources
+    private class SelectionChangedEventSource(ITextView textView) : AbstractTaggerEventSource
     {
-        private class SelectionChangedEventSource(ITextView textView) : AbstractTaggerEventSource
-        {
-            private readonly ITextView _textView = textView;
+        private readonly ITextView _textView = textView;
 
-            public override void Connect()
-                => _textView.Selection.SelectionChanged += OnSelectionChanged;
+        public override void Connect()
+            => _textView.Selection.SelectionChanged += OnSelectionChanged;
 
-            public override void Disconnect()
-                => _textView.Selection.SelectionChanged -= OnSelectionChanged;
+        public override void Disconnect()
+            => _textView.Selection.SelectionChanged -= OnSelectionChanged;
 
-            private void OnSelectionChanged(object? sender, EventArgs args)
-                => RaiseChanged();
-        }
+        private void OnSelectionChanged(object? sender, EventArgs args)
+            => RaiseChanged();
     }
 }

@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -270,10 +269,7 @@ namespace Roslyn.Test.Utilities
                 SortText = sortText,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
-                Data = JObject.FromObject(new CompletionResolveData()
-                {
-                    ResultId = resultId,
-                }),
+                Data = JObject.FromObject(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document))),
                 Preselect = preselect,
                 VsResolveTextEditOnCommit = vsResolveTextEditOnCommit,
                 LabelDetails = labelDetails
@@ -328,7 +324,7 @@ namespace Roslyn.Test.Utilities
             return CreateTestLspServerAsync(workspace, lspOptions, languageName);
         }
 
-        private async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, InitializationOptions initializationOptions, string languageName)
+        private async Task<TestLspServer> CreateTestLspServerAsync(EditorTestWorkspace workspace, InitializationOptions initializationOptions, string languageName)
         {
             var solution = workspace.CurrentSolution;
 
@@ -384,7 +380,7 @@ namespace Roslyn.Test.Utilities
             return await TestLspServer.CreateAsync(workspace, lspOptions, TestOutputLspLogger);
         }
 
-        internal TestWorkspace CreateWorkspace(
+        internal EditorTestWorkspace CreateWorkspace(
             InitializationOptions? options, string? workspaceKind, bool mutatingLspWorkspace, List<Type>? excludedTypes = null, List<Type>? extraExportedTypes = null)
         {
             var composition = Composition;
@@ -395,15 +391,11 @@ namespace Roslyn.Test.Utilities
             if (extraExportedTypes is not null)
                 composition = composition.AddParts(extraExportedTypes);
 
-            var workspace = new TestWorkspace(
+            var workspace = new EditorTestWorkspace(
                 composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true), supportsLspMutation: mutatingLspWorkspace);
             options?.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 
             workspace.GetService<LspWorkspaceRegistrationService>().Register(workspace);
-
-            // solution crawler is currently required in order to create incremental analyzer that provides diagnostics
-            var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            solutionCrawlerRegistrationService.Register(workspace);
 
             return workspace;
         }
@@ -412,13 +404,13 @@ namespace Roslyn.Test.Utilities
         /// Waits for the async operations on the workspace to complete.
         /// This ensures that events like workspace registration / workspace changes are processed by the time we exit this method.
         /// </summary>
-        protected static async Task WaitForWorkspaceOperationsAsync(TestWorkspace workspace)
+        protected static async Task WaitForWorkspaceOperationsAsync(EditorTestWorkspace workspace)
         {
             var workspaceWaiter = GetWorkspaceWaiter(workspace);
             await workspaceWaiter.ExpeditedWaitAsync();
         }
 
-        private static IAsynchronousOperationWaiter GetWorkspaceWaiter(TestWorkspace workspace)
+        private static IAsynchronousOperationWaiter GetWorkspaceWaiter(EditorTestWorkspace workspace)
         {
             var operations = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             return operations.GetWaiter(FeatureAttribute.Workspace);
@@ -441,7 +433,7 @@ namespace Roslyn.Test.Utilities
             workspace.TryApplyChanges(newSolution);
         }
 
-        internal static async Task<Dictionary<string, IList<LSP.Location>>> GetAnnotatedLocationsAsync(TestWorkspace workspace, Solution solution)
+        internal static async Task<Dictionary<string, IList<LSP.Location>>> GetAnnotatedLocationsAsync(EditorTestWorkspace workspace, Solution solution)
         {
             var locations = new Dictionary<string, IList<LSP.Location>>();
             foreach (var testDocument in workspace.Documents)
@@ -530,7 +522,7 @@ namespace Roslyn.Test.Utilities
 
         internal sealed class TestLspServer : IAsyncDisposable
         {
-            public readonly TestWorkspace TestWorkspace;
+            public readonly EditorTestWorkspace TestWorkspace;
             private readonly Dictionary<string, IList<LSP.Location>> _locations;
             private readonly JsonRpc _clientRpc;
             private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService;
@@ -540,7 +532,7 @@ namespace Roslyn.Test.Utilities
             public LSP.ClientCapabilities ClientCapabilities { get; }
 
             private TestLspServer(
-                TestWorkspace testWorkspace,
+                EditorTestWorkspace testWorkspace,
                 Dictionary<string, IList<LSP.Location>> locations,
                 LSP.ClientCapabilities clientCapabilities,
                 RoslynLanguageServer target,
@@ -580,7 +572,7 @@ namespace Roslyn.Test.Utilities
                 return messageFormatter;
             }
 
-            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, InitializationOptions initializationOptions, AbstractLspLogger logger)
+            internal static async Task<TestLspServer> CreateAsync(EditorTestWorkspace testWorkspace, InitializationOptions initializationOptions, AbstractLspLogger logger)
             {
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
 
@@ -603,7 +595,7 @@ namespace Roslyn.Test.Utilities
                 return server;
             }
 
-            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, RoslynLanguageServer target, Stream clientStream)
+            internal static async Task<TestLspServer> CreateAsync(EditorTestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, RoslynLanguageServer target, Stream clientStream)
             {
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
                 var server = new TestLspServer(testWorkspace, locations, clientCapabilities, target, clientStream);
@@ -618,7 +610,7 @@ namespace Roslyn.Test.Utilities
                 return server;
             }
 
-            private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind, AbstractLspLogger logger)
+            private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, EditorTestWorkspace workspace, WellKnownLspServerKinds serverKind, AbstractLspLogger logger)
             {
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
                 var servicesProvider = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicLspServiceProvider>();
@@ -746,9 +738,6 @@ namespace Roslyn.Test.Utilities
             {
                 TestWorkspace.GetService<LspWorkspaceRegistrationService>().Deregister(TestWorkspace);
                 TestWorkspace.GetService<LspWorkspaceRegistrationService>().Deregister(GetManagerAccessor().GetLspMiscellaneousFilesWorkspace());
-
-                var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)TestWorkspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                solutionCrawlerRegistrationService.Unregister(TestWorkspace);
 
                 // Some tests will manually call shutdown and exit, so attempting to call this during dispose
                 // will fail as the server's jsonrpc instance will be disposed of.

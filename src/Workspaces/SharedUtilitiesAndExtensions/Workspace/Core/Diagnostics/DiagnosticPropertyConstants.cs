@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal static class DiagnosticPropertyConstants
 {
-    internal static class DiagnosticPropertyConstants
-    {
-        public const string UnreferencedAssemblyIdentity = nameof(UnreferencedAssemblyIdentity);
-        public const string RequiredLanguageVersion = nameof(RequiredLanguageVersion);
-    }
+    public const string UnreferencedAssemblyIdentity = nameof(UnreferencedAssemblyIdentity);
+    public const string RequiredLanguageVersion = nameof(RequiredLanguageVersion);
 }

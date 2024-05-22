@@ -41,11 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [SuggestedActionPriority(DefaultOrderings.Lowest)]  // Only for suppressions
     internal partial class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
-        public static readonly ImmutableArray<string> Orderings = ImmutableArray.Create(
-            DefaultOrderings.Highest,
-            DefaultOrderings.Default,
-            DefaultOrderings.Low,
-            DefaultOrderings.Lowest);
+        public static readonly ImmutableArray<string> Orderings = [DefaultOrderings.Highest, DefaultOrderings.Default, DefaultOrderings.Low, DefaultOrderings.Lowest];
 
         private static readonly Guid s_CSharpSourceGuid = new Guid("b967fea8-e2c3-4984-87d4-71a38f49e16a");
         private static readonly Guid s_visualBasicSourceGuid = new Guid("4de30e93-3e0c-40c2-a4ba-1124da4539f6");

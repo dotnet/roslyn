@@ -5,12 +5,11 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.Utilities
-{
-    internal interface ICompilationOptionsChangingService : ILanguageService
-    {
-        bool CanApplyChange(CompilationOptions oldOptions, CompilationOptions newOptions);
+namespace Microsoft.VisualStudio.LanguageServices.Utilities;
 
-        void Apply(CompilationOptions oldOptions, CompilationOptions newOptions, ProjectPropertyStorage storage);
-    }
+internal interface ICompilationOptionsChangingService : ILanguageService
+{
+    bool CanApplyChange(CompilationOptions oldOptions, CompilationOptions newOptions);
+
+    void Apply(CompilationOptions oldOptions, CompilationOptions newOptions, ProjectPropertyStorage storage);
 }

@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class CombineNode<TInput1, TInput2> : IIncrementalGeneratorNode<(TInput1, TInput2)>
     {
+        private static readonly string? s_tableType = typeof((TInput1, TInput2)).FullName;
+
         private readonly IIncrementalGeneratorNode<TInput1> _input1;
         private readonly IIncrementalGeneratorNode<TInput2> _input2;
         private readonly IEqualityComparer<(TInput1, TInput2)>? _comparer;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis
 
             if (input1Table.IsCached && input2Table.IsCached && previousTable is not null)
             {
-                this.LogTables(_name, previousTable, previousTable, input1Table, input2Table);
+                this.LogTables(_name, s_tableType, previousTable, previousTable, input1Table, input2Table);
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
                     return RecordStepsForCachedTable(graphState, previousTable, input1Table, input2Table);
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(tableBuilder.Count == totalEntryItemCount);
 
             var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(_name, previousTable, newTable, input1Table, input2Table);
+            this.LogTables(_name, s_tableType, previousTable, newTable, input1Table, input2Table);
             return newTable;
         }
 

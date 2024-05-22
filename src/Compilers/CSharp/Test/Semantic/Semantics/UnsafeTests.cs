@@ -2949,7 +2949,7 @@ No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
             public override BoundNode Visit(BoundNode node)
             {
                 var expr = node as BoundExpression;
-                if (expr != null && !expr.IsParamsArray)
+                if (expr != null && !expr.IsParamsArrayOrCollection)
                 {
                     var text = node.Syntax.ToString();
                     if (!string.IsNullOrEmpty(text))
@@ -2979,7 +2979,7 @@ No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
 
             public override BoundNode VisitArrayCreation(BoundArrayCreation node)
             {
-                if (node.IsParamsArray)
+                if (node.IsParamsArrayOrCollection)
                 {
                     this.VisitList(node.InitializerOpt.Initializers);
                     return null;

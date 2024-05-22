@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 StringBuilder stringBuilder = pooledStrbuilder.Builder;
 
                 stringBuilder.Append(className);
-                stringBuilder.Append("(");
+                stringBuilder.Append('(');
 
                 bool first = true;
 
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     first = false;
                 }
 
-                stringBuilder.Append(")");
+                stringBuilder.Append(')');
 
                 return pooledStrbuilder.ToStringAndFree();
             }

@@ -11,25 +11,24 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.EndConstructGeneration
-{
-    [ExportLanguageService(typeof(IEndConstructGenerationService), LanguageNames.CSharp), Shared]
-    [ExcludeFromCodeCoverage]
-    internal class CSharpEndConstructGenerationService : IEndConstructGenerationService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpEndConstructGenerationService()
-        {
-        }
+namespace Microsoft.CodeAnalysis.Editor.CSharp.EndConstructGeneration;
 
-        public bool TryDo(
-            ITextView textView,
-            ITextBuffer subjectBuffer,
-            char typedChar,
-            CancellationToken cancellationToken)
-        {
-            return false;
-        }
+[ExportLanguageService(typeof(IEndConstructGenerationService), LanguageNames.CSharp), Shared]
+[ExcludeFromCodeCoverage]
+internal class CSharpEndConstructGenerationService : IEndConstructGenerationService
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpEndConstructGenerationService()
+    {
+    }
+
+    public bool TryDo(
+        ITextView textView,
+        ITextBuffer subjectBuffer,
+        char typedChar,
+        CancellationToken cancellationToken)
+    {
+        return false;
     }
 }

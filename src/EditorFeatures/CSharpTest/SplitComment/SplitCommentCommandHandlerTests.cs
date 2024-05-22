@@ -14,11 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
     [Trait(Traits.Feature, Traits.Features.SplitComment)]
     public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandlerTests
     {
-        protected override TestWorkspace CreateWorkspace(string markup)
-            => TestWorkspace.CreateCSharp(markup);
+        protected override EditorTestWorkspace CreateWorkspace(string markup)
+            => EditorTestWorkspace.CreateCSharp(markup);
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestWithSelection()
         {
             TestHandled(
@@ -43,8 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestWithAllWhitespaceSelection()
         {
             TestHandled(
@@ -69,8 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestMissingInSlashes()
         {
             TestNotHandled(
@@ -85,8 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestMissingAtEndOfFile()
         {
             TestNotHandled(
@@ -99,8 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestMissingBeforeSlashes()
         {
             TestNotHandled(
@@ -115,8 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestMissingWithMultiSelection()
         {
             TestNotHandled(
@@ -131,8 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestSplitStartOfComment()
         {
             TestHandled(
@@ -157,8 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestSplitStartOfQuadComment()
         {
             TestHandled(
@@ -184,8 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
         public void TestSplitMiddleOfQuadComment()
         {
             TestNotHandled(
@@ -200,8 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
         public void TestSplitWithCommentAfterwards1()
         {
             TestNotHandled(
@@ -216,8 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
         public void TestSplitWithCommentAfterwards2()
         {
             TestNotHandled(
@@ -232,8 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
         public void TestSplitWithCommentAfterwards3()
         {
             TestNotHandled(
@@ -248,8 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
         public void TestSplitWithCommentAfterwards4()
         {
             TestNotHandled(
@@ -264,8 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestSplitStartOfCommentWithLeadingSpace1()
         {
             TestHandled(
@@ -290,8 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestSplitStartOfCommentWithLeadingSpace2()
         {
             TestHandled(
@@ -373,8 +358,7 @@ public class Program
 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestSplitMiddleOfComment()
         {
             TestHandled(
@@ -399,8 +383,7 @@ public class Program
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestSplitEndOfComment()
         {
             TestNotHandled(
@@ -415,8 +398,7 @@ public class Program
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestSplitCommentEndOfLine1()
         {
             TestHandled(
@@ -439,8 +421,7 @@ public class Program
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestSplitCommentEndOfLine2()
         {
             TestHandled(
@@ -463,8 +444,7 @@ public class Program
                 """);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
         public void TestUseTabs()
         {
             TestHandled(

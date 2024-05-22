@@ -7,12 +7,11 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal sealed class UnmergedDocumentChanges(IEnumerable<TextChange> unmergedChanges, string projectName, DocumentId documentId)
 {
-    internal sealed class UnmergedDocumentChanges(IEnumerable<TextChange> unmergedChanges, string projectName, DocumentId documentId)
-    {
-        public IEnumerable<TextChange> UnmergedChanges { get; } = unmergedChanges;
-        public string ProjectName { get; } = projectName;
-        public DocumentId DocumentId { get; } = documentId;
-    }
+    public IEnumerable<TextChange> UnmergedChanges { get; } = unmergedChanges;
+    public string ProjectName { get; } = projectName;
+    public DocumentId DocumentId { get; } = documentId;
 }

@@ -53,7 +53,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
         if (!referencesCodeLensEnabled && !testsCodeLensEnabled)
         {
             // No code lenses are enabled, just return.
-            return Array.Empty<LSP.CodeLens>();
+            return [];
         }
 
         var codeLensMemberFinder = document.GetRequiredLanguageService<ICodeLensMemberFinder>();
@@ -61,7 +61,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
 
         if (members.IsEmpty)
         {
-            return Array.Empty<LSP.CodeLens>();
+            return [];
         }
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);

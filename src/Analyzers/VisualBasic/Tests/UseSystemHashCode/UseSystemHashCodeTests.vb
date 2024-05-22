@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.UseSystemHashCode
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseSystemHashCode
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
     Partial Public Class UseSystemHashCodeTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New UseSystemHashCodeDiagnosticAnalyzer(), New UseSystemHashCodeCodeFixProvider())

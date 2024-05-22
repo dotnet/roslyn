@@ -7,34 +7,33 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
-namespace Microsoft.CodeAnalysis.CSharp.Structure
+namespace Microsoft.CodeAnalysis.CSharp.Structure;
+
+internal class DestructorDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<DestructorDeclarationSyntax>
 {
-    internal class DestructorDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<DestructorDeclarationSyntax>
+    protected override void CollectBlockSpans(
+        SyntaxToken previousToken,
+        DestructorDeclarationSyntax destructorDeclaration,
+        ref TemporaryArray<BlockSpan> spans,
+        BlockStructureOptions options,
+        CancellationToken cancellationToken)
     {
-        protected override void CollectBlockSpans(
-            SyntaxToken previousToken,
-            DestructorDeclarationSyntax destructorDeclaration,
-            ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptions options,
-            CancellationToken cancellationToken)
+        CSharpStructureHelpers.CollectCommentBlockSpans(destructorDeclaration, ref spans, options);
+
+        // fault tolerance
+        if (destructorDeclaration.Body == null ||
+            destructorDeclaration.Body.OpenBraceToken.IsMissing ||
+            destructorDeclaration.Body.CloseBraceToken.IsMissing)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(destructorDeclaration, ref spans, options);
-
-            // fault tolerance
-            if (destructorDeclaration.Body == null ||
-                destructorDeclaration.Body.OpenBraceToken.IsMissing ||
-                destructorDeclaration.Body.CloseBraceToken.IsMissing)
-            {
-                return;
-            }
-
-            spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
-                destructorDeclaration,
-                destructorDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
-                compressEmptyLines: false,
-                autoCollapse: true,
-                type: BlockTypes.Member,
-                isCollapsible: true));
+            return;
         }
+
+        spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
+            destructorDeclaration,
+            destructorDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
+            compressEmptyLines: false,
+            autoCollapse: true,
+            type: BlockTypes.Member,
+            isCollapsible: true));
     }
 }

@@ -8,10 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.LineSeparators
+namespace Microsoft.CodeAnalysis.LineSeparators;
+
+internal interface ILineSeparatorService : ILanguageService
 {
-    internal interface ILineSeparatorService : ILanguageService
-    {
-        Task<ImmutableArray<TextSpan>> GetLineSeparatorsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<TextSpan>> GetLineSeparatorsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 }

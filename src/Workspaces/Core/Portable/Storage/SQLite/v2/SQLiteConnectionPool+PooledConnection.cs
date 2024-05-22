@@ -5,16 +5,15 @@
 using System;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
-namespace Microsoft.CodeAnalysis.SQLite.v2
-{
-    internal partial class SQLiteConnectionPool
-    {
-        internal readonly struct PooledConnection(SQLiteConnectionPool connectionPool, SqlConnection sqlConnection) : IDisposable
-        {
-            public readonly SqlConnection Connection = sqlConnection;
+namespace Microsoft.CodeAnalysis.SQLite.v2;
 
-            public void Dispose()
-                => connectionPool.ReleaseConnection(Connection);
-        }
+internal partial class SQLiteConnectionPool
+{
+    internal readonly struct PooledConnection(SQLiteConnectionPool connectionPool, SqlConnection sqlConnection) : IDisposable
+    {
+        public readonly SqlConnection Connection = sqlConnection;
+
+        public void Dispose()
+            => connectionPool.ReleaseConnection(Connection);
     }
 }
