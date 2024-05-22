@@ -48,25 +48,26 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         [IdeFact]
         public async Task VerifyLocalVariableRename()
         {
-            var markup = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
+            var markup = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        int [|x|]$$ = 0;
-        [|x|] = 5;
-        TestMethod([|x|]);
-    }
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        int [|x|]$$ = 0;
+                        [|x|] = 5;
+                        TestMethod([|x|]);
+                    }
 
-    static void TestMethod(int y)
-    {
+                    static void TestMethod(int y)
+                    {
 
-    }
-}";
+                    }
+                }
+                """;
             await using (var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken))
             {
                 await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
@@ -79,25 +80,26 @@ class Program
 
                 await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
                 await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-                await TestServices.EditorVerifier.TextEqualsAsync(@"
-using System;
-using System.Collections.Generic;
-using System.Linq;
+                await TestServices.EditorVerifier.TextEqualsAsync("""
+                    using System;
+                    using System.Collections.Generic;
+                    using System.Linq;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        int y$$ = 0;
-        y = 5;
-        TestMethod(y);
-    }
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            int y$$ = 0;
+                            y = 5;
+                            TestMethod(y);
+                        }
 
-    static void TestMethod(int y)
-    {
+                        static void TestMethod(int y)
+                        {
 
-    }
-}", HangMitigatingCancellationToken);
+                        }
+                    }
+                    """, HangMitigatingCancellationToken);
                 await telemetry.VerifyFiredAsync(["vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore"], HangMitigatingCancellationToken);
             }
         }
@@ -105,13 +107,13 @@ class Program
         [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
         public async Task VerifyAttributeRename()
         {
-            var markup = @"
-using System;
+            var markup = """
+                using System;
 
-class [|$$ustom|]Attribute : Attribute
-{
-}
-";
+                class [|$$ustom|]Attribute : Attribute
+                {
+                }
+                """;
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
@@ -122,25 +124,25 @@ class [|$$ustom|]Attribute : Attribute
 
             await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-using System;
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                using System;
 
-class Custom$$Attribute : Attribute
-{
-}
-", HangMitigatingCancellationToken);
+                class Custom$$Attribute : Attribute
+                {
+                }
+                """, HangMitigatingCancellationToken);
         }
 
         [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
         public async Task VerifyAttributeRenameWhileRenameClasss()
         {
-            var markup = @"
-using System;
+            var markup = """
+                using System;
 
-class [|$$stom|]Attribute : Attribute
-{
-}
-";
+                class [|$$stom|]Attribute : Attribute
+                {
+                }
+                """;
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
@@ -151,30 +153,30 @@ class [|$$stom|]Attribute : Attribute
 
             await TestServices.Input.SendWithoutActivateAsync("Custom", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-using System;
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                using System;
 
-class Custom$$Attribute : Attribute
-{
-}
-", HangMitigatingCancellationToken);
+                class Custom$$Attribute : Attribute
+                {
+                }
+                """, HangMitigatingCancellationToken);
         }
 
         [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
         public async Task VerifyAttributeRenameWhileRenameAttribute()
         {
-            var markup = @"
-using System;
+            var markup = """
+                using System;
 
-[[|$$stom|]]
-class Bar 
-{
-}
+                [[|$$stom|]]
+                class Bar 
+                {
+                }
 
-class [|stom|]Attribute : Attribute
-{
-}
-";
+                class [|stom|]Attribute : Attribute
+                {
+                }
+                """;
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
@@ -185,35 +187,35 @@ class [|stom|]Attribute : Attribute
 
             await TestServices.Input.SendWithoutActivateAsync("Custom", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-using System;
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                using System;
 
-[Custom$$]
-class Bar 
-{
-}
+                [Custom$$]
+                class Bar 
+                {
+                }
 
-class CustomAttribute : Attribute
-{
-}
-", HangMitigatingCancellationToken);
+                class CustomAttribute : Attribute
+                {
+                }
+                """, HangMitigatingCancellationToken);
         }
 
         [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
         public async Task VerifyAttributeRenameWhileRenameAttributeClass()
         {
-            var markup = @"
-using System;
+            var markup = """
+                using System;
 
-[[|stom|]]
-class Bar 
-{
-}
+                [[|stom|]]
+                class Bar 
+                {
+                }
 
-class [|$$stom|]Attribute : Attribute
-{
-}
-";
+                class [|$$stom|]Attribute : Attribute
+                {
+                }
+                """;
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
@@ -224,18 +226,18 @@ class [|$$stom|]Attribute : Attribute
 
             await TestServices.Input.SendWithoutActivateAsync("Custom", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-using System;
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                using System;
 
-[Custom]
-class Bar 
-{
-}
+                [Custom]
+                class Bar 
+                {
+                }
 
-class Custom$$Attribute : Attribute
-{
-}
-", HangMitigatingCancellationToken);
+                class Custom$$Attribute : Attribute
+                {
+                }
+                """, HangMitigatingCancellationToken);
         }
 
         [IdeFact]
@@ -244,33 +246,34 @@ class Custom$$Attribute : Attribute
             // "variable" is intentionally misspelled as "varixable" and "this" is misspelled as
             // "thix" below to ensure we don't change instances of "x" in comments that are part of
             // larger words
-            var markup = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
+            var markup = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
 
-class Program
-{
-    /// <summary>
-    /// creates a varixable named [|x|] xx
-    /// </summary>
-    /// <param name=""args""></param>
-    static void Main(string[] args)
-    {
-        // thix varixable is named [|x|] xx
-        int [|x|]$$ = 0;
-        [|x|] = 5;
-        TestMethod([|x|]);
-    }
+                class Program
+                {
+                    /// <summary>
+                    /// creates a varixable named [|x|] xx
+                    /// </summary>
+                    /// <param name="args"></param>
+                    static void Main(string[] args)
+                    {
+                        // thix varixable is named [|x|] xx
+                        int [|x|]$$ = 0;
+                        [|x|] = 5;
+                        TestMethod([|x|]);
+                    }
 
-    static void TestMethod(int y)
-    {
-        /*
-         * [|x|]
-         * xx
-         */
-    }
-}";
+                    static void TestMethod(int y)
+                    {
+                        /*
+                         * [|x|]
+                         * xx
+                         */
+                    }
+                }
+                """;
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
             await TestServices.InlineRename.ToggleIncludeCommentsAsync(HangMitigatingCancellationToken);
@@ -282,56 +285,58 @@ class Program
 
             await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-using System;
-using System.Collections.Generic;
-using System.Linq;
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
 
-class Program
-{
-    /// <summary>
-    /// creates a varixable named y xx
-    /// </summary>
-    /// <param name=""args""></param>
-    static void Main(string[] args)
-    {
-        // thix varixable is named y xx
-        int y$$ = 0;
-        y = 5;
-        TestMethod(y);
-    }
+                class Program
+                {
+                    /// <summary>
+                    /// creates a varixable named y xx
+                    /// </summary>
+                    /// <param name="args"></param>
+                    static void Main(string[] args)
+                    {
+                        // thix varixable is named y xx
+                        int y$$ = 0;
+                        y = 5;
+                        TestMethod(y);
+                    }
 
-    static void TestMethod(int y)
-    {
-        /*
-         * y
-         * xx
-         */
-    }
-}", HangMitigatingCancellationToken);
+                    static void TestMethod(int y)
+                    {
+                        /*
+                         * y
+                         * xx
+                         */
+                    }
+                }
+                """, HangMitigatingCancellationToken);
         }
 
         [IdeFact]
         public async Task VerifyLocalVariableRenameWithStringsUpdated()
         {
-            var markup = @"
-class Program
-{
-    static void Main(string[] args)
-    {
-        int [|x|]$$ = 0;
-        [|x|] = 5;
-        var s = ""[|x|] xx [|x|]"";
-        var sLiteral = 
-            @""
-            [|x|]
-            xx
-            [|x|]
-            "";
-        char c = 'x';
-        char cUnit = '\u0078';
-    }
-}";
+            var markup = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        int [|x|]$$ = 0;
+                        [|x|] = 5;
+                        var s = "[|x|] xx [|x|]";
+                        var sLiteral = 
+                            @"
+                            [|x|]
+                            xx
+                            [|x|]
+                            ";
+                        char c = 'x';
+                        char cUnit = '\u0078';
+                    }
+                }
+                """;
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
 
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
@@ -344,44 +349,46 @@ class Program
 
             await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-class Program
-{
-    static void Main(string[] args)
-    {
-        int y$$ = 0;
-        y = 5;
-        var s = ""y xx y"";
-        var sLiteral = 
-            @""
-            y
-            xx
-            y
-            "";
-        char c = 'x';
-        char cUnit = '\u0078';
-    }
-}", HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        int y$$ = 0;
+                        y = 5;
+                        var s = "y xx y";
+                        var sLiteral = 
+                            @"
+                            y
+                            xx
+                            y
+                            ";
+                        char c = 'x';
+                        char cUnit = '\u0078';
+                    }
+                }
+                """, HangMitigatingCancellationToken);
         }
 
         [IdeFact]
         public async Task VerifyOverloadsUpdated()
         {
-            var markup = @"
-interface I
-{
-    void [|TestMethod|]$$(int y);
-    void [|TestMethod|](string y);
-}
+            var markup = """
+                interface I
+                {
+                    void [|TestMethod|]$$(int y);
+                    void [|TestMethod|](string y);
+                }
 
-class B : I
-{
-    public virtual void [|TestMethod|](int y)
-    { }
+                class B : I
+                {
+                    public virtual void [|TestMethod|](int y)
+                    { }
 
-    public virtual void [|TestMethod|](string y)
-    { }
-}";
+                    public virtual void [|TestMethod|](string y)
+                    { }
+                }
+                """;
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
 
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
@@ -394,41 +401,44 @@ class B : I
 
             await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-interface I
-{
-    void y$$(int y);
-    void y(string y);
-}
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                interface I
+                {
+                    void y$$(int y);
+                    void y(string y);
+                }
 
-class B : I
-{
-    public virtual void y(int y)
-    { }
+                class B : I
+                {
+                    public virtual void y(int y)
+                    { }
 
-    public virtual void y(string y)
-    { }
-}", HangMitigatingCancellationToken);
+                    public virtual void y(string y)
+                    { }
+                }
+                """, HangMitigatingCancellationToken);
         }
 
         [IdeFact]
         public async Task VerifyMultiFileRename()
         {
-            await SetUpEditorAsync(@"
-class $$Program
-{
-}", HangMitigatingCancellationToken);
+            await SetUpEditorAsync("""
+                class $$Program
+                {
+                }
+                """, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", @"", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class2.cs", HangMitigatingCancellationToken);
 
-            const string class2Markup = @"
-class SomeOtherClass
-{
-    void M()
-    {
-        [|Program|] p = new [|Program|]();
-    }
-}";
+            const string class2Markup = """
+                class SomeOtherClass
+                {
+                    void M()
+                    {
+                        [|Program|] p = new [|Program|]();
+                    }
+                }
+                """;
             MarkupTestFile.GetSpans(class2Markup, out var code, out var renameSpans);
 
             await TestServices.Editor.SetTextAsync(code, HangMitigatingCancellationToken);
@@ -442,91 +452,100 @@ class SomeOtherClass
 
             await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-class SomeOtherClass
-{
-    void M()
-    {
-        y$$ p = new y();
-    }
-}", HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                class SomeOtherClass
+                {
+                    void M()
+                    {
+                        y$$ p = new y();
+                    }
+                }
+                """, HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-class y$$
-{
-}", HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                class y$$
+                {
+                }
+                """, HangMitigatingCancellationToken);
         }
 
         [IdeFact]
         public async Task VerifyRenameCancellation()
         {
-            await SetUpEditorAsync(@"
-class $$Program
-{
-}", HangMitigatingCancellationToken);
+            await SetUpEditorAsync("""
+                class $$Program
+                {
+                }
+                """, HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", @"", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class2.cs", HangMitigatingCancellationToken);
-            await TestServices.Editor.SetTextAsync(@"
-class SomeOtherClass
-{
-    void M()
-    {
-        Program p = new Program();
-    }
-}", HangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync("""
+                class SomeOtherClass
+                {
+                    void M()
+                    {
+                        Program p = new Program();
+                    }
+                }
+                """, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Program", charsOffset: 0, HangMitigatingCancellationToken);
 
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
             await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.VK_Y, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-class SomeOtherClass
-{
-    void M()
-    {
-        y$$ p = new y();
-    }
-}", HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                class SomeOtherClass
+                {
+                    void M()
+                    {
+                        y$$ p = new y();
+                    }
+                }
+                """, HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-class y$$
-{
-}", HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                class y$$
+                {
+                }
+                """, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.ESCAPE, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-class Program$$
-{
-}", HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                class Program$$
+                {
+                }
+                """, HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class2.cs", HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-class SomeOtherClass
-{
-    void M()
-    {
-        Program$$ p = new Program();
-    }
-}", HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                class SomeOtherClass
+                {
+                    void M()
+                    {
+                        Program$$ p = new Program();
+                    }
+                }
+                """, HangMitigatingCancellationToken);
         }
 
         [IdeFact]
         public async Task VerifyCrossProjectRename()
         {
-            await SetUpEditorAsync(@"
-$$class RenameRocks 
-{
-    static void Main(string[] args)
-    {
-        Class2 c = null;
-        c.ToString();
-    }
-}", HangMitigatingCancellationToken);
+            await SetUpEditorAsync("""
+                $$class RenameRocks 
+                {
+                    static void Main(string[] args)
+                    {
+                        Class2 c = null;
+                        c.ToString();
+                    }
+                }
+                """, HangMitigatingCancellationToken);
             var project1 = ProjectName;
             var project2 = "Project2";
 
@@ -545,15 +564,16 @@ public class Class2 { static void Main(string [] args) { } }", HangMitigatingCan
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
             await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-class RenameRocks 
-{
-    static void Main(string[] args)
-    {
-        y$$ c = null;
-        c.ToString();
-    }
-}", HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                class RenameRocks 
+                {
+                    static void Main(string[] args)
+                    {
+                        y$$ c = null;
+                        c.ToString();
+                    }
+                }
+                """, HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.OpenFileAsync(project2, "y.cs", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
@@ -571,15 +591,16 @@ public class y { static void Main(string [] args) { } }$$", cancellationToken: H
 public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-class RenameRocks 
-{
-    static void Main(string[] args)
-    {
-        Class2$$ c = null;
-        c.ToString();
-    }
-}", HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                class RenameRocks 
+                {
+                    static void Main(string[] args)
+                    {
+                        Class2$$ c = null;
+                        c.ToString();
+                    }
+                }
+                """, HangMitigatingCancellationToken);
         }
 
         [IdeFact]
@@ -587,43 +608,46 @@ class RenameRocks
         {
             await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddStandaloneFileAsync("StandaloneFile1.cs", HangMitigatingCancellationToken);
-            await TestServices.Editor.SetTextAsync(@"
-class Program
-{
-    void Goo()
-    {
-        var ids = 1;
-        ids = 2;
-    }
-}", HangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync("""
+                class Program
+                {
+                    void Goo()
+                    {
+                        var ids = 1;
+                        ids = 2;
+                    }
+                }
+                """, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("ids", charsOffset: 0, HangMitigatingCancellationToken);
 
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
             await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextEqualsAsync(@"
-class Program
-{
-    void Goo()
-    {
-        var y$$ = 1;
-        y = 2;
-    }
-}", HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync("""
+                class Program
+                {
+                    void Goo()
+                    {
+                        var y$$ = 1;
+                        y = 2;
+                    }
+                }
+                """, HangMitigatingCancellationToken);
         }
 
         [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/39617")]
         public async Task VerifyRenameCaseChange()
         {
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",
-@"
-class Program
-{
-    static void Main(string[] args)
-    {
-    }
-}", cancellationToken: HangMitigatingCancellationToken);
+                """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """, cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Program.cs", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Program", charsOffset: 0, HangMitigatingCancellationToken);
@@ -634,13 +658,14 @@ class Program
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
 
             await TestServices.EditorVerifier.TextEqualsAsync(
-                @"
-class p$$rogram
-{
-    static void Main(string[] args)
-    {
-    }
-}", HangMitigatingCancellationToken);
+                """
+                class p$$rogram
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+                """, HangMitigatingCancellationToken);
         }
 
         [IdeFact]
@@ -649,11 +674,12 @@ class p$$rogram
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
             globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, true);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",
-@"
-public class Class2
-{
-    public int Field123;
-}", cancellationToken: HangMitigatingCancellationToken);
+                """
+                public class Class2
+                {
+                    public int Field123;
+                }
+                """, cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Program.cs", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Field123", charsOffset: 0, HangMitigatingCancellationToken);
@@ -661,22 +687,24 @@ public class Class2
             await TestServices.Input.SendWithoutActivateAsync(["F", "i"], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(
-                @"
-public class Class2
-{
-    public int Fi$$;
-}", HangMitigatingCancellationToken);
+                """
+                public class Class2
+                {
+                    public int Fi$$;
+                }
+                """, HangMitigatingCancellationToken);
             await TestServices.InlineRename.VerifyStringInFlyout("Fi", HangMitigatingCancellationToken);
             await TestServices.Input.SendWithoutActivateAsync(["e", "l", "d", "3", "2", "1"], HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
 
             await TestServices.EditorVerifier.TextEqualsAsync(
-                @"
-public class Class2
-{
-    public int Field321$$;
-}", HangMitigatingCancellationToken);
+                """
+                public class Class2
+                {
+                    public int Field321$$;
+                }
+                """, HangMitigatingCancellationToken);
             await TestServices.InlineRename.VerifyStringInFlyout("Field321", HangMitigatingCancellationToken);
         }
 
@@ -685,13 +713,14 @@ public class Class2
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
             globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, true);
-            var startCode = @"
-public class Class2
-{
-    public int LongLongField;
-}";
+            var startCode = """
+                public class Class2
+                {
+                    public int LongLongField;
+                }
+                """;
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",
-startCode, cancellationToken: HangMitigatingCancellationToken);
+                startCode, cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Program.cs", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("LongLongField", charsOffset: 0, HangMitigatingCancellationToken);
@@ -700,11 +729,12 @@ startCode, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.Editor.SendExplicitFocusAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("LongLongField", charsOffset: "Long".Length, HangMitigatingCancellationToken);
 
-            var markedCode = @"
-public class Class2
-{
-    public int Long{|selection:Long|}Field;
-}";
+            var markedCode = """
+                public class Class2
+                {
+                    public int Long{|selection:Long|}Field;
+                }
+                """;
             MarkupTestFile.GetPositionAndSpans(markedCode, out var _, out int? _, out var spans);
             var selectedSpan = spans["selection"].Single();
             await TestServices.Editor.SetSelectionAsync(selectedSpan, HangMitigatingCancellationToken);
@@ -712,46 +742,48 @@ public class Class2
                 new InputKey(VirtualKeyCode.BACK, ImmutableArray<VirtualKeyCode>.Empty), HangMitigatingCancellationToken);
             await TestServices.Input.SendWithoutActivateAsync(["Other", "Stuff"], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(
-                @"
-public class Class2
-{
-    public int LongOtherStuff$$Field;
-}", HangMitigatingCancellationToken);
+                """
+                public class Class2
+                {
+                    public int LongOtherStuff$$Field;
+                }
+                """, HangMitigatingCancellationToken);
         }
 
-        [IdeFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1903953/")]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/73630"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1903953/")]
         public async Task VerifyRenameLinkedDocumentsAsync()
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
             globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, true);
             var projectName = "MultiTFMProject";
-            await TestServices.SolutionExplorer.AddCustomProjectAsync(projectName, ".csproj", @"
-<Project Sdk=""Microsoft.NET.Sdk"">
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFrameworks>net6.0-windows;net48</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <LangVersion>preview</LangVersion>
-  </PropertyGroup>
-</Project>
-", HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddCustomProjectAsync(projectName, ".csproj", """
+                <Project Sdk="Microsoft.NET.Sdk">
+                  <PropertyGroup>
+                    <OutputType>Exe</OutputType>
+                    <TargetFrameworks>net6.0-windows;net48</TargetFrameworks>
+                    <ImplicitUsings>enable</ImplicitUsings>
+                    <Nullable>enable</Nullable>
+                    <LangVersion>preview</LangVersion>
+                  </PropertyGroup>
+                </Project>
+                """, HangMitigatingCancellationToken);
 
-            var startCode = @"
-public class TestClass
-{
-}
-";
+            var startCode = """
+                public class TestClass
+                {
+                }
+                """;
             await TestServices.SolutionExplorer.AddFileAsync(projectName, "TestClass.cs", startCode, cancellationToken: HangMitigatingCancellationToken);
 
-            var referencedCode = @"
-public class MyClass
-{
-    void Method()
-    {
-        TestClass x = new TestClass();
-    }
-}";
+            var referencedCode = """
+                public class MyClass
+                {
+                    void Method()
+                    {
+                        TestClass x = new TestClass();
+                    }
+                }
+                """;
             await TestServices.SolutionExplorer.AddFileAsync(projectName, "MyClass.cs", referencedCode, cancellationToken: HangMitigatingCancellationToken);
             // We made csproj changes, so need to wait for PS to finish all the tasks before moving on.
             await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
@@ -763,14 +795,15 @@ public class MyClass
             await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.HOME, "M", "y", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(
-                @"
-public class MyClass
-{
-    void Method()
-    {
-        MyTestClass$$ x = new MyTestClass();
-    }
-}", HangMitigatingCancellationToken);
+                """
+                public class MyClass
+                {
+                    void Method()
+                    {
+                        MyTestClass$$ x = new MyTestClass();
+                    }
+                }
+                """, HangMitigatingCancellationToken);
             // Make sure the file is renamed. If the file is not found, this call would throw exception
             await TestServices.SolutionExplorer.GetProjectItemAsync(projectName, "MyTestClass.cs", HangMitigatingCancellationToken);
         }
