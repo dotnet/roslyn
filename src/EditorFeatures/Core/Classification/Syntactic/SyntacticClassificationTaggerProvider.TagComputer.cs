@@ -35,6 +35,12 @@ internal partial class SyntacticClassificationTaggerProvider
     /// </summary>
     internal sealed partial class TagComputer
     {
+        private sealed record CachedServices(
+            Workspace Workspace,
+            IContentType ContentType,
+            SolutionServices SolutionServices,
+            IClassificationService ClassificationService);
+
         private static readonly object s_uniqueKey = new();
 
         private readonly SyntacticClassificationTaggerProvider _taggerProvider;
@@ -57,6 +63,13 @@ internal partial class SyntacticClassificationTaggerProvider
 
         private Workspace? _workspace;
 
+        /// <summary>
+        /// Cached values for the last services we computed for a particular <see cref="Workspace"/> and <see
+        /// cref="IContentType"/>.  These rarely change, and are expensive enough to show up in very hot scenarios (like
+        /// scrolling) where we are going to be called in at a very high volume.
+        /// </summary>
+        private CachedServices? _lastCachedServices;
+
         // The latest data about the document being classified that we've cached.  objects can 
         // be accessed from both threads, and must be obtained when this lock is held. 
         //
@@ -74,13 +87,6 @@ internal partial class SyntacticClassificationTaggerProvider
         private readonly LastLineCache _lastLineCache;
 
         private int _taggerReferenceCount;
-
-        /// <summary>
-        /// Cached values for the last services we computed for a particular <see cref="Workspace"/> and <see
-        /// cref="IContentType"/>.  These rarely change, and are expensive enough to show up in very hot scenarios (like
-        /// scrolling) where we are going to be called in at a very high volume.
-        /// </summary>
-        private Tuple<Workspace, IContentType, (SolutionServices solutionServices, IClassificationService classificationService)>? _lastCachedServices;
 
         public TagComputer(
             SyntacticClassificationTaggerProvider taggerProvider,
@@ -132,8 +138,8 @@ internal partial class SyntacticClassificationTaggerProvider
             var lastCachedServices = _lastCachedServices;
 
             if (lastCachedServices is null ||
-                lastCachedServices.Item1 != workspace ||
-                lastCachedServices.Item2 != contentType)
+                lastCachedServices.Workspace != workspace ||
+                lastCachedServices.ContentType != contentType)
             {
                 if (workspace?.Services.SolutionServices is not { } solutionServices)
                     return null;
@@ -141,11 +147,11 @@ internal partial class SyntacticClassificationTaggerProvider
                 if (solutionServices.GetProjectServices(contentType)?.GetService<IClassificationService>() is not { } classificationService)
                     return null;
 
-                lastCachedServices = Tuple.Create(workspace, contentType, (solutionServices, classificationService));
+                lastCachedServices = new(workspace, contentType, solutionServices, classificationService);
                 _lastCachedServices = lastCachedServices;
             }
 
-            return lastCachedServices.Item3;
+            return (lastCachedServices.SolutionServices, lastCachedServices.ClassificationService);
         }
 
         #region Workspace Hookup
@@ -226,6 +232,7 @@ internal partial class SyntacticClassificationTaggerProvider
         public void DisconnectFromWorkspace()
         {
             _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
+            _lastCachedServices = null;
 
             lock (_gate)
             {
