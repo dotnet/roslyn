@@ -1547,7 +1547,7 @@ record Goo(int x, int {|Definition:$$y|})
 class P
 {
     static void Main()
-{
+    {
         var f = new Goo(y: 1);
         Console.WriteLine(f.[|y|]);
     }
