@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeLens;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using LSP = Roslyn.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
