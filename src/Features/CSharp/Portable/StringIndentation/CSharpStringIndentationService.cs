@@ -67,9 +67,9 @@ internal sealed class CSharpStringIndentationService : IStringIndentationService
 
             foreach (var child in node.ChildNodesAndTokens().Reverse())
             {
-                if (child.IsNode)
+                if (child.AsNode(out var childNode))
                 {
-                    nodeStack.Add(child.AsNode()!);
+                    nodeStack.Add(childNode);
                 }
                 else if (child.IsToken)
                 {

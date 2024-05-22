@@ -16,7 +16,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- ⚠ Only designTools assemblies should be added here ⚠ -->
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.CodeAnalysis" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="DesignTools.Tests.Component.CodeAnalysisDiagnostics" Key="$(VisualStudioKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.CodeAnalysis.Diagnostics" Key="$(VisualStudioKey)" />
   </ItemGroup>
   <ItemGroup>

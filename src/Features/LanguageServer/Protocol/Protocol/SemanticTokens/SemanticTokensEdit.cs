@@ -5,8 +5,7 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing an individual edit incrementally applied to a previous
@@ -14,7 +13,6 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensEdit">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1036:Override methods on comparable types", Justification = "Pending implementation of IComparable")]
     internal class SemanticTokensEdit : IComparable<SemanticTokensEdit>
     {
@@ -22,22 +20,22 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the position in the previous response's <see cref="SemanticTokens.Data"/>
         /// to begin the edit.
         /// </summary>
-        [DataMember(Name = "start")]
+        [JsonPropertyName("start")]
         public int Start { get; set; }
 
         /// <summary>
         /// Gets or sets the number of numbers to delete in the <see cref="SemanticTokens.Data"/>
         /// from the previous response.
         /// </summary>
-        [DataMember(Name = "deleteCount")]
+        [JsonPropertyName("deleteCount")]
         public int DeleteCount { get; set; }
 
         /// <summary>
         /// Gets or sets an array containing the encoded semantic tokens information to insert
         /// into a previous response.
         /// </summary>
-        [DataMember(Name = "data")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("data")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int[]? Data { get; set; }
 
         /// <summary>

@@ -25,7 +25,13 @@ internal partial class CSharpSyntaxTreeFactoryService
 
         private SourceText? _lazyText;
 
-        public ParsedSyntaxTree(SourceText? lazyText, CSharpSyntaxNode root, CSharpParseOptions options, string filePath, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm)
+        public ParsedSyntaxTree(
+            SourceText? lazyText,
+            CSharpSyntaxNode root,
+            CSharpParseOptions options,
+            string filePath,
+            Encoding? encoding,
+            SourceHashAlgorithm checksumAlgorithm)
         {
             _lazyText = lazyText;
             _root = CloneNodeAsRoot(root);
@@ -68,10 +74,20 @@ internal partial class CSharpSyntaxTreeFactoryService
         }
 
         public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
-            => (root == _root && options == Options) ? this : new ParsedSyntaxTree((root == _root) ? _lazyText : null, (CSharpSyntaxNode)root, (CSharpParseOptions)options, FilePath, Encoding, _checksumAlgorithm);
+            => root == _root && options == Options
+                ? this
+                : new ParsedSyntaxTree(
+                    root == _root ? _lazyText : null,
+                    (CSharpSyntaxNode)root,
+                    (CSharpParseOptions)options,
+                    FilePath,
+                    Encoding,
+                    _checksumAlgorithm);
 
         public override SyntaxTree WithFilePath(string path)
-            => (path == FilePath) ? this : new ParsedSyntaxTree(_lazyText, _root, Options, path, Encoding, _checksumAlgorithm);
+            => path == FilePath
+                ? this
+                : new ParsedSyntaxTree(_lazyText, _root, Options, path, Encoding, _checksumAlgorithm);
 
         public override SyntaxReference GetReference(SyntaxNode node)
             => new NodeSyntaxReference(node);

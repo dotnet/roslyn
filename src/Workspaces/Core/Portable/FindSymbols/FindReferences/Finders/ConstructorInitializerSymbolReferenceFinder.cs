@@ -51,7 +51,7 @@ internal sealed class ConstructorInitializerSymbolReferenceFinder : AbstractRefe
         }, symbol.ContainingType.Name, processResult, processResultData, cancellationToken);
     }
 
-    protected sealed override async ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override void FindReferencesInDocument<TData>(
         IMethodSymbol methodSymbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -59,19 +59,15 @@ internal sealed class ConstructorInitializerSymbolReferenceFinder : AbstractRefe
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        var tokens = state.Cache.GetConstructorInitializerTokens(state.SyntaxFacts, state.Root, cancellationToken);
+        var tokens = state.Cache.GetConstructorInitializerTokens(cancellationToken);
         if (state.SemanticModel.Language == LanguageNames.VisualBasic)
-        {
-            tokens = tokens.Concat(await FindMatchingIdentifierTokensAsync(
-                state, "New", cancellationToken).ConfigureAwait(false)).Distinct();
-        }
+            tokens = tokens.Concat(FindMatchingIdentifierTokens(state, "New", cancellationToken)).Distinct();
 
         var totalTokens = tokens.WhereAsArray(
             static (token, tuple) => TokensMatch(tuple.state, token, tuple.methodSymbol.ContainingType.Name, tuple.cancellationToken),
             (state, methodSymbol, cancellationToken));
 
-        await FindReferencesInTokensAsync(methodSymbol, state, totalTokens, processResult, processResultData, cancellationToken).ConfigureAwait(false);
-
+        FindReferencesInTokens(methodSymbol, state, totalTokens, processResult, processResultData, cancellationToken);
         return;
 
         // local functions

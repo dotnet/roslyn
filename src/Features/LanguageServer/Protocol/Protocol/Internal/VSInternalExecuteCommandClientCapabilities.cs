@@ -4,12 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing settings for well-known Visual Studio's code action command.
     /// </summary>
-    [DataContract]
     internal class VSInternalExecuteCommandClientCapabilities : DynamicRegistrationSetting
     {
         /// <summary>
@@ -31,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a set of well-known commands name the given VS-LSP client supports.
         /// </summary>
-        [DataMember(Name = "_vs_supportedCommands")]
+        [JsonPropertyName("_vs_supportedCommands")]
         public string[] SupportedCommands
         {
             get;

@@ -3,9 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -20,18 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// </summary>
 internal abstract class RemoteHostClient : IDisposable
 {
-    public event EventHandler<bool>? StatusChanged;
-
-    protected void Started()
-    {
-        OnStatusChanged(started: true);
-    }
-
-    public virtual void Dispose()
-        => OnStatusChanged(started: false);
-
-    private void OnStatusChanged(bool started)
-        => StatusChanged?.Invoke(this, started);
+    public abstract void Dispose();
 
     public static Task<RemoteHostClient?> TryGetClientAsync(Project project, CancellationToken cancellationToken)
     {

@@ -4,15 +4,13 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Capabilities specific to the semantic token requests scoped to the workspace.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensWorkspaceClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SemanticTokensWorkspaceSetting
     {
         /// <summary>
@@ -25,8 +23,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// and is useful for situation where a server for example detect a project
         /// wide change that requires such a calculation.
         /// </remarks>
-        [DataMember(Name = "refreshSupport")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("refreshSupport")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool RefreshSupport { get; set; }
     }
 }

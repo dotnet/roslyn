@@ -195,8 +195,8 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         {
             foreach (var child in node.ChildNodesAndTokens())
             {
-                if (child.IsNode &&
-                    ImplicitMemberAccessWouldBeAffected(child.AsNode()!))
+                if (child.AsNode(out var childNode) &&
+                    ImplicitMemberAccessWouldBeAffected(childNode))
                 {
                     return true;
                 }

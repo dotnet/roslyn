@@ -69,7 +69,7 @@ internal static class TypeStyleHelper
         }
 
         // literals, use var if options allow usage here.
-        if (initializerExpression.IsAnyLiteralExpression())
+        if (initializerExpression is LiteralExpressionSyntax)
         {
             return stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
         }

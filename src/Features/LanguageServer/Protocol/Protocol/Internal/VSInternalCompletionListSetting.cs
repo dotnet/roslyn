@@ -4,21 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents initialization setting for completion list.
     /// </summary>
-    [DataContract]
     internal class VSInternalCompletionListSetting
     {
         /// <summary>
         /// Gets or sets a value indicating whether completion lists can have Data bags. These data bags get propagated
         /// onto underlying completion items unless they have their own data bags.
         /// </summary>
-        [DataMember(Name = "_vs_data")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_data")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool Data
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether completion lists can have VSCommitCharacters. These commit characters get propagated
         /// onto underlying valid completion items unless they have their own commit characters.
         /// </summary>
-        [DataMember(Name = "_vs_commitCharacters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_commitCharacters")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool CommitCharacters
         {
             get;

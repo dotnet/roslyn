@@ -3,6 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.IO.Hashing
+Imports System.Text
+Imports System.Text.RegularExpressions
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.Options
@@ -28,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             Return [Enum].GetValues(type).Cast(Of Object).AsArray()
         End Function
 
-        Protected Sub TestUnifiedSettingsCategory(registrationJsonObject As JObject, categoryBasePath As String, languageName As String)
+        Protected Sub TestUnifiedSettingsCategory(registrationJsonObject As JObject, categoryBasePath As String, languageName As String, pkdDefFile As String)
             Dim actualAllSettings = registrationJsonObject.SelectToken($"$.properties").Children.OfType(Of JProperty).
                 Where(Function(setting) setting.Name.StartsWith(categoryBasePath)).
                 Select(Function(setting) setting.Name).
@@ -62,6 +65,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
                     Throw ExceptionUtilities.UnexpectedValue(optionName)
                 End If
             Next
+
+            Dim registrationFileBytes = ASCIIEncoding.ASCII.GetBytes(registrationJsonObject.ToString())
+            Dim hash = XxHash128.Hash(registrationFileBytes)
+            Dim tagBytes = hash.Take(8).ToArray()
+            Dim expectedCacheTagValue = BitConverter.ToInt64(tagBytes, 0).ToString("X16")
+
+            Dim regexExp = New Regex("""CacheTag""=qword:\w{16}")
+            Dim match = regexExp.Match(pkdDefFile, 0).Value
+            Dim actual = match.Substring(match.Length - 16)
+            ' Please change the CacheTag value in pkddef if you modify the unified settings regirstration file
+            Assert.Equal(expectedCacheTagValue, actual)
         End Sub
 
         Private Shared Sub VerifySettings(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2, languageName As String)

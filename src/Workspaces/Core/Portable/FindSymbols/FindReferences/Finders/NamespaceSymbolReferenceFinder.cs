@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
-internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespaceSymbol>
+internal sealed class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespaceSymbol>
 {
     protected override bool CanFind(INamespaceSymbol symbol)
         => true;
@@ -50,7 +50,7 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
         await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    protected override async ValueTask FindReferencesInDocumentAsync<TData>(
+    protected override void FindReferencesInDocument<TData>(
         INamespaceSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -60,16 +60,16 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
     {
         if (symbol.IsGlobalNamespace)
         {
-            await AddGlobalNamespaceReferencesAsync(
-                symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            AddGlobalNamespaceReferences(
+                symbol, state, processResult, processResultData, cancellationToken);
         }
         else
         {
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var initialReferences);
 
             var namespaceName = symbol.Name;
-            await AddNamedReferencesAsync(
-                symbol, namespaceName, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken).ConfigureAwait(false);
+            AddNamedReferences(
+                symbol, namespaceName, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken);
 
             foreach (var globalAlias in state.GlobalAliases)
             {
@@ -79,19 +79,19 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
                 if (state.SyntaxFacts.StringComparer.Equals(namespaceName, globalAlias))
                     continue;
 
-                await AddNamedReferencesAsync(
-                    symbol, globalAlias, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken).ConfigureAwait(false);
+                AddNamedReferences(
+                    symbol, globalAlias, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken);
             }
 
             // The items in initialReferences need to be both reported and used later to calculate additional results.
             foreach (var location in initialReferences)
                 processResult(location, processResultData);
 
-            await FindLocalAliasReferencesAsync(
-                initialReferences, symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            FindLocalAliasReferences(
+                initialReferences, symbol, state, processResult, processResultData, cancellationToken);
 
-            await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-                symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            FindReferencesInDocumentInsideGlobalSuppressions(
+                symbol, state, processResult, processResultData, cancellationToken);
         }
     }
 
@@ -99,7 +99,7 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
     /// Finds references to <paramref name="symbol"/> in this <paramref name="state"/>, but only if it referenced
     /// though <paramref name="name"/> (which might be the actual name of the type, or a global alias to it).
     /// </summary>
-    private static async ValueTask AddNamedReferencesAsync<TData>(
+    private static void AddNamedReferences<TData>(
         INamespaceSymbol symbol,
         string name,
         FindReferencesDocumentState state,
@@ -107,14 +107,13 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        var tokens = await FindMatchingIdentifierTokensAsync(
-            state, name, cancellationToken).ConfigureAwait(false);
+        var tokens = FindMatchingIdentifierTokens(state, name, cancellationToken);
 
-        await FindReferencesInTokensAsync(
-            symbol, state, tokens, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindReferencesInTokens(
+            symbol, state, tokens, processResult, processResultData, cancellationToken);
     }
 
-    private static async Task AddGlobalNamespaceReferencesAsync<TData>(
+    private static void AddGlobalNamespaceReferences<TData>(
         INamespaceSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -127,7 +126,7 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
                 static (token, state) => state.SyntaxFacts.IsGlobalNamespaceKeyword(token),
                 state);
 
-        await FindReferencesInTokensAsync(
-            symbol, state, tokens, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindReferencesInTokens(
+            symbol, state, tokens, processResult, processResultData, cancellationToken);
     }
 }

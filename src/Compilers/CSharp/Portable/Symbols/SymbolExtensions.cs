@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (symbol.Kind)
             {
                 case SymbolKind.NamedType:
+                case SymbolKind.ErrorType:
                     return ((NamedTypeSymbol)symbol).ConstructedFrom;
 
                 case SymbolKind.Method:

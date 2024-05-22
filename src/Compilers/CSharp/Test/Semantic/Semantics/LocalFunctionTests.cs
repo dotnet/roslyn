@@ -2394,21 +2394,52 @@ class C
                 // (33,44): error CS1637: Iterators cannot have pointer type parameters
                 //     public unsafe IEnumerable<int> M4(int* a)
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
-                // (33,36): error CS1629: Unsafe code may not appear in iterators
+                // (33,36): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public unsafe IEnumerable<int> M4(int* a)
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "M4").WithLocation(33, 36),
-                // (37,40): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M4").WithArguments("ref and unsafe in async and iterator methods").WithLocation(33, 36),
+                // (37,40): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //                 IEnumerable<int> Local(int* b) { yield break; }
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "int*").WithLocation(37, 40),
-                // (39,23): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("ref and unsafe in async and iterator methods").WithLocation(37, 40),
+                // (39,23): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //                 Local(&x);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "&x").WithLocation(39, 23),
-                // (39,17): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("ref and unsafe in async and iterator methods").WithLocation(39, 23),
+                // (39,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //                 Local(&x);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Local(&x)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(39, 17),
                 // (37,45): error CS1637: Iterators cannot have pointer type parameters
                 //                 IEnumerable<int> Local(int* b) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,37): error CS1637: Iterators cannot have pointer type parameters
+                //         IEnumerable<int> Local(int* a) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
+                // (17,41): error CS1637: Iterators cannot have pointer type parameters
+                //             IEnumerable<int> Local(int* x) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "x").WithLocation(17, 41),
+                // (27,37): error CS1637: Iterators cannot have pointer type parameters
+                //         IEnumerable<int> Local(int* a) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
+                // (33,44): error CS1637: Iterators cannot have pointer type parameters
+                //     public unsafe IEnumerable<int> M4(int* a)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
+                // (37,40): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(37, 40),
+                // (37,45): error CS1637: Iterators cannot have pointer type parameters
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45),
+                // (39,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Local(&x)").WithLocation(39, 17),
+                // (39,23): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(39, 23)
+            };
+
+            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", "never")).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never")).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -3516,7 +3547,7 @@ class Program
                 // (10,31): error CS0190: The __arglist construct is valid only within a variable argument method
                 //             Console.WriteLine(__arglist);
                 Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(10, 31),
-                // (18,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                // (18,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //             Console.WriteLine(__arglist);
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(18, 31),
                 // (24,20): error CS1669: __arglist is not valid in this context
@@ -3528,7 +3559,7 @@ class Program
                 // (32,20): error CS1669: __arglist is not valid in this context
                 //         void Local(__arglist)
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(32, 20),
-                // (34,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                // (34,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //             Console.WriteLine(__arglist);
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(34, 31)
     );

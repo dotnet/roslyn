@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 

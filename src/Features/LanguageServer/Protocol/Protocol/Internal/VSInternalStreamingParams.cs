@@ -4,21 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing a streaming pull request parameter used.
     ///
     /// TODO: Deprecate VSInternalDiagnosticParams.cs to use this merged param instead.
     /// </summary>
-    [DataContract]
     internal class VSInternalStreamingParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the document for which the feature is being requested for.
         /// </summary>
-        [DataMember(Name = "_vs_textDocument", IsRequired = true)]
+        [JsonPropertyName("_vs_textDocument")]
+        [JsonRequired]
         public TextDocumentIdentifier TextDocument { get; set; }
 
         /// <summary>
@@ -40,8 +39,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// document, then all reports are expected to have the same
         /// previousResultId.</para>
         /// </remarks>
-        [DataMember(Name = "_vs_previousResultId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_previousResultId")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? PreviousResultId { get; set; }
     }
 }

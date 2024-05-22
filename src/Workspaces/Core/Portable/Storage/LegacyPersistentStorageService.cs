@@ -4,8 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -36,5 +34,5 @@ internal sealed class LegacyPersistentStorageService : IPersistentStorageService
     }
 
     public IPersistentStorage GetStorage(Solution solution)
-        => NoOpPersistentStorage.GetOrThrow(throwOnFailure: false);
+        => NoOpPersistentStorage.GetOrThrow(SolutionKey.ToSolutionKey(solution), throwOnFailure: false);
 }

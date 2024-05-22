@@ -4,8 +4,7 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Response for an inline completions request.
@@ -17,8 +16,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the inline completion items.
         /// </summary>
-        [DataMember(Name = "_vs_items")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("_vs_items")]
+        [JsonRequired]
         public VSInternalInlineCompletionItem[] Items { get; set; }
     }
 }

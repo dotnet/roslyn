@@ -7,9 +7,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text.Json.Serialization;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.Text.Adornments
 {
+    [JsonConverter(typeof(ContainerElementConverter))]
     internal sealed class ContainerElement
     {
         public IEnumerable<object> Elements { get; }

@@ -12,7 +12,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -31,7 +30,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EditAndContinueCapabilities.AddInstanceFieldToExistingType |
             EditAndContinueCapabilities.AddStaticFieldToExistingType |
             EditAndContinueCapabilities.AddMethodToExistingType |
-            EditAndContinueCapabilities.NewTypeDefinition;
+            EditAndContinueCapabilities.NewTypeDefinition |
+            EditAndContinueCapabilities.AddExplicitInterfaceImplementation;
 
         public const EditAndContinueCapabilities Net6RuntimeCapabilities =
             Net5RuntimeCapabilities |
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 actualRequiredCapabilities |= result.RequiredCapabilities;
                 hasValidChanges &= result.HasSignificantValidChanges;
 
-                VerifyDiagnostics(expectedResult.Diagnostics, result.RudeEditErrors.ToDescription(newText, includeFirstLineInDiagnostics), assertMessagePrefix);
+                VerifyDiagnostics(expectedResult.Diagnostics, result.RudeEdits.ToDescription(newText, includeFirstLineInDiagnostics), assertMessagePrefix);
 
                 if (!expectedResult.SemanticEdits.IsDefault)
                 {
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 else
                 {
                     // exception regions not available in presence of rude edits:
-                    Assert.Equal(!expectedResult.Diagnostics.IsEmpty, result.ExceptionRegions.IsDefault);
+                    Assert.Equal(expectedResult.Diagnostics.Any(d => d.RudeEditKind.IsBlocking()), result.ExceptionRegions.IsDefault);
 
                     VerifyDocumentActiveStatementsAndExceptionRegions(
                         expectedResult.ActiveStatements,
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                         result.ExceptionRegions);
                 }
 
-                if (!result.RudeEditErrors.IsEmpty)
+                if (result.HasBlockingRudeEdits)
                 {
                     Assert.True(result.LineEdits.IsDefault);
                     Assert.True(expectedResult.LineEdits.IsDefaultOrEmpty);

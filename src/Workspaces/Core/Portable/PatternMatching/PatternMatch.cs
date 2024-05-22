@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching;
 

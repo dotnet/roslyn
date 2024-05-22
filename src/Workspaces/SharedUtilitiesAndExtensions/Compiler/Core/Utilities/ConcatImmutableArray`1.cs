@@ -58,3 +58,9 @@ internal readonly struct ConcatImmutableArray<T>(ImmutableArray<T> first, Immuta
             => throw new NotSupportedException();
     }
 }
+
+internal static partial class ImmutableArrayExtensions
+{
+    public static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
+        => new(first, second);
+}

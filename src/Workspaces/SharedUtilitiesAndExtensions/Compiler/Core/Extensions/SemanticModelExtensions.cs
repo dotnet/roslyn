@@ -137,13 +137,10 @@ internal static partial class SemanticModelExtensions
 
         foreach (var child in node.ChildNodesAndTokens())
         {
-            if (child.IsNode)
+            if (child.AsNode(out var childNode) &&
+                ShouldDescendInto(childNode, descendInto))
             {
-                var childNode = child.AsNode()!;
-                if (ShouldDescendInto(childNode, descendInto))
-                {
-                    GetAllDeclaredSymbols(semanticModel, childNode, symbols, cancellationToken, descendInto);
-                }
+                GetAllDeclaredSymbols(semanticModel, childNode, symbols, cancellationToken, descendInto);
             }
         }
 

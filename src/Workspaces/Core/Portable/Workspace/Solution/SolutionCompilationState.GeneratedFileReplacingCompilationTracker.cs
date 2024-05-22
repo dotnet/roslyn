@@ -50,18 +50,21 @@ internal partial class SolutionCompilationState
             _skeletonReferenceCache = underlyingTracker.GetClonedSkeletonReferenceCache();
         }
 
-        public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
+        public bool ContainsAssemblyOrModuleOrDynamic(
+            ISymbol symbol, bool primary,
+            [NotNullWhen(true)] out Compilation? compilation,
+            out MetadataReferenceInfo? referencedThrough)
         {
             if (_compilationWithReplacements == null)
             {
                 // We don't have a compilation yet, so this couldn't have came from us
+                compilation = null;
                 referencedThrough = null;
                 return false;
             }
-            else
-            {
-                return UnrootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(symbol, primary, out referencedThrough);
-            }
+
+            return RootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(
+                symbol, primary, out compilation, out referencedThrough);
         }
 
         public ICompilationTracker Fork(ProjectState newProject, TranslationAction? translate)
@@ -159,7 +162,7 @@ internal partial class SolutionCompilationState
                 {
                     // The generated file still exists in the underlying compilation, but the contents may not match the open file if the open file
                     // is stale. Replace the syntax tree so we have a tree that matches the text.
-                    newStates = newStates.SetState(id, replacementState);
+                    newStates = newStates.SetState(replacementState);
                 }
                 else
                 {

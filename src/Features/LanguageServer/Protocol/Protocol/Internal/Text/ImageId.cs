@@ -4,6 +4,8 @@
 
 using System;
 using System.Globalization;
+using System.Text.Json.Serialization;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.Core.Imaging
 {
@@ -15,6 +17,7 @@ namespace Roslyn.Core.Imaging
     //     On Windows systems, Microsoft.VisualStudio.Core.Imaging.ImageId can be converted
     //     to and from various other image representations via the ImageIdExtensions extension
     //     methods.
+    [JsonConverter(typeof(ImageIdConverter))]
     internal struct ImageId : IEquatable<ImageId>
     {
         //

@@ -5,7 +5,6 @@
 #pragma warning disable RS0030 // Do not used banned APIs
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,9 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

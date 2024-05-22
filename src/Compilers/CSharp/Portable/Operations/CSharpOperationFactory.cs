@@ -881,7 +881,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         // In nested member initializers, the property is not actually set. Instead, it is retrieved for a series of Add method calls or nested property setter calls,
                         // so we need to use the getter for this property
-                        MethodSymbol? accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
+                        MethodSymbol? accessor = isObjectOrCollectionInitializer || property.RefKind != RefKind.None
+                            ? property.GetOwnOrInheritedGetMethod()
+                            : property.GetOwnOrInheritedSetMethod();
                         if (accessor == null || boundObjectInitializerMember.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor.OriginalDefinition is ErrorMethodSymbol)
                         {
                             var children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundObjectInitializerMember).InvalidNodeChildren);
@@ -1877,9 +1879,10 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     needsDispose: enumeratorInfoOpt.NeedsDisposal,
                                                     knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal ?
                                                                                      compilation.Conversions.
-                                                                                         ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorInfo.Method.ReturnType,
+                                                                                         HasImplicitConversionToOrImplementsVarianceCompatibleInterface(enumeratorInfoOpt.GetEnumeratorInfo.Method.ReturnType,
                                                                                                                             iDisposable,
-                                                                                                                            ref discardedUseSiteInfo).IsImplicit :
+                                                                                                                            ref discardedUseSiteInfo,
+                                                                                                                            needSupportForRefStructInterfaces: out _) :
                                                                                      false,
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),

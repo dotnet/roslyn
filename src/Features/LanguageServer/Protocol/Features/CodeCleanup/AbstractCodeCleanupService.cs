@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -206,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 shouldIncludeDiagnostic: static diagnosticId => !(IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId)),
                 includeCompilerDiagnostics: true, includeSuppressedDiagnostics: false,
                 priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
-                addOperationScope: null, DiagnosticKind.All, isExplicit: false,
+                DiagnosticKind.All, isExplicit: false,
                 cancellationToken).ConfigureAwait(false));
 
             // ensure more than just known diagnostics were returned

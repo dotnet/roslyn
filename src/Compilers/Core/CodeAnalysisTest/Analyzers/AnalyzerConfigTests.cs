@@ -932,6 +932,33 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
             }, options.Select(o => o.TreeOptions).ToArray());
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72657")]
+        [InlineData("/", "/")]
+        [InlineData("/a/b/c/", "/a/b/c/")]
+        [InlineData("/a/b//c/", "/a/b/c/")]
+        [InlineData("/a/b/c/", "/a/b//c/")]
+        [InlineData("/a/b//c/", "/a/b//c/")]
+        [InlineData("/a/b/c//", "/a/b/c/")]
+        [InlineData("/a/b/c/", "/a/b/c//")]
+        [InlineData("/a/b/c//", "/a/b/c//")]
+        [InlineData("/a/b//c/", "/a/b///c/")]
+        public void EditorConfigToDiagnostics_DoubleSlash(string prefixEditorConfig, string prefixSource)
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse("""
+                [*.cs]
+                dotnet_diagnostic.cs000.severity = none
+                """,
+                prefixEditorConfig + ".editorconfig"));
+
+            var options = GetAnalyzerConfigOptions([prefixSource + "test.cs"], configs);
+            configs.Free();
+
+            Assert.Equal([
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress))
+            ], options.Select(o => o.TreeOptions).ToArray());
+        }
+
         [Fact]
         public void LaterSectionOverrides()
         {

@@ -4,14 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
     /// Enum which represents the various ways to sync text documents.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentSyncKind">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal enum TextDocumentSyncKind
     {
         /// <summary>

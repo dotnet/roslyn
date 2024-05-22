@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -100,23 +99,22 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
+            public bool ContainsAssemblyOrModuleOrDynamic(
+                ISymbol symbol, bool primary,
+                [NotNullWhen(true)] out Compilation? compilation,
+                out MetadataReferenceInfo? referencedThrough)
             {
-                Debug.Assert(symbol.Kind is SymbolKind.Assembly or
-                             SymbolKind.NetModule or
-                             SymbolKind.DynamicType);
-                var state = this.ReadState();
-
-                var unrootedSymbolSet = (state as FinalCompilationTrackerState)?.UnrootedSymbolSet;
-                if (unrootedSymbolSet == null)
+                Debug.Assert(symbol.Kind is SymbolKind.Assembly or SymbolKind.NetModule or SymbolKind.DynamicType);
+                if (this.ReadState() is not FinalCompilationTrackerState finalState)
                 {
                     // this was not a tracker that has handed out a compilation (all compilations handed out must be
                     // owned by a 'FinalState').  So this symbol could not be from us.
+                    compilation = null;
                     referencedThrough = null;
                     return false;
                 }
 
-                return unrootedSymbolSet.Value.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out referencedThrough);
+                return finalState.RootedSymbolSet.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out compilation, out referencedThrough);
             }
 
             /// <summary>

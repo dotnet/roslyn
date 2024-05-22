@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         public string[] CodeActionPath { get; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string[]? FixAllFlavors { get; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ImmutableArray<LSP.CodeAction>? NestedCodeActions { get; }
 
         public CodeActionResolveData(

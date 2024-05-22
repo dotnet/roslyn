@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -105,15 +105,14 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
             else
             {
                 // We run analysis for all the projects concurrently as this is a user invoked operation.
-                using var _ = ArrayBuilder<Task>.GetInstance(solution.ProjectIds.Count, out var tasks);
-                foreach (var project in solution.Projects)
-                    tasks.Add(Task.Run(() => AnalyzeProjectCoreAsync(project, onAfterProjectAnalyzed, cancellationToken), cancellationToken));
-
-                await Task.WhenAll(tasks).ConfigureAwait(false);
+                await RoslynParallel.ForEachAsync(
+                    source: solution.Projects,
+                    cancellationToken,
+                    (project, cancellationToken) => AnalyzeProjectCoreAsync(project, onAfterProjectAnalyzed, cancellationToken)).ConfigureAwait(false);
             }
         }
 
-        private async Task AnalyzeProjectCoreAsync(Project project, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken)
+        private async ValueTask AnalyzeProjectCoreAsync(Project project, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken)
         {
             // Execute force analysis for the project.
             await _diagnosticAnalyzerService.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);

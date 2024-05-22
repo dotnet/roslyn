@@ -40,7 +40,7 @@ internal sealed class FieldSymbolReferenceFinder : AbstractReferenceFinder<IFiel
         await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    protected override async ValueTask FindReferencesInDocumentAsync<TData>(
+    protected override void FindReferencesInDocument<TData>(
         IFieldSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -48,9 +48,9 @@ internal sealed class FieldSymbolReferenceFinder : AbstractReferenceFinder<IFiel
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        await FindReferencesInDocumentUsingSymbolNameAsync(
-            symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
-        await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-            symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindReferencesInDocumentUsingSymbolName(
+            symbol, state, processResult, processResultData, cancellationToken);
+        FindReferencesInDocumentInsideGlobalSuppressions(
+            symbol, state, processResult, processResultData, cancellationToken);
     }
 }

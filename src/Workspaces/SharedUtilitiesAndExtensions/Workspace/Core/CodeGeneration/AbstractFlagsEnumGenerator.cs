@@ -79,7 +79,7 @@ internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol fie
     {
         Contract.ThrowIfNull(enumType.EnumUnderlyingType);
         var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
-        var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
+        var constantValueULong = underlyingSpecialType.ConvertUnderlyingValueToUInt64(constantValue);
 
         var result = constantValueULong;
 
@@ -177,7 +177,7 @@ internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol fie
         {
             if (field is { HasConstantValue: true, ConstantValue: not null })
             {
-                var value = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
+                var value = underlyingSpecialType.ConvertUnderlyingValueToUInt64(field.ConstantValue);
                 allFieldsAndValues.Add((field, value));
             }
         }
@@ -189,14 +189,14 @@ internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol fie
     {
         Contract.ThrowIfNull(enumType.EnumUnderlyingType);
         var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
-        var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
+        var constantValueULong = underlyingSpecialType.ConvertUnderlyingValueToUInt64(constantValue);
 
         // See if there's a member with this value.  If so, then use that.
         foreach (var field in enumType.GetMembers().OfType<IFieldSymbol>())
         {
             if (field is { HasConstantValue: true, ConstantValue: not null })
             {
-                var fieldValue = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
+                var fieldValue = underlyingSpecialType.ConvertUnderlyingValueToUInt64(field.ConstantValue);
                 if (constantValueULong == fieldValue)
                 {
                     return CreateMemberAccessExpression(generator, field, enumType, underlyingSpecialType);

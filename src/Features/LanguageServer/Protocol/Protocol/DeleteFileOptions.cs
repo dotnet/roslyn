@@ -4,23 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the options for a create file operation.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#deleteFileOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class DeleteFileOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether the delete operation should be applied recursively if a folder is denoted. (Overwrite wins over ignoreIfNotExists).
         /// </summary>
-        [DataMember(Name = "recursive")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("recursive")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool Recursive
         {
             get;
@@ -30,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the action should be ignored if the file doesn't exists.
         /// </summary>
-        [DataMember(Name = "ignoreIfNotExists")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("ignoreIfNotExists")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool IgnoreIfNotExists
         {
             get;

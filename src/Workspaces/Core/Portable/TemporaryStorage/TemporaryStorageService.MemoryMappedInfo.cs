@@ -24,7 +24,7 @@ internal partial class TemporaryStorageService
     /// <para>This class and its nested types have familiar APIs and predictable behavior when used in other code, but
     /// are non-trivial to work on.</para>
     /// </remarks>
-    internal sealed class MemoryMappedInfo(MemoryMappedFile memoryMappedFile, string name, long offset, long size)
+    internal sealed class MemoryMappedInfo(MemoryMappedFile memoryMappedFile, string? name, long offset, long size)
     {
         /// <summary>
         /// The memory mapped file.
@@ -45,16 +45,14 @@ internal partial class TemporaryStorageService
         /// </remarks>
         private ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference _weakReadAccessor;
 
-        public static MemoryMappedInfo OpenExisting(string name, long offset, long size)
-            => new(MemoryMappedFile.OpenExisting(name), name, offset, size);
-
-        public static MemoryMappedInfo CreateNew(string name, long size)
+        public static MemoryMappedInfo CreateNew(string? name, long size)
             => new(MemoryMappedFile.CreateNew(name, size), name, offset: 0, size);
 
         /// <summary>
-        /// The name of the memory mapped file.
+        /// The name of the memory mapped file. Non null on systems that support named memory mapped files, null
+        /// otherwise..
         /// </summary>
-        public string Name { get; } = name;
+        public string? Name { get; } = name;
 
         /// <summary>
         /// The offset into the memory mapped file of the region described by the current

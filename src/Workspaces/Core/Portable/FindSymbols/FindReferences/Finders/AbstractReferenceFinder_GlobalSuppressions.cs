@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -50,7 +49,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     ///     [assembly: SuppressMessage("RuleCategory", "RuleId', Scope = "member", Target = "~F:C.Field")]
     /// </summary>
     [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-    protected static async ValueTask FindReferencesInDocumentInsideGlobalSuppressionsAsync<TData>(
+    protected static void FindReferencesInDocumentInsideGlobalSuppressions<TData>(
         ISymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -61,7 +60,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             return;
 
         // Check if we have any relevant global attributes in this document.
-        var info = await SyntaxTreeIndex.GetRequiredIndexAsync(state.Document, cancellationToken).ConfigureAwait(false);
+        var info = state.Cache.SyntaxTreeIndex;
         if (!info.ContainsGlobalSuppressMessageAttribute)
             return;
 
@@ -80,7 +79,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         // We map the positions of documentation ID literals in tree to string literal tokens,
         // perform semantic checks to ensure these are valid references to the symbol
         // and if so, add these locations to the computed references.
-        var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var root = state.Root;
         foreach (var token in root.DescendantTokens())
         {
             if (IsCandidate(state, token, expectedDocCommentId.Span, suppressMessageAttribute, cancellationToken, out var offsetOfReferenceInToken))

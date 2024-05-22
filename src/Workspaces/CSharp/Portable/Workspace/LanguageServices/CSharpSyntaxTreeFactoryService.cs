@@ -7,16 +7,11 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
-using System.IO;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 

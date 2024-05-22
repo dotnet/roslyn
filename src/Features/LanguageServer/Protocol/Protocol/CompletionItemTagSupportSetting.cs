@@ -4,20 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents initialization setting for the tag property on a completion item.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class CompletionItemTagSupportSetting
     {
         /// <summary>
         /// Gets or sets a value indicating the tags supported by the client.
         /// </summary>
-        [DataMember(Name = "valueSet", IsRequired = true)]
+        [JsonPropertyName("valueSet")]
+        [JsonRequired]
         public CompletionItemTag[] ValueSet
         {
             get;

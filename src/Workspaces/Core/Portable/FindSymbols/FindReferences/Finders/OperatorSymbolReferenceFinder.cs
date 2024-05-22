@@ -47,7 +47,7 @@ internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOr
             project, documents, static (index, op) => index.ContainsPredefinedOperator(op), op, processResult, processResultData, cancellationToken);
     }
 
-    protected sealed override async ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override void FindReferencesInDocument<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -62,10 +62,10 @@ internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOr
                 static (token, tuple) => IsPotentialReference(tuple.state.SyntaxFacts, tuple.op, token),
                 (state, op));
 
-        await FindReferencesInTokensAsync(
-            symbol, state, tokens, processResult, processResultData, cancellationToken).ConfigureAwait(false);
-        await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-            symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindReferencesInTokens(
+            symbol, state, tokens, processResult, processResultData, cancellationToken);
+        FindReferencesInDocumentInsideGlobalSuppressions(
+            symbol, state, processResult, processResultData, cancellationToken);
     }
 
     private static bool IsPotentialReference(

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
 internal abstract class AbstractTypeParameterSymbolReferenceFinder : AbstractReferenceFinder<ITypeParameterSymbol>
 {
-    protected sealed override async ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override void FindReferencesInDocument<TData>(
         ITypeParameterSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -29,14 +28,14 @@ internal abstract class AbstractTypeParameterSymbolReferenceFinder : AbstractRef
         // T()`). In the former case GetSymbolInfo can be used to bind the symbol and check if it matches this symbol.
         // in the latter though GetSymbolInfo will fail and we have to directly check if we have the right type info.
 
-        var tokens = await FindMatchingIdentifierTokensAsync(state, symbol.Name, cancellationToken).ConfigureAwait(false);
+        var tokens = FindMatchingIdentifierTokens(state, symbol.Name, cancellationToken);
 
-        await FindReferencesInTokensAsync(
+        FindReferencesInTokens(
             symbol, state,
             tokens.WhereAsArray(static (token, state) => !IsObjectCreationToken(token, state), state),
             processResult,
             processResultData,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
 
         GetObjectCreationReferences(
             tokens.WhereAsArray(static (token, state) => IsObjectCreationToken(token, state), state),

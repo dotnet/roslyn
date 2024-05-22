@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -106,6 +107,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.Deprecated, ImmutableArray.Create(LSP.CompletionItemTag.Deprecated) },
         }.ToImmutableDictionary();
 
+        public static JsonSerializerOptions AddLspSerializerOptions(this JsonSerializerOptions options)
+        {
+            LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(options);
+            options.Converters.Add(new LSP.NaturalObjectConverter());
+            return options;
+        }
+
+        /// <summary>
+        /// Options that know how to serialize / deserialize basic LSP types.
+        /// Useful when there are particular fields that are not serialized or deserialized by normal request handling (for example
+        /// deserializing a field that is typed as object instead of a concrete type).
+        /// </summary>
+        public static JsonSerializerOptions LspJsonSerializerOptions = new JsonSerializerOptions().AddLspSerializerOptions();
+
         // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
         // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
         public static async Task<Completion.CompletionTrigger> LSPToRoslynCompletionTriggerAsync(
@@ -197,6 +212,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 // in pretty much all cases we need to know the URI string (and original string) in order to fix the issue.
                 throw new UriFormatException($"Failed create URI from '{uriString}'; original string: '{absolutePath}'", e);
             }
+        }
+
+        internal static Uri CreateRelativePatternBaseUri(string path)
+        {
+            // According to VSCode LSP RelativePattern spec, 
+            // found at https://github.com/microsoft/vscode/blob/9e1974682eb84eebb073d4ae775bad1738c281f6/src/vscode-dts/vscode.d.ts#L2226
+            // the baseUri should not end in a trailing separator, nor should it 
+            // have any relative segmeents (., ..)
+            if (path[^1] == System.IO.Path.DirectorySeparatorChar)
+            {
+                path = path[..^1];
+            }
+
+            Debug.Assert(!path.Split(System.IO.Path.DirectorySeparatorChar).Any(p => p == "." || p == ".."));
+
+            return CreateAbsoluteUri(path);
         }
 
         // Implements workaround for https://github.com/dotnet/runtime/issues/89538:

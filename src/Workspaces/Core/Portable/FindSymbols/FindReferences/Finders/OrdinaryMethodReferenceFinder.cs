@@ -108,7 +108,7 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
     private static bool IsAddMethod(IMethodSymbol methodSymbol)
         => methodSymbol.Name == WellKnownMemberNames.CollectionInitializerAddMethodName;
 
-    protected sealed override async ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override void FindReferencesInDocument<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -116,22 +116,22 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        await FindReferencesInDocumentUsingSymbolNameAsync(
-            symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindReferencesInDocumentUsingSymbolName(
+            symbol, state, processResult, processResultData, cancellationToken);
 
         if (IsForEachMethod(symbol))
-            await FindReferencesInForEachStatementsAsync(symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            FindReferencesInForEachStatements(symbol, state, processResult, processResultData, cancellationToken);
 
         if (IsDeconstructMethod(symbol))
-            await FindReferencesInDeconstructionAsync(symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            FindReferencesInDeconstruction(symbol, state, processResult, processResultData, cancellationToken);
 
         if (IsGetAwaiterMethod(symbol))
-            await FindReferencesInAwaitExpressionAsync(symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            FindReferencesInAwaitExpression(symbol, state, processResult, processResultData, cancellationToken);
 
-        await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-            symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindReferencesInDocumentInsideGlobalSuppressions(
+            symbol, state, processResult, processResultData, cancellationToken);
 
         if (IsAddMethod(symbol))
-            await FindReferencesInCollectionInitializerAsync(symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            FindReferencesInCollectionInitializer(symbol, state, processResult, processResultData, cancellationToken);
     }
 }

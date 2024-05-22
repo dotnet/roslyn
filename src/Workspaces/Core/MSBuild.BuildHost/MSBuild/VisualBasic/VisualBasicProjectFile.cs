@@ -4,12 +4,9 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.MSBuild.Build;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 using MSB = Microsoft.Build;
 
-namespace Microsoft.CodeAnalysis.VisualBasic
+namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class VisualBasicProjectFile : ProjectFile
     {
@@ -17,12 +14,6 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             : base(loader, loadedProject, buildManager, log)
         {
         }
-
-        protected override SourceCodeKind GetSourceCodeKind(string documentFileName)
-            => SourceCodeKind.Regular;
-
-        public override string GetDocumentExtension(SourceCodeKind sourceCodeKind)
-            => ".vb";
 
         protected override IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject)
             => executedProject.GetItems(ItemNames.VbcCommandLineArgs);
