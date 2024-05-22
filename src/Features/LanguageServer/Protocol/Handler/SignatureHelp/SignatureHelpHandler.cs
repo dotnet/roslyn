@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Text;
@@ -12,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Roslyn.Text.Adornments;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -22,16 +22,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [Method(LSP.Methods.TextDocumentSignatureHelpName)]
     internal class SignatureHelpHandler : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
     {
-        private readonly IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
         private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SignatureHelpHandler(
-            [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders,
-            IGlobalOptionService globalOptions)
+        public SignatureHelpHandler(IGlobalOptionService globalOptions)
         {
-            _allProviders = allProviders;
             _globalOptions = globalOptions;
         }
 
@@ -47,82 +43,53 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (document == null)
                 return null;
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var service = document.GetRequiredLanguageService<SignatureHelpService>();
 
-            var providers = _allProviders.Where(p => p.Metadata.Language == document.Project.Language);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
             var options = _globalOptions.GetSignatureHelpOptions(document.Project.Language);
 
-            var sigHelpItems = new ArrayBuilder<SignatureHelpItems>();
-
-            foreach (var provider in providers)
+            var (_, sigItems) = await service.GetSignatureHelpAsync(document, position, triggerInfo, options, cancellationToken).ConfigureAwait(false);
+            if (sigItems is null)
             {
-                var items = await provider.Value.GetItemsAsync(document, position, triggerInfo, options, cancellationToken).ConfigureAwait(false);
-
-                if (items is null)
-                {
-                    continue;
-                }
-
-                sigHelpItems.Add(items);
+                return null;
             }
 
-            // Multiple providers could be offering items at the current location. As
-            // there might be an ObjectCreationExpression within a MethodInvocation.
-            // We want to identify the items nearest to the cursor.
+            using var _ = ArrayBuilder<LSP.SignatureInformation>.GetInstance(out var sigInfos);
 
-            SignatureHelpItems? helpItems = null;
-            var minDistance = int.MaxValue;
-            foreach (var items in sigHelpItems.ToArrayAndFree())
+            foreach (var item in sigItems.Items)
             {
-                var distanceFromCursor = position - items.ApplicableSpan.Start;
-                if (distanceFromCursor < minDistance)
+                LSP.SignatureInformation sigInfo;
+                if (clientCapabilities.HasVisualStudioLspCapability() == true)
                 {
-                    minDistance = distanceFromCursor;
-                    helpItems = items;
+                    sigInfo = new LSP.VSInternalSignatureInformation
+                    {
+                        ColorizedLabel = GetSignatureClassifiedText(item)
+                    };
                 }
-            }
-
-            if (helpItems is not null)
-            {
-                var sigInfos = new ArrayBuilder<LSP.SignatureInformation>();
-
-                foreach (var item in helpItems.Items)
+                else
                 {
-                    LSP.SignatureInformation sigInfo;
-                    if (clientCapabilities.HasVisualStudioLspCapability() == true)
-                    {
-                        sigInfo = new LSP.VSInternalSignatureInformation
-                        {
-                            ColorizedLabel = GetSignatureClassifiedText(item)
-                        };
-                    }
-                    else
-                    {
-                        sigInfo = new LSP.SignatureInformation();
-                    }
-
-                    sigInfo.Label = GetSignatureText(item);
-                    sigInfo.Documentation = new LSP.MarkupContent { Kind = LSP.MarkupKind.PlainText, Value = item.DocumentationFactory(cancellationToken).GetFullText() };
-                    sigInfo.Parameters = item.Parameters.Select(p => new LSP.ParameterInformation
-                    {
-                        Label = p.Name,
-                        Documentation = new LSP.MarkupContent { Kind = LSP.MarkupKind.PlainText, Value = p.DocumentationFactory(cancellationToken).GetFullText() }
-                    }).ToArray();
-                    sigInfos.Add(sigInfo);
+                    sigInfo = new LSP.SignatureInformation();
                 }
 
-                var sigHelp = new LSP.SignatureHelp
+                sigInfo.Label = GetSignatureText(item);
+                sigInfo.Documentation = new LSP.MarkupContent { Kind = LSP.MarkupKind.PlainText, Value = item.DocumentationFactory(cancellationToken).GetFullText() };
+                sigInfo.Parameters = item.Parameters.Select(p => new LSP.ParameterInformation
                 {
-                    ActiveSignature = GetActiveSignature(helpItems),
-                    ActiveParameter = helpItems.ArgumentIndex,
-                    Signatures = sigInfos.ToArrayAndFree()
-                };
-
-                return sigHelp;
+                    Label = p.Name,
+                    Documentation = new LSP.MarkupContent { Kind = LSP.MarkupKind.PlainText, Value = p.DocumentationFactory(cancellationToken).GetFullText() }
+                }).ToArray();
+                sigInfos.Add(sigInfo);
             }
 
-            return null;
+            var sigHelp = new LSP.SignatureHelp
+            {
+                ActiveSignature = GetActiveSignature(sigItems),
+                ActiveParameter = sigItems.ArgumentIndex,
+                Signatures = sigInfos.ToArray()
+            };
+
+            return sigHelp;
         }
 
         private static int GetActiveSignature(SignatureHelpItems items)
