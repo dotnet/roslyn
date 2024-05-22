@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.IO;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 

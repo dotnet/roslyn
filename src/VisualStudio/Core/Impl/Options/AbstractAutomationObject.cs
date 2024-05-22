@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 

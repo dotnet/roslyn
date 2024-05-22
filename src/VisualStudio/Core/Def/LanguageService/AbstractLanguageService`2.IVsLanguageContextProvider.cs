@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;

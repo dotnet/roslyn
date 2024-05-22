@@ -14,9 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic;
 using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
-using Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -75,76 +73,70 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact]
         public void TestSupportedDiagnosticsMessageTitle()
         {
-            using (var workspace = new AdhocWorkspace())
+            using var workspace = new AdhocWorkspace();
+            var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
+            if (diagnosticAnalyzer == null)
             {
-                var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
-                if (diagnosticAnalyzer == null)
+                return;
+            }
+
+            foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
+            {
+                if (descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.NotConfigurable))
                 {
-                    return;
+                    // The title only displayed for rule configuration
+                    continue;
                 }
 
-                foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
-                {
-                    if (descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.NotConfigurable))
-                    {
-                        // The title only displayed for rule configuration
-                        continue;
-                    }
-
-                    Assert.NotEqual("", descriptor.Title?.ToString() ?? "");
-                }
+                Assert.NotEqual("", descriptor.Title?.ToString() ?? "");
             }
         }
 
         [Fact]
         public void TestSupportedDiagnosticsMessageDescription()
         {
-            using (var workspace = new AdhocWorkspace())
+            using var workspace = new AdhocWorkspace();
+            var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
+            if (diagnosticAnalyzer == null)
             {
-                var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
-                if (diagnosticAnalyzer == null)
+                return;
+            }
+
+            foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
+            {
+                if (ShouldSkipMessageDescriptionVerification(descriptor))
                 {
-                    return;
+                    continue;
                 }
 
-                foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
-                {
-                    if (ShouldSkipMessageDescriptionVerification(descriptor))
-                    {
-                        continue;
-                    }
-
-                    Assert.NotEqual("", descriptor.MessageFormat?.ToString() ?? "");
-                }
+                Assert.NotEqual("", descriptor.MessageFormat?.ToString() ?? "");
             }
         }
 
         [Fact]
         public void TestSupportedDiagnosticsMessageHelpLinkUri()
         {
-            using (var workspace = new AdhocWorkspace())
+            using var workspace = new AdhocWorkspace();
+            var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
+            if (diagnosticAnalyzer == null)
+                return;
+
+            foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
             {
-                var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
-                if (diagnosticAnalyzer == null)
-                    return;
+                // These don't come up in UI.
+                if (descriptor.DefaultSeverity == DiagnosticSeverity.Hidden && descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                    continue;
 
-                foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
-                {
-                    // These don't come up in UI.
-                    if (descriptor.DefaultSeverity == DiagnosticSeverity.Hidden && descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
-                        continue;
+                if (descriptor.Id is "RE0001" or "JSON001" or "JSON002") // Currently not documented. https://github.com/dotnet/roslyn/issues/48530
+                    continue;
 
-                    if (descriptor.Id is "RE0001" or "JSON001" or "JSON002") // Currently not documented. https://github.com/dotnet/roslyn/issues/48530
-                        continue;
+                if (descriptor.Id == "IDE0043") // Intentionally undocumented. It will be removed in favor of CA2241
+                    continue;
 
-                    if (descriptor.Id == "IDE0043") // Intentionally undocumented. It will be removed in favor of CA2241
-                        continue;
+                if (descriptor.Id == "IDE1007")
+                    continue;
 
-                    if (descriptor.Id == "IDE1007")
-                        continue;
-
-                    Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
-                }
+                Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
             }
         }
 
@@ -217,23 +209,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             LocalizableString diagnosticMessage = null)
         {
             var testOptions = new TestParameters(parseOptions, compilationOptions, options: options, globalOptions: globalOptions);
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions))
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions);
+            var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).ToImmutableArray();
+            diagnostics = diagnostics.WhereAsArray(d => d.Id == diagnosticId);
+            Assert.Equal(1, diagnostics.Length);
+
+            var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());
+            var expected = hostDocument.SelectedSpans.Single();
+            var actual = diagnostics.Single().Location.SourceSpan;
+            Assert.Equal(expected, actual);
+
+            Assert.Equal(diagnosticSeverity, diagnostics.Single().Severity);
+
+            if (diagnosticMessage != null)
             {
-                var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).ToImmutableArray();
-                diagnostics = diagnostics.WhereAsArray(d => d.Id == diagnosticId);
-                Assert.Equal(1, diagnostics.Length);
-
-                var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());
-                var expected = hostDocument.SelectedSpans.Single();
-                var actual = diagnostics.Single().Location.SourceSpan;
-                Assert.Equal(expected, actual);
-
-                Assert.Equal(diagnosticSeverity, diagnostics.Single().Severity);
-
-                if (diagnosticMessage != null)
-                {
-                    Assert.Equal(diagnosticMessage, diagnostics.Single().GetMessage());
-                }
+                Assert.Equal(diagnosticMessage, diagnostics.Single().GetMessage());
             }
         }
 
