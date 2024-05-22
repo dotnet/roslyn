@@ -84,6 +84,9 @@ internal readonly ref partial struct Worker
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
         stack.Push(node);
 
+        var textSpanStart = _textSpan.Start;
+        var textSpanEnd = _textSpan.End;
+
         while (stack.TryPop(out var current))
         {
             _cancellationToken.ThrowIfCancellationRequested();
@@ -95,10 +98,16 @@ internal readonly ref partial struct Worker
                 if (child.AsNode(out var childNode))
                 {
                     var childSpan = childNode.FullSpan;
-                    if (childSpan.IntersectsWith(_textSpan))
-                        stack.Push(childNode);
-                    else if (childSpan.Start > _textSpan.End)
+
+                    // If we haven't reached the start of the span we care about, then we can skip this node, going to
+                    // the next.  Once we go past that span, we can stop immediately.  Otherwise, we must be
+                    // intersecting the span, and we should recurse into this child.
+                    if (childSpan.End < textSpanStart)
+                        continue;
+                    else if (childSpan.Start > textSpanEnd)
                         break;
+                    else
+                        stack.Push(childNode);
                 }
                 else
                 {
