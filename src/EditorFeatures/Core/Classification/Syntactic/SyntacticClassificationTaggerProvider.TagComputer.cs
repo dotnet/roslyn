@@ -75,6 +75,11 @@ internal partial class SyntacticClassificationTaggerProvider
 
         private int _taggerReferenceCount;
 
+        /// <summary>
+        /// Cached values for the last services we computed for a particular <see cref="Workspace"/> and <see
+        /// cref="IContentType"/>.  These rarely change, and are expensive enough to show up in very hot scenarios (like
+        /// scrolling) where we are going to be called in at a very high volume.
+        /// </summary>
         private Tuple<Workspace, IContentType, (SolutionServices solutionServices, IClassificationService classificationService)>? _lastCachedServices;
 
         public TagComputer(
@@ -124,8 +129,8 @@ internal partial class SyntacticClassificationTaggerProvider
         {
             var workspace = _workspace;
             var contentType = snapshot.ContentType;
-
             var lastCachedServices = _lastCachedServices;
+
             if (lastCachedServices is null ||
                 lastCachedServices.Item1 != workspace ||
                 lastCachedServices.Item2 != contentType)
