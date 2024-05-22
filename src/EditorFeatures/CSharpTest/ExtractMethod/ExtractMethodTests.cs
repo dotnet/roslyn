@@ -11262,7 +11262,7 @@ $@"namespace ClassLibrary9
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ExtractMethodCommandDisabledInSubmission()
         {
-            using var workspace = TestWorkspace.Create(XElement.Parse("""
+            using var workspace = EditorTestWorkspace.Create(XElement.Parse("""
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">  
                         typeof(string).$$Name

@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Classification
+namespace Microsoft.CodeAnalysis.Classification;
+
+internal enum ClassificationType
 {
-    internal enum ClassificationType
-    {
-        Semantic = 1,
-        EmbeddedLanguage = 2,
-    }
+    Semantic = 1,
+    EmbeddedLanguage = 2,
 }

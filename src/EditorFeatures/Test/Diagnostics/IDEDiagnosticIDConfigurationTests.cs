@@ -183,7 +183,6 @@ Actual: {editorConfigString}
         [Fact]
         public void CSharp_VerifyIDEDiagnosticSeveritiesAreConfigurable()
         {
-            // <Metalama /> RE0001 renamed to LAMA0601
             var expected = @"
 # IDE0001
 dotnet_diagnostic.IDE0001.severity = %value%
@@ -521,8 +520,8 @@ dotnet_diagnostic.IDE2005.severity = %value%
 # IDE2006
 dotnet_diagnostic.IDE2006.severity = %value%
 
-# LAMA0601
-dotnet_diagnostic.LAMA0601.severity = %value%
+# RE0001
+dotnet_diagnostic.RE0001.severity = %value%
 
 # JSON001
 dotnet_diagnostic.JSON001.severity = %value%
@@ -537,7 +536,6 @@ dotnet_diagnostic.JSON002.severity = %value%
         [Fact]
         public void VisualBasic_VerifyIDEDiagnosticSeveritiesAreConfigurable()
         {
-            // <Metalama /> RE0001 renamed to LAMA0601
             var expected = @"
 # IDE0001
 dotnet_diagnostic.IDE0001.severity = %value%
@@ -689,8 +687,8 @@ dotnet_diagnostic.IDE2000.severity = %value%
 # IDE2003
 dotnet_diagnostic.IDE2003.severity = %value%
 
-# LAMA0601
-dotnet_diagnostic.LAMA0601.severity = %value%
+# RE0001
+dotnet_diagnostic.RE0001.severity = %value%
 
 # JSON001
 dotnet_diagnostic.JSON001.severity = %value%
@@ -915,9 +913,7 @@ dotnet_diagnostic.JSON002.severity = %value%
                 ("IDE2004", "csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental", "true"),
                 ("IDE2005", "csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental", "true"),
                 ("IDE2006", "csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental", "true"),
-                // <Metalama /> RE0001 renamed to LAMA0601
-                ("LAMA0601", null, null),
-                // </Metalama>
+                ("RE0001", null, null),
                 ("JSON001", null, null),
                 ("JSON002", null, null),
             };
@@ -996,9 +992,7 @@ dotnet_diagnostic.JSON002.severity = %value%
                 ("IDE2003", "dotnet_style_allow_statement_immediately_after_block_experimental", "true"),
                 ("JSON001", null, null),
                 ("JSON002", null, null),
-                // <Metalama /> RE0001 renamed to LAMA0601
-                ("LAMA0601", null, null),
-                // </Metalama>
+                ("RE0001", null, null),
             };
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.VisualBasic);

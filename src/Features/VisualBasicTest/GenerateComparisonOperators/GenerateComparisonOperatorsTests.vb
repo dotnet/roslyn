@@ -5,15 +5,16 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateComparisonOperators
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateComparisonOperators
     <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)>
     Public Class GenerateComparisonOperatorsTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New GenerateComparisonOperatorsCodeRefactoringProvider()
         End Function
 

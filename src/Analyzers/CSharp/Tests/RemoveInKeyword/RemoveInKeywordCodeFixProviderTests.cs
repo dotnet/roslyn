@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveInKeyword
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveInKeyword)]
-    public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public RemoveInKeywordCodeFixProviderTests(ITestOutputHelper logger)
           : base(logger)
@@ -164,24 +164,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveInKeyword
         public async Task TestRemoveInKeywordWithTrivia(string original, string expected)
         {
             await TestInRegularAndScript1Async(
-$@"class App
-{{
-    void M(int i) {{ }}
-    void N(int i)
-    {{
-        M({original});
-    }}
+                $$"""
+                class App
+                {
+                    void M(int i) { }
+                    void N(int i)
+                    {
+                        M({{original}});
+                    }
 
-}}",
-$@"class App
-{{
-    void M(int i) {{ }}
-    void N(int i)
-    {{
-        M({expected});
-    }}
+                }
+                """,
+                $$"""
+                class App
+                {
+                    void M(int i) { }
+                    void N(int i)
+                    {
+                        M({{expected}});
+                    }
 
-}}");
+                }
+                """);
         }
 
         [Fact]

@@ -4,32 +4,31 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal partial struct SymbolKey
 {
-    internal partial struct SymbolKey
+    private readonly struct ComparisonOptions(bool ignoreCase, bool ignoreAssemblyKeys)
     {
-        private readonly struct ComparisonOptions(bool ignoreCase, bool ignoreAssemblyKeys)
+        [Flags]
+        private enum Option : byte
         {
-            [Flags]
-            private enum Option : byte
-            {
-                None = 0x0,
-                IgnoreCase = 0x1,
-                IgnoreAssemblyKeys = 0x2,
-            }
-
-            private readonly Option _flags =
-                    BoolToOption(ignoreCase, Option.IgnoreCase) |
-                    BoolToOption(ignoreAssemblyKeys, Option.IgnoreAssemblyKeys);
-
-            public bool IgnoreCase => (_flags & Option.IgnoreCase) == Option.IgnoreCase;
-
-            public bool IgnoreAssemblyKey => (_flags & Option.IgnoreAssemblyKeys) == Option.IgnoreAssemblyKeys;
-
-            public byte FlagsValue => (byte)_flags;
-
-            private static Option BoolToOption(bool value, Option option)
-                => value ? option : Option.None;
+            None = 0x0,
+            IgnoreCase = 0x1,
+            IgnoreAssemblyKeys = 0x2,
         }
+
+        private readonly Option _flags =
+                BoolToOption(ignoreCase, Option.IgnoreCase) |
+                BoolToOption(ignoreAssemblyKeys, Option.IgnoreAssemblyKeys);
+
+        public bool IgnoreCase => (_flags & Option.IgnoreCase) == Option.IgnoreCase;
+
+        public bool IgnoreAssemblyKey => (_flags & Option.IgnoreAssemblyKeys) == Option.IgnoreAssemblyKeys;
+
+        public byte FlagsValue => (byte)_flags;
+
+        private static Option BoolToOption(bool value, Option option)
+            => value ? option : Option.None;
     }
 }

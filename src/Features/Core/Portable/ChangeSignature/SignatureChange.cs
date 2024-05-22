@@ -9,113 +9,112 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ChangeSignature
+namespace Microsoft.CodeAnalysis.ChangeSignature;
+
+internal sealed class SignatureChange
 {
-    internal sealed class SignatureChange
+    public readonly ParameterConfiguration OriginalConfiguration;
+    public readonly ParameterConfiguration UpdatedConfiguration;
+
+    private readonly Dictionary<int, int?> _originalIndexToUpdatedIndexMap = [];
+
+    public SignatureChange(ParameterConfiguration originalConfiguration, ParameterConfiguration updatedConfiguration)
     {
-        public readonly ParameterConfiguration OriginalConfiguration;
-        public readonly ParameterConfiguration UpdatedConfiguration;
+        OriginalConfiguration = originalConfiguration;
+        UpdatedConfiguration = updatedConfiguration;
 
-        private readonly Dictionary<int, int?> _originalIndexToUpdatedIndexMap = new();
+        // TODO: Could be better than O(n^2)
+        var originalParameterList = originalConfiguration.ToListOfParameters();
+        var updatedParameterList = updatedConfiguration.ToListOfParameters();
 
-        public SignatureChange(ParameterConfiguration originalConfiguration, ParameterConfiguration updatedConfiguration)
+        for (var i = 0; i < originalParameterList.Length; i++)
         {
-            OriginalConfiguration = originalConfiguration;
-            UpdatedConfiguration = updatedConfiguration;
-
-            // TODO: Could be better than O(n^2)
-            var originalParameterList = originalConfiguration.ToListOfParameters();
-            var updatedParameterList = updatedConfiguration.ToListOfParameters();
-
-            for (var i = 0; i < originalParameterList.Length; i++)
+            int? index = null;
+            var parameter = originalParameterList[i];
+            if (parameter is ExistingParameter existingParameter)
             {
-                int? index = null;
-                var parameter = originalParameterList[i];
-                if (parameter is ExistingParameter existingParameter)
+                var updatedIndex = updatedParameterList.IndexOf(p => p is ExistingParameter ep && ep.Symbol.Equals(existingParameter.Symbol));
+                if (updatedIndex >= 0)
                 {
-                    var updatedIndex = updatedParameterList.IndexOf(p => p is ExistingParameter ep && ep.Symbol.Equals(existingParameter.Symbol));
-                    if (updatedIndex >= 0)
-                    {
-                        index = updatedIndex;
-                    }
+                    index = updatedIndex;
                 }
-
-                _originalIndexToUpdatedIndexMap.Add(i, index);
-            }
-        }
-
-        public int? GetUpdatedIndex(int parameterIndex)
-        {
-            if (parameterIndex >= OriginalConfiguration.ToListOfParameters().Length)
-            {
-                return null;
             }
 
-            return _originalIndexToUpdatedIndexMap[parameterIndex];
+            _originalIndexToUpdatedIndexMap.Add(i, index);
+        }
+    }
+
+    public int? GetUpdatedIndex(int parameterIndex)
+    {
+        if (parameterIndex >= OriginalConfiguration.ToListOfParameters().Length)
+        {
+            return null;
         }
 
-        internal SignatureChange WithoutAddedParameters()
-            => new(OriginalConfiguration, UpdatedConfiguration.WithoutAddedParameters());
+        return _originalIndexToUpdatedIndexMap[parameterIndex];
+    }
 
-        internal void LogTelemetry()
+    internal SignatureChange WithoutAddedParameters()
+        => new(OriginalConfiguration, UpdatedConfiguration.WithoutAddedParameters());
+
+    internal void LogTelemetry()
+    {
+        var originalListOfParameters = OriginalConfiguration.ToListOfParameters();
+        var updatedListOfParameters = UpdatedConfiguration.ToListOfParameters();
+
+        ChangeSignatureLogger.LogTransformationInformation(
+            numOriginalParameters: originalListOfParameters.Length,
+            numParametersAdded: updatedListOfParameters.Count(p => p is AddedParameter),
+            numParametersRemoved: originalListOfParameters.Count(p => !updatedListOfParameters.Contains(p)),
+            anyParametersReordered: AnyParametersReordered(originalListOfParameters, updatedListOfParameters));
+
+        foreach (var addedParameter in updatedListOfParameters.OfType<AddedParameter>())
         {
-            var originalListOfParameters = OriginalConfiguration.ToListOfParameters();
-            var updatedListOfParameters = UpdatedConfiguration.ToListOfParameters();
-
-            ChangeSignatureLogger.LogTransformationInformation(
-                numOriginalParameters: originalListOfParameters.Length,
-                numParametersAdded: updatedListOfParameters.Count(p => p is AddedParameter),
-                numParametersRemoved: originalListOfParameters.Count(p => !updatedListOfParameters.Contains(p)),
-                anyParametersReordered: AnyParametersReordered(originalListOfParameters, updatedListOfParameters));
-
-            foreach (var addedParameter in updatedListOfParameters.OfType<AddedParameter>())
+            if (addedParameter.IsRequired)
             {
-                if (addedParameter.IsRequired)
-                {
-                    ChangeSignatureLogger.LogAddedParameterRequired();
-                }
+                ChangeSignatureLogger.LogAddedParameterRequired();
+            }
 
-                if (addedParameter.TypeBinds)
-                {
-                    ChangeSignatureLogger.LogAddedParameterTypeBinds();
-                }
+            if (addedParameter.TypeBinds)
+            {
+                ChangeSignatureLogger.LogAddedParameterTypeBinds();
+            }
 
-                if (addedParameter.CallSiteKind == CallSiteKind.Todo)
+            if (addedParameter.CallSiteKind == CallSiteKind.Todo)
+            {
+                ChangeSignatureLogger.LogAddedParameter_ValueTODO();
+            }
+            else if (addedParameter.CallSiteKind == CallSiteKind.Omitted)
+            {
+                ChangeSignatureLogger.LogAddedParameter_ValueOmitted();
+            }
+            else
+            {
+                if (addedParameter.CallSiteKind == CallSiteKind.ValueWithName)
                 {
-                    ChangeSignatureLogger.LogAddedParameter_ValueTODO();
-                }
-                else if (addedParameter.CallSiteKind == CallSiteKind.Omitted)
-                {
-                    ChangeSignatureLogger.LogAddedParameter_ValueOmitted();
+                    ChangeSignatureLogger.LogAddedParameter_ValueExplicitNamed();
                 }
                 else
                 {
-                    if (addedParameter.CallSiteKind == CallSiteKind.ValueWithName)
-                    {
-                        ChangeSignatureLogger.LogAddedParameter_ValueExplicitNamed();
-                    }
-                    else
-                    {
-                        ChangeSignatureLogger.LogAddedParameter_ValueExplicit();
-                    }
+                    ChangeSignatureLogger.LogAddedParameter_ValueExplicit();
                 }
             }
         }
+    }
 
-        private static bool AnyParametersReordered(ImmutableArray<Parameter> originalListOfParameters, ImmutableArray<Parameter> updatedListOfParameters)
+    private static bool AnyParametersReordered(ImmutableArray<Parameter> originalListOfParameters, ImmutableArray<Parameter> updatedListOfParameters)
+    {
+        var originalListWithoutRemovedOrAdded = originalListOfParameters.Where(updatedListOfParameters.Contains).ToImmutableArray();
+        var updatedListWithoutRemovedOrAdded = updatedListOfParameters.Where(originalListOfParameters.Contains).ToImmutableArray();
+
+        for (var i = 0; i < originalListWithoutRemovedOrAdded.Length; i++)
         {
-            var originalListWithoutRemovedOrAdded = originalListOfParameters.Where(updatedListOfParameters.Contains).ToImmutableArray();
-            var updatedListWithoutRemovedOrAdded = updatedListOfParameters.Where(originalListOfParameters.Contains).ToImmutableArray();
-
-            for (var i = 0; i < originalListWithoutRemovedOrAdded.Length; i++)
+            if (originalListWithoutRemovedOrAdded[i] != updatedListWithoutRemovedOrAdded[i])
             {
-                if (originalListWithoutRemovedOrAdded[i] != updatedListWithoutRemovedOrAdded[i])
-                {
-                    return true;
-                }
+                return true;
             }
-
-            return false;
         }
+
+        return false;
     }
 }

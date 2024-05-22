@@ -186,6 +186,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [Fact]
+        public async Task FieldAndProperty2()
+        {
+            var markup = """
+                public static class TestClass
+                {
+                    private static SimpleRange[] _ranges;
+                
+                    public static void Method()
+                    {
+                        _ranges =
+                        [
+                            new()
+                            {
+                                Start = 1,
+                                End = 3,
+                            },
+                            new()
+                            {
+                                $$
+                            },
+                        ];
+                    }
+                }
+                
+                public struct SimpleRange
+                {
+                    public int Start;
+                    public int End { get; set; }
+                };
+                """;
+
+            await VerifyItemExistsAsync(markup, "Start");
+            await VerifyItemExistsAsync(markup, "End");
+            await VerifyExclusiveAsync(markup, true);
+        }
+
+        [Fact]
         public async Task HidePreviouslyTyped()
         {
             var markup = """
@@ -648,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            using var workspace = TestWorkspace.CreateCSharp(markup, composition: GetComposition());
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup, composition: GetComposition());
             var hostDocument = workspace.Documents.Single();
             var position = hostDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
@@ -1240,7 +1277,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup, composition: GetComposition());
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup, composition: GetComposition());
             var hostDocument = workspace.Documents.Single();
             var position = hostDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);

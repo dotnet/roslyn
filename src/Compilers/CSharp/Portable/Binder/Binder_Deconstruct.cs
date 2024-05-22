@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = boundRHS.Type ?? voidType;
                 return new BoundDeconstructionAssignmentOperator(
                             node,
-                            DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: true),
+                            DeconstructionVariablesAsTuple(left, checkedVariables, assignmentResultTupleType: out _, diagnostics, ignoreDiagnosticsFromTuple: true),
                             new BoundConversion(boundRHS.Syntax, boundRHS, Conversion.Deconstruction, @checked: false, explicitCastInCode: false, conversionGroupOpt: null,
                                 constantValueOpt: null, type: type, hasErrors: true),
                             resultIsUsed,
@@ -154,9 +154,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             FailRemainingInferences(checkedVariables, diagnostics);
 
-            var lhsTuple = DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: diagnostics.HasAnyErrors() || !resultIsUsed);
+            var lhsTuple = DeconstructionVariablesAsTuple(left, checkedVariables, out NamedTypeSymbol returnType, diagnostics, ignoreDiagnosticsFromTuple: diagnostics.HasAnyErrors() || !resultIsUsed);
             Debug.Assert(hasErrors || lhsTuple.Type is object);
-            TypeSymbol returnType = hasErrors ? CreateErrorType() : lhsTuple.Type!;
+            returnType = hasErrors ? CreateErrorType() : returnType;
 
             var boundConversion = new BoundConversion(
                 boundRHS.Syntax,
@@ -316,8 +316,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var single = variable.Single;
-                    Debug.Assert(single is object);
+                    Debug.Assert(variable.Single is object);
+                    var single = AdjustAssignmentTargetForDynamic(variable.Single, forceDynamicResult: out _);
                     Debug.Assert(single.Type is not null);
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     nestedConversion = this.Conversions.ClassifyConversionFromType(tupleOrDeconstructedTypes[i], single.Type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((object?)variable.Single.Type != null)
                         {
                             // typed-variable on the left
-                            mergedType = variable.Single.Type;
+                            mergedType = AdjustAssignmentTargetForDynamic(variable.Single, forceDynamicResult: out _).Type;
                         }
                     }
                 }
@@ -542,11 +542,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax: syntax);
         }
 
-        private BoundTupleExpression DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables,
+        private BoundTupleExpression DeconstructionVariablesAsTuple(
+            CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables,
+            out NamedTypeSymbol assignmentResultTupleType,
             BindingDiagnosticBag diagnostics, bool ignoreDiagnosticsFromTuple)
         {
             int count = variables.Count;
             var valuesBuilder = ArrayBuilder<BoundExpression>.GetInstance(count);
+            var resultTypesWithAnnotationsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(count);
             var typesWithAnnotationsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(count);
             var locationsBuilder = ArrayBuilder<Location?>.GetInstance(count);
             var namesBuilder = ArrayBuilder<string?>.GetInstance(count);
@@ -554,18 +557,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var variable in variables)
             {
                 BoundExpression value;
+                TypeSymbol resultType;
                 if (variable.NestedVariables is object)
                 {
-                    value = DeconstructionVariablesAsTuple(variable.Syntax, variable.NestedVariables, diagnostics, ignoreDiagnosticsFromTuple);
+                    value = DeconstructionVariablesAsTuple(variable.Syntax, variable.NestedVariables, out NamedTypeSymbol nestedResultType, diagnostics, ignoreDiagnosticsFromTuple);
+                    resultType = nestedResultType;
                     namesBuilder.Add(null);
                 }
                 else
                 {
                     Debug.Assert(variable.Single is object);
                     value = variable.Single;
+                    Debug.Assert(value.Type is not null);
+                    resultType = value.Type;
+                    value = AdjustAssignmentTargetForDynamic(value, forceDynamicResult: out _);
                     namesBuilder.Add(ExtractDeconstructResultElementName(value));
                 }
                 valuesBuilder.Add(value);
+                resultTypesWithAnnotationsBuilder.Add(TypeWithAnnotations.Create(resultType));
                 typesWithAnnotationsBuilder.Add(TypeWithAnnotations.Create(value.Type));
                 locationsBuilder.Add(variable.Syntax.Location);
             }
@@ -579,14 +588,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<bool> inferredPositions = tupleNames.IsDefault ? default : tupleNames.SelectAsArray(n => n != null);
             bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
+            ImmutableArray<Location?> elementLocations = locationsBuilder.ToImmutableAndFree();
+            var createTupleDiagnostics = ignoreDiagnosticsFromTuple ? null : BindingDiagnosticBag.GetInstance(diagnostics);
+
             var type = NamedTypeSymbol.CreateTuple(
                 syntax.Location,
-                typesWithAnnotationsBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
+                typesWithAnnotationsBuilder.ToImmutableAndFree(), elementLocations,
                 tupleNames, this.Compilation,
-                shouldCheckConstraints: !ignoreDiagnosticsFromTuple,
+                shouldCheckConstraints: createTupleDiagnostics is not null,
                 includeNullability: false,
                 errorPositions: disallowInferredNames ? inferredPositions : default,
-                syntax: syntax, diagnostics: ignoreDiagnosticsFromTuple ? null : diagnostics);
+                syntax: syntax, diagnostics: createTupleDiagnostics);
+
+            if (createTupleDiagnostics is { AccumulatesDiagnostics: true, DiagnosticBag: { } bag } &&
+                bag.HasAnyResolvedErrors())
+            {
+                diagnostics.AddRangeAndFree(createTupleDiagnostics);
+                createTupleDiagnostics = null; // Suppress possibly duplicate errors from CreateTuple call below.
+            }
+
+            // This type is the same as the 'type' above, or differs only by using 'dynamic' for some elements.
+            assignmentResultTupleType = NamedTypeSymbol.CreateTuple(
+                syntax.Location,
+                resultTypesWithAnnotationsBuilder.ToImmutableAndFree(), elementLocations,
+                tupleNames, this.Compilation,
+                shouldCheckConstraints: createTupleDiagnostics is not null,
+                includeNullability: false,
+                errorPositions: disallowInferredNames ? inferredPositions : default,
+                syntax: syntax, diagnostics: createTupleDiagnostics);
+
+            if (createTupleDiagnostics is not null)
+            {
+                diagnostics.AddRangeAndFree(createTupleDiagnostics);
+            }
 
             return (BoundTupleExpression)BindToNaturalType(new BoundTupleLiteral(syntax, arguments, tupleNames, inferredPositions, type), diagnostics);
         }
@@ -669,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Those placeholders are also recorded in the outVar for easy access below, by the `SetInferredType` call on the outVar nodes.
                 BoundExpression result = BindMethodGroupInvocation(
                     rightSyntax, rightSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
-                    allowUnexpandedForm: true, anyApplicableCandidates: out anyApplicableCandidates);
+                    ignoreNormalFormIfHasValidParamsParameter: false, anyApplicableCandidates: out anyApplicableCandidates);
 
                 result.WasCompilerGenerated = true;
 
@@ -788,12 +822,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 default:
                     var boundVariable = BindExpression(node, diagnostics, invoked: false, indexed: false);
-                    var checkedVariable = CheckValue(boundVariable, BindValueKind.Assignable, diagnostics);
+                    var checkedVariable = CheckValue(boundVariable, BindValueKind.Assignable, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
+
                     if (expression == null && checkedVariable.Kind != BoundKind.DiscardExpression)
                     {
                         expression = node;
                     }
 
+                    // This object doesn't escape BindDeconstruction method, we don't call AdjustAssignmentTargetForDynamic
+                    // for checkedVariable here, instead we call it where binder accesses DeconstructionVariable.Single
+                    // In some of the places we need to be able to detect the fact that the type used to be dynamic, and,
+                    // if we erase the fact here, there will be no other place for us to look at.
                     return new DeconstructionVariable(checkedVariable, node);
             }
         }

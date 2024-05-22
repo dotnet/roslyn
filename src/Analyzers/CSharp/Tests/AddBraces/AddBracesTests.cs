@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-    public partial class AddBracesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class AddBracesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public AddBracesTests(ITestOutputHelper logger)
            : base(logger)

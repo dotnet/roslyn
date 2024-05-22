@@ -172,11 +172,6 @@
         <target state="translated">Remover diretiva que permite valor nulo redundante</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">Remover operadores de supressão</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">Remover expressão lambda desnecessária</target>
@@ -457,9 +452,9 @@
         <target state="translated">A expressão 'new' pode ser simplificada</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
-        <target state="translated">'typeof' pode ser convertido em 'nameof'</target>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
+        <target state="translated">'typeof' pode ser convertido em 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

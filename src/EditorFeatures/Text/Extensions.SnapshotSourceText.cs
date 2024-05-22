@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.Text
             /// <summary>
             /// A weak map of all Editor ITextSnapshots and their associated SourceText
             /// </summary>
-            private static readonly ConditionalWeakTable<ITextSnapshot, SnapshotSourceText> s_textSnapshotMap = new ConditionalWeakTable<ITextSnapshot, SnapshotSourceText>();
+            private static readonly ConditionalWeakTable<ITextSnapshot, SnapshotSourceText> s_textSnapshotMap = new();
 
             /// <summary>
             /// Reverse map of roslyn text to editor snapshot. unlike forward map, this doesn't strongly hold onto editor snapshot so that 
             /// we don't leak editor snapshot which should go away once editor is closed. roslyn source's lifetime is not usually tied to view.
             /// </summary>
-            private static readonly ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>> s_textImageToEditorSnapshotMap = new ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>>();
+            private static readonly ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>> s_textImageToEditorSnapshotMap = new();
 
             public static SourceText From(ITextBufferCloneService? textBufferCloneService, ITextSnapshot editorSnapshot)
             {
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                     if (oldText != _baseText)
                     {
-                        return new[] { new TextChangeRange(new TextSpan(0, oldText.Length), this.Length) };
+                        return [new TextChangeRange(new TextSpan(0, oldText.Length), this.Length)];
                     }
 
                     return GetChangeRanges(_baseSnapshot, _baseSnapshot.Length, this.TextImage);
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Text
                             // Oops - more than one "textual" change between these snapshots, bail and try to find smallest changes span
                             Logger.Log(FunctionId.Workspace_SourceText_GetChangeRanges, s_textLog, snapshot1.Version.VersionNumber, snapshot2.Version.VersionNumber);
 
-                            return new[] { GetChangeRanges(oldSnapshot.Version, newSnapshot.Version, forward) };
+                            return [GetChangeRanges(oldSnapshot.Version, newSnapshot.Version, forward)];
                         }
                         else
                         {

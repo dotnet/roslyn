@@ -24,376 +24,375 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
+
+/// <summary>
+/// Service to maintain information about the suppression state of specific set of items in the error list.
+/// </summary>
+[Export(typeof(IVisualStudioDiagnosticListSuppressionStateService))]
+[Export(typeof(VisualStudioDiagnosticListSuppressionStateService))]
+internal class VisualStudioDiagnosticListSuppressionStateService : IVisualStudioDiagnosticListSuppressionStateService
 {
-    /// <summary>
-    /// Service to maintain information about the suppression state of specific set of items in the error list.
-    /// </summary>
-    [Export(typeof(IVisualStudioDiagnosticListSuppressionStateService))]
-    [Export(typeof(VisualStudioDiagnosticListSuppressionStateService))]
-    internal class VisualStudioDiagnosticListSuppressionStateService : IVisualStudioDiagnosticListSuppressionStateService
+    private readonly IThreadingContext _threadingContext;
+    private readonly VisualStudioWorkspace _workspace;
+
+    private IVsUIShell? _shellService;
+    private IWpfTableControl? _tableControl;
+
+    private int _selectedActiveItems;
+    private int _selectedSuppressedItems;
+    private int _selectedRoslynItems;
+    private int _selectedCompilerDiagnosticItems;
+    private int _selectedNoLocationDiagnosticItems;
+    private int _selectedNonSuppressionStateItems;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioDiagnosticListSuppressionStateService(
+        IThreadingContext threadingContext,
+        VisualStudioWorkspace workspace)
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly VisualStudioWorkspace _workspace;
+        _threadingContext = threadingContext;
+        _workspace = workspace;
+    }
 
-        private IVsUIShell? _shellService;
-        private IWpfTableControl? _tableControl;
+    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+    {
+        _shellService = await serviceProvider.GetServiceAsync<SVsUIShell, IVsUIShell>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+        var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
+        _tableControl = errorList?.TableControl;
 
-        private int _selectedActiveItems;
-        private int _selectedSuppressedItems;
-        private int _selectedRoslynItems;
-        private int _selectedCompilerDiagnosticItems;
-        private int _selectedNoLocationDiagnosticItems;
-        private int _selectedNonSuppressionStateItems;
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioDiagnosticListSuppressionStateService(
-            IThreadingContext threadingContext,
-            VisualStudioWorkspace workspace)
+        ClearState();
+        InitializeFromTableControlIfNeeded();
+    }
+
+    private int SelectedItems => _selectedActiveItems + _selectedSuppressedItems + _selectedNonSuppressionStateItems;
+
+    // If we can suppress either in source or in suppression file, we enable suppress context menu.
+    public bool CanSuppressSelectedEntries => CanSuppressSelectedEntriesInSource || CanSuppressSelectedEntriesInSuppressionFiles;
+
+    // If at least one suppressed item is selected, we enable remove suppressions.
+    public bool CanRemoveSuppressionsSelectedEntries => _selectedSuppressedItems > 0;
+
+    // If at least one Roslyn active item with location is selected, we enable suppress in source.
+    // Note that we do not support suppress in source when mix of Roslyn and non-Roslyn items are selected as in-source suppression has different meaning and implementation for these.
+    public bool CanSuppressSelectedEntriesInSource => _selectedActiveItems > 0 &&
+        _selectedRoslynItems == _selectedActiveItems &&
+        (_selectedRoslynItems - _selectedNoLocationDiagnosticItems) > 0;
+
+    // If at least one Roslyn active item is selected, we enable suppress in suppression file.
+    // Also, compiler diagnostics cannot be suppressed in suppression file, so there must be at least one non-compiler item.
+    public bool CanSuppressSelectedEntriesInSuppressionFiles => _selectedActiveItems > 0 &&
+        (_selectedRoslynItems - _selectedCompilerDiagnosticItems) > 0;
+
+    private void ClearState()
+    {
+        _selectedActiveItems = 0;
+        _selectedSuppressedItems = 0;
+        _selectedRoslynItems = 0;
+        _selectedCompilerDiagnosticItems = 0;
+        _selectedNoLocationDiagnosticItems = 0;
+        _selectedNonSuppressionStateItems = 0;
+    }
+
+    private void InitializeFromTableControlIfNeeded()
+    {
+        if (_tableControl == null)
         {
-            _threadingContext = threadingContext;
-            _workspace = workspace;
+            return;
         }
 
-        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+        if (SelectedItems == _tableControl.SelectedEntries.Count())
         {
-            _shellService = await serviceProvider.GetServiceAsync<SVsUIShell, IVsUIShell>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
-            var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
-            _tableControl = errorList?.TableControl;
-
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            ClearState();
-            InitializeFromTableControlIfNeeded();
+            // We already have up-to-date state data, so don't need to re-compute.
+            return;
         }
 
-        private int SelectedItems => _selectedActiveItems + _selectedSuppressedItems + _selectedNonSuppressionStateItems;
-
-        // If we can suppress either in source or in suppression file, we enable suppress context menu.
-        public bool CanSuppressSelectedEntries => CanSuppressSelectedEntriesInSource || CanSuppressSelectedEntriesInSuppressionFiles;
-
-        // If at least one suppressed item is selected, we enable remove suppressions.
-        public bool CanRemoveSuppressionsSelectedEntries => _selectedSuppressedItems > 0;
-
-        // If at least one Roslyn active item with location is selected, we enable suppress in source.
-        // Note that we do not support suppress in source when mix of Roslyn and non-Roslyn items are selected as in-source suppression has different meaning and implementation for these.
-        public bool CanSuppressSelectedEntriesInSource => _selectedActiveItems > 0 &&
-            _selectedRoslynItems == _selectedActiveItems &&
-            (_selectedRoslynItems - _selectedNoLocationDiagnosticItems) > 0;
-
-        // If at least one Roslyn active item is selected, we enable suppress in suppression file.
-        // Also, compiler diagnostics cannot be suppressed in suppression file, so there must be at least one non-compiler item.
-        public bool CanSuppressSelectedEntriesInSuppressionFiles => _selectedActiveItems > 0 &&
-            (_selectedRoslynItems - _selectedCompilerDiagnosticItems) > 0;
-
-        private void ClearState()
+        ClearState();
+        if (ProcessEntries(_tableControl.SelectedEntries, added: true))
         {
-            _selectedActiveItems = 0;
-            _selectedSuppressedItems = 0;
-            _selectedRoslynItems = 0;
-            _selectedCompilerDiagnosticItems = 0;
-            _selectedNoLocationDiagnosticItems = 0;
-            _selectedNonSuppressionStateItems = 0;
+            UpdateQueryStatus();
+        }
+    }
+
+    /// <summary>
+    /// Updates suppression state information when the selected entries change in the error list.
+    /// </summary>
+    public void ProcessSelectionChanged(TableSelectionChangedEventArgs e)
+    {
+        var hasAddedSuppressionStateEntry = ProcessEntries(e.AddedEntries, added: true);
+        var hasRemovedSuppressionStateEntry = ProcessEntries(e.RemovedEntries, added: false);
+
+        // If any entry that supports suppression state was ever involved, update query status since each item in the error list
+        // can have different context menu.
+        if (hasAddedSuppressionStateEntry || hasRemovedSuppressionStateEntry)
+        {
+            UpdateQueryStatus();
         }
 
-        private void InitializeFromTableControlIfNeeded()
+        InitializeFromTableControlIfNeeded();
+    }
+
+    private bool ProcessEntries(IEnumerable<ITableEntryHandle> entryHandles, bool added)
+    {
+        var hasSuppressionStateEntry = false;
+        foreach (var entryHandle in entryHandles)
         {
-            if (_tableControl == null)
+            if (EntrySupportsSuppressionState(entryHandle, out var isRoslynEntry, out var isSuppressedEntry, out var isCompilerDiagnosticEntry, out var isNoLocationDiagnosticEntry))
             {
-                return;
+                hasSuppressionStateEntry = true;
+                HandleSuppressionStateEntry(isRoslynEntry, isSuppressedEntry, isCompilerDiagnosticEntry, isNoLocationDiagnosticEntry, added);
             }
-
-            if (SelectedItems == _tableControl.SelectedEntries.Count())
+            else
             {
-                // We already have up-to-date state data, so don't need to re-compute.
-                return;
-            }
-
-            ClearState();
-            if (ProcessEntries(_tableControl.SelectedEntries, added: true))
-            {
-                UpdateQueryStatus();
+                HandleNonSuppressionStateEntry(added);
             }
         }
 
-        /// <summary>
-        /// Updates suppression state information when the selected entries change in the error list.
-        /// </summary>
-        public void ProcessSelectionChanged(TableSelectionChangedEventArgs e)
+        return hasSuppressionStateEntry;
+    }
+
+    private static bool EntrySupportsSuppressionState(ITableEntryHandle entryHandle, out bool isRoslynEntry, out bool isSuppressedEntry, out bool isCompilerDiagnosticEntry, out bool isNoLocationDiagnosticEntry)
+    {
+        isNoLocationDiagnosticEntry = !entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out string filePath) ||
+            string.IsNullOrEmpty(filePath);
+
+        var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
+        if (roslynSnapshot == null)
         {
-            var hasAddedSuppressionStateEntry = ProcessEntries(e.AddedEntries, added: true);
-            var hasRemovedSuppressionStateEntry = ProcessEntries(e.RemovedEntries, added: false);
-
-            // If any entry that supports suppression state was ever involved, update query status since each item in the error list
-            // can have different context menu.
-            if (hasAddedSuppressionStateEntry || hasRemovedSuppressionStateEntry)
-            {
-                UpdateQueryStatus();
-            }
-
-            InitializeFromTableControlIfNeeded();
+            isRoslynEntry = false;
+            isCompilerDiagnosticEntry = false;
+            return IsNonRoslynEntrySupportingSuppressionState(entryHandle, out isSuppressedEntry);
         }
 
-        private bool ProcessEntries(IEnumerable<ITableEntryHandle> entryHandles, bool added)
+        var diagnosticData = roslynSnapshot?.GetItem(index)?.Data;
+        if (!IsEntryWithConfigurableSuppressionState(diagnosticData))
         {
-            var hasSuppressionStateEntry = false;
-            foreach (var entryHandle in entryHandles)
-            {
-                if (EntrySupportsSuppressionState(entryHandle, out var isRoslynEntry, out var isSuppressedEntry, out var isCompilerDiagnosticEntry, out var isNoLocationDiagnosticEntry))
-                {
-                    hasSuppressionStateEntry = true;
-                    HandleSuppressionStateEntry(isRoslynEntry, isSuppressedEntry, isCompilerDiagnosticEntry, isNoLocationDiagnosticEntry, added);
-                }
-                else
-                {
-                    HandleNonSuppressionStateEntry(added);
-                }
-            }
-
-            return hasSuppressionStateEntry;
-        }
-
-        private static bool EntrySupportsSuppressionState(ITableEntryHandle entryHandle, out bool isRoslynEntry, out bool isSuppressedEntry, out bool isCompilerDiagnosticEntry, out bool isNoLocationDiagnosticEntry)
-        {
-            isNoLocationDiagnosticEntry = !entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out string filePath) ||
-                string.IsNullOrEmpty(filePath);
-
-            var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
-            if (roslynSnapshot == null)
-            {
-                isRoslynEntry = false;
-                isCompilerDiagnosticEntry = false;
-                return IsNonRoslynEntrySupportingSuppressionState(entryHandle, out isSuppressedEntry);
-            }
-
-            var diagnosticData = roslynSnapshot?.GetItem(index)?.Data;
-            if (!IsEntryWithConfigurableSuppressionState(diagnosticData))
-            {
-                isRoslynEntry = false;
-                isSuppressedEntry = false;
-                isCompilerDiagnosticEntry = false;
-                return false;
-            }
-
-            isRoslynEntry = true;
-            isSuppressedEntry = diagnosticData.IsSuppressed;
-            isCompilerDiagnosticEntry = SuppressionHelpers.IsCompilerDiagnostic(diagnosticData);
-            return true;
-        }
-
-        private static bool IsNonRoslynEntrySupportingSuppressionState(ITableEntryHandle entryHandle, out bool isSuppressedEntry)
-        {
-            if (entryHandle.TryGetValue(StandardTableKeyNames.SuppressionState, out SuppressionState suppressionStateValue))
-            {
-                isSuppressedEntry = suppressionStateValue == SuppressionState.Suppressed;
-                return true;
-            }
-
+            isRoslynEntry = false;
             isSuppressedEntry = false;
+            isCompilerDiagnosticEntry = false;
             return false;
         }
 
-        /// <summary>
-        /// Returns true if an entry's suppression state can be modified.
-        /// </summary>
-        private static bool IsEntryWithConfigurableSuppressionState([NotNullWhen(true)] DiagnosticData? entry)
-            => entry != null && !SuppressionHelpers.IsNotConfigurableDiagnostic(entry);
+        isRoslynEntry = true;
+        isSuppressedEntry = diagnosticData.IsSuppressed;
+        isCompilerDiagnosticEntry = SuppressionHelpers.IsCompilerDiagnostic(diagnosticData);
+        return true;
+    }
 
-        private static AbstractTableEntriesSnapshot<DiagnosticTableItem>? GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
+    private static bool IsNonRoslynEntrySupportingSuppressionState(ITableEntryHandle entryHandle, out bool isSuppressedEntry)
+    {
+        if (entryHandle.TryGetValue(StandardTableKeyNames.SuppressionState, out SuppressionState suppressionStateValue))
         {
-            if (!entryHandle.TryGetSnapshot(out var snapshot, out index))
-            {
-                return null;
-            }
-
-            return snapshot as AbstractTableEntriesSnapshot<DiagnosticTableItem>;
+            isSuppressedEntry = suppressionStateValue == SuppressionState.Suppressed;
+            return true;
         }
 
-        /// <summary>
-        /// Gets <see cref="DiagnosticData"/> objects for selected error list entries.
-        /// For remove suppression, the method also returns selected external source diagnostics.
-        /// </summary>
-        public async Task<ImmutableArray<DiagnosticData>> GetSelectedItemsAsync(bool isAddSuppression, CancellationToken cancellationToken)
+        isSuppressedEntry = false;
+        return false;
+    }
+
+    /// <summary>
+    /// Returns true if an entry's suppression state can be modified.
+    /// </summary>
+    private static bool IsEntryWithConfigurableSuppressionState([NotNullWhen(true)] DiagnosticData? entry)
+        => entry != null && !SuppressionHelpers.IsNotConfigurableDiagnostic(entry);
+
+    private static AbstractTableEntriesSnapshot<DiagnosticTableItem>? GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
+    {
+        if (!entryHandle.TryGetSnapshot(out var snapshot, out index))
         {
-            Contract.ThrowIfNull(_tableControl);
+            return null;
+        }
 
-            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
+        return snapshot as AbstractTableEntriesSnapshot<DiagnosticTableItem>;
+    }
 
-            Dictionary<string, Project>? projectNameToProjectMap = null;
-            Dictionary<Project, ImmutableDictionary<string, Document>>? filePathToDocumentMap = null;
+    /// <summary>
+    /// Gets <see cref="DiagnosticData"/> objects for selected error list entries.
+    /// For remove suppression, the method also returns selected external source diagnostics.
+    /// </summary>
+    public async Task<ImmutableArray<DiagnosticData>> GetSelectedItemsAsync(bool isAddSuppression, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfNull(_tableControl);
 
-            foreach (var entryHandle in _tableControl.SelectedEntries)
+        using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
+
+        Dictionary<string, Project>? projectNameToProjectMap = null;
+        Dictionary<Project, ImmutableDictionary<string, Document>>? filePathToDocumentMap = null;
+
+        foreach (var entryHandle in _tableControl.SelectedEntries)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            DiagnosticData? diagnosticData = null;
+            var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
+            if (roslynSnapshot != null)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                DiagnosticData? diagnosticData = null;
-                var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
-                if (roslynSnapshot != null)
+                diagnosticData = roslynSnapshot.GetItem(index)?.Data;
+            }
+            else if (!isAddSuppression)
+            {
+                // For suppression removal, we also need to handle FxCop entries.
+                if (!IsNonRoslynEntrySupportingSuppressionState(entryHandle, out var isSuppressedEntry) ||
+                    !isSuppressedEntry)
                 {
-                    diagnosticData = roslynSnapshot.GetItem(index)?.Data;
+                    continue;
                 }
-                else if (!isAddSuppression)
+
+                string? filePath = null;
+                var line = -1; // FxCop only supports line, not column.
+
+                if (entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCode, out string errorCode) && !string.IsNullOrEmpty(errorCode) &&
+                    entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCategory, out string category) && !string.IsNullOrEmpty(category) &&
+                    entryHandle.TryGetValue(StandardTableColumnDefinitions.Text, out string message) && !string.IsNullOrEmpty(message) &&
+                    entryHandle.TryGetValue(StandardTableColumnDefinitions.ProjectName, out string projectName) && !string.IsNullOrEmpty(projectName))
                 {
-                    // For suppression removal, we also need to handle FxCop entries.
-                    if (!IsNonRoslynEntrySupportingSuppressionState(entryHandle, out var isSuppressedEntry) ||
-                        !isSuppressedEntry)
+                    if (projectNameToProjectMap == null)
                     {
+                        projectNameToProjectMap = [];
+                        foreach (var p in _workspace.CurrentSolution.Projects)
+                        {
+                            projectNameToProjectMap[p.Name] = p;
+                        }
+                    }
+
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (!projectNameToProjectMap.TryGetValue(projectName, out var project))
+                    {
+                        // bail out
                         continue;
                     }
 
-                    string? filePath = null;
-                    var line = -1; // FxCop only supports line, not column.
+                    Document? document = null;
+                    var hasLocation =
+                        entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out filePath) && !string.IsNullOrEmpty(filePath) &&
+                        entryHandle.TryGetValue(StandardTableColumnDefinitions.Line, out line) && line >= 0;
+                    if (!hasLocation)
+                        continue;
 
-                    if (entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCode, out string errorCode) && !string.IsNullOrEmpty(errorCode) &&
-                        entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCategory, out string category) && !string.IsNullOrEmpty(category) &&
-                        entryHandle.TryGetValue(StandardTableColumnDefinitions.Text, out string message) && !string.IsNullOrEmpty(message) &&
-                        entryHandle.TryGetValue(StandardTableColumnDefinitions.ProjectName, out string projectName) && !string.IsNullOrEmpty(projectName))
+                    if (RoslynString.IsNullOrEmpty(filePath) || line < 0)
                     {
-                        if (projectNameToProjectMap == null)
-                        {
-                            projectNameToProjectMap = new Dictionary<string, Project>();
-                            foreach (var p in _workspace.CurrentSolution.Projects)
-                            {
-                                projectNameToProjectMap[p.Name] = p;
-                            }
-                        }
-
-                        cancellationToken.ThrowIfCancellationRequested();
-                        if (!projectNameToProjectMap.TryGetValue(projectName, out var project))
-                        {
-                            // bail out
-                            continue;
-                        }
-
-                        Document? document = null;
-                        var hasLocation =
-                            entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out filePath) && !string.IsNullOrEmpty(filePath) &&
-                            entryHandle.TryGetValue(StandardTableColumnDefinitions.Line, out line) && line >= 0;
-                        if (!hasLocation)
-                            continue;
-
-                        if (RoslynString.IsNullOrEmpty(filePath) || line < 0)
-                        {
-                            // bail out
-                            continue;
-                        }
-
-                        filePathToDocumentMap ??= new Dictionary<Project, ImmutableDictionary<string, Document>>();
-                        if (!filePathToDocumentMap.TryGetValue(project, out var filePathMap))
-                        {
-                            filePathMap = await GetFilePathToDocumentMapAsync(project, cancellationToken).ConfigureAwait(false);
-                            filePathToDocumentMap[project] = filePathMap;
-                        }
-
-                        if (!filePathMap.TryGetValue(filePath, out document))
-                        {
-                            // bail out
-                            continue;
-                        }
-
-                        // TODO: should we use the tree of the document (if available) to get the correct mapped span for this location?
-                        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                        var linePosition = new LinePosition(line, 0);
-                        var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
-                        var location = new DiagnosticDataLocation(
-                            new FileLinePositionSpan(filePath, linePositionSpan), document.Id);
-
-                        Contract.ThrowIfNull(project);
-
-                        // Create a diagnostic with correct values for fields we care about: id, category, message, isSuppressed, location
-                        // and default values for the rest of the fields (not used by suppression fixer).
-                        diagnosticData = new DiagnosticData(
-                            id: errorCode,
-                            category: category,
-                            message: message,
-                            severity: DiagnosticSeverity.Warning,
-                            defaultSeverity: DiagnosticSeverity.Warning,
-                            isEnabledByDefault: true,
-                            warningLevel: 1,
-                            isSuppressed: isSuppressedEntry,
-                            title: message,
-                            location: location,
-                            customTags: SuppressionHelpers.SynthesizedExternalSourceDiagnosticCustomTags,
-                            properties: ImmutableDictionary<string, string?>.Empty,
-                            projectId: project.Id);
+                        // bail out
+                        continue;
                     }
+
+                    filePathToDocumentMap ??= [];
+                    if (!filePathToDocumentMap.TryGetValue(project, out var filePathMap))
+                    {
+                        filePathMap = await GetFilePathToDocumentMapAsync(project, cancellationToken).ConfigureAwait(false);
+                        filePathToDocumentMap[project] = filePathMap;
+                    }
+
+                    if (!filePathMap.TryGetValue(filePath, out document))
+                    {
+                        // bail out
+                        continue;
+                    }
+
+                    // TODO: should we use the tree of the document (if available) to get the correct mapped span for this location?
+                    var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                    var linePosition = new LinePosition(line, 0);
+                    var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
+                    var location = new DiagnosticDataLocation(
+                        new FileLinePositionSpan(filePath, linePositionSpan), document.Id);
+
+                    Contract.ThrowIfNull(project);
+
+                    // Create a diagnostic with correct values for fields we care about: id, category, message, isSuppressed, location
+                    // and default values for the rest of the fields (not used by suppression fixer).
+                    diagnosticData = new DiagnosticData(
+                        id: errorCode,
+                        category: category,
+                        message: message,
+                        severity: DiagnosticSeverity.Warning,
+                        defaultSeverity: DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 1,
+                        isSuppressed: isSuppressedEntry,
+                        title: message,
+                        location: location,
+                        customTags: SuppressionHelpers.SynthesizedExternalSourceDiagnosticCustomTags,
+                        properties: ImmutableDictionary<string, string?>.Empty,
+                        projectId: project.Id);
                 }
-
-                if (IsEntryWithConfigurableSuppressionState(diagnosticData))
-                {
-                    builder.Add(diagnosticData);
-                }
             }
 
-            return builder.ToImmutable();
+            if (IsEntryWithConfigurableSuppressionState(diagnosticData))
+            {
+                builder.Add(diagnosticData);
+            }
         }
 
-        private static async Task<ImmutableDictionary<string, Document>> GetFilePathToDocumentMapAsync(Project project, CancellationToken cancellationToken)
+        return builder.ToImmutable();
+    }
+
+    private static async Task<ImmutableDictionary<string, Document>> GetFilePathToDocumentMapAsync(Project project, CancellationToken cancellationToken)
+    {
+        var builder = ImmutableDictionary.CreateBuilder<string, Document>();
+        foreach (var document in project.Documents)
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, Document>();
-            foreach (var document in project.Documents)
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var filePath = tree.FilePath;
+            if (filePath != null)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var filePath = tree.FilePath;
-                if (filePath != null)
-                {
-                    builder.Add(filePath, document);
-                }
+                builder.Add(filePath, document);
             }
-
-            return builder.ToImmutable();
         }
 
-        private static void UpdateSelectedItems(bool added, ref int count)
+        return builder.ToImmutable();
+    }
+
+    private static void UpdateSelectedItems(bool added, ref int count)
+    {
+        if (added)
         {
-            if (added)
-            {
-                count++;
-            }
-            else
-            {
-                count--;
-            }
+            count++;
         }
-
-        private void HandleSuppressionStateEntry(bool isRoslynEntry, bool isSuppressedEntry, bool isCompilerDiagnosticEntry, bool isNoLocationDiagnosticEntry, bool added)
+        else
         {
-            if (isRoslynEntry)
-            {
-                UpdateSelectedItems(added, ref _selectedRoslynItems);
-            }
-
-            if (isCompilerDiagnosticEntry)
-            {
-                UpdateSelectedItems(added, ref _selectedCompilerDiagnosticItems);
-            }
-
-            if (isNoLocationDiagnosticEntry)
-            {
-                UpdateSelectedItems(added, ref _selectedNoLocationDiagnosticItems);
-            }
-
-            if (isSuppressedEntry)
-            {
-                UpdateSelectedItems(added, ref _selectedSuppressedItems);
-            }
-            else
-            {
-                UpdateSelectedItems(added, ref _selectedActiveItems);
-            }
+            count--;
         }
+    }
 
-        private void HandleNonSuppressionStateEntry(bool added)
-            => UpdateSelectedItems(added, ref _selectedNonSuppressionStateItems);
-
-        private void UpdateQueryStatus()
+    private void HandleSuppressionStateEntry(bool isRoslynEntry, bool isSuppressedEntry, bool isCompilerDiagnosticEntry, bool isNoLocationDiagnosticEntry, bool added)
+    {
+        if (isRoslynEntry)
         {
-            // Force the shell to refresh the QueryStatus for all the command since default behavior is it only does query
-            // when focus on error list has changed, not individual items.
-            _shellService?.UpdateCommandUI(0);
+            UpdateSelectedItems(added, ref _selectedRoslynItems);
         }
+
+        if (isCompilerDiagnosticEntry)
+        {
+            UpdateSelectedItems(added, ref _selectedCompilerDiagnosticItems);
+        }
+
+        if (isNoLocationDiagnosticEntry)
+        {
+            UpdateSelectedItems(added, ref _selectedNoLocationDiagnosticItems);
+        }
+
+        if (isSuppressedEntry)
+        {
+            UpdateSelectedItems(added, ref _selectedSuppressedItems);
+        }
+        else
+        {
+            UpdateSelectedItems(added, ref _selectedActiveItems);
+        }
+    }
+
+    private void HandleNonSuppressionStateEntry(bool added)
+        => UpdateSelectedItems(added, ref _selectedNonSuppressionStateItems);
+
+    private void UpdateQueryStatus()
+    {
+        // Force the shell to refresh the QueryStatus for all the command since default behavior is it only does query
+        // when focus on error list has changed, not individual items.
+        _shellService?.UpdateCommandUI(0);
     }
 }

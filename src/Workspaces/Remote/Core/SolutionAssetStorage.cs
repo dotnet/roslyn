@@ -30,7 +30,7 @@ internal partial class SolutionAssetStorage
     /// the same storage here so that all OOP calls can safely call back into us and get the assets they need, even
     /// if individual calls get canceled.
     /// </summary>
-    private readonly Dictionary<Checksum, Scope> _checksumToScope = new();
+    private readonly Dictionary<Checksum, Scope> _checksumToScope = [];
 
     public Scope GetScope(Checksum solutionChecksum)
     {
@@ -57,15 +57,25 @@ internal partial class SolutionAssetStorage
         => StoreAssetsAsync(project.Solution.CompilationState, project.Id, cancellationToken);
 
     /// <inheritdoc cref="StoreAssetsAsync(Solution, CancellationToken)"/>
-    public ValueTask<Scope> StoreAssetsAsync(SolutionCompilationState solution, CancellationToken cancellationToken)
-        => StoreAssetsAsync(solution, projectId: null, cancellationToken);
+    public ValueTask<Scope> StoreAssetsAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        => StoreAssetsAsync(compilationState, projectId: null, cancellationToken);
 
     /// <inheritdoc cref="StoreAssetsAsync(Solution, CancellationToken)"/>
-    public async ValueTask<Scope> StoreAssetsAsync(SolutionCompilationState solutionState, ProjectId? projectId, CancellationToken cancellationToken)
+    public async ValueTask<Scope> StoreAssetsAsync(SolutionCompilationState compilationState, ProjectId? projectId, CancellationToken cancellationToken)
     {
-        var checksum = projectId == null
-            ? await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
-            : await solutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
+        Checksum checksum;
+        ProjectCone? projectCone;
+
+        if (projectId == null)
+        {
+            checksum = await compilationState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            projectCone = null;
+        }
+        else
+        {
+            (var stateChecksums, projectCone) = await compilationState.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+            checksum = stateChecksums.Checksum;
+        }
 
         lock (_gate)
         {
@@ -76,7 +86,7 @@ internal partial class SolutionAssetStorage
                 return scope;
             }
 
-            scope = new Scope(this, checksum, solutionState);
+            scope = new Scope(this, checksum, projectCone, compilationState);
             _checksumToScope[checksum] = scope;
             return scope;
         }

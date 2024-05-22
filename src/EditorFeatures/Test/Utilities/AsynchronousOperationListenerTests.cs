@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         private class SleepHelper : IDisposable
         {
             private readonly CancellationTokenSource _tokenSource;
-            private readonly List<Task> _tasks = new List<Task>();
+            private readonly List<Task> _tasks = [];
 
             public SleepHelper()
                 => _tokenSource = new CancellationTokenSource();

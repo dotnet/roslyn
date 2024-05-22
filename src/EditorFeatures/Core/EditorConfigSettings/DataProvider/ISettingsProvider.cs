@@ -7,12 +7,11 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
+
+internal interface ISettingsProvider<TData>
 {
-    internal interface ISettingsProvider<TData>
-    {
-        void RegisterViewModel(ISettingsEditorViewModel model);
-        ImmutableArray<TData> GetCurrentDataSnapshot();
-        Task<SourceText> GetChangedEditorConfigAsync(SourceText sourceText);
-    }
+    void RegisterViewModel(ISettingsEditorViewModel model);
+    ImmutableArray<TData> GetCurrentDataSnapshot();
+    Task<SourceText> GetChangedEditorConfigAsync(SourceText sourceText);
 }

@@ -41,15 +41,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             return new RazorLanguageServerTargetWrapper(languageServer);
         }
 
-        [Obsolete("Use the overload that takes IRazorTestCapabilitiesProvider")]
-        public IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorCapabilitiesProvider razorCapabilitiesProvider, HostServices hostServices)
-        {
-            var capabilitiesProvider = new RazorCapabilitiesProvider(razorCapabilitiesProvider);
-            var languageServer = _languageServerFactory.Create(jsonRpc, capabilitiesProvider, WellKnownLspServerKinds.RazorLspServer, NoOpLspLogger.Instance, hostServices);
-
-            return new RazorLanguageServerTargetWrapper(languageServer);
-        }
-
         public DocumentInfo CreateDocumentInfo(
             DocumentId id,
             string name,
@@ -74,44 +65,34 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 .WithDocumentServiceProvider(documentServiceProvider);
         }
 
+        public void AddJsonConverters(JsonSerializer jsonSerializer)
+        {
+            VSInternalExtensionUtilities.AddVSInternalExtensionConverters(jsonSerializer);
+        }
+
         private class RazorCapabilitiesProvider : ICapabilitiesProvider
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            private readonly IRazorCapabilitiesProvider? _razorCapabilitiesProvider;
-#pragma warning restore CS0618 // Type or member is obsolete
-            private readonly IRazorTestCapabilitiesProvider? _razorTestCapabilitiesProvider;
+            private readonly IRazorTestCapabilitiesProvider _razorTestCapabilitiesProvider;
 
             public RazorCapabilitiesProvider(IRazorTestCapabilitiesProvider razorTestCapabilitiesProvider)
             {
                 _razorTestCapabilitiesProvider = razorTestCapabilitiesProvider;
             }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            public RazorCapabilitiesProvider(IRazorCapabilitiesProvider razorCapabilitiesProvider)
-#pragma warning restore CS0618 // Type or member is obsolete
-            {
-                _razorCapabilitiesProvider = razorCapabilitiesProvider;
-            }
-
             public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
             {
-                if (_razorTestCapabilitiesProvider is not null)
+                // To avoid exposing types from MS.VS.LanguageServer.Protocol types we serialize and deserialize the capabilities
+                // so we can just pass string around. This is obviously not great for perf, but it is only used in Razor tests.
+                var clientCapabilitiesJson = JsonConvert.SerializeObject(clientCapabilities);
+                var serverCapabilitiesJson = _razorTestCapabilitiesProvider.GetServerCapabilitiesJson(clientCapabilitiesJson);
+                var serverCapabilities = JsonConvert.DeserializeObject<VSInternalServerCapabilities>(serverCapabilitiesJson);
+
+                if (serverCapabilities is null)
                 {
-                    // To avoid exposing types from MS.VS.LanguageServer.Protocol types we serialize and deserialize the capabilities
-                    // so we can just pass string around. This is obviously not great for perf, but it is only used in Razor tests.
-                    var clientCapabilitiesJson = JsonConvert.SerializeObject(clientCapabilities);
-                    var serverCapabilitiesJson = _razorTestCapabilitiesProvider.GetServerCapabilitiesJson(clientCapabilitiesJson);
-                    var serverCapabilities = JsonConvert.DeserializeObject<VSInternalServerCapabilities>(serverCapabilitiesJson);
-
-                    if (serverCapabilities is null)
-                    {
-                        throw new InvalidOperationException("Could not deserialize server capabilities as VSInternalServerCapabilities");
-                    }
-
-                    return serverCapabilities;
+                    throw new InvalidOperationException("Could not deserialize server capabilities as VSInternalServerCapabilities");
                 }
 
-                return _razorCapabilitiesProvider!.GetCapabilities(clientCapabilities);
+                return serverCapabilities;
             }
         }
     }

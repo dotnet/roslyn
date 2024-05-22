@@ -277,9 +277,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInlineArrays = MessageBase + 12836,
         IDS_FeatureCollectionExpressions = MessageBase + 12837,
         IDS_FeatureRefReadonlyParameters = MessageBase + 12838,
-        IDS_StringEscapeCharacter = MessageBase + 12839,
+        IDS_FeatureStringEscapeCharacter = MessageBase + 12839,
 
-        IDS_ImplicitIndexerInitializer = MessageBase + 12840,
+        IDS_FeatureImplicitIndexerInitializer = MessageBase + 12840,
+        IDS_FeatureLockObject = MessageBase + 12841,
+
+        IDS_FeatureParamsCollections = MessageBase + 12842,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -460,8 +463,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
-                case MessageID.IDS_StringEscapeCharacter:
-                case MessageID.IDS_ImplicitIndexerInitializer:
+                case MessageID.IDS_FeatureStringEscapeCharacter:
+                case MessageID.IDS_FeatureImplicitIndexerInitializer:
+                case MessageID.IDS_FeatureLockObject:
+                case MessageID.IDS_FeatureParamsCollections:
                     return LanguageVersion.Preview;
 
                 // C# 12.0 features.

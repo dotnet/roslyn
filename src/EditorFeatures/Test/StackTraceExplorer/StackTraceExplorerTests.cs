@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
@@ -58,7 +57,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.StackTraceExplorer
 
             Assert.Equal(expectedDefinition.IsExternal, definition.IsExternal);
             AssertEx.SetEqual(expectedDefinition.NameDisplayParts, definition.NameDisplayParts);
-            AssertEx.SetEqual(expectedDefinition.OriginationParts, definition.OriginationParts);
             AssertEx.SetEqual(expectedDefinition.Properties, definition.Properties);
             AssertEx.SetEqual(expectedDefinition.SourceSpans, definition.SourceSpans);
             AssertEx.SetEqual(expectedDefinition.Tags, definition.Tags);

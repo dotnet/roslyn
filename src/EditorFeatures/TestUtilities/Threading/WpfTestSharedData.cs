@@ -20,7 +20,7 @@ namespace Roslyn.Test.Utilities
         /// Holds the last 10 test cases executed: more recent test cases will occur later in the 
         /// list. Useful for debugging deadlocks that occur because state leak between runs. 
         /// </summary>
-        private readonly List<string> _recentTestCases = new List<string>();
+        private readonly List<string> _recentTestCases = [];
 
         public readonly SemaphoreSlim TestSerializationGate = new SemaphoreSlim(1, 1);
 

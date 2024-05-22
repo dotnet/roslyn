@@ -6245,7 +6245,7 @@ public static class Extensions
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "123", verify: Verification.FailsILVerify);
+            CompileAndVerify(comp, expectedOutput: "123");
         }
 
         [Fact]
@@ -6285,6 +6285,7 @@ public static class Extensions
         {
             var source = @"
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -6295,7 +6296,7 @@ public struct C
     {
         await foreach (var (a, b) in (new[] { 1, 2, 3 }, new List<decimal>{ 0.1m, 0.2m, 0.3m }))
         {
-            Console.WriteLine(a + b);
+            Console.WriteLine((a + b).ToString(CultureInfo.InvariantCulture));
         }
     }
 }

@@ -8,18 +8,17 @@ using System.Collections.Immutable;
 using Metalama.Compiler;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Host
-{
-    internal interface ICompilationFactoryService : ILanguageService
-    {
-        Compilation CreateCompilation(string assemblyName, CompilationOptions options);
-        Compilation CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type? hostObjectType);
-        CompilationOptions GetDefaultCompilationOptions();
-        CompilationOptions? TryParsePdbCompilationOptions(IReadOnlyDictionary<string, string> compilationOptionsMetadata);
-        GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts);
+namespace Microsoft.CodeAnalysis.Host;
 
-        // <Metalama> This code is used by Try.Metalama.
-        Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)>? GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader);
-        // </Metalama>
-    }
+internal interface ICompilationFactoryService : ILanguageService
+{
+    Compilation CreateCompilation(string assemblyName, CompilationOptions options);
+    Compilation CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type? hostObjectType);
+    CompilationOptions GetDefaultCompilationOptions();
+    CompilationOptions? TryParsePdbCompilationOptions(IReadOnlyDictionary<string, string> compilationOptionsMetadata);
+    GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts);
+
+    // <Metalama> This code is used by Try.Metalama.
+    Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)>? GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader);
+    // </Metalama>
 }

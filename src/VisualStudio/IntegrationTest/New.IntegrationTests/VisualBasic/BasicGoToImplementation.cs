@@ -46,13 +46,7 @@ End Interface", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Interface IGoo", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToImplementationAsync(HangMitigatingCancellationToken);
 
-            string identifierWithCaret;
-            if (!asyncNavigation)
-            {
-                // The navigation completed synchronously; no further action necessary
-                identifierWithCaret = "Implementation$$";
-            }
-            else
+            if (asyncNavigation)
             {
                 // The navigation completed asynchronously, so navigate to the first item in the results list
                 Assert.Equal($"'IGoo' implementations - Entire solution", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
@@ -63,12 +57,10 @@ End Interface", HangMitigatingCancellationToken);
                 results[0].NavigateTo(isPreview: false, shouldActivate: true);
 
                 await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
-
-                identifierWithCaret = "$$Implementation";
             }
 
             Assert.Equal($"FileImplementation.vb", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
-            await TestServices.EditorVerifier.TextContainsAsync($@"Class {identifierWithCaret}", assertCaretPosition: true);
+            await TestServices.EditorVerifier.TextContainsAsync("Class $$Implementation", assertCaretPosition: true);
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
     }

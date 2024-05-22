@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 #Disable Warning CA1822 ' Mark members as static - False positive due to https://github.com/dotnet/roslyn/issues/50582
         Private Sub AssertValidId(id As String, assertion As Action(Of Boolean))
 #Enable Warning CA1822
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
 <Workspace>
     <Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">
         <Document>
@@ -43,8 +43,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
         End Sub
 
-        Protected Function GetWorkspace(code As String) As TestWorkspace
-            Return TestWorkspace.Create(
+        Protected Function GetWorkspace(code As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.Create(
 <Workspace>
     <Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">
         <Document FilePath="file">
@@ -54,7 +54,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 </Workspace>, composition:=VisualStudioTestCompositions.LanguageServices)
         End Function
 
-        Protected Function GetDocument(workspace As TestWorkspace) As Document
+        Protected Function GetDocument(workspace As EditorTestWorkspace) As Document
             Return workspace.CurrentSolution.Projects.Single().Documents.Single()
         End Function
     End Class

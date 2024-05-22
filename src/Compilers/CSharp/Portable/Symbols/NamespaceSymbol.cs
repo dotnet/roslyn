@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal NamespaceSymbol GetNestedNamespace(string name)
             => GetNestedNamespace(name.AsMemory());
 
-        internal NamespaceSymbol GetNestedNamespace(ReadOnlyMemory<char> name)
+        internal virtual NamespaceSymbol GetNestedNamespace(ReadOnlyMemory<char> name)
         {
             foreach (var sym in this.GetMembers(name))
             {

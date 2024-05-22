@@ -10,7 +10,11 @@
 <Project>
 
   <PropertyGroup>
-    <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core'">netcore</_RoslynTargetDirectoryName>
+    <!-- <Metalama> Added .Net version switch -->
+    <_MetalamaBuildRuntimeVersion>$([System.Environment]::Version)</_MetalamaBuildRuntimeVersion>
+    <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(_MetalamaBuildRuntimeVersion)' &lt; '8'">netcore</_RoslynTargetDirectoryName>
+    <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(_MetalamaBuildRuntimeVersion)' &gt;= '8'">net8.0</_RoslynTargetDirectoryName>
+    <!-- </Metalama> -->
     <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_RoslynTargetDirectoryName>
     <_RoslynTasksDirectory>$(MSBuildThisFileDirectory)..\tasks\$(_RoslynTargetDirectoryName)\</_RoslynTasksDirectory>
     <RoslynTasksAssembly>$(_RoslynTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll</RoslynTasksAssembly>

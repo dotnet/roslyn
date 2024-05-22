@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="The_event_handler_to_associate_with_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate_lambdaExpression">
         <source>The event handler to associate with the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; | &lt;lambdaExpression&gt; }.</source>
-        <target state="translated">Der Ereignishandler, dem das Ereignis zugeordnet wird. Dies kann die Form { AddressOf &lt;Ereignishandler&gt; | &lt;Delegat&gt; | &lt;Lambdaausdruck&gt; } haben.</target>
+        <target state="translated">Der Ereignishandler, dem das Ereignis zugeordnet wird. Dies kann die Form { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; | &lt;lambdaExpression&gt; } haben.</target>
         <note />
       </trans-unit>
       <trans-unit id="If_expression_evaluates_to_a_reference_or_Nullable_value_that_is_not_Nothing_the_function_returns_that_value_Otherwise_it_calculates_and_returns_expressionIfNothing">
@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="The_event_handler_to_disassociate_from_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate">
         <source>The event handler to disassociate from the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; }.</source>
-        <target state="translated">Der Ereignishandler, von dem das Ereignis getrennt wird. Dies kann die Form { AddressOf &lt;Ereignishandler&gt; | &lt;Delegat&gt; } haben.</target>
+        <target state="translated">Der Ereignishandler, von dem das Ereignis getrennt wird. Dies kann die Form { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; } haben.</target>
         <note />
       </trans-unit>
       <trans-unit id="If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse">
@@ -225,21 +225,6 @@
       <trans-unit id="Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for">
         <source>Introduces a type conversion operation that does not throw an exception. If an attempted conversion fails, TryCast returns Nothing, which your program can test for.</source>
         <target state="translated">Führt eine Typenkonvertierungsoperation ein, die keine Ausnahme auslöst. Wenn beim Versuch einer Konvertierung ein Fehler auftritt, gibt "TryCast" den Wert "Nothing" zurück, auf den das Programm eine Überprüfung durchführen kann.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_does_not_descend_from_root">
-        <source>Node does not descend from root.</source>
-        <target state="translated">Knoten steigt nicht vom Stamm ab.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_not_in_parent_s_child_list">
-        <source>Node not in parent's child list</source>
-        <target state="translated">Knoten befindet sich nicht in der untergeordneten Liste des übergeordneten Elements</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trivia_is_not_associated_with_token">
-        <source>Trivia is not associated with token</source>
-        <target state="translated">Trivia ist nicht dem Token zugeordnet</target>
         <note />
       </trans-unit>
       <trans-unit id="typeOrMember">

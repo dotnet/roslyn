@@ -10,58 +10,57 @@ using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Classification
+namespace Microsoft.CodeAnalysis.Classification;
+
+internal static class SyntaxClassificationServiceExtensions
 {
-    internal static class SyntaxClassificationServiceExtensions
+    public static void AddSyntacticClassifications(
+        this ISyntaxClassificationService classificationService,
+        SyntaxNode root,
+        TextSpan textSpan,
+        SegmentedList<ClassifiedSpan> result,
+        CancellationToken cancellationToken)
     {
-        public static void AddSyntacticClassifications(
-            this ISyntaxClassificationService classificationService,
-            SyntaxNode root,
-            TextSpan textSpan,
-            SegmentedList<ClassifiedSpan> result,
-            CancellationToken cancellationToken)
-        {
-            classificationService.AddSyntacticClassifications(root, ImmutableArray.Create(textSpan), result, cancellationToken);
-        }
+        classificationService.AddSyntacticClassifications(root, [textSpan], result, cancellationToken);
+    }
 
-        public static Task AddSemanticClassificationsAsync(
-            this ISyntaxClassificationService classificationService,
-            Document document,
-            TextSpan textSpan,
-            ClassificationOptions options,
-            Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
-            Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
-            SegmentedList<ClassifiedSpan> result,
-            CancellationToken cancellationToken)
-        {
-            return classificationService.AddSemanticClassificationsAsync(
-                document,
-                ImmutableArray.Create(textSpan),
-                options,
-                getNodeClassifiers,
-                getTokenClassifiers,
-                result,
-                cancellationToken);
-        }
+    public static Task AddSemanticClassificationsAsync(
+        this ISyntaxClassificationService classificationService,
+        Document document,
+        TextSpan textSpan,
+        ClassificationOptions options,
+        Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
+        Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
+        SegmentedList<ClassifiedSpan> result,
+        CancellationToken cancellationToken)
+    {
+        return classificationService.AddSemanticClassificationsAsync(
+            document,
+            [textSpan],
+            options,
+            getNodeClassifiers,
+            getTokenClassifiers,
+            result,
+            cancellationToken);
+    }
 
-        public static void AddSemanticClassifications(
-            this ISyntaxClassificationService classificationService,
-            SemanticModel semanticModel,
-            TextSpan textSpan,
-            Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
-            Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
-            SegmentedList<ClassifiedSpan> result,
-            ClassificationOptions options,
-            CancellationToken cancellationToken)
-        {
-            classificationService.AddSemanticClassifications(
-                semanticModel,
-                ImmutableArray.Create(textSpan),
-                getNodeClassifiers,
-                getTokenClassifiers,
-                result,
-                options,
-                cancellationToken);
-        }
+    public static void AddSemanticClassifications(
+        this ISyntaxClassificationService classificationService,
+        SemanticModel semanticModel,
+        TextSpan textSpan,
+        Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
+        Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
+        SegmentedList<ClassifiedSpan> result,
+        ClassificationOptions options,
+        CancellationToken cancellationToken)
+    {
+        classificationService.AddSemanticClassifications(
+            semanticModel,
+            [textSpan],
+            getNodeClassifiers,
+            getTokenClassifiers,
+            result,
+            options,
+            cancellationToken);
     }
 }

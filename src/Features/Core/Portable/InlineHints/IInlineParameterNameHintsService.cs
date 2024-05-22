@@ -9,20 +9,19 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.InlineHints
+namespace Microsoft.CodeAnalysis.InlineHints;
+
+/// <summary>
+/// Gets inline hints for type locations.  This is an internal service only for C# and VB.  Use <see
+/// cref="IInlineHintsService"/> for other languages.
+/// </summary>
+internal interface IInlineParameterNameHintsService : ILanguageService
 {
-    /// <summary>
-    /// Gets inline hints for type locations.  This is an internal service only for C# and VB.  Use <see
-    /// cref="IInlineHintsService"/> for other languages.
-    /// </summary>
-    internal interface IInlineParameterNameHintsService : ILanguageService
-    {
-        Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
-            Document document,
-            TextSpan textSpan,
-            InlineParameterHintsOptions options,
-            SymbolDescriptionOptions displayOptions,
-            bool displayAllOverride,
-            CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
+        Document document,
+        TextSpan textSpan,
+        InlineParameterHintsOptions options,
+        SymbolDescriptionOptions displayOptions,
+        bool displayAllOverride,
+        CancellationToken cancellationToken);
 }

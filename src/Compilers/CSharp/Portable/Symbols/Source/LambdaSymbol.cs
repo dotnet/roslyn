@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var parameter in _parameters)
             {
-                parameter.ForceComplete(locationOpt: null, cancellationToken: default);
+                parameter.ForceComplete(locationOpt: null, filter: null, cancellationToken: default);
             }
 
             GetAttributes();

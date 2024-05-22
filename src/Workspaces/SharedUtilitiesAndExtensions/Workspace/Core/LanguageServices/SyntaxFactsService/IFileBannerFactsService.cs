@@ -4,9 +4,8 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.LanguageService
+namespace Microsoft.CodeAnalysis.LanguageService;
+
+internal interface IFileBannerFactsService : IFileBannerFacts, ILanguageService
 {
-    internal interface IFileBannerFactsService : IFileBannerFacts, ILanguageService
-    {
-    }
 }

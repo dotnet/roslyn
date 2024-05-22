@@ -4,27 +4,26 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
+namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+
+/// <summary>
+/// Managed hot reload availability information.
+/// </summary>
+[DataContract]
+internal readonly struct ManagedHotReloadAvailability(
+    ManagedHotReloadAvailabilityStatus status,
+    string? localizedMessage = null)
 {
+
     /// <summary>
-    /// Managed hot reload availability information.
+    /// Status for the managed hot reload session.
     /// </summary>
-    [DataContract]
-    internal readonly struct ManagedHotReloadAvailability(
-        ManagedHotReloadAvailabilityStatus status,
-        string? localizedMessage = null)
-    {
+    [DataMember(Name = "status")]
+    public ManagedHotReloadAvailabilityStatus Status { get; } = status;
 
-        /// <summary>
-        /// Status for the managed hot reload session.
-        /// </summary>
-        [DataMember(Name = "status")]
-        public ManagedHotReloadAvailabilityStatus Status { get; } = status;
-
-        /// <summary>
-        /// [Optional] Localized message for <see cref="Status"/>.
-        /// </summary>
-        [DataMember(Name = "localizedMessage")]
-        public string? LocalizedMessage { get; } = localizedMessage;
-    }
+    /// <summary>
+    /// [Optional] Localized message for <see cref="Status"/>.
+    /// </summary>
+    [DataMember(Name = "localizedMessage")]
+    public string? LocalizedMessage { get; } = localizedMessage;
 }

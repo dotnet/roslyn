@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                     if (_invalidatedSpans == null)
                     {
                         // set invalidated spans
-                        _invalidatedSpans = new List<IMappingSpan> { changedSpan };
+                        _invalidatedSpans = [changedSpan];
 
                         needToScheduleUpdate = true;
                     }

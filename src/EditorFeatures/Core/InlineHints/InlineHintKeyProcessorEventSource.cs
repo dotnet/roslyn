@@ -4,25 +4,24 @@
 
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineHints
+namespace Microsoft.CodeAnalysis.Editor.InlineHints;
+
+internal partial class InlineHintsDataTaggerProvider
 {
-    internal partial class InlineHintsDataTaggerProvider
+    private sealed class InlineHintKeyProcessorEventSource(IInlineHintKeyProcessor? inlineHintKeyProcessor) : AbstractTaggerEventSource
     {
-        private sealed class InlineHintKeyProcessorEventSource(IInlineHintKeyProcessor? inlineHintKeyProcessor) : AbstractTaggerEventSource
+        private readonly IInlineHintKeyProcessor? _inlineHintKeyProcessor = inlineHintKeyProcessor;
+
+        public override void Connect()
         {
-            private readonly IInlineHintKeyProcessor? _inlineHintKeyProcessor = inlineHintKeyProcessor;
+            if (_inlineHintKeyProcessor != null)
+                _inlineHintKeyProcessor.StateChanged += this.RaiseChanged;
+        }
 
-            public override void Connect()
-            {
-                if (_inlineHintKeyProcessor != null)
-                    _inlineHintKeyProcessor.StateChanged += this.RaiseChanged;
-            }
-
-            public override void Disconnect()
-            {
-                if (_inlineHintKeyProcessor != null)
-                    _inlineHintKeyProcessor.StateChanged -= this.RaiseChanged;
-            }
+        public override void Disconnect()
+        {
+            if (_inlineHintKeyProcessor != null)
+                _inlineHintKeyProcessor.StateChanged -= this.RaiseChanged;
         }
     }
 }

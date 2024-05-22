@@ -5,14 +5,13 @@
 using System;
 using System.Windows.Threading;
 
-namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
-{
-    internal class ComputingTreeViewItem : TreeViewItemBase
-    {
-        public string Text => ServicesVSResources.Calculating;
+namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
 
-        public ComputingTreeViewItem()
-        {
-        }
+internal class ComputingTreeViewItem : TreeViewItemBase
+{
+    public string Text => ServicesVSResources.Calculating;
+
+    public ComputingTreeViewItem()
+    {
     }
 }

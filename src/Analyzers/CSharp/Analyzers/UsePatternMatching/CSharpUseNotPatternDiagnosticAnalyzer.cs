@@ -97,6 +97,7 @@ internal sealed class CSharpUseNotPatternDiagnosticAnalyzer()
             Descriptor,
             isKeyword.GetLocation(),
             styleOption.Notification,
+            context.Options,
             ImmutableArray.Create(node.GetLocation()),
             properties: null));
     }

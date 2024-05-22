@@ -655,8 +655,8 @@ a + b";
             Assert.Equal(SyntaxKind.IfKeyword, token.Kind());
         }
 
-        [Fact]
-        public void TestFindTokenInLargeList()
+        [Theory, CombinatorialData]
+        public void TestFindTokenInLargeList(bool collectionExpression)
         {
             var identifier = SyntaxFactory.Identifier("x");
             var missingIdentifier = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken);
@@ -679,7 +679,9 @@ a + b";
                 missingArgument, missingComma,
                 argument);
 
-            var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(SyntaxFactory.NodeOrTokenList(nodesAndTokens)));
+            var argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(collectionExpression
+                ? [.. nodesAndTokens]
+                : SyntaxFactory.NodeOrTokenList(nodesAndTokens)));
             var invocation = SyntaxFactory.InvocationExpression(name, argumentList);
             CheckFindToken(invocation);
         }
@@ -1817,14 +1819,16 @@ namespace Microsoft.CSharp.Test
             Assert.False(trivia.IsDirective);
         }
 
-        [Fact]
-        public void SyntaxNames()
+        [Theory, CombinatorialData]
+        public void SyntaxNames(bool collectionExpression)
         {
             var cc = SyntaxFactory.Token(SyntaxKind.ColonColonToken);
             var lt = SyntaxFactory.Token(SyntaxKind.LessThanToken);
             var gt = SyntaxFactory.Token(SyntaxKind.GreaterThanToken);
             var dot = SyntaxFactory.Token(SyntaxKind.DotToken);
-            var gp = SyntaxFactory.SingletonSeparatedList<TypeSyntax>(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)));
+            var gp = collectionExpression
+                ? [SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword))]
+                : SyntaxFactory.SingletonSeparatedList<TypeSyntax>(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)));
 
             var externAlias = SyntaxFactory.IdentifierName("alias");
             var goo = SyntaxFactory.IdentifierName("Goo");
@@ -1866,11 +1870,13 @@ namespace Microsoft.CSharp.Test
             Assert.Equal("Bar", aliasQualifiedGeneric.GetUnqualifiedName().Identifier.ValueText);
         }
 
-        [Fact]
-        public void ZeroWidthTokensInListAreUnique()
+        [Theory, CombinatorialData]
+        public void ZeroWidthTokensInListAreUnique1(bool collectionExpression)
         {
             var someToken = SyntaxFactory.MissingToken(SyntaxKind.IntKeyword);
-            var list = SyntaxFactory.TokenList(someToken, someToken);
+            var list = collectionExpression
+                ? [someToken, someToken]
+                : SyntaxFactory.TokenList(someToken, someToken);
             Assert.Equal(someToken, someToken);
             Assert.NotEqual(list[0], list[1]);
         }
@@ -1902,15 +1908,20 @@ namespace Microsoft.CSharp.Test
             Assert.NotEqual(sizes.GetSeparator(1), sizes.GetSeparator(2));
         }
 
-        [Fact]
-        public void ZeroWidthStructuredTrivia()
+        [Theory, CombinatorialData]
+        public void ZeroWidthStructuredTrivia(bool collectionExpression)
         {
             // create zero width structured trivia (not sure how these come about but its not impossible)
             var zeroWidth = SyntaxFactory.ElseDirectiveTrivia(SyntaxFactory.MissingToken(SyntaxKind.HashToken), SyntaxFactory.MissingToken(SyntaxKind.ElseKeyword), SyntaxFactory.MissingToken(SyntaxKind.EndOfDirectiveToken), false, false);
             Assert.Equal(0, zeroWidth.Width);
 
             // create token with more than one instance of same zero width structured trivia!
-            var someToken = SyntaxFactory.Identifier(default(SyntaxTriviaList), "goo", SyntaxFactory.TriviaList(SyntaxFactory.Trivia(zeroWidth), SyntaxFactory.Trivia(zeroWidth)));
+            var someToken = SyntaxFactory.Identifier(
+                default(SyntaxTriviaList),
+                "goo",
+                collectionExpression
+                    ? [SyntaxFactory.Trivia(zeroWidth), SyntaxFactory.Trivia(zeroWidth)]
+                    : SyntaxFactory.TriviaList(SyntaxFactory.Trivia(zeroWidth), SyntaxFactory.Trivia(zeroWidth)));
 
             // create node with this token
             var someNode = SyntaxFactory.IdentifierName(someToken);

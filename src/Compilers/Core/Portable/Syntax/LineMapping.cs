@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
             builder.Append(Span);
             if (CharacterOffset.HasValue)
             {
-                builder.Append(",");
+                builder.Append(',');
                 builder.Append(CharacterOffset.GetValueOrDefault());
             }
             builder.Append(" -> ");
