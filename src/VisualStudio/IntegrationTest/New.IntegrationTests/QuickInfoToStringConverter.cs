@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 

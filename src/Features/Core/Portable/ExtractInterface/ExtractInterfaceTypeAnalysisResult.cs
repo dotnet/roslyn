@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface;

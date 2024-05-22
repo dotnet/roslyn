@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddAwait;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.AddAwait
 {

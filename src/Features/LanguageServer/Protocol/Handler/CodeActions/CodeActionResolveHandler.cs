@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
