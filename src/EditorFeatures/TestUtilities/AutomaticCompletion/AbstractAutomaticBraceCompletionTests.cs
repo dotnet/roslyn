@@ -141,11 +141,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             var buffer = session.SubjectBuffer;
             var caret = session.TextView.GetCaretPoint(buffer).Value;
 
-            using (var edit = buffer.CreateEdit())
-            {
-                edit.Insert(caret.Position, text);
-                edit.Apply();
-            }
+            using var edit = buffer.CreateEdit();
+            edit.Insert(caret.Position, text);
+            edit.Apply();
         }
 
         internal static Holder CreateSession(EditorTestWorkspace workspace, char opening, char closing, OptionsCollection globalOptions = null)

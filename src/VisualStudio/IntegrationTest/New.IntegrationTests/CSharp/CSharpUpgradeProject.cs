@@ -28,11 +28,9 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
             // Suspend file change notification during code action application, since spurious file change notifications
             // can cause silent failure to apply the code action if they occur within this block.
-            await using (var fileChangeRestorer = await TestServices.Shell.PauseFileChangesAsync(HangMitigatingCancellationToken))
-            {
-                await TestServices.Editor.InvokeCodeActionListAsync(cancellationToken);
-                await TestServices.EditorVerifier.CodeActionAsync($"Upgrade this project to C# language version '{version}'", applyFix: true, cancellationToken: cancellationToken);
-            }
+            await using var fileChangeRestorer = await TestServices.Shell.PauseFileChangesAsync(HangMitigatingCancellationToken);
+            await TestServices.Editor.InvokeCodeActionListAsync(cancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync($"Upgrade this project to C# language version '{version}'", applyFix: true, cancellationToken: cancellationToken);
         }
 
         [IdeFact]

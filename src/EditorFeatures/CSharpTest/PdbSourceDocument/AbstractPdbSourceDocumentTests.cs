@@ -312,12 +312,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 emitOptions = emitOptions.WithFallbackSourceFileEncoding(fallbackEncoding);
             }
 
-            using (var dllStream = FileUtilities.CreateFileStreamChecked(File.Create, dllFilePath, nameof(dllFilePath)))
-            using (var pdbStream = (pdbFilePath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, pdbFilePath, nameof(pdbFilePath))))
-            {
-                var result = compilation.Emit(dllStream, pdbStream, options: emitOptions, embeddedTexts: embeddedTexts);
-                Assert.Empty(result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
-            }
+            using var dllStream = FileUtilities.CreateFileStreamChecked(File.Create, dllFilePath, nameof(dllFilePath));
+            using var pdbStream = (pdbFilePath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, pdbFilePath, nameof(pdbFilePath)));
+            var result = compilation.Emit(dllStream, pdbStream, options: emitOptions, embeddedTexts: embeddedTexts);
+            Assert.Empty(result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
         }
 
         protected static string GetDllPath(string path)

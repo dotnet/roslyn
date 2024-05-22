@@ -96,36 +96,34 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     End Sub
 End Class";
 
-            using (var workspace = CreateWorkspace(LanguageNames.VisualBasic, code))
+            using var workspace = CreateWorkspace(LanguageNames.VisualBasic, code);
+            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetLanguageServices(LanguageNames.VisualBasic));
+
+            ideAnalyzerOptions = ideAnalyzerOptions with
             {
-                var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetLanguageServices(LanguageNames.VisualBasic));
-
-                ideAnalyzerOptions = ideAnalyzerOptions with
+                CodeStyleOptions = new VisualBasicIdeCodeStyleOptions()
                 {
-                    CodeStyleOptions = new VisualBasicIdeCodeStyleOptions()
-                    {
-                        PreferNullPropagation = new CodeStyleOption2<bool>(false, NotificationOption2.Silent)
-                    }
-                };
+                    PreferNullPropagation = new CodeStyleOption2<bool>(false, NotificationOption2.Silent)
+                }
+            };
 
-                var analyzerType = typeof(VisualBasicUseNullPropagationDiagnosticAnalyzer);
-                var analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideAnalyzerOptions);
+            var analyzerType = typeof(VisualBasicUseNullPropagationDiagnosticAnalyzer);
+            var analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideAnalyzerOptions);
 
-                Assert.True(analyzerResult.IsEmpty);
+            Assert.True(analyzerResult.IsEmpty);
 
-                ideAnalyzerOptions = ideAnalyzerOptions with
+            ideAnalyzerOptions = ideAnalyzerOptions with
+            {
+                CodeStyleOptions = new VisualBasicIdeCodeStyleOptions()
                 {
-                    CodeStyleOptions = new VisualBasicIdeCodeStyleOptions()
-                    {
-                        PreferNullPropagation = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
-                    }
-                };
+                    PreferNullPropagation = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
+                }
+            };
 
-                analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideAnalyzerOptions);
+            analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideAnalyzerOptions);
 
-                var diagnostics = analyzerResult.GetDocumentDiagnostics(analyzerResult.DocumentIds.First(), AnalysisKind.Semantic);
-                Assert.Equal(IDEDiagnosticIds.UseNullPropagationDiagnosticId, diagnostics[0].Id);
-            }
+            var diagnostics = analyzerResult.GetDocumentDiagnostics(analyzerResult.DocumentIds.First(), AnalysisKind.Semantic);
+            Assert.Equal(IDEDiagnosticIds.UseNullPropagationDiagnosticId, diagnostics[0].Id);
         }
 
         [Fact]

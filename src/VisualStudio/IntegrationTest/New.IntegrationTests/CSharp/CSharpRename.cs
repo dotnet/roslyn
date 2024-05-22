@@ -68,19 +68,18 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
                     }
                 }
                 """;
-            await using (var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken))
-            {
-                await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
-                await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
+            await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
+            await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
+            await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-                MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
-                var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
-                var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
-                AssertEx.SetEqual(renameSpans, tagSpans);
+            MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
+            var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
+            var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
+            AssertEx.SetEqual(renameSpans, tagSpans);
 
-                await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
-                await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
-                await TestServices.EditorVerifier.TextEqualsAsync("""
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextEqualsAsync("""
                     using System;
                     using System.Collections.Generic;
                     using System.Linq;
@@ -100,8 +99,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
                         }
                     }
                     """, HangMitigatingCancellationToken);
-                await telemetry.VerifyFiredAsync(["vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore"], HangMitigatingCancellationToken);
-            }
+            await telemetry.VerifyFiredAsync(["vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore"], HangMitigatingCancellationToken);
         }
 
         [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
