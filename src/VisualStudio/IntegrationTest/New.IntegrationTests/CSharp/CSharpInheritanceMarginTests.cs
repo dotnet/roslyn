@@ -119,7 +119,7 @@ class Implementation : IEnumerable
             Assert.Equal(WorkspaceKind.MetadataAsSource, document.Project.Solution.WorkspaceKind);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/62286")]
+        [IdeFact]
         public async Task TestNavigateToDifferentProjects()
         {
             await TestServices.InheritanceMargin.EnableOptionsAsync(LanguageNames.CSharp, cancellationToken: HangMitigatingCancellationToken);
