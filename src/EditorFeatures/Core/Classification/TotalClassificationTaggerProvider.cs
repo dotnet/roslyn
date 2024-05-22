@@ -273,12 +273,6 @@ internal sealed class TotalClassificationAggregateTagger(
             => semanticEnumerator.MoveNext() ? semanticEnumerator.Current : null;
     }
 
-    private sealed class TagSpanComparer : IComparer<TagSpan<IClassificationTag>>
-    {
-        public int Compare(TagSpan<IClassificationTag>? x, TagSpan<IClassificationTag>? y)
-            => x!.Span.Start.Position - y!.Span.Start.Position;
-    }
-
     private readonly struct ClassificationTagSpanIntervalIntrospector : IIntervalIntrospector<TagSpan<IClassificationTag>>
     {
         public int GetStart(TagSpan<IClassificationTag> value)
