@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -468,10 +469,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             var classC = classD.BaseType;
         }
 
-        [Fact]
-        public async Task TestGetCompilationOnCrossLanguageDependentProjectChanged()
+        [Theory, CombinatorialData]
+        internal async Task TestGetCompilationOnCrossLanguageDependentProjectChanged(
+            SourceGeneratorExecutionPreference preference)
         {
-            using var workspace = CreateWorkspace();
+            using var workspace = CreateWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(TestWorkspaceConfigurationService)));
+
+            var configService = workspace.ExportProvider.GetExportedValue<TestWorkspaceConfigurationService>();
+            configService.Options = new WorkspaceConfigurationOptions(SourceGeneratorExecution: preference);
+
             var solutionX = workspace.CurrentSolution;
 
             var document1 = new EditorTestHostDocument(@"public class C { }");
@@ -514,7 +520,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             var classDz = compilation2Z.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
             var classCz = classDz.BaseType;
 
-            Assert.Equal(TypeKind.Error, classCz.TypeKind);
+            // In balanced mode the skeleton won't be regenerated.  So the downstream project won't see the change to
+            // remove the class.
+            if (preference is SourceGeneratorExecutionPreference.Automatic)
+                Assert.Equal(TypeKind.Error, classCz.TypeKind);
+            else
+                Assert.Equal(TypeKind.Class, classCz.TypeKind);
         }
 
         [WpfFact]
@@ -575,12 +586,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             }
         }
 
-        [WpfFact]
-        public async Task TestGetCompilationOnCrossLanguageDependentProjectChangedInProgress()
+        [WpfTheory, CombinatorialData]
+        internal async Task TestGetCompilationOnCrossLanguageDependentProjectChangedInProgress(
+            SourceGeneratorExecutionPreference preference)
         {
-            var composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingService));
+            var composition = EditorTestCompositions.EditorFeatures.AddParts(
+                typeof(TestDocumentTrackingService),
+                typeof(TestWorkspaceConfigurationService));
 
             using var workspace = CreateWorkspace(disablePartialSolutions: false, composition: composition);
+
+            var configService = workspace.ExportProvider.GetExportedValue<TestWorkspaceConfigurationService>();
+            configService.Options = new WorkspaceConfigurationOptions(SourceGeneratorExecution: preference);
+
             var trackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
             var solutionX = workspace.CurrentSolution;
 
@@ -662,8 +680,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 }
             }
 
-            // Should find now that we're going a normal compilation.
-            Assert.True(foundTheError, "Did not find error");
+            // In balanced mode the skeleton won't be regenerated.  So the downstream project won't see the change to
+            // remove the class.  So it will not find the error symbol.
+            if (preference is SourceGeneratorExecutionPreference.Automatic)
+                Assert.True(foundTheError);
+            else
+                Assert.False(foundTheError);
         }
 
         [Fact]

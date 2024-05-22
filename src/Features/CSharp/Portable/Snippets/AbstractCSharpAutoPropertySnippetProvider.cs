@@ -24,10 +24,10 @@ using static CSharpSyntaxTokens;
 
 internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractPropertySnippetProvider<PropertyDeclarationSyntax>
 {
-    protected virtual AccessorDeclarationSyntax? GenerateGetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
+    protected virtual AccessorDeclarationSyntax? GenerateGetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator, CancellationToken cancellationToken)
         => (AccessorDeclarationSyntax)generator.GetAccessorDeclaration();
 
-    protected virtual AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
+    protected virtual AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator, CancellationToken cancellationToken)
         => (AccessorDeclarationSyntax)generator.SetAccessorDeclaration();
 
     protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
@@ -46,8 +46,8 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
         var syntaxContext = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
         var accessors = new AccessorDeclarationSyntax?[]
         {
-            GenerateGetAccessorDeclaration(syntaxContext, generator),
-            GenerateSetAccessorDeclaration(syntaxContext, generator),
+            GenerateGetAccessorDeclaration(syntaxContext, generator, cancellationToken),
+            GenerateSetAccessorDeclaration(syntaxContext, generator, cancellationToken),
         };
 
         SyntaxTokenList modifiers = default;
