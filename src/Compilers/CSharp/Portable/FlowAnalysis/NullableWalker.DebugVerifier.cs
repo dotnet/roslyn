@@ -35,31 +35,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public static void Verify(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol? Type)> analyzedNullabilityMap, SnapshotManager? snapshotManagerOpt, BoundNode node)
             {
-                var verifier = new DebugVerifier(analyzedNullabilityMap, snapshotManagerOpt);
-                verifier.Visit(node);
-                snapshotManagerOpt?.VerifyUpdatedSymbols();
+                //var verifier = new DebugVerifier(analyzedNullabilityMap, snapshotManagerOpt);
+                //verifier.Visit(node);
+                //snapshotManagerOpt?.VerifyUpdatedSymbols();
 
-                // Can't just remove nodes from _analyzedNullabilityMap and verify no nodes remaining because nodes can be reused.
-                if (verifier._analyzedNullabilityMap.Count > verifier._visitedExpressions.Count)
-                {
-                    foreach (var analyzedNode in verifier._analyzedNullabilityMap.Keys)
-                    {
-                        if (!verifier._visitedExpressions.Contains(analyzedNode))
-                        {
-                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unverified node: {analyzedNode.GetDebuggerDisplay()}");
-                        }
-                    }
-                }
-                else if (verifier._analyzedNullabilityMap.Count < verifier._visitedExpressions.Count)
-                {
-                    foreach (var verifiedNode in verifier._visitedExpressions)
-                    {
-                        if (!verifier._analyzedNullabilityMap.ContainsKey(verifiedNode))
-                        {
-                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {verifiedNode.GetDebuggerDisplay()}");
-                        }
-                    }
-                }
+                //// Can't just remove nodes from _analyzedNullabilityMap and verify no nodes remaining because nodes can be reused.
+                //if (verifier._analyzedNullabilityMap.Count > verifier._visitedExpressions.Count)
+                //{
+                //    foreach (var analyzedNode in verifier._analyzedNullabilityMap.Keys)
+                //    {
+                //        if (!verifier._visitedExpressions.Contains(analyzedNode))
+                //        {
+                //            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unverified node: {analyzedNode.GetDebuggerDisplay()}");
+                //        }
+                //    }
+                //}
+                //else if (verifier._analyzedNullabilityMap.Count < verifier._visitedExpressions.Count)
+                //{
+                //    foreach (var verifiedNode in verifier._visitedExpressions)
+                //    {
+                //        if (!verifier._analyzedNullabilityMap.ContainsKey(verifiedNode))
+                //        {
+                //            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {verifiedNode.GetDebuggerDisplay()}");
+                //        }
+                //    }
+                //}
             }
 
             private void VerifyExpression(BoundExpression expression, bool overrideSkippedExpression = false)

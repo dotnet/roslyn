@@ -18,12 +18,14 @@ namespace Microsoft.CodeAnalysis
             private SyntaxNode? _node;
             private int _count;
             private int _childIndex;
+            SlotData _slotData;
 
             internal Enumerator(SyntaxNode node, int count)
             {
                 _node = node;
                 _count = count;
                 _childIndex = -1;
+                _slotData = new SlotData(SlotIndex: 0, FirstIndexAtSlotIndex: 0, node.Position);
             }
 
             // PERF: Initialize an Enumerator directly from a SyntaxNode without going
@@ -33,6 +35,7 @@ namespace Microsoft.CodeAnalysis
                 _node = node;
                 _count = CountNodes(node.Green);
                 _childIndex = -1;
+                _slotData = new SlotData(SlotIndex: 0, FirstIndexAtSlotIndex: 0, node.Position);
             }
 
             /// <summary>Advances the enumerator to the next element of the <see cref="ChildSyntaxList" />.</summary>
@@ -58,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                 get
                 {
                     Debug.Assert(_node is object);
-                    return ItemInternal(_node, _childIndex);
+                    return ItemInternal(_node, _childIndex, ref _slotData);
                 }
             }
 
@@ -76,7 +79,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                current = ItemInternal(_node, _childIndex);
+                current = ItemInternal(_node, _childIndex, ref _slotData);
                 return true;
             }
 
@@ -84,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             {
                 while (MoveNext())
                 {
-                    var nodeValue = ItemInternalAsNode(_node, _childIndex);
+                    var nodeValue = ItemInternalAsNode(_node, _childIndex, ref _slotData);
                     if (nodeValue != null)
                     {
                         return nodeValue;

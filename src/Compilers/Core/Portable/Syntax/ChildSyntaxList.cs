@@ -83,17 +83,26 @@ namespace Microsoft.CodeAnalysis
             return green.IsList ? green.SlotCount : 1;
         }
 
+        internal record struct SlotData(int SlotIndex, int FirstIndexAtSlotIndex, int PositionAtSlotIndex);
+
+        internal static SyntaxNodeOrToken ItemInternal(SyntaxNode node, int index)
+        {
+            SlotData slotData = new SlotData(SlotIndex: 0, FirstIndexAtSlotIndex: 0, PositionAtSlotIndex: node.Position);
+
+            return ItemInternal(node, index, ref slotData);
+        }
+
         /// <summary>
         /// internal indexer that does not verify index.
         /// Used when caller has already ensured that index is within bounds.
         /// </summary>
-        internal static SyntaxNodeOrToken ItemInternal(SyntaxNode node, int index)
+        internal static SyntaxNodeOrToken ItemInternal(SyntaxNode node, int index, ref SlotData slotData)
         {
             GreenNode? greenChild;
             var green = node.Green;
-            var idx = index;
-            var slotIndex = 0;
-            var position = node.Position;
+            var idx = index - slotData.FirstIndexAtSlotIndex;
+            var slotIndex = slotData.SlotIndex;
+            var position = slotData.PositionAtSlotIndex;
 
             // find a slot that contains the node or its parent list (if node is in a list)
             // we will be skipping whole slots here so we will not loop for long
@@ -120,6 +129,13 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 slotIndex++;
+            }
+
+            if (slotIndex != slotData.SlotIndex)
+            {
+                slotData.SlotIndex = slotIndex;
+                slotData.FirstIndexAtSlotIndex = index - idx;
+                slotData.PositionAtSlotIndex = position;
             }
 
             // get node that represents this slot
@@ -250,12 +266,12 @@ namespace Microsoft.CodeAnalysis
         /// internal indexer that does not verify index.
         /// Used when caller has already ensured that index is within bounds.
         /// </summary>
-        internal static SyntaxNode? ItemInternalAsNode(SyntaxNode node, int index)
+        internal static SyntaxNode? ItemInternalAsNode(SyntaxNode node, int index, ref SlotData slotData)
         {
             GreenNode? greenChild;
             var green = node.Green;
-            var idx = index;
-            var slotIndex = 0;
+            var idx = index - slotData.FirstIndexAtSlotIndex;
+            var slotIndex = slotData.SlotIndex;
 
             // find a slot that contains the node or its parent list (if node is in a list)
             // we will be skipping whole slots here so we will not loop for long
@@ -280,6 +296,15 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 slotIndex++;
+            }
+
+            if (slotIndex != slotData.SlotIndex)
+            {
+                slotData.SlotIndex = slotIndex;
+                slotData.FirstIndexAtSlotIndex = index - idx;
+
+                // Not used in this codepath
+                slotData.PositionAtSlotIndex = 0;
             }
 
             // get node that represents this slot
