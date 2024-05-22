@@ -555,17 +555,19 @@ $@"{LogoAndHelpPrompt}
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void RelativePath()
         {
-            using var directory = new DisposableDirectory(Temp);
-            const string scriptName = "c.csx";
-            var script = directory.CreateFile(scriptName).WriteAllText("Print(3);");
-            var scriptPath = PathUtilities.CombinePathsUnchecked(PathUtilities.GetFileName(directory.Path), scriptName);
-            var workingDirectory = PathUtilities.GetDirectoryName(directory.Path);
-            Assert.False(PathUtilities.IsAbsolute(scriptPath));
-            var runner = CreateRunner(
-                args: [scriptPath],
-                workingDirectory: workingDirectory);
-            runner.RunInteractive();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("3", runner.Console.Out.ToString());
+            using (var directory = new DisposableDirectory(Temp))
+            {
+                const string scriptName = "c.csx";
+                var script = directory.CreateFile(scriptName).WriteAllText("Print(3);");
+                var scriptPath = PathUtilities.CombinePathsUnchecked(PathUtilities.GetFileName(directory.Path), scriptName);
+                var workingDirectory = PathUtilities.GetDirectoryName(directory.Path);
+                Assert.False(PathUtilities.IsAbsolute(scriptPath));
+                var runner = CreateRunner(
+                    args: [scriptPath],
+                    workingDirectory: workingDirectory);
+                runner.RunInteractive();
+                AssertEx.AssertEqualToleratingWhitespaceDifferences("3", runner.Console.Out.ToString());
+            }
         }
 
         [ConditionalTheory(typeof(WindowsOnly))]

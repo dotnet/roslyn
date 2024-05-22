@@ -602,9 +602,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 portablePdbStreamOpt.Position = 0;
 
-                using var provider = MetadataReaderProvider.FromPortablePdbStream(portablePdbStreamOpt, MetadataStreamOptions.LeaveOpen);
-                var pdbReader = provider.GetMetadataReader();
-                ValidatePortablePdbId(pdbReader, codeViewEntry.Stamp, codeViewData.Guid);
+                using (var provider = MetadataReaderProvider.FromPortablePdbStream(portablePdbStreamOpt, MetadataStreamOptions.LeaveOpen))
+                {
+                    var pdbReader = provider.GetMetadataReader();
+                    ValidatePortablePdbId(pdbReader, codeViewEntry.Stamp, codeViewData.Guid);
+                }
             }
 
             if ((portablePdbStreamOpt != null || hasEmbeddedPdb) && hashAlgorithm.Name != null)
@@ -632,8 +634,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (hasEmbeddedPdb)
             {
                 var entry = entries[entryIndex++];
-                using var provider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
-                ValidatePortablePdbId(provider.GetMetadataReader(), codeViewEntry.Stamp, codeViewData.Guid);
+                using (var provider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry))
+                {
+                    ValidatePortablePdbId(provider.GetMetadataReader(), codeViewEntry.Stamp, codeViewData.Guid);
+                }
             }
 
             Assert.Equal(entries.Length, entryIndex);
