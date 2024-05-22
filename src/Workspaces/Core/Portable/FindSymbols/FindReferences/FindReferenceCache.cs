@@ -68,6 +68,7 @@ internal sealed class FindReferenceCache
 
     private ImmutableHashSet<string>? _aliasNameSet;
     private ImmutableArray<SyntaxToken> _constructorInitializerCache;
+    private ImmutableArray<SyntaxToken> _newKeywordsCache;
 
     private FindReferenceCache(
         Document document, SourceText text, SemanticModel semanticModel, SemanticModel nullableEnabledSemanticModel, SyntaxNode root, SyntaxTreeIndex syntaxTreeIndex)
@@ -139,15 +140,11 @@ internal sealed class FindReferenceCache
 
         return _identifierCache.GetOrAdd(
             identifier,
-            identifier => FindMatchingIdentifierTokensFromText(
+            identifier => FindMatchingTokensFromText(
                 identifier,
                 static (identifier, token, @this) => @this.IsMatch(identifier, token),
                 this, cancellationToken));
     }
-
-    public ImmutableArray<SyntaxToken> FindMatchingTextTokens<TArgs>(
-        string text, Func<string, SyntaxToken, TArgs, bool> isMatch, TArgs args, CancellationToken cancellationToken)
-        => _identifierCache.GetOrAdd(text, _ => FindMatchingIdentifierTokensFromText(text, isMatch, args, cancellationToken));
 
     private bool IsMatch(string identifier, SyntaxToken token)
         => !token.IsMissing && this.SyntaxFacts.IsIdentifier(token) && this.SyntaxFacts.TextMatch(token.ValueText, identifier);
@@ -190,7 +187,7 @@ internal sealed class FindReferenceCache
         return result.ToImmutableAndClear();
     }
 
-    private ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromText<TArgs>(
+    private ImmutableArray<SyntaxToken> FindMatchingTokensFromText<TArgs>(
         string text, Func<string, SyntaxToken, TArgs, bool> isMatch, TArgs args, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
@@ -212,33 +209,47 @@ internal sealed class FindReferenceCache
 
         return result.ToImmutableAndClear();
     }
-    public IEnumerable<SyntaxToken> GetConstructorInitializerTokens(
-        ISyntaxFactsService syntaxFacts, SyntaxNode root, CancellationToken cancellationToken)
+
+    public ImmutableArray<SyntaxToken> GetConstructorInitializerTokens(CancellationToken cancellationToken)
     {
         // this one will only get called when we know given document contains constructor initializer.
         // no reason to use text to check whether it exist first.
         if (_constructorInitializerCache.IsDefault)
-        {
-            var initializers = GetConstructorInitializerTokensWorker(syntaxFacts, root, cancellationToken);
-            ImmutableInterlocked.InterlockedInitialize(ref _constructorInitializerCache, initializers);
-        }
+            ImmutableInterlocked.InterlockedInitialize(ref _constructorInitializerCache, GetConstructorInitializerTokensWorker());
 
         return _constructorInitializerCache;
+
+        ImmutableArray<SyntaxToken> GetConstructorInitializerTokensWorker()
+        {
+            var syntaxFacts = this.SyntaxFacts;
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var initializers);
+            foreach (var constructor in syntaxFacts.GetConstructors(this.Root, cancellationToken))
+            {
+                foreach (var token in constructor.DescendantTokens(descendIntoTrivia: false))
+                {
+                    if (syntaxFacts.IsThisConstructorInitializer(token) || syntaxFacts.IsBaseConstructorInitializer(token))
+                        initializers.Add(token);
+                }
+            }
+
+            return initializers.ToImmutableAndClear();
+        }
     }
 
-    private static ImmutableArray<SyntaxToken> GetConstructorInitializerTokensWorker(
-        ISyntaxFactsService syntaxFacts, SyntaxNode root, CancellationToken cancellationToken)
+    public ImmutableArray<SyntaxToken> GetNewKeywordTokens(CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var initializers);
-        foreach (var constructor in syntaxFacts.GetConstructors(root, cancellationToken))
-        {
-            foreach (var token in constructor.DescendantTokens(descendIntoTrivia: false))
-            {
-                if (syntaxFacts.IsThisConstructorInitializer(token) || syntaxFacts.IsBaseConstructorInitializer(token))
-                    initializers.Add(token);
-            }
-        }
+        if (_newKeywordsCache.IsDefault)
+            ImmutableInterlocked.InterlockedInitialize(ref _newKeywordsCache, GetNewKeywordTokensWorker());
 
-        return initializers.ToImmutableAndClear();
+        return _newKeywordsCache;
+
+        ImmutableArray<SyntaxToken> GetNewKeywordTokensWorker()
+        {
+            return this.FindMatchingTokensFromText(
+                this.SyntaxFacts.GetText(this.SyntaxFacts.SyntaxKinds.NewKeyword),
+                static (_, token, syntaxKinds) => token.RawKind == syntaxKinds.NewKeyword,
+                this.SyntaxFacts.SyntaxKinds,
+                cancellationToken);
+        }
     }
 }

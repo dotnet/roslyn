@@ -204,11 +204,7 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
         // insensitive matching here.
         //
         // Search for all the `new` tokens in the file.
-        var newKeywordTokens = state.Cache.FindMatchingTextTokens(
-            "new",
-            (_, token, syntaxKinds) => token.RawKind == syntaxKinds.NewKeyword,
-            state.SyntaxFacts.SyntaxKinds,
-            cancellationToken);
+        var newKeywordTokens = state.Cache.GetNewKeywordTokens(cancellationToken);
         if (newKeywordTokens.IsEmpty)
             return;
 
