@@ -122,18 +122,21 @@ internal partial class SyntacticClassificationTaggerProvider
 
         private (SolutionServices solutionServices, IClassificationService classificationService)? TryGetClassificationService(ITextSnapshot snapshot)
         {
+            var workspace = _workspace;
+            var contentType = snapshot.ContentType;
+
             var lastCachedServices = _lastCachedServices;
             if (lastCachedServices is null ||
-                lastCachedServices.Item1 != _workspace ||
-                lastCachedServices.Item2 != snapshot.ContentType)
+                lastCachedServices.Item1 != workspace ||
+                lastCachedServices.Item2 != contentType)
             {
-                if (_workspace?.Services.SolutionServices is not { } solutionServices)
+                if (workspace?.Services.SolutionServices is not { } solutionServices)
                     return null;
 
-                if (solutionServices.GetProjectServices(snapshot.ContentType)?.GetService<IClassificationService>() is not { } classificationService)
+                if (solutionServices.GetProjectServices(contentType)?.GetService<IClassificationService>() is not { } classificationService)
                     return null;
 
-                lastCachedServices = Tuple.Create(_workspace, snapshot.ContentType, (solutionServices, classificationService));
+                lastCachedServices = Tuple.Create(workspace, contentType, (solutionServices, classificationService));
                 _lastCachedServices = lastCachedServices;
             }
 
