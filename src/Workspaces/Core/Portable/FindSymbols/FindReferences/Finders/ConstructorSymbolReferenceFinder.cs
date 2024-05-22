@@ -225,16 +225,16 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
 
             var node = newKeywordToken.Parent;
             if (node is null || node.RawKind != implicitObjectKind)
-                return;
+                continue;
 
             // if there are too few or too many arguments, then don't bother checking.
             var actualArgumentCount = state.SyntaxFacts.GetArgumentsOfObjectCreationExpression(node).Count;
             if (actualArgumentCount < minimumArgumentCount || actualArgumentCount > maximumArgumentCount)
-                return;
+                continue;
 
             // if we need an exact count then make sure that the count we have fits the count we need.
             if (exactArgumentCount != -1 && exactArgumentCount != actualArgumentCount)
-                return;
+                continue;
 
             var constructor = state.SemanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
             if (Matches(constructor, symbol))
