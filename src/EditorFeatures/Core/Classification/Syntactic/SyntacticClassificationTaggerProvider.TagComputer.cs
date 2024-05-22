@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -34,6 +35,12 @@ internal partial class SyntacticClassificationTaggerProvider
     /// </summary>
     internal sealed partial class TagComputer
     {
+        private sealed record CachedServices(
+            Workspace Workspace,
+            IContentType ContentType,
+            SolutionServices SolutionServices,
+            IClassificationService ClassificationService);
+
         private static readonly object s_uniqueKey = new();
 
         private readonly SyntacticClassificationTaggerProvider _taggerProvider;
@@ -55,6 +62,13 @@ internal partial class SyntacticClassificationTaggerProvider
         private readonly TimeSpan _diffTimeout;
 
         private Workspace? _workspace;
+
+        /// <summary>
+        /// Cached values for the last services we computed for a particular <see cref="Workspace"/> and <see
+        /// cref="IContentType"/>.  These rarely change, and are expensive enough to show up in very hot scenarios (like
+        /// scrolling) where we are going to be called in at a very high volume.
+        /// </summary>
+        private CachedServices? _lastCachedServices;
 
         // The latest data about the document being classified that we've cached.  objects can 
         // be accessed from both threads, and must be obtained when this lock is held. 
@@ -119,13 +133,25 @@ internal partial class SyntacticClassificationTaggerProvider
 
         private (SolutionServices solutionServices, IClassificationService classificationService)? TryGetClassificationService(ITextSnapshot snapshot)
         {
-            if (_workspace?.Services.SolutionServices is not { } solutionServices)
-                return null;
+            var workspace = _workspace;
+            var contentType = snapshot.ContentType;
+            var lastCachedServices = _lastCachedServices;
 
-            if (solutionServices.GetProjectServices(snapshot.ContentType)?.GetService<IClassificationService>() is not { } classificationService)
-                return null;
+            if (lastCachedServices is null ||
+                lastCachedServices.Workspace != workspace ||
+                lastCachedServices.ContentType != contentType)
+            {
+                if (workspace?.Services.SolutionServices is not { } solutionServices)
+                    return null;
 
-            return (solutionServices, classificationService);
+                if (solutionServices.GetProjectServices(contentType)?.GetService<IClassificationService>() is not { } classificationService)
+                    return null;
+
+                lastCachedServices = new(workspace, contentType, solutionServices, classificationService);
+                _lastCachedServices = lastCachedServices;
+            }
+
+            return (lastCachedServices.SolutionServices, lastCachedServices.ClassificationService);
         }
 
         #region Workspace Hookup
@@ -206,6 +232,7 @@ internal partial class SyntacticClassificationTaggerProvider
         public void DisconnectFromWorkspace()
         {
             _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
+            _lastCachedServices = null;
 
             lock (_gate)
             {
