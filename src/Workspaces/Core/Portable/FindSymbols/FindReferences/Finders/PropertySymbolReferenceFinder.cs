@@ -40,15 +40,8 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
 
     private static void CascadeToOtherPartOfPartial(IPropertySymbol symbol, ArrayBuilder<ISymbol> result)
     {
-        if (symbol.PartialDefinitionPart is { } definitionPart)
-        {
-            result.Add(definitionPart);
-        }
-
-        if (symbol.PartialImplementationPart is { } implementationPart)
-        {
-            result.Add(implementationPart);
-        }
+        result.AddIfNotNull(symbol.PartialDefinitionPart);
+        result.AddIfNotNull(symbol.PartialImplementationPart);
     }
 
     private static void CascadeToBackingFields(IPropertySymbol symbol, ArrayBuilder<ISymbol> result)

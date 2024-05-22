@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
+
 namespace Microsoft.CodeAnalysis;
 
 internal partial struct SymbolKey
@@ -15,6 +17,7 @@ internal partial struct SymbolKey
             visitor.WriteString(symbol.MetadataName);
             visitor.WriteSymbolKey(symbol.ContainingSymbol);
             visitor.WriteBoolean(symbol.IsIndexer);
+            visitor.WriteBoolean(symbol.PartialDefinitionPart != null);
             visitor.WriteRefKindArray(symbol.Parameters);
             visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
         }
@@ -27,6 +30,7 @@ internal partial struct SymbolKey
             var containingTypeResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingSymbol, out var containingTypeFailureReason);
 
             var isIndexer = reader.ReadBoolean();
+            var isPartialImplementationPart = reader.ReadBoolean();
             using var refKinds = reader.ReadRefKindArray();
 
             using var properties = GetMembersOfNamedType<IPropertySymbol>(containingTypeResolution, metadataName: null);
@@ -51,7 +55,7 @@ internal partial struct SymbolKey
                     continue;
                 }
 
-                property = Resolve(reader, candidate);
+                property = Resolve(reader, isPartialImplementationPart, candidate);
                 if (property != null)
                     break;
 
@@ -86,6 +90,7 @@ internal partial struct SymbolKey
 
         private static IPropertySymbol? Resolve(
             SymbolKeyReader reader,
+            bool isPartialImplementationPart,
             IPropertySymbol property)
         {
             if (reader.ParameterTypesMatch(
@@ -93,6 +98,10 @@ internal partial struct SymbolKey
                     getContextualType: static (property, i) => SafeGet(property.OriginalDefinition.Parameters, i)?.Type,
                     property.OriginalDefinition.Parameters))
             {
+                if (isPartialImplementationPart)
+                    property = property.PartialImplementationPart ?? property;
+
+                Debug.Assert(property != null);
                 return property;
             }
 
