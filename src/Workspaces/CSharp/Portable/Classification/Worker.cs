@@ -9,7 +9,9 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
@@ -90,11 +92,13 @@ internal readonly ref partial struct Worker
             // sorting the results before doing anything with them.
             foreach (var child in current.ChildNodesAndTokens())
             {
-                if (child.IsNode)
+                if (child.AsNode(out var childNode))
                 {
-                    var childNode = child.AsNode()!;
-                    if (childNode.FullSpan.IntersectsWith(_textSpan))
+                    var childSpan = childNode.FullSpan;
+                    if (childSpan.IntersectsWith(_textSpan))
                         stack.Push(childNode);
+                    else if (childSpan.Start > _textSpan.End)
+                        break;
                 }
                 else
                 {
