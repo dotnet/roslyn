@@ -19,6 +19,18 @@ namespace Roslyn.Utilities
 {
     internal static partial class EnumerableExtensions
     {
+        public static int Count<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            var count = 0;
+            foreach (var v in source)
+            {
+                if (predicate(v, arg))
+                    count++;
+            }
+
+            return count;
+        }
+
         public static IEnumerable<T> Do<T>(this IEnumerable<T> source, Action<T> action)
         {
             if (source == null)

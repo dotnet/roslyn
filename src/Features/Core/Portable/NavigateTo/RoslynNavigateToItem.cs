@@ -87,7 +87,7 @@ internal readonly struct RoslynNavigateToItem(
         }
     }
 
-    private class NavigateToSearchResult : INavigateToSearchResult, INavigableItem
+    private sealed class NavigateToSearchResult : INavigateToSearchResult, INavigableItem
     {
         private static readonly char[] s_dotArray = ['.'];
 

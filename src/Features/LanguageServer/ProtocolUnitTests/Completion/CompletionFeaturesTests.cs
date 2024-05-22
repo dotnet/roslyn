@@ -390,7 +390,7 @@ class A
 
         await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
             new InitializationOptions { ClientCapabilities = clientCapability, CallInitialized = true },
-            extraExportedTypes: new[] { typeof(CSharpLspMockCompletionService.Factory) }.ToList());
+            Composition.AddParts(typeof(CSharpLspMockCompletionService.Factory)));
 
         var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspMockCompletionService;
         mockService.NonDefaultRule = CompletionItemRules.Default.WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ', '('));
@@ -437,7 +437,7 @@ class A
         var markup = "Item{|caret:|}";
         await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
             new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true },
-            extraExportedTypes: new[] { typeof(CSharpLspMockCompletionService.Factory) }.ToList());
+            composition: Composition.AddParts(typeof(CSharpLspMockCompletionService.Factory)));
 
         var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspMockCompletionService;
         mockService.NonDefaultRule = CompletionItemRules.Default.WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ', '('));
@@ -494,6 +494,79 @@ class A
                 }
             }
         }
+    }
+
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/26488")]
+    public async Task TestCompletionForObsoleteSymbol(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            using System;
+
+            [Obsolete]
+            class ObsoleteType;
+
+            class A
+            {
+                void M()
+                {
+                    ObsoleteType{|caret:|}
+                }
+            }
+            """;
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
+        var completionParams = CreateCompletionParams(
+            testLspServer.GetLocations("caret").Single(),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+            triggerCharacter: "\0",
+            triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+        var completionResult = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None).ConfigureAwait(false);
+        Assert.NotNull(completionResult.ItemDefaults.EditRange);
+        Assert.NotNull(completionResult.ItemDefaults.Data);
+        Assert.NotNull(completionResult.ItemDefaults.CommitCharacters);
+
+        var actualItem = completionResult.Items.First(i => i.Label == "ObsoleteType");
+        Assert.Null(actualItem.LabelDetails);
+        Assert.Null(actualItem.SortText);
+        Assert.Equal(CompletionItemKind.Class, actualItem.Kind);
+        Assert.Equal([CompletionItemTag.Deprecated], actualItem.Tags);
+        Assert.Null(actualItem.FilterText);
+        Assert.Null(actualItem.TextEdit);
+        Assert.Null(actualItem.TextEditText);
+        Assert.Null(actualItem.AdditionalTextEdits);
+        Assert.Null(actualItem.Command);
+        Assert.Null(actualItem.CommitCharacters);
+        Assert.Null(actualItem.Data);
+        Assert.Null(actualItem.Detail);
+        Assert.Null(actualItem.Documentation);
+
+        actualItem.Data = completionResult.ItemDefaults.Data;
+
+        var resolvedItem = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, actualItem, CancellationToken.None).ConfigureAwait(false);
+        Assert.Null(resolvedItem.LabelDetails);
+        Assert.Null(resolvedItem.SortText);
+        Assert.Equal(CompletionItemKind.Class, resolvedItem.Kind);
+        Assert.Equal([CompletionItemTag.Deprecated], resolvedItem.Tags);
+
+        Assert.Null(resolvedItem.AdditionalTextEdits);
+        Assert.Null(resolvedItem.FilterText);
+        Assert.Null(resolvedItem.TextEdit);
+        Assert.Null(resolvedItem.TextEditText);
+        Assert.Null(resolvedItem.Command);
+        Assert.Null(resolvedItem.Detail);
+
+        var expectedDocumentation = new MarkupContent()
+        {
+            Kind = LSP.MarkupKind.PlainText,
+            Value = "[deprecated] class ObsoleteType"
+        };
+        AssertJsonEquals(resolvedItem.Documentation, expectedDocumentation);
     }
 
     private sealed class CSharpLspMockCompletionService : CompletionService
@@ -692,7 +765,7 @@ public class C
         var markup = "{|caret:|}";
         await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
             new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true },
-            extraExportedTypes: new[] { typeof(CSharpLspMockCompletionService.Factory) }.ToList());
+            composition: Composition.AddParts(typeof(CSharpLspMockCompletionService.Factory)));
 
         var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspMockCompletionService;
         mockService.NonDefaultRule = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect);
@@ -800,7 +873,7 @@ public class C
         var markup = "Item {|caret:|}";
         await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
             new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true },
-            extraExportedTypes: new[] { typeof(CSharpLspThrowExceptionOnChangeCompletionService.Factory) }.ToList());
+            composition: Composition.AddParts(typeof(CSharpLspThrowExceptionOnChangeCompletionService.Factory)));
 
         var mockService = testLspServer.TestWorkspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<CompletionService>() as CSharpLspThrowExceptionOnChangeCompletionService;
         var builder = ImmutableArray.CreateBuilder<CodeAnalysis.Completion.CompletionItem>();

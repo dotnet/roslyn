@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeMethodSynchronous), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
 internal class CSharpMakeMethodSynchronousCodeFixProvider : AbstractMakeMethodSynchronousCodeFixProvider
@@ -63,7 +65,7 @@ internal class CSharpMakeMethodSynchronousCodeFixProvider : AbstractMakeMethodSy
         if (returnType.OriginalDefinition.Equals(knownTypes.TaskType))
         {
             // If the return type is Task, then make the new return type "void".
-            newReturnType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)).WithTriviaFrom(returnTypeSyntax);
+            newReturnType = SyntaxFactory.PredefinedType(VoidKeyword).WithTriviaFrom(returnTypeSyntax);
         }
         else if (returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType))
         {

@@ -100,6 +100,6 @@ internal static class GoToDefinitionFeatureHelpers
         }
 
         definitions.Add(definitionItem);
-        return definitions.ToImmutable();
+        return definitions.ToImmutableAndClear();
     }
 }

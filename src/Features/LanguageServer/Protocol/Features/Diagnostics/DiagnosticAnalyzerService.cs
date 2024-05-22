@@ -26,12 +26,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
-        private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
-
-        // use eventMap and taskQueue to serialize events
-        private readonly EventMap _eventMap = new();
-        private readonly TaskQueue _eventQueue;
-
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
 
         public IAsynchronousOperationListener Listener { get; }
@@ -54,8 +48,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             GlobalOptions = globalOptions;
             _diagnosticsRefresher = diagnosticsRefresher;
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
-
-            _eventQueue = new TaskQueue(Listener, TaskScheduler.Default);
 
             globalOptions.AddOptionChangedHandler(this, (_, e) =>
             {
@@ -127,12 +119,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var analyzer = CreateIncrementalAnalyzer(workspace);
             return analyzer.GetCachedDiagnosticsAsync(workspace.CurrentSolution, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
-        }
-
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-        {
-            var analyzer = CreateIncrementalAnalyzer(solution.Workspace);
-            return analyzer.GetDiagnosticsAsync(solution, projectId, documentId, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
         }
 
         public async Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)

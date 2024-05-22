@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration;
@@ -20,7 +21,7 @@ internal interface IRemoteSourceGenerationService
     /// compare that to the prior generated documents it has to see if it can reuse those directly, or if it needs to
     /// remove any documents no longer around, add any new documents, or change the contents of any existing documents.
     /// </summary>
-    ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity)>> GetSourceGenerationInfoAsync(
+    ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity, DateTime generationDateTime)>> GetSourceGenerationInfoAsync(
         Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
 
     /// <summary>
@@ -30,6 +31,12 @@ internal interface IRemoteSourceGenerationService
     /// </summary>
     ValueTask<ImmutableArray<string>> GetContentsAsync(
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Whether or not the specified analyzer references have source generators or not.
+    /// </summary>
+    ValueTask<bool> HasGeneratorsAsync(
+        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<Checksum> analyzerReferenceChecksums, string language, CancellationToken cancellationToken);
 }
 
 /// <summary>

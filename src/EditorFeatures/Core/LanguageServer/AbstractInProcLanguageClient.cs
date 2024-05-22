@@ -19,6 +19,8 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -213,6 +215,7 @@ internal abstract partial class AbstractInProcLanguageClient(
         var hostServices = VisualStudioMefHostServices.Create(_exportProvider);
         var server = Create(
             jsonRpc,
+            jsonMessageFormatter.JsonSerializer,
             languageClient,
             serverKind,
             logger,
@@ -224,6 +227,7 @@ internal abstract partial class AbstractInProcLanguageClient(
 
     public virtual AbstractLanguageServer<RequestContext> Create(
         JsonRpc jsonRpc,
+        JsonSerializer jsonSerializer,
         ICapabilitiesProvider capabilitiesProvider,
         WellKnownLspServerKinds serverKind,
         AbstractLspLogger logger,
@@ -232,6 +236,7 @@ internal abstract partial class AbstractInProcLanguageClient(
         var server = new RoslynLanguageServer(
             LspServiceProvider,
             jsonRpc,
+            jsonSerializer,
             capabilitiesProvider,
             logger,
             hostServices,

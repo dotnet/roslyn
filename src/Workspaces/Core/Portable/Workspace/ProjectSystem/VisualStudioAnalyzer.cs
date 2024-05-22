@@ -51,7 +51,6 @@ internal sealed class ProjectAnalyzerReference(string fullPath, IProjectSystemDi
         lock (_gate)
         {
             _analyzerLoadErrors = _analyzerLoadErrors.Add(data);
-            projectSystemDiagnosticSource.UpdateDiagnosticsForProject(projectId, this, _analyzerLoadErrors);
         }
     }
 
@@ -62,13 +61,6 @@ internal sealed class ProjectAnalyzerReference(string fullPath, IProjectSystemDi
         if (reference is AnalyzerFileReference fileReference)
         {
             fileReference.AnalyzerLoadFailed -= OnAnalyzerLoadError;
-
-            if (!loadErrors.IsEmpty)
-            {
-                projectSystemDiagnosticSource.ClearDiagnosticsForProject(projectId, this);
-            }
-
-            projectSystemDiagnosticSource.ClearAnalyzerReferenceDiagnostics(fileReference, language, projectId);
         }
     }
 

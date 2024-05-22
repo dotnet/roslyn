@@ -511,7 +511,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         Project oldProject,
         AsyncLazy<ActiveStatementsMap> lazyOldActiveStatementMap,
         Document newDocument,
-        ImmutableArray<LinePositionSpan> newActiveStatementSpans,
+        ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         AsyncLazy<EditAndContinueCapabilities> lazyCapabilities,
         CancellationToken cancellationToken)
     {
@@ -778,13 +778,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         Match<SyntaxNode> topMatch,
         SourceText newText,
         ImmutableArray<UnmappedActiveStatement> oldActiveStatements,
-        ImmutableArray<LinePositionSpan> newActiveStatementSpans,
+        ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         [In, Out] ImmutableArray<ActiveStatement>.Builder newActiveStatements,
         [In, Out] ImmutableArray<ImmutableArray<SourceFileSpan>>.Builder newExceptionRegions,
         CancellationToken cancellationToken)
     {
         Debug.Assert(!newActiveStatementSpans.IsDefault);
-        Debug.Assert(newActiveStatementSpans.IsEmpty || oldActiveStatements.Length == newActiveStatementSpans.Length);
         Debug.Assert(oldActiveStatements.Length == newActiveStatements.Count);
         Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Count);
 
@@ -824,7 +823,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                         // We seed the method body matching algorithm with tracking spans (unless they were deleted)
                         // to get precise matching.
-                        if (TryGetTrackedStatement(newActiveStatementSpans, i, newText, newBody, out var trackedStatement, out var trackedStatementPart))
+                        if (TryGetTrackedStatement(newActiveStatementSpans, oldActiveStatements[i].Statement.Id, newText, newBody, out var trackedStatement, out var trackedStatementPart))
                         {
                             // Adjust for active statements that cover more than the old member span.
                             // For example, C# variable declarators that represent field initializers:
@@ -833,7 +832,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                             // The tracking span might have been moved outside of lambda.
                             // It is not an error to move the statement - we just ignore it.
-                            var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody.EncompassingAncestor, oldMember.FindToken(adjustedOldStatementStart).Parent!);
+                            var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody.EncompassingAncestor, oldBody.EncompassingAncestor.FindToken(adjustedOldStatementStart).Parent!);
                             var newEnclosingLambdaBody = FindEnclosingLambdaBody(newBody.EncompassingAncestor, trackedStatement);
                             if (oldEnclosingLambdaBody == newEnclosingLambdaBody)
                             {
@@ -932,7 +931,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         bool isMemberReplaced,
         Match<SyntaxNode> topMatch,
         ImmutableArray<UnmappedActiveStatement> oldActiveStatements,
-        ImmutableArray<LinePositionSpan> newActiveStatementSpans,
+        ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         EditAndContinueCapabilitiesGrantor capabilities,
         [Out] ImmutableArray<ActiveStatement>.Builder newActiveStatements,
         [Out] ImmutableArray<ImmutableArray<SourceFileSpan>>.Builder newExceptionRegions,
@@ -948,7 +947,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
         var diagnosticContext = CreateDiagnosticContext(diagnostics, oldMember, newMember, newDeclaration, newModel, topMatch);
 
-        var activeStatementIndices = oldMemberBody?.GetOverlappingActiveStatements(oldActiveStatements)?.ToArray() ?? [];
+        var activeStatementIndices = oldMemberBody?.GetOverlappingActiveStatementIndices(oldActiveStatements)?.ToArray() ?? [];
 
         if (isMemberReplaced && !activeStatementIndices.IsEmpty())
         {
@@ -1030,7 +1029,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                     SyntaxNode? trackedNode = null;
 
-                    if (TryGetTrackedStatement(newActiveStatementSpans, activeStatementIndex, newText, newMemberBody, out var newStatementSyntax, out var _))
+                    if (TryGetTrackedStatement(newActiveStatementSpans, oldActiveStatements[activeStatementIndex].Statement.Id, newText, newMemberBody, out var newStatementSyntax, out var _))
                     {
                         var newEnclosingLambdaBody = FindEnclosingLambdaBody(newMemberBody.EncompassingAncestor, newStatementSyntax);
 
@@ -1282,18 +1281,13 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         }
     }
 
-    private static bool TryGetTrackedStatement(ImmutableArray<LinePositionSpan> activeStatementSpans, int index, SourceText text, MemberBody body, [NotNullWhen(true)] out SyntaxNode? trackedStatement, out int trackedStatementPart)
+    private static bool TryGetTrackedStatement(ImmutableArray<ActiveStatementLineSpan> activeStatementSpans, ActiveStatementId id, SourceText text, MemberBody body, [NotNullWhen(true)] out SyntaxNode? trackedStatement, out int trackedStatementPart)
     {
         trackedStatement = null;
         trackedStatementPart = -1;
 
-        // Active statements are not tracked in this document (e.g. the file is closed).
-        if (activeStatementSpans.IsEmpty)
-        {
-            return false;
-        }
-
-        var trackedLineSpan = activeStatementSpans[index];
+        // Active statement span not tracked or tracking span has been lost.
+        var trackedLineSpan = activeStatementSpans.FirstOrDefault(static (s, id) => s.Id == id, id).LineSpan;
         if (trackedLineSpan == default)
         {
             return false;
@@ -2432,7 +2426,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         EditScript<SyntaxNode> editScript,
         IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
         ImmutableArray<UnmappedActiveStatement> oldActiveStatements,
-        ImmutableArray<LinePositionSpan> newActiveStatementSpans,
+        ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         IReadOnlyList<(SyntaxNode OldNode, SyntaxNode NewNode, TextSpan DiagnosticSpan)> triviaEdits,
         Project oldProject,
         Document? oldDocument,
@@ -3016,7 +3010,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                             return;
                         }
 
-                        var activeStatementIndices = oldBody.GetOverlappingActiveStatements(oldActiveStatements);
+                        var activeStatementIndices = oldBody.GetOverlappingActiveStatementIndices(oldActiveStatements);
                         if (!activeStatementIndices.Any())
                         {
                             return;
@@ -3253,7 +3247,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                     // We need to provide syntax map to the compiler if the member is active (see member update above):
                     var isActiveMember =
-                        oldBody.GetOverlappingActiveStatements(oldActiveStatements).Any() ||
+                        oldBody.GetOverlappingActiveStatementIndices(oldActiveStatements).Any() ||
                         IsStateMachineMethod(oldDeclaration) ||
                         ContainsLambda(oldBody);
 
@@ -3815,7 +3809,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         foreach (var (_, indices) in deletedTypes)
             indices.Free();
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static bool IsReloadable(INamedTypeSymbol type)

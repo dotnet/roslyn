@@ -73,7 +73,7 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
                     builder.Add(extension);
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
     }
 
@@ -178,6 +178,6 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
             // NOTE: We could report "unable to load analyzer" exception here but it should have been already reported by DiagnosticService.
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 }

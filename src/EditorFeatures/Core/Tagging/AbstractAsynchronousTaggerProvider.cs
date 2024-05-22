@@ -95,6 +95,20 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     /// </summary>
     protected virtual bool CancelOnNewWork { get; }
 
+    /// <summary>
+    /// Whether or not this tagger would like to use frozen-partial snapshots to compute tags. If <see
+    /// langword="false"/>, tagging behaves normally, with a single call to <see
+    /// cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/> after a batch of events comes in.  If <see
+    /// langword="true"/> then tagging will happen in two passes.  A first pass operating with frozen documents,
+    /// allowing the tagger to actually compute tags quickly, without waiting on skeleton references or source generated
+    /// documents to be up to date.  Followed by a second, slower, pass on non-frozen documents that will then produce
+    /// the final accurate tags.  Because this second pass is more expensive, it will be aggressively canceled and
+    /// pushed to the end when new normal work comes in.  That way, when the user is doing things like typing, they'll
+    /// continuously be getting frozen-partial results quickly, but always with the final, full, correct results coming
+    /// at the end once enough idle time has passed.
+    /// </summary>
+    protected virtual bool SupportsFrozenPartialSemantics => false;
+
     protected virtual void BeforeTagsChanged(ITextSnapshot snapshot)
     {
     }
@@ -208,7 +222,7 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     protected virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
     {
         // For a standard tagger, the spans to tag is the span of the entire snapshot.
-        return SpecializedCollections.SingletonEnumerable(subjectBuffer.CurrentSnapshot.GetFullSpan());
+        return [subjectBuffer.CurrentSnapshot.GetFullSpan()];
     }
 
     /// <summary>

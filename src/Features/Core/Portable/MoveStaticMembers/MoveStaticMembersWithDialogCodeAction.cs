@@ -45,9 +45,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
         if (options is not MoveStaticMembersOptions moveOptions || moveOptions.IsCancelled)
-        {
-            return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
-        }
+            return [];
 
         // Find the original doc root
         var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();

@@ -5867,7 +5867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol? resultType;
             bool wasTargetTyped = node is BoundConditionalOperator { WasTargetTyped: true };
-            if (node.HasErrors || wasTargetTyped)
+            if (wasTargetTyped)
             {
                 resultType = null;
             }
@@ -5895,6 +5895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (resultType is null)
             {
+                Debug.Assert(!wasTargetTyped);
                 if (!wasTargetTyped)
                 {
                     // This can happen when we're inferring the return type of a lambda or visiting a node without diagnostics like

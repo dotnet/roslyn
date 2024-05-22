@@ -88,7 +88,7 @@ internal class IntentSourceProvider(
             convertedResults.AddIfNotNull(convertedIntent);
         }
 
-        return convertedResults.ToImmutable();
+        return convertedResults.ToImmutableAndClear();
     }
 
     private static async Task<IntentSource?> ConvertToIntelliCodeResultAsync(

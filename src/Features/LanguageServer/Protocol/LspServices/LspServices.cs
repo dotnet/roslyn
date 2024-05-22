@@ -153,7 +153,7 @@ internal sealed class LspServices : ILspServices
         ImmutableArray<IDisposable> disposableServices;
         lock (_gate)
         {
-            disposableServices = _servicesToDispose.ToImmutableArray();
+            disposableServices = [.. _servicesToDispose];
             _servicesToDispose.Clear();
         }
 

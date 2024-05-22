@@ -436,7 +436,7 @@ internal abstract class AbstractToggleBlockCommentBase :
                 }
             }
 
-            return uncommentedSpans.ToImmutableArray();
+            return [.. uncommentedSpans];
         }
     }
 }

@@ -21,7 +21,7 @@ internal static class ICollectionExtensions
                 result.Add(value);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     public static void RemoveRange<T>(this ICollection<T> collection, IEnumerable<T>? items)

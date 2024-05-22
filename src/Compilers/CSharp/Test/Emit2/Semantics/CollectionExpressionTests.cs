@@ -20452,6 +20452,34 @@ partial class Program
             CompileAndVerify(new[] { source, s_collectionExtensions }, verify: Verification.Skipped, expectedOutput: "[0, 1], ");
         }
 
+        [Fact]
+        public void RefStruct_04()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                dynamic d = null;
+                S s = [d];
+
+                ref struct S : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add<T>(T t) => throw null;
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,7): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // S s = [d];
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "[d]").WithArguments("S").WithLocation(5, 7),
+                // (7,16): error CS8343: 'S': ref structs cannot implement interfaces
+                // ref struct S : IEnumerable<int>
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable<int>").WithArguments("S").WithLocation(7, 16)
+            );
+        }
+
         [CombinatorialData]
         [Theory]
         public void RefSafety_Return_01([CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)] TargetFramework targetFramework)
@@ -37967,6 +37995,209 @@ partial class Program
                 // (7,35): error CS0012: The type 'MyCollectionA<>' is defined in an assembly that is not referenced. You must add a reference to assembly '41f5b758-1e64-4c10-88d8-6dd8029c374c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         MyCollectionB<object> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "[x, ..y]").WithArguments("MyCollectionA<>", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 35));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72898")]
+        [Fact]
+        public void Nullable_ConditionalOperator_Error()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                struct MyCollection<T> : IEnumerable<T>
+                {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            string sourceB = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static IEnumerable<object> F(bool b, MyCollection<object> x, object y)
+                    {
+                        return b ? x : [y);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([sourceB, sourceA], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (7,26): error CS1003: Syntax error, ',' expected
+                //         return b ? x : [y);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(7, 26),
+                // (7,27): error CS1003: Syntax error, ']' expected
+                //         return b ? x : [y);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]").WithLocation(7, 27));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes();
+            var expr = nodes.OfType<IdentifierNameSyntax>().Last();
+            Assert.Equal("y", expr.ToString());
+            _ = model.GetSymbolInfo(expr);
+
+            var conditional = nodes.OfType<ConditionalExpressionSyntax>().Single();
+            var info = model.GetTypeInfo(conditional);
+            Assert.Equal("MyCollection<System.Object>", info.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Nullable_SwitchExpression_Error()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                struct MyCollection<T> : IEnumerable<T>
+                {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            string sourceB = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void F(bool b, MyCollection<object> x, object y)
+                    {
+                        _ = b switch
+                            {
+                                true => x,
+                                false => [y),
+                            };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([sourceB, sourceA], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (10,28): error CS1003: Syntax error, ',' expected
+                //                 false => [y),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(10, 28),
+                // (10,30): error CS1003: Syntax error, ']' expected
+                //                 false => [y),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(10, 30));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Last();
+            Assert.Equal("y", expr.ToString());
+            _ = model.GetSymbolInfo(expr);
+        }
+
+        [Fact]
+        public void Nullable_ArrayInitializer_Error()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                struct MyCollection<T> : IEnumerable<T>
+                {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            string sourceB = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void F(MyCollection<object> x, object y)
+                    {
+                        _ = new[] { x, [y) };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([sourceB, sourceA], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (7,26): error CS1003: Syntax error, ',' expected
+                //         _ = new[] { x, [y) };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(7, 26),
+                // (7,28): error CS1003: Syntax error, ']' expected
+                //         _ = new[] { x, [y) };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]").WithLocation(7, 28));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Last();
+            Assert.Equal("y", expr.ToString());
+            _ = model.GetSymbolInfo(expr);
+        }
+
+        [Fact]
+        public void Nullable_LambdaExpression_Error()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+                struct MyCollection<T> : IEnumerable<T>
+                {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                }
+                """;
+            string sourceB = """
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void F(MyCollection<object> x, object y)
+                    {
+                        var f = (bool b) =>
+                            {
+                                if (b) return x;
+                                return [y);
+                            };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([sourceB, sourceA], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (11,26): error CS1003: Syntax error, ',' expected
+                //                 return [y);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(11, 26),
+                // (11,27): error CS1003: Syntax error, ']' expected
+                //                 return [y);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]").WithLocation(11, 27));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Last();
+            Assert.Equal("y", expr.ToString());
+            _ = model.GetSymbolInfo(expr);
         }
 
         [Fact]

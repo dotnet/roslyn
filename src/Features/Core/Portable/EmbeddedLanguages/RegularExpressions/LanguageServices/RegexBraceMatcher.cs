@@ -80,7 +80,7 @@ internal sealed class RegexBraceMatcher : IEmbeddedLanguageBraceMatcher
             return null;
 
         var firstChar = trivia.Value.VirtualChars[0];
-        var lastChar = trivia.Value.VirtualChars[trivia.Value.VirtualChars.Length - 1];
+        var lastChar = trivia.Value.VirtualChars[^1];
         return firstChar != '(' || lastChar != ')'
             ? null
             : new BraceMatchingResult(firstChar.Span, lastChar.Span);

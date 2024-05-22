@@ -6339,7 +6339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (implicitReceiver.Type.IsDynamic())
                 {
-                    var hasErrors = ReportBadDynamicArguments(elementInitializer, boundElementInitializerExpressions, refKinds: default, diagnostics, queryClause: null);
+                    var hasErrors = ReportBadDynamicArguments(elementInitializer, implicitReceiver, boundElementInitializerExpressions, refKinds: default, diagnostics, queryClause: null);
 
                     return new BoundDynamicCollectionElementInitializer(
                         elementInitializer,
@@ -6608,6 +6608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (result == null)
                     {
                         if (finalApplicableCandidates.Length != 1 &&
+                            Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
                             HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, finalApplicableCandidates))
                         {
                             Error(diagnostics,
@@ -6618,7 +6619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var argArray = BuildArgumentsForDynamicInvocation(analyzedArguments, diagnostics);
                         var refKindsArray = analyzedArguments.RefKinds.ToImmutableOrNull();
 
-                        hasErrors &= ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause: null);
+                        hasErrors &= ReportBadDynamicArguments(node, receiver: null, argArray, refKindsArray, diagnostics, queryClause: null);
 
                         BoundObjectInitializerExpressionBase boundInitializerOpt;
                         boundInitializerOpt = MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics);
@@ -9672,7 +9673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
             var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
 
-            hasErrors &= ReportBadDynamicArguments(syntax, argArray, refKindsArray, diagnostics, queryClause: null);
+            hasErrors &= ReportBadDynamicArguments(syntax, receiver, argArray, refKindsArray, diagnostics, queryClause: null);
 
             return new BoundDynamicIndexerAccess(
                 syntax,
@@ -9732,8 +9733,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 argumentSyntax, singleCandidate);
                         }
                     }
-                    // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for expanded non-array params cases.
-                    else if (Compilation.LanguageVersion > LanguageVersion.CSharp12 || IsMemberWithExpandedNonArrayParamsCollection(finalApplicableCandidates[0]))
+                    // For C# 12 and earlier always bind at runtime.
+                    else if (Compilation.LanguageVersion > LanguageVersion.CSharp12)
                     {
                         var resultWithSingleCandidate = OverloadResolutionResult<PropertySymbol>.GetInstance();
                         resultWithSingleCandidate.ResultsBuilder.Add(finalApplicableCandidates[0]);
@@ -9744,6 +9745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (finalApplicableCandidates.Length != 1 &&
+                    Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
                     HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, finalApplicableCandidates))
                 {
                     Error(diagnostics,
@@ -10785,8 +10787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             fieldsBuilder.Add(new AnonymousTypeField(name: "", location, returnType, returnRefKind, ScopedKind.None));
 
             var typeDescr = new AnonymousTypeDescriptor(fieldsBuilder.ToImmutableAndFree(), location);
-            return Compilation.AnonymousTypeManager.ConstructAnonymousDelegateSymbol(typeDescr,
-                checkParamsCollectionsFeatureAvailability: hasParams && !parameters[^1].Type.IsSZArray() && Compilation.SourceModule != methodSymbol.ContainingModule);
+            return Compilation.AnonymousTypeManager.ConstructAnonymousDelegateSymbol(typeDescr);
 
             static bool checkConstraints(CSharpCompilation compilation, ConversionsBase conversions, NamedTypeSymbol delegateType, ImmutableArray<TypeWithAnnotations> typeArguments)
             {

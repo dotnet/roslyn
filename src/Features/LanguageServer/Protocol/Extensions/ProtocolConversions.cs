@@ -95,6 +95,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.NuGet, ImmutableArray.Create(LSP.CompletionItemKind.Text) }
         }.ToImmutableDictionary();
 
+        /// <summary>
+        /// Mapping from tags to LSP completion item tags.  The value lists the potential LSP tags from
+        /// least-preferred to most preferred.  More preferred kinds will be chosen if the client states they support
+        /// it.  This mapping allows values including extensions to the kinds defined by VS (but not in the core LSP
+        /// spec).
+        /// </summary>
+        public static readonly ImmutableDictionary<string, ImmutableArray<LSP.CompletionItemTag>> RoslynTagToCompletionItemTags = new Dictionary<string, ImmutableArray<LSP.CompletionItemTag>>()
+        {
+            { WellKnownTags.Deprecated, ImmutableArray.Create(LSP.CompletionItemTag.Deprecated) },
+        }.ToImmutableDictionary();
+
         // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
         // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
         public static async Task<Completion.CompletionTrigger> LSPToRoslynCompletionTriggerAsync(
@@ -186,6 +197,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 // in pretty much all cases we need to know the URI string (and original string) in order to fix the issue.
                 throw new UriFormatException($"Failed create URI from '{uriString}'; original string: '{absolutePath}'", e);
             }
+        }
+
+        internal static Uri CreateRelativePatternBaseUri(string path)
+        {
+            // According to VSCode LSP RelativePattern spec, 
+            // found at https://github.com/microsoft/vscode/blob/9e1974682eb84eebb073d4ae775bad1738c281f6/src/vscode-dts/vscode.d.ts#L2226
+            // the baseUri should not end in a trailing separator, nor should it 
+            // have any relative segmeents (., ..)
+            if (path[^1] == System.IO.Path.DirectorySeparatorChar)
+            {
+                path = path[..^1];
+            }
+
+            Debug.Assert(!path.Split(System.IO.Path.DirectorySeparatorChar).Any(p => p == "." || p == ".."));
+
+            return CreateAbsoluteUri(path);
         }
 
         // Implements workaround for https://github.com/dotnet/runtime/issues/89538:
@@ -379,7 +406,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 else
                 {
                     var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                    textChanges = newText.GetTextChanges(oldText).ToImmutableArray();
+                    textChanges = [.. newText.GetTextChanges(oldText)];
                 }
 
                 // Map all the text changes' spans for this document.

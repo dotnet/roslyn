@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -121,6 +122,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                     lspItem.FilterText = item.FilterText;
 
                 lspItem.Kind = GetCompletionKind(item.Tags, capabilityHelper.SupportedItemKinds);
+                lspItem.Tags = GetCompletionTags(item.Tags, capabilityHelper.SupportedItemTags);
                 lspItem.Preselect = item.Rules.MatchPriority == MatchPriority.Preselect;
 
                 if (lspVSClientCapability)
@@ -177,6 +179,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 }
 
                 return LSP.CompletionItemKind.Text;
+            }
+
+            static LSP.CompletionItemTag[]? GetCompletionTags(
+                ImmutableArray<string> tags,
+                ISet<LSP.CompletionItemTag> supportedClientTags)
+            {
+                using var result = TemporaryArray<LSP.CompletionItemTag>.Empty;
+
+                foreach (var tag in tags)
+                {
+                    if (ProtocolConversions.RoslynTagToCompletionItemTags.TryGetValue(tag, out var completionItemTags))
+                    {
+                        // Always at least pick the core tag provided.
+                        var lspTag = completionItemTags[0];
+
+                        // If better kinds are preferred, return them if the client supports them.
+                        for (var i = 1; i < completionItemTags.Length; i++)
+                        {
+                            var preferredTag = completionItemTags[i];
+                            if (supportedClientTags.Contains(preferredTag))
+                                lspTag = preferredTag;
+                        }
+
+                        result.Add(lspTag);
+                    }
+                }
+
+                if (result.Count == 0)
+                    return null;
+
+                return [.. result.ToImmutableAndClear()];
             }
 
             static string[] GetCommitCharacters(

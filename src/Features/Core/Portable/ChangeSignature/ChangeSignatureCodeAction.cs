@@ -38,11 +38,9 @@ internal class ChangeSignatureCodeAction(AbstractChangeSignatureService changeSi
             var changeSignatureResult = await _changeSignatureService.ChangeSignatureWithContextAsync(_context, changeSignatureOptions, cancellationToken).ConfigureAwait(false);
 
             if (changeSignatureResult.Succeeded)
-            {
-                return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ChangeSignatureCodeActionOperation(changeSignatureResult.UpdatedSolution, changeSignatureResult.ConfirmationMessage));
-            }
+                return [new ChangeSignatureCodeActionOperation(changeSignatureResult.UpdatedSolution, changeSignatureResult.ConfirmationMessage)];
         }
 
-        return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
+        return [];
     }
 }

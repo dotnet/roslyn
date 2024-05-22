@@ -3,12 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
+using Microsoft.CodeAnalysis.CodeFixes;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
@@ -32,5 +28,6 @@ internal interface IFixAllContext
     IFixAllContext With(
         Optional<(Document? document, Project project)> documentAndProject = default,
         Optional<FixAllScope> scope = default,
-        Optional<string?> codeActionEquivalenceKey = default);
+        Optional<string?> codeActionEquivalenceKey = default,
+        Optional<CancellationToken> cancellationToken = default);
 }

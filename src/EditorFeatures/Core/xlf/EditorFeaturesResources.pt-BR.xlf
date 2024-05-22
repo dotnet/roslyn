@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="AI_generated_content_may_be_inaccurate">
+        <source>AI-generated content may be inaccurate</source>
+        <target state="new">AI-generated content may be inaccurate</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
+        <source>An error occurred while generating documentation for this code.</source>
+        <target state="new">An error occurred while generating documentation for this code.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">Uma sessão de renomeação embutida está ativa para o identificador '{0}'. Invoque a renomeação embutida novamente para acessar opções adicionais. Você pode continuar a editar o identificador que está sendo renomeado a qualquer momento.</target>
@@ -60,6 +70,16 @@
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
         <target state="translated">Obter ajuda para '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GitHub_Copilot">
+        <source>GitHub Copilot</source>
+        <target state="new">GitHub Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GitHub_Copilot_thinking">
+        <source>GitHub Copilot thinking...</source>
+        <target state="new">GitHub Copilot thinking...</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -202,6 +222,16 @@
         <target state="translated">Não</target>
         <note />
       </trans-unit>
+      <trans-unit id="Obsolete_symbol">
+        <source>Obsolete symbol</source>
+        <target state="new">Obsolete symbol</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="On_the_fly_documentation">
+        <source>On-the-fly documentation</source>
+        <target state="new">On-the-fly documentation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">Operador – Sobrecarregado</target>
@@ -292,6 +322,16 @@
         <target state="translated">Marcação de Código de Teste Roslyn</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run">
+        <source>Run</source>
+        <target state="new">Run</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_an_AI_generated_summary_of_this_code">
+        <source>Show an AI generated summary of this code</source>
+        <target state="new">Show an AI generated summary of this code</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
         <target state="translated">Dividir o comentário</target>
@@ -310,6 +350,11 @@
       <trans-unit id="Tab_Size">
         <source>Tab Size</source>
         <target state="translated">Tamanho da Tabulação</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Tell_me_more">
+        <source>Tell me more</source>
+        <target state="new">Tell me more</target>
         <note />
       </trans-unit>
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
