@@ -233,12 +233,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.Sequence:
-                    // An Index or Range pattern-based indexer, or an interpolated string handler conversion
-                    // that uses an indexer argument, produces a sequence with a nested
-                    // BoundIndexerAccess. We need to lower the final expression and produce an
-                    // update sequence
+                    // An Index or Range pattern-based indexer,
+                    // or an interpolated string handler conversion that uses an indexer argument,
+                    // or an assignment to an extension property/indexer,
+                    // produce a sequence with a nested BoundIndexerAccess.
+                    // We need to lower the final expression and produce an update sequence
                     var sequence = (BoundSequence)rewrittenLeft;
-                    if (sequence.Value.Kind == BoundKind.IndexerAccess)
+                    if (sequence.Value.Kind is BoundKind.IndexerAccess or BoundKind.PropertyAccess)
                     {
                         return sequence.Update(
                             sequence.Locals,

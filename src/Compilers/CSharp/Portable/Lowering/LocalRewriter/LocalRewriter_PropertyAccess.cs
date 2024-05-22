@@ -20,8 +20,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitPropertyAccess(BoundPropertyAccess node, bool isLeftOfAssignment)
         {
-            var rewrittenReceiverOpt = VisitExpression(node.ReceiverOpt);
-            return MakePropertyAccess(node.Syntax, rewrittenReceiverOpt, node.PropertySymbol, node.ResultKind, node.Type, isLeftOfAssignment, node);
+            var unadjustedRewrittenReceiver = VisitExpression(node.ReceiverOpt);
+            return MakePropertyAccessAndAdjustReceiver(node.Syntax, unadjustedRewrittenReceiver, node.PropertySymbol, node.ResultKind, node.Type, isLeftOfAssignment, node);
+        }
+
+        private BoundExpression MakePropertyAccessAndAdjustReceiver(
+            SyntaxNode syntax,
+            BoundExpression? unadjustedRewrittenReceiverOpt,
+            PropertySymbol propertySymbol,
+            LookupResultKind resultKind,
+            TypeSymbol type,
+            bool isLeftOfAssignment,
+            BoundPropertyAccess? oldNodeOpt = null)
+        {
+            ArrayBuilder<LocalSymbol>? temps = null;
+            var rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(unadjustedRewrittenReceiverOpt, propertySymbol, storesOpt: null, ref temps);
+            var result = MakePropertyAccess(syntax, rewrittenReceiver, propertySymbol, resultKind, type, isLeftOfAssignment, oldNodeOpt);
+            return temps is null ? result : _factory.Sequence(temps.ToImmutableAndFree(), [], result, syntax);
         }
 
         private BoundExpression MakePropertyAccess(
@@ -95,23 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(getMethod.ParameterCount == rewrittenArguments.Length);
                 Debug.Assert(getMethodOpt is null || ReferenceEquals(getMethod, getMethodOpt));
 
-                ArrayBuilder<LocalSymbol>? temps = null;
-                rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, getMethod, storesOpt: null, ref temps);
-
-                BoundExpression result = BoundCall.Synthesized(
+                return BoundCall.Synthesized(
                     syntax,
                     rewrittenReceiver,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     getMethod,
                     rewrittenArguments,
                     argumentRefKindsOpt);
-
-                if (temps is not null)
-                {
-                    result = _factory.Sequence(temps.ToImmutableAndFree(), [], result, syntax);
-                }
-
-                return result;
             }
         }
     }

@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             PropertySymbol property = p.Property;
                             var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            return _factory.AssignmentExpression(output, _localRewriter.MakePropertyAccess(_factory.Syntax, input, property, LookupResultKind.Viable, property.Type, isLeftOfAssignment: false));
+                            return _factory.AssignmentExpression(output, _localRewriter.MakePropertyAccessAndAdjustReceiver(_factory.Syntax, input, property, LookupResultKind.Viable, property.Type, isLeftOfAssignment: false));
                         }
 
                     case BoundDagDeconstructEvaluation d:
@@ -190,6 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 addArg(RefKind.Out, _tempAllocator.GetTemp(outputTemp));
                             }
 
+                            // PROTOTYPE missing adjustment for receiver. The other patterns need to be checked too.
                             return _factory.Call(receiver, method, refKindBuilder.ToImmutableAndFree(), argBuilder.ToImmutableAndFree());
                         }
 

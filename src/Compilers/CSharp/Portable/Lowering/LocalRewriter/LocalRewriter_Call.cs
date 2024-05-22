@@ -650,16 +650,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!requiresInstanceReceiver || rewrittenReceiver != null || _inExpressionLambda);
             Debug.Assert(captureReceiverMode == ReceiverCaptureMode.Default || (requiresInstanceReceiver && rewrittenReceiver != null && storesOpt is object));
 
-            var adjustedReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, methodOrIndexer, storesOpt, ref tempsOpt);
-            bool wasReceiverAdjusted = !object.ReferenceEquals(adjustedReceiver, rewrittenReceiver);
-            rewrittenReceiver = adjustedReceiver;
+            rewrittenReceiver = AdjustReceiverForExtensionsIfNeeded(rewrittenReceiver, methodOrIndexer, storesOpt, ref tempsOpt);
 
             BoundLocal? receiverTemp = null;
             BoundAssignmentOperator? assignmentToTemp = null;
 
             if (captureReceiverMode != ReceiverCaptureMode.Default ||
-                (requiresInstanceReceiver && arguments.Any(a => usesReceiver(a))) ||
-                wasReceiverAdjusted)
+                (requiresInstanceReceiver && arguments.Any(a => usesReceiver(a))))
             {
                 Debug.Assert(!_inExpressionLambda);
                 Debug.Assert(rewrittenReceiver is object);
@@ -1009,8 +1006,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!receiver.Type.IsTypeParameter());
             var refKind = GetRefKindForCapturedReceiverTemp(receiver, useNoneForReferenceType: true);
             // PROTOTYPE if we decide to allow readonly members in extensions, we'll need to revisit this
+            Debug.Assert(refKind is not RefKindExtensions.StrictIn);
             if (refKind is RefKind.RefReadOnly)
             {
+                // Since extension members cannot be readonly, we need to force cloning before the emit layer
                 refKind = RefKind.Ref;
             }
 
@@ -1025,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             method.CheckConstraints(
                 new ConstraintsHelper.CheckConstraintsArgs(_compilation, _compilation.Conversions, temp.Syntax.GetLocation(), _diagnostics));
 
-            var call = _factory.Call(null, method, temp);
+            var call = _factory.Call(null, method, temp, useStrictArgumentRefKinds: true);
             _factory.Syntax = oldSyntax;
 
             if (storesOpt is null)

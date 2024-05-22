@@ -15355,6 +15355,26 @@ implicit extension E for S
   IL_0035:  ret
 }
 """);
+        verifier.VerifyIL("E.Deconstruct", """
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     "S E.<UnderlyingInstance>$"
+  IL_0007:  ldfld      "int S.field"
+  IL_000c:  stind.i4
+  IL_000d:  ldarg.0
+  IL_000e:  ldflda     "S E.<UnderlyingInstance>$"
+  IL_0013:  call       "void S.Increment()"
+  IL_0018:  ldarg.2
+  IL_0019:  ldarg.0
+  IL_001a:  ldflda     "S E.<UnderlyingInstance>$"
+  IL_001f:  ldfld      "int S.field"
+  IL_0024:  stind.i4
+  IL_0025:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -15513,7 +15533,32 @@ implicit extension E for C
 """;
         // PROTOTYPE confirm when spec'ing pattern-based deconstruction
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("(42, 43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("(42, 43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (int V_0, //y
+                int V_1,
+                int V_2,
+                C V_3)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.3
+  IL_0006:  ldloca.s   V_3
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  ldloca.s   V_2
+  IL_0011:  call       "void E.Deconstruct(out int, out int)"
+  IL_0016:  ldloc.1
+  IL_0017:  ldloc.2
+  IL_0018:  stloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+  IL_001f:  box        "System.ValueTuple<int, int>"
+  IL_0024:  call       "void System.Console.Write(object)"
+  IL_0029:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -17469,7 +17514,22 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E.M"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E.M"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000d:  ldc.i4.s   42
+  IL_000f:  call       "void E.M(int)"
+  IL_0014:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17627,7 +17687,21 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E.M(42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E.M(42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000d:  ldc.i4.s   42
+  IL_000f:  call       "void E.M(int)"
+  IL_0014:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17710,7 +17784,22 @@ namespace N
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E2.M(42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E2.M(42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref N.E2 System.Runtime.CompilerServices.Unsafe.As<C, N.E2>(ref C)"
+  IL_000d:  ldc.i4.s   42
+  IL_000f:  call       "void N.E2.M(int)"
+  IL_0014:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17745,7 +17834,22 @@ static class E2
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E1.M(42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E1.M(42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<C, E1>(ref C)"
+  IL_000d:  ldc.i4.s   42
+  IL_000f:  call       "void E1.M(int)"
+  IL_0014:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18390,7 +18494,25 @@ implicit extension E2 for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       32 (0x20)
+  .maxstack  1
+  .locals init (C V_0,
+                int V_1)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E2 System.Runtime.CompilerServices.Unsafe.As<C, E2>(ref C)"
+  IL_000d:  call       "int E2.P.get"
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  call       "string int.ToString()"
+  IL_001a:  call       "void System.Console.Write(string)"
+  IL_001f:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20381,7 +20503,23 @@ public static class E2
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("not-invocation invocation"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("not-invocation invocation"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  newobj     "object..ctor()"
+  IL_0005:  dup
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "ref E1 System.Runtime.CompilerServices.Unsafe.As<object, E1>(ref object)"
+  IL_000e:  call       "string E1.Member.get"
+  IL_0013:  call       "void System.Console.Write(string)"
+  IL_0018:  call       "void E2.Member(object)"
+  IL_001d:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20452,7 +20590,23 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("not-invocation invocation"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("not-invocation invocation"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  newobj     "object..ctor()"
+  IL_0005:  dup
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "ref N.E1 System.Runtime.CompilerServices.Unsafe.As<object, N.E1>(ref object)"
+  IL_000e:  call       "string N.E1.Member.get"
+  IL_0013:  call       "void System.Console.Write(string)"
+  IL_0018:  call       "void N.E2.Member(object)"
+  IL_001d:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20615,7 +20769,28 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       29 (0x1d)
+  .maxstack  1
+  .locals init (C<int> V_0, //c
+                int V_1, //i
+                C<int> V_2)
+  IL_0000:  newobj     "C<int>..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  stloc.2
+  IL_0008:  ldloca.s   V_2
+  IL_000a:  call       "ref N.E2 System.Runtime.CompilerServices.Unsafe.As<C<int>, N.E2>(ref C<int>)"
+  IL_000f:  call       "int N.E2.Member.get"
+  IL_0014:  stloc.1
+  IL_0015:  ldloc.1
+  IL_0016:  call       "void System.Console.Write(int)"
+  IL_001b:  nop
+  IL_001c:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22562,7 +22737,22 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000d:  ldc.i4.s   42
+  IL_000f:  call       "int E.this[int].get"
+  IL_0014:  call       "void System.Console.Write(int)"
+  IL_0019:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -23242,21 +23432,58 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ctor(1) get(1) ctor(2) set(2) ctor(3) get(3) set(3) "),
-                verify: Verification.FailsPEVerify)
-            .VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ctor(1) get(1) ctor(2) set(2) ctor(3) get(3) set(3) "), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       74 (0x4a)
+  .maxstack  4
+  .locals init (C V_0,
+                E& V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  newobj     "C..ctor(int)"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_000e:  ldc.i4.1
+  IL_000f:  call       "int E.this[int].get"
+  IL_0014:  pop
+  IL_0015:  ldc.i4.2
+  IL_0016:  newobj     "C..ctor(int)"
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_0023:  ldc.i4.2
+  IL_0024:  ldc.i4.2
+  IL_0025:  call       "void E.this[int].set"
+  IL_002a:  ldc.i4.3
+  IL_002b:  newobj     "C..ctor(int)"
+  IL_0030:  stloc.0
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
+  IL_0038:  stloc.1
+  IL_0039:  ldloc.1
+  IL_003a:  ldc.i4.3
+  IL_003b:  ldloc.1
+  IL_003c:  ldc.i4.3
+  IL_003d:  call       "int E.this[int].get"
+  IL_0042:  ldc.i4.3
+  IL_0043:  add
+  IL_0044:  call       "void E.this[int].set"
+  IL_0049:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
-        var memberAccess1 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[1]");
+        var memberAccess1 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C(1)[1]");
         Assert.Equal("System.Int32 E.this[System.Int32 i] { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(memberAccess1)); // PROTOTYPE need to fix the semantic model
 
-        var memberAccess2 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[2]");
+        var memberAccess2 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C(2)[2]");
         Assert.Equal("System.Int32 E.this[System.Int32 i] { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(memberAccess2)); // PROTOTYPE need to fix the semantic model
 
-        var memberAccess3 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C()[3]");
+        var memberAccess3 = GetSyntax<ElementAccessExpressionSyntax>(tree, "new C(3)[3]");
         Assert.Equal("System.Int32 E.this[System.Int32 i] { get; set; }", model.GetSymbolInfo(memberAccess3).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(memberAccess3)); // PROTOTYPE need to fix the semantic model
     }
@@ -37691,7 +37918,28 @@ public struct MyCollection : IEnumerable<int>
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran(42) ran(43) 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran(42) ran(43) 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       48 (0x30)
+  .maxstack  2
+  .locals init (MyCollection V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "MyCollection"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<MyCollection, E>(ref MyCollection)"
+  IL_000f:  ldc.i4.s   42
+  IL_0011:  call       "void E.Add(int)"
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<MyCollection, E>(ref MyCollection)"
+  IL_001d:  ldc.i4.s   43
+  IL_001f:  call       "void E.Add(int)"
+  IL_0024:  ldloc.0
+  IL_0025:  ldfld      "int MyCollection.field"
+  IL_002a:  call       "void System.Console.Write(int)"
+  IL_002f:  ret
+}
+""");
     }
 
     [Fact]
@@ -42212,19 +42460,20 @@ implicit extension E for string
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       27 (0x1b)
+  // Code size       33 (0x21)
   .maxstack  3
   .locals init (string V_0)
   IL_0000:  ldstr      ""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
   IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<string, E>(ref string)"
-  IL_000d:  dup
-  IL_000e:  call       "int E.P.get"
-  IL_0013:  ldc.i4.1
-  IL_0014:  add
-  IL_0015:  call       "void E.P.set"
-  IL_001a:  ret
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<string, E>(ref string)"
+  IL_0014:  call       "int E.P.get"
+  IL_0019:  ldc.i4.1
+  IL_001a:  add
+  IL_001b:  call       "void E.P.set"
+  IL_0020:  ret
 }
 """);
     }
@@ -42248,24 +42497,22 @@ implicit extension E for string
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       39 (0x27)
+  // Code size       43 (0x2b)
   .maxstack  4
-  .locals init (string V_0,
-                E& V_1)
+  .locals init (string V_0)
   IL_0000:  ldstr      ""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
   IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<string, E>(ref string)"
-  IL_000d:  stloc.1
-  IL_000e:  ldloc.1
-  IL_000f:  ldstr      "value"
-  IL_0014:  ldloc.1
-  IL_0015:  ldstr      "value"
-  IL_001a:  call       "int E.this[string].get"
-  IL_001f:  ldc.i4.1
-  IL_0020:  add
-  IL_0021:  call       "void E.this[string].set"
-  IL_0026:  ret
+  IL_000d:  ldstr      "value"
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<string, E>(ref string)"
+  IL_0019:  ldstr      "value"
+  IL_001e:  call       "int E.this[string].get"
+  IL_0023:  ldc.i4.1
+  IL_0024:  add
+  IL_0025:  call       "void E.this[string].set"
+  IL_002a:  ret
 }
 """);
     }
@@ -42336,21 +42583,22 @@ implicit extension E for S
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("S.M", """
 {
-  // Code size       26 (0x1a)
+  // Code size       31 (0x1f)
   .maxstack  4
-  .locals init (E& V_0)
+  .locals init (S& V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
   IL_0008:  ldc.i4.s   42
   IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.s   42
-  IL_000d:  call       "int E.this[int].get"
-  IL_0012:  ldc.i4.1
-  IL_0013:  add
-  IL_0014:  call       "void E.this[int].set"
-  IL_0019:  ret
+  IL_000b:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_0010:  ldc.i4.s   42
+  IL_0012:  call       "int E.this[int].get"
+  IL_0017:  ldc.i4.1
+  IL_0018:  add
+  IL_0019:  call       "void E.this[int].set"
+  IL_001e:  ret
 }
 """);
     }
@@ -42594,7 +42842,7 @@ implicit extension E for S
     }
 
     [Fact]
-    public void AdjustReceiver_PropertyAccess_Compouned_RefReadonlyParameter()
+    public void AdjustReceiver_PropertyAccess_Compound_RefReadonlyParameter()
     {
         var source = """
 var i = 42;
@@ -44198,7 +44446,7 @@ public struct CustomHandler
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Handler(42) 42" : null, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Handler(42) 42"), verify: Verification.FailsPEVerify);
 
         source = $$"""
 using System.Runtime.CompilerServices;
@@ -44229,7 +44477,7 @@ public implicit extension E for S
 """;
         comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "42" : null, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify);
 
         source = $$"""
 using System;
@@ -44257,7 +44505,93 @@ public struct S
 }
 """;
         comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "42" : null, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify);
+    }
+
+    [Fact]
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_OutParameter()
+    {
+        var source = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+M(out _);
+
+void M(out S s)
+{
+    s = new S() { field = 42 };
+    s.M($"literal");
+    System.Console.Write(s.field);
+}
+
+public struct S
+{
+    public int field;
+    public void Increment() { field++; }
+}
+
+public implicit extension E for S
+{
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c)
+    {
+        ref S sThis = ref Unsafe.As<E, S>(ref this);
+        sThis.Increment();
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, E e)
+    {
+        ref S s = ref Unsafe.As<E, S>(ref e);
+        Console.Write($"Handler({s.field}) ");
+    }
+
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Handler(42) 43"), verify: Verification.FailsPEVerify);
+
+        source = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+M(out _);
+
+void M(out S s)
+{
+    s = new S() { field = 42 };
+    s.M($"literal");
+    System.Console.Write(s.field);
+}
+
+public struct S
+{
+    public int field;
+    public void Increment() { field++; }
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c)
+    {
+        this.Increment();
+    }
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, S s)
+    {
+        Console.Write($"Handler({s.field}) ");
+    }
+
+    public bool AppendLiteral(string literal) => true;
+}
+""";
+        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Handler(42) 43"), verify: Verification.FailsPEVerify);
     }
 
     [Fact]
@@ -44303,7 +44637,7 @@ public struct CustomHandler
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics();
         // Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-        CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Handler(42) 42" : null, verify: Verification.Fails);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Handler(42) 42"), verify: Verification.Fails);
     }
 
     [Theory]
@@ -44418,7 +44752,7 @@ public struct S
 }
 """;
         comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "43" : null, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("43"), verify: Verification.FailsPEVerify);
     }
 
     [Fact]
@@ -44764,5 +45098,291 @@ implicit extension E for C
 """;
         var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Written 1. 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AdjustReceiver_PropertyAccess_UnaryOperation()
+    {
+        var source = """
+S s = new S();
+s.P++;
+
+struct S { }
+
+implicit extension E for S
+{
+    public int P
+    {
+        get { System.Console.Write("get "); return 42; }
+        set { System.Console.Write($"set({value})"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       31 (0x1f)
+  .maxstack  3
+  .locals init (S V_0, //s
+                int V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  dup
+  IL_0010:  call       "int E.P.get"
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  ldc.i4.1
+  IL_0018:  add
+  IL_0019:  call       "void E.P.set"
+  IL_001e:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_UnaryOperation()
+    {
+        var source = """
+S s = new S();
+s[10]++;
+
+struct S { }
+
+implicit extension E for S
+{
+    public int this[int i]
+    {
+        get { System.Console.Write("get "); return 42; }
+        set { System.Console.Write($"set({value})"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  .locals init (S V_0, //s
+                int V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  dup
+  IL_0010:  ldc.i4.s   10
+  IL_0012:  call       "int E.this[int].get"
+  IL_0017:  stloc.1
+  IL_0018:  ldc.i4.s   10
+  IL_001a:  ldloc.1
+  IL_001b:  ldc.i4.1
+  IL_001c:  add
+  IL_001d:  call       "void E.this[int].set"
+  IL_0022:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void AdjustReceiver_Pattern_IndexerAccess()
+    {
+        var src = """
+System.Console.Write(new C() is [42, 42]);
+
+class C
+{
+    public C()
+    {
+        System.Console.Write("ctor ");
+    }
+}
+
+implicit extension E for C
+{
+    public int Count
+    {
+        get
+        {
+            System.Console.Write("count ");
+            return 2;
+        }
+    }
+    public int this[System.Index i]
+    {
+        get
+        {
+            return 42;
+        }
+    }
+}
+""";
+        // PROTOTYPE we'll likely want this to work (and if so, it will need receiver adjustment)
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,33): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
+            // System.Console.Write(new C() is [42, 42]);
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[42, 42]").WithArguments("C").WithLocation(1, 33));
+    }
+
+    [Fact]
+    public void AdjustReceiver_Pattern_Deconstruct()
+    {
+        var src = """
+System.Console.Write(new C() is (42, 43));
+
+class C
+{
+    public C()
+    {
+        System.Console.Write("ctor ");
+    }
+}
+
+implicit extension E for C
+{
+    public void Deconstruct(out int i, out int j)
+    {
+        i = 42;
+        j = 43;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE missing receiver adjustment
+        CompileAndVerify(comp/*, expectedOutput: IncludeExpectedOutput("ctor True")*/, verify: Verification.Fails).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_ObjectInitializer()
+    {
+        var src = """
+_ = new object() { [42] = 1 };
+
+implicit extension E for object
+{
+    public int this[int i] { set { System.Console.Write($"set({i}, {value})"); } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set(42, 1)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       22 (0x16)
+  .maxstack  3
+  .locals init (object V_0)
+  IL_0000:  newobj     "object..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<object, E>(ref object)"
+  IL_000d:  ldc.i4.s   42
+  IL_000f:  ldc.i4.1
+  IL_0010:  call       "void E.this[int].set"
+  IL_0015:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_ObjectInitializer_TwoElements()
+    {
+        var src = """
+_ = new object() { [42] = 1, [43] = 2 };
+
+implicit extension E for object
+{
+    public int this[int i] { set { System.Console.Write($"set({i}, {value}) "); } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set(42, 1) set(43, 2)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       39 (0x27)
+  .maxstack  4
+  .locals init (object V_0,
+                object V_1)
+  IL_0000:  newobj     "object..ctor()"
+  IL_0005:  dup
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<object, E>(ref object)"
+  IL_000e:  ldc.i4.s   42
+  IL_0010:  ldc.i4.1
+  IL_0011:  call       "void E.this[int].set"
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<object, E>(ref object)"
+  IL_001e:  ldc.i4.s   43
+  IL_0020:  ldc.i4.2
+  IL_0021:  call       "void E.this[int].set"
+  IL_0026:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_ObjectInitializer_Nested_Null()
+    {
+        var src = """
+_ = new C() { Property = { [42] = 1 } };
+
+class C
+{
+    public D Property { get; set; }
+}
+
+class D { }
+
+implicit extension E for D
+{
+    public int this[int i] { set { System.Console.Write($"set({i}, {value})"); } }
+}
+""";
+        // PROTOTYPE we need to decide what to do about null receivers
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set(42, 1)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       27 (0x1b)
+  .maxstack  3
+  .locals init (D V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  callvirt   "D C.Property.get"
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<D, E>(ref D)"
+  IL_0012:  ldc.i4.s   42
+  IL_0014:  ldc.i4.1
+  IL_0015:  call       "void E.this[int].set"
+  IL_001a:  ret
+}
+""");
+
+        src = """
+try
+{
+    _ = new C() { Property = { [42] = 1 } };
+}
+catch (System.NullReferenceException)
+{
+    System.Console.Write("caught");
+}
+
+class C
+{
+    public D Property { get; set; }
+}
+
+class D
+{
+    public int this[int i] { set { } }
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("caught"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 }
