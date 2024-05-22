@@ -4450,6 +4450,39 @@ public partial class C
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "preview").WithLocation(7, 24));
         }
 
+        [Fact]
+        public void GetDeclaredSymbol_01()
+        {
+            var source = ("""
+                partial class C
+                {
+                    public partial int Prop { get; }
+                    public partial int Prop { get => 1; }
+                }
+                """, "Program.cs");
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+
+            var model = comp.GetSemanticModel(tree);
+            var properties = tree.GetRoot().DescendantNodes().OfType<PropertyDeclarationSyntax>().ToArray();
+            Assert.Equal(2, properties.Length);
+
+            var defSymbol = model.GetDeclaredSymbol(properties[0])!;
+            Assert.Equal("System.Int32 C.Prop { get; }", defSymbol.ToTestDisplayString());
+
+            var implSymbol = model.GetDeclaredSymbol(properties[1])!;
+            Assert.Equal("System.Int32 C.Prop { get; }", implSymbol.ToTestDisplayString());
+
+            Assert.NotEqual(defSymbol, implSymbol);
+            Assert.Same(implSymbol, defSymbol.PartialImplementationPart);
+            Assert.Same(defSymbol, implSymbol.PartialDefinitionPart);
+
+            // This is consistent with partial methods.
+            Assert.Equal("SourceFile(Program.cs[43..47))", defSymbol.Locations.Single().ToString());
+            Assert.Equal("SourceFile(Program.cs[81..85))", implSymbol.Locations.Single().ToString());
+        }
+
         // PROTOTYPE(partial-properties): override partial property where base has modopt
     }
 }
