@@ -154,9 +154,9 @@ internal class FindLiteralsSearchEngine
         cancellationToken.ThrowIfCancellationRequested();
         foreach (var child in node.ChildNodesAndTokens())
         {
-            if (child.IsNode)
+            if (child.AsNode(out var childNode))
             {
-                ProcessNode(syntaxFacts, child.AsNode()!, matches, cancellationToken);
+                ProcessNode(syntaxFacts, childNode, matches, cancellationToken);
             }
             else
             {

@@ -161,9 +161,9 @@ internal sealed class FindReferenceCache
         while (stack.TryPop(out var current))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (current.IsNode)
+            if (current.AsNode(out var currentNode))
             {
-                foreach (var child in current.AsNode()!.ChildNodesAndTokens().Reverse())
+                foreach (var child in currentNode.ChildNodesAndTokens().Reverse())
                     stack.Push(child);
             }
             else if (current.IsToken)
