@@ -130,10 +130,24 @@ internal sealed class FindReferenceCache
         // walks the root and checks all identifier tokens.
         //
         // otherwise, we can use the text of the document to quickly find candidates and test those directly.
-        return this.SyntaxTreeIndex.ProbablyContainsEscapedIdentifier(identifier)
-            ? _identifierCache.GetOrAdd(identifier, identifier => FindMatchingIdentifierTokensFromTree(identifier, cancellationToken))
-            : _identifierCache.GetOrAdd(identifier, _ => FindMatchingIdentifierTokensFromText(identifier, cancellationToken));
+        if (this.SyntaxTreeIndex.ProbablyContainsEscapedIdentifier(identifier))
+        {
+            return _identifierCache.GetOrAdd(
+                identifier,
+                identifier => FindMatchingIdentifierTokensFromTree(identifier, cancellationToken));
+        }
+
+        return _identifierCache.GetOrAdd(
+            identifier,
+            identifier => FindMatchingIdentifierTokensFromText(
+                identifier,
+                static (identifier, token, @this) => @this.IsMatch(identifier, token),
+                this, cancellationToken));
     }
+
+    public ImmutableArray<SyntaxToken> FindMatchingTextTokens<TArgs>(
+        string text, Func<string, SyntaxToken, TArgs, bool> isMatch, TArgs args, CancellationToken cancellationToken)
+        => _identifierCache.GetOrAdd(text, _ => FindMatchingIdentifierTokensFromText(text, isMatch, args, cancellationToken));
 
     private bool IsMatch(string identifier, SyntaxToken token)
         => !token.IsMissing && this.SyntaxFacts.IsIdentifier(token) && this.SyntaxFacts.TextMatch(token.ValueText, identifier);
@@ -176,22 +190,22 @@ internal sealed class FindReferenceCache
         return result.ToImmutableAndClear();
     }
 
-    private ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromText(
-        string identifier, CancellationToken cancellationToken)
+    private ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromText<TArgs>(
+        string text, Func<string, SyntaxToken, TArgs, bool> isMatch, TArgs args, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
 
         var index = 0;
-        while ((index = this.Text.IndexOf(identifier, index, this.SyntaxFacts.IsCaseSensitive)) >= 0)
+        while ((index = this.Text.IndexOf(text, index, this.SyntaxFacts.IsCaseSensitive)) >= 0)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var token = this.Root.FindToken(index, findInsideTrivia: true);
             var span = token.Span;
-            if (span.Start == index && span.Length == identifier.Length && IsMatch(identifier, token))
+            if (span.Start == index && span.Length == text.Length && isMatch(text, token, args))
                 result.Add(token);
 
-            var nextIndex = index + identifier.Length;
+            var nextIndex = index + text.Length;
             nextIndex = Math.Max(nextIndex, token.SpanStart);
             index = nextIndex;
         }

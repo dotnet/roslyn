@@ -190,13 +190,28 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
             FindReferencesInDocumentUsingIdentifier(symbol, simpleName, state, processResult, processResultData, cancellationToken);
     }
 
-    private void FindReferencesInImplicitObjectCreationExpression<TData>(
+    private static void FindReferencesInImplicitObjectCreationExpression<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
         TData processResultData,
         CancellationToken cancellationToken)
     {
+        if (!state.Cache.SyntaxTreeIndex.ContainsImplicitObjectCreation)
+            return;
+
+        // Note: only C# supports implicit object creation.  So we don't need to do anything special around case
+        // insensitive matching here.
+        //
+        // Search for all the `new` tokens in the file.
+        var newKeywordTokens = state.Cache.FindMatchingTextTokens(
+            "new",
+            (_, token, syntaxKinds) => token.RawKind == syntaxKinds.NewKeyword,
+            state.SyntaxFacts.SyntaxKinds,
+            cancellationToken);
+        if (newKeywordTokens.IsEmpty)
+            return;
+
         // Only check `new (...)` calls that supply enough arguments to match all the required parameters for the constructor.
         var minimumArgumentCount = symbol.Parameters.Count(p => !p.IsOptional && !p.IsParams);
         var maximumArgumentCount = symbol.Parameters is [.., { IsParams: true }]
@@ -208,16 +223,12 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
             : symbol.Parameters.Length;
 
         var implicitObjectKind = state.SyntaxFacts.SyntaxKinds.ImplicitObjectCreationExpression;
-        FindReferencesInDocument(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
-        return;
-
-        static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
-            => syntaxTreeInfo.ContainsImplicitObjectCreation;
-
-        void CollectMatchingReferences(
-            SyntaxNode node, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData)
+        foreach (var newKeywordToken in newKeywordTokens)
         {
-            if (node.RawKind != implicitObjectKind)
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var node = newKeywordToken.Parent;
+            if (node is null || node.RawKind != implicitObjectKind)
                 return;
 
             // if there are too few or too many arguments, then don't bother checking.
@@ -232,11 +243,12 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
             var constructor = state.SemanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
             if (Matches(constructor, symbol))
             {
-                var location = node.GetFirstToken().GetLocation();
-                var symbolUsageInfo = GetSymbolUsageInfo(node, state, cancellationToken);
-
                 var result = new FinderLocation(node, new ReferenceLocation(
-                    state.Document, alias: null, location, isImplicit: true, symbolUsageInfo,
+                    state.Document,
+                    alias: null,
+                    newKeywordToken.GetLocation(),
+                    isImplicit: true,
+                    GetSymbolUsageInfo(node, state, cancellationToken),
                     GetAdditionalFindUsagesProperties(node, state), CandidateReason.None));
                 processResult(result, processResultData);
             }
