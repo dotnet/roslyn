@@ -78,7 +78,7 @@ internal sealed class TotalClassificationAggregateTagger(
     EfficientTagger<IClassificationTag> embeddedTagger)
     : AbstractAggregateTagger<IClassificationTag>([syntacticTagger, semanticTagger, embeddedTagger])
 {
-    private static readonly IComparer<TagSpan<IClassificationTag>> s_spanComparer = new TagSpanComparer();
+    private static readonly Comparison<ITagSpan<IClassificationTag>> s_spanComparison = static (s1, s2) => s1.Span.Start.Position - s2.Span.Start.Position;
 
     public override void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<TagSpan<IClassificationTag>> totalTags)
     {
@@ -124,8 +124,8 @@ internal sealed class TotalClassificationAggregateTagger(
         await addSyntacticSpansAsync(spans, syntacticSpans, arg).ConfigureAwait(false);
         await addSemanticSpansAsync(spans, semanticSpans, arg).ConfigureAwait(false);
 
-        syntacticSpans.Sort(s_spanComparer);
-        semanticSpans.Sort(s_spanComparer);
+        syntacticSpans.Sort(s_spanComparison);
+        semanticSpans.Sort(s_spanComparison);
 
         using var syntacticEnumerator = syntacticSpans.GetEnumerator();
         using var semanticEnumerator = semanticSpans.GetEnumerator();
@@ -251,8 +251,8 @@ internal sealed class TotalClassificationAggregateTagger(
             }
 
             // ClassifierHelper.MergeParts requires these to be sorted.
-            stringLiterals.Sort(s_spanComparer);
-            embeddedClassifications.Sort(s_spanComparer);
+            stringLiterals.Sort(s_spanComparison);
+            embeddedClassifications.Sort(s_spanComparison);
 
             // Call into the helper to merge the string literals and embedded classifications into the final result.
             // The helper will add all the embedded classifications first, then add string literal classifications

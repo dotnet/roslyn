@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             if (_size > 1)
             {
-                SegmentedArray.Sort<T>(_items, 0, _size, Comparer<T>.Create(comparison));
+                SegmentedArray.Sort(_items, 0, _size, comparison);
             }
             _version++;
         }
