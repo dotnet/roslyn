@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.AnalyzerConfig;
 using static Roslyn.Test.Utilities.TestHelpers;
@@ -2273,6 +2274,8 @@ option2 = config3
         [InlineData("", true)] // only true because [] isn't a valid editorconfig section name either and thus never gets parsed
         public void GlobalConfigIssuesWarningWithInvalidSectionNames(string sectionName, bool isValid)
         {
+            sectionName = PathUtilities.NormalizeDriveLetter(sectionName);
+
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse($@"
 is_global = true
