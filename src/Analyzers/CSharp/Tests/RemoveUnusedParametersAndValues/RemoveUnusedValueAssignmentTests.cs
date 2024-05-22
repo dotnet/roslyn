@@ -5799,6 +5799,28 @@ class C
         [Theory]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
+        public async Task AssignedInCatchClause_UsedInFinally2(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                int count;
+                try
+                {
+                    if (0 == 1) { }
+                    System.Console.WriteLine();
+                }
+                finally
+                {
+                    [|count|] = 3;
+                }
+                
+                if (count == 0) { }
+                """, optionName);
+        }
+
+        [Theory]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInCatchFilter_UsedAfterTryCatch(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
