@@ -16,29 +16,57 @@ namespace IdeCoreBenchmarks
     [MemoryDiagnoser]
     public class SyntaxListBenchmarks
     {
-        private SyntaxNode _root;
+        private SyntaxNode _smallRoot;
+        private SyntaxNode _mediumRoot;
+        private SyntaxNode _largeRoot;
+        private const int IterationCount = 1000;
 
         [GlobalSetup]
         public void GlobalSetup()
         {
-            var csFilePath = @"d:\src\Roslyn2\src\Compilers\CSharp\Portable\Parser\LanguageParser.cs";
+            _smallRoot = GetRootFrom(@"d:\src\Roslyn2\src\Compilers\CSharp\Portable\Parser\AbstractLexer.cs");
+            _mediumRoot = GetRootFrom(@"d:\src\Roslyn2\src\Compilers\CSharp\Portable\Parser\SyntaxParser.cs");
+            _largeRoot = GetRootFrom(@"d:\src\Roslyn2\src\Compilers\CSharp\Portable\Parser\LanguageParser.cs");
+        }
 
-            if (!File.Exists(csFilePath))
-                throw new FileNotFoundException(csFilePath);
-
-            var textContents = File.ReadAllText(csFilePath);
+        private SyntaxNode GetRootFrom(string path)
+        {
+            var textContents = File.ReadAllText(path);
 
             var text = SourceText.From(textContents);
             var tree = SyntaxFactory.ParseSyntaxTree(text);
-            _root = tree.GetCompilationUnitRoot();
+
+            return tree.GetCompilationUnitRoot();
         }
 
         [Benchmark]
-        public void WalkTree()
+        public void WalkTree_Small()
         {
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < IterationCount; i++)
             {
-                foreach (var token in _root.DescendantTokens())
+                foreach (var token in _smallRoot.DescendantTokens())
+                {
+                }
+            }
+        }
+
+        [Benchmark]
+        public void WalkTree_Medium()
+        {
+            for (int i = 0; i < IterationCount; i++)
+            {
+                foreach (var token in _mediumRoot.DescendantTokens())
+                {
+                }
+            }
+        }
+
+        [Benchmark]
+        public void WalkTree_Large()
+        {
+            for (int i = 0; i < IterationCount; i++)
+            {
+                foreach (var token in _largeRoot.DescendantTokens())
                 {
                 }
             }
