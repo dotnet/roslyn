@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
-using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
 

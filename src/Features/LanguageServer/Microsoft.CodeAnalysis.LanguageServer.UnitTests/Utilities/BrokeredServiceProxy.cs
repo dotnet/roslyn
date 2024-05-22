@@ -4,7 +4,6 @@
 
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
-using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;

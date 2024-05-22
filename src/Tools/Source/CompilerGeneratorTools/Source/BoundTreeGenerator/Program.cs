@@ -59,8 +59,10 @@ namespace BoundTreeGenerator
                 return 1;
             }
 
-            using var outfile = new StreamWriter(File.Open(outfilename, FileMode.Create), Encoding.UTF8);
-            BoundNodeClassWriter.Write(outfile, tree, targetLanguage);
+            using (var outfile = new StreamWriter(File.Open(outfilename, FileMode.Create), Encoding.UTF8))
+            {
+                BoundNodeClassWriter.Write(outfile, tree, targetLanguage);
+            }
 
             return 0;
         }

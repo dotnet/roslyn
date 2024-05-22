@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -16,14 +15,10 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
-using System.Xml;
 using System.Xml.Linq;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.DiaSymReader;
 using Microsoft.DiaSymReader.Tools;
-using Microsoft.Metadata.Tools;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -602,9 +597,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 portablePdbStreamOpt.Position = 0;
 
-                using var provider = MetadataReaderProvider.FromPortablePdbStream(portablePdbStreamOpt, MetadataStreamOptions.LeaveOpen);
-                var pdbReader = provider.GetMetadataReader();
-                ValidatePortablePdbId(pdbReader, codeViewEntry.Stamp, codeViewData.Guid);
+                using (var provider = MetadataReaderProvider.FromPortablePdbStream(portablePdbStreamOpt, MetadataStreamOptions.LeaveOpen))
+                {
+                    var pdbReader = provider.GetMetadataReader();
+                    ValidatePortablePdbId(pdbReader, codeViewEntry.Stamp, codeViewData.Guid);
+                }
             }
 
             if ((portablePdbStreamOpt != null || hasEmbeddedPdb) && hashAlgorithm.Name != null)
@@ -632,8 +629,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (hasEmbeddedPdb)
             {
                 var entry = entries[entryIndex++];
-                using var provider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
-                ValidatePortablePdbId(provider.GetMetadataReader(), codeViewEntry.Stamp, codeViewData.Guid);
+                using (var provider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry))
+                {
+                    ValidatePortablePdbId(provider.GetMetadataReader(), codeViewEntry.Stamp, codeViewData.Guid);
+                }
             }
 
             Assert.Equal(entries.Length, entryIndex);

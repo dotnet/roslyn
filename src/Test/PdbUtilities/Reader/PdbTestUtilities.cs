@@ -92,10 +92,14 @@ namespace Roslyn.Test.Utilities
 
         public static string GetTokenToLocationMap(Compilation compilation, bool maskToken = false)
         {
-            using var exebits = new MemoryStream();
-            using var pdbbits = new MemoryStream();
-            compilation.Emit(exebits, pdbbits);
-            return Token2SourceLineExporter.TokenToSourceMap2Xml(pdbbits, maskToken);
+            using (var exebits = new MemoryStream())
+            {
+                using (var pdbbits = new MemoryStream())
+                {
+                    compilation.Emit(exebits, pdbbits);
+                    return Token2SourceLineExporter.TokenToSourceMap2Xml(pdbbits, maskToken);
+                }
+            }
         }
     }
 }

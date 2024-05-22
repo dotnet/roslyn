@@ -6,7 +6,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Editor;
@@ -14,7 +13,6 @@ using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;

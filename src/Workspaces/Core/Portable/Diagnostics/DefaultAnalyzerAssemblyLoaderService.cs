@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using System.IO;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using System.Collections.Immutable;
 using System.Collections.Generic;

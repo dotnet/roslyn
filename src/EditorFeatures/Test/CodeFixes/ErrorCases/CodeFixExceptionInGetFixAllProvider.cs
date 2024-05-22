@@ -6,9 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 

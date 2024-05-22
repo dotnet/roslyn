@@ -17,25 +17,27 @@ namespace BuildBoss
     {
         internal static List<ProjectEntry> ParseProjects(string solutionPath)
         {
-            using var reader = new StreamReader(solutionPath);
-            var list = new List<ProjectEntry>();
-            while (true)
+            using (var reader = new StreamReader(solutionPath))
             {
-                var line = reader.ReadLine();
-                if (line == null)
+                var list = new List<ProjectEntry>();
+                while (true)
                 {
-                    break;
+                    var line = reader.ReadLine();
+                    if (line == null)
+                    {
+                        break;
+                    }
+
+                    if (!line.StartsWith("Project"))
+                    {
+                        continue;
+
+                    }
+
+                    list.Add(ParseProjectLine(line));
                 }
-
-                if (!line.StartsWith("Project"))
-                {
-                    continue;
-
-                }
-
-                list.Add(ParseProjectLine(line));
+                return list;
             }
-            return list;
         }
 
         private static ProjectEntry ParseProjectLine(string line)

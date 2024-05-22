@@ -343,23 +343,25 @@ namespace RunTests
         /// </summary>
         private static bool ShouldPartitionInSingleWorkItem(string assemblyPath)
         {
-            using var stream = File.OpenRead(assemblyPath);
-            using var peReader = new PEReader(stream);
-            var metadataReader = peReader.GetMetadataReader();
-            var attributes = metadataReader.GetAssemblyDefinition().GetCustomAttributes();
-            foreach (var attributeHandle in attributes)
+            using (var stream = File.OpenRead(assemblyPath))
+            using (var peReader = new PEReader(stream))
             {
-                var attribute = metadataReader.GetCustomAttribute(attributeHandle);
-                if (attribute.Constructor.Kind is HandleKind.MemberReference)
+                var metadataReader = peReader.GetMetadataReader();
+                var attributes = metadataReader.GetAssemblyDefinition().GetCustomAttributes();
+                foreach (var attributeHandle in attributes)
                 {
-                    var ctor = metadataReader.GetMemberReference((MemberReferenceHandle)attribute.Constructor);
-                    if (ctor.Parent.Kind is HandleKind.TypeReference)
+                    var attribute = metadataReader.GetCustomAttribute(attributeHandle);
+                    if (attribute.Constructor.Kind is HandleKind.MemberReference)
                     {
-                        var typeNameHandle = metadataReader.GetTypeReference((TypeReferenceHandle)ctor.Parent).Name;
-                        var typeName = metadataReader.GetString(typeNameHandle);
-                        if (typeName == nameof(RunTestsInSinglePartitionAttribute))
+                        var ctor = metadataReader.GetMemberReference((MemberReferenceHandle)attribute.Constructor);
+                        if (ctor.Parent.Kind is HandleKind.TypeReference)
                         {
-                            return true;
+                            var typeNameHandle = metadataReader.GetTypeReference((TypeReferenceHandle)ctor.Parent).Name;
+                            var typeName = metadataReader.GetString(typeNameHandle);
+                            if (typeName == nameof(RunTestsInSinglePartitionAttribute))
+                            {
+                                return true;
+                            }
                         }
                     }
                 }

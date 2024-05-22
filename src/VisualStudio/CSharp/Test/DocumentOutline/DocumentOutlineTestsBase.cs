@@ -23,7 +23,6 @@ using StreamJsonRpc;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
 using IAsyncDisposable = System.IAsyncDisposable;
-using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 {
