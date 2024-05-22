@@ -261,10 +261,8 @@ internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuilt
 
             foreach (var child in node.ChildNodesAndTokens())
             {
-                if (child.IsNode)
-                {
-                    AddMatches(child.AsNode()!, expr, type, matches);
-                }
+                if (child.AsNode(out var childNode))
+                    AddMatches(childNode, expr, type, matches);
             }
         }
     }

@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
@@ -141,9 +142,9 @@ internal abstract partial class AbstractSyntaxIndex<TIndex>
             if (!child.ContainsDirectives)
                 continue;
 
-            if (child.IsNode)
+            if (child.AsNode(out var childNode))
             {
-                if (ContainsIfDirective(child.AsNode()!, ifDirectiveKind))
+                if (ContainsIfDirective(childNode, ifDirectiveKind))
                     return true;
             }
             else
