@@ -4459,7 +4459,7 @@ public partial class C
                     public partial int Prop { get; }
                     public partial int Prop { get => 1; }
                 }
-                """, "Program.cs");
+                """.NormalizeLineEndings(), "Program.cs");
 
             var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees[0];
