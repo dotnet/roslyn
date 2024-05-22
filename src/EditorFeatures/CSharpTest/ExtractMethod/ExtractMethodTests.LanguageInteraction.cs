@@ -59,6 +59,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             }
 
             [Fact]
+            public async Task SelectTypeParameterWithAllowsRefStructAntiConstraint()
+            {
+                var code = """
+                    using System;
+
+                    class Program
+                    {
+                        void MyMethod1<TT>(TT tt) where TT : IDisposable, allows ref struct
+                        {
+                            [|tt.Dispose();|]
+                        }
+                    }
+                    """;
+                var expected = """
+                    using System;
+
+                    class Program
+                    {
+                        void MyMethod1<TT>(TT tt) where TT : IDisposable, allows ref struct
+                        {
+                            NewMethod(tt);
+                        }
+                    
+                        private static void NewMethod<TT>(TT tt) where TT : IDisposable, allows ref struct
+                        {
+                            tt.Dispose();
+                        }
+                    }
+                    """;
+
+                await TestExtractMethodAsync(code, expected);
+            }
+            [Fact]
             public async Task SelectTypeParameter()
             {
                 var code = """
