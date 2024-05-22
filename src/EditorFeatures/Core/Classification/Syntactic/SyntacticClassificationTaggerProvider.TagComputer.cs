@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -74,6 +75,8 @@ internal partial class SyntacticClassificationTaggerProvider
 
         private int _taggerReferenceCount;
 
+        private Tuple<Workspace, IContentType, (SolutionServices solutionServices, IClassificationService classificationService)>? _lastCachedServices;
+
         public TagComputer(
             SyntacticClassificationTaggerProvider taggerProvider,
             ITextBuffer2 subjectBuffer,
@@ -119,13 +122,22 @@ internal partial class SyntacticClassificationTaggerProvider
 
         private (SolutionServices solutionServices, IClassificationService classificationService)? TryGetClassificationService(ITextSnapshot snapshot)
         {
-            if (_workspace?.Services.SolutionServices is not { } solutionServices)
-                return null;
+            var lastCachedServices = _lastCachedServices;
+            if (lastCachedServices is null ||
+                lastCachedServices.Item1 != _workspace ||
+                lastCachedServices.Item2 != snapshot.ContentType)
+            {
+                if (_workspace?.Services.SolutionServices is not { } solutionServices)
+                    return null;
 
-            if (solutionServices.GetProjectServices(snapshot.ContentType)?.GetService<IClassificationService>() is not { } classificationService)
-                return null;
+                if (solutionServices.GetProjectServices(snapshot.ContentType)?.GetService<IClassificationService>() is not { } classificationService)
+                    return null;
 
-            return (solutionServices, classificationService);
+                lastCachedServices = Tuple.Create(_workspace, snapshot.ContentType, (solutionServices, classificationService));
+                _lastCachedServices = lastCachedServices;
+            }
+
+            return lastCachedServices.Item3;
         }
 
         #region Workspace Hookup
