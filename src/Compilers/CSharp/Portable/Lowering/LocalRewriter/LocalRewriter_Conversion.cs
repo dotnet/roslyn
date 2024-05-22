@@ -631,8 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!TryGetWellKnownTypeMember(rewrittenOperand.Syntax, ctorMember, out MethodSymbol? ctor))
                         {
-                            Debug.Fail("We should have reported an error during binding for missing members for span conversion.");
-                            return BadExpression(rewrittenOperand.Syntax, rewrittenType, []);
+                            throw ExceptionUtilities.Unreachable();
                         }
                         else
                         {

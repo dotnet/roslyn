@@ -907,12 +907,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     break;
 
-                case ConversionKind.ImplicitSpan:
-                    // Implicit span conversion, unlike other standard implicit conversions,
-                    // does not imply opposite standard explicit conversion.
-                    impliedExplicitConversion = Conversion.NoConversion;
-                    break;
-
                 default:
                     throw ExceptionUtilities.UnexpectedValue(oppositeConversion.Kind);
             }
@@ -1929,8 +1923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.ImplicitReference;
                 }
 
-                // PROTOTYPE: Investigate callers where Compilation is null.
-                if (Compilation is not null && HasImplicitSpanConversion(sourceType, destination, ref useSiteInfo))
+                if (HasImplicitSpanConversion(sourceType, destination, ref useSiteInfo))
                 {
                     return Conversion.ImplicitSpan;
                 }
@@ -3930,7 +3923,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasImplicitSpanConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan))
+            // PROTOTYPE: Is it fine that this conversion does not exists when Compilation is null?
+            if (Compilation?.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan) != true)
             {
                 return false;
             }

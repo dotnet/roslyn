@@ -486,6 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (conversion.IsSpan)
                 {
+                    // PROTOTYPE: Check runtime APIs used for other span conversions once they are implemented.
                     if (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
                     {
                         _ = GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, diagnostics, syntax: syntax);
