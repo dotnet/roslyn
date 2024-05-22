@@ -209,7 +209,7 @@ internal sealed class ConstructorSymbolReferenceFinder : AbstractReferenceFinder
             return;
 
         // Only check `new (...)` calls that supply enough arguments to match all the required parameters for the constructor.
-        var minimumArgumentCount = symbol.Parameters.Count(p => !p.IsOptional && !p.IsParams);
+        var minimumArgumentCount = symbol.Parameters.Count(static p => !p.IsOptional && !p.IsParams);
         var maximumArgumentCount = symbol.Parameters is [.., { IsParams: true }]
             ? int.MaxValue
             : symbol.Parameters.Length;
