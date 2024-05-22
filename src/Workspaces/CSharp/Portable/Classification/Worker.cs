@@ -91,13 +91,16 @@ internal readonly ref partial struct Worker
             // sorting the results before doing anything with them.
             foreach (var child in current.ChildNodesAndTokens())
             {
-                if (!child.FullSpan.IntersectsWith(_textSpan))
-                    continue;
-
                 if (child.IsNode)
-                    stack.Push(child.AsNode()!);
+                {
+                    var childNode = child.AsNode()!;
+                    if (childNode.FullSpan.IntersectsWith(_textSpan))
+                        stack.Push(childNode);
+                }
                 else
+                {
                     ClassifyToken(child.AsToken());
+                }
             }
         }
     }
