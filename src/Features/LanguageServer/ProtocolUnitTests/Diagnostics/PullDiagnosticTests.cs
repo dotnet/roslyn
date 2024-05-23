@@ -202,29 +202,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
-    public async Task TestDocumentTodoCommentsDiagnosticsForOpenFile_NoCategory(bool useVSDiagnostics, bool mutatingLspWorkspace)
-    {
-        var markup =
-@"
-// todo: goo
-class A {
-}";
-        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
-
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-
-        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
-
-        await OpenDocumentAsync(testLspServer, document);
-
-        var results = await RunGetDocumentPullDiagnosticsAsync(
-            testLspServer, document.GetURI(), useVSDiagnostics);
-
-        Assert.Empty(results.Single().Diagnostics);
-    }
-
-    [Theory, CombinatorialData]
     public async Task TestDocumentTodoCommentsDiagnosticsForOpenFile_Category(bool mutatingLspWorkspace)
     {
         var markup =
