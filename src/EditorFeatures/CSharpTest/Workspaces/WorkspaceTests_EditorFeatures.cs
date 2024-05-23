@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -573,7 +574,513 @@ public class WorkspaceTests_EditorFeatures : TestBase
             var doc1Z = cs.GetDocument(document1.Id);
             var hasX = (await doc1Z.GetTextAsync()).ToString().Contains("X");
 
-            if (hasX)
+            await workspaceWaiter.ExpeditedWaitAsync();
+        }
+
+        [Fact]
+        public async Task TestEmptySolutionUpdateDoesNotFireEvents()
+        {
+            using var workspace = CreateWorkspace();
+            var project = new EditorTestHostProject(workspace);
+            workspace.AddTestProject(project);
+
+            // wait for all previous operations to complete
+            await WaitForWorkspaceOperationsToComplete(workspace);
+
+            var solution = workspace.CurrentSolution;
+            var workspaceChanged = false;
+
+            workspace.WorkspaceChanged += (s, e) => workspaceChanged = true;
+
+            // make an 'empty' update by claiming something changed, but its the same as before
+            workspace.OnParseOptionsChanged(project.Id, project.ParseOptions);
+
+            // wait for any new outstanding operations to complete (there shouldn't be any)
+            await WaitForWorkspaceOperationsToComplete(workspace);
+
+            // same solution instance == nothing changed
+            Assert.Equal(solution, workspace.CurrentSolution);
+
+            // no event was fired because nothing was changed
+            Assert.False(workspaceChanged);
+        }
+
+        [Fact]
+        public void TestAddProject()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            Assert.Equal(0, solution.Projects.Count());
+
+            var project = new EditorTestHostProject(workspace);
+
+            workspace.AddTestProject(project);
+            solution = workspace.CurrentSolution;
+
+            Assert.Equal(1, solution.Projects.Count());
+        }
+
+        [Fact]
+        public void TestRemoveExistingProject1()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var project = new EditorTestHostProject(workspace);
+
+            workspace.AddTestProject(project);
+            workspace.OnProjectRemoved(project.Id);
+            solution = workspace.CurrentSolution;
+
+            Assert.Equal(0, solution.Projects.Count());
+        }
+
+        [Fact]
+        public void TestRemoveExistingProject2()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var project = new EditorTestHostProject(workspace);
+
+            workspace.AddTestProject(project);
+            solution = workspace.CurrentSolution;
+            workspace.OnProjectRemoved(project.Id);
+            solution = workspace.CurrentSolution;
+
+            Assert.Equal(0, solution.Projects.Count());
+        }
+
+        [Fact]
+        public void TestRemoveNonAddedProject1()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var project = new EditorTestHostProject(workspace);
+
+            Assert.Throws<ArgumentException>(() => workspace.OnProjectRemoved(project.Id));
+        }
+
+        [Fact]
+        public void TestRemoveNonAddedProject2()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var project1 = new EditorTestHostProject(workspace, name: "project1");
+            var project2 = new EditorTestHostProject(workspace, name: "project2");
+
+            workspace.AddTestProject(project1);
+
+            Assert.Throws<ArgumentException>(() => workspace.OnProjectRemoved(project2.Id));
+        }
+
+        [Fact]
+        public async Task TestChangeOptions1()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var document = new EditorTestHostDocument(
+                """
+                #if GOO
+                class C { }
+                #else
+                class D { }
+                #endif
+                """);
+
+            var project1 = new EditorTestHostProject(workspace, document, name: "project1");
+
+            workspace.AddTestProject(project1);
+
+            await VerifyRootTypeNameAsync(workspace, "D");
+
+            workspace.OnParseOptionsChanged(document.Id.ProjectId,
+                new CSharpParseOptions(preprocessorSymbols: new[] { "GOO" }));
+
+            await VerifyRootTypeNameAsync(workspace, "C");
+        }
+
+        [Fact]
+        public async Task TestChangeOptions2()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var document = new EditorTestHostDocument(
+                """
+                #if GOO
+                class C { }
+                #else
+                class D { }
+                #endif
+                """);
+
+            var project1 = new EditorTestHostProject(workspace, document, name: "project1");
+
+            workspace.AddTestProject(project1);
+            workspace.OpenDocument(document.Id);
+
+            await VerifyRootTypeNameAsync(workspace, "D");
+
+            workspace.OnParseOptionsChanged(document.Id.ProjectId,
+                new CSharpParseOptions(preprocessorSymbols: new[] { "GOO" }));
+
+            await VerifyRootTypeNameAsync(workspace, "C");
+
+            workspace.CloseDocument(document.Id);
+        }
+
+        [Fact]
+        public async Task TestAddedSubmissionParseTreeHasEmptyFilePath()
+        {
+            using var workspace = CreateWorkspace();
+            var document1 = new EditorTestHostDocument("var x = 1;", displayName: "Sub1", sourceCodeKind: SourceCodeKind.Script);
+            var project1 = new EditorTestHostProject(workspace, document1, name: "Submission");
+
+            var document2 = new EditorTestHostDocument("var x = 2;", displayName: "Sub2", sourceCodeKind: SourceCodeKind.Script, filePath: "a.csx");
+            var project2 = new EditorTestHostProject(workspace, document2, name: "Script");
+
+            workspace.AddTestProject(project1);
+            workspace.AddTestProject(project2);
+
+            workspace.TryApplyChanges(workspace.CurrentSolution);
+
+            // Check that a parse tree for a submission has an empty file path.
+            var tree1 = await workspace.CurrentSolution
+                .GetProjectState(project1.Id)
+                .DocumentStates.GetState(document1.Id)
+                .GetSyntaxTreeAsync(CancellationToken.None);
+            Assert.Equal("", tree1.FilePath);
+
+            // Check that a parse tree for a script does not have an empty file path.
+            var tree2 = await workspace.CurrentSolution
+                .GetProjectState(project2.Id)
+                .DocumentStates.GetState(document2.Id)
+                .GetSyntaxTreeAsync(CancellationToken.None);
+            Assert.Equal("a.csx", tree2.FilePath);
+        }
+
+        private static async Task VerifyRootTypeNameAsync(EditorTestWorkspace workspaceSnapshotBuilder, string typeName)
+        {
+            var currentSnapshot = workspaceSnapshotBuilder.CurrentSolution;
+            var type = await GetRootTypeDeclarationAsync(currentSnapshot);
+
+            Assert.Equal(type.Identifier.ValueText, typeName);
+        }
+
+        private static async Task<TypeDeclarationSyntax> GetRootTypeDeclarationAsync(Solution currentSnapshot)
+        {
+            var tree = await currentSnapshot.Projects.First().Documents.First().GetSyntaxTreeAsync();
+            var root = (CompilationUnitSyntax)tree.GetRoot();
+            var type = (TypeDeclarationSyntax)root.Members[0];
+            return type;
+        }
+
+        [Fact]
+        public void TestAddP2PReferenceFails()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var project1 = new EditorTestHostProject(workspace, name: "project1");
+            var project2 = new EditorTestHostProject(workspace, name: "project2");
+
+            workspace.AddTestProject(project1);
+
+            Assert.Throws<ArgumentException>(() => workspace.OnProjectReferenceAdded(project1.Id, new ProjectReference(project2.Id)));
+        }
+
+        [Fact]
+        public void TestAddP2PReference1()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var project1 = new EditorTestHostProject(workspace, name: "project1");
+            var project2 = new EditorTestHostProject(workspace, name: "project2");
+
+            workspace.AddTestProject(project1);
+            workspace.AddTestProject(project2);
+
+            var reference = new ProjectReference(project2.Id);
+            workspace.OnProjectReferenceAdded(project1.Id, reference);
+
+            var snapshot = workspace.CurrentSolution;
+            var id1 = snapshot.Projects.First(p => p.Name == project1.Name).Id;
+            var id2 = snapshot.Projects.First(p => p.Name == project2.Name).Id;
+
+            Assert.True(snapshot.GetProject(id1).ProjectReferences.Contains(reference), "ProjectReferences did not contain project2");
+        }
+
+        [Fact]
+        public void TestAddP2PReferenceTwice()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var project1 = new EditorTestHostProject(workspace, name: "project1");
+            var project2 = new EditorTestHostProject(workspace, name: "project2");
+
+            workspace.AddTestProject(project1);
+            workspace.AddTestProject(project2);
+
+            workspace.OnProjectReferenceAdded(project1.Id, new ProjectReference(project2.Id));
+
+            Assert.Throws<ArgumentException>(() => workspace.OnProjectReferenceAdded(project1.Id, new ProjectReference(project2.Id)));
+        }
+
+        [Fact]
+        public void TestRemoveP2PReference1()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var project1 = new EditorTestHostProject(workspace, name: "project1");
+            var project2 = new EditorTestHostProject(workspace, name: "project2");
+
+            workspace.AddTestProject(project1);
+            workspace.AddTestProject(project2);
+
+            workspace.OnProjectReferenceAdded(project1.Id, new ProjectReference(project2.Id));
+            workspace.OnProjectReferenceRemoved(project1.Id, new ProjectReference(project2.Id));
+
+            var snapshot = workspace.CurrentSolution;
+            var id1 = snapshot.Projects.First(p => p.Name == project1.Name).Id;
+            var id2 = snapshot.Projects.First(p => p.Name == project2.Name).Id;
+
+            Assert.Equal(0, snapshot.GetProject(id1).ProjectReferences.Count());
+        }
+
+        [Fact]
+        public void TestAddP2PReferenceCircularity()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var project1 = new EditorTestHostProject(workspace, name: "project1");
+            var project2 = new EditorTestHostProject(workspace, name: "project2");
+
+            workspace.AddTestProject(project1);
+            workspace.AddTestProject(project2);
+
+            workspace.OnProjectReferenceAdded(project1.Id, new ProjectReference(project2.Id));
+
+            Assert.Throws<ArgumentException>(() => workspace.OnProjectReferenceAdded(project2.Id, new ProjectReference(project1.Id)));
+        }
+
+        [Fact]
+        public void TestRemoveProjectWithOpenedDocuments()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var document = new EditorTestHostDocument(string.Empty);
+            var project1 = new EditorTestHostProject(workspace, document, name: "project1");
+
+            workspace.AddTestProject(project1);
+            workspace.OpenDocument(document.Id);
+
+            workspace.OnProjectRemoved(project1.Id);
+            Assert.False(workspace.IsDocumentOpen(document.Id));
+            Assert.Empty(workspace.CurrentSolution.Projects);
+        }
+
+        [Fact]
+        public void TestRemoveProjectWithClosedDocuments()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var document = new EditorTestHostDocument(string.Empty);
+            var project1 = new EditorTestHostProject(workspace, document, name: "project1");
+
+            workspace.AddTestProject(project1);
+            workspace.OpenDocument(document.Id);
+            workspace.CloseDocument(document.Id);
+            workspace.OnProjectRemoved(project1.Id);
+        }
+
+        [Fact]
+        public void TestRemoveOpenedDocument()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var document = new EditorTestHostDocument(string.Empty);
+            var project1 = new EditorTestHostProject(workspace, document, name: "project1");
+
+            workspace.AddTestProject(project1);
+            workspace.OpenDocument(document.Id);
+
+            workspace.OnDocumentRemoved(document.Id);
+
+            Assert.Empty(workspace.CurrentSolution.Projects.Single().Documents);
+
+            workspace.OnProjectRemoved(project1.Id);
+        }
+
+        [Fact]
+        public async Task TestGetCompilation()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var document = new EditorTestHostDocument(@"class C { }");
+            var project1 = new EditorTestHostProject(workspace, document, name: "project1");
+
+            workspace.AddTestProject(project1);
+            await VerifyRootTypeNameAsync(workspace, "C");
+
+            var snapshot = workspace.CurrentSolution;
+            var id1 = snapshot.Projects.First(p => p.Name == project1.Name).Id;
+
+            var compilation = await snapshot.GetProject(id1).GetCompilationAsync();
+            var classC = compilation.SourceModule.GlobalNamespace.GetMembers("C").Single();
+        }
+
+        [Fact]
+        public async Task TestGetCompilationOnDependentProject()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var document1 = new EditorTestHostDocument(@"public class C { }");
+            var project1 = new EditorTestHostProject(workspace, document1, name: "project1");
+
+            var document2 = new EditorTestHostDocument(@"class D : C { }");
+            var project2 = new EditorTestHostProject(workspace, document2, name: "project2", projectReferences: new[] { project1 });
+
+            workspace.AddTestProject(project1);
+            workspace.AddTestProject(project2);
+
+            var snapshot = workspace.CurrentSolution;
+            var id1 = snapshot.Projects.First(p => p.Name == project1.Name).Id;
+            var id2 = snapshot.Projects.First(p => p.Name == project2.Name).Id;
+
+            var compilation2 = await snapshot.GetProject(id2).GetCompilationAsync();
+            var classD = compilation2.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
+            var classC = classD.BaseType;
+        }
+
+        [Fact]
+        public async Task TestGetCompilationOnCrossLanguageDependentProject()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var document1 = new EditorTestHostDocument(@"public class C { }");
+            var project1 = new EditorTestHostProject(workspace, document1, name: "project1");
+
+            var document2 = new EditorTestHostDocument("""
+                Public Class D 
+                  Inherits C
+                End Class
+                """);
+            var project2 = new EditorTestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: new[] { project1 });
+
+            workspace.AddTestProject(project1);
+            workspace.AddTestProject(project2);
+
+            var snapshot = workspace.CurrentSolution;
+            var id1 = snapshot.Projects.First(p => p.Name == project1.Name).Id;
+            var id2 = snapshot.Projects.First(p => p.Name == project2.Name).Id;
+
+            var compilation2 = await snapshot.GetProject(id2).GetCompilationAsync();
+            var classD = compilation2.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
+            var classC = classD.BaseType;
+        }
+
+        [Fact]
+        public async Task TestGetCompilationOnCrossLanguageDependentProjectChanged()
+        {
+            using var workspace = CreateWorkspace();
+            var solutionX = workspace.CurrentSolution;
+
+            var document1 = new EditorTestHostDocument(@"public class C { }");
+            var project1 = new EditorTestHostProject(workspace, document1, name: "project1");
+
+            var document2 = new EditorTestHostDocument("""
+                Public Class D 
+                  Inherits C
+                End Class
+                """);
+            var project2 = new EditorTestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: new[] { project1 });
+
+            workspace.AddTestProject(project1);
+            workspace.AddTestProject(project2);
+
+            var solutionY = workspace.CurrentSolution;
+            var id1 = solutionY.Projects.First(p => p.Name == project1.Name).Id;
+            var id2 = solutionY.Projects.First(p => p.Name == project2.Name).Id;
+
+            var compilation2 = await solutionY.GetProject(id2).GetCompilationAsync();
+            var errors = compilation2.GetDiagnostics();
+            var classD = compilation2.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
+            var classC = classD.BaseType;
+            Assert.NotEqual(TypeKind.Error, classC.TypeKind);
+
+            // change the class name in document1
+            workspace.OpenDocument(document1.Id);
+            var buffer1 = document1.GetTextBuffer();
+
+            // change C to X
+            buffer1.Replace(new Span(13, 1), "X");
+
+            // this solution should have the change
+            var solutionZ = workspace.CurrentSolution;
+            var docZ = solutionZ.GetDocument(document1.Id);
+            var docZText = await docZ.GetTextAsync();
+            Assert.Equal("public class X { }", docZText.ToString());
+
+            var compilation2Z = await solutionZ.GetProject(id2).GetCompilationAsync();
+            var classDz = compilation2Z.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
+            var classCz = classDz.BaseType;
+
+            Assert.Equal(TypeKind.Error, classCz.TypeKind);
+        }
+
+        [WpfFact]
+        public async Task TestDependentSemanticVersionChangesWhenNotOriginallyAccessed()
+        {
+            using var workspace = CreateWorkspace(disablePartialSolutions: false);
+            var solutionX = workspace.CurrentSolution;
+
+            var document1 = new EditorTestHostDocument(@"public class C { }");
+            var project1 = new EditorTestHostProject(workspace, document1, name: "project1");
+
+            var document2 = new EditorTestHostDocument("""
+                Public Class D 
+                  Inherits C
+                End Class
+                """);
+            var project2 = new EditorTestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: new[] { project1 });
+
+            workspace.AddTestProject(project1);
+            workspace.AddTestProject(project2);
+
+            var solutionY = workspace.CurrentSolution;
+            var id1 = solutionY.Projects.First(p => p.Name == project1.Name).Id;
+            var id2 = solutionY.Projects.First(p => p.Name == project2.Name).Id;
+
+            var compilation2y = await solutionY.GetProject(id2).GetCompilationAsync();
+            var errors = compilation2y.GetDiagnostics();
+            var classDy = compilation2y.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
+            var classCy = classDy.BaseType;
+            Assert.NotEqual(TypeKind.Error, classCy.TypeKind);
+
+            // open both documents so background compiler works on their compilations
+            workspace.OpenDocument(document1.Id);
+            workspace.OpenDocument(document2.Id);
+
+            // change C to X
+            var buffer1 = document1.GetTextBuffer();
+            buffer1.Replace(new Span(13, 1), "X");
+
+            for (var iter = 0; iter < 10; iter++)
             {
                 var newVersion = await cs.GetProject(project1.Id).GetDependentSemanticVersionAsync();
                 var newVersionX = await doc1Z.Project.GetDependentSemanticVersionAsync();
@@ -657,16 +1164,50 @@ public class WorkspaceTests_EditorFeatures : TestBase
             }
         }
 
-        // Should never find this since we're using partial semantics.
-        Assert.False(foundTheError, "Did find error");
-
+        [WpfFact]
+        public async Task TestGetCompilationOnCrossLanguageDependentProjectChangedInProgress()
         {
-            // the current solution should eventually have the change
-            var cs = workspace.CurrentSolution;
-            var doc1Z = cs.GetDocument(document1.Id);
-            var hasX = (await doc1Z.GetTextAsync()).ToString().Contains("X");
+            var composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingService));
 
-            if (hasX)
+            using var workspace = CreateWorkspace(disablePartialSolutions: false, composition: composition);
+            var trackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            var solutionX = workspace.CurrentSolution;
+
+            var document1 = new EditorTestHostDocument(@"public class C { }");
+            var project1 = new EditorTestHostProject(workspace, document1, name: "project1");
+
+            var document2 = new EditorTestHostDocument("""
+                Public Class D 
+                  Inherits C
+                End Class
+                """);
+            var project2 = new EditorTestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: new[] { project1 });
+
+            workspace.AddTestProject(project1);
+            workspace.AddTestProject(project2);
+
+            var solutionY = workspace.CurrentSolution;
+            var id1 = solutionY.Projects.First(p => p.Name == project1.Name).Id;
+            var id2 = solutionY.Projects.First(p => p.Name == project2.Name).Id;
+
+            var compilation2y = await solutionY.GetProject(id2).GetCompilationAsync();
+            var errors = compilation2y.GetDiagnostics();
+            var classDy = compilation2y.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
+            var classCy = classDy.BaseType;
+            Assert.NotEqual(TypeKind.Error, classCy.TypeKind);
+
+            // Make the second document active.  As there is no automatic background compiler, no changes will be seen as long as we keep asking for frozen-partial semantics.
+            trackingService.SetActiveDocument(document2.Id);
+
+            workspace.OpenDocument(document1.Id);
+            workspace.OpenDocument(document2.Id);
+
+            // change C to X
+            var buffer1 = document1.GetTextBuffer();
+            buffer1.Replace(new Span(13, 1), "X");
+
+            var foundTheError = false;
+            for (var iter = 0; iter < 5 && !foundTheError; iter++)
             {
                 var doc2Z = cs.GetDocument(document2.Id);
                 var compilation2Z = await doc2Z.Project.GetCompilationAsync();
@@ -676,6 +1217,30 @@ public class WorkspaceTests_EditorFeatures : TestBase
                 if (classCz.TypeKind == TypeKind.Error)
                     foundTheError = true;
             }
+
+            // Should never find this since we're using partial semantics.
+            Assert.False(foundTheError, "Did find error");
+
+            {
+                // the current solution should eventually have the change
+                var cs = workspace.CurrentSolution;
+                var doc1Z = cs.GetDocument(document1.Id);
+                var hasX = (await doc1Z.GetTextAsync()).ToString().Contains("X");
+
+                if (hasX)
+                {
+                    var doc2Z = cs.GetDocument(document2.Id);
+                    var compilation2Z = await doc2Z.Project.GetCompilationAsync();
+                    var classDz = compilation2Z.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
+                    var classCz = classDz.BaseType;
+
+                    if (classCz.TypeKind == TypeKind.Error)
+                        foundTheError = true;
+                }
+            }
+
+            // Should find now that we're going a normal compilation.
+            Assert.True(foundTheError, "Did not find error");
         }
 
         // In balanced mode the skeleton won't be regenerated.  So the downstream project won't see the change to

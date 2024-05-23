@@ -50,5 +50,5 @@ internal static class WorkspaceConfigurationOptionsStorage
             SourceGeneratorExecutionPreferenceUtilities.GetEditorConfigString));
 
     public static readonly Option2<bool> SourceGeneratorExecutionBalancedFeatureFlag = new(
-        "dotnet_source_generator_execution_balanced_feature_flag", true);
+        "dotnet_source_generator_execution_balanced_feature_flag", false);
 }

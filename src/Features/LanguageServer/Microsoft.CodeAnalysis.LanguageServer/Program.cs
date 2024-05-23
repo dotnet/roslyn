@@ -9,7 +9,6 @@ using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Roslyn.Utilities;
@@ -82,11 +80,6 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
 
     using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, serverConfiguration.DevKitDependencyPath, loggerFactory);
-
-    // LSP server doesn't have the pieces yet to support 'balanced' mode for source-generators.  Hardcode us to
-    // 'automatic' for now.
-    var globalOptionService = exportProvider.GetExportedValue<IGlobalOptionService>();
-    globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
     Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
