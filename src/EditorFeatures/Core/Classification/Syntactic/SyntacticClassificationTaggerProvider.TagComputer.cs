@@ -394,7 +394,7 @@ internal partial class SyntacticClassificationTaggerProvider
                 return _lastProcessedData;
         }
 
-        public void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> tags)
+        public void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<TagSpan<IClassificationTag>> tags)
         {
             _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
@@ -402,7 +402,7 @@ internal partial class SyntacticClassificationTaggerProvider
                 AddTagsWorker(spans, tags);
         }
 
-        private void AddTagsWorker(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> tags)
+        private void AddTagsWorker(NormalizedSnapshotSpanCollection spans, SegmentedList<TagSpan<IClassificationTag>> tags)
         {
             _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
             if (spans.Count == 0 || _workspace == null)

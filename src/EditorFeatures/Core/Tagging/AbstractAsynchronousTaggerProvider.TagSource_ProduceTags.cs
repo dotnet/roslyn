@@ -637,7 +637,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             return tags;
         }
 
-        public void AddTags(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<ITagSpan<TTag>> tags)
+        public void AddTags(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<TagSpan<TTag>> tags)
         {
             _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 

@@ -20,8 +20,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification;
 
-internal abstract class AbstractClassificationService : IClassificationService
+internal abstract class AbstractClassificationService(ISyntaxClassificationService syntaxClassificationService) : IClassificationService
 {
+    private readonly ISyntaxClassificationService _syntaxClassificationService = syntaxClassificationService;
+
     public abstract void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
     public abstract ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan);
 
@@ -192,8 +194,7 @@ internal abstract class AbstractClassificationService : IClassificationService
         if (root is null)
             return;
 
-        var classificationService = services.GetLanguageServices(root.Language).GetRequiredService<ISyntaxClassificationService>();
-        classificationService.AddSyntacticClassifications(root, textSpans, result, cancellationToken);
+        _syntaxClassificationService.AddSyntacticClassifications(root, textSpans, result, cancellationToken);
     }
 
     /// <summary>
