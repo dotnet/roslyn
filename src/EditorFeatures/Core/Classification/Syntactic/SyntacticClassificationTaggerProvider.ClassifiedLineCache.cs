@@ -146,7 +146,6 @@ internal partial class SyntacticClassificationTaggerProvider
             }
 
             var node = GetOrCreateLruNode(span);
-            Contract.ThrowIfTrue(node.Value.Span != span);
 
             node.Value = node.Value with { Span = span };
 
