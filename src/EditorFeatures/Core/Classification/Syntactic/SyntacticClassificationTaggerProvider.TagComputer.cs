@@ -82,9 +82,11 @@ internal partial class SyntacticClassificationTaggerProvider
         private readonly object _gate = new();
         private (ITextSnapshot lastSnapshot, SumType<SyntaxNode, Document> lastDocumentOrRoot)? _lastProcessedData;
 
-        // this will cache previous classification information for a span, so that we can avoid
-        // digging into same tree again and again to find exactly same answer
-        private readonly LastLineCache _lastLineCache;
+        /// <summary>
+        /// This will cache previous classification information for a span, so that we can avoid digging into same tree
+        /// again and again to find exactly same answer
+        /// </summary>
+        private readonly ClassifiedLineCache _lineCache;
 
         private int _taggerReferenceCount;
 
@@ -103,7 +105,7 @@ internal partial class SyntacticClassificationTaggerProvider
                 taggerProvider._listener,
                 _disposalCancellationSource.Token);
 
-            _lastLineCache = new LastLineCache(taggerProvider._threadingContext);
+            _lineCache = new ClassifiedLineCache(taggerProvider._threadingContext);
 
             _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
             _workspaceRegistration.WorkspaceChanged += OnWorkspaceRegistrationChanged;
@@ -465,7 +467,7 @@ internal partial class SyntacticClassificationTaggerProvider
             _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
             var cancellationToken = CancellationToken.None;
 
-            if (_lastLineCache.TryUseCache(span, classifiedSpans))
+            if (_lineCache.TryUseCache(span, classifiedSpans))
                 return;
 
             using var _ = Classifier.GetPooledList(out var tempList);
@@ -487,7 +489,7 @@ internal partial class SyntacticClassificationTaggerProvider
             else
                 classificationService.AddSyntacticClassificationsAsync(lastProcessedDocumentOrRoot.Second, span.Span.ToTextSpan(), tempList, cancellationToken).Wait(cancellationToken);
 
-            _lastLineCache.Update(span, tempList);
+            _lineCache.Update(span, tempList);
             classifiedSpans.AddRange(tempList);
         }
 
