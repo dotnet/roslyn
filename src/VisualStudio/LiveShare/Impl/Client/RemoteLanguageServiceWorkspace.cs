@@ -44,7 +44,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// Gate to make sure we only update the paths and trigger RDT one at a time.
         /// Guards <see cref="_remoteWorkspaceRootPaths"/> and <see cref="_registeredExternalPaths"/>
         /// </summary>
+        // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
+#pragma warning disable RS0030 // Do not use banned APIs
         private static readonly SemaphoreSlim s_RemotePathsGate = new SemaphoreSlim(initialCount: 1);
+#pragma warning restore RS0030 // Do not use banned APIs
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;

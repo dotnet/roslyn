@@ -160,3 +160,4 @@ static Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.Default.get -> Mi
 static Microsoft.CodeAnalysis.Scripting.ScriptOptions.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 static Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.Default.get -> Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver
 virtual Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.IsValidRadix(int radix) -> bool
+virtual Microsoft.CodeAnalysis.Scripting.ScriptRunner<T>.Invoke(object globals = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<T>

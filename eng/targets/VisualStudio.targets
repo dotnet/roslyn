@@ -143,24 +143,4 @@
   </Target>
 
   <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
-
-  <!--
-    TODO: Workaround for a bug in Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk
-    Remove once we can update to a version that includes the fix.
-
-    Replaces ExtensionJsonOutputGroup target defined in Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk.props
-  -->
-  <Target Name="ExtensionJsonOutputGroup" Returns="@(ExtensionJsonOutputGroupOutput)" DependsOnTargets="IncludeGeneratedExtensionManifests">
-    <ItemGroup>
-      <ExtensionJsonOutputGroupOutput Include="$(OutDir)\.vsextension\extension.json" Condition="Exists('$(OutDir)\.vsextension\extension.json')" TargetPath=".vsextension\extension.json" />
-    </ItemGroup>
-  </Target>
-
-  <!--
-    Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk.props creates content items for all files in .vsextension dir.
-    NuGet includes content items in package, by default but these items should only be included in the VSIX.
-  -->
-  <ItemGroup>
-    <Content Update=".vsextension\**\*" Pack="false" />
-  </ItemGroup>
 </Project>
