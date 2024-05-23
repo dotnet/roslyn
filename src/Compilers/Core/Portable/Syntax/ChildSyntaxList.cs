@@ -83,11 +83,21 @@ namespace Microsoft.CodeAnalysis
             return green.IsList ? green.SlotCount : 1;
         }
 
-        internal record struct SlotData(int SlotIndex, int FirstIndexAtSlotIndex, int PositionAtSlotIndex);
+        internal struct SlotData(int slotIndex, int firstIndexAtSlotIndex, int positionAtSlotIndex)
+        {
+            // The green node slot index at which to start the search
+            public int SlotIndex { get; set; } = slotIndex;
+
+            // Indicates the total number of occupants in preceding slots
+            public int FirstIndexAtSlotIndex { get; set; } = firstIndexAtSlotIndex;
+
+            // Indicates the node start position plus any prior slot full widths
+            public int PositionAtSlotIndex { get; set; } = positionAtSlotIndex;
+        }
 
         internal static SyntaxNodeOrToken ItemInternal(SyntaxNode node, int index)
         {
-            SlotData slotData = new SlotData(SlotIndex: 0, FirstIndexAtSlotIndex: 0, PositionAtSlotIndex: node.Position);
+            var slotData = new SlotData(slotIndex: 0, firstIndexAtSlotIndex: 0, positionAtSlotIndex: node.Position);
 
             return ItemInternal(node, index, ref slotData);
         }
@@ -100,6 +110,10 @@ namespace Microsoft.CodeAnalysis
         {
             GreenNode? greenChild;
             var green = node.Green;
+
+            // slotData may contain information that allows us to start the loop below using data
+            // calculated during a previous call. As index represents the offset into all children of
+            // node, idx represents the offset requested relative to the given slot index.
             var idx = index - slotData.FirstIndexAtSlotIndex;
             var slotIndex = slotData.SlotIndex;
             var position = slotData.PositionAtSlotIndex;
@@ -134,6 +148,8 @@ namespace Microsoft.CodeAnalysis
             if (slotIndex != slotData.SlotIndex)
             {
                 slotData.SlotIndex = slotIndex;
+
+                // (index - idx) represents the number of occupants prior to this new slotIndex
                 slotData.FirstIndexAtSlotIndex = index - idx;
                 slotData.PositionAtSlotIndex = position;
             }

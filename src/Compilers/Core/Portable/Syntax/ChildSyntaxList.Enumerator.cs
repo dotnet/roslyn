@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis
             private SyntaxNode? _node;
             private int _count;
             private int _childIndex;
-            SlotData _slotData;
+            private SlotData _slotData;
 
             internal Enumerator(SyntaxNode node, int count)
             {
                 _node = node;
                 _count = count;
                 _childIndex = -1;
-                _slotData = new SlotData(SlotIndex: 0, FirstIndexAtSlotIndex: 0, node.Position);
+                _slotData = new SlotData(slotIndex: 0, firstIndexAtSlotIndex: 0, node.Position);
             }
 
             // PERF: Initialize an Enumerator directly from a SyntaxNode without going
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
                 _node = node;
                 _count = CountNodes(node.Green);
                 _childIndex = -1;
-                _slotData = new SlotData(SlotIndex: 0, FirstIndexAtSlotIndex: 0, node.Position);
+                _slotData = new SlotData(slotIndex: 0, firstIndexAtSlotIndex: 0, node.Position);
             }
 
             /// <summary>Advances the enumerator to the next element of the <see cref="ChildSyntaxList" />.</summary>
