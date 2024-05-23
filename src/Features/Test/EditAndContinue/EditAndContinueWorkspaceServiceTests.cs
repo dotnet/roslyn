@@ -860,17 +860,6 @@ class C1
         }, _telemetryLog);
     }
 
-    private class TestSourceTextContainer : SourceTextContainer
-    {
-        public SourceText Text { get; set; }
-
-        public override SourceText CurrentText => Text;
-
-#pragma warning disable CS0067
-        public override event EventHandler<TextChangeEventArgs> TextChanged;
-#pragma warning restore
-    }
-
     [Fact]
     public async Task Encodings()
     {

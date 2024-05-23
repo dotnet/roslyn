@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,11 +16,10 @@ using Microsoft.CodeAnalysis.BrokeredServices.UnitTests;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -26,13 +28,11 @@ using Roslyn.Utilities;
 using Xunit;
 using DebuggerContracts = Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
-namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue;
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue;
 
 [UseExportProvider]
-public class EditAndContinueLanguageServiceTests : TestBase
+public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestBase
 {
-    private static readonly Guid s_solutionTelemetryId = Guid.Parse("00000000-AAAA-AAAA-AAAA-000000000000");
-
     private static string Inspect(DiagnosticData d)
         => $"{d.Severity} {d.Id}:" +
             (!string.IsNullOrWhiteSpace(d.DataLocation.UnmappedFileSpan.Path) ? $" {d.DataLocation.UnmappedFileSpan.Path}({d.DataLocation.UnmappedFileSpan.StartLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.StartLinePosition.Character}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Character}):" : "") +
@@ -42,8 +42,6 @@ public class EditAndContinueLanguageServiceTests : TestBase
         => $"{d.Severity} {d.Id}:" +
             (!string.IsNullOrWhiteSpace(d.FilePath) ? $" {d.FilePath}({d.Span.StartLine}, {d.Span.StartColumn}, {d.Span.EndLine}, {d.Span.EndColumn}):" : "") +
             $" {d.Message}";
-
-    private Func<Project, CompilationOutputs> _mockCompilationOutputsProvider;
 
     private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out EditAndContinueLanguageService languageService, Type[] additionalParts = null)
     {
@@ -59,7 +57,7 @@ public class EditAndContinueLanguageServiceTests : TestBase
 
         ((MockServiceBroker)workspace.GetService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
         {
-            _ when t == typeof(DebuggerContracts.IHotReloadLogger) => new MockHotReloadLogger(),
+            _ when t == typeof(Microsoft.VisualStudio.Debugger.Contracts.HotReload.IHotReloadLogger) => new MockHotReloadLogger(),
             _ => throw ExceptionUtilities.UnexpectedValue(t)
         };
 
@@ -71,12 +69,15 @@ public class EditAndContinueLanguageServiceTests : TestBase
         return workspace;
     }
 
-    private EditAndContinueService GetEditAndContinueService(TestWorkspace workspace)
+    private class TestSourceTextContainer : SourceTextContainer
     {
-        var service = (EditAndContinueService)workspace.GetService<IEditAndContinueService>();
-        var accessor = service.GetTestAccessor();
-        accessor.SetOutputProvider(project => _mockCompilationOutputsProvider(project));
-        return service;
+        public SourceText Text { get; set; }
+
+        public override SourceText CurrentText => Text;
+
+#pragma warning disable CS0067
+        public override event EventHandler<TextChangeEventArgs> TextChanged;
+#pragma warning restore
     }
 
     [Theory, CombinatorialData]
@@ -158,9 +159,9 @@ public class EditAndContinueLanguageServiceTests : TestBase
         {
             var syntaxTree = solution.GetRequiredDocument(documentId).GetSyntaxTreeSynchronously(CancellationToken.None)!;
 
-            var documentDiagnostic = Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "error 1"]);
-            var projectDiagnostic = Diagnostic.Create(diagnosticDescriptor1, Location.None, ["proj", "error 2"]);
-            var syntaxError = Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "syntax error 3"]);
+            var documentDiagnostic = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "error 1"]);
+            var projectDiagnostic = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.None, ["proj", "error 2"]);
+            var syntaxError = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "syntax error 3"]);
 
             return new()
             {
