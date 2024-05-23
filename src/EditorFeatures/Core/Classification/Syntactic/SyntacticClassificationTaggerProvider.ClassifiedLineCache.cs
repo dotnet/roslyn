@@ -121,7 +121,7 @@ internal partial class SyntacticClassificationTaggerProvider
             if (!_spanToLruNode.TryGetValue(snapshotSpan.Span, out var node))
                 return false;
 
-            // Move this node to the front of the LRU list.
+            // Move this node to the end of the LRU list.
             _lruList.Remove(node);
             _lruList.AddLast(node);
 
@@ -130,8 +130,7 @@ internal partial class SyntacticClassificationTaggerProvider
             return true;
         }
 
-        public void Update(
-            SnapshotSpan snapshotSpan, SegmentedList<ClassifiedSpan> newClassifications)
+        public void Update(SnapshotSpan snapshotSpan, SegmentedList<ClassifiedSpan> newClassifications)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
