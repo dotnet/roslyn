@@ -34,6 +34,7 @@ internal partial class NavigationBarController
             return null;
 
         var textSnapshot = _subjectBuffer.CurrentSnapshot;
+        var caretPoint = GetCaretPoint();
 
         // Ensure we switch to the threadpool before calling GetDocumentWithFrozenPartialSemantics.  It ensures
         // that any IO that performs is not potentially on the UI thread.
@@ -41,9 +42,11 @@ internal partial class NavigationBarController
 
         var model = await ComputeModelAsync().ConfigureAwait(false);
 
-        // Now, enqueue work to select the right item in this new model.
-        if (model != null)
-            StartSelectedItemUpdateTask();
+        // Now, enqueue work to select the right item in this new model. Note: we don't want to cancel existing items in
+        // the queue as it may be the case that the user moved between us capturing the initial caret point and now, and
+        // we'd want the selection work we enqueued for that to take precedence over us.
+        if (model != null && caretPoint != null)
+            _selectItemQueue.AddWork(caretPoint.Value, cancelExistingWork: false);
 
         return model;
 
@@ -94,52 +97,24 @@ internal partial class NavigationBarController
         }
     }
 
-    /// <summary>
-    /// Starts a new task to compute what item should be selected.
-    /// </summary>
-    private void StartSelectedItemUpdateTask()
+    private async ValueTask SelectItemAsync(ImmutableSegmentedList<int> positions, CancellationToken cancellationToken)
     {
-        // Cancel any in flight work.  This way we don't update until a short lull after the last user event we received.
-        _selectItemQueue.AddWork(cancelExistingWork: true);
-    }
+        var position = positions.Last();
 
-    private async ValueTask SelectItemAsync(CancellationToken cancellationToken)
-    {
-        // Switch to the UI so we can determine where the user is and determine the state the last time we updated
-        // the UI.
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
-
-        // Cancellation exceptions are ignored in AsyncBatchingWorkQueue, so return without throwing if cancellation
-        // occurred while switching to the main thread.
-        if (cancellationToken.IsCancellationRequested)
-            return;
-
-        await SelectItemWorkerAsync(cancellationToken).ConfigureAwait(true);
-
-        // Once we've computed and selected the latest navbar items, pause ourselves if we're no longer visible.
-        // That way we don't consume any machine resources that the user won't even notice.
-        if (_visibilityTracker?.IsVisible(_subjectBuffer) is false)
-            Pause();
-    }
-
-    private async ValueTask SelectItemWorkerAsync(CancellationToken cancellationToken)
-    {
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        var currentView = _presenter.TryGetCurrentView();
-        var caretPosition = currentView?.GetCaretPoint(_subjectBuffer);
-        if (!caretPosition.HasValue)
-            return;
-
-        var position = caretPosition.Value.Position;
+        // Can grab this directly here as only this queue ever reads or writes to it.
         var lastPresentedInfo = _lastPresentedInfo;
 
-        // Jump back to the BG to do any expensive work walking the entire model
-        await TaskScheduler.Default;
+        // Make a task that waits indefinitely, or until the cancellation token is signaled.
+        var cancellationTriggeredTask = Task.Delay(-1, cancellationToken);
 
-        // Ensure the latest model is computed.
-        var model = await _computeModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(true);
+        // Get the task representing the computation of the model.
+        var modelTask = _computeModelQueue.WaitUntilCurrentBatchCompletesAsync();
 
+        var completedTask = await Task.WhenAny(cancellationTriggeredTask, modelTask).ConfigureAwait(false);
+        if (completedTask == cancellationTriggeredTask)
+            return;
+
+        var model = await modelTask.ConfigureAwait(false);
         var currentSelectedItem = ComputeSelectedTypeAndMember(model, position, cancellationToken);
 
         GetProjectItems(out var projectItems, out var selectedProjectItem);
