@@ -11,9 +11,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification;
 
-using static ICSharpCode.Decompiler.IL.Transforms.Stepper;
-using SpanAndClassifiedSpans = (Span span, SegmentedList<ClassifiedSpan> classifiedSpans);
-
 internal partial class SyntacticClassificationTaggerProvider
 {
     /// <summary>
@@ -28,6 +25,8 @@ internal partial class SyntacticClassificationTaggerProvider
     /// </remarks>
     private sealed class ClassifiedLineCache(IThreadingContext threadingContext)
     {
+        private readonly record struct SpanAndClassifiedSpans(Span Span, SegmentedList<ClassifiedSpan> ClassifiedSpans);
+
         /// <summary>
         /// Ensure that we don't cache incredibly long lines (for example, a minified JavaScript file).  This also
         /// ensures if we were asked by some party to classify a large section of the file, that we don't attempt to
@@ -78,7 +77,7 @@ internal partial class SyntacticClassificationTaggerProvider
             _lruList.AddLast(node);
 
             // AddRange is optimized to take a SegmentedList and copy directly from it into the result list.
-            classifications.AddRange(node.Value.classifiedSpans);
+            classifications.AddRange(node.Value.ClassifiedSpans);
             return true;
         }
 
@@ -107,24 +106,24 @@ internal partial class SyntacticClassificationTaggerProvider
         }
 
         /// <summary>
-        /// Helper that allows us to reuse the <paramref name="existingClassifications"/> list, updating it to have
-        /// all the classifications in <paramref name="classifications"/>.
+        /// Helper that allows us to reuse the classified spans list inside <paramref name="existingNode"/> list,
+        /// updating it to have all the classifications in <paramref name="classifications"/>.
         /// </summary>
-        private static void ClearExistingClassificationsAndAddNewClassificationsToIt(
-            SegmentedList<ClassifiedSpan> existingClassifications,
+        private static void UpdateLruNodeClassifications(
+            LinkedListNode<SpanAndClassifiedSpans> existingNode,
             SegmentedList<ClassifiedSpan> classifications)
         {
-            existingClassifications.Clear();
+            existingNode.Value.ClassifiedSpans.Clear();
 
             // AddRange is optimized to take a SegmentedList and copy directly from it into the result list.
-            existingClassifications.AddRange(classifications);
+            existingNode.Value.ClassifiedSpans.AddRange(classifications);
         }
 
         private void UpdateExistingEntryInCache(
             SegmentedList<ClassifiedSpan> newClassifications, LinkedListNode<SpanAndClassifiedSpans> existingNode)
         {
             // Was in cache.  Update the cached classifications to the new ones.
-            ClearExistingClassificationsAndAddNewClassificationsToIt(existingNode.Value.classifiedSpans, newClassifications);
+            UpdateLruNodeClassifications(existingNode, newClassifications);
 
             // And move this span to the front of end of the LRU list.
             _lruList.Remove(existingNode);
@@ -139,7 +138,7 @@ internal partial class SyntacticClassificationTaggerProvider
             {
                 // We're not at capacity.  Just add this new entry. Note: The SegmentedList constructor fast paths the
                 // case where we pass in another SegmentedList.
-                var node = _lruList.AddLast((span, new SegmentedList<ClassifiedSpan>(newClassifications)));
+                var node = _lruList.AddLast(new SpanAndClassifiedSpans(span, new SegmentedList<ClassifiedSpan>(newClassifications)));
                 _spanToLruNode.Add(span, node);
             }
             else
@@ -153,20 +152,20 @@ internal partial class SyntacticClassificationTaggerProvider
 
                 // Now, remove the entry from the map as well.
 #if NET
-                Contract.ThrowIfFalse(_spanToLruNode.Remove(firstNode.Value.span, out var existingNode));
+                Contract.ThrowIfFalse(_spanToLruNode.Remove(firstNode.Value.Span, out var existingNode));
 #else
-                var existingNode = _spanToLruNode[firstNode.Value.span];
-                Contract.ThrowIfFalse(_spanToLruNode.Remove(firstNode.Value.span));
+                var existingNode = _spanToLruNode[firstNode.Value.Span];
+                Contract.ThrowIfFalse(_spanToLruNode.Remove(firstNode.Value.Span));
 #endif
 
                 Contract.ThrowIfTrue(firstNode != existingNode);
 
                 // Reuse the classifications array as well, so we don't incur a new allocation.
-                ClearExistingClassificationsAndAddNewClassificationsToIt(existingNode.Value.classifiedSpans, newClassifications);
+                UpdateLruNodeClassifications(existingNode, newClassifications);
 
-                // Place the first node, which we removed, (with its value updated to the current span) at the end
-                // of the list.  And update the map to contain this updated information.
-                existingNode.Value = (span, existingNode.Value.classifiedSpans);
+                // Place the existing node (which we removed), with its value updated to the current span and new classifications, at the end of
+                // the list.  And update the map to contain this updated information.
+                existingNode.Value = existingNode.Value with { Span = span };
                 _lruList.AddLast(existingNode);
                 _spanToLruNode.Add(span, existingNode);
             }
