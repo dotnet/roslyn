@@ -40951,10 +40951,9 @@ struct S { }
 
 implicit extension E for S
 {
-    public void M() { System.Console.Write("ran"); }
+    public void M() { System.Console.Write("ran "); }
 }
 """;
-        // PROTOTYPE(instance) Verify mutation
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
@@ -41296,26 +41295,28 @@ class C
         var source = """
 S s = new S();
 s[s = new S() { field = 2 }] += 10;
+System.Console.Write(s.field);
 
 struct S
 {
     public int field;
+    public int Increment() => field += 1;
 }
 
 implicit extension E for S
 {
     public int this[S s]
     {
-        get { System.Console.Write(this.field); return 0; }
-        set { System.Console.Write(this.field); }
+        get { System.Console.Write(this.Increment()); return 0; }
+        set { System.Console.Write(this.Increment()); }
     }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("22"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("344"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       54 (0x36)
+  // Code size       65 (0x41)
   .maxstack  4
   .locals init (S V_0, //s
                 E& V_1,
@@ -41343,26 +41344,31 @@ implicit extension E for S
   IL_002d:  ldc.i4.s   10
   IL_002f:  add
   IL_0030:  call       "void E.this[S].set"
-  IL_0035:  ret
+  IL_0035:  ldloc.0
+  IL_0036:  ldfld      "int S.field"
+  IL_003b:  call       "void System.Console.Write(int)"
+  IL_0040:  ret
 }
 """);
 
         source = """
 S s = new S();
 s[s = new S() { field = 2 }] += 10;
+System.Console.Write(s.field);
 
 struct S
 {
     public int field;
+    public int Increment() => field += 1;
     public int this[S s]
     {
-        get { System.Console.Write(this.field); return 0; }
-        set { System.Console.Write(this.field); }
+        get { System.Console.Write(this.Increment()); return 0; }
+        set { System.Console.Write(this.Increment()); }
     }
 }
 """;
         comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("22"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("344"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -41373,6 +41379,7 @@ S s = new S();
 ref S s2 = ref s;
 
 s2[s = new S() { field = 2 }] += 10;
+System.Console.Write(s2.field);
 
 struct S
 {
@@ -41384,17 +41391,17 @@ implicit extension E for S
 {
     public int this[S s]
     {
-        get { System.Console.Write(this.field); return 0; }
-        set { System.Console.Write(this.field); }
+        get { System.Console.Write(this.Increment()); return 0; }
+        set { System.Console.Write(this.Increment()); }
     }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("22"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("344"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       54 (0x36)
-  .maxstack  4
+  // Code size       65 (0x41)
+  .maxstack  5
   .locals init (S V_0, //s
                 E& V_1,
                 S V_2,
@@ -41402,26 +41409,29 @@ implicit extension E for S
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "S"
   IL_0008:  ldloca.s   V_0
-  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
-  IL_000f:  stloc.1
-  IL_0010:  ldloca.s   V_3
-  IL_0012:  initobj    "S"
-  IL_0018:  ldloca.s   V_3
-  IL_001a:  ldc.i4.2
-  IL_001b:  stfld      "int S.field"
-  IL_0020:  ldloc.3
-  IL_0021:  dup
-  IL_0022:  stloc.0
-  IL_0023:  stloc.2
-  IL_0024:  ldloc.1
-  IL_0025:  ldloc.2
-  IL_0026:  ldloc.1
-  IL_0027:  ldloc.2
-  IL_0028:  call       "int E.this[S].get"
-  IL_002d:  ldc.i4.s   10
-  IL_002f:  add
-  IL_0030:  call       "void E.this[S].set"
-  IL_0035:  ret
+  IL_000a:  dup
+  IL_000b:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_0010:  stloc.1
+  IL_0011:  ldloca.s   V_3
+  IL_0013:  initobj    "S"
+  IL_0019:  ldloca.s   V_3
+  IL_001b:  ldc.i4.2
+  IL_001c:  stfld      "int S.field"
+  IL_0021:  ldloc.3
+  IL_0022:  dup
+  IL_0023:  stloc.0
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.1
+  IL_0026:  ldloc.2
+  IL_0027:  ldloc.1
+  IL_0028:  ldloc.2
+  IL_0029:  call       "int E.this[S].get"
+  IL_002e:  ldc.i4.s   10
+  IL_0030:  add
+  IL_0031:  call       "void E.this[S].set"
+  IL_0036:  ldfld      "int S.field"
+  IL_003b:  call       "void System.Console.Write(int)"
+  IL_0040:  ret
 }
 """);
 
@@ -41430,6 +41440,7 @@ S s = new S();
 ref S s2 = ref s;
 
 s2[s = new S() { field = 2 }] += 10;
+System.Console.Write(s2.field);
 
 struct S
 {
@@ -41437,13 +41448,13 @@ struct S
     public int Increment() => field += 1;
     public int this[S s]
     {
-        get { System.Console.Write(this.field); return 0; }
-        set { System.Console.Write(this.field); }
+        get { System.Console.Write(this.Increment()); return 0; }
+        set { System.Console.Write(this.Increment()); }
     }
 }
 """;
         comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("22"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("344"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -41606,18 +41617,20 @@ class C
         var source = """
 S s = new S();
 s[s = new S() { field = 2 }, await System.Threading.Tasks.Task.FromResult(42)] += 10;
+System.Console.Write(s.field);
 
 struct S
 {
     public int field;
+    public int Increment() => field += 1;
 }
 
 implicit extension E for S
 {
     public int this[S s, int i]
     {
-        get { System.Console.Write(this.field); return 0; }
-        set { System.Console.Write(this.field); }
+        get { System.Console.Write(this.Increment()); return 0; }
+        set { System.Console.Write(this.Increment()); }
     }
 }
 """;
@@ -41637,6 +41650,7 @@ S s = new S();
 ref S s2 = ref s;
 
 s2[s = new S() { field = 2 }, await System.Threading.Tasks.Task.FromResult(42)] += 10;
+System.Console.Write(s.field);
 
 struct S
 {
@@ -41648,8 +41662,8 @@ implicit extension E for S
 {
     public int this[S s, int i]
     {
-        get { System.Console.Write(this.field); return 0; }
-        set { System.Console.Write(this.field); }
+        get { System.Console.Write(this.Increment()); return 0; }
+        set { System.Console.Write(this.Increment()); }
     }
 }
 """;
@@ -41691,7 +41705,7 @@ implicit extension E for C
     }
 
     [Fact]
-    public void AdjustReceiver_IndexerAcces_Compound_RefLocal_ReferenceType_ValueModifiedInArgument_WithAwaitArgument()
+    public void AdjustReceiver_IndexerAccess_Compound_RefLocal_ReferenceType_ValueModifiedInArgument_WithAwaitArgument()
     {
         var source = $$"""
 C c = new C();
@@ -42565,25 +42579,27 @@ public struct S
     public void M()
     {
         this[42] += 1;
+        System.Console.Write(this.field);
     }
 
     public int field;
+    public int Increment() => field += 1;
 }
 
 implicit extension E for S
 {
     public int this[int i]
     {
-        get { System.Console.Write("get "); return 42; }
-        set { System.Console.Write($"set({value})"); }
+        get { System.Console.Write("get "); this.Increment(); return 42; }
+        set { System.Console.Write($"set({value}) "); this.Increment(); }
     }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43) 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("S.M", """
 {
-  // Code size       31 (0x1f)
+  // Code size       42 (0x2a)
   .maxstack  4
   .locals init (S& V_0)
   IL_0000:  ldarg.0
@@ -42598,7 +42614,10 @@ implicit extension E for S
   IL_0017:  ldc.i4.1
   IL_0018:  add
   IL_0019:  call       "void E.this[int].set"
-  IL_001e:  ret
+  IL_001e:  ldarg.0
+  IL_001f:  ldfld      "int S.field"
+  IL_0024:  call       "void System.Console.Write(int)"
+  IL_0029:  ret
 }
 """);
     }
@@ -42609,23 +42628,29 @@ implicit extension E for S
         var source = """
 S s = new S();
 System.Console.Write(s.P += 1);
+System.Console.Write(" ");
+System.Console.Write(s.field);
 
-struct S { }
+struct S
+{
+    public int field;
+    public int Increment() => field += 1;
+}
 
 implicit extension E for S
 {
     static int field = 42;
     public ref int P
     {
-        get { System.Console.Write("get "); return ref field; }
+        get { System.Console.Write("get "); this.Increment(); return ref field; }
     }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get 43"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get 43 1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       34 (0x22)
+  // Code size       55 (0x37)
   .maxstack  3
   .locals init (S V_0, //s
                 int V_1)
@@ -42643,7 +42668,12 @@ implicit extension E for S
   IL_001a:  stind.i4
   IL_001b:  ldloc.1
   IL_001c:  call       "void System.Console.Write(int)"
-  IL_0021:  ret
+  IL_0021:  ldstr      " "
+  IL_0026:  call       "void System.Console.Write(string)"
+  IL_002b:  ldloc.0
+  IL_002c:  ldfld      "int S.field"
+  IL_0031:  call       "void System.Console.Write(int)"
+  IL_0036:  ret
 }
 """);
     }
@@ -42879,23 +42909,28 @@ implicit extension E for int
         var source = """
 S s = new S();
 s[10] += 1;
+System.Console.Write(s.field);
 
-struct S { }
+struct S
+{
+    public int field;
+    public int Increment() => field += 1;
+}
 
 implicit extension E for S
 {
     public int this[int i]
     {
-        get { System.Console.Write("get "); return 42; }
-        set { System.Console.Write($"set({value})"); }
+        get { System.Console.Write("get "); this.Increment(); return 42; }
+        set { System.Console.Write($"set({value}) "); this.Increment(); }
     }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get set(43) 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       35 (0x23)
+  // Code size       46 (0x2e)
   .maxstack  4
   .locals init (S V_0, //s
                 E& V_1)
@@ -42912,7 +42947,10 @@ implicit extension E for S
   IL_001b:  ldc.i4.1
   IL_001c:  add
   IL_001d:  call       "void E.this[int].set"
-  IL_0022:  ret
+  IL_0022:  ldloc.0
+  IL_0023:  ldfld      "int S.field"
+  IL_0028:  call       "void System.Console.Write(int)"
+  IL_002d:  ret
 }
 """);
     }
@@ -42929,6 +42967,7 @@ class C
         System.Action a = () => { System.Console.Write("ran2 "); };
         Add(s, a);
         Remove(s, a);
+        System.Console.Write(s.field);
     }
 
     public static void Add(S s, System.Action a)
@@ -42945,18 +42984,21 @@ class C
 struct S 
 { 
     public void M() { System.Console.Write("ran4 "); }
+    public int field;
+    public int Increment() => field += 1;
 }
 
 implicit extension E for S
 {
     public event System.Action Event
     {
-        add { System.Console.Write("ran1 "); value(); this.M(); }
-        remove { System.Console.Write("ran3 "); this.M(); }
+        add { System.Console.Write("ran1 "); value(); this.M(); this.Increment(); }
+        remove { System.Console.Write("ran3 "); this.M(); this.Increment(); }
     }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        // TODO2
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran1 ran2 ran4 ran3 ran4"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("C.Add", """
 {
@@ -42992,12 +43034,17 @@ implicit extension E for S
         var source = """
 S s = new S();
 s.M(await System.Threading.Tasks.Task.FromResult(42));
+System.Console.Write(s.field);
 
-struct S { }
+struct S
+{
+    public int field;
+    public int Increment() => field += 1;
+}
 
 implicit extension E for S
 {
-    public void M(int i) { System.Console.Write("ran"); }
+    public void M(int i) { System.Console.Write("ran"); this.Increment(); }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
@@ -43017,14 +43064,17 @@ using System.Runtime.CompilerServices;
 
 S s = new S();
 s.M($"literal", await System.Threading.Tasks.Task.FromResult(42));
+System.Console.Write(s.field);
 
 public struct S
 {
+    public int field;
+    public int Increment() => field += 1;
 }
 
 public implicit extension E for S
 {
-    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c, int i) { }
+    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c, int i) { this.Increment(); }
 }
 
 [System.Runtime.CompilerServices.InterpolatedStringHandler]
@@ -43036,7 +43086,7 @@ public struct CustomHandler
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Handler(42) 42"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Handler(42) 421"), verify: Verification.FailsPEVerify);
     }
 
     [Fact]
@@ -43046,19 +43096,24 @@ public struct CustomHandler
 S s = new S();
 var arg = await System.Threading.Tasks.Task.FromResult(42);
 s.M(arg);
+System.Console.Write(s.field);
 
-struct S { }
+struct S
+{
+    public int field;
+    public int Increment() => field += 1;
+}
 
 implicit extension E for S
 {
-    public void M(int i) { System.Console.Write("ran"); }
+    public void M(int i) { System.Console.Write("ran "); this.Increment(); }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran 1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("Program.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
 {
-  // Code size      207 (0xcf)
+  // Code size      227 (0xe3)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_1,
@@ -43072,7 +43127,7 @@ implicit extension E for S
     IL_0007:  ldloc.0
     IL_0008:  brfalse.s  IL_000c
     IL_000a:  br.s       IL_000e
-    IL_000c:  br.s       IL_0054
+    IL_000c:  br.s       IL_0057
     IL_000e:  ldarg.0
     IL_000f:  ldflda     "S Program.<<Main>$>d__0.<s>5__1"
     IL_0014:  initobj    "S"
@@ -43082,7 +43137,7 @@ implicit extension E for S
     IL_0026:  stloc.1
     IL_0027:  ldloca.s   V_1
     IL_0029:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get"
-    IL_002e:  brtrue.s   IL_0070
+    IL_002e:  brtrue.s   IL_0073
     IL_0030:  ldarg.0
     IL_0031:  ldc.i4.0
     IL_0032:  dup
@@ -43099,56 +43154,61 @@ implicit extension E for S
     IL_004a:  ldloca.s   V_2
     IL_004c:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<<Main>$>d__0)"
     IL_0051:  nop
-    IL_0052:  leave.s    IL_00ce
-    IL_0054:  ldarg.0
-    IL_0055:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
-    IL_005a:  stloc.1
-    IL_005b:  ldarg.0
-    IL_005c:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
-    IL_0061:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<int>"
-    IL_0067:  ldarg.0
-    IL_0068:  ldc.i4.m1
-    IL_0069:  dup
-    IL_006a:  stloc.0
-    IL_006b:  stfld      "int Program.<<Main>$>d__0.<>1__state"
-    IL_0070:  ldarg.0
-    IL_0071:  ldloca.s   V_1
-    IL_0073:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
-    IL_0078:  stfld      "int Program.<<Main>$>d__0.<>s__3"
-    IL_007d:  ldarg.0
-    IL_007e:  ldarg.0
-    IL_007f:  ldfld      "int Program.<<Main>$>d__0.<>s__3"
-    IL_0084:  stfld      "int Program.<<Main>$>d__0.<arg>5__2"
-    IL_0089:  ldarg.0
-    IL_008a:  ldflda     "S Program.<<Main>$>d__0.<s>5__1"
-    IL_008f:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
-    IL_0094:  ldarg.0
-    IL_0095:  ldfld      "int Program.<<Main>$>d__0.<arg>5__2"
-    IL_009a:  call       "void E.M(int)"
-    IL_009f:  nop
-    IL_00a0:  leave.s    IL_00ba
+    IL_0052:  leave      IL_00e2
+    IL_0057:  ldarg.0
+    IL_0058:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+    IL_005d:  stloc.1
+    IL_005e:  ldarg.0
+    IL_005f:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<int> Program.<<Main>$>d__0.<>u__1"
+    IL_0064:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<int>"
+    IL_006a:  ldarg.0
+    IL_006b:  ldc.i4.m1
+    IL_006c:  dup
+    IL_006d:  stloc.0
+    IL_006e:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+    IL_0073:  ldarg.0
+    IL_0074:  ldloca.s   V_1
+    IL_0076:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+    IL_007b:  stfld      "int Program.<<Main>$>d__0.<>s__3"
+    IL_0080:  ldarg.0
+    IL_0081:  ldarg.0
+    IL_0082:  ldfld      "int Program.<<Main>$>d__0.<>s__3"
+    IL_0087:  stfld      "int Program.<<Main>$>d__0.<arg>5__2"
+    IL_008c:  ldarg.0
+    IL_008d:  ldflda     "S Program.<<Main>$>d__0.<s>5__1"
+    IL_0092:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+    IL_0097:  ldarg.0
+    IL_0098:  ldfld      "int Program.<<Main>$>d__0.<arg>5__2"
+    IL_009d:  call       "void E.M(int)"
+    IL_00a2:  nop
+    IL_00a3:  ldarg.0
+    IL_00a4:  ldflda     "S Program.<<Main>$>d__0.<s>5__1"
+    IL_00a9:  ldfld      "int S.field"
+    IL_00ae:  call       "void System.Console.Write(int)"
+    IL_00b3:  nop
+    IL_00b4:  leave.s    IL_00ce
   }
   catch System.Exception
   {
-    IL_00a2:  stloc.3
-    IL_00a3:  ldarg.0
-    IL_00a4:  ldc.i4.s   -2
-    IL_00a6:  stfld      "int Program.<<Main>$>d__0.<>1__state"
-    IL_00ab:  ldarg.0
-    IL_00ac:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
-    IL_00b1:  ldloc.3
-    IL_00b2:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
-    IL_00b7:  nop
-    IL_00b8:  leave.s    IL_00ce
+    IL_00b6:  stloc.3
+    IL_00b7:  ldarg.0
+    IL_00b8:  ldc.i4.s   -2
+    IL_00ba:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+    IL_00bf:  ldarg.0
+    IL_00c0:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+    IL_00c5:  ldloc.3
+    IL_00c6:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00cb:  nop
+    IL_00cc:  leave.s    IL_00e2
   }
-  IL_00ba:  ldarg.0
-  IL_00bb:  ldc.i4.s   -2
-  IL_00bd:  stfld      "int Program.<<Main>$>d__0.<>1__state"
-  IL_00c2:  ldarg.0
-  IL_00c3:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
-  IL_00c8:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
-  IL_00cd:  nop
-  IL_00ce:  ret
+  IL_00ce:  ldarg.0
+  IL_00cf:  ldc.i4.s   -2
+  IL_00d1:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+  IL_00d6:  ldarg.0
+  IL_00d7:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+  IL_00dc:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00e1:  nop
+  IL_00e2:  ret
 }
 """);
     }
@@ -43723,7 +43783,7 @@ public struct CustomHandler
 
     [Theory]
     [CombinatorialData]
-    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ReferenceTypeReference_ValueIncrementedInArgument(
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ReferenceTypeReference_AssignToNull(
         [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
     {
         var code = $$"""
@@ -43733,19 +43793,18 @@ using System.Runtime.CompilerServices;
 C c = new C() { field = 42 };
 ref var cRef = ref c;
 
-cRef.M({{expression}}, cRef.Increment());
+cRef.M(cRef = null, {{expression}});
 
 public class C
 {
     public int field;
-    public int Increment() { field++; return 0; }
 }
 
 public implicit extension E for C
 {
-    public void M([InterpolatedStringHandlerArgument("")] CustomHandler ch, int i)
+    public void M(C c, [InterpolatedStringHandlerArgument("")] CustomHandler ch)
     {
-        Console.Write(this.field);
+        Console.Write($"{this.field} {c is null}");
     }
 }
 
@@ -43758,17 +43817,18 @@ public struct CustomHandler
 """;
 
         var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("43"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42 True"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       72 (0x48)
-  .maxstack  5
+  // Code size       73 (0x49)
+  .maxstack  6
   .locals init (C V_0, //c
                 C& V_1, //cRef
                 C V_2,
                 E& V_3,
-                CustomHandler V_4)
+                C V_4,
+                CustomHandler V_5)
   IL_0000:  newobj     "C..ctor()"
   IL_0005:  dup
   IL_0006:  ldc.i4.s   42
@@ -43783,54 +43843,27 @@ public struct CustomHandler
   IL_0016:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<C, E>(ref C)"
   IL_001b:  stloc.3
   IL_001c:  ldloc.3
-  IL_001d:  ldloca.s   V_4
-  IL_001f:  ldc.i4.7
-  IL_0020:  ldc.i4.0
-  IL_0021:  ldloc.3
-  IL_0022:  ldobj      "E"
-  IL_0027:  call       "CustomHandler..ctor(int, int, E)"
-  IL_002c:  ldloca.s   V_4
-  IL_002e:  ldstr      "literal"
-  IL_0033:  call       "bool CustomHandler.AppendLiteral(string)"
-  IL_0038:  pop
-  IL_0039:  ldloc.s    V_4
-  IL_003b:  ldloc.1
-  IL_003c:  ldind.ref
-  IL_003d:  callvirt   "int C.Increment()"
-  IL_0042:  call       "void E.M(CustomHandler, int)"
-  IL_0047:  ret
+  IL_001d:  ldloc.1
+  IL_001e:  ldnull
+  IL_001f:  dup
+  IL_0020:  stloc.s    V_4
+  IL_0022:  stind.ref
+  IL_0023:  ldloc.s    V_4
+  IL_0025:  ldloca.s   V_5
+  IL_0027:  ldc.i4.7
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.3
+  IL_002a:  ldobj      "E"
+  IL_002f:  call       "CustomHandler..ctor(int, int, E)"
+  IL_0034:  ldloca.s   V_5
+  IL_0036:  ldstr      "literal"
+  IL_003b:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_0040:  pop
+  IL_0041:  ldloc.s    V_5
+  IL_0043:  call       "void E.M(C, CustomHandler)"
+  IL_0048:  ret
 }
 """);
-
-        code = $$"""
-using System;
-using System.Runtime.CompilerServices;
-
-C c = new C() { field = 42 };
-ref var cRef = ref c;
-
-cRef.M({{expression}}, cRef.Increment());
-
-public class C
-{
-    public int field;
-    public int Increment() { field++; return 0; }
-    public void M([InterpolatedStringHandlerArgument("")] CustomHandler ch, int i)
-    {
-        Console.Write(this.field);
-    }
-}
-
-[InterpolatedStringHandler]
-public struct CustomHandler
-{
-    public CustomHandler(int literalLength, int formattedCount, C c) { }
-    public bool AppendLiteral(string literal) => true;
-}
-""";
-
-        comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("43"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Theory]
@@ -43890,14 +43923,11 @@ using System.Text;
 var s = new S(5);
 ref var sRef = ref s;
 sRef.M({{expression}});
-Console.Write(sRef.field);
 
 public struct S
 {
     public int Prop { get; }
     public S(int i) => Prop = i;
-    public int field;
-    public void Increment() { field++; }
 }
 
 public implicit extension E for S
@@ -43913,7 +43943,6 @@ public struct CustomHandler
         _builder = new();
         ref var s = ref System.Runtime.CompilerServices.Unsafe.As<E, S>(ref e);
         _builder.Append("s.Prop:" + s.Prop.ToString() + " ");
-        s.Increment();
     }
 
     private readonly StringBuilder _builder;
@@ -43927,7 +43956,7 @@ public struct CustomHandler
 """;
 
         var comp = CreateCompilation(code, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("s.Prop:5 literal:literal 0"),
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("s.Prop:5 literal:literal"),
                 sourceSymbolValidator: validator, symbolValidator: validator, verify: Verification.FailsPEVerify)
             .VerifyDiagnostics();
 
@@ -44030,7 +44059,7 @@ ref var sRef = ref s;
 
 S otherS = new S() { field = 43 };
 
-sRef.M({{expression}}, sRef = ref otherS);
+sRef.M(sRef = ref otherS, {{expression}});
 
 public struct S
 {
@@ -44039,7 +44068,7 @@ public struct S
 
 public implicit extension E for S
 {
-    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c, S s)
+    public void M(S s, [InterpolatedStringHandlerArgument("")] CustomHandler c)
     {
         Console.Write(this.field);
     }
@@ -44059,7 +44088,7 @@ public struct CustomHandler
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
   // Code size       97 (0x61)
-  .maxstack  5
+  .maxstack  6
   .locals init (S V_0, //s
                 S& V_1, //sRef
                 S V_2, //otherS
@@ -44086,22 +44115,22 @@ public struct CustomHandler
   IL_002a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
   IL_002f:  stloc.s    V_4
   IL_0031:  ldloc.s    V_4
-  IL_0033:  ldloca.s   V_5
-  IL_0035:  ldc.i4.7
-  IL_0036:  ldc.i4.0
-  IL_0037:  ldloc.s    V_4
-  IL_0039:  ldobj      "E"
-  IL_003e:  call       "CustomHandler..ctor(int, int, E)"
-  IL_0043:  ldloca.s   V_5
-  IL_0045:  ldstr      "literal"
-  IL_004a:  call       "bool CustomHandler.AppendLiteral(string)"
-  IL_004f:  pop
-  IL_0050:  ldloc.s    V_5
-  IL_0052:  ldloca.s   V_2
-  IL_0054:  dup
-  IL_0055:  stloc.1
-  IL_0056:  ldobj      "S"
-  IL_005b:  call       "void E.M(CustomHandler, S)"
+  IL_0033:  ldloca.s   V_2
+  IL_0035:  dup
+  IL_0036:  stloc.1
+  IL_0037:  ldobj      "S"
+  IL_003c:  ldloca.s   V_5
+  IL_003e:  ldc.i4.7
+  IL_003f:  ldc.i4.0
+  IL_0040:  ldloc.s    V_4
+  IL_0042:  ldobj      "E"
+  IL_0047:  call       "CustomHandler..ctor(int, int, E)"
+  IL_004c:  ldloca.s   V_5
+  IL_004e:  ldstr      "literal"
+  IL_0053:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_0058:  pop
+  IL_0059:  ldloc.s    V_5
+  IL_005b:  call       "void E.M(S, CustomHandler)"
   IL_0060:  ret
 }
 """);
@@ -44115,12 +44144,12 @@ ref var sRef = ref s;
 
 S otherS = new S() { field = 43 };
 
-sRef.M({{expression}}, sRef = ref otherS);
+sRef.M(sRef = ref otherS, {{expression}});
 
 public struct S
 {
     public int field;
-    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c, S s)
+    public void M(S s, [InterpolatedStringHandlerArgument("")] CustomHandler c)
     {
         Console.Write(this.field);
     }
@@ -44140,7 +44169,7 @@ public struct CustomHandler
 
     [Theory]
     [CombinatorialData]
-    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ValueTypeReference_ValueModifiedInArgument_WithAwaitArgument(
+    public void AdjustReceiver_InterpolatedStringHandlerArgumentAttribute_ThisParameter_ValueTypeReference_ValueNulledInArgument_WithAwaitArgument(
         [CombinatorialValues(""" $"literal" """, """ $"literal" + $"" """)] string expression)
     {
         // PROTOTYPE we should be able to integrate extension receiver adjustment with spilling of await, and get the same result as without extension
@@ -44153,7 +44182,7 @@ ref var sRef = ref s;
 
 S otherS = new S() { field = 43 };
 
-sRef.M({{expression}}, sRef = ref otherS, await System.Threading.Tasks.Task.FromResult(42));
+sRef.M(sRef = default, {{expression}}, await System.Threading.Tasks.Task.FromResult(42));
 
 public struct S
 {
@@ -44162,8 +44191,9 @@ public struct S
 
 public implicit extension E for S
 {
-    public void M([InterpolatedStringHandlerArgument("")] CustomHandler c, S s, int i)
+    public void M(S s, [InterpolatedStringHandlerArgument("")] CustomHandler c, int i)
     {
+        Console.Write(s.field);
         Console.Write(this.field);
     }
 }
@@ -44953,45 +44983,49 @@ class C
     {
         var source = """
 S s = new S() { field = 42 };
-s.Property += Id(s.field = 43);
+s.Property += Id(s.field = 10);
+System.Console.Write(s.field);
 
 int Id(int i) => i;
 
 struct S
 {
     public int field;
+    public int Increment() => field += 1;
 }
 
 implicit extension E for S
 {
     public int Property
     {
-        get { System.Console.Write(this.field); return 0; }
-        set { System.Console.Write(this.field); }
+        get { System.Console.Write(this.Increment()); return 0; }
+        set { System.Console.Write(this.Increment()); }
     }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("4243"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("431111"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         source = """
 S s = new S() { field = 42 };
-s.Property += Id(s.field = 43);
+s.Property += Id(s.field = 10);
+System.Console.Write(s.field);
 
 int Id(int i) => i;
 
 struct S
 {
     public int field;
+    public int Increment() => field += 1;
     public int Property
     {
-        get { System.Console.Write(this.field); return 0; }
-        set { System.Console.Write(this.field); }
+        get { System.Console.Write(this.Increment()); return 0; }
+        set { System.Console.Write(this.Increment()); }
     }
 }
 """;
         comp = CreateCompilation(source);
-        CompileAndVerify(comp, expectedOutput: "4243").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "431111").VerifyDiagnostics();
     }
 
     [Fact]
@@ -45320,6 +45354,51 @@ implicit extension E for object
   IL_0020:  ldc.i4.2
   IL_0021:  call       "void E.this[int].set"
   IL_0026:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void AdjustReceiver_IndexerAccess_ObjectInitializer_TwoElements_ValueType()
+    {
+        var src = """
+var s = new S() { [42] = 1, [43] = 2 };
+System.Console.Write(s.field);
+
+struct S
+{
+    public int field;
+    public void Increment() { field++; }
+}
+
+implicit extension E for S
+{
+    public int this[int i] { set { System.Console.Write($"set({i}, {value}) "); this.Increment(); } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set(42, 1) set(43, 2) 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       50 (0x32)
+  .maxstack  3
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_000f:  ldc.i4.s   42
+  IL_0011:  ldc.i4.1
+  IL_0012:  call       "void E.this[int].set"
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       "ref E System.Runtime.CompilerServices.Unsafe.As<S, E>(ref S)"
+  IL_001e:  ldc.i4.s   43
+  IL_0020:  ldc.i4.2
+  IL_0021:  call       "void E.this[int].set"
+  IL_0026:  ldloc.0
+  IL_0027:  ldfld      "int S.field"
+  IL_002c:  call       "void System.Console.Write(int)"
+  IL_0031:  ret
 }
 """);
     }
