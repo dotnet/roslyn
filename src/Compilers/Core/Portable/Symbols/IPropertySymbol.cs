@@ -122,5 +122,10 @@ namespace Microsoft.CodeAnalysis
         /// implementation part.  Otherwise null.
         /// </summary>
         IPropertySymbol? PartialImplementationPart { get; }
+
+        /// <summary>
+        /// Returns true if this is a partial definition part.  Otherwise false.
+        /// </summary>
+        bool IsPartialDefinition { get; }
     }
 }

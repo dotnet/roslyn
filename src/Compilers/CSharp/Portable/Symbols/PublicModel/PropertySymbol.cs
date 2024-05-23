@@ -113,6 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         IPropertySymbol? IPropertySymbol.PartialDefinitionPart => (_underlying as SourcePropertySymbol)?.PartialDefinitionPart.GetPublicSymbol();
 
         IPropertySymbol? IPropertySymbol.PartialImplementationPart => (_underlying as SourcePropertySymbol)?.PartialImplementationPart.GetPublicSymbol();
+
+        bool IPropertySymbol.IsPartialDefinition => (_underlying as SourcePropertySymbol)?.IsPartialDefinition ?? false;
 #nullable disable
 
         #region ISymbol Members

@@ -89,4 +89,6 @@ internal class CodeGenerationPropertySymbol(
     public IPropertySymbol PartialImplementationPart => null;
 
     public IPropertySymbol PartialDefinitionPart => null;
+
+    public bool IsPartialDefinition => false;
 }

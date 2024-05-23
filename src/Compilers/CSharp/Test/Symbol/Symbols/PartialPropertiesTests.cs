@@ -4477,10 +4477,58 @@ public partial class C
             Assert.NotEqual(defSymbol, implSymbol);
             Assert.Same(implSymbol, defSymbol.PartialImplementationPart);
             Assert.Same(defSymbol, implSymbol.PartialDefinitionPart);
+            Assert.True(defSymbol.IsPartialDefinition);
+            Assert.False(implSymbol.IsPartialDefinition);
 
             // This is consistent with partial methods.
             Assert.Equal("SourceFile(Program.cs[43..47))", defSymbol.Locations.Single().ToString());
             Assert.Equal("SourceFile(Program.cs[81..85))", implSymbol.Locations.Single().ToString());
+        }
+
+        [Fact]
+        public void GetDeclaredSymbol_02()
+        {
+            var source = ("""
+                partial class C<T>
+                {
+                    public partial int Prop { get; }
+                    public partial int Prop { get => 1; }
+                }
+                """.NormalizeLineEndings(), "Program.cs");
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+
+            var model = comp.GetSemanticModel(tree);
+            var properties = tree.GetRoot().DescendantNodes().OfType<PropertyDeclarationSyntax>().ToArray();
+            Assert.Equal(2, properties.Length);
+
+            var defSymbol = model.GetDeclaredSymbol(properties[0])!;
+            Assert.Equal("System.Int32 C<T>.Prop { get; }", defSymbol.ToTestDisplayString());
+
+            var implSymbol = model.GetDeclaredSymbol(properties[1])!;
+            Assert.Equal("System.Int32 C<T>.Prop { get; }", implSymbol.ToTestDisplayString());
+
+            Assert.NotEqual(defSymbol, implSymbol);
+            Assert.Same(implSymbol, defSymbol.PartialImplementationPart);
+            Assert.Same(defSymbol, implSymbol.PartialDefinitionPart);
+
+            Assert.True(defSymbol.IsPartialDefinition);
+            Assert.False(implSymbol.IsPartialDefinition);
+
+            // This is consistent with partial methods.
+            Assert.Equal("SourceFile(Program.cs[46..50))", defSymbol.Locations.Single().ToString());
+            Assert.Equal("SourceFile(Program.cs[84..88))", implSymbol.Locations.Single().ToString());
+
+            var intSymbol = comp.GetSpecialType(SpecialType.System_Int32);
+            var cOfTSymbol = defSymbol.ContainingType!;
+            var cOfIntSymbol = cOfTSymbol.Construct([intSymbol]);
+
+            // Constructed symbols always return null/false from the partial-related public APIs
+            var defOfIntSymbol = (IPropertySymbol)cOfIntSymbol.GetMember("Prop");
+            Assert.Equal("System.Int32 C<System.Int32>.Prop { get; }", defOfIntSymbol.ToTestDisplayString());
+            Assert.Null(defOfIntSymbol.PartialImplementationPart);
+            Assert.False(defOfIntSymbol.IsPartialDefinition);
         }
 
         // PROTOTYPE(partial-properties): override partial property where base has modopt
