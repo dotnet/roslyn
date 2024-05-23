@@ -22,7 +22,7 @@ internal interface ISignatureHelpService
         int position,
         SignatureHelpTriggerInfo triggerInfo,
         SignatureHelpOptions options,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets the <see cref="ISignatureHelpProvider"/> and <see cref="SignatureHelpItems"/> associated with

@@ -44,7 +44,7 @@ internal sealed class SignatureHelpService([ImportMany] IEnumerable<Lazy<ISignat
         int position,
         SignatureHelpTriggerInfo triggerInfo,
         SignatureHelpOptions options,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         return GetSignatureHelpAsync(
             GetProviders(document.Project.Language),
