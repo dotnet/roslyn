@@ -140,7 +140,7 @@ internal partial class SyntacticClassificationTaggerProvider
             {
                 // We're not at capacity.  Create a new node to go at the end of the LRU list. Note: The SegmentedList
                 // constructor fast paths the case where we pass in another SegmentedList.
-                return new(new(span, new SegmentedList<ClassifiedSpan>(newClassifications)));
+                return new LinkedListNode<SpanAndClassifiedSpans>(new SpanAndClassifiedSpans(span, new SegmentedList<ClassifiedSpan>(newClassifications)));
             }
             else
             {
