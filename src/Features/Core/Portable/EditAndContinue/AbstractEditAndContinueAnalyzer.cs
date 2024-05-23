@@ -667,7 +667,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             AnalyzeUnchangedActiveMemberBodies(diagnostics, syntacticEdits.Match, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, cancellationToken);
             Debug.Assert(newActiveStatements.All(a => a != null));
 
-            if (!diagnostics.IsEmpty())
+            if (!diagnostics.IsEmpty)
             {
                 LogRudeEdits(diagnostics, newText, filePath);
             }
@@ -1117,7 +1117,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             //    We create syntax map even if it's not necessary: if any data member initializers are active/contain lambdas.
             //    Since initializers are usually simple the map should not be large enough to make it worth optimizing it away.
             var matchingNodes =
-                (!activeNodes.IsEmpty() ||
+                (!activeNodes.IsEmpty ||
                 newStateMachineInfo.HasSuspensionPoints ||
                 newBodyHasLambdas ||
                 IsConstructorWithMemberInitializers(newMember, cancellationToken) ||
