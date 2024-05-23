@@ -61,8 +61,7 @@ internal partial class NavigationBarController : IDisposable
 
     /// <summary>
     /// Queue to batch up work to do to compute the current model.  Used so we can batch up a lot of events and only
-    /// compute the model once for every batch.  The <c>bool</c> type parameter isn't used, but is provided as this
-    /// type is generic.
+    /// compute the model once for every batch.
     /// </summary>
     private readonly AsyncBatchingWorkQueue<VoidResult, NavigationBarModel?> _computeModelQueue;
 
