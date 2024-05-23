@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -104,42 +105,16 @@ internal partial class SyntacticClassificationTaggerProvider
             var span = snapshotSpan.Span;
             ClearIfDifferentSnapshot(snapshotSpan.Snapshot);
 
-            if (_spanToLruNode.TryGetValue(span, out var existingNode))
+            if (_spanToLruNode.ContainsKey(span))
             {
-                UpdateExistingEntryInCache(newClassifications, existingNode);
+                Debug.Fail("This should not be possible.  Caller would have seen this item when calling TryUseCache");
+                return;
             }
-            else
-            {
-                AddNewEntryToCache(span, newClassifications);
-            }
+
+            AddNewEntryToCache(span, newClassifications);
 
             Contract.ThrowIfTrue(_lruList.Count > CacheSize);
             Contract.ThrowIfTrue(_lruList.Count != _spanToLruNode.Count);
-        }
-
-        /// <summary>
-        /// Helper that allows us to reuse the classified spans list inside <paramref name="existingNode"/> list,
-        /// updating it to have all the classifications in <paramref name="classifications"/>.
-        /// </summary>
-        private static void UpdateLruNodeClassifications(
-            LinkedListNode<SpanAndClassifiedSpans> existingNode,
-            SegmentedList<ClassifiedSpan> classifications)
-        {
-            existingNode.Value.ClassifiedSpans.Clear();
-
-            // AddRange is optimized to take a SegmentedList and copy directly from it into the result list.
-            existingNode.Value.ClassifiedSpans.AddRange(classifications);
-        }
-
-        private void UpdateExistingEntryInCache(
-            SegmentedList<ClassifiedSpan> newClassifications, LinkedListNode<SpanAndClassifiedSpans> existingNode)
-        {
-            // Was in cache.  Update the cached classifications to the new ones.
-            UpdateLruNodeClassifications(existingNode, newClassifications);
-
-            // And move this span to the front of end of the LRU list.
-            _lruList.Remove(existingNode);
-            _lruList.AddLast(existingNode);
         }
 
         private void AddNewEntryToCache(Span span, SegmentedList<ClassifiedSpan> newClassifications)
@@ -172,8 +147,9 @@ internal partial class SyntacticClassificationTaggerProvider
 
                 Contract.ThrowIfTrue(firstNode != existingNode);
 
-                // Reuse the classifications array as well, so we don't incur a new allocation.
-                UpdateLruNodeClassifications(existingNode, newClassifications);
+                // AddRange is optimized to take a SegmentedList and copy directly from it into the result list.
+                existingNode.Value.ClassifiedSpans.Clear();
+                existingNode.Value.ClassifiedSpans.AddRange(newClassifications);
 
                 // Place the existing node (which we removed), with its value updated to the current span and new classifications, at the end of
                 // the list.  And update the map to contain this updated information.
