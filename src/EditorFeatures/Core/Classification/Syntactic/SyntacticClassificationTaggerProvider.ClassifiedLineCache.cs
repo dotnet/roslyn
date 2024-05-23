@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Classification;
 internal partial class SyntacticClassificationTaggerProvider
 {
     /// <summary>
-    /// it is a helper class that encapsulates logic on holding onto last classification result.  This type has
-    /// thread affinity on the UI thread, so it doesn't need any synchronization.
+    /// Cache for storing recent classification results. This type has thread affinity on the UI thread, so it doesn't
+    /// need any additional synchronization.
     /// </summary>
     /// <remarks>
     /// Empirical testing shows that when paging through a file, 25% of syntactic classification requests can be
