@@ -677,11 +677,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (rewrittenReceiver.Type.IsReferenceType)
-                    {
-                        refKind = RefKind.None;
-                    }
-                    else
+                    //if (rewrittenReceiver.Type.IsReferenceType)
+                    //{
+                    //    refKind = RefKind.None;
+                    //}
+                    //else
                     {
                         refKind = rewrittenReceiver.GetRefKind();
 

@@ -18548,8 +18548,7 @@ using System;
 using System.Runtime.CompilerServices;
 C c = new C(5);
 ref C c2 = ref c;
-C otherC = null;
-c2.M({{expression}}, c2 = ref otherC);
+c2.M({{expression}}, c2 = null);
 
 public class C
 {
@@ -18557,7 +18556,7 @@ public class C
     public C(int i) => Prop = i;
     public void M([InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c, C cNull)
     {
-        Console.WriteLine(cNull is null);
+        Console.WriteLine(cNull is null ? "cNull" : null);
         Console.WriteLine(c.ToString());
     }
 }
@@ -18575,7 +18574,7 @@ public partial struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, expectedOutput: """
-True
+cNull
 c.Prop:5
 literal:literal
 """);
@@ -18583,40 +18582,41 @@ literal:literal
 
             verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       52 (0x34)
+  // Code size       53 (0x35)
   .maxstack  5
   .locals init (C V_0, //c
                 C& V_1, //c2
-                C V_2, //otherC
-                C V_3,
-                CustomHandler V_4)
+                C& V_2,
+                CustomHandler V_3,
+                C V_4)
   IL_0000:  ldc.i4.5
   IL_0001:  newobj     "C..ctor(int)"
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  stloc.1
-  IL_000a:  ldnull
+  IL_000a:  ldloc.1
   IL_000b:  stloc.2
-  IL_000c:  ldloc.1
+  IL_000c:  ldloc.2
   IL_000d:  ldind.ref
-  IL_000e:  stloc.3
-  IL_000f:  ldloc.3
-  IL_0010:  ldloca.s   V_4
-  IL_0012:  ldc.i4.7
-  IL_0013:  ldc.i4.0
-  IL_0014:  ldloc.3
-  IL_0015:  call       "CustomHandler..ctor(int, int, C)"
-  IL_001a:  ldloca.s   V_4
-  IL_001c:  ldstr      "literal"
-  IL_0021:  call       "bool CustomHandler.AppendLiteral(string)"
-  IL_0026:  pop
-  IL_0027:  ldloc.s    V_4
-  IL_0029:  ldloca.s   V_2
-  IL_002b:  dup
-  IL_002c:  stloc.1
-  IL_002d:  ldind.ref
-  IL_002e:  callvirt   "void C.M(CustomHandler, C)"
-  IL_0033:  ret
+  IL_000e:  ldloca.s   V_3
+  IL_0010:  ldc.i4.7
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldloc.2
+  IL_0013:  ldind.ref
+  IL_0014:  call       "CustomHandler..ctor(int, int, C)"
+  IL_0019:  ldloca.s   V_3
+  IL_001b:  ldstr      "literal"
+  IL_0020:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_0025:  pop
+  IL_0026:  ldloc.3
+  IL_0027:  ldloc.1
+  IL_0028:  ldnull
+  IL_0029:  dup
+  IL_002a:  stloc.s    V_4
+  IL_002c:  stind.ref
+  IL_002d:  ldloc.s    V_4
+  IL_002f:  callvirt   "void C.M(CustomHandler, C)"
+  IL_0034:  ret
 }
 """);
         }
@@ -18631,8 +18631,7 @@ using System;
 using System.Runtime.CompilerServices;
 C c = new C(5);
 ref C c2 = ref c;
-C otherC = null;
-c2.M(c2 = ref otherC, {{expression}});
+c2.M(c2 = null, {{expression}});
 
 public class C
 {
@@ -18640,7 +18639,7 @@ public class C
     public C(int i) => Prop = i;
     public void M(C cNull, [InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c)
     {
-        Console.WriteLine(cNull is null);
+        Console.WriteLine(cNull is null ? "cNull" : null);
         Console.WriteLine(c.ToString());
     }
 }
@@ -18657,9 +18656,10 @@ public partial struct CustomHandler
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
+            // execution crashes as `c` is null
             var verifier = CompileAndVerify(comp, expectedOutput: """
-True
-c.Prop:5
+cNull
+c.Property:5
 literal:literal
 """);
             verifier.VerifyDiagnostics();
@@ -18670,7 +18670,7 @@ literal:literal
   .maxstack  6
   .locals init (C V_0, //c
                 C& V_1, //c2
-                C V_2, //otherC
+                C& V_2,
                 C V_3,
                 CustomHandler V_4)
   IL_0000:  ldc.i4.5
@@ -18678,20 +18678,21 @@ literal:literal
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  stloc.1
-  IL_000a:  ldnull
+  IL_000a:  ldloc.1
   IL_000b:  stloc.2
-  IL_000c:  ldloc.1
+  IL_000c:  ldloc.2
   IL_000d:  ldind.ref
-  IL_000e:  stloc.3
-  IL_000f:  ldloc.3
-  IL_0010:  ldloca.s   V_2
-  IL_0012:  dup
-  IL_0013:  stloc.1
-  IL_0014:  ldind.ref
-  IL_0015:  ldloca.s   V_4
-  IL_0017:  ldc.i4.7
-  IL_0018:  ldc.i4.0
-  IL_0019:  ldloc.3
+  IL_000e:  ldloc.1
+  IL_000f:  ldnull
+  IL_0010:  dup
+  IL_0011:  stloc.3
+  IL_0012:  stind.ref
+  IL_0013:  ldloc.3
+  IL_0014:  ldloca.s   V_4
+  IL_0016:  ldc.i4.7
+  IL_0017:  ldc.i4.0
+  IL_0018:  ldloc.2
+  IL_0019:  ldind.ref
   IL_001a:  call       "CustomHandler..ctor(int, int, C)"
   IL_001f:  ldloca.s   V_4
   IL_0021:  ldstr      "literal"
@@ -18700,6 +18701,222 @@ literal:literal
   IL_002c:  ldloc.s    V_4
   IL_002e:  callvirt   "void C.M(C, CustomHandler)"
   IL_0033:  ret
+}
+""");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterpolatedStringHandlerArgumentAttribute_ThisParameter_InterfaceConstrainedRefReceiver(
+            [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
+        {
+            var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    static void Main()
+    {
+        C c = new C(5);
+        Test(ref c);
+    }
+
+    static void Test<T>(ref T c2) where T : I1
+    {
+        c2.M(c2 = default, {{expression}});
+    }
+}
+
+public interface I1
+{
+    int Prop { get; }
+    void M(I1 cNull, [InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c);
+}
+
+public class C : I1
+{
+    public int Prop { get; }
+    public C(int i) => Prop = i;
+    public void M(I1 cNull, [InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c)
+    {
+        Console.WriteLine(cNull is null);
+        Console.WriteLine(c.ToString());
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, I1 c) : this(literalLength, formattedCount)
+    {
+        _builder.AppendLine("c.Prop:" + c.Prop.ToString());
+    }
+}
+""";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: """
+True
+c.Prop:5
+literal:literal
+""");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test<T>(ref T)", """
+{
+  // Code size      104 (0x68)
+  .maxstack  6
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3,
+                CustomHandler V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    "T"
+  IL_000b:  ldloc.3
+  IL_000c:  box        "T"
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      "T"
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  ldarg.0
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  initobj    "T"
+  IL_002a:  ldloc.3
+  IL_002b:  dup
+  IL_002c:  stloc.3
+  IL_002d:  stobj      "T"
+  IL_0032:  ldloc.3
+  IL_0033:  box        "T"
+  IL_0038:  ldloca.s   V_4
+  IL_003a:  ldc.i4.7
+  IL_003b:  ldc.i4.0
+  IL_003c:  ldloc.0
+  IL_003d:  ldobj      "T"
+  IL_0042:  box        "T"
+  IL_0047:  call       "CustomHandler..ctor(int, int, I1)"
+  IL_004c:  ldloca.s   V_4
+  IL_004e:  ldstr      "literal"
+  IL_0053:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_0058:  pop
+  IL_0059:  ldloc.s    V_4
+  IL_005b:  constrained. "T"
+  IL_0061:  callvirt   "void I1.M(I1, CustomHandler)"
+  IL_0066:  nop
+  IL_0067:  ret
+}
+""");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterpolatedStringHandlerArgumentAttribute_ThisParameter_InterfaceAndClassConstrainedRefReceiver(
+            [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
+        {
+            var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    static void Main()
+    {
+        C c = new C(5);
+        Test(ref c);
+    }
+
+    static void Test<T>(ref T c2) where T : class, I1
+    {
+        c2.M(c2 = default, {{expression}});
+    }
+}
+
+public interface I1
+{
+    int Prop { get; }
+    void M(I1 cNull, [InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c);
+}
+
+public class C : I1
+{
+    public int Prop { get; }
+    public C(int i) => Prop = i;
+    public void M(I1 cNull, [InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c)
+    {
+        Console.WriteLine(cNull is null);
+        Console.WriteLine(c.ToString());
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, I1 c) : this(literalLength, formattedCount)
+    {
+        _builder.AppendLine("c.Prop:" + c.Prop.ToString());
+    }
+}
+""";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: """
+True
+c.Prop:5
+literal:literal
+""");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test<T>(ref T)", """
+{
+  // Code size       82 (0x52)
+  .maxstack  6
+  .locals init (T& V_0,
+                T V_1,
+                T V_2,
+                CustomHandler V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "T"
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldarg.0
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  initobj    "T"
+  IL_0015:  ldloc.2
+  IL_0016:  dup
+  IL_0017:  stloc.2
+  IL_0018:  stobj      "T"
+  IL_001d:  ldloc.2
+  IL_001e:  box        "T"
+  IL_0023:  ldloca.s   V_3
+  IL_0025:  ldc.i4.7
+  IL_0026:  ldc.i4.0
+  IL_0027:  ldloc.0
+  IL_0028:  ldobj      "T"
+  IL_002d:  box        "T"
+  IL_0032:  call       "CustomHandler..ctor(int, int, I1)"
+  IL_0037:  ldloca.s   V_3
+  IL_0039:  ldstr      "literal"
+  IL_003e:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_0043:  pop
+  IL_0044:  ldloc.3
+  IL_0045:  constrained. "T"
+  IL_004b:  callvirt   "void I1.M(I1, CustomHandler)"
+  IL_0050:  nop
+  IL_0051:  ret
 }
 """);
         }
