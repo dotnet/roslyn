@@ -39,7 +39,7 @@ namespace IdeCoreBenchmarks
             (_largeRoot, _largeText) = GetRootAndTextFrom(@"src\Compilers\CSharp\Portable\Parser\LanguageParser.cs");
         }
 
-        private (SyntaxNode, SourceText) GetRootAndTextFrom(string roslynRelativePath)
+        private static (SyntaxNode, SourceText) GetRootAndTextFrom(string roslynRelativePath)
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
 
@@ -177,7 +177,7 @@ namespace IdeCoreBenchmarks
             }
         }
 
-        private static void ClassifyToken(SyntaxNodeOrToken child)
+        private static void ClassifyToken(SyntaxNodeOrToken _)
         {
         }
     }
