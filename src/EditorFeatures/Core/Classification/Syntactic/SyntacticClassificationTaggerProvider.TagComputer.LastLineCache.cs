@@ -81,51 +81,102 @@ internal partial class SyntacticClassificationTaggerProvider
                 return true;
             }
 
-            public void Update(SnapshotSpan snapshotSpan, SegmentedList<ClassifiedSpan> classifications)
+            public void Update(SnapshotSpan snapshotSpan, SegmentedList<ClassifiedSpan> newClassifications)
             {
                 _threadingContext.ThrowIfNotOnUIThread();
 
-                if (classifications.Count > MaxClassificationsCount)
+                if (newClassifications.Count > MaxClassificationsCount)
                     return;
 
+                // Clear out cached data if we've moved to a different snapshot.
                 var span = snapshotSpan.Span;
                 ClearIfDifferentSnapshot(snapshotSpan.Snapshot);
 
                 if (_spanToClassifiedSpansMap.TryGetValue(span, out var tuple))
                 {
-                    // Was in cache.  Update the cached classifications to the new ones, and move this span to the front
-                    // of end of the LRU list.
-
-                    var (existingNode, existingClassifications) = tuple;
-                    existingClassifications.Clear();
-
-                    // AddRange is optimized to take a SegmentedList and copy directly from it into the result list.
-                    existingClassifications.AddRange(classifications);
-
-                    _spans.Remove(existingNode);
-                    _spans.AddLast(existingNode);
-
-                    Contract.ThrowIfTrue(_spans.Count > CacheSize);
+                    UpdateExistingEntryInCache(newClassifications, existingNode: tuple.node, existingClassifications: tuple.classifiedSpans);
                 }
                 else
                 {
-                    // Not in cache.  Add to the cache, and remove the oldest entry if we're at capacity.
+                    AddNewEntryToCache(span, newClassifications);
+                }
+
+                Contract.ThrowIfTrue(_spans.Count > CacheSize);
+                Contract.ThrowIfTrue(_spans.Count != _spanToClassifiedSpansMap.Count);
+            }
+
+            /// <summary>
+            /// Helper that allows us to reuse the <paramref name="existingClassifications"/> list, updating it to have
+            /// all the classifications in <paramref name="classifications"/>.
+            /// </summary>
+            private static void ClearExistingClassificationsAndAddNewClassificationsToIt(
+                SegmentedList<ClassifiedSpan> existingClassifications,
+                SegmentedList<ClassifiedSpan> classifications)
+            {
+                existingClassifications.Clear();
+
+                // AddRange is optimized to take a SegmentedList and copy directly from it into the result list.
+                existingClassifications.AddRange(classifications);
+            }
+
+            private void UpdateExistingEntryInCache(
+                SegmentedList<ClassifiedSpan> newClassifications, LinkedListNode<Span> existingNode, SegmentedList<ClassifiedSpan> existingClassifications)
+            {
+                // Was in cache.  Update the cached classifications to the new ones, and move this span to the front of
+                // end of the LRU list.
+
+                ClearExistingClassificationsAndAddNewClassificationsToIt(existingClassifications, newClassifications);
+
+                _spans.Remove(existingNode);
+                _spans.AddLast(existingNode);
+            }
+
+            private void AddNewEntryToCache(Span span, SegmentedList<ClassifiedSpan> newClassifications)
+            {
+                // Not in cache.  Add to the cache, and remove the oldest entry if we're at capacity.
+
+                if (_spans.Count < CacheSize)
+                {
+                    // We're not at capacity.  Just add this new entry.
                     var node = _spans.AddLast(span);
 
-                    // This constructor fast paths the case where we pass in another SegmentedList.
-                    var copy = new SegmentedList<ClassifiedSpan>(classifications);
-                    _spanToClassifiedSpansMap.Add(span, (node, copy));
-
-                    if (_spans.Count > CacheSize)
-                    {
-                        var first = _spans.First;
-                        Contract.ThrowIfNull(first);
-                        _spans.Remove(first);
-                        _spanToClassifiedSpansMap.Remove(first.Value);
-                    }
-
-                    Contract.ThrowIfTrue(_spans.Count > CacheSize);
+                    // The SegmentedList constructor fast paths the case where we pass in another SegmentedList.
+                    AddToMap(node, new SegmentedList<ClassifiedSpan>(newClassifications));
                 }
+                else
+                {
+                    // we're at capacity.  Remove the oldest entry from the linked list.  Hold onto that linked list
+                    // node so we can reuse it without an allocation below.
+
+                    var firstNode = _spans.First;
+                    Contract.ThrowIfNull(firstNode);
+                    _spans.RemoveFirst();
+
+                    // Now, remove the entry from the map as well.
+#if NET
+                    Contract.ThrowIfFalse(_spanToClassifiedSpansMap.Remove(firstNode.Value, out var tuple));
+#else
+                    var tuple = _spanToClassifiedSpansMap[firstNode.Value];
+                    Contract.ThrowIfFalse(_spanToClassifiedSpansMap.Remove(firstNode.Value));
+#endif
+
+                    var (existingNode, existingClassifications) = tuple;
+                    Contract.ThrowIfTrue(firstNode != existingNode);
+
+                    // Reuse the classifications array as well, so we don't incur a new allocation.
+                    ClearExistingClassificationsAndAddNewClassificationsToIt(existingClassifications, newClassifications);
+
+                    // Place the first node, which we removed, (with its value updated to the current span) at the end
+                    // of the list.  And update the map to contain this updated information.
+                    firstNode.Value = span;
+                    _spans.AddLast(firstNode);
+                    AddToMap(firstNode, existingClassifications);
+                }
+
+                return;
+
+                void AddToMap(LinkedListNode<Span> node, SegmentedList<ClassifiedSpan> classificationsCopy)
+                    => _spanToClassifiedSpansMap.Add(node.Value, (node, classificationsCopy));
             }
         }
     }
