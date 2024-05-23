@@ -156,6 +156,8 @@ internal partial class NavigationBarController : IDisposable
         _eventSource.Disconnect();
 
         _disconnected = true;
+
+        // Cancel off any remaining background work
         _cancellationTokenSource.Cancel();
     }
 
