@@ -3575,12 +3575,7 @@ namespace System.Text.Json.Serialization
     }
 }
 ";
-            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
-                // (12,69): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1..ctor'
-                //         System.Text.Json.Serialization.JsonSerializer.Parse<string>(await TestAsync());
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await TestAsync()").WithArguments("System.ReadOnlySpan`1", ".ctor").WithLocation(12, 69));
-
-            var v = CompileAndVerify(source, parseOptions: TestOptions.Regular12, options: TestOptions.DebugExe);
+            var v = CompileAndVerify(source, options: TestOptions.DebugExe);
 
             v.VerifyMethodBody("Program.<Serialize>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {

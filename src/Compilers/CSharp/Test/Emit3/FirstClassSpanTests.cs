@@ -296,6 +296,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
     [Theory, CombinatorialData]
     public void Conversion_Array_Span_Implicit(
+        [CombinatorialLangVersions] LanguageVersion langVersion,
         [CombinatorialValues("Span", "ReadOnlySpan")] string destination,
         bool cast)
     {
@@ -309,7 +310,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "123";
 
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
@@ -322,31 +323,10 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_000f:  ret
             }
             """);
-
-        var expectedIl = $$"""
-            {
-              // Code size       16 (0x10)
-              .maxstack  1
-              IL_0000:  call       "int[] Program.<<Main>$>g__arr|0_0()"
-              IL_0005:  newobj     "System.{{destination}}<int>..ctor(int[])"
-              IL_000a:  call       "void Program.<<Main>$>g__report|0_1(System.{{destination}}<int>)"
-              IL_000f:  ret
-            }
-            """;
-
-        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
-        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("<top-level-statements-entry-point>", expectedIl);
-
-        comp = CreateCompilationWithSpan(source);
-        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("<top-level-statements-entry-point>", expectedIl);
     }
 
     [Fact]
-    public void Conversion_Array_Span_Implicit_MissingCtor()
+    public void Conversion_Array_Span_Implicit_MissingHelper()
     {
         var source = """
             using System;
@@ -355,11 +335,59 @@ public class FirstClassSpanTests : CSharpTestBase
             """;
 
         var comp = CreateCompilationWithSpan(source);
-        comp.MakeMemberMissing(WellKnownMember.System_Span_T__ctor_Array);
+        comp.MakeMemberMissing(WellKnownMember.System_Span_T__op_Implicit_Array);
         comp.VerifyDiagnostics(
-            // (2,15): error CS0656: Missing compiler required member 'System.Span`1..ctor'
+            // (2,15): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
             // Span<int> s = arr();
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr()").WithArguments("System.Span`1", ".ctor").WithLocation(2, 15));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr()").WithArguments("System.Span`1", "op_Implicit").WithLocation(2, 15));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Implicit_ConstantData(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            C.M1(new[] { 1 });
+            C.M2(new[] { 2 });
+
+            static class C
+            {
+                public static void M1(Span<int> s) => Console.Write(s[0]);
+                public static void M2(ReadOnlySpan<int> s) => Console.Write(s[0]);
+            }
+            """;
+
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var verifier = CompileAndVerify(comp, expectedOutput: "12").VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       63 (0x3f)
+              .maxstack  4
+              IL_0000:  ldc.i4.1
+              IL_0001:  newarr     "int"
+              IL_0006:  dup
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldc.i4.1
+              IL_0009:  stelem.i4
+              IL_000a:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+              IL_000f:  call       "void C.M1(System.Span<int>)"
+              IL_0014:  ldsfld     "int[] <PrivateImplementationDetails>.26B25D457597A7B0463F9620F666DD10AA2C4373A505967C7C8D70922A2D6ECE_A6"
+              IL_0019:  dup
+              IL_001a:  brtrue.s   IL_0034
+              IL_001c:  pop
+              IL_001d:  ldc.i4.1
+              IL_001e:  newarr     "int"
+              IL_0023:  dup
+              IL_0024:  ldtoken    "int <PrivateImplementationDetails>.26B25D457597A7B0463F9620F666DD10AA2C4373A505967C7C8D70922A2D6ECE"
+              IL_0029:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+              IL_002e:  dup
+              IL_002f:  stsfld     "int[] <PrivateImplementationDetails>.26B25D457597A7B0463F9620F666DD10AA2C4373A505967C7C8D70922A2D6ECE_A6"
+              IL_0034:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
+              IL_0039:  call       "void C.M2(System.ReadOnlySpan<int>)"
+              IL_003e:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -370,7 +398,11 @@ public class FirstClassSpanTests : CSharpTestBase
             {
                 public readonly ref struct Span<T>
                 {
-                    public Span(T[] array) => Console.Write("{{output}}");
+                    public static implicit operator Span<T>(T[] array)
+                    {
+                        Console.Write("{{output}}");
+                        return default;
+                    }
                 }
             }
             """;
@@ -386,18 +418,21 @@ public class FirstClassSpanTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation([source, getSpanSource("Internal")], [spanComp], assemblyName: "Consumer");
-        var verifier = CompileAndVerify(comp, expectedOutput: "Internal");
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "Internal");
         verifier.VerifyDiagnostics(
             // (2,1): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'Span1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
             // Span<int> s = arr();
-            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<int>").WithArguments("", "System.Span<T>", "Span1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Span<T>").WithLocation(2, 1));
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<int>").WithArguments("", "System.Span<T>", "Span1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Span<T>").WithLocation(2, 1),
+            // (5,41): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'Span1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
+            //         public static implicit operator Span<T>(T[] array)
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<T>").WithArguments("", "System.Span<T>", "Span1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Span<T>").WithLocation(5, 41));
 
         verifier.VerifyIL("<top-level-statements-entry-point>", """
             {
               // Code size       12 (0xc)
               .maxstack  1
               IL_0000:  call       "int[] Program.<<Main>$>g__arr|0_0()"
-              IL_0005:  newobj     "System.Span<int>..ctor(int[])"
+              IL_0005:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
               IL_000a:  pop
               IL_000b:  ret
             }
@@ -817,7 +852,7 @@ public class FirstClassSpanTests : CSharpTestBase
               .maxstack  1
               IL_0000:  ldarg.1
               IL_0001:  ldind.ref
-              IL_0002:  newobj     "System.Span<string>..ctor(string[])"
+              IL_0002:  call       "System.Span<string> System.Span<string>.op_Implicit(string[])"
               IL_0007:  ret
             }
             """);
@@ -827,7 +862,7 @@ public class FirstClassSpanTests : CSharpTestBase
               .maxstack  1
               IL_0000:  ldarg.1
               IL_0001:  ldind.ref
-              IL_0002:  newobj     "System.ReadOnlySpan<string>..ctor(string[])"
+              IL_0002:  call       "System.ReadOnlySpan<string> System.ReadOnlySpan<string>.op_Implicit(string[])"
               IL_0007:  ret
             }
             """);
@@ -887,7 +922,7 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0003:  stloc.0
               IL_0004:  stind.ref
               IL_0005:  ldloc.0
-              IL_0006:  newobj     "System.Span<string>..ctor(string[])"
+              IL_0006:  call       "System.Span<string> System.Span<string>.op_Implicit(string[])"
               IL_000b:  ret
             }
             """);
@@ -902,7 +937,7 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0003:  stloc.0
               IL_0004:  stind.ref
               IL_0005:  ldloc.0
-              IL_0006:  newobj     "System.ReadOnlySpan<string>..ctor(string[])"
+              IL_0006:  call       "System.ReadOnlySpan<string> System.ReadOnlySpan<string>.op_Implicit(string[])"
               IL_000b:  ret
             }
             """);
@@ -926,20 +961,20 @@ public class FirstClassSpanTests : CSharpTestBase
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
-              // Code size       28 (0x1c)
-              .maxstack  2
+              // Code size       26 (0x1a)
+              .maxstack  1
               .locals init (System.Span<string> V_0, //s
                             System.ReadOnlySpan<string> V_1) //r
               IL_0000:  nop
-              IL_0001:  ldloca.s   V_0
-              IL_0003:  ldarg.0
-              IL_0004:  call       "string[] C.A()"
-              IL_0009:  call       "System.Span<string>..ctor(string[])"
-              IL_000e:  ldloca.s   V_1
-              IL_0010:  ldarg.0
-              IL_0011:  call       "string[] C.A()"
-              IL_0016:  call       "System.ReadOnlySpan<string>..ctor(string[])"
-              IL_001b:  ret
+              IL_0001:  ldarg.0
+              IL_0002:  call       "string[] C.A()"
+              IL_0007:  call       "System.Span<string> System.Span<string>.op_Implicit(string[])"
+              IL_000c:  stloc.0
+              IL_000d:  ldarg.0
+              IL_000e:  call       "string[] C.A()"
+              IL_0013:  call       "System.ReadOnlySpan<string> System.ReadOnlySpan<string>.op_Implicit(string[])"
+              IL_0018:  stloc.1
+              IL_0019:  ret
             }
             """);
     }
@@ -1053,11 +1088,11 @@ public class FirstClassSpanTests : CSharpTestBase
               .maxstack  2
               IL_0000:  ldarg.0
               IL_0001:  ldarg.1
-              IL_0002:  newobj     "System.Span<string>..ctor(string[])"
+              IL_0002:  call       "System.Span<string> System.Span<string>.op_Implicit(string[])"
               IL_0007:  call       "void C.M1(params System.Span<string>)"
               IL_000c:  ldarg.0
               IL_000d:  ldarg.1
-              IL_000e:  newobj     "System.ReadOnlySpan<string>..ctor(string[])"
+              IL_000e:  call       "System.ReadOnlySpan<string> System.ReadOnlySpan<string>.op_Implicit(string[])"
               IL_0013:  call       "void C.M2(params System.ReadOnlySpan<string>)"
               IL_0018:  ret
             }
@@ -1085,7 +1120,7 @@ public class FirstClassSpanTests : CSharpTestBase
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
-              // Code size       27 (0x1b)
+              // Code size       29 (0x1d)
               .maxstack  2
               .locals init (object[] V_0)
               IL_0000:  ldarg.0
@@ -1096,9 +1131,11 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0009:  call       "void C.M1(params System.Span<object>)"
               IL_000e:  ldarg.0
               IL_000f:  ldarg.1
-              IL_0010:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
-              IL_0015:  call       "void C.M2(params System.ReadOnlySpan<object>)"
-              IL_001a:  ret
+              IL_0010:  stloc.0
+              IL_0011:  ldloc.0
+              IL_0012:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.op_Implicit(object[])"
+              IL_0017:  call       "void C.M2(params System.ReadOnlySpan<object>)"
+              IL_001c:  ret
             }
             """);
     }
@@ -1247,7 +1284,9 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Theory, CombinatorialData]
-    public void Conversion_Array_ReadOnlySpan_Covariant(bool cast)
+    public void Conversion_Array_ReadOnlySpan_Covariant(
+        [CombinatorialLangVersions] LanguageVersion langVersion,
+        bool cast)
     {
         var source = $$"""
             using System;
@@ -1258,7 +1297,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
@@ -1272,28 +1311,12 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0008:  ret
             }
             """);
-
-        var expectedIl = """
-            {
-              // Code size        7 (0x7)
-              .maxstack  1
-              IL_0000:  ldarg.1
-              IL_0001:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
-              IL_0006:  ret
-            }
-            """;
-
-        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
-        verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
-        verifier.VerifyIL("C.M", expectedIl);
-
-        comp = CreateCompilationWithSpan(source);
-        verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
-        verifier.VerifyIL("C.M", expectedIl);
     }
 
     [Theory, CombinatorialData]
-    public void Conversion_Array_ReadOnlySpan_Interface_Covariant(bool cast)
+    public void Conversion_Array_ReadOnlySpan_Interface_Covariant(
+        [CombinatorialLangVersions] LanguageVersion langVersion,
+        bool cast)
     {
         var source = $$"""
             using System;
@@ -1306,7 +1329,7 @@ public class FirstClassSpanTests : CSharpTestBase
             interface I<out T> { }
             """;
 
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
@@ -1320,24 +1343,6 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0008:  ret
             }
             """);
-
-        var expectedIl = """
-            {
-              // Code size        7 (0x7)
-              .maxstack  1
-              IL_0000:  ldarg.1
-              IL_0001:  newobj     "System.ReadOnlySpan<I<object>>..ctor(I<object>[])"
-              IL_0006:  ret
-            }
-            """;
-
-        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
-        verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
-        verifier.VerifyIL("C.M", expectedIl);
-
-        comp = CreateCompilationWithSpan(source);
-        verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
-        verifier.VerifyIL("C.M", expectedIl);
     }
 
     [Theory, CombinatorialData]
@@ -1473,8 +1478,8 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("int[]", "System.ReadOnlySpan<long>").WithLocation(5, 38));
     }
 
-    [Fact]
-    public void Conversion_Array_ReadOnlySpan_Covariant_TypeParameter()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_ReadOnlySpan_Covariant_TypeParameter(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -1486,7 +1491,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
         verifier.VerifyIL("C<T, U>.M", """
             {
@@ -1500,24 +1505,6 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0008:  ret
             }
             """);
-
-        var expectedIl = """
-            {
-              // Code size        7 (0x7)
-              .maxstack  1
-              IL_0000:  ldarg.1
-              IL_0001:  newobj     "System.ReadOnlySpan<U>..ctor(U[])"
-              IL_0006:  ret
-            }
-            """;
-
-        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
-        verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
-        verifier.VerifyIL("C<T, U>.M", expectedIl);
-
-        comp = CreateCompilationWithSpan(source);
-        verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
-        verifier.VerifyIL("C<T, U>.M", expectedIl);
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -1667,7 +1654,7 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
-    public void Conversion_Array_Span_ThroughUserImplicit_MissingCtor()
+    public void Conversion_Array_Span_ThroughUserImplicit_MissingHelper()
     {
         var source = """
             using System;
@@ -1698,20 +1685,20 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadArgType, "new C()").WithArguments("1", "C", "System.Span<int>").WithLocation(3, 5)
         };
 
-        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, TestOptions.Regular12, expectedDiagnostics);
-        verifyWithMissing(WellKnownMember.System_Span_T__ctor_Array, TestOptions.Regular12, expectedDiagnostics);
+        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, TestOptions.Regular12, expectedDiagnostics);
+        verifyWithMissing(WellKnownMember.System_Span_T__op_Implicit_Array, TestOptions.Regular12, expectedDiagnostics);
 
         expectedDiagnostics = [
-            // (3,5): error CS0656: Missing compiler required member 'System.Span`1..ctor'
+            // (3,5): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
             // D.M(new C());
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C()").WithArguments("System.Span`1", ".ctor").WithLocation(3, 5)
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C()").WithArguments("System.Span`1", "op_Implicit").WithLocation(3, 5)
         ];
 
-        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, TestOptions.RegularNext);
-        verifyWithMissing(WellKnownMember.System_Span_T__ctor_Array, TestOptions.RegularNext, expectedDiagnostics);
+        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, TestOptions.RegularNext);
+        verifyWithMissing(WellKnownMember.System_Span_T__op_Implicit_Array, TestOptions.RegularNext, expectedDiagnostics);
 
-        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, TestOptions.RegularPreview);
-        verifyWithMissing(WellKnownMember.System_Span_T__ctor_Array, TestOptions.RegularPreview, expectedDiagnostics);
+        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, TestOptions.RegularPreview);
+        verifyWithMissing(WellKnownMember.System_Span_T__op_Implicit_Array, TestOptions.RegularPreview, expectedDiagnostics);
 
         void verifyWithMissing(WellKnownMember member, CSharpParseOptions parseOptions, params DiagnosticDescription[] expected)
         {
@@ -1729,7 +1716,7 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
-    public void Conversion_Array_ReadOnlySpan_ThroughUserImplicit_MissingCtor()
+    public void Conversion_Array_ReadOnlySpan_ThroughUserImplicit_MissingHelper()
     {
         var source = """
             using System;
@@ -1760,20 +1747,20 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadArgType, "new C()").WithArguments("1", "C", "System.ReadOnlySpan<int>").WithLocation(3, 5)
         };
 
-        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, TestOptions.Regular12, expectedDiagnostics);
-        verifyWithMissing(WellKnownMember.System_Span_T__ctor_Array, TestOptions.Regular12, expectedDiagnostics);
+        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, TestOptions.Regular12, expectedDiagnostics);
+        verifyWithMissing(WellKnownMember.System_Span_T__op_Implicit_Array, TestOptions.Regular12, expectedDiagnostics);
 
         expectedDiagnostics = [
-            // (3,5): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1..ctor'
+            // (3,5): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.op_Implicit'
             // D.M(new C());
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C()").WithArguments("System.ReadOnlySpan`1", ".ctor").WithLocation(3, 5)
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C()").WithArguments("System.ReadOnlySpan`1", "op_Implicit").WithLocation(3, 5)
         ];
 
-        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, TestOptions.RegularNext, expectedDiagnostics);
-        verifyWithMissing(WellKnownMember.System_Span_T__ctor_Array, TestOptions.RegularNext);
+        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, TestOptions.RegularNext, expectedDiagnostics);
+        verifyWithMissing(WellKnownMember.System_Span_T__op_Implicit_Array, TestOptions.RegularNext);
 
-        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array, TestOptions.RegularPreview, expectedDiagnostics);
-        verifyWithMissing(WellKnownMember.System_Span_T__ctor_Array, TestOptions.RegularPreview);
+        verifyWithMissing(WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array, TestOptions.RegularPreview, expectedDiagnostics);
+        verifyWithMissing(WellKnownMember.System_Span_T__op_Implicit_Array, TestOptions.RegularPreview);
 
         void verifyWithMissing(WellKnownMember member, CSharpParseOptions parseOptions, params DiagnosticDescription[] expected)
         {
@@ -1816,7 +1803,7 @@ public class FirstClassSpanTests : CSharpTestBase
               // Code size       12 (0xc)
               .maxstack  1
               IL_0000:  ldarg.0
-              IL_0001:  newobj     "System.Span<int>..ctor(int[])"
+              IL_0001:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
               IL_0006:  call       "void C.E(System.Span<int>)"
               IL_000b:  ret
             }
@@ -1879,7 +1866,7 @@ public class FirstClassSpanTests : CSharpTestBase
               .maxstack  1
               .locals init (System.Span<int> V_0)
               IL_0000:  ldarg.0
-              IL_0001:  newobj     "System.Span<int>..ctor(int[])"
+              IL_0001:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
               IL_0006:  stloc.0
               IL_0007:  ldloca.s   V_0
               IL_0009:  call       "void C.E({{modifier}} System.Span<int>)"
@@ -1950,7 +1937,7 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
-    public void Conversion_Array_Span_ExtensionMethodReceiver_Implicit_MissingCtor()
+    public void Conversion_Array_Span_ExtensionMethodReceiver_Implicit_MissingHelper()
     {
         var source = """
             using System;
@@ -1964,11 +1951,11 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
         var comp = CreateCompilationWithSpan(source);
-        comp.MakeMemberMissing(WellKnownMember.System_Span_T__ctor_Array);
+        comp.MakeMemberMissing(WellKnownMember.System_Span_T__op_Implicit_Array);
         comp.VerifyDiagnostics(
-            // (7,40): error CS0656: Missing compiler required member 'System.Span`1..ctor'
+            // (7,40): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
             //     public static void M(int[] arg) => arg.E();
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arg").WithArguments("System.Span`1", ".ctor").WithLocation(7, 40));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arg").WithArguments("System.Span`1", "op_Implicit").WithLocation(7, 40));
     }
 
     [Fact]
@@ -2002,12 +1989,12 @@ public class FirstClassSpanTests : CSharpTestBase
             """;
         var comp = CreateCompilationWithSpan(source);
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
-        verifier.VerifyILMultiple("C.M", """
+        verifier.VerifyIL("C.M", """
             {
               // Code size       12 (0xc)
               .maxstack  1
               IL_0000:  ldarg.0
-              IL_0001:  newobj     "System.Span<int>..ctor(int[])"
+              IL_0001:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
               IL_0006:  call       "void C.E<int>(System.Span<int>)"
               IL_000b:  ret
             }
@@ -2035,12 +2022,12 @@ public class FirstClassSpanTests : CSharpTestBase
             """;
         var comp = CreateCompilationWithSpan(source);
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
-        verifier.VerifyILMultiple("C.M", """
+        verifier.VerifyIL("C.M", """
             {
               // Code size       14 (0xe)
               .maxstack  2
               IL_0000:  ldarg.0
-              IL_0001:  newobj     "System.Span<int>..ctor(int[])"
+              IL_0001:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
               IL_0006:  ldc.i4.s   42
               IL_0008:  call       "void C.E<int>(System.Span<int>, int)"
               IL_000d:  ret
@@ -2069,12 +2056,12 @@ public class FirstClassSpanTests : CSharpTestBase
             """;
         var comp = CreateCompilationWithSpan(source);
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
-        verifier.VerifyILMultiple("C.M", """
+        verifier.VerifyIL("C.M", """
             {
               // Code size       14 (0xe)
               .maxstack  2
               IL_0000:  ldarg.0
-              IL_0001:  newobj     "System.Span<int>..ctor(int[])"
+              IL_0001:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
               IL_0006:  ldc.i4.s   42
               IL_0008:  call       "void C.E<int>(System.Span<int>, int)"
               IL_000d:  ret
@@ -2090,8 +2077,8 @@ public class FirstClassSpanTests : CSharpTestBase
         Assert.Equal("void System.Span<System.Int32>.E<System.Int32>(System.Int32 x)", info.Symbol!.ToTestDisplayString());
     }
 
-    [Fact]
-    public void Conversion_Array_Span_ExtensionMethodReceiver_Explicit()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_ExtensionMethodReceiver_Explicit(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -2107,7 +2094,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedOutput = "8";
 
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
@@ -2119,25 +2106,6 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_000b:  ret
             }
             """);
-
-        var expectedIl = """
-            {
-              // Code size       12 (0xc)
-              .maxstack  1
-              IL_0000:  ldarg.0
-              IL_0001:  newobj     "System.Span<int>..ctor(int[])"
-              IL_0006:  call       "void C.E(System.Span<int>)"
-              IL_000b:  ret
-            }
-            """;
-
-        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
-        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
-        verifier.VerifyIL("C.M", expectedIl);
-
-        comp = CreateCompilationWithSpan(source);
-        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
-        verifier.VerifyIL("C.M", expectedIl);
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -2313,12 +2281,15 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedIl = """
             {
-              // Code size       12 (0xc)
+              // Code size       14 (0xe)
               .maxstack  1
+              .locals init (object[] V_0)
               IL_0000:  ldarg.0
-              IL_0001:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
-              IL_0006:  call       "void C.E(System.ReadOnlySpan<object>)"
-              IL_000b:  ret
+              IL_0001:  stloc.0
+              IL_0002:  ldloc.0
+              IL_0003:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.op_Implicit(object[])"
+              IL_0008:  call       "void C.E(System.ReadOnlySpan<object>)"
+              IL_000d:  ret
             }
             """;
 
