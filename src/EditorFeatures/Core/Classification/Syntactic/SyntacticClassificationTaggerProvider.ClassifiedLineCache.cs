@@ -124,22 +124,23 @@ internal partial class SyntacticClassificationTaggerProvider
                 return;
             }
 
-            AddNewEntryToCache(span, newClassifications);
+            var node = GetLruNode(span, newClassifications);
+            Contract.ThrowIfTrue(node.Value.Span != span);
+
+            _lruList.AddLast(node);
+            _spanToLruNode.Add(span, node);
 
             Contract.ThrowIfTrue(_lruList.Count > CacheSize);
             Contract.ThrowIfTrue(_lruList.Count != _spanToLruNode.Count);
         }
 
-        private void AddNewEntryToCache(Span span, SegmentedList<ClassifiedSpan> newClassifications)
+        private LinkedListNode<SpanAndClassifiedSpans> GetLruNode(Span span, SegmentedList<ClassifiedSpan> newClassifications)
         {
-            // Not in cache.  Add to the cache, and remove the oldest entry if we're at capacity.
-
             if (_lruList.Count < CacheSize)
             {
-                // We're not at capacity.  Just add this new entry. Note: The SegmentedList constructor fast paths the
-                // case where we pass in another SegmentedList.
-                var node = _lruList.AddLast(new SpanAndClassifiedSpans(span, new SegmentedList<ClassifiedSpan>(newClassifications)));
-                _spanToLruNode.Add(span, node);
+                // We're not at capacity.  Create a new node to go at the end of the LRU list. Note: The SegmentedList
+                // constructor fast paths the case where we pass in another SegmentedList.
+                return new(new(span, new SegmentedList<ClassifiedSpan>(newClassifications)));
             }
             else
             {
@@ -161,14 +162,13 @@ internal partial class SyntacticClassificationTaggerProvider
                 Contract.ThrowIfTrue(firstNode != existingNode);
 
                 // AddRange is optimized to take a SegmentedList and copy directly from it into the result list.
-                existingNode.Value.ClassifiedSpans.Clear();
-                existingNode.Value.ClassifiedSpans.AddRange(newClassifications);
+                firstNode.Value.ClassifiedSpans.Clear();
+                firstNode.Value.ClassifiedSpans.AddRange(newClassifications);
 
                 // Place the existing node (which we removed), with its value updated to the current span and new classifications, at the end of
                 // the list.  And update the map to contain this updated information.
-                existingNode.Value = existingNode.Value with { Span = span };
-                _lruList.AddLast(existingNode);
-                _spanToLruNode.Add(span, existingNode);
+                firstNode.Value = firstNode.Value with { Span = span };
+                return firstNode;
             }
         }
     }
