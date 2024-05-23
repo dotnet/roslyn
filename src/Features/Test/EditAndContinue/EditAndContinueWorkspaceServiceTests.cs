@@ -17,8 +17,6 @@ using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
-using Microsoft.CodeAnalysis.ExternalAccess.Watch.Api;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
