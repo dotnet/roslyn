@@ -47,6 +47,8 @@ internal partial class SyntacticClassificationTaggerProvider
 
         // Mutating state.  No need for locks as we only execute on the UI thread (and throw if we're not on that thread).
 
+        private DocumentId? _documentId;
+        private ParseOptions? _parseOptions;
         private ITextSnapshot? _snapshot;
 
         /// <summary>
@@ -64,23 +66,35 @@ internal partial class SyntacticClassificationTaggerProvider
         /// </summary>
         private readonly Dictionary<Span, LinkedListNode<SpanAndClassifiedSpans>> _spanToLruNode = [];
 
-        private void ClearIfDifferentSnapshot(ITextSnapshot snapshot)
+        private void ClearIfDifferentSnapshot(
+            DocumentId documentId,
+            ParseOptions? parseOptions,
+            ITextSnapshot snapshot)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            if (_snapshot != snapshot)
+            if (_documentId != documentId ||
+                _parseOptions != parseOptions ||
+                _snapshot != snapshot)
             {
                 _lruList.Clear();
                 _spanToLruNode.Clear();
+
+                _documentId = documentId;
+                _parseOptions = parseOptions;
                 _snapshot = snapshot;
             }
         }
 
-        public bool TryUseCache(SnapshotSpan snapshotSpan, SegmentedList<ClassifiedSpan> classifications)
+        public bool TryUseCache(
+            DocumentId documentId,
+            ParseOptions? parseOptions,
+            SnapshotSpan snapshotSpan,
+            SegmentedList<ClassifiedSpan> classifications)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            ClearIfDifferentSnapshot(snapshotSpan.Snapshot);
+            ClearIfDifferentSnapshot(documentId, parseOptions, snapshotSpan.Snapshot);
 
             if (!_spanToLruNode.TryGetValue(snapshotSpan.Span, out var node))
                 return false;
@@ -94,16 +108,15 @@ internal partial class SyntacticClassificationTaggerProvider
             return true;
         }
 
-        public void Update(SnapshotSpan snapshotSpan, SegmentedList<ClassifiedSpan> newClassifications)
+        public void Update(
+            SnapshotSpan snapshotSpan, SegmentedList<ClassifiedSpan> newClassifications)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
             if (newClassifications.Count > MaxClassificationsCount)
                 return;
 
-            // Clear out cached data if we've moved to a different snapshot.
             var span = snapshotSpan.Span;
-            ClearIfDifferentSnapshot(snapshotSpan.Snapshot);
 
             if (_spanToLruNode.ContainsKey(span))
             {
