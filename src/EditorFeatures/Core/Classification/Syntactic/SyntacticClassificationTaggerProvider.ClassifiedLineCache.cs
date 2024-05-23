@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -42,6 +43,8 @@ internal partial class SyntacticClassificationTaggerProvider
         /// users with vertical monitors and small font/zoom settings..
         /// </summary>
         private const int CacheSize = 256;
+
+        private static readonly ObjectPool<SegmentedList<ClassifiedSpan>> s_classifiedSpanListPool = new(() => new(), CacheSize);
 
         private readonly IThreadingContext _threadingContext = threadingContext;
 
@@ -92,6 +95,10 @@ internal partial class SyntacticClassificationTaggerProvider
                 _parseOptions != parseOptions ||
                 _snapshot != snapshot)
             {
+                // Return all the classifiedspan lists we allocated back to the pool.
+                foreach (var spanAndClassifiedSpans in _lruList)
+                    s_classifiedSpanListPool.ClearAndFree(spanAndClassifiedSpans.ClassifiedSpans, trim: false);
+
                 _lruList.Clear();
                 _spanToLruNode.Clear();
 
@@ -142,6 +149,12 @@ internal partial class SyntacticClassificationTaggerProvider
             var node = GetLruNode(span, newClassifications);
             Contract.ThrowIfTrue(node.Value.Span != span);
 
+            node.Value = node.Value with { Span = span };
+
+            // AddRange is optimized to take a SegmentedList and copy directly from it into the result list.
+            node.Value.ClassifiedSpans.Clear();
+            node.Value.ClassifiedSpans.AddRange(newClassifications);
+
             _lruList.AddLast(node);
             _spanToLruNode.Add(span, node);
 
@@ -153,14 +166,13 @@ internal partial class SyntacticClassificationTaggerProvider
         {
             if (_lruList.Count < CacheSize)
             {
-                // We're not at capacity.  Create a new node to go at the end of the LRU list. Note: The SegmentedList
-                // constructor fast paths the case where we pass in another SegmentedList.
-                return new LinkedListNode<SpanAndClassifiedSpans>(new SpanAndClassifiedSpans(span, new SegmentedList<ClassifiedSpan>(newClassifications)));
+                // We're not at capacity.  Create a new node to go at the end of the LRU list.
+                return new LinkedListNode<SpanAndClassifiedSpans>(new SpanAndClassifiedSpans(span, s_classifiedSpanListPool.Allocate()));
             }
             else
             {
-                // we're at capacity.  Remove the oldest entry from the linked list.  Hold onto that linked list
-                // node so we can reuse it without an allocation below.
+                // we're at capacity.  Remove the oldest entry from the linked list.  We'll use that as the node to add
+                // to the end of the LRU (replacing its contents with the new span/classified spans in the caller).
 
                 var firstNode = _lruList.First;
                 Contract.ThrowIfNull(firstNode);
@@ -175,14 +187,6 @@ internal partial class SyntacticClassificationTaggerProvider
 #endif
 
                 Contract.ThrowIfTrue(firstNode != existingNode);
-
-                // AddRange is optimized to take a SegmentedList and copy directly from it into the result list.
-                firstNode.Value.ClassifiedSpans.Clear();
-                firstNode.Value.ClassifiedSpans.AddRange(newClassifications);
-
-                // Place the existing node (which we removed), with its value updated to the current span and new classifications, at the end of
-                // the list.  And update the map to contain this updated information.
-                firstNode.Value = firstNode.Value with { Span = span };
                 return firstNode;
             }
         }
