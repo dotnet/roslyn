@@ -10,7 +10,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
@@ -67,14 +67,21 @@ internal sealed class SignatureHelpService([ImportMany] IEnumerable<Lazy<ISignat
         SignatureHelpOptions options,
         CancellationToken cancellationToken)
     {
+        var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
+
         ISignatureHelpProvider? bestProvider = null;
         SignatureHelpItems? bestItems = null;
 
         // returns the first non-empty quick info found (based on provider order)
         foreach (var provider in providers)
         {
-            var items = await TryGetItemsAsync(document, position, triggerInfo, options, provider, cancellationToken).ConfigureAwait(false);
-            if (items is null)
+            var items = await extensionManager.PerformFunctionAsync(
+                provider,
+                cancellationToken => provider.GetItemsAsync(document, position, triggerInfo, options, cancellationToken),
+                defaultValue: null,
+                cancellationToken).ConfigureAwait(false);
+
+            if (items is null || !items.ApplicableSpan.IntersectsWith(position))
             {
                 continue;
             }
@@ -97,30 +104,5 @@ internal sealed class SignatureHelpService([ImportMany] IEnumerable<Lazy<ISignat
         }
 
         return (bestProvider, bestItems);
-    }
-
-    private static async Task<SignatureHelpItems?> TryGetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, ISignatureHelpProvider provider, CancellationToken cancellationToken)
-    {
-        // We're calling into extensions, we need to make ourselves resilient
-        // to the extension crashing.
-        try
-        {
-            var items = await provider.GetItemsAsync(document, position, triggerInfo, options, cancellationToken).ConfigureAwait(false);
-            if (items is null)
-            {
-                return null;
-            }
-
-            if (!items.ApplicableSpan.IntersectsWith(position))
-            {
-                return null;
-            }
-
-            return items;
-        }
-        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-        {
-            return null;
-        }
     }
 }
