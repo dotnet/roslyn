@@ -339,8 +339,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             return [diagnostic];
         }
 
-        return [];
-
         // DiagnosticId supports fading, check if the corresponding VS option is turned on.
         if (!SupportsFadingOption(diagnosticData))
         {
