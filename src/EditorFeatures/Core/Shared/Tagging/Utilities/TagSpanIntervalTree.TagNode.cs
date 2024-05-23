@@ -13,26 +13,23 @@ internal partial class TagSpanIntervalTree<TTag>
     private readonly struct TagNode(ITagSpan<TTag> tagSpan, SpanTrackingMode trackingMode)
     {
         private readonly ITagSpan<TTag> _originalTagSpan = tagSpan;
-        public readonly ITrackingSpan Span = tagSpan.Span.CreateTrackingSpan(trackingMode);
+        private readonly SpanTrackingMode _trackingMode = trackingMode;
 
         public TTag Tag => _originalTagSpan.Tag;
 
-        public int GetStart(ITextSnapshot textSnapshot)
+        public SnapshotSpan GetTranslatedSpan(ITextSnapshot textSnapshot)
         {
             var localSpan = _originalTagSpan.Span;
 
             return localSpan.Snapshot == textSnapshot
-                ? localSpan.Start
-                : this.Span.GetStartPoint(textSnapshot);
+                ? localSpan
+                : localSpan.TranslateTo(textSnapshot, _trackingMode);
         }
+
+        public int GetStart(ITextSnapshot textSnapshot)
+            => GetTranslatedSpan(textSnapshot).Start;
 
         public int GetLength(ITextSnapshot textSnapshot)
-        {
-            var localSpan = _originalTagSpan.Span;
-
-            return localSpan.Snapshot == textSnapshot
-                ? localSpan.Length
-                : this.Span.GetSpan(textSnapshot).Length;
-        }
+            => GetTranslatedSpan(textSnapshot).Length;
     }
 }
