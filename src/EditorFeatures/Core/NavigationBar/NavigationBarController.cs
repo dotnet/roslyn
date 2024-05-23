@@ -94,14 +94,14 @@ internal partial class NavigationBarController : IDisposable
         _asyncListener = asyncListener;
 
         _computeModelQueue = new AsyncBatchingWorkQueue<VoidResult, NavigationBarModel?>(
-            DelayTimeSpan.Medium,
+            DelayTimeSpan.Short,
             ComputeModelAndSelectItemAsync,
             EqualityComparer<VoidResult>.Default,
             asyncListener,
             _cancellationTokenSource.Token);
 
         _selectItemQueue = new AsyncBatchingWorkQueue(
-            DelayTimeSpan.Medium,
+            DelayTimeSpan.Short,
             SelectItemAsync,
             asyncListener,
             _cancellationTokenSource.Token);
