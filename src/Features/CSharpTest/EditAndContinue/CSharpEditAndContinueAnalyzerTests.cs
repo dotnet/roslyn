@@ -119,7 +119,7 @@ public class CSharpEditAndContinueAnalyzerTests
         Project oldProject,
         Document newDocument,
         ActiveStatementsMap activeStatementMap = null,
-        EditAndContinueCapabilities capabilities = EditAndContinueTestHelpers.Net5RuntimeCapabilities,
+        EditAndContinueCapabilities capabilities = EditAndContinueTestVerifier.Net5RuntimeCapabilities,
         ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans = default)
     {
         var analyzer = new CSharpEditAndContinueAnalyzer();
@@ -747,7 +747,7 @@ class D
         var newSyntaxTree = await newDocument.GetSyntaxTreeAsync().ConfigureAwait(false);
 
         var baseActiveStatements = AsyncLazy.Create(ActiveStatementsMap.Empty);
-        var capabilities = AsyncLazy.Create(EditAndContinueTestHelpers.Net5RuntimeCapabilities);
+        var capabilities = AsyncLazy.Create(EditAndContinueTestVerifier.Net5RuntimeCapabilities);
 
         var analyzer = new CSharpEditAndContinueAnalyzer(node =>
         {

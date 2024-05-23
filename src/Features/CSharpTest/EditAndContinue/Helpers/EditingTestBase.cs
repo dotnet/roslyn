@@ -174,14 +174,14 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
     internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(string src1, string src2, MethodKind kind = MethodKind.Regular)
     {
         var methodMatch = GetMethodMatch(src1, src2, kind);
-        return EditAndContinueTestHelpers.GetMethodMatches(CreateAnalyzer(), methodMatch);
+        return EditAndContinueTestVerifier.GetMethodMatches(CreateAnalyzer(), methodMatch);
     }
 
     public static MatchingPairs ToMatchingPairs(Match<SyntaxNode> match)
-        => EditAndContinueTestHelpers.ToMatchingPairs(match);
+        => EditAndContinueTestVerifier.ToMatchingPairs(match);
 
     public static MatchingPairs ToMatchingPairs(IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> matches)
-        => EditAndContinueTestHelpers.ToMatchingPairs(matches);
+        => EditAndContinueTestVerifier.ToMatchingPairs(matches);
 
     internal static MemberBody MakeMethodBody(
         string bodySource,

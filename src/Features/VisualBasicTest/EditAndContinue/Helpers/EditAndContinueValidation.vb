@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Optional diagnostics As RudeEditDiagnosticDescription() = Nothing,
             Optional capabilities As EditAndContinueCapabilities? = Nothing)
 
-            Dim validator = New VisualBasicEditAndContinueTestHelpers()
+            Dim validator = New VisualBasicEditAndContinueTestVerifier()
             validator.VerifyLineEdits(editScript, lineEdits, semanticEdits, diagnostics, capabilities)
         End Sub
 
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Optional capabilities As EditAndContinueCapabilities? = Nothing)
 
             For Each framework In If(targetFrameworks, {TargetFramework.NetStandard20, TargetFramework.NetCoreApp})
-                Dim validator = New VisualBasicEditAndContinueTestHelpers()
+                Dim validator = New VisualBasicEditAndContinueTestVerifier()
                 validator.VerifySemantics(editScripts, framework, expected, capabilities)
             Next
         End Sub
