@@ -44,7 +44,7 @@ internal partial class SyntacticClassificationTaggerProvider
 
             private readonly IThreadingContext _threadingContext = threadingContext;
 
-            // mutating state
+            // Mutating state.  No need for locks as we only execute on the UI thread (and throw if we're not on that thread).
 
             private ITextSnapshot? _snapshot;
 
