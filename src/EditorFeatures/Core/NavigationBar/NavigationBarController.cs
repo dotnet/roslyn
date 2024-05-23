@@ -64,7 +64,7 @@ internal partial class NavigationBarController : IDisposable
     /// compute the model once for every batch.  The <c>bool</c> type parameter isn't used, but is provided as this
     /// type is generic.
     /// </summary>
-    private readonly AsyncBatchingWorkQueue<bool, NavigationBarModel?> _computeModelQueue;
+    private readonly AsyncBatchingWorkQueue<VoidResult, NavigationBarModel?> _computeModelQueue;
 
     /// <summary>
     /// Queue to batch up work to do to determine the selected item.  Used so we can batch up a lot of events and
@@ -93,15 +93,15 @@ internal partial class NavigationBarController : IDisposable
         _uiThreadOperationExecutor = uiThreadOperationExecutor;
         _asyncListener = asyncListener;
 
-        _computeModelQueue = new AsyncBatchingWorkQueue<bool, NavigationBarModel?>(
-            DelayTimeSpan.Short,
+        _computeModelQueue = new AsyncBatchingWorkQueue<VoidResult, NavigationBarModel?>(
+            DelayTimeSpan.Medium,
             ComputeModelAndSelectItemAsync,
-            EqualityComparer<bool>.Default,
+            EqualityComparer<VoidResult>.Default,
             asyncListener,
             _cancellationTokenSource.Token);
 
         _selectItemQueue = new AsyncBatchingWorkQueue(
-            DelayTimeSpan.NearImmediate,
+            DelayTimeSpan.Medium,
             SelectItemAsync,
             asyncListener,
             _cancellationTokenSource.Token);
@@ -157,8 +157,6 @@ internal partial class NavigationBarController : IDisposable
         _eventSource.Disconnect();
 
         _disconnected = true;
-
-        // Cancel off any remaining background work
         _cancellationTokenSource.Cancel();
     }
 
@@ -195,8 +193,7 @@ internal partial class NavigationBarController : IDisposable
         if (_disconnected)
             return;
 
-        // 'true' value is unused.  this just signals to the queue that we have work to do.
-        _computeModelQueue.AddWork(true);
+        _computeModelQueue.AddWork(default(VoidResult));
     }
 
     private void OnCaretMovedOrActiveViewChanged(object? sender, EventArgs e)
