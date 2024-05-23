@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar;
 
@@ -22,7 +23,7 @@ internal partial class NavigationBarController
     /// <summary>
     /// Starts a new task to compute the model based on the current text.
     /// </summary>
-    private async ValueTask<NavigationBarModel?> ComputeModelAndSelectItemAsync(ImmutableSegmentedList<bool> unused, CancellationToken cancellationToken)
+    private async ValueTask<NavigationBarModel?> ComputeModelAndSelectItemAsync(ImmutableSegmentedList<VoidResult> _, CancellationToken cancellationToken)
     {
         // Jump back to the UI thread to determine what snapshot the user is processing.
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
@@ -98,8 +99,8 @@ internal partial class NavigationBarController
     /// </summary>
     private void StartSelectedItemUpdateTask()
     {
-        // 'true' value is unused.  this just signals to the queue that we have work to do.
-        _selectItemQueue.AddWork();
+        // Cancel any in flight work.  This way we don't update until a short lull after the last user event we received.
+        _selectItemQueue.AddWork(cancelExistingWork: true);
     }
 
     private async ValueTask SelectItemAsync(CancellationToken cancellationToken)
