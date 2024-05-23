@@ -47,8 +47,23 @@ internal partial class SyntacticClassificationTaggerProvider
 
         // Mutating state.  No need for locks as we only execute on the UI thread (and throw if we're not on that thread).
 
+        /// <summary>
+        /// The last document id we cached.  This can change when the user switches to another TFM (though the
+        /// ITextSnapshot will stay the same).
+        /// </summary>
         private DocumentId? _documentId;
+
+        /// <summary>
+        /// The last parse options we computed classifications for.  This can change when the user switches to another
+        /// mode (like Debug/Release).  We want to dump classifications in that case even though the text snapshot is
+        /// the same.
+        /// </summary>
         private ParseOptions? _parseOptions;
+
+        /// <summary>
+        /// The last text snapshot we cached classifications for.  This can change when the user edits the file.  When
+        /// that happens, we want to dump all previous classifications as they are no longer valid.
+        /// </summary>
         private ITextSnapshot? _snapshot;
 
         /// <summary>
@@ -66,7 +81,7 @@ internal partial class SyntacticClassificationTaggerProvider
         /// </summary>
         private readonly Dictionary<Span, LinkedListNode<SpanAndClassifiedSpans>> _spanToLruNode = [];
 
-        private void ClearIfDifferentSnapshot(
+        private void ClearOnMajorChange(
             DocumentId documentId,
             ParseOptions? parseOptions,
             ITextSnapshot snapshot)
@@ -94,7 +109,7 @@ internal partial class SyntacticClassificationTaggerProvider
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            ClearIfDifferentSnapshot(documentId, parseOptions, snapshotSpan.Snapshot);
+            ClearOnMajorChange(documentId, parseOptions, snapshotSpan.Snapshot);
 
             if (!_spanToLruNode.TryGetValue(snapshotSpan.Span, out var node))
                 return false;
