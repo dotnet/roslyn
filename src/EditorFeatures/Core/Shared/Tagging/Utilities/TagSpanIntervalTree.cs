@@ -71,11 +71,11 @@ internal partial class TagSpanIntervalTree<TTag> where TTag : ITag
             snapshotSpan.Start, snapshotSpan.Length, ref intersectingIntervals.AsRef(), new IntervalIntrospector(snapshot));
 
         foreach (var tagNode in intersectingIntervals)
-            result.Add(new TagSpan<TTag>(tagNode.GetTranslatedSpan(snapshot), tagNode.Tag));
+            result.Add(tagNode.GetTranslatedTagSpan(snapshot));
     }
 
     public IEnumerable<ITagSpan<TTag>> GetSpans(ITextSnapshot snapshot)
-        => _tree.Select(tn => new TagSpan<TTag>(tn.GetTranslatedSpan(snapshot), tn.Tag));
+        => _tree.Select(tn => tn.GetTranslatedTagSpan(snapshot));
 
     public bool IsEmpty()
         => _tree.IsEmpty();

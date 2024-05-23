@@ -17,6 +17,9 @@ internal partial class TagSpanIntervalTree<TTag>
 
         public TTag Tag => _originalTagSpan.Tag;
 
+        public TagSpan<TTag> GetTranslatedTagSpan(ITextSnapshot textSnapshot)
+            => new(GetTranslatedSpan(textSnapshot), Tag);
+
         public SnapshotSpan GetTranslatedSpan(ITextSnapshot textSnapshot)
         {
             var localSpan = _originalTagSpan.Span;
