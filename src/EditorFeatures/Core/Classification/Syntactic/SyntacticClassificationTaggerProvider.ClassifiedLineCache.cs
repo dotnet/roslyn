@@ -95,7 +95,7 @@ internal partial class SyntacticClassificationTaggerProvider
                 _parseOptions != parseOptions ||
                 _snapshot != snapshot)
             {
-                // Return all the classifiedspan lists we allocated back to the pool.
+                // Return all the classified span lists we allocated back to the pool.
                 foreach (var spanAndClassifiedSpans in _lruList)
                     s_classifiedSpanListPool.ClearAndFree(spanAndClassifiedSpans.ClassifiedSpans, trim: false);
 
