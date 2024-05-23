@@ -145,7 +145,7 @@ internal partial class SyntacticClassificationTaggerProvider
                 return;
             }
 
-            var node = GetLruNode(span, newClassifications);
+            var node = GetOrCreateLruNode(span);
             Contract.ThrowIfTrue(node.Value.Span != span);
 
             node.Value = node.Value with { Span = span };
@@ -161,7 +161,7 @@ internal partial class SyntacticClassificationTaggerProvider
             Contract.ThrowIfTrue(_lruList.Count != _spanToLruNode.Count);
         }
 
-        private LinkedListNode<SpanAndClassifiedSpans> GetLruNode(Span span, SegmentedList<ClassifiedSpan> newClassifications)
+        private LinkedListNode<SpanAndClassifiedSpans> GetOrCreateLruNode(Span span)
         {
             if (_lruList.Count < CacheSize)
             {
@@ -178,14 +178,9 @@ internal partial class SyntacticClassificationTaggerProvider
                 _lruList.RemoveFirst();
 
                 // Now, remove the entry from the map as well.
-#if NET
-                Contract.ThrowIfFalse(_spanToLruNode.Remove(firstNode.Value.Span, out var existingNode));
-#else
-                var existingNode = _spanToLruNode[firstNode.Value.Span];
-                Contract.ThrowIfFalse(_spanToLruNode.Remove(firstNode.Value.Span));
-#endif
+                Debug.Assert(_spanToLruNode[firstNode.Value.Span] == firstNode);
+                _spanToLruNode.Remove(firstNode.Value.Span);
 
-                Contract.ThrowIfTrue(firstNode != existingNode);
                 return firstNode;
             }
         }
