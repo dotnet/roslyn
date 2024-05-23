@@ -48,7 +48,19 @@ internal partial class SyntacticClassificationTaggerProvider
 
         private ITextSnapshot? _snapshot;
 
+        /// <summary>
+        /// LRU list of spans and the classifications for them.  More recent entries are placed at the end of the list.
+        /// When we reach <see cref="CacheSize"/> we will start removing from the front.  Items in the middle that are
+        /// used again are placed at the end of the list.
+        /// </summary>
         private readonly LinkedList<SpanAndClassifiedSpans> _lruList = [];
+
+        /// <summary>
+        /// Mapping from span to the corresponding linked list node in <see cref="_lruList"/>.  Allows us to quickly
+        /// lookup the cached classifications for a given span, as well as get directly to the linked list node, so we
+        /// can manipulate it easily. For example, removing it from its current location (in O(1) time) and adding it to
+        /// the end (also O(1)).
+        /// </summary>
         private readonly Dictionary<Span, LinkedListNode<SpanAndClassifiedSpans>> _spanToLruNode = [];
 
         private void ClearIfDifferentSnapshot(ITextSnapshot snapshot)
