@@ -10,38 +10,26 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal partial class TagSpanIntervalTree<TTag>
 {
-    private class TagNode(ITagSpan<TTag> ts, SpanTrackingMode trackingMode)
+    private readonly struct TagNode(ITagSpan<TTag> tagSpan, SpanTrackingMode trackingMode)
     {
-        public readonly TTag Tag = ts.Tag;
-        public readonly ITrackingSpan Span = ts.Span.CreateTrackingSpan(trackingMode);
-        private SnapshotSpan _snapshotSpan = ts.Span;
+        private readonly ITagSpan<TTag> _originalTagSpan = tagSpan;
+        public readonly ITrackingSpan Span = tagSpan.Span.CreateTrackingSpan(trackingMode);
 
-        private SnapshotSpan GetSnapshotSpan(ITextSnapshot textSnapshot)
+        public TTag Tag => _originalTagSpan.Tag;
+
+        public int GetStart(ITextSnapshot textSnapshot)
         {
-            var localSpan = _snapshotSpan;
-            if (localSpan.Snapshot == textSnapshot)
-            {
-                return localSpan;
-            }
-            else if (localSpan.Snapshot != null)
-            {
-                _snapshotSpan = default;
-            }
+            var localSpan = _originalTagSpan.Span;
 
-            return default;
-        }
-
-        internal int GetStart(ITextSnapshot textSnapshot)
-        {
-            var localSpan = this.GetSnapshotSpan(textSnapshot);
             return localSpan.Snapshot == textSnapshot
                 ? localSpan.Start
                 : this.Span.GetStartPoint(textSnapshot);
         }
 
-        internal int GetLength(ITextSnapshot textSnapshot)
+        public int GetLength(ITextSnapshot textSnapshot)
         {
-            var localSpan = this.GetSnapshotSpan(textSnapshot);
+            var localSpan = _originalTagSpan.Span;
+
             return localSpan.Snapshot == textSnapshot
                 ? localSpan.Length
                 : this.Span.GetSpan(textSnapshot).Length;
