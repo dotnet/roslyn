@@ -137,7 +137,7 @@ internal partial class SyntacticClassificationTaggerProvider
             // Was in cache.  Update the cached classifications to the new ones.
             UpdateLruNodeClassifications(existingNode, newClassifications);
 
-            // And move this span to the front of end of the LRU list.
+            // And move this span to the end of the LRU list.
             _lruList.Remove(existingNode);
             _lruList.AddLast(existingNode);
         }
