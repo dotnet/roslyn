@@ -326,12 +326,20 @@ internal partial class SyntacticClassificationTaggerProvider
 
             var lastProcessedData = GetLastProcessedData();
 
-            // Optionally pre-calculate the root of the doc so that it is ready to classify
-            // once GetTags is called.  Also, attempt to determine a smaller change range span
-            // for this document so that we can avoid reporting the entire document as changed.
+            // Optionally pre-calculate the root of the doc so that it is ready to classify once GetTags is called.
+            // Also, attempt to determine a smaller change range span for this document so that we can avoid reporting
+            // the entire document as changed.
 
             var currentRoot = await currentDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var changedSpan = await ComputeChangedSpanAsync(lastProcessedData?.document, lastProcessedData?.root).ConfigureAwait(false);
+
+            var changeRange = await ComputeChangedRangeAsync(
+                solutionServices, classificationService,
+                currentDocument, currentRoot,
+                lastProcessedData?.document, lastProcessedData?.root,
+                cancellationToken).ConfigureAwait(false);
+            var changedSpan = changeRange != null
+                ? currentSnapshot.GetSpan(changeRange.Value.Span.Start, changeRange.Value.NewLength)
+                : currentSnapshot.GetFullSpan();
 
             lock (_gate)
             {
@@ -356,37 +364,32 @@ internal partial class SyntacticClassificationTaggerProvider
 
                 return latest;
             }
+        }
 
-            async ValueTask<SnapshotSpan> ComputeChangedSpanAsync(
-                Document? lastProcessedDocument,
-                SyntaxNode? lastProcessedRoot)
+        private ValueTask<TextChangeRange?> ComputeChangedRangeAsync(
+            SolutionServices solutionServices,
+            IClassificationService classificationService,
+            Document currentDocument,
+            SyntaxNode? currentRoot,
+            Document? lastProcessedDocument,
+            SyntaxNode? lastProcessedRoot,
+            CancellationToken cancellationToken)
+        {
+            if (lastProcessedDocument is null)
+                return ValueTaskFactory.FromResult<TextChangeRange?>(null);
+
+            if (lastProcessedRoot != null)
             {
-                var changeRange = await ComputeChangedRangeAsync(lastProcessedDocument, lastProcessedRoot).ConfigureAwait(false);
-                return changeRange != null
-                    ? currentSnapshot.GetSpan(changeRange.Value.Span.Start, changeRange.Value.NewLength)
-                    : currentSnapshot.GetFullSpan();
-            }
-
-            ValueTask<TextChangeRange?> ComputeChangedRangeAsync(
-                Document? lastProcessedDocument,
-                SyntaxNode? lastProcessedRoot)
-            {
-                if (lastProcessedDocument is null)
-                    return ValueTaskFactory.FromResult<TextChangeRange?>(null);
-
-                if (lastProcessedRoot != null)
-                {
-                    // If we have syntax available fast path the change computation without async or blocking.
-                    if (currentRoot is not null)
-                        return new(classificationService.ComputeSyntacticChangeRange(solutionServices, lastProcessedRoot, currentRoot, _diffTimeout, cancellationToken));
-                    else
-                        return ValueTaskFactory.FromResult<TextChangeRange?>(null);
-                }
+                // If we have syntax available fast path the change computation without async or blocking.
+                if (currentRoot is not null)
+                    return new(classificationService.ComputeSyntacticChangeRange(solutionServices, lastProcessedRoot, currentRoot, _diffTimeout, cancellationToken));
                 else
-                {
-                    // Otherwise, fall back to the language to compute the difference based on the document contents.
-                    return classificationService.ComputeSyntacticChangeRangeAsync(lastProcessedDocument, currentDocument, _diffTimeout, cancellationToken);
-                }
+                    return ValueTaskFactory.FromResult<TextChangeRange?>(null);
+            }
+            else
+            {
+                // Otherwise, fall back to the language to compute the difference based on the document contents.
+                return classificationService.ComputeSyntacticChangeRangeAsync(lastProcessedDocument, currentDocument, _diffTimeout, cancellationToken);
             }
         }
 
