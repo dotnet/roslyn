@@ -226,15 +226,15 @@ End Namespace
                                                 src2 As String,
                                                 Optional kind As MethodKind = MethodKind.Regular) As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))
             Dim methodMatch = GetMethodMatch(src1, src2, kind)
-            Return EditAndContinueTestHelpers.GetMethodMatches(CreateAnalyzer(), methodMatch)
+            Return EditAndContinueTestVerifier.GetMethodMatches(CreateAnalyzer(), methodMatch)
         End Function
 
         Public Shared Function ToMatchingPairs(match As Match(Of SyntaxNode)) As MatchingPairs
-            Return EditAndContinueTestHelpers.ToMatchingPairs(match)
+            Return EditAndContinueTestVerifier.ToMatchingPairs(match)
         End Function
 
         Public Shared Function ToMatchingPairs(matches As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))) As MatchingPairs
-            Return EditAndContinueTestHelpers.ToMatchingPairs(matches)
+            Return EditAndContinueTestVerifier.ToMatchingPairs(matches)
         End Function
 
         Friend Shared Function MakeMethodBody(bodySource As String, Optional stateMachine As MethodKind = MethodKind.Regular) As MemberBody
