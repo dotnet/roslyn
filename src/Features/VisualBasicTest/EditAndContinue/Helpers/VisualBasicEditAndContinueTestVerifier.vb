@@ -12,8 +12,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 
-    Friend NotInheritable Class VisualBasicEditAndContinueTestHelpers
-        Inherits EditAndContinueTestHelpers
+    Friend NotInheritable Class VisualBasicEditAndContinueTestVerifier
+        Inherits EditAndContinueTestVerifier
 
         Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer
 
