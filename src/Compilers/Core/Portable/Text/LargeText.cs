@@ -238,7 +238,8 @@ namespace Microsoft.CodeAnalysis.Text
             var position = 0;
             var index = 0;
             var lastCr = -1;
-            // Initial line capacity estimated at 64 chars / line
+            // Initial line capacity estimated at 64 chars / line. This values was obtained by
+            // looking at ratios in large files in the roslyn repo.
             var list = new SegmentedList<int>(Length / 64);
 
             // The following loop goes through every character in the text. It is highly
