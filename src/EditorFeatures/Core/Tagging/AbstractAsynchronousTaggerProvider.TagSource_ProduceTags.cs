@@ -117,7 +117,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                     // return oldTagTrees to indicate nothing changed.
                     return new(oldTagTrees);
-                }, _dataSource.ThreadingContext.DisposalToken).VerifyCompleted();
+                }, _disposalTokenSource.Token).VerifyCompleted();
 
             // Can happen if we were canceled.  Just bail out immediate.
             if (newTagTrees is null)
