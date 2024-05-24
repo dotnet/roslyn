@@ -140,10 +140,7 @@ internal partial class SolutionCompilationState
                     frozenSourceGeneratedDocumentGenerationDateTimes = FrozenSourceGeneratedDocumentStates.SelectAsArray(d => d.GenerationDateTime);
                 }
 
-                var versionMapChecksum = ChecksumCache.GetOrCreate(
-                    this.SourceGeneratorExecutionVersionMap,
-                    static (map, @this) => GetVersionMapChecksum(@this),
-                    this);
+                var versionMapChecksum = GetVersionMapChecksum(this, projectCone);
 
                 var compilationStateChecksums = new SolutionCompilationStateChecksums(
                     solutionStateChecksum,
@@ -159,12 +156,13 @@ internal partial class SolutionCompilationState
             throw ExceptionUtilities.Unreachable();
         }
 
-        static Checksum GetVersionMapChecksum(SolutionCompilationState @this)
+        static Checksum GetVersionMapChecksum(
+            SolutionCompilationState @this, ProjectCone? projectCone)
         {
             // We want the projects in sorted order so we can generate the checksum for the
             // source-generation-execution-map consistently.
             var sortedProjectIds = SolutionState.GetOrCreateSortedProjectIds(@this.SolutionState.ProjectIds);
-            var supportedCount = sortedProjectIds.Count(
+            var supportedCount = projectCone?.ProjectIds.Count ?? sortedProjectIds.Count(
                 static (projectId, @this) => RemoteSupportedLanguages.IsSupported(@this.SolutionState.GetRequiredProjectState(projectId).Language),
                 @this);
 
@@ -175,6 +173,10 @@ internal partial class SolutionCompilationState
             {
                 var projectState = @this.SolutionState.GetRequiredProjectState(projectId);
                 if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
+                    continue;
+
+                // If we have a project cone, only include projects that are part of it.
+                if (projectCone != null && !projectCone.ProjectIds.Contains(projectId))
                     continue;
 
                 checksums.Add(projectId.Checksum);
