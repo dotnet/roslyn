@@ -70,7 +70,7 @@ internal partial class NavigationBarController : IDisposable
     /// Queue to batch up work to do to determine the selected item.  Used so we can batch up a lot of events and only
     /// compute the selected item once for every batch. The value passed in is the last recorded caret position.
     /// </summary>
-    private readonly AsyncBatchingWorkQueue<SnapshotPoint> _selectItemQueue;
+    private readonly AsyncBatchingWorkQueue<int> _selectItemQueue;
 
     /// <summary>
     /// Whether or not the navbar is paused.  We pause updates when documents become non-visible. See <see
@@ -100,7 +100,7 @@ internal partial class NavigationBarController : IDisposable
             asyncListener,
             _cancellationTokenSource.Token);
 
-        _selectItemQueue = new AsyncBatchingWorkQueue<SnapshotPoint>(
+        _selectItemQueue = new AsyncBatchingWorkQueue<int>(
             DelayTimeSpan.Short,
             SelectItemAsync,
             asyncListener,
@@ -214,15 +214,15 @@ internal partial class NavigationBarController : IDisposable
         _selectItemQueue.AddWork(caretPoint.Value, cancelExistingWork: true);
     }
 
-    private SnapshotPoint? GetCaretPoint()
+    private int? GetCaretPoint()
     {
         var currentView = _presenter.TryGetCurrentView();
-        return currentView?.GetCaretPoint(_subjectBuffer);
+        return currentView?.GetCaretPoint(_subjectBuffer)?.Position;
     }
 
-    private static (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem) GetProjectItems(ITextSnapshot snapshot)
+    private (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem) GetProjectItems()
     {
-        var textContainer = snapshot.AsText().Container;
+        var textContainer = _subjectBuffer.AsTextContainer();
 
         var documents = textContainer.GetRelatedDocuments();
         if (documents.IsEmpty)

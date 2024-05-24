@@ -98,9 +98,9 @@ internal partial class NavigationBarController
         }
     }
 
-    private async ValueTask SelectItemAsync(ImmutableSegmentedList<SnapshotPoint> positions, CancellationToken cancellationToken)
+    private async ValueTask SelectItemAsync(ImmutableSegmentedList<int> positions, CancellationToken cancellationToken)
     {
-        var position = positions.Last();
+        var lastCaretPosition = positions.Last();
 
         // Can grab this directly here as only this queue ever reads or writes to it.
         var lastPresentedInfo = _lastPresentedInfo;
@@ -116,9 +116,9 @@ internal partial class NavigationBarController
             return;
 
         var model = await modelTask.ConfigureAwait(false);
-        var currentSelectedItem = ComputeSelectedTypeAndMember(model, position, cancellationToken);
+        var currentSelectedItem = ComputeSelectedTypeAndMember(model, lastCaretPosition, cancellationToken);
 
-        var (projectItems, selectedProjectItem) = GetProjectItems(position.Snapshot);
+        var (projectItems, selectedProjectItem) = GetProjectItems();
         if (Equals(model, lastPresentedInfo.model) &&
             Equals(currentSelectedItem, lastPresentedInfo.selectedInfo) &&
             Equals(selectedProjectItem, lastPresentedInfo.selectedProjectItem) &&
