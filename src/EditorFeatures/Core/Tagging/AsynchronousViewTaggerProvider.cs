@@ -18,27 +18,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging;
 /// operate like determining what is visible to the user, or where the caret is.
 /// </summary>
 /// <typeparam name="TTag"></typeparam>
-internal abstract class AsynchronousViewTaggerProvider<TTag> : AbstractAsynchronousTaggerProvider<TTag>, IViewTaggerProvider
+internal abstract class AsynchronousViewTaggerProvider<TTag>(
+    IThreadingContext threadingContext,
+    IGlobalOptionService globalOptions,
+    ITextBufferVisibilityTracker? visibilityTracker,
+    IAsynchronousOperationListener asyncListener,
+    TaggerMainThreadManager mainThreadManager) : AbstractAsynchronousTaggerProvider<TTag>(
+        threadingContext,
+        globalOptions,
+        visibilityTracker,
+        asyncListener,
+        mainThreadManager), IViewTaggerProvider
     where TTag : ITag
 {
-    protected AsynchronousViewTaggerProvider(
-        IThreadingContext threadingContext,
-        IGlobalOptionService globalOptions,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListener asyncListener)
-        : base(threadingContext, globalOptions, visibilityTracker, asyncListener)
-    {
-<<<<<<< HEAD
-        protected AsynchronousViewTaggerProvider(
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListener asyncListener,
-            TaggerMainThreadManager mainThreadManager)
-            : base(threadingContext, globalOptions, visibilityTracker, asyncListener, mainThreadManager)
-=======
-    }
-
 #pragma warning disable CS8765 // Nullability of type of 'textView' doesn't match overridden member (derivations of this type will never receive null in this call)
     protected abstract override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer);
 #pragma warning restore
@@ -64,7 +56,6 @@ internal abstract class AsynchronousViewTaggerProvider<TTag> : AbstractAsynchron
         // dispose of it now.  The tagger will have added a ref to the underlying tagsource, and we have to make
         // sure we return that to the proper starting value.
         if (tagger is not ITagger<T> typedTagger)
->>>>>>> upstream/main
         {
             tagger.Dispose();
             return null;
