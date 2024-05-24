@@ -54,8 +54,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         {
             _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
-            var oldTagTrees = BufferToTagTree.InterlockedExchange(
-                ref _cachedTagTrees_mayChangeFromAnyThread, BufferToTagTree.Empty);
+            var oldTagTrees = Interlocked.Exchange(
+                ref _cachedTagTrees_mayChangeFromAnyThread, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty);
 
             var snapshot = _subjectBuffer.CurrentSnapshot;
             var oldTagTree = GetTagTree(snapshot, oldTagTrees);
@@ -120,7 +120,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 }, _dataSource.ThreadingContext.DisposalToken).VerifyCompleted();
 
             // Can happen if we were canceled.  Just bail out immediate.
-            if (newTagTrees.IsDefault)
+            if (newTagTrees is null)
                 return;
 
             // Nothing changed.  Bail out.
@@ -137,7 +137,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             RaiseTagsChanged(buffer, difference);
         }
 
-        private TagSpanIntervalTree<TTag> GetTagTree(ITextSnapshot snapshot, BufferToTagTree tagTrees)
+        private TagSpanIntervalTree<TTag> GetTagTree(ITextSnapshot snapshot, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> tagTrees)
         {
             return tagTrees.TryGetValue(snapshot.TextBuffer, out var tagTree)
                 ? tagTree
@@ -209,8 +209,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             }
         }
 
-        private async Task<(BufferToTagTree oldTagTrees, BufferToTagTree newTagTrees)> CompareAndSwapTagTreesAsync(
-            Func<BufferToTagTree, ValueTask<BufferToTagTree>> callback,
+        private async Task<(ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees)>
+            CompareAndSwapTagTreesAsync(
+            Func<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>, ValueTask<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>>> callback,
             CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
@@ -223,7 +224,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 // Now, try to update the cached tag trees to what we computed.  If we win, we're done.  Otherwise, some
                 // other thread was able to do this, and we need to try again.
-                if (oldTagTrees == BufferToTagTree.InterlockedCompareExchange(ref _cachedTagTrees_mayChangeFromAnyThread, newTagTrees, oldTagTrees))
+                if (oldTagTrees == Interlocked.CompareExchange(ref _cachedTagTrees_mayChangeFromAnyThread, newTagTrees, oldTagTrees))
                     return (oldTagTrees, newTagTrees);
             }
 
@@ -246,7 +247,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// </param>
         /// <param name="calledFromJtfRun">If this method is being called from within a JTF.Run call.  This is used to
         /// ensure we don't do unnecessary switches to the threadpool while JTF is waiting on us.</param>
-        private async Task<BufferToTagTree> RecomputeTagsAsync(
+        private async Task<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>?> RecomputeTagsAsync(
             bool highPriority,
             bool frozenPartialSemantics,
             bool calledFromJtfRun,
@@ -255,7 +256,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // Jump to the main thread, as we have to grab the spans to tag and the caret point.
             await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
             if (cancellationToken.IsCancellationRequested)
-                return default;
+                return null;
 
             // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
             // consuming machine resources on work the user isn't likely to see.  ConfigureAwait(true) so that if
@@ -275,7 +276,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 if (cancellationToken.IsCancellationRequested)
-                    return default;
+                    return null;
 
                 // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
                 // thread to do the computation. Finally, once new tags have been computed, then we update our state
@@ -289,7 +290,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     await TaskScheduler.Default;
 
                 if (cancellationToken.IsCancellationRequested)
-                    return default;
+                    return null;
 
                 if (frozenPartialSemantics)
                 {
@@ -310,15 +311,15 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     {
                         // Create a context to store pass the information along and collect the results.
                         context = new TaggerContext<TTag>(
-                            oldState, frozenPartialSemantics, spansToTag, caretPosition, oldTagTrees.Map);
+                            oldState, frozenPartialSemantics, spansToTag, caretPosition, oldTagTrees);
                         await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
 
                         return ComputeNewTagTrees(oldTagTrees, context);
                     }, cancellationToken).ConfigureAwait(continueOnCapturedContext: calledFromJtfRun);
 
                 // We may get back null if we were canceled.  Immediately bail out in that case.
-                if (newTagTrees.IsDefault)
-                    return default;
+                if (newTagTrees is null)
+                    return null;
 
                 var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
 
@@ -375,7 +376,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             }
         }
 
-        private BufferToTagTree ComputeNewTagTrees(BufferToTagTree oldTagTrees, TaggerContext<TTag> context)
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ComputeNewTagTrees(ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, TaggerContext<TTag> context)
         {
             // Ignore any tag spans reported for any buffers we weren't interested in.
 
@@ -394,7 +395,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // for that buffer.  In general this will work by keeping around old tags that
             // weren't in the range that was re-tagged, and merging them with the new tags
             // produced for the range that was re-tagged.
-            var newTagTrees = BufferToTagTree.Empty;
+            var newTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
             foreach (var buffer in buffersToTag)
             {
                 var newTagTree = ComputeNewTagTree(oldTagTrees, buffer, newTagsByBuffer[buffer], spansToInvalidateByBuffer[buffer]);
@@ -406,7 +407,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         }
 
         private TagSpanIntervalTree<TTag>? ComputeNewTagTree(
-            BufferToTagTree oldTagTrees,
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             ITextBuffer textBuffer,
             IEnumerable<ITagSpan<TTag>> newTags,
             IEnumerable<SnapshotSpan> spansToInvalidate)
@@ -481,15 +482,15 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
         private Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(
             ImmutableArray<DocumentSnapshotSpan> spansToTag,
-            BufferToTagTree oldTagTrees,
-            BufferToTagTree newTagTrees,
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Tagger_TagSource_ProcessNewTags, cancellationToken))
             {
                 var bufferToChanges = new Dictionary<ITextBuffer, DiffResult>();
 
-                foreach (var (latestBuffer, latestSpans) in newTagTrees.Map)
+                foreach (var (latestBuffer, latestSpans) in newTagTrees)
                 {
                     var snapshot = spansToTag.First(s => s.SnapshotSpan.Snapshot.TextBuffer == latestBuffer).SnapshotSpan.Snapshot;
 
@@ -505,7 +506,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     }
                 }
 
-                foreach (var (oldBuffer, previousSpans) in oldTagTrees.Map)
+                foreach (var (oldBuffer, previousSpans) in oldTagTrees)
                 {
                     if (!newTagTrees.ContainsKey(oldBuffer))
                     {
@@ -623,8 +624,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             _firstTagsRequest = false;
 
-            // We can get a defualt instance back if we were canceled.
-            if (tagTrees.IsDefault)
+            // We can get null back if we were canceled.
+            if (tagTrees is null)
                 return null;
 
             tagTrees.TryGetValue(buffer, out var tags);
