@@ -1822,7 +1822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var location = GetFirstLocation();
             var compilation = DeclaringCompilation;
 
-            if (this.IsRefLikeType || this.IsExtension)
+            if (this.IsRefLikeType)
             {
                 compilation.EnsureIsByRefLikeAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -2650,12 +2650,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
                     diagnostics.Add(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, method.GetFirstLocation(), BaseTypeNoUseSiteDiagnostics);
                 }
-            }
-
-            if (this.IsExtension)
-            {
-                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, GetFirstLocation());
-                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_ObsoleteAttribute__ctor, diagnostics, GetFirstLocation());
             }
         }
 

@@ -1548,7 +1548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (!_packedFlags.IsObsoleteAttributePopulated)
                 {
                     var result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, (PEModuleSymbol)ContainingModule,
-                        ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: MethodKind == MethodKind.Constructor, ignoreExtensionMarker: false);
+                        ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: MethodKind == MethodKind.Constructor);
 
                     if (result != null)
                     {

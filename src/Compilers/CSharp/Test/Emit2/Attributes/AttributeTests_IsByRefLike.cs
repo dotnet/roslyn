@@ -1045,7 +1045,7 @@ namespace System
             var peModule = (PEModuleSymbol)peType.ContainingModule;
             var decoder = new MetadataDecoder(peModule);
             var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peType.Handle, decoder,
-                ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false, ignoreExtensionMarker: false);
+                ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false);
 
             if (hasObsolete)
             {

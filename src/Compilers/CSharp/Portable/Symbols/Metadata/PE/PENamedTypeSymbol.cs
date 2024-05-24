@@ -2505,10 +2505,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 allowedFeatures |= CompilerFeatureRequiredFeatures.RefStructs;
             }
-            else if (IsExtension)
-            {
-                allowedFeatures |= CompilerFeatureRequiredFeatures.RefStructs | CompilerFeatureRequiredFeatures.ExtensionTypes;
-            }
 
             var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, ContainingPEModule, Handle, allowedFeatures, decoder);
 
@@ -2737,10 +2733,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 bool ignoreByRefLikeMarker = this.IsRefLikeType;
-                bool ignoreExtensionMarker = this.IsExtension;
 
                 ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref uncommon.lazyObsoleteAttributeData, _handle, ContainingPEModule,
-                    ignoreByRefLikeMarker, ignoreRequiredMemberMarker: false, ignoreExtensionMarker);
+                    ignoreByRefLikeMarker, ignoreRequiredMemberMarker: false);
 
                 return uncommon.lazyObsoleteAttributeData;
             }
