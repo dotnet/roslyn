@@ -209,6 +209,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             }
         }
 
+        /// <summary>
+        /// Spins, repeatedly calling into <paramref name="callback"/> with the current state of the tag trees.  When
+        /// the result of the callback can be saved without any intervening writes to <see
+        /// cref="_cachedTagTrees_mayChangeFromAnyThread"/> happening on another thread, then this helper returns. This
+        /// helper may also returns <see langword="null"/> in the case of cancellation.
+        /// </summary>
         private async Task<(ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees)>
             CompareAndSwapTagTreesAsync(
             Func<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>, ValueTask<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>>> callback,
