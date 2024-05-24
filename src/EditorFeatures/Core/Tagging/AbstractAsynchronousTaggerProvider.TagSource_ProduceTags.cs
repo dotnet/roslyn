@@ -271,7 +271,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 oldState = this.State;
                 textChangeRange = this.AccumulatedTextChanges;
                 subjectBufferVersion = _subjectBuffer.CurrentSnapshot.Version.VersionNumber;
-            }, cancellationToken).NoThrowAwaitable();
+            }, cancellationToken).NoThrowAwaitable(captureContext: false);
 
             // Since we don't ever throw above, check and see if the await completed due to cancellation and do not
             // proceed.
@@ -289,7 +289,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // Use NoThrow as this is a high source of cancellation exceptions.  This avoids the exception and instead
                 // bails gracefully by checking below.
                 await _visibilityTracker.DelayWhileNonVisibleAsync(
-                    _dataSource.ThreadingContext, _dataSource.AsyncListener, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(captureContext: true);
+                    _dataSource.ThreadingContext, _dataSource.AsyncListener, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(captureContext: false);
             }
 
             if (cancellationToken.IsCancellationRequested)
@@ -358,7 +358,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     // token for this expensive work so that it can be canceled by future lightweight work.
                     if (frozenPartialSemantics)
                         this.EnqueueWork(highPriority, frozenPartialSemantics: false, _nonFrozenComputationCancellationSeries.CreateNext(default));
-                }, cancellationToken).ConfigureAwait(false);
+                }, cancellationToken).NoThrowAwaitable(captureContext: false);
 
                 return default;
             }
