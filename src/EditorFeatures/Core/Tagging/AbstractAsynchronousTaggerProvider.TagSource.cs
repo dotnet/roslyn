@@ -206,9 +206,13 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // Create the tagger-specific events that will cause the tagger to refresh.
             _eventSource = CreateEventSource();
 
-            // any time visibility changes, resume tagging on all taggers.  Any non-visible taggers will pause
-            // themselves immediately afterwards.
-            _onVisibilityChanged = () => ResumeIfVisible();
+            // Any time visibility changes try to pause us if we're not visible, or resume us if we are.
+            _onVisibilityChanged = () =>
+            {
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+                PauseIfNotVisible();
+                ResumeIfVisible();
+            };
 
             // Now hook up this tagger to all interesting events.
             Connect();

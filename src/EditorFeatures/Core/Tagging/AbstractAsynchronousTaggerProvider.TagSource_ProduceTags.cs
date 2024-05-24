@@ -283,10 +283,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 OnTagsChangedForBuffer(bufferToChanges, highPriority);
 
-                // Once we've computed tags, pause ourselves if we're no longer visible.  That way we don't consume any
-                // machine resources that the user won't even notice.
-                PauseIfNotVisible();
-
                 // If we were computing with frozen partial semantics here, enqueue work to compute *without* frozen
                 // partial snapshots so we move to accurate results shortly. Create and pass along a new cancellation
                 // token for this expensive work so that it can be canceled by future lightweight work.
