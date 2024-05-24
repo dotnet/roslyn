@@ -93,32 +93,48 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             if (e.Changes.Count == 0)
                 return;
 
-            var buffer = e.After.TextBuffer;
-            if (!this.CachedTagTrees.TryGetValue(buffer, out var treeForBuffer))
-                return;
-
             var snapshot = e.After;
+            var buffer = snapshot.TextBuffer;
 
-            var tagsToRemove = e.Changes.SelectMany(c => treeForBuffer.GetIntersectingSpans(new SnapshotSpan(snapshot, c.NewSpan)));
-            if (!tagsToRemove.Any())
+            // Everything we're passing in here is synchronous.  So we can assert that this must complete synchronously
+            // as well.
+            var (oldTagTrees, newTagTrees) = CompareAndSwapTagTreesAsync(
+                oldTagTrees =>
+                {
+                    if (oldTagTrees.TryGetValue(buffer, out var treeForBuffer))
+                    {
+                        var tagsToRemove = e.Changes.SelectMany(c => treeForBuffer.GetIntersectingSpans(new SnapshotSpan(snapshot, c.NewSpan)));
+                        if (tagsToRemove.Any())
+                        {
+                            var allTags = treeForBuffer.GetSpans(e.After).ToList();
+                            var newTagTree = new TagSpanIntervalTree<TTag>(
+                                buffer,
+                                treeForBuffer.SpanTrackingMode,
+                                allTags.Except(tagsToRemove, comparer: this));
+                            return new(oldTagTrees.SetItem(buffer, newTagTree));
+                        }
+                    }
+
+                    // return oldTagTrees to indicate nothing changed.
+                    return new(oldTagTrees);
+                }, _dataSource.ThreadingContext.DisposalToken).VerifyCompleted();
+
+            // Can happen if we were canceled.  Just bail out immediate.
+            if (newTagTrees is null)
                 return;
 
-            var allTags = treeForBuffer.GetSpans(e.After).ToList();
-            var newTagTree = new TagSpanIntervalTree<TTag>(
-                buffer,
-                treeForBuffer.SpanTrackingMode,
-                allTags.Except(tagsToRemove, comparer: this));
-
-            this.CachedTagTrees = this.CachedTagTrees.SetItem(snapshot.TextBuffer, newTagTree);
+            // Nothing changed.  Bail out.
+            if (oldTagTrees == newTagTrees)
+                return;
 
             // Not sure why we are diffing when we already have tagsToRemove. is it due to _tagSpanComparer might return
             // different result than GetIntersectingSpans?
             //
             // treeForBuffer basically points to oldTagTrees. case where oldTagTrees not exist is already taken cared by
             // CachedTagTrees.TryGetValue.
-            var difference = ComputeDifference(snapshot, newTagTree, treeForBuffer);
+            var difference = ComputeDifference(snapshot, newTagTrees[buffer], oldTagTrees[buffer]);
 
-            RaiseTagsChanged(snapshot.TextBuffer, difference);
+            RaiseTagsChanged(buffer, difference);
         }
 
         private TagSpanIntervalTree<TTag> GetTagTree(ITextSnapshot snapshot, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> tagTrees)
@@ -176,7 +192,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(lastNonFrozenComputationToken, cancellationToken);
                 try
                 {
-                    await RecomputeTagsAsync(highPriority, frozenPartialSemantics, linkedTokenSource.Token).ConfigureAwait(false);
+                    await RecomputeTagsAsync(highPriority, frozenPartialSemantics, calledFromJtfRun: false, linkedTokenSource.Token).ConfigureAwait(false);
                     return default;
                 }
                 catch (OperationCanceledException ex) when (ExceptionUtilities.IsCurrentOperationBeingCancelled(ex, linkedTokenSource.Token))
@@ -188,12 +204,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             {
                 // Normal request to either compute frozen partial tags, or compute normal tags in a tagger that does
                 // *not* support frozen partial tagging.
-                await RecomputeTagsAsync(highPriority, frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
+                await RecomputeTagsAsync(highPriority, frozenPartialSemantics, calledFromJtfRun: false, cancellationToken).ConfigureAwait(false);
                 return default;
             }
         }
 
-        private async ValueTask<(ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees)>
+        private async Task<(ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees)>
             CompareAndSwapTagTreesAsync(
                 Func<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>, ValueTask<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>>> callback,
                 CancellationToken cancellationToken)
