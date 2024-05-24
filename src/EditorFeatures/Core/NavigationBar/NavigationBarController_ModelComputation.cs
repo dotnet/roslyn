@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
@@ -36,8 +37,8 @@ internal partial class NavigationBarController
         var textSnapshot = _subjectBuffer.CurrentSnapshot;
         var caretPoint = GetCaretPoint();
 
-        // Ensure we switch to the threadpool before calling GetDocumentWithFrozenPartialSemantics.  It ensures
-        // that any IO that performs is not potentially on the UI thread.
+        // Ensure we switch to the threadpool before calling GetDocumentWithFrozenPartialSemantics.  It ensures that any
+        // IO that performs is not potentially on the UI thread.
         await TaskScheduler.Default;
 
         var model = await ComputeModelAsync().ConfigureAwait(false);
@@ -97,7 +98,7 @@ internal partial class NavigationBarController
         }
     }
 
-    private async ValueTask SelectItemAsync(ImmutableSegmentedList<int> positions, CancellationToken cancellationToken)
+    private async ValueTask SelectItemAsync(ImmutableSegmentedList<SnapshotPoint> positions, CancellationToken cancellationToken)
     {
         var position = positions.Last();
 
@@ -117,7 +118,7 @@ internal partial class NavigationBarController
         var model = await modelTask.ConfigureAwait(false);
         var currentSelectedItem = ComputeSelectedTypeAndMember(model, position, cancellationToken);
 
-        GetProjectItems(out var projectItems, out var selectedProjectItem);
+        var (projectItems, selectedProjectItem) = GetProjectItems(position.Snapshot);
         if (Equals(model, lastPresentedInfo.model) &&
             Equals(currentSelectedItem, lastPresentedInfo.selectedInfo) &&
             Equals(selectedProjectItem, lastPresentedInfo.selectedProjectItem) &&

@@ -70,7 +70,7 @@ internal partial class NavigationBarController : IDisposable
     /// Queue to batch up work to do to determine the selected item.  Used so we can batch up a lot of events and only
     /// compute the selected item once for every batch. The value passed in is the last recorded caret position.
     /// </summary>
-    private readonly AsyncBatchingWorkQueue<int> _selectItemQueue;
+    private readonly AsyncBatchingWorkQueue<SnapshotPoint> _selectItemQueue;
 
     /// <summary>
     /// Whether or not the navbar is paused.  We pause updates when documents become non-visible. See <see
@@ -100,7 +100,7 @@ internal partial class NavigationBarController : IDisposable
             asyncListener,
             _cancellationTokenSource.Token);
 
-        _selectItemQueue = new AsyncBatchingWorkQueue<int>(
+        _selectItemQueue = new AsyncBatchingWorkQueue<SnapshotPoint>(
             DelayTimeSpan.Short,
             SelectItemAsync,
             asyncListener,
@@ -214,34 +214,36 @@ internal partial class NavigationBarController : IDisposable
         _selectItemQueue.AddWork(caretPoint.Value, cancelExistingWork: true);
     }
 
-    private int? GetCaretPoint()
+    private SnapshotPoint? GetCaretPoint()
     {
         var currentView = _presenter.TryGetCurrentView();
-        return currentView?.GetCaretPoint(_subjectBuffer)?.Position;
+        return currentView?.GetCaretPoint(_subjectBuffer);
     }
 
-    private void GetProjectItems(out ImmutableArray<NavigationBarProjectItem> projectItems, out NavigationBarProjectItem? selectedProjectItem)
+    private static (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem) GetProjectItems(ITextSnapshot snapshot)
     {
-        var documents = _subjectBuffer.CurrentSnapshot.GetRelatedDocumentsWithChanges();
-        if (!documents.Any())
-        {
-            projectItems = [];
-            selectedProjectItem = null;
-            return;
-        }
+        var textContainer = snapshot.AsText();
 
-        projectItems = [.. documents.Select(d =>
-            new NavigationBarProjectItem(
+        var documents = textContainer.GetRelatedDocumentsWithChanges();
+        if (documents.IsEmpty)
+            return ([], null);
+
+        var projectItems = documents
+            .Select(d => new NavigationBarProjectItem(
                 d.Project.Name,
                 d.Project.GetGlyph(),
                 workspace: d.Project.Solution.Workspace,
                 documentId: d.Id,
-                language: d.Project.Language)).OrderBy(projectItem => projectItem.Text)];
+                language: d.Project.Language))
+            .OrderBy(projectItem => projectItem.Text)
+            .ToImmutableArray();
 
-        var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-        selectedProjectItem = document != null
+        var document = textContainer.GetOpenDocumentInCurrentContextWithChanges();
+        var selectedProjectItem = document != null
             ? projectItems.FirstOrDefault(p => p.Text == document.Project.Name) ?? projectItems.First()
             : projectItems.First();
+
+        return (projectItems, selectedProjectItem);
     }
 
     private void OnItemSelected(object? sender, NavigationBarItemSelectedEventArgs e)
