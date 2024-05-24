@@ -36,94 +36,22 @@ internal sealed class BracePairsTaggerProvider(
     IThreadingContext threadingContext,
     IGlobalOptionService globalOptionService,
     [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewportTaggerProvider<IBracePairTag>(threadingContext,
-          globalOptionService,
-          visibilityTracker,
-          listenerProvider.GetListener(FeatureAttribute.BracePairs))
+    IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewportTaggerProvider<IBracePairTag>(
+        threadingContext,
+        globalOptionService,
+        visibilityTracker,
+        listenerProvider.GetListener(FeatureAttribute.BracePairs),
+        TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
 {
     protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
     protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
     {
-<<<<<<< HEAD
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public BracePairsTaggerProvider(
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptionService,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext,
-                  globalOptionService,
-                  visibilityTracker,
-                  listenerProvider.GetListener(FeatureAttribute.BracePairs),
-                  TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
-        {
-        }
-
-        protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
-
-        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
-        {
-            return TaggerEventSources.Compose(
-                TaggerEventSources.OnTextChanged(subjectBuffer),
-                TaggerEventSources.OnParseOptionChanged(subjectBuffer));
-        }
-
-        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
-        {
-            this.ThreadingContext.ThrowIfNotOnUIThread();
-            Contract.ThrowIfNull(textView);
-
-            // Find the visible span some 100 lines +/- what's actually in view.  This way
-            // if the user scrolls up/down, we'll already have the results.
-            var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
-            if (visibleSpanOpt == null)
-            {
-                // Couldn't find anything visible, just fall back to tagging all brace locations
-                return base.GetSpansToTag(textView, subjectBuffer);
-            }
-
-            return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
-        }
-
-        protected override async Task ProduceTagsAsync(TaggerContext<IBracePairTag> context, CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<BracePairData>.GetInstance(out var bracePairs);
-            foreach (var spanToTag in context.SpansToTag)
-            {
-                var document = spanToTag.Document;
-                if (document is null)
-                    continue;
-
-                var service = document.GetLanguageService<IBracePairsService>();
-                if (service is null)
-                    continue;
-
-                bracePairs.Clear();
-                await service.AddBracePairsAsync(
-                    document, spanToTag.SnapshotSpan.Span.ToTextSpan(), bracePairs, cancellationToken).ConfigureAwait(false);
-
-                var snapshot = spanToTag.SnapshotSpan.Snapshot;
-                foreach (var bracePair in bracePairs)
-                {
-                    var start = CreateSnapshotSpan(bracePair.Start, snapshot);
-                    var end = CreateSnapshotSpan(bracePair.End, snapshot);
-                    if (start is null && end is null)
-                        continue;
-
-                    context.AddTag(new TagSpan<IBracePairTag>(
-                        new SnapshotSpan(snapshot, Span.FromBounds(bracePair.Start.Start, bracePair.End.End)),
-                        new BracePairTag(start, end)));
-                }
-            }
-=======
         return TaggerEventSources.Compose(
             TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
             TaggerEventSources.OnTextChanged(subjectBuffer),
             TaggerEventSources.OnParseOptionChanged(subjectBuffer));
     }
->>>>>>> upstream/main
 
     protected override async Task ProduceTagsAsync(TaggerContext<IBracePairTag> context, DocumentSnapshotSpan spanToTag, CancellationToken cancellationToken)
     {
