@@ -20,15 +20,18 @@ internal static class ITextImageHelpers
     private static readonly Func<ITextChange, TextChangeRange> s_backwardTextChangeRange = c => CreateTextChangeRange(c, forward: false);
 
     public static IReadOnlyList<TextChangeRange> GetChangeRanges(ITextImage oldImage, ITextImage newImage)
-    {
-        var forward = oldImage.Version.VersionNumber <= newImage.Version.VersionNumber;
+        => GetChangeRanges(oldImage.Version, newImage.Version);
 
-        var oldSnapshot = forward ? oldImage : newImage;
-        var newSnapshot = forward ? oldImage : newImage;
+    public static IReadOnlyList<TextChangeRange> GetChangeRanges(ITextImageVersion oldImageVersion, ITextImageVersion newImageVersion)
+    {
+        var forward = oldImageVersion.VersionNumber <= newImageVersion.VersionNumber;
+
+        var oldSnapshotVersion = forward ? oldImageVersion : newImageVersion;
+        var newSnapshotVersion = forward ? newImageVersion : oldImageVersion;
 
         INormalizedTextChangeCollection? changes = null;
-        for (var oldVersion = oldSnapshot.Version;
-            oldVersion != newSnapshot.Version;
+        for (var oldVersion = oldSnapshotVersion;
+            oldVersion != newSnapshotVersion;
             oldVersion = oldVersion.Next)
         {
             if (oldVersion.Changes.Count != 0)
@@ -36,9 +39,9 @@ internal static class ITextImageHelpers
                 if (changes != null)
                 {
                     // Oops - more than one "textual" change between these snapshots, bail and try to find smallest changes span
-                    Logger.Log(FunctionId.Workspace_SourceText_GetChangeRanges, s_textLog, oldImage.Version.VersionNumber, newImage.Version.VersionNumber);
+                    Logger.Log(FunctionId.Workspace_SourceText_GetChangeRanges, s_textLog, oldImageVersion.VersionNumber, newImageVersion.VersionNumber);
 
-                    return [GetChangeRanges(oldSnapshot.Version, newSnapshot.Version, forward)];
+                    return [GetChangeRanges(oldSnapshotVersion, newSnapshotVersion, forward)];
                 }
                 else
                 {
