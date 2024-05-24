@@ -71,9 +71,6 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     private static bool IntersectsWith<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        var otherSpan = new TextSpan(start, length);
-        var thisSpan = GetSpan(value, in introspector);
-
         return thisSpan.IntersectsWith(otherSpan);
     }
 
