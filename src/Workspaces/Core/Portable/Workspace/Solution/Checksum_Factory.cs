@@ -108,8 +108,8 @@ internal readonly partial record struct Checksum
             {
                 var count = Math.Min(maxStackAllocCount, checksumsCount - checksumsIndex);
 
-                for (var checksumsSpanIndex = 0; checksumsSpanIndex < count; checksumsIndex++)
-                    checksumsSpan[checksumsSpanIndex++] = checksums[checksumsIndex];
+                for (var checksumsSpanIndex = 0; checksumsSpanIndex < count; checksumsSpanIndex++, checksumsIndex++)
+                    checksumsSpan[checksumsSpanIndex] = checksums[checksumsIndex];
 
                 var hashSpan = checksumsSpan.Slice(0, count);
                 pooledHash.Object.Append(MemoryMarshal.AsBytes(hashSpan));

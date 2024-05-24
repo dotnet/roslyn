@@ -55,22 +55,50 @@ public class ChecksumTests
     public void VerifyChecksumCreationMethodsYieldSameResult()
     {
         Span<Checksum> builder = stackalloc Checksum[10];
-        for (var i = 0; i < 10; i++)
+        for (var i = 0; i < builder.Length; i++)
             builder[i] = Checksum.Create("test " + i);
 
         AssertEqual(Checksum.Create(builder[0], builder[1]), builder.Slice(0, 2));
         AssertEqual(Checksum.Create(builder[0], builder[1], builder[2]), builder.Slice(0, 3));
         AssertEqual(Checksum.Create(builder[0], builder[1], builder[2], builder[3]), builder.Slice(0, 4));
 
-        for (var i = 1; i < 10; i++)
-            AssertEqual(Checksum.Create(builder.Slice(0, i)), builder.Slice(0, i));
+        for (var i = 1; i < builder.Length; i++)
+        {
+            var toValidate = builder.Slice(0, i);
+            AssertEqual(Checksum.Create(toValidate), toValidate);
+        }
 
         void AssertEqual(Checksum desiredResult, Span<Checksum> toValidate)
         {
             var checksumsImmutableArray = toValidate.ToImmutableArray();
             Assert.Equal(desiredResult, Checksum.Create(checksumsImmutableArray));
 
-            var checksumsArrayBuilder = ArrayBuilder<Checksum>.GetInstance();
+            using var _ = ArrayBuilder<Checksum>.GetInstance(out var checksumsArrayBuilder);
+            checksumsArrayBuilder.AddRange(checksumsImmutableArray);
+
+            Assert.Equal(desiredResult, Checksum.Create(checksumsArrayBuilder));
+        }
+    }
+
+    [Fact]
+    public void VerifyChecksumCreationMethodsYieldSameResultForLargeArrayBuilders()
+    {
+        Span<Checksum> builder = stackalloc Checksum[70];
+        for (var i = 0; i < builder.Length; i++)
+            builder[i] = Checksum.Create("test " + i);
+
+        for (var i = builder.Length - 10; i < builder.Length; i++)
+        {
+            var toValidate = builder.Slice(0, i);
+            AssertEqual(Checksum.Create(toValidate), toValidate);
+        }
+
+        void AssertEqual(Checksum desiredResult, Span<Checksum> toValidate)
+        {
+            var checksumsImmutableArray = toValidate.ToImmutableArray();
+            Assert.Equal(desiredResult, Checksum.Create(checksumsImmutableArray));
+
+            var _ = ArrayBuilder<Checksum>.GetInstance(out var checksumsArrayBuilder);
             checksumsArrayBuilder.AddRange(checksumsImmutableArray);
 
             Assert.Equal(desiredResult, Checksum.Create(checksumsArrayBuilder));
