@@ -1640,7 +1640,7 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73245")]
-    public async Task NotAllMembersExist_NotDefault_WithOr()
+    public async Task NotAllMembersExist_NotDefault_OrPattern()
     {
         await TestInRegularAndScriptAsync(
             """
@@ -1650,7 +1650,8 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 {
                     Fizz,
                     Buzz,
-                    FizzBuzz
+                    FizzBuzz,
+                    FizzBuzzFizz
                 }
 
                 class MyClass
@@ -1660,7 +1661,7 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                         var e = MyEnum.Fizz;
                         [||]switch (e)
                         {
-                            case MyEnum.Fizz or MyEnum.Buzz:
+                            case MyEnum.Fizz or MyEnum.Buzz or MyEnum.FizzBuzz:
                                 break;
                         }
                     }
@@ -1674,7 +1675,8 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 {
                     Fizz,
                     Buzz,
-                    FizzBuzz
+                    FizzBuzz,
+                    FizzBuzzFizz
                 }
 
                 class MyClass
@@ -1684,9 +1686,9 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                         var e = MyEnum.Fizz;
                         switch (e)
                         {
-                            case MyEnum.Fizz or MyEnum.Buzz:
+                            case MyEnum.Fizz or MyEnum.Buzz or MyEnum.FizzBuzz:
                                 break;
-                            case MyEnum.FizzBuzz:
+                            case MyEnum.FizzBuzzFizz:
                                 break;
                             default:
                                 break;
@@ -1698,7 +1700,7 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73245")]
-    public async Task NotAllMembersExist_WithDefault_WithOr()
+    public async Task NotAllMembersExist_WithDefault_OrPattern()
     {
         await TestInRegularAndScriptAsync(
             """

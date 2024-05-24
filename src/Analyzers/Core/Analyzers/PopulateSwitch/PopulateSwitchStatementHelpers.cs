@@ -136,25 +136,9 @@ internal static class PopulateSwitchStatementHelpers
                         break;
 
                     case CaseKind.Pattern:
-                        foreach (var operation in clause.ChildOperations) // clause is IPatternCaseClauseOperation
+                        if (((IPatternCaseClauseOperation)clause).Pattern is IBinaryPatternOperation pattern)
                         {
-                            foreach (var subCase in operation.ChildOperations) // operation is IBinaryPatternOperation
-                            {
-                                if (subCase.Kind is not OperationKind.ConstantPattern)
-                                    continue;
-
-                                foreach (var subCaseOp in subCase.ChildOperations)
-                                {
-                                    if (subCaseOp is not IFieldReferenceOperation field)
-                                        continue;
-
-                                    if (field.Field.ConstantValue is null)
-                                        continue;
-
-                                    var @case = IntegerUtilities.ToInt64(field.Field.ConstantValue);
-                                    enumValues.Remove(@case);
-                                }
-                            }
+                            PopulateSwitchExpressionHelpers.HandleBinaryPattern(pattern, enumValues);
                         }
 
                         break;
