@@ -165,7 +165,7 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
         if (context.State is null)
             return false;
 
-        var (lastSemanticVersion, lastTextSnapshot) = ((VersionStamp, ITextSnapshot))context.State;
+        var (lastSemanticVersion, lastTextImage) = ((VersionStamp, ITextImage))context.State;
 
         // if a top level change was made.  We can't perform this optimization.
         if (lastSemanticVersion != currentSemanticVersion)
@@ -177,10 +177,11 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
         // will find the member that contains the changes and only refresh that member.  If possible, try to get a
         // speculative binder to make things even cheaper.
 
-        var lastSourceText = lastTextSnapshot.AsText();
-        var currentSourceText = snapshotSpan.Snapshot.AsText();
+        var currentTextImage = ((ITextSnapshot2)snapshotSpan.Snapshot).TextImage;
 
-        var textChangeRanges = currentSourceText.GetChangeRanges(lastSourceText);
+        // We explicitly want the range in reverse (going from current, to last image).  That way the change span is in
+        // coordinates corresponding to the node we have *now*.
+        var textChangeRanges = ITextImageHelpers.GetChangeRanges(currentTextImage, lastTextImage);
         var collapsedRange = TextChangeRange.Collapse(textChangeRanges);
 
         var changedSpan = new TextSpan(collapsedRange.Span.Start, collapsedRange.NewLength);
