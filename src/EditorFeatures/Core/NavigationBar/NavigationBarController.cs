@@ -222,9 +222,9 @@ internal partial class NavigationBarController : IDisposable
 
     private static (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem) GetProjectItems(ITextSnapshot snapshot)
     {
-        var textContainer = snapshot.AsText();
+        var textContainer = snapshot.AsText().Container;
 
-        var documents = textContainer.GetRelatedDocumentsWithChanges();
+        var documents = textContainer.GetRelatedDocuments();
         if (documents.IsEmpty)
             return ([], null);
 
@@ -238,7 +238,7 @@ internal partial class NavigationBarController : IDisposable
             .OrderBy(projectItem => projectItem.Text)
             .ToImmutableArray();
 
-        var document = textContainer.GetOpenDocumentInCurrentContextWithChanges();
+        var document = textContainer.GetOpenDocumentInCurrentContext();
         var selectedProjectItem = document != null
             ? projectItems.FirstOrDefault(p => p.Text == document.Project.Name) ?? projectItems.First()
             : projectItems.First();
