@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -101,6 +102,19 @@ internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSortedDictiona
         }
 
         return new(builder.ToImmutable());
+    }
+
+    public Checksum GetChecksum()
+    {
+        using var _ = ArrayBuilder<Checksum>.GetInstance(this.Map.Count * 2, out var checksums);
+
+        foreach (var (projectId, version) in this.Map)
+        {
+            checksums.Add(projectId.Checksum);
+            checksums.Add(Checksum.Create(version, static (v, w) => v.WriteTo(w)));
+        }
+
+        return Checksum.Create(checksums);
     }
 
     public override string ToString()
