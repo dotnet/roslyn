@@ -51,7 +51,12 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
         ITextBufferVisibilityTracker? visibilityTracker,
         IAsynchronousOperationListenerProvider listenerProvider,
         ClassificationType type)
-        : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
+        : base(
+            threadingContext,
+            globalOptions,
+            visibilityTracker,
+            listenerProvider.GetListener(FeatureAttribute.Classification),
+            TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
     {
         _typeMap = typeMap;
         _globalOptions = globalOptions;
@@ -60,21 +65,6 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
 
     protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
-<<<<<<< HEAD
-        protected AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(
-            IThreadingContext threadingContext,
-            ClassificationTypeMap typeMap,
-            IGlobalOptionService globalOptions,
-            ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            ClassificationType type)
-            : base(
-                  threadingContext,
-                  globalOptions,
-                  visibilityTracker,
-                  listenerProvider.GetListener(FeatureAttribute.Classification),
-                  TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
-=======
     /// <summary>
     /// We do classification in two passes.  In the first pass we do not block getting classifications on building the
     /// full compilation.  This may take a significant amount of time and can cause a very latency sensitive operation
@@ -155,7 +145,6 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
         var classified = await TryClassifyContainingMemberSpanAsync(
             context, document, spanToTag.SnapshotSpan, classificationService, options, cancellationToken).ConfigureAwait(false);
         if (classified)
->>>>>>> upstream/main
         {
             return;
         }
