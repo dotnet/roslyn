@@ -71,7 +71,13 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     private static bool IntersectsWith<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        return thisSpan.IntersectsWith(otherSpan);
+        var otherStart = start;
+        var otherEnd = start + length;
+
+        var thisStart = introspector.GetStart(value);
+        var thisEnd = thisStart + introspector.GetLength(value);
+
+        return otherStart <= thisEnd && otherEnd >= thisStart;
     }
 
     private static bool OverlapsWith<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
