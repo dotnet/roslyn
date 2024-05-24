@@ -373,10 +373,6 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     IEnumerator IEnumerable.GetEnumerator()
         => this.GetEnumerator();
 
-    protected static TextSpan GetSpan<TIntrospector>(T value, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => new(introspector.GetStart(value), introspector.GetLength(value));
-
     protected static int GetEnd<TIntrospector>(T value, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
         => introspector.GetStart(value) + introspector.GetLength(value);
