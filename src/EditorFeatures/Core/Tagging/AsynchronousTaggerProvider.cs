@@ -12,27 +12,19 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
-internal abstract class AsynchronousTaggerProvider<TTag> : AbstractAsynchronousTaggerProvider<TTag>, ITaggerProvider
+internal abstract class AsynchronousTaggerProvider<TTag>(
+    IThreadingContext threadingContext,
+    IGlobalOptionService globalOptions,
+    ITextBufferVisibilityTracker? visibilityTracker,
+    IAsynchronousOperationListener asyncListener,
+    TaggerMainThreadManager mainThreadManager) : AbstractAsynchronousTaggerProvider<TTag>(
+        threadingContext,
+        globalOptions,
+        visibilityTracker,
+        asyncListener,
+        mainThreadManager), ITaggerProvider
     where TTag : ITag
 {
-    protected AsynchronousTaggerProvider(
-        IThreadingContext threadingContext,
-        IGlobalOptionService globalOptions,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListener asyncListener)
-        : base(threadingContext, globalOptions, visibilityTracker, asyncListener)
-    {
-<<<<<<< HEAD
-        protected AsynchronousTaggerProvider(
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListener asyncListener,
-            TaggerMainThreadManager mainThreadManager)
-            : base(threadingContext, globalOptions, visibilityTracker, asyncListener, mainThreadManager)
-=======
-    }
-
     public EfficientTagger<TTag>? CreateTagger(ITextBuffer subjectBuffer)
     {
         if (subjectBuffer == null)
@@ -51,7 +43,6 @@ internal abstract class AsynchronousTaggerProvider<TTag> : AbstractAsynchronousT
         // dispose of it now.  The tagger will have added a ref to the underlying tagsource, and we have to make
         // sure we return that to the proper starting value.
         if (tagger is not ITagger<T> typedTagger)
->>>>>>> upstream/main
         {
             tagger.Dispose();
             return null;
