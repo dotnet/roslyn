@@ -94,7 +94,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// swap" algorithms to make sure that it is consistently moved forward no matter which thread is trying to
         /// mutate it.
         /// </summary>
-        private BufferToTagTree _cachedTagTrees_mayChangeFromAnyThread = BufferToTagTree.Empty;
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_mayChangeFromAnyThread = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
 
         #endregion
 
