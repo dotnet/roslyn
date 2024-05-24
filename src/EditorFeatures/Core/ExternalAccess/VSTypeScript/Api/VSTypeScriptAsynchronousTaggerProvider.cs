@@ -9,40 +9,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text.Tagging;
 
-<<<<<<< HEAD
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
-{
-    internal abstract class VSTypeScriptAsynchronousTaggerProvider<TTag> : AsynchronousViewTaggerProvider<TTag>
-        where TTag : ITag
-    {
-        [Obsolete("Use constructor that takes ITextBufferVisibilityTracker.  Use `[Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker`")]
-        protected VSTypeScriptAsynchronousTaggerProvider(
-            IThreadingContext threadingContext,
-            IAsynchronousOperationListenerProvider asyncListenerProvider,
-            VSTypeScriptGlobalOptions globalOptions)
-            : base(
-                  threadingContext,
-                  globalOptions.Service,
-                  visibilityTracker: null,
-                  asyncListenerProvider.GetListener(FeatureAttribute.Classification),
-                  TaggerMainThreadManager.GetManager(threadingContext, asyncListenerProvider))
-        {
-        }
-
-        protected VSTypeScriptAsynchronousTaggerProvider(
-            IThreadingContext threadingContext,
-            VSTypeScriptGlobalOptions globalOptions,
-            ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListenerProvider asyncListenerProvider)
-            : base(
-                  threadingContext,
-                  globalOptions.Service,
-                  visibilityTracker,
-                  asyncListenerProvider.GetListener(FeatureAttribute.Classification),
-                  TaggerMainThreadManager.GetManager(threadingContext, asyncListenerProvider))
-        {
-        }
-=======
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 internal abstract class VSTypeScriptAsynchronousTaggerProvider<TTag> : AsynchronousViewTaggerProvider<TTag>
@@ -53,7 +19,12 @@ internal abstract class VSTypeScriptAsynchronousTaggerProvider<TTag> : Asynchron
         IThreadingContext threadingContext,
         IAsynchronousOperationListenerProvider asyncListenerProvider,
         VSTypeScriptGlobalOptions globalOptions)
-        : base(threadingContext, globalOptions.Service, visibilityTracker: null, asyncListenerProvider.GetListener(FeatureAttribute.Classification))
+        : base(
+            threadingContext,
+            globalOptions.Service,
+            visibilityTracker: null,
+            asyncListenerProvider.GetListener(FeatureAttribute.Classification),
+            TaggerMainThreadManager.GetManager(threadingContext, asyncListenerProvider))
     {
     }
 
@@ -62,8 +33,12 @@ internal abstract class VSTypeScriptAsynchronousTaggerProvider<TTag> : Asynchron
         VSTypeScriptGlobalOptions globalOptions,
         ITextBufferVisibilityTracker? visibilityTracker,
         IAsynchronousOperationListenerProvider asyncListenerProvider)
-        : base(threadingContext, globalOptions.Service, visibilityTracker, asyncListenerProvider.GetListener(FeatureAttribute.Classification))
+        : base(
+            threadingContext,
+            globalOptions.Service,
+            visibilityTracker,
+            asyncListenerProvider.GetListener(FeatureAttribute.Classification),
+            TaggerMainThreadManager.GetManager(threadingContext, asyncListenerProvider))
     {
->>>>>>> upstream/main
     }
 }
