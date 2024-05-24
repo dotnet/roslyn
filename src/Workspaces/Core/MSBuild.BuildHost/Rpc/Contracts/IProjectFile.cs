@@ -14,11 +14,10 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 internal interface IProjectFile
 {
     ImmutableArray<DiagnosticLogItem> GetDiagnosticLogItems();
-    string GetDocumentExtension(SourceCodeKind kind);
     Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken);
     void AddDocument(string filePath, string? logicalPath);
     void RemoveDocument(string filePath);
-    void AddMetadataReference(string metadataReferenceIdentity, MetadataReferenceProperties properties, string? hintPath);
+    void AddMetadataReference(string metadataReferenceIdentity, ImmutableArray<string> aliases, string? hintPath);
     void RemoveMetadataReference(string shortAssemblyName, string fullAssemblyName, string filePath);
     void AddProjectReference(string projectName, ProjectFileReference reference);
     void RemoveProjectReference(string projectName, string projectFilePath);

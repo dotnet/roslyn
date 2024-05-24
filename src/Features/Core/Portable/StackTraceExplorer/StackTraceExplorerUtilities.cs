@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 

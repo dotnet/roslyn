@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 

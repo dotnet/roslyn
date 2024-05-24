@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;

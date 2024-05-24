@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {

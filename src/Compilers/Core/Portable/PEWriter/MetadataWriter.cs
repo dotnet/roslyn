@@ -876,6 +876,11 @@ namespace Microsoft.Cci
                 result |= GenericParameterAttributes.NotNullableValueTypeConstraint;
             }
 
+            if (genPar.AllowsRefLikeType)
+            {
+                result |= MetadataHelpers.GenericParameterAttributesAllowByRefLike;
+            }
+
             if (genPar.MustHaveDefaultConstructor)
             {
                 result |= GenericParameterAttributes.DefaultConstructorConstraint;

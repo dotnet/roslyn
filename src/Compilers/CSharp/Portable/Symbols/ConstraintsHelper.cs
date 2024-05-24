@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// generic method. In those cases, additional constraint checks are applied.
         /// </summary>
         public static TypeParameterBounds ResolveBounds(
-            this TypeParameterSymbol typeParameter,
+            this SourceTypeParameterSymbolBase typeParameter,
             AssemblySymbol corLibrary,
             ConsList<TypeParameterSymbol> inProgress,
             ImmutableArray<TypeWithAnnotations> constraintTypes,
@@ -93,6 +93,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnosticsBuilder.Free();
+
+            if (typeParameter.AllowsRefLikeType)
+            {
+                if (inherited)
+                {
+                    Location location = typeParameter.GetFirstLocation();
+                    Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_FeatureRefStructInterfaces, diagnostics, location);
+
+                    if (!typeParameter.DeclaringCompilation.Assembly.RuntimeSupportsByRefLikeGenerics)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, location);
+                    }
+                }
+                else
+                {
+                    switch (typeParameter.HasReferenceTypeConstraint ? SpecialType.None : (bounds?.EffectiveBaseClass.SpecialType ?? SpecialType.System_Object))
+                    {
+                        case SpecialType.System_Object:
+                        case SpecialType.System_ValueType:
+                        case SpecialType.System_Enum:
+                            break;
+                        default:
+                            diagnostics.Add(ErrorCode.ERR_ClassIsCombinedWithRefStruct, typeParameter.GetFirstLocation());
+                            break;
+                    }
+                }
+            }
+
             return bounds;
         }
 
@@ -899,11 +927,35 @@ hasRelatedInterfaces:
             ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder)
         {
-            if (typeArgument.Type.IsPointerOrFunctionPointer() || typeArgument.IsRestrictedType() || typeArgument.IsVoidType())
+            if (typeArgument.Type.IsPointerOrFunctionPointer() || typeArgument.IsRestrictedType(ignoreSpanLikeTypes: true) || typeArgument.IsVoidType())
             {
                 // "The type '{0}' may not be used as a type argument"
                 diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BadTypeArgument, typeArgument.Type))));
                 return false;
+            }
+
+            if (typeArgument.Type.IsRefLikeOrAllowsRefLikeType())
+            {
+                if (typeParameter.AllowsRefLikeType)
+                {
+                    if (args.CurrentCompilation.SourceModule != typeParameter.ContainingModule)
+                    {
+                        if (MessageID.IDS_FeatureRefStructInterfaces.GetFeatureAvailabilityDiagnosticInfo(args.CurrentCompilation) is { } diagnosticInfo)
+                        {
+                            diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(diagnosticInfo)));
+                        }
+
+                        if (!args.CurrentCompilation.Assembly.RuntimeSupportsByRefLikeGenerics)
+                        {
+                            diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics))));
+                        }
+                    }
+                }
+                else
+                {
+                    diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type))));
+                    return false;
+                }
             }
 
             if (typeArgument.IsStatic)
@@ -1279,13 +1331,21 @@ hasRelatedInterfaces:
                 return true;
             }
 
-            // "... A boxing conversion (6.1.7), provided that type A is a non-nullable value type. ..."
-            // NOTE: we extend this to allow, for example, a conversion from Nullable<T> to object.
-            if (typeArgument.Type.IsValueType &&
-                conversions.HasBoxingConversion(typeArgument.Type.IsNullableType() ? ((NamedTypeSymbol)typeArgument.Type).ConstructedFrom : typeArgument.Type,
-                                                constraintType.Type, ref useSiteInfo))
+            if (typeArgument.Type.IsValueType)
             {
-                return true;
+                // "... A boxing conversion (6.1.7), provided that type A is a non-nullable value type. ..."
+                // NOTE: we extend this to allow, for example, a conversion from Nullable<T> to object.
+                if (conversions.HasBoxingConversion(typeArgument.Type.IsNullableType() ? ((NamedTypeSymbol)typeArgument.Type).ConstructedFrom : typeArgument.Type,
+                                                    constraintType.Type, ref useSiteInfo))
+                {
+                    return true;
+                }
+
+                if (typeArgument.Type is NamedTypeSymbol { IsRefLikeType: true } refLike &&
+                    conversions.ImplementsVarianceCompatibleInterface(refLike, constraintType.Type, ref useSiteInfo))
+                {
+                    return true;
+                }
             }
 
             if (typeArgument.TypeKind == TypeKind.TypeParameter)

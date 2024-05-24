@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,14 +66,15 @@ namespace Microsoft.CodeAnalysis.FindUsages
             return default;
         }
 
-        public override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+        public override async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
         {
-            lock (_gate)
+            await foreach (var reference in references)
             {
-                _referenceItems.Add(reference);
+                lock (_gate)
+                {
+                    _referenceItems.Add(reference);
+                }
             }
-
-            return default;
         }
     }
 }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Notification;
@@ -28,7 +29,7 @@ internal abstract class FindUsagesContext : IFindUsagesContext
 
     public virtual ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken) => default;
 
-    public virtual ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken) => default;
+    public virtual ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken) => default;
 
     protected virtual ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken) => default;
 }

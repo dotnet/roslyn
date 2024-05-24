@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -137,6 +136,7 @@ internal static partial class IMethodSymbolExtensions
                 typeParameter.HasValueTypeConstraint,
                 typeParameter.HasUnmanagedTypeConstraint,
                 typeParameter.HasNotNullConstraint,
+                typeParameter.AllowsRefLikeType,
                 typeParameter.Ordinal);
 
             newTypeParameters.Add(newTypeParameter);

@@ -10,10 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup;
 

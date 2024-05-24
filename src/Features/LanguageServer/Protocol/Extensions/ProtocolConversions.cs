@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static JsonSerializerOptions AddLspSerializerOptions(this JsonSerializerOptions options)
         {
             LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(options);
-            options.Converters.Add(new NaturalObjectConverter());
+            options.Converters.Add(new LSP.NaturalObjectConverter());
             return options;
         }
 

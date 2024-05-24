@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Reflection;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.Shared.Collections;

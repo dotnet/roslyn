@@ -5,7 +5,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;

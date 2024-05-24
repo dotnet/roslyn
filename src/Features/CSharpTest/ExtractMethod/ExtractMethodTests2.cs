@@ -10,2475 +10,2474 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
     Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod.ExtractMethodCodeRefactoringProvider>;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ExtractMethod
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ExtractMethod;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+public class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-    public class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
+        => new ExtractMethodCodeRefactoringProvider();
+
+    private const string EditorConfigNaming_LocalFunctions_CamelCase = """
+        [*]
+        # Naming rules
+
+        dotnet_naming_rule.local_functions_should_be_camel_case.severity = suggestion
+        dotnet_naming_rule.local_functions_should_be_camel_case.symbols = local_functions
+        dotnet_naming_rule.local_functions_should_be_camel_case.style = camel_case
+
+        # Symbol specifications
+
+        dotnet_naming_symbols.local_functions.applicable_kinds = local_function
+        dotnet_naming_symbols.local_functions.applicable_accessibilities = *
+        dotnet_naming_symbols.local_functions.required_modifiers = 
+
+        # Naming styles
+
+        dotnet_naming_style.camel_case.capitalization = camel_case
+        """;
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
+    public async Task LocalFuncExtract()
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
-            => new ExtractMethodCodeRefactoringProvider();
+        await TestInRegularAndScript1Async("""
+            class C
+            {
+                int Testing;
 
-        private const string EditorConfigNaming_LocalFunctions_CamelCase = """
-            [*]
-            # Naming rules
-
-            dotnet_naming_rule.local_functions_should_be_camel_case.severity = suggestion
-            dotnet_naming_rule.local_functions_should_be_camel_case.symbols = local_functions
-            dotnet_naming_rule.local_functions_should_be_camel_case.style = camel_case
-
-            # Symbol specifications
-
-            dotnet_naming_symbols.local_functions.applicable_kinds = local_function
-            dotnet_naming_symbols.local_functions.applicable_accessibilities = *
-            dotnet_naming_symbols.local_functions.required_modifiers = 
-
-            # Naming styles
-
-            dotnet_naming_style.camel_case.capitalization = camel_case
-            """;
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
-        public async Task LocalFuncExtract()
-        {
-            await TestInRegularAndScript1Async("""
-                class C
+                void M()
                 {
-                    int Testing;
+                    local();
 
-                    void M()
-                    {
-                        local();
+                    [|NewMethod();|]
 
-                        [|NewMethod();|]
+                    Testing = 5;
 
-                        Testing = 5;
-
-                        void local()
-                        { }
-                    }
-
-                    void NewMethod()
-                    {
-                    }
-                }
-                """, """
-                class C
-                {
-                    int Testing;
-
-                    void M()
-                    {
-                        local();
-                        {|Rename:NewMethod1|}();
-
-                        Testing = 5;
-
-                        void local()
-                        { }
-                    }
-
-                    private void NewMethod1()
-                    {
-                        NewMethod();
-                    }
-
-                    void NewMethod()
-                    {
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540799")]
-        public async Task TestPartialSelection()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        bool b = true;
-                        System.Console.WriteLine([|b != true|] ? b = true : b = false);
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        bool b = true;
-                        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
-                    }
-
-                    private static bool NewMethod(bool b)
-                    {
-                        return b != true;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestSelectionOfSwitchExpressionArm()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    int Foo(int x) => x switch
-                    {
-                        1 => 1,
-                        _ => [|1 + x|]
-                    };
-                }
-                """,
-                """
-                class Program
-                {
-                    int Foo(int x) => x switch
-                    {
-                        1 => 1,
-                        _ => {|Rename:NewMethod|}(x)
-                    };
-                    private static int NewMethod(int x) => 1 + x;
-                }
-                """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
-        }
-
-        [Fact]
-        public async Task TestSelectionOfSwitchExpressionArmContainingVariables()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-                using System.Collections.Generic;
-
-                class TestClass
-                {
-                    public static T RecursiveExample<T>(IEnumerable<T> sequence) =>
-                    sequence switch
-                    {
-                        Array { Length: 0 } => default(T),
-                        Array { Length: 1 } array => [|(T)array.GetValue(0)|],
-                        Array { Length: 2 } array => (T)array.GetValue(1),
-                        Array array => (T)array.GetValue(2),
-                        _ => throw new NotImplementedException(),
-                    };
-                }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
-
-                class TestClass
-                {
-                    public static T RecursiveExample<T>(IEnumerable<T> sequence) =>
-                    sequence switch
-                    {
-                        Array { Length: 0 } => default(T),
-                        Array { Length: 1 } array => {|Rename:NewMethod|}<T>(array),
-                        Array { Length: 2 } array => (T)array.GetValue(1),
-                        Array array => (T)array.GetValue(2),
-                        _ => throw new NotImplementedException(),
-                    };
-                    private static T NewMethod<T>(Array array) => (T)array.GetValue(0);
-                }
-                """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
-        }
-
-        [Fact]
-        public async Task TestUseExpressionBodyWhenPossible()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        bool b = true;
-                        System.Console.WriteLine([|b != true|] ? b = true : b = false);
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        bool b = true;
-                        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
-                    }
-
-                    private static bool NewMethod(bool b) => b != true;
-                }
-                """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
-        }
-
-        [Fact]
-        public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        bool b = true;
-                        System.Console.WriteLine([|b != true|] ? b = true : b = false);
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        bool b = true;
-                        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
-                    }
-
-                    private static bool NewMethod(bool b) => b != true;
-                }
-                """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-        }
-
-        [Fact]
-        public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        bool b = true;
-                        System.Console.WriteLine(
-
-                            [|b != true|]
-                                ? b = true : b = false);
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        bool b = true;
-                        System.Console.WriteLine(
-
-                            {|Rename:NewMethod|}(b)
-                                ? b = true : b = false);
-                    }
-
-                    private static bool NewMethod(bool b) => b != true;
-                }
-                """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-        }
-
-        [Fact]
-        public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        bool b = true;
-                        System.Console.WriteLine([|b != 
-                            true|] ? b = true : b = false);
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        bool b = true;
-                        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
-                    }
-
-                    private static bool NewMethod(bool b)
-                    {
-                        return b !=
-                                    true;
-                    }
-                }
-                """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-        }
-
-        [Fact]
-        public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        bool b = true;
-                        System.Console.WriteLine([|b !=/*
-                */true|] ? b = true : b = false);
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        bool b = true;
-                        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
-                    }
-
-                    private static bool NewMethod(bool b)
-                    {
-                        return b !=/*
-                */true;
-                    }
-                }
-                """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-        }
-
-        [Fact]
-        public async Task TestExtractMethodInCtorInit()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Foo
-                {
-                    public Foo(int a, int b){}
-                    public Foo(int i) : this([|i * 10 + 2|], 2)
-                    {}
-                }
-                """,
-                """
-                class Foo
-                {
-                    public Foo(int a, int b){}
-                    public Foo(int i) : this({|Rename:NewMethod|}(i), 2)
+                    void local()
                     { }
-
-                    private static int NewMethod(int i) => i * 10 + 2;
                 }
-                """,
-new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-        }
 
-        [Fact]
-        public async Task TestExtractMethodInCtorInitWithOutVar()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Foo
+                void NewMethod()
                 {
-                    public Foo(int a, int b){}
-                    public Foo(int i, out int q) : this([|i * 10 + (q = 2)|], 2)
-                    {}
                 }
-                """,
-                """
-                class Foo
+            }
+            """, """
+            class C
+            {
+                int Testing;
+
+                void M()
                 {
-                    public Foo(int a, int b){}
-                    public Foo(int i, out int q) : this({|Rename:NewMethod|}(i, out q), 2)
+                    local();
+                    {|Rename:NewMethod1|}();
+
+                    Testing = 5;
+
+                    void local()
                     { }
-
-                    private static int NewMethod(int i, out int q) => i * 10 + (q = 2);
                 }
-                """,
+
+                private void NewMethod1()
+                {
+                    NewMethod();
+                }
+
+                void NewMethod()
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540799")]
+    public async Task TestPartialSelection()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    bool b = true;
+                    System.Console.WriteLine([|b != true|] ? b = true : b = false);
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    bool b = true;
+                    System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+                }
+
+                private static bool NewMethod(bool b)
+                {
+                    return b != true;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestSelectionOfSwitchExpressionArm()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                int Foo(int x) => x switch
+                {
+                    1 => 1,
+                    _ => [|1 + x|]
+                };
+            }
+            """,
+            """
+            class Program
+            {
+                int Foo(int x) => x switch
+                {
+                    1 => 1,
+                    _ => {|Rename:NewMethod|}(x)
+                };
+                private static int NewMethod(int x) => 1 + x;
+            }
+            """,
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+    }
+
+    [Fact]
+    public async Task TestSelectionOfSwitchExpressionArmContainingVariables()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class TestClass
+            {
+                public static T RecursiveExample<T>(IEnumerable<T> sequence) =>
+                sequence switch
+                {
+                    Array { Length: 0 } => default(T),
+                    Array { Length: 1 } array => [|(T)array.GetValue(0)|],
+                    Array { Length: 2 } array => (T)array.GetValue(1),
+                    Array array => (T)array.GetValue(2),
+                    _ => throw new NotImplementedException(),
+                };
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class TestClass
+            {
+                public static T RecursiveExample<T>(IEnumerable<T> sequence) =>
+                sequence switch
+                {
+                    Array { Length: 0 } => default(T),
+                    Array { Length: 1 } array => {|Rename:NewMethod|}<T>(array),
+                    Array { Length: 2 } array => (T)array.GetValue(1),
+                    Array array => (T)array.GetValue(2),
+                    _ => throw new NotImplementedException(),
+                };
+                private static T NewMethod<T>(Array array) => (T)array.GetValue(0);
+            }
+            """,
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+    }
+
+    [Fact]
+    public async Task TestUseExpressionBodyWhenPossible()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    bool b = true;
+                    System.Console.WriteLine([|b != true|] ? b = true : b = false);
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    bool b = true;
+                    System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+                }
+
+                private static bool NewMethod(bool b) => b != true;
+            }
+            """,
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+    }
+
+    [Fact]
+    public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    bool b = true;
+                    System.Console.WriteLine([|b != true|] ? b = true : b = false);
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    bool b = true;
+                    System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+                }
+
+                private static bool NewMethod(bool b) => b != true;
+            }
+            """,
 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-        }
+    }
 
-        [Fact]
-        public async Task TestExtractMethodInCtorInitWithByRefVar()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-                using System;
-
-                namespace Test
+    [Fact]
+    public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    public class BaseX
-                    {
-                        public BaseX(out int s, int sx, ref int r, in int inRef)
-                        {
-                            Console.WriteLine("begin base ctor");
+                    bool b = true;
+                    System.Console.WriteLine(
 
-                            s = 42;
-                            Console.WriteLine(sx);
-                            Console.WriteLine(r);
-                            Console.WriteLine(inRef);
-
-                            r = 777;
-                            Console.WriteLine(inRef);
-                            Console.WriteLine(r);
-
-                            Console.WriteLine("end base ctor");
-                        }
-                    }
-
-                    public class X : BaseX
-                    {
-                        static int PrintX(int i)
-                        {
-                            Console.WriteLine(i);
-                            return i;
-                        }
-
-
-                        public X(out int x, ref int r) :
-                            base(out x, x = PrintX(x = 12), ref r, [|r++|])
-                        {
-                            Console.WriteLine($"in ctor {x}");
-                        }
-
-                        static void Main()
-                        {
-                            int val = 33;
-                            var x = new X(out var f, ref val);
-                            Console.WriteLine(val);
-                        }
-                    }
+                        [|b != true|]
+                            ? b = true : b = false);
                 }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-                using System;
-
-                namespace Test
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    public class BaseX
-                    {
-                        public BaseX(out int s, int sx, ref int r, in int inRef)
-                        {
-                            Console.WriteLine("begin base ctor");
+                    bool b = true;
+                    System.Console.WriteLine(
 
-                            s = 42;
-                            Console.WriteLine(sx);
-                            Console.WriteLine(r);
-                            Console.WriteLine(inRef);
-
-                            r = 777;
-                            Console.WriteLine(inRef);
-                            Console.WriteLine(r);
-
-                            Console.WriteLine("end base ctor");
-                        }
-                    }
-
-                    public class X : BaseX
-                    {
-                        static int PrintX(int i)
-                        {
-                            Console.WriteLine(i);
-                            return i;
-                        }
-
-
-                        public X(out int x, ref int r) :
-                            base(out x, x = PrintX(x = 12), ref r, {|Rename:NewMethod|}(ref r))
-                        {
-                            Console.WriteLine($"in ctor {x}");
-                        }
-
-                        private static int NewMethod(ref int r) => r++;
-
-                        static void Main()
-                        {
-                            int val = 33;
-                            var x = new X(out var f, ref val);
-                            Console.WriteLine(val);
-                        }
-                    }
+                        {|Rename:NewMethod|}(b)
+                            ? b = true : b = false);
                 }
-                """,
+
+                private static bool NewMethod(bool b) => b != true;
+            }
+            """,
 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-        }
+    }
 
-        [Fact]
-        public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine3()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
+    [Fact]
+    public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        bool b = true;
-                        System.Console.WriteLine([|"" != @"
-                "|] ? b = true : b = false);
-                    }
+                    bool b = true;
+                    System.Console.WriteLine([|b != 
+                        true|] ? b = true : b = false);
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        bool b = true;
-                        System.Console.WriteLine({|Rename:NewMethod|}() ? b = true : b = false);
-                    }
+                    bool b = true;
+                    System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+                }
 
-                    private static bool NewMethod()
-                    {
-                        return "" != @"
-                ";
-                    }
+                private static bool NewMethod(bool b)
+                {
+                    return b !=
+                                true;
                 }
-                """,
+            }
+            """,
 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]
-        public async Task TestReadOfDataThatDoesNotFlowIn()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
+    [Fact]
+    public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        int x = 1;
-                        object y = 0;
-                        [|int s = true ? fun(x) : fun(y);|]
-                    }
+                    bool b = true;
+                    System.Console.WriteLine([|b !=/*
+            */true|] ? b = true : b = false);
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    bool b = true;
+                    System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+                }
 
-                    private static T fun<T>(T t)
+                private static bool NewMethod(bool b)
+                {
+                    return b !=/*
+            */true;
+                }
+            }
+            """,
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+    }
+
+    [Fact]
+    public async Task TestExtractMethodInCtorInit()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Foo
+            {
+                public Foo(int a, int b){}
+                public Foo(int i) : this([|i * 10 + 2|], 2)
+                {}
+            }
+            """,
+            """
+            class Foo
+            {
+                public Foo(int a, int b){}
+                public Foo(int i) : this({|Rename:NewMethod|}(i), 2)
+                { }
+
+                private static int NewMethod(int i) => i * 10 + 2;
+            }
+            """,
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+    }
+
+    [Fact]
+    public async Task TestExtractMethodInCtorInitWithOutVar()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Foo
+            {
+                public Foo(int a, int b){}
+                public Foo(int i, out int q) : this([|i * 10 + (q = 2)|], 2)
+                {}
+            }
+            """,
+            """
+            class Foo
+            {
+                public Foo(int a, int b){}
+                public Foo(int i, out int q) : this({|Rename:NewMethod|}(i, out q), 2)
+                { }
+
+                private static int NewMethod(int i, out int q) => i * 10 + (q = 2);
+            }
+            """,
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+    }
+
+    [Fact]
+    public async Task TestExtractMethodInCtorInitWithByRefVar()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System;
+
+            namespace Test
+            {
+                public class BaseX
+                {
+                    public BaseX(out int s, int sx, ref int r, in int inRef)
                     {
-                        return t;
+                        Console.WriteLine("begin base ctor");
+
+                        s = 42;
+                        Console.WriteLine(sx);
+                        Console.WriteLine(r);
+                        Console.WriteLine(inRef);
+
+                        r = 777;
+                        Console.WriteLine(inRef);
+                        Console.WriteLine(r);
+
+                        Console.WriteLine("end base ctor");
                     }
                 }
-                """,
-                """
-                class Program
+
+                public class X : BaseX
                 {
-                    static void Main(string[] args)
+                    static int PrintX(int i)
                     {
-                        int x = 1;
-                        object y = 0;
-                        {|Rename:NewMethod|}(x, y);
+                        Console.WriteLine(i);
+                        return i;
                     }
 
-                    private static void NewMethod(int x, object y)
+
+                    public X(out int x, ref int r) :
+                        base(out x, x = PrintX(x = 12), ref r, [|r++|])
                     {
-                        int s = true ? fun(x) : fun(y);
+                        Console.WriteLine($"in ctor {x}");
                     }
 
-                    private static T fun<T>(T t)
+                    static void Main()
                     {
-                        return t;
+                        int val = 33;
+                        var x = new X(out var f, ref val);
+                        Console.WriteLine(val);
                     }
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
-        public async Task TestOnGoto()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                delegate int del(int i);
-
-                class C
+            namespace Test
+            {
+                public class BaseX
                 {
-                    static void Main(string[] args)
+                    public BaseX(out int s, int sx, ref int r, in int inRef)
                     {
-                        del q = x => {
-                            [|goto label2;
-                            return x * x;|]
-                        };
-                    label2:
-                        return;
+                        Console.WriteLine("begin base ctor");
+
+                        s = 42;
+                        Console.WriteLine(sx);
+                        Console.WriteLine(r);
+                        Console.WriteLine(inRef);
+
+                        r = 777;
+                        Console.WriteLine(inRef);
+                        Console.WriteLine(r);
+
+                        Console.WriteLine("end base ctor");
                     }
                 }
-                """,
-                """
-                delegate int del(int i);
 
-                class C
+                public class X : BaseX
                 {
-                    static void Main(string[] args)
+                    static int PrintX(int i)
                     {
-                        del q = x =>
-                        {
-                            return {|Rename:NewMethod|}(x);
-                        };
-                    label2:
-                        return;
+                        Console.WriteLine(i);
+                        return i;
                     }
 
-                    private static int NewMethod(int x)
+
+                    public X(out int x, ref int r) :
+                        base(out x, x = PrintX(x = 12), ref r, {|Rename:NewMethod|}(ref r))
+                    {
+                        Console.WriteLine($"in ctor {x}");
+                    }
+
+                    private static int NewMethod(ref int r) => r++;
+
+                    static void Main()
+                    {
+                        int val = 33;
+                        var x = new X(out var f, ref val);
+                        Console.WriteLine(val);
+                    }
+                }
+            }
+            """,
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+    }
+
+    [Fact]
+    public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine3()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    bool b = true;
+                    System.Console.WriteLine([|"" != @"
+            "|] ? b = true : b = false);
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    bool b = true;
+                    System.Console.WriteLine({|Rename:NewMethod|}() ? b = true : b = false);
+                }
+
+                private static bool NewMethod()
+                {
+                    return "" != @"
+            ";
+                }
+            }
+            """,
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]
+    public async Task TestReadOfDataThatDoesNotFlowIn()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    int x = 1;
+                    object y = 0;
+                    [|int s = true ? fun(x) : fun(y);|]
+                }
+
+                private static T fun<T>(T t)
+                {
+                    return t;
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    int x = 1;
+                    object y = 0;
+                    {|Rename:NewMethod|}(x, y);
+                }
+
+                private static void NewMethod(int x, object y)
+                {
+                    int s = true ? fun(x) : fun(y);
+                }
+
+                private static T fun<T>(T t)
+                {
+                    return t;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
+    public async Task TestOnGoto()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            delegate int del(int i);
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    del q = x => {
+                        [|goto label2;
+                        return x * x;|]
+                    };
+                label2:
+                    return;
+                }
+            }
+            """,
+            """
+            delegate int del(int i);
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    del q = x =>
+                    {
+                        return {|Rename:NewMethod|}(x);
+                    };
+                label2:
+                    return;
+                }
+
+                private static int NewMethod(int x)
+                {
+                    goto label2;
+                    return x * x;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
+    public async Task TestOnStatementAfterUnconditionalGoto()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            delegate int del(int i);
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    del q = x => {
+                        goto label2;
+                        [|return x * x;|]
+                    };
+                label2:
+                    return;
+                }
+            }
+            """,
+            """
+            delegate int del(int i);
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    del q = x =>
                     {
                         goto label2;
-                        return x * x;
-                    }
+                        return {|Rename:NewMethod|}(x);
+                    };
+                label2:
+                    return;
                 }
-                """);
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
-        public async Task TestOnStatementAfterUnconditionalGoto()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                delegate int del(int i);
-
-                class C
+                private static int NewMethod(int x)
                 {
-                    static void Main(string[] args)
-                    {
-                        del q = x => {
-                            goto label2;
-                            [|return x * x;|]
-                        };
-                    label2:
-                        return;
-                    }
+                    return x * x;
                 }
-                """,
-                """
-                delegate int del(int i);
+            }
+            """);
+    }
 
-                class C
+    [Fact]
+    public async Task TestMissingOnNamespace()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                void Main()
                 {
-                    static void Main(string[] args)
-                    {
-                        del q = x =>
-                        {
-                            goto label2;
-                            return {|Rename:NewMethod|}(x);
-                        };
-                    label2:
-                        return;
-                    }
-
-                    private static int NewMethod(int x)
-                    {
-                        return x * x;
-                    }
+                    [|System|].Console.WriteLine(4);
                 }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingOnNamespace()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
+            }
+            """,
+            """
+            class Program
+            {
+                void Main()
                 {
-                    void Main()
-                    {
-                        [|System|].Console.WriteLine(4);
-                    }
+                    {|Rename:NewMethod|}();
                 }
-                """,
-                """
-                class Program
+
+                private static void NewMethod()
                 {
-                    void Main()
-                    {
-                        {|Rename:NewMethod|}();
-                    }
-
-                    private static void NewMethod()
-                    {
-                        System.Console.WriteLine(4);
-                    }
+                    System.Console.WriteLine(4);
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestMissingOnType()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
+    [Fact]
+    public async Task TestMissingOnType()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                void Main()
                 {
-                    void Main()
-                    {
-                        [|System.Console|].WriteLine(4);
-                    }
+                    [|System.Console|].WriteLine(4);
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            """
+            class Program
+            {
+                void Main()
                 {
-                    void Main()
-                    {
-                        {|Rename:NewMethod|}();
-                    }
-
-                    private static void NewMethod()
-                    {
-                        System.Console.WriteLine(4);
-                    }
+                    {|Rename:NewMethod|}();
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestMissingOnBase()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
+                private static void NewMethod()
                 {
-                    void Main()
-                    {
-                        [|base|].ToString();
-                    }
+                    System.Console.WriteLine(4);
                 }
-                """,
-                """
-                class Program
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMissingOnBase()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                void Main()
                 {
-                    void Main()
-                    {
-                        {|Rename:NewMethod|}();
-                    }
-
-                    private void NewMethod()
-                    {
-                        base.ToString();
-                    }
+                    [|base|].ToString();
                 }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545623")]
-        public async Task TestOnActionInvocation()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                class C
+            }
+            """,
+            """
+            class Program
+            {
+                void Main()
                 {
-                    public static Action X { get; set; }
+                    {|Rename:NewMethod|}();
                 }
 
-                class Program
+                private void NewMethod()
                 {
-                    void Main()
-                    {
-                        [|C.X|]();
-                    }
+                    base.ToString();
                 }
-                """,
-                """
-                using System;
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545623")]
+    public async Task TestOnActionInvocation()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                public static Action X { get; set; }
+            }
+
+            class Program
+            {
+                void Main()
                 {
-                    public static Action X { get; set; }
+                    [|C.X|]();
                 }
+            }
+            """,
+            """
+            using System;
 
-                class Program
+            class C
+            {
+                public static Action X { get; set; }
+            }
+
+            class Program
+            {
+                void Main()
                 {
-                    void Main()
-                    {
-                        {|Rename:GetX|}()();
-                    }
-
-                    private static Action GetX()
-                    {
-                        return C.X;
-                    }
+                    {|Rename:GetX|}()();
                 }
-                """);
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
-        public async Task DisambiguateCallSiteIfNecessary1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                class Program
+                private static Action GetX()
                 {
-                    static void Main()
-                    {
-                        byte z = 0;
-                        Goo([|x => 0|], y => 0, z, z);
-                    }
-
-                    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-                    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+                    return C.X;
                 }
-                """,
+            }
+            """);
+    }
 
-                """
-                using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
+    public async Task DisambiguateCallSiteIfNecessary1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
 
-                class Program
+            class Program
+            {
+                static void Main()
                 {
-                    static void Main()
-                    {
-                        byte z = 0;
-                        Goo({|Rename:NewMethod|}(), y => (byte)0, z, z);
-                    }
-
-                    private static Func<byte, byte> NewMethod()
-                    {
-                        return x => 0;
-                    }
-
-                    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-                    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+                    byte z = 0;
+                    Goo([|x => 0|], y => 0, z, z);
                 }
-                """);
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
-        public async Task DisambiguateCallSiteIfNecessary2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
+                static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+                static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+            }
+            """,
 
-                class Program
+            """
+            using System;
+
+            class Program
+            {
+                static void Main()
                 {
-                    static void Main()
-                    {
-                        byte z = 0;
-                        Goo([|x => 0|], y => { return 0; }, z, z);
-                    }
-
-                    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-                    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+                    byte z = 0;
+                    Goo({|Rename:NewMethod|}(), y => (byte)0, z, z);
                 }
-                """,
 
-                """
-                using System;
-
-                class Program
+                private static Func<byte, byte> NewMethod()
                 {
-                    static void Main()
-                    {
-                        byte z = 0;
-                        Goo({|Rename:NewMethod|}(), y => { return (byte)0; }, z, z);
-                    }
-
-                    private static Func<byte, byte> NewMethod()
-                    {
-                        return x => 0;
-                    }
-
-                    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-                    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+                    return x => 0;
                 }
-                """);
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530709")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
-        public async Task DoNotOverparenthesize()
-        {
-            await TestAsync(
-                """
-                using System;
+                static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+                static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+            }
+            """);
+    }
 
-                static class C
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
+    public async Task DisambiguateCallSiteIfNecessary2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class Program
+            {
+                static void Main()
                 {
-                    static void Ex(this string x)
-                    {
-                    }
-
-                    static void Inner(Action<string> x, string y)
-                    {
-                    }
-
-                    static void Inner(Action<string> x, int y)
-                    {
-                    }
-
-                    static void Inner(Action<int> x, int y)
-                    {
-                    }
-
-                    static void Outer(Action<string> x, object y)
-                    {
-                        Console.WriteLine(1);
-                    }
-
-                    static void Outer(Action<int> x, int y)
-                    {
-                        Console.WriteLine(2);
-                    }
-
-                    static void Main()
-                    {
-                        Outer(y => Inner(x => [|x|].Ex(), y), - -1);
-                    }
+                    byte z = 0;
+                    Goo([|x => 0|], y => { return 0; }, z, z);
                 }
 
-                static class E
+                static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+                static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+            }
+            """,
+
+            """
+            using System;
+
+            class Program
+            {
+                static void Main()
                 {
-                    public static void Ex(this int x)
-                    {
-                    }
+                    byte z = 0;
+                    Goo({|Rename:NewMethod|}(), y => { return (byte)0; }, z, z);
                 }
-                """,
 
-                """
-                using System;
-
-                static class C
+                private static Func<byte, byte> NewMethod()
                 {
-                    static void Ex(this string x)
-                    {
-                    }
-
-                    static void Inner(Action<string> x, string y)
-                    {
-                    }
-
-                    static void Inner(Action<string> x, int y)
-                    {
-                    }
-
-                    static void Inner(Action<int> x, int y)
-                    {
-                    }
-
-                    static void Outer(Action<string> x, object y)
-                    {
-                        Console.WriteLine(1);
-                    }
-
-                    static void Outer(Action<int> x, int y)
-                    {
-                        Console.WriteLine(2);
-                    }
-
-                    static void Main()
-                    {
-                        Outer(y => Inner(x => {|Rename:GetX|}(x).Ex(), y), (object)- -1);
-                    }
-
-                    private static string GetX(string x)
-                    {
-                        return x;
-                    }
+                    return x => 0;
                 }
 
-                static class E
+                static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+                static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530709")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
+    public async Task DoNotOverparenthesize()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            static class C
+            {
+                static void Ex(this string x)
                 {
-                    public static void Ex(this int x)
-                    {
-                    }
                 }
-                """,
+
+                static void Inner(Action<string> x, string y)
+                {
+                }
+
+                static void Inner(Action<string> x, int y)
+                {
+                }
+
+                static void Inner(Action<int> x, int y)
+                {
+                }
+
+                static void Outer(Action<string> x, object y)
+                {
+                    Console.WriteLine(1);
+                }
+
+                static void Outer(Action<int> x, int y)
+                {
+                    Console.WriteLine(2);
+                }
+
+                static void Main()
+                {
+                    Outer(y => Inner(x => [|x|].Ex(), y), - -1);
+                }
+            }
+
+            static class E
+            {
+                public static void Ex(this int x)
+                {
+                }
+            }
+            """,
+
+            """
+            using System;
+
+            static class C
+            {
+                static void Ex(this string x)
+                {
+                }
+
+                static void Inner(Action<string> x, string y)
+                {
+                }
+
+                static void Inner(Action<string> x, int y)
+                {
+                }
+
+                static void Inner(Action<int> x, int y)
+                {
+                }
+
+                static void Outer(Action<string> x, object y)
+                {
+                    Console.WriteLine(1);
+                }
+
+                static void Outer(Action<int> x, int y)
+                {
+                    Console.WriteLine(2);
+                }
+
+                static void Main()
+                {
+                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex(), y), (object)- -1);
+                }
+
+                private static string GetX(string x)
+                {
+                    return x;
+                }
+            }
+
+            static class E
+            {
+                public static void Ex(this int x)
+                {
+                }
+            }
+            """,
 
 parseOptions: TestOptions.Regular);
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
-        public async Task DoNotOverparenthesizeGenerics()
-        {
-            await TestAsync(
-                """
-                using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
+    public async Task DoNotOverparenthesizeGenerics()
+    {
+        await TestAsync(
+            """
+            using System;
 
-                static class C
+            static class C
+            {
+                static void Ex<T>(this string x)
                 {
-                    static void Ex<T>(this string x)
-                    {
-                    }
-
-                    static void Inner(Action<string> x, string y)
-                    {
-                    }
-
-                    static void Inner(Action<string> x, int y)
-                    {
-                    }
-
-                    static void Inner(Action<int> x, int y)
-                    {
-                    }
-
-                    static void Outer(Action<string> x, object y)
-                    {
-                        Console.WriteLine(1);
-                    }
-
-                    static void Outer(Action<int> x, int y)
-                    {
-                        Console.WriteLine(2);
-                    }
-
-                    static void Main()
-                    {
-                        Outer(y => Inner(x => [|x|].Ex<int>(), y), - -1);
-                    }
                 }
 
-                static class E
+                static void Inner(Action<string> x, string y)
                 {
-                    public static void Ex<T>(this int x)
-                    {
-                    }
-                }
-                """,
-
-                """
-                using System;
-
-                static class C
-                {
-                    static void Ex<T>(this string x)
-                    {
-                    }
-
-                    static void Inner(Action<string> x, string y)
-                    {
-                    }
-
-                    static void Inner(Action<string> x, int y)
-                    {
-                    }
-
-                    static void Inner(Action<int> x, int y)
-                    {
-                    }
-
-                    static void Outer(Action<string> x, object y)
-                    {
-                        Console.WriteLine(1);
-                    }
-
-                    static void Outer(Action<int> x, int y)
-                    {
-                        Console.WriteLine(2);
-                    }
-
-                    static void Main()
-                    {
-                        Outer(y => Inner(x => {|Rename:GetX|}(x).Ex<int>(), y), (object)- -1);
-                    }
-
-                    private static string GetX(string x)
-                    {
-                        return x;
-                    }
                 }
 
-                static class E
+                static void Inner(Action<string> x, int y)
                 {
-                    public static void Ex<T>(this int x)
-                    {
-                    }
                 }
-                """,
+
+                static void Inner(Action<int> x, int y)
+                {
+                }
+
+                static void Outer(Action<string> x, object y)
+                {
+                    Console.WriteLine(1);
+                }
+
+                static void Outer(Action<int> x, int y)
+                {
+                    Console.WriteLine(2);
+                }
+
+                static void Main()
+                {
+                    Outer(y => Inner(x => [|x|].Ex<int>(), y), - -1);
+                }
+            }
+
+            static class E
+            {
+                public static void Ex<T>(this int x)
+                {
+                }
+            }
+            """,
+
+            """
+            using System;
+
+            static class C
+            {
+                static void Ex<T>(this string x)
+                {
+                }
+
+                static void Inner(Action<string> x, string y)
+                {
+                }
+
+                static void Inner(Action<string> x, int y)
+                {
+                }
+
+                static void Inner(Action<int> x, int y)
+                {
+                }
+
+                static void Outer(Action<string> x, object y)
+                {
+                    Console.WriteLine(1);
+                }
+
+                static void Outer(Action<int> x, int y)
+                {
+                    Console.WriteLine(2);
+                }
+
+                static void Main()
+                {
+                    Outer(y => Inner(x => {|Rename:GetX|}(x).Ex<int>(), y), (object)- -1);
+                }
+
+                private static string GetX(string x)
+                {
+                    return x;
+                }
+            }
+
+            static class E
+            {
+                public static void Ex<T>(this int x)
+                {
+                }
+            }
+            """,
 
 parseOptions: TestOptions.Regular);
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
-        public async Task PreserveCommentsBeforeDeclaration_1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Construct
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
+    public async Task PreserveCommentsBeforeDeclaration_1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Construct
+            {
+                public void Do() { }
+                static void Main(string[] args)
                 {
-                    public void Do() { }
-                    static void Main(string[] args)
+                    [|Construct obj1 = new Construct();
+                    obj1.Do();
+                    /* Interesting comment. */
+                    Construct obj2 = new Construct();
+                    obj2.Do();|]
+                    obj1.Do();
+                    obj2.Do();
+                }
+            }
+            """,
+
+            """
+            class Construct
+            {
+                public void Do() { }
+                static void Main(string[] args)
+                {
+                    Construct obj1, obj2;
+                    {|Rename:NewMethod|}(out obj1, out obj2);
+                    obj1.Do();
+                    obj2.Do();
+                }
+
+                private static void NewMethod(out Construct obj1, out Construct obj2)
+                {
+                    obj1 = new Construct();
+                    obj1.Do();
+                    /* Interesting comment. */
+                    obj2 = new Construct();
+                    obj2.Do();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
+    public async Task PreserveCommentsBeforeDeclaration_2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Construct
+            {
+                public void Do() { }
+                static void Main(string[] args)
+                {
+                    [|Construct obj1 = new Construct();
+                    obj1.Do();
+                    /* Interesting comment. */
+                    Construct obj2 = new Construct();
+                    obj2.Do();
+                    /* Second Interesting comment. */
+                    Construct obj3 = new Construct();
+                    obj3.Do();|]
+                    obj1.Do();
+                    obj2.Do();
+                    obj3.Do();
+                }
+            }
+            """,
+
+            """
+            class Construct
+            {
+                public void Do() { }
+                static void Main(string[] args)
+                {
+                    Construct obj1, obj2, obj3;
+                    {|Rename:NewMethod|}(out obj1, out obj2, out obj3);
+                    obj1.Do();
+                    obj2.Do();
+                    obj3.Do();
+                }
+
+                private static void NewMethod(out Construct obj1, out Construct obj2, out Construct obj3)
+                {
+                    obj1 = new Construct();
+                    obj1.Do();
+                    /* Interesting comment. */
+                    obj2 = new Construct();
+                    obj2.Do();
+                    /* Second Interesting comment. */
+                    obj3 = new Construct();
+                    obj3.Do();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
+    public async Task PreserveCommentsBeforeDeclaration_3()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Construct
+            {
+                public void Do() { }
+                static void Main(string[] args)
+                {
+                    [|Construct obj1 = new Construct();
+                    obj1.Do();
+                    /* Interesting comment. */
+                    Construct obj2 = new Construct(), obj3 = new Construct();
+                    obj2.Do();
+                    obj3.Do();|]
+                    obj1.Do();
+                    obj2.Do();
+                    obj3.Do();
+                }
+            }
+            """,
+
+            """
+            class Construct
+            {
+                public void Do() { }
+                static void Main(string[] args)
+                {
+                    Construct obj1, obj2, obj3;
+                    {|Rename:NewMethod|}(out obj1, out obj2, out obj3);
+                    obj1.Do();
+                    obj2.Do();
+                    obj3.Do();
+                }
+
+                private static void NewMethod(out Construct obj1, out Construct obj2, out Construct obj3)
+                {
+                    obj1 = new Construct();
+                    obj1.Do();
+                    /* Interesting comment. */
+                    obj2 = new Construct();
+                    obj3 = new Construct();
+                    obj2.Do();
+                    obj3.Do();
+                }
+            }
+            """);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
+    public async Task TestTuple()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|(int, int) x = (1, 2);|]
+                    System.Console.WriteLine(x.Item1);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int, int) x = {|Rename:NewMethod|}();
+                    System.Console.WriteLine(x.Item1);
+                }
+
+                private static (int, int) NewMethod()
+                {
+                    return (1, 2);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
+    public async Task TestTupleDeclarationWithNames()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|(int a, int b) x = (1, 2);|]
+                    System.Console.WriteLine(x.a);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int a, int b) x = {|Rename:NewMethod|}();
+                    System.Console.WriteLine(x.a);
+                }
+
+                private static (int a, int b) NewMethod()
+                {
+                    return (1, 2);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
+    public async Task TestTupleDeclarationWithSomeNames()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|(int a, int) x = (1, 2);|]
+                    System.Console.WriteLine(x.a);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int a, int) x = {|Rename:NewMethod|}();
+                    System.Console.WriteLine(x.a);
+                }
+
+                private static (int a, int) NewMethod()
+                {
+                    return (1, 2);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/18311")]
+    public async Task TestTupleWith1Arity()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    ValueTuple<int> y = ValueTuple.Create(1);
+                    [|y.Item1.ToString();|]
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
+            """
+            using System;
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    ValueTuple<int> y = ValueTuple.Create(1);
+                    {|Rename:NewMethod|}(y);
+                }
+
+                private static void NewMethod(ValueTuple<int> y)
+                {
+                    y.Item1.ToString();
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
+    public async Task TestTupleLiteralWithNames()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|(int, int) x = (a: 1, b: 2);|]
+                    System.Console.WriteLine(x.Item1);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int, int) x = {|Rename:NewMethod|}();
+                    System.Console.WriteLine(x.Item1);
+                }
+
+                private static (int, int) NewMethod()
+                {
+                    return (a: 1, b: 2);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
+    public async Task TestTupleDeclarationAndLiteralWithNames()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|(int a, int b) x = (c: 1, d: 2);|]
+                    System.Console.WriteLine(x.a);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int a, int b) x = {|Rename:NewMethod|}();
+                    System.Console.WriteLine(x.a);
+                }
+
+                private static (int a, int b) NewMethod()
+                {
+                    return (c: 1, d: 2);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
+    public async Task TestTupleIntoVar()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|var x = (c: 1, d: 2);|]
+                    System.Console.WriteLine(x.c);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int c, int d) x = {|Rename:NewMethod|}();
+                    System.Console.WriteLine(x.c);
+                }
+
+                private static (int c, int d) NewMethod()
+                {
+                    return (c: 1, d: 2);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
+    public async Task RefactorWithoutSystemValueTuple()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|var x = (c: 1, d: 2);|]
+                    System.Console.WriteLine(x.c);
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int c, int d) x = {|Rename:NewMethod|}();
+                    System.Console.WriteLine(x.c);
+                }
+
+                private static (int c, int d) NewMethod()
+                {
+                    return (c: 1, d: 2);
+                }
+            }
+            """);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
+    public async Task TestTupleWithNestedNamedTuple()
+    {
+        // This is not the best refactoring, but this is an edge case
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|var x = new System.ValueTuple<int, int, int, int, int, int, int, (string a, string b)>(1, 2, 3, 4, 5, 6, 7, (a: "hello", b: "world"));|]
+                    System.Console.WriteLine(x.c);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int, int, int, int, int, int, int, string, string) x = {|Rename:NewMethod|}();
+                    System.Console.WriteLine(x.c);
+                }
+
+                private static (int, int, int, int, int, int, int, string, string) NewMethod()
+                {
+                    return new System.ValueTuple<int, int, int, int, int, int, int, (string a, string b)>(1, 2, 3, 4, 5, 6, 7, (a: "hello", b: "world"));
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    public async Task TestDeconstruction()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var (x, y) = [|(1, 2)|];
+                    System.Console.WriteLine(x);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var (x, y) = {|Rename:NewMethod|}();
+                    System.Console.WriteLine(x);
+                }
+
+                private static (int, int) NewMethod()
+                {
+                    return (1, 2);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    public async Task TestDeconstruction2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var (x, y) = (1, 2);
+                    var z = [|3;|]
+                    System.Console.WriteLine(z);
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var (x, y) = (1, 2);
+                    int z = {|Rename:NewMethod|}();
+                    System.Console.WriteLine(z);
+                }
+
+                private static int NewMethod()
+                {
+                    return 3;
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
+    }
+
+    [Fact]
+    [CompilerTrait(CompilerFeature.OutVar)]
+    public async Task TestOutVar()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                static void M(int i)
+                {
+                    int r;
+                    [|r = M1(out int y, i);|]
+                    System.Console.WriteLine(r + y);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                static void M(int i)
+                {
+                    int r;
+                    int y;
+                    {|Rename:NewMethod|}(i, out r, out y);
+                    System.Console.WriteLine(r + y);
+                }
+
+                private static void NewMethod(int i, out int r, out int y)
+                {
+                    r = M1(out y, i);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    [CompilerTrait(CompilerFeature.Patterns)]
+    public async Task TestIsPattern()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                static void M(int i)
+                {
+                    int r;
+                    [|r = M1(3 is int y, i);|]
+                    System.Console.WriteLine(r + y);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                static void M(int i)
+                {
+                    int r;
+                    int y;
+                    {|Rename:NewMethod|}(i, out r, out y);
+                    System.Console.WriteLine(r + y);
+                }
+
+                private static void NewMethod(int i, out int r, out int y)
+                {
+                    r = M1(3 is int {|Conflict:y|}, i);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    [CompilerTrait(CompilerFeature.Patterns)]
+    public async Task TestOutVarAndIsPattern()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                static void M()
+                {
+                    int r;
+                    [|r = M1(out /*out*/ int /*int*/ y /*y*/) + M2(3 is int z);|]
+                    System.Console.WriteLine(r + y + z);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                static void M()
+                {
+                    int r;
+                    int y, z;
+                    {|Rename:NewMethod|}(out r, out y, out z);
+                    System.Console.WriteLine(r + y + z);
+                }
+
+                private static void NewMethod(out int r, out int y, out int z)
+                {
+                    r = M1(out /*out*/  /*int*/ y /*y*/) + M2(3 is int {|Conflict:z|});
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    [CompilerTrait(CompilerFeature.Patterns)]
+    public async Task ConflictingOutVarLocals()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                static void M()
+                {
+                    int r;
+                    [|r = M1(out int y);
                     {
-                        [|Construct obj1 = new Construct();
-                        obj1.Do();
-                        /* Interesting comment. */
-                        Construct obj2 = new Construct();
-                        obj2.Do();|]
-                        obj1.Do();
-                        obj2.Do();
+                        M2(out int y);
+                        System.Console.Write(y);
+                    }|]
+
+                    System.Console.WriteLine(r + y);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                static void M()
+                {
+                    int r;
+                    int y;
+                    {|Rename:NewMethod|}(out r, out y);
+
+                    System.Console.WriteLine(r + y);
+                }
+
+                private static void NewMethod(out int r, out int y)
+                {
+                    r = M1(out y);
+                    {
+                        M2(out int y);
+                        System.Console.Write(y);
                     }
                 }
-                """,
+            }
+            """);
+    }
 
-                """
-                class Construct
+    [Fact]
+    [CompilerTrait(CompilerFeature.Patterns)]
+    public async Task ConflictingPatternLocals()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                static void M()
                 {
-                    public void Do() { }
-                    static void Main(string[] args)
+                    int r;
+                    [|r = M1(1 is int y);
                     {
-                        Construct obj1, obj2;
-                        {|Rename:NewMethod|}(out obj1, out obj2);
-                        obj1.Do();
-                        obj2.Do();
-                    }
+                        M2(2 is int y);
+                        System.Console.Write(y);
+                    }|]
 
-                    private static void NewMethod(out Construct obj1, out Construct obj2)
+                    System.Console.WriteLine(r + y);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                static void M()
+                {
+                    int r;
+                    int y;
+                    {|Rename:NewMethod|}(out r, out y);
+
+                    System.Console.WriteLine(r + y);
+                }
+
+                private static void NewMethod(out int r, out int y)
+                {
+                    r = M1(1 is int {|Conflict:y|});
                     {
-                        obj1 = new Construct();
-                        obj1.Do();
-                        /* Interesting comment. */
-                        obj2 = new Construct();
-                        obj2.Do();
+                        M2(2 is int y);
+                        System.Console.Write(y);
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
-        public async Task PreserveCommentsBeforeDeclaration_2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Construct
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15218")]
+    public async Task TestCancellationTokenGoesLast()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+            using System.Threading;
+
+            class C
+            {
+                void M(CancellationToken ct)
                 {
-                    public void Do() { }
-                    static void Main(string[] args)
+                    var v = 0;
+
+                    [|if (true)
                     {
-                        [|Construct obj1 = new Construct();
-                        obj1.Do();
-                        /* Interesting comment. */
-                        Construct obj2 = new Construct();
-                        obj2.Do();
-                        /* Second Interesting comment. */
-                        Construct obj3 = new Construct();
-                        obj3.Do();|]
-                        obj1.Do();
-                        obj2.Do();
-                        obj3.Do();
-                    }
+                        ct.ThrowIfCancellationRequested();
+                        Console.WriteLine(v);
+                    }|]
                 }
-                """,
+            }
+            """,
+            """
+            using System;
+            using System.Threading;
 
-                """
-                class Construct
+            class C
+            {
+                void M(CancellationToken ct)
                 {
-                    public void Do() { }
-                    static void Main(string[] args)
-                    {
-                        Construct obj1, obj2, obj3;
-                        {|Rename:NewMethod|}(out obj1, out obj2, out obj3);
-                        obj1.Do();
-                        obj2.Do();
-                        obj3.Do();
-                    }
-
-                    private static void NewMethod(out Construct obj1, out Construct obj2, out Construct obj3)
-                    {
-                        obj1 = new Construct();
-                        obj1.Do();
-                        /* Interesting comment. */
-                        obj2 = new Construct();
-                        obj2.Do();
-                        /* Second Interesting comment. */
-                        obj3 = new Construct();
-                        obj3.Do();
-                    }
+                    var v = 0;
+                    {|Rename:NewMethod|}(v, ct);
                 }
-                """);
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
-        public async Task PreserveCommentsBeforeDeclaration_3()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Construct
+                private static void NewMethod(int v, CancellationToken ct)
                 {
-                    public void Do() { }
-                    static void Main(string[] args)
+                    if (true)
                     {
-                        [|Construct obj1 = new Construct();
-                        obj1.Do();
-                        /* Interesting comment. */
-                        Construct obj2 = new Construct(), obj3 = new Construct();
-                        obj2.Do();
-                        obj3.Do();|]
-                        obj1.Do();
-                        obj2.Do();
-                        obj3.Do();
-                    }
-                }
-                """,
-
-                """
-                class Construct
-                {
-                    public void Do() { }
-                    static void Main(string[] args)
-                    {
-                        Construct obj1, obj2, obj3;
-                        {|Rename:NewMethod|}(out obj1, out obj2, out obj3);
-                        obj1.Do();
-                        obj2.Do();
-                        obj3.Do();
-                    }
-
-                    private static void NewMethod(out Construct obj1, out Construct obj2, out Construct obj3)
-                    {
-                        obj1 = new Construct();
-                        obj1.Do();
-                        /* Interesting comment. */
-                        obj2 = new Construct();
-                        obj3 = new Construct();
-                        obj2.Do();
-                        obj3.Do();
-                    }
-                }
-                """);
-        }
-
-        [Fact, CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-        public async Task TestTuple()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        [|(int, int) x = (1, 2);|]
-                        System.Console.WriteLine(x.Item1);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        (int, int) x = {|Rename:NewMethod|}();
-                        System.Console.WriteLine(x.Item1);
-                    }
-
-                    private static (int, int) NewMethod()
-                    {
-                        return (1, 2);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-        }
-
-        [Fact, CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-        public async Task TestTupleDeclarationWithNames()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        [|(int a, int b) x = (1, 2);|]
-                        System.Console.WriteLine(x.a);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        (int a, int b) x = {|Rename:NewMethod|}();
-                        System.Console.WriteLine(x.a);
-                    }
-
-                    private static (int a, int b) NewMethod()
-                    {
-                        return (1, 2);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-        }
-
-        [Fact, CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-        public async Task TestTupleDeclarationWithSomeNames()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        [|(int a, int) x = (1, 2);|]
-                        System.Console.WriteLine(x.a);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        (int a, int) x = {|Rename:NewMethod|}();
-                        System.Console.WriteLine(x.a);
-                    }
-
-                    private static (int a, int) NewMethod()
-                    {
-                        return (1, 2);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-        }
-
-        [Fact, CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18311")]
-        public async Task TestTupleWith1Arity()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        ValueTuple<int> y = ValueTuple.Create(1);
-                        [|y.Item1.ToString();|]
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                """
-                using System;
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        ValueTuple<int> y = ValueTuple.Create(1);
-                        {|Rename:NewMethod|}(y);
-                    }
-
-                    private static void NewMethod(ValueTuple<int> y)
-                    {
-                        y.Item1.ToString();
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-        }
-
-        [Fact, CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-        public async Task TestTupleLiteralWithNames()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        [|(int, int) x = (a: 1, b: 2);|]
-                        System.Console.WriteLine(x.Item1);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        (int, int) x = {|Rename:NewMethod|}();
-                        System.Console.WriteLine(x.Item1);
-                    }
-
-                    private static (int, int) NewMethod()
-                    {
-                        return (a: 1, b: 2);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-        }
-
-        [Fact, CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-        public async Task TestTupleDeclarationAndLiteralWithNames()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        [|(int a, int b) x = (c: 1, d: 2);|]
-                        System.Console.WriteLine(x.a);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        (int a, int b) x = {|Rename:NewMethod|}();
-                        System.Console.WriteLine(x.a);
-                    }
-
-                    private static (int a, int b) NewMethod()
-                    {
-                        return (c: 1, d: 2);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-        }
-
-        [Fact, CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-        public async Task TestTupleIntoVar()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        [|var x = (c: 1, d: 2);|]
-                        System.Console.WriteLine(x.c);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        (int c, int d) x = {|Rename:NewMethod|}();
-                        System.Console.WriteLine(x.c);
-                    }
-
-                    private static (int c, int d) NewMethod()
-                    {
-                        return (c: 1, d: 2);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-        }
-
-        [Fact, CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-        public async Task RefactorWithoutSystemValueTuple()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        [|var x = (c: 1, d: 2);|]
-                        System.Console.WriteLine(x.c);
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        (int c, int d) x = {|Rename:NewMethod|}();
-                        System.Console.WriteLine(x.c);
-                    }
-
-                    private static (int c, int d) NewMethod()
-                    {
-                        return (c: 1, d: 2);
-                    }
-                }
-                """);
-        }
-
-        [Fact, CompilerTrait(CompilerFeature.Tuples)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-        public async Task TestTupleWithNestedNamedTuple()
-        {
-            // This is not the best refactoring, but this is an edge case
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        [|var x = new System.ValueTuple<int, int, int, int, int, int, int, (string a, string b)>(1, 2, 3, 4, 5, 6, 7, (a: "hello", b: "world"));|]
-                        System.Console.WriteLine(x.c);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        (int, int, int, int, int, int, int, string, string) x = {|Rename:NewMethod|}();
-                        System.Console.WriteLine(x.c);
-                    }
-
-                    private static (int, int, int, int, int, int, int, string, string) NewMethod()
-                    {
-                        return new System.ValueTuple<int, int, int, int, int, int, int, (string a, string b)>(1, 2, 3, 4, 5, 6, 7, (a: "hello", b: "world"));
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-        }
-
-        [Fact, CompilerTrait(CompilerFeature.Tuples)]
-        public async Task TestDeconstruction()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        var (x, y) = [|(1, 2)|];
-                        System.Console.WriteLine(x);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        var (x, y) = {|Rename:NewMethod|}();
-                        System.Console.WriteLine(x);
-                    }
-
-                    private static (int, int) NewMethod()
-                    {
-                        return (1, 2);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-        }
-
-        [Fact, CompilerTrait(CompilerFeature.Tuples)]
-        public async Task TestDeconstruction2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        var (x, y) = (1, 2);
-                        var z = [|3;|]
-                        System.Console.WriteLine(z);
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        var (x, y) = (1, 2);
-                        int z = {|Rename:NewMethod|}();
-                        System.Console.WriteLine(z);
-                    }
-
-                    private static int NewMethod()
-                    {
-                        return 3;
-                    }
-                }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-        }
-
-        [Fact]
-        [CompilerTrait(CompilerFeature.OutVar)]
-        public async Task TestOutVar()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    static void M(int i)
-                    {
-                        int r;
-                        [|r = M1(out int y, i);|]
-                        System.Console.WriteLine(r + y);
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    static void M(int i)
-                    {
-                        int r;
-                        int y;
-                        {|Rename:NewMethod|}(i, out r, out y);
-                        System.Console.WriteLine(r + y);
-                    }
-
-                    private static void NewMethod(int i, out int r, out int y)
-                    {
-                        r = M1(out y, i);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        [CompilerTrait(CompilerFeature.Patterns)]
-        public async Task TestIsPattern()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    static void M(int i)
-                    {
-                        int r;
-                        [|r = M1(3 is int y, i);|]
-                        System.Console.WriteLine(r + y);
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    static void M(int i)
-                    {
-                        int r;
-                        int y;
-                        {|Rename:NewMethod|}(i, out r, out y);
-                        System.Console.WriteLine(r + y);
-                    }
-
-                    private static void NewMethod(int i, out int r, out int y)
-                    {
-                        r = M1(3 is int {|Conflict:y|}, i);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        [CompilerTrait(CompilerFeature.Patterns)]
-        public async Task TestOutVarAndIsPattern()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    static void M()
-                    {
-                        int r;
-                        [|r = M1(out /*out*/ int /*int*/ y /*y*/) + M2(3 is int z);|]
-                        System.Console.WriteLine(r + y + z);
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    static void M()
-                    {
-                        int r;
-                        int y, z;
-                        {|Rename:NewMethod|}(out r, out y, out z);
-                        System.Console.WriteLine(r + y + z);
-                    }
-
-                    private static void NewMethod(out int r, out int y, out int z)
-                    {
-                        r = M1(out /*out*/  /*int*/ y /*y*/) + M2(3 is int {|Conflict:z|});
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        [CompilerTrait(CompilerFeature.Patterns)]
-        public async Task ConflictingOutVarLocals()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    static void M()
-                    {
-                        int r;
-                        [|r = M1(out int y);
-                        {
-                            M2(out int y);
-                            System.Console.Write(y);
-                        }|]
-
-                        System.Console.WriteLine(r + y);
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    static void M()
-                    {
-                        int r;
-                        int y;
-                        {|Rename:NewMethod|}(out r, out y);
-
-                        System.Console.WriteLine(r + y);
-                    }
-
-                    private static void NewMethod(out int r, out int y)
-                    {
-                        r = M1(out y);
-                        {
-                            M2(out int y);
-                            System.Console.Write(y);
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        [CompilerTrait(CompilerFeature.Patterns)]
-        public async Task ConflictingPatternLocals()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    static void M()
-                    {
-                        int r;
-                        [|r = M1(1 is int y);
-                        {
-                            M2(2 is int y);
-                            System.Console.Write(y);
-                        }|]
-
-                        System.Console.WriteLine(r + y);
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    static void M()
-                    {
-                        int r;
-                        int y;
-                        {|Rename:NewMethod|}(out r, out y);
-
-                        System.Console.WriteLine(r + y);
-                    }
-
-                    private static void NewMethod(out int r, out int y)
-                    {
-                        r = M1(1 is int {|Conflict:y|});
-                        {
-                            M2(2 is int y);
-                            System.Console.Write(y);
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15218")]
-        public async Task TestCancellationTokenGoesLast()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-                using System.Threading;
-
-                class C
-                {
-                    void M(CancellationToken ct)
-                    {
-                        var v = 0;
-
-                        [|if (true)
-                        {
-                            ct.ThrowIfCancellationRequested();
-                            Console.WriteLine(v);
-                        }|]
-                    }
-                }
-                """,
-                """
-                using System;
-                using System.Threading;
-
-                class C
-                {
-                    void M(CancellationToken ct)
-                    {
-                        var v = 0;
-                        {|Rename:NewMethod|}(v, ct);
-                    }
-
-                    private static void NewMethod(int v, CancellationToken ct)
-                    {
-                        if (true)
-                        {
-                            ct.ThrowIfCancellationRequested();
-                            Console.WriteLine(v);
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15219")]
-        public async Task TestUseVar1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                class C
-                {
-                    void Goo(int i)
-                    {
-                        [|var v = (string)null;
-
-                        switch (i)
-                        {
-                            case 0: v = "0"; break;
-                            case 1: v = "1"; break;
-                        }|]
-
+                        ct.ThrowIfCancellationRequested();
                         Console.WriteLine(v);
                     }
                 }
-                """,
-                """
-                using System;
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15219")]
+    public async Task TestUseVar1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                void Goo(int i)
                 {
-                    void Goo(int i)
+                    [|var v = (string)null;
+
+                    switch (i)
                     {
-                        var v = {|Rename:NewMethod|}(i);
+                        case 0: v = "0"; break;
+                        case 1: v = "1"; break;
+                    }|]
 
-                        Console.WriteLine(v);
-                    }
-
-                    private static string NewMethod(int i)
-                    {
-                        var v = (string)null;
-
-                        switch (i)
-                        {
-                            case 0: v = "0"; break;
-                            case 1: v = "1"; break;
-                        }
-
-                        return v;
-                    }
+                    Console.WriteLine(v);
                 }
-                """, new TestParameters(options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOption2.TrueWithSuggestionEnforcement)));
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15219")]
-        public async Task TestUseVar2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                class C
+            class C
+            {
+                void Goo(int i)
                 {
-                    void Goo(int i)
-                    {
-                        [|var v = (string)null;
+                    var v = {|Rename:NewMethod|}(i);
 
-                        switch (i)
-                        {
-                            case 0: v = "0"; break;
-                            case 1: v = "1"; break;
-                        }|]
-
-                        Console.WriteLine(v);
-                    }
+                    Console.WriteLine(v);
                 }
-                """,
-                """
-                using System;
 
-                class C
+                private static string NewMethod(int i)
                 {
-                    void Goo(int i)
-                    {
-                        string v = {|Rename:NewMethod|}(i);
+                    var v = (string)null;
 
-                        Console.WriteLine(v);
+                    switch (i)
+                    {
+                        case 0: v = "0"; break;
+                        case 1: v = "1"; break;
                     }
 
-                    private static string NewMethod(int i)
-                    {
-                        var v = (string)null;
-
-                        switch (i)
-                        {
-                            case 0: v = "0"; break;
-                            case 1: v = "1"; break;
-                        }
-
-                        return v;
-                    }
+                    return v;
                 }
-                """, new TestParameters(options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement)));
-        }
+            }
+            """, new TestParameters(options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOption2.TrueWithSuggestionEnforcement)));
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
-        public async Task ExtractLocalFunctionCall()
-        {
-            var code = """
-                class C
-                {
-                    public static void Main()
-                    {
-                        void Local() { }
-                        [|Local();|]
-                    }
-                }
-                """;
-            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15219")]
+    public async Task TestUseVar2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
 
-        [Fact]
-        public async Task ExtractLocalFunctionCall_2()
-        {
-            await TestInRegularAndScript1Async("""
-                class C
+            class C
+            {
+                void Goo(int i)
                 {
-                    public static void Main()
+                    [|var v = (string)null;
+
+                    switch (i)
                     {
-                        [|void Local() { }
-                        Local();|]
-                    }
+                        case 0: v = "0"; break;
+                        case 1: v = "1"; break;
+                    }|]
+
+                    Console.WriteLine(v);
                 }
-                """, """
-                class C
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void Goo(int i)
                 {
-                    public static void Main()
+                    string v = {|Rename:NewMethod|}(i);
+
+                    Console.WriteLine(v);
+                }
+
+                private static string NewMethod(int i)
+                {
+                    var v = (string)null;
+
+                    switch (i)
+                    {
+                        case 0: v = "0"; break;
+                        case 1: v = "1"; break;
+                    }
+
+                    return v;
+                }
+            }
+            """, new TestParameters(options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement)));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
+    public async Task ExtractLocalFunctionCall()
+    {
+        var code = """
+            class C
+            {
+                public static void Main()
+                {
+                    void Local() { }
+                    [|Local();|]
+                }
+            }
+            """;
+        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
+    }
+
+    [Fact]
+    public async Task ExtractLocalFunctionCall_2()
+    {
+        await TestInRegularAndScript1Async("""
+            class C
+            {
+                public static void Main()
+                {
+                    [|void Local() { }
+                    Local();|]
+                }
+            }
+            """, """
+            class C
+            {
+                public static void Main()
+                {
+                    {|Rename:NewMethod|}();
+                }
+
+                private static void NewMethod()
+                {
+                    void Local() { }
+                    Local();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
+    public async Task ExtractLocalFunctionCallWithCapture()
+    {
+        var code = """
+            class C
+            {
+                public static void Main(string[] args)
+                {
+                    bool Local() => args == null;
+                    [|Local();|]
+                }
+            }
+            """;
+        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
+    public async Task ExtractLocalFunctionDeclaration()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                public static void Main()
+                {
+                    [|bool Local() => args == null;|]
+                    Local();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
+    public async Task ExtractLocalFunctionInterior()
+    {
+        await TestInRegularAndScript1Async("""
+            class C
+            {
+                public static void Main()
+                {
+                    void Local()
+                    {
+                        [|int x = 0;
+                        x++;|]
+                    }
+                    Local();
+                }
+            }
+            """, """
+            class C
+            {
+                public static void Main()
+                {
+                    void Local()
                     {
                         {|Rename:NewMethod|}();
                     }
-
-                    private static void NewMethod()
-                    {
-                        void Local() { }
-                        Local();
-                    }
+                    Local();
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
-        public async Task ExtractLocalFunctionCallWithCapture()
-        {
-            var code = """
-                class C
+                private static void NewMethod()
                 {
-                    public static void Main(string[] args)
-                    {
-                        bool Local() => args == null;
-                        [|Local();|]
-                    }
+                    int x = 0;
+                    x++;
                 }
-                """;
-            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
-        }
+            }
+            """);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
-        public async Task ExtractLocalFunctionDeclaration()
-        {
-            await TestMissingInRegularAndScriptAsync("""
-                class C
-                {
-                    public static void Main()
-                    {
-                        [|bool Local() => args == null;|]
-                        Local();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
-        public async Task ExtractLocalFunctionInterior()
-        {
-            await TestInRegularAndScript1Async("""
-                class C
-                {
-                    public static void Main()
-                    {
-                        void Local()
-                        {
-                            [|int x = 0;
-                            x++;|]
-                        }
-                        Local();
-                    }
-                }
-                """, """
-                class C
-                {
-                    public static void Main()
-                    {
-                        void Local()
-                        {
-                            {|Rename:NewMethod|}();
-                        }
-                        Local();
-                    }
-
-                    private static void NewMethod()
-                    {
-                        int x = 0;
-                        x++;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        public async Task Bug3790()
-        {
-            await TestInRegularAndScript1Async("""
-                class Test
-                {
-                    void method()
-                    {
-                        static void Main(string[] args)
-                        {
-                            int v = 0;
-                            for(int i=0 ; i<5; i++)
-                            {
-                                [|v = v + i;|]
-                            }
-                        }
-                    }
-                }
-                """, """
-                class Test
-                {
-                    void method()
-                    {
-                        static void Main(string[] args)
-                        {
-                            int v = 0;
-                            for(int i=0 ; i<5; i++)
-                            {
-                                v = {|Rename:NewMethod|}(v, i);
-                            }
-                        }
-                    }
-
-                    private static int NewMethod(int v, int i)
-                    {
-                        v = v + i;
-                        return v;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        public async Task Bug3790_1()
-        {
-            await TestInRegularAndScript1Async("""
-                class Test
-                {
-                    void method()
-                    {
-                        static void Main(string[] args)
-                        {
-                            int v = 0;
-                            for(int i=0 ; i<5; i++)
-                            {
-                                [|v = v + i|];
-                            }
-                        }
-                    }
-                }
-                """, """
-                class Test
-                {
-                    void method()
-                    {
-                        static void Main(string[] args)
-                        {
-                            int v = 0;
-                            for(int i=0 ; i<5; i++)
-                            {
-                                v = {|Rename:NewMethod|}(v, i);
-                            }
-                        }
-                    }
-
-                    private static int NewMethod(int v, int i)
-                    {
-                        return v + i;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        public async Task Bug3790_2()
-        {
-            await TestInRegularAndScript1Async("""
-                class Test
-                {
-                    void method()
-                    {
-                        static void Main(string[] args)
-                        {
-                            int v = 0;
-                            for(int i=0 ; i<5; i++)
-                            {
-                                [|i = v = v + i|];
-                            }
-                        }
-                    }
-                }
-                """, """
-                class Test
-                {
-                    void method()
-                    {
-                        static void Main(string[] args)
-                        {
-                            int v = 0;
-                            for(int i=0 ; i<5; i++)
-                            {
-                                i = {|Rename:NewMethod|}(ref v, i);
-                            }
-                        }
-                    }
-
-                    private static int NewMethod(ref int v, int i)
-                    {
-                        return v = v + i;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        public async Task TestExpressionBodyProperty()
-        {
-            await TestInRegularAndScript1Async("""
-                class Program
-                {
-                    int field;
-
-                    public int Blah => [|this.field|];
-                }
-                """,
-                """
-                class Program
-                {
-                    int field;
-
-                    public int Blah => {|Rename:GetField|}();
-
-                    private int GetField()
-                    {
-                        return this.field;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        public async Task TestExpressionBodyIndexer()
-        {
-            await TestInRegularAndScript1Async("""
-                class Program
-                {
-                    int field;
-
-                    public int this[int i] => [|this.field|];
-                }
-                """,
-                """
-                class Program
-                {
-                    int field;
-
-                    public int this[int i] => {|Rename:GetField|}();
-
-                    private int GetField()
-                    {
-                        return this.field;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        public async Task TestExpressionBodyPropertyGetAccessor()
-        {
-            await TestInRegularAndScript1Async("""
-                class Program
-                {
-                    int field;
-
-                    public int Blah
-                    {
-                        get => [|this.field|];
-                        set => field = value;
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    int field;
-
-                    public int Blah
-                    {
-                        get => {|Rename:GetField|}();
-                        set => field = value;
-                    }
-
-                    private int GetField()
-                    {
-                        return this.field;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        public async Task TestExpressionBodyPropertySetAccessor()
-        {
-            await TestInRegularAndScript1Async("""
-                class Program
-                {
-                    int field;
-
-                    public int Blah
-                    {
-                        get => this.field;
-                        set => field = [|value|];
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    int field;
-
-                    public int Blah
-                    {
-                        get => this.field;
-                        set => field = {|Rename:GetValue|}(value);
-                    }
-
-                    private static int GetValue(int value)
-                    {
-                        return value;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        public async Task TestExpressionBodyIndexerGetAccessor()
-        {
-            await TestInRegularAndScript1Async("""
-                class Program
-                {
-                    int field;
-
-                    public int this[int i]
-                    {
-                        get => [|this.field|];
-                        set => field = value;
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    int field;
-
-                    public int this[int i]
-                    {
-                        get => {|Rename:GetField|}();
-                        set => field = value;
-                    }
-
-                    private int GetField()
-                    {
-                        return this.field;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        public async Task TestExpressionBodyIndexerSetAccessor()
-        {
-            await TestInRegularAndScript1Async("""
-                class Program
-                {
-                    int field;
-
-                    public int this[int i]
-                    {
-                        get => this.field;
-                        set => field = [|value|];
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    int field;
-
-                    public int this[int i]
-                    {
-                        get => this.field;
-                        set => field = {|Rename:GetValue|}(value);
-                    }
-
-                    private static int GetValue(int value)
-                    {
-                        return value;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestTupleWithInferredNames()
-        {
-            await TestAsync("""
-                class Program
-                {
-                    void M()
-                    {
-                        int a = 1;
-                        var t = [|(a, b: 2)|];
-                        System.Console.Write(t.a);
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    void M()
-                    {
-                        int a = 1;
-                        var t = {|Rename:GetT|}(a);
-                        System.Console.Write(t.a);
-                    }
-
-                    private static (int a, int b) GetT(int a)
-                    {
-                        return (a, b: 2);
-                    }
-                }
-                """, TestOptions.Regular7_1);
-        }
-
-        [Fact]
-        public async Task TestDeconstruction4()
-        {
-            await TestAsync("""
-                class Program
-                {
-                    void M()
-                    {
-                        [|var (x, y) = (1, 2);|]
-                        System.Console.Write(x + y);
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    void M()
-                    {
-                        int x, y;
-                        {|Rename:NewMethod|}(out x, out y);
-                        System.Console.Write(x + y);
-                    }
-
-                    private static void NewMethod(out int x, out int y)
-                    {
-                        var (x, y) = (1, 2);
-                    }
-                }
-                """, TestOptions.Regular7_1);
-        }
-
-        [Fact]
-        public async Task TestDeconstruction5()
-        {
-            await TestAsync("""
-                class Program
-                {
-                    void M()
-                    {
-                        [|(var x, var y) = (1, 2);|]
-                        System.Console.Write(x + y);
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    void M()
-                    {
-                        int x, y;
-                        {|Rename:NewMethod|}(out x, out y);
-                        System.Console.Write(x + y);
-                    }
-
-                    private static void NewMethod(out int x, out int y)
-                    {
-                        (x, y) = (1, 2);
-                    }
-                }
-                """, TestOptions.Regular7_1);
-        }
-
-        [Fact]
-        public async Task TestIndexExpression()
-        {
-            await TestInRegularAndScript1Async(TestSources.Index + """
-                class Program
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
+    public async Task Bug3790()
+    {
+        await TestInRegularAndScript1Async("""
+            class Test
+            {
+                void method()
                 {
                     static void Main(string[] args)
                     {
-                        System.Console.WriteLine([|^1|]);
+                        int v = 0;
+                        for(int i=0 ; i<5; i++)
+                        {
+                            [|v = v + i;|]
+                        }
                     }
                 }
-                """,
+            }
+            """, """
+            class Test
+            {
+                void method()
+                {
+                    static void Main(string[] args)
+                    {
+                        int v = 0;
+                        for(int i=0 ; i<5; i++)
+                        {
+                            v = {|Rename:NewMethod|}(v, i);
+                        }
+                    }
+                }
+
+                private static int NewMethod(int v, int i)
+                {
+                    v = v + i;
+                    return v;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
+    public async Task Bug3790_1()
+    {
+        await TestInRegularAndScript1Async("""
+            class Test
+            {
+                void method()
+                {
+                    static void Main(string[] args)
+                    {
+                        int v = 0;
+                        for(int i=0 ; i<5; i++)
+                        {
+                            [|v = v + i|];
+                        }
+                    }
+                }
+            }
+            """, """
+            class Test
+            {
+                void method()
+                {
+                    static void Main(string[] args)
+                    {
+                        int v = 0;
+                        for(int i=0 ; i<5; i++)
+                        {
+                            v = {|Rename:NewMethod|}(v, i);
+                        }
+                    }
+                }
+
+                private static int NewMethod(int v, int i)
+                {
+                    return v + i;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
+    public async Task Bug3790_2()
+    {
+        await TestInRegularAndScript1Async("""
+            class Test
+            {
+                void method()
+                {
+                    static void Main(string[] args)
+                    {
+                        int v = 0;
+                        for(int i=0 ; i<5; i++)
+                        {
+                            [|i = v = v + i|];
+                        }
+                    }
+                }
+            }
+            """, """
+            class Test
+            {
+                void method()
+                {
+                    static void Main(string[] args)
+                    {
+                        int v = 0;
+                        for(int i=0 ; i<5; i++)
+                        {
+                            i = {|Rename:NewMethod|}(ref v, i);
+                        }
+                    }
+                }
+
+                private static int NewMethod(ref int v, int i)
+                {
+                    return v = v + i;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+    public async Task TestExpressionBodyProperty()
+    {
+        await TestInRegularAndScript1Async("""
+            class Program
+            {
+                int field;
+
+                public int Blah => [|this.field|];
+            }
+            """,
+            """
+            class Program
+            {
+                int field;
+
+                public int Blah => {|Rename:GetField|}();
+
+                private int GetField()
+                {
+                    return this.field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+    public async Task TestExpressionBodyIndexer()
+    {
+        await TestInRegularAndScript1Async("""
+            class Program
+            {
+                int field;
+
+                public int this[int i] => [|this.field|];
+            }
+            """,
+            """
+            class Program
+            {
+                int field;
+
+                public int this[int i] => {|Rename:GetField|}();
+
+                private int GetField()
+                {
+                    return this.field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+    public async Task TestExpressionBodyPropertyGetAccessor()
+    {
+        await TestInRegularAndScript1Async("""
+            class Program
+            {
+                int field;
+
+                public int Blah
+                {
+                    get => [|this.field|];
+                    set => field = value;
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                int field;
+
+                public int Blah
+                {
+                    get => {|Rename:GetField|}();
+                    set => field = value;
+                }
+
+                private int GetField()
+                {
+                    return this.field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+    public async Task TestExpressionBodyPropertySetAccessor()
+    {
+        await TestInRegularAndScript1Async("""
+            class Program
+            {
+                int field;
+
+                public int Blah
+                {
+                    get => this.field;
+                    set => field = [|value|];
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                int field;
+
+                public int Blah
+                {
+                    get => this.field;
+                    set => field = {|Rename:GetValue|}(value);
+                }
+
+                private static int GetValue(int value)
+                {
+                    return value;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+    public async Task TestExpressionBodyIndexerGetAccessor()
+    {
+        await TestInRegularAndScript1Async("""
+            class Program
+            {
+                int field;
+
+                public int this[int i]
+                {
+                    get => [|this.field|];
+                    set => field = value;
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                int field;
+
+                public int this[int i]
+                {
+                    get => {|Rename:GetField|}();
+                    set => field = value;
+                }
+
+                private int GetField()
+                {
+                    return this.field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
+    public async Task TestExpressionBodyIndexerSetAccessor()
+    {
+        await TestInRegularAndScript1Async("""
+            class Program
+            {
+                int field;
+
+                public int this[int i]
+                {
+                    get => this.field;
+                    set => field = [|value|];
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                int field;
+
+                public int this[int i]
+                {
+                    get => this.field;
+                    set => field = {|Rename:GetValue|}(value);
+                }
+
+                private static int GetValue(int value)
+                {
+                    return value;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestTupleWithInferredNames()
+    {
+        await TestAsync("""
+            class Program
+            {
+                void M()
+                {
+                    int a = 1;
+                    var t = [|(a, b: 2)|];
+                    System.Console.Write(t.a);
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void M()
+                {
+                    int a = 1;
+                    var t = {|Rename:GetT|}(a);
+                    System.Console.Write(t.a);
+                }
+
+                private static (int a, int b) GetT(int a)
+                {
+                    return (a, b: 2);
+                }
+            }
+            """, TestOptions.Regular7_1);
+    }
+
+    [Fact]
+    public async Task TestDeconstruction4()
+    {
+        await TestAsync("""
+            class Program
+            {
+                void M()
+                {
+                    [|var (x, y) = (1, 2);|]
+                    System.Console.Write(x + y);
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void M()
+                {
+                    int x, y;
+                    {|Rename:NewMethod|}(out x, out y);
+                    System.Console.Write(x + y);
+                }
+
+                private static void NewMethod(out int x, out int y)
+                {
+                    var (x, y) = (1, 2);
+                }
+            }
+            """, TestOptions.Regular7_1);
+    }
+
+    [Fact]
+    public async Task TestDeconstruction5()
+    {
+        await TestAsync("""
+            class Program
+            {
+                void M()
+                {
+                    [|(var x, var y) = (1, 2);|]
+                    System.Console.Write(x + y);
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void M()
+                {
+                    int x, y;
+                    {|Rename:NewMethod|}(out x, out y);
+                    System.Console.Write(x + y);
+                }
+
+                private static void NewMethod(out int x, out int y)
+                {
+                    (x, y) = (1, 2);
+                }
+            }
+            """, TestOptions.Regular7_1);
+    }
+
+    [Fact]
+    public async Task TestIndexExpression()
+    {
+        await TestInRegularAndScript1Async(TestSources.Index + """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    System.Console.WriteLine([|^1|]);
+                }
+            }
+            """,
 TestSources.Index +
 """
 class Program
@@ -2494,20 +2493,20 @@ class Program
     }
 }
 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestRangeExpression_Empty()
-        {
-            await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
-                class Program
+    [Fact]
+    public async Task TestRangeExpression_Empty()
+    {
+        await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        System.Console.WriteLine([|..|]);
-                    }
+                    System.Console.WriteLine([|..|]);
                 }
-                """,
+            }
+            """,
 TestSources.Index +
 TestSources.Range + """
 class Program
@@ -2523,20 +2522,20 @@ class Program
     }
 }
 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestRangeExpression_Left()
-        {
-            await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
-                class Program
+    [Fact]
+    public async Task TestRangeExpression_Left()
+    {
+        await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        System.Console.WriteLine([|..1|]);
-                    }
+                    System.Console.WriteLine([|..1|]);
                 }
-                """,
+            }
+            """,
 TestSources.Index +
 TestSources.Range + """
 class Program
@@ -2552,20 +2551,20 @@ class Program
     }
 }
 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestRangeExpression_Right()
-        {
-            await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
-                class Program
+    [Fact]
+    public async Task TestRangeExpression_Right()
+    {
+        await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        System.Console.WriteLine([|1..|]);
-                    }
+                    System.Console.WriteLine([|1..|]);
                 }
-                """,
+            }
+            """,
 TestSources.Index +
 TestSources.Range + """
 class Program
@@ -2581,20 +2580,20 @@ class Program
     }
 }
 """);
-        }
+    }
 
-        [Fact]
-        public async Task TestRangeExpression_Both()
-        {
-            await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
-                class Program
+    [Fact]
+    public async Task TestRangeExpression_Both()
+    {
+        await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        System.Console.WriteLine([|1..2|]);
-                    }
+                    System.Console.WriteLine([|1..2|]);
                 }
-                """,
+            }
+            """,
 TestSources.Index +
 TestSources.Range + """
 class Program
@@ -2610,2283 +2609,2283 @@ class Program
     }
 }
 """);
-        }
-
-        [Fact]
-        public Task TestAnnotatedNullableReturn()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string? M()
-                    {
-                        [|string? x = null;
-                        x?.ToString();|]
-
-                        return x;
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string? M()
-                    {
-                        string? x = {|Rename:NewMethod|}();
-
-                        return x;
-                    }
-
-                    private static string? NewMethod()
-                    {
-                        string? x = null;
-                        x?.ToString();
-                        return x;
-                    }
-                }
-                """);
-
-        [Fact]
-        public Task TestAnnotatedNullableParameters1()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string? M()
-                    {
-                        string? a = null;
-                        string? b = null;
-                        [|string? x = a?.Contains(b).ToString();|]
-
-                        return x;
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string? M()
-                    {
-                        string? a = null;
-                        string? b = null;
-                        string? x = {|Rename:NewMethod|}(a, b);
-
-                        return x;
-                    }
-
-                    private static string? NewMethod(string? a, string? b)
-                    {
-                        return a?.Contains(b).ToString();
-                    }
-                }
-                """);
-
-        [Fact]
-        public Task TestAnnotatedNullableParameters2()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = null;
-                        string? b = null;
-                        int c = 0;
-                        [|string x = (a + b + c).ToString();|]
-
-                        return x;
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = null;
-                        string? b = null;
-                        int c = 0;
-                        string x = {|Rename:NewMethod|}(a, b, c);
-
-                        return x;
-                    }
-
-                    private static string NewMethod(string? a, string? b, int c)
-                    {
-                        return (a + b + c).ToString();
-                    }
-                }
-                """);
-
-        [Fact]
-        public Task TestAnnotatedNullableParameters3()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = null;
-                        string? b = null;
-                        int c = 0;
-                        return [|(a + b + c).ToString()|];
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = null;
-                        string? b = null;
-                        int c = 0;
-                        return {|Rename:NewMethod|}(a, b, c);
-                    }
-
-                    private static string NewMethod(string? a, string? b, int c)
-                    {
-                        return (a + b + c).ToString();
-                    }
-                }
-                """);
-
-        [Fact]
-        public Task TestAnnotatedNullableParameters4()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string? M()
-                    {
-                        string? a = null;
-                        string? b = null;
-                        return [|a?.Contains(b).ToString()|];
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string? M()
-                    {
-                        string? a = null;
-                        string? b = null;
-                        return {|Rename:NewMethod|}(a, b);
-                    }
-
-                    private static string? NewMethod(string? a, string? b)
-                    {
-                        return a?.Contains(b).ToString();
-                    }
-                }
-                """);
-
-        [Fact]
-        public Task TestFlowStateNullableParameters1()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = string.Empty;
-                        string? b = string.Empty;
-                        return [|(a + b + a).ToString()|];
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = string.Empty;
-                        string? b = string.Empty;
-                        return {|Rename:NewMethod|}(a, b);
-                    }
-
-                    private static string NewMethod(string a, string b)
-                    {
-                        return (a + b + a).ToString();
-                    }
-                }
-                """);
-
-        [Fact]
-        public Task TestFlowStateNullableParameters2()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string? M()
-                    {
-                        string? a = string.Empty;
-                        string? b = string.Empty;
-                        return [|(a + b + a).ToString()|];
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string? M()
-                    {
-                        string? a = string.Empty;
-                        string? b = string.Empty;
-                        return {|Rename:NewMethod|}(a, b);
-                    }
-
-                    private static string NewMethod(string a, string b)
-                    {
-                        return (a + b + a).ToString();
-                    }
-                }
-                """);
-
-        [Fact]
-        public Task TestFlowStateNullableParameters3()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = null;
-                        string? b = null;
-                        return [|(a + b + a)?.ToString()|] ?? string.Empty;
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = null;
-                        string? b = null;
-                        return {|Rename:NewMethod|}(a, b) ?? string.Empty;
-                    }
-
-                    private static string? NewMethod(string? a, string? b)
-                    {
-                        return (a + b + a)?.ToString();
-                    }
-                }
-                """);
-
-        [Fact]
-        public Task TestFlowStateNullableParameters_MultipleStates()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = string.Empty;
-                        string? b = string.Empty;
-                        [|string? c = a + b;
-                        a = string.Empty;
-                        c += a;
-                        a = null;
-                        b = null;
-                        b = "test";
-                        c = a?.ToString();|]
-                        return c ?? string.Empty;
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = string.Empty;
-                        string? b = string.Empty;
-                        string? c = {|Rename:NewMethod|}(ref a, ref b);
-                        return c ?? string.Empty;
-                    }
-
-                    private static string? NewMethod(ref string? a, ref string? b)
-                    {
-                        string? c = a + b;
-                        a = string.Empty;
-                        c += a;
-                        a = null;
-                        b = null;
-                        b = "test";
-                        c = a?.ToString();
-                        return c;
-                    }
-                }
-                """);
-
-        [Fact]
-        public Task TestFlowStateNullableParameters_MultipleStatesNonNullReturn()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = string.Empty;
-                        string? b = string.Empty;
-                        [|string? c = a + b;
-                        a = string.Empty;
-                        b = string.Empty;
-                        a = null;
-                        b = null;
-                        c = null;
-                        c = a + b;|]
-                        return c ?? string.Empty;
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = string.Empty;
-                        string? b = string.Empty;
-                        string? c = {|Rename:NewMethod|}(ref a, ref b);
-                        return c ?? string.Empty;
-                    }
-
-                    private static string NewMethod(ref string? a, ref string? b)
-                    {
-                        string? c = a + b;
-                        a = string.Empty;
-                        b = string.Empty;
-                        a = null;
-                        b = null;
-                        c = null;
-                        c = a + b;
-                        return c;
-                    }
-                }
-                """);
-
-        [Fact]
-        public Task TestFlowStateNullableParameters_MultipleStatesNullReturn()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = string.Empty;
-                        string? b = string.Empty;
-                        [|string? c = a + b;
-                        a = string.Empty;
-                        b = string.Empty;
-                        a = null;
-                        b = null;
-                        c = a?.ToString();|]
-                        return c ?? string.Empty;
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = string.Empty;
-                        string? b = string.Empty;
-                        string? c = {|Rename:NewMethod|}(ref a, ref b);
-                        return c ?? string.Empty;
-                    }
-
-                    private static string? NewMethod(ref string? a, ref string? b)
-                    {
-                        string? c = a + b;
-                        a = string.Empty;
-                        b = string.Empty;
-                        a = null;
-                        b = null;
-                        c = a?.ToString();
-                        return c;
-                    }
-                }
-                """);
-
-        [Fact]
-        public Task TestFlowStateNullableParameters_RefNotNull()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = string.Empty;
-                        string? b = string.Empty;
-                        [|var c = a + b;
-                        a = string.Empty;
-                        c += a;
-                        b = "test";
-                        c = a + b +c;|]
-                        return c;
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string M()
-                    {
-                        string? a = string.Empty;
-                        string? b = string.Empty;
-                        string c = {|Rename:NewMethod|}(ref a, ref b);
-                        return c;
-                    }
-
-                    private static string NewMethod(ref string a, ref string b)
-                    {
-                        var c = a + b;
-                        a = string.Empty;
-                        c += a;
-                        b = "test";
-                        c = a + b + c;
-                        return c;
-                    }
-                }
-                """);
-
-        // There's a case below where flow state correctly asseses that the variable
-        // 'x' is non-null when returned. It's wasn't obvious when writing, but that's 
-        // due to the fact the line above it being executed as 'x.ToString()' would throw
-        // an exception and the return statement would never be hit. The only way the return
-        // statement gets executed is if the `x.ToString()` call succeeds, thus suggesting 
-        // that the value is indeed not null.
-        [Fact]
-        public Task TestFlowNullableReturn_NotNull1()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string? M()
-                    {
-                        [|string? x = null;
-                        x.ToString();|]
-
-                        return x;
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string? M()
-                    {
-                        string? x = {|Rename:NewMethod|}();
-
-                        return x;
-                    }
-
-                    private static string NewMethod()
-                    {
-                        string? x = null;
-                        x.ToString();
-                        return x;
-                    }
-                }
-                """);
-
-        [Fact]
-        public Task TestFlowNullableReturn_NotNull2()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string? M()
-                    {
-                        [|string? x = null;
-                        x?.ToString();
-                        x = string.Empty;|]
-
-                        return x;
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class C
-                {
-                    public string? M()
-                    {
-                        string? x = {|Rename:NewMethod|}();
-
-                        return x;
-                    }
-
-                    private static string NewMethod()
-                    {
-                        string? x = null;
-                        x?.ToString();
-                        x = string.Empty;
-                        return x;
-                    }
-                }
-                """);
-        [Fact]
-        public Task TestFlowNullable_Lambda()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                using System;
-
-                class C
-                {
-                    public string? M()
-                    {
-                        [|string? x = null;
-                        Action modifyXToNonNull = () =>
-                        {
-                            x += x;
-                        };
-
-                        modifyXToNonNull();|]
-
-                        return x;
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                using System;
-
-                class C
-                {
-                    public string? M()
-                    {
-                        string? x = {|Rename:NewMethod|}();
-
-                        return x;
-                    }
-
-                    private static string? NewMethod()
-                    {
-                        string? x = null;
-                        Action modifyXToNonNull = () =>
-                        {
-                            x += x;
-                        };
-
-                        modifyXToNonNull();
-                        return x;
-                    }
-                }
-                """);
-
-        [Fact]
-        public Task TestFlowNullable_LambdaWithReturn()
-            => TestInRegularAndScript1Async(
-                """
-                #nullable enable
-
-                using System;
-
-                class C
-                {
-                    public string? M()
-                    {
-                        [|string? x = null;
-                        Func<string?> returnNull = () =>
-                        {
-                            return null;
-                        };
-
-                        x = returnNull() ?? string.Empty;|]
-
-                        return x;
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                using System;
-
-                class C
-                {
-                    public string? M()
-                    {
-                        string? x = {|Rename:NewMethod|}();
-
-                        return x;
-                    }
-
-                    private static string NewMethod()
-                    {
-                        string? x = null;
-                        Func<string?> returnNull = () =>
-                        {
-                            return null;
-                        };
-
-                        x = returnNull() ?? string.Empty;
-                        return x;
-                    }
-                }
-                """);
-
-        [Fact]
-        public async Task TestExtractReadOnlyMethod()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                struct S1
-                {
-                    readonly int M1() => 42;
-                    void Main()
-                    {
-                        [|int i = M1() + M1()|];
-                    }
-                }
-                """,
-                """
-                struct S1
-                {
-                    readonly int M1() => 42;
-                    void Main()
-                    {
-                        {|Rename:NewMethod|}();
-                    }
-
-                    private readonly void NewMethod()
-                    {
-                        int i = M1() + M1();
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestExtractReadOnlyMethodInReadOnlyStruct()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                readonly struct S1
-                {
-                    int M1() => 42;
-                    void Main()
-                    {
-                        [|int i = M1() + M1()|];
-                    }
-                }
-                """,
-                """
-                readonly struct S1
-                {
-                    int M1() => 42;
-                    void Main()
-                    {
-                        {|Rename:NewMethod|}();
-                    }
-
-                    private void NewMethod()
-                    {
-                        int i = M1() + M1();
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestExtractNonReadOnlyMethodInReadOnlyMethod()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                struct S1
-                {
-                    int M1() => 42;
-                    readonly void Main()
-                    {
-                        [|int i = M1() + M1()|];
-                    }
-                }
-                """,
-                """
-                struct S1
-                {
-                    int M1() => 42;
-                    readonly void Main()
-                    {
-                        {|Rename:NewMethod|}();
-                    }
-
-                    private void NewMethod()
-                    {
-                        int i = M1() + M1();
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public Task TestExtractNullableObjectWithExplicitCast()
-        => TestInRegularAndScript1Async(
-            """
-            #nullable enable
-
-            using System;
-
-            class C
-            {
-                void M()
-                {
-                    object? o = null;
-                    var s = (string?)[|o|];
-                    Console.WriteLine(s);
-                }
-            }
-            """,
-            """
-            #nullable enable
-
-            using System;
-
-            class C
-            {
-                void M()
-                {
-                    object? o = null;
-                    var s = (string?){|Rename:GetO|}(o);
-                    Console.WriteLine(s);
-                }
-
-                private static object? GetO(object? o)
-                {
-                    return o;
-                }
-            }
-            """);
-
-        [Fact]
-        public Task TestExtractNotNullableObjectWithExplicitCast()
-        => TestInRegularAndScript1Async(
-            """
-            #nullable enable
-
-            using System;
-
-            class C
-            {
-                void M()
-                {
-                    object? o = new object();
-                    var s = (string)[|o|];
-                    Console.WriteLine(s);
-                }
-            }
-            """,
-            """
-            #nullable enable
-
-            using System;
-
-            class C
-            {
-                void M()
-                {
-                    object? o = new object();
-                    var s = (string){|Rename:GetO|}(o);
-                    Console.WriteLine(s);
-                }
-
-                private static object GetO(object o)
-                {
-                    return o;
-                }
-            }
-            """);
-
-        [Fact]
-        public Task TestExtractNotNullableWithExplicitCast()
-        => TestInRegularAndScript1Async(
-            """
-            #nullable enable
-
-            using System;
-
-            class A
-            {
-            }
-
-            class B : A 
-            {
-            }
-
-            class C
-            {
-                void M()
-                {
-                    B? b = new B();
-                    var s = (A)[|b|];
-                }
-            }
-            """,
-            """
-            #nullable enable
-
-            using System;
-
-            class A
-            {
-            }
-
-            class B : A 
-            {
-            }
-
-            class C
-            {
-                void M()
-                {
-                    B? b = new B();
-                    var s = (A){|Rename:GetB|}(b);
-                }
-
-                private static B GetB(B b)
-                {
-                    return b;
-                }
-            }
-            """);
-
-        [Fact]
-        public Task TestExtractNullableWithExplicitCast()
-        => TestInRegularAndScript1Async(
-            """
-            #nullable enable
-
-            using System;
-
-            class A
-            {
-            }
-
-            class B : A 
-            {
-            }
-
-            class C
-            {
-                void M()
-                {
-                    B? b = null;
-                    var s = (A)[|b|];
-                }
-            }
-            """,
-            """
-            #nullable enable
-
-            using System;
-
-            class A
-            {
-            }
-
-            class B : A 
-            {
-            }
-
-            class C
-            {
-                void M()
-                {
-                    B? b = null;
-                    var s = (A){|Rename:GetB|}(b);
-                }
-
-                private static B? GetB(B? b)
-                {
-                    return b;
-                }
-            }
-            """);
-
-        [Fact]
-        public Task TestExtractNotNullableWithExplicitCastSelected()
-        => TestInRegularAndScript1Async(
-            """
-            #nullable enable
-
-            using System;
-
-            class C
-            {
-                void M()
-                {
-                    object? o = new object();
-                    var s = [|(string)o|];
-                    Console.WriteLine(s);
-                }
-            }
-            """,
-            """
-            #nullable enable
-
-            using System;
-
-            class C
-            {
-                void M()
-                {
-                    object? o = new object();
-                    var s = {|Rename:GetS|}(o);
-                    Console.WriteLine(s);
-                }
-
-                private static string GetS(object o)
-                {
-                    return (string)o;
-                }
-            }
-            """);
-
-        [Fact]
-        public Task TestExtractNullableWithExplicitCastSelected()
-        => TestInRegularAndScript1Async(
-            """
-            #nullable enable
-
-            using System;
-
-            class C
-            {
-                void M()
-                {
-                    object? o = null;
-                    var s = [|(string?)o|];
-                    Console.WriteLine(s);
-                }
-            }
-            """,
-            """
-            #nullable enable
-
-            using System;
-
-            class C
-            {
-                void M()
-                {
-                    object? o = null;
-                    var s = {|Rename:GetS|}(o);
-                    Console.WriteLine(s);
-                }
-
-                private static string? GetS(object? o)
-                {
-                    return (string?)o;
-                }
-            }
-            """);
-        [Fact]
-        public Task TestExtractNullableNonNullFlowWithExplicitCastSelected()
-        => TestInRegularAndScript1Async(
-            """
-            #nullable enable
-
-            using System;
-
-            class C
-            {
-                void M()
-                {
-                    object? o = new object();
-                    var s = [|(string?)o|];
-                    Console.WriteLine(s);
-                }
-            }
-            """,
-            """
-            #nullable enable
-
-            using System;
-
-            class C
-            {
-                void M()
-                {
-                    object? o = new object();
-                    var s = {|Rename:GetS|}(o);
-                    Console.WriteLine(s);
-                }
-
-                private static string? GetS(object o)
-                {
-                    return (string?)o;
-                }
-            }
-            """);
-
-        [Fact]
-        public Task TestExtractNullableToNonNullableWithExplicitCastSelected()
-        => TestInRegularAndScript1Async(
-            """
-            #nullable enable
-
-            using System;
-
-            class C
-            {
-                void M()
-                {
-                    object? o = null;
-                    var s = [|(string)o|];
-                    Console.WriteLine(s);
-                }
-            }
-            """,
-            """
-            #nullable enable
-
-            using System;
-
-            class C
-            {
-                void M()
-                {
-                    object? o = null;
-                    var s = {|Rename:GetS|}(o);
-                    Console.WriteLine(s);
-                }
-
-                private static string? GetS(object? o)
-                {
-                    return (string)o;
-                }
-            }
-            """);
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38127")]
-        public Task TestNestedNullability_Async()
-            => TestInRegularAndScriptAsync(
-                """
-                #nullable enable
-
-                using System;
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    private Task<string> DoSomethingAsync() => Task.FromResult("");
-
-                    public Task<string?> async M()
-                    {
-                        [|string? x = await DoSomethingAsync();|]
-                        x = null;
-                        return x;
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                using System;
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    private Task<string> DoSomethingAsync() => Task.FromResult("");
-
-                    public Task<string?> async M()
-                    {
-                        string? x = await {|Rename:NewMethod|}();
-                        x = null;
-                        return x;
-                    }
-
-                    private async Task<string?> NewMethod()
-                    {
-                        return await DoSomethingAsync();
-                    }
-                }
-                """);
-
-        [Fact]
-        public async Task EnsureStaticLocalFunctionOptionHasNoEffect()
-        {
-            await TestInRegularAndScript1Async(
-    """
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            bool b = true;
-            System.Console.WriteLine([|b != true|] ? b = true : b = false);
-        }
     }
-    """,
-    """
-    class Program
+
+    [Fact]
+    public Task TestAnnotatedNullableReturn()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            class C
+            {
+                public string? M()
+                {
+                    [|string? x = null;
+                    x?.ToString();|]
+
+                    return x;
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                public string? M()
+                {
+                    string? x = {|Rename:NewMethod|}();
+
+                    return x;
+                }
+
+                private static string? NewMethod()
+                {
+                    string? x = null;
+                    x?.ToString();
+                    return x;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestAnnotatedNullableParameters1()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            class C
+            {
+                public string? M()
+                {
+                    string? a = null;
+                    string? b = null;
+                    [|string? x = a?.Contains(b).ToString();|]
+
+                    return x;
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                public string? M()
+                {
+                    string? a = null;
+                    string? b = null;
+                    string? x = {|Rename:NewMethod|}(a, b);
+
+                    return x;
+                }
+
+                private static string? NewMethod(string? a, string? b)
+                {
+                    return a?.Contains(b).ToString();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestAnnotatedNullableParameters2()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = null;
+                    string? b = null;
+                    int c = 0;
+                    [|string x = (a + b + c).ToString();|]
+
+                    return x;
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = null;
+                    string? b = null;
+                    int c = 0;
+                    string x = {|Rename:NewMethod|}(a, b, c);
+
+                    return x;
+                }
+
+                private static string NewMethod(string? a, string? b, int c)
+                {
+                    return (a + b + c).ToString();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestAnnotatedNullableParameters3()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = null;
+                    string? b = null;
+                    int c = 0;
+                    return [|(a + b + c).ToString()|];
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = null;
+                    string? b = null;
+                    int c = 0;
+                    return {|Rename:NewMethod|}(a, b, c);
+                }
+
+                private static string NewMethod(string? a, string? b, int c)
+                {
+                    return (a + b + c).ToString();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestAnnotatedNullableParameters4()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            class C
+            {
+                public string? M()
+                {
+                    string? a = null;
+                    string? b = null;
+                    return [|a?.Contains(b).ToString()|];
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                public string? M()
+                {
+                    string? a = null;
+                    string? b = null;
+                    return {|Rename:NewMethod|}(a, b);
+                }
+
+                private static string? NewMethod(string? a, string? b)
+                {
+                    return a?.Contains(b).ToString();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowStateNullableParameters1()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = string.Empty;
+                    string? b = string.Empty;
+                    return [|(a + b + a).ToString()|];
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = string.Empty;
+                    string? b = string.Empty;
+                    return {|Rename:NewMethod|}(a, b);
+                }
+
+                private static string NewMethod(string a, string b)
+                {
+                    return (a + b + a).ToString();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowStateNullableParameters2()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            class C
+            {
+                public string? M()
+                {
+                    string? a = string.Empty;
+                    string? b = string.Empty;
+                    return [|(a + b + a).ToString()|];
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                public string? M()
+                {
+                    string? a = string.Empty;
+                    string? b = string.Empty;
+                    return {|Rename:NewMethod|}(a, b);
+                }
+
+                private static string NewMethod(string a, string b)
+                {
+                    return (a + b + a).ToString();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowStateNullableParameters3()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = null;
+                    string? b = null;
+                    return [|(a + b + a)?.ToString()|] ?? string.Empty;
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = null;
+                    string? b = null;
+                    return {|Rename:NewMethod|}(a, b) ?? string.Empty;
+                }
+
+                private static string? NewMethod(string? a, string? b)
+                {
+                    return (a + b + a)?.ToString();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowStateNullableParameters_MultipleStates()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = string.Empty;
+                    string? b = string.Empty;
+                    [|string? c = a + b;
+                    a = string.Empty;
+                    c += a;
+                    a = null;
+                    b = null;
+                    b = "test";
+                    c = a?.ToString();|]
+                    return c ?? string.Empty;
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = string.Empty;
+                    string? b = string.Empty;
+                    string? c = {|Rename:NewMethod|}(ref a, ref b);
+                    return c ?? string.Empty;
+                }
+
+                private static string? NewMethod(ref string? a, ref string? b)
+                {
+                    string? c = a + b;
+                    a = string.Empty;
+                    c += a;
+                    a = null;
+                    b = null;
+                    b = "test";
+                    c = a?.ToString();
+                    return c;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowStateNullableParameters_MultipleStatesNonNullReturn()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = string.Empty;
+                    string? b = string.Empty;
+                    [|string? c = a + b;
+                    a = string.Empty;
+                    b = string.Empty;
+                    a = null;
+                    b = null;
+                    c = null;
+                    c = a + b;|]
+                    return c ?? string.Empty;
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = string.Empty;
+                    string? b = string.Empty;
+                    string? c = {|Rename:NewMethod|}(ref a, ref b);
+                    return c ?? string.Empty;
+                }
+
+                private static string NewMethod(ref string? a, ref string? b)
+                {
+                    string? c = a + b;
+                    a = string.Empty;
+                    b = string.Empty;
+                    a = null;
+                    b = null;
+                    c = null;
+                    c = a + b;
+                    return c;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowStateNullableParameters_MultipleStatesNullReturn()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = string.Empty;
+                    string? b = string.Empty;
+                    [|string? c = a + b;
+                    a = string.Empty;
+                    b = string.Empty;
+                    a = null;
+                    b = null;
+                    c = a?.ToString();|]
+                    return c ?? string.Empty;
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = string.Empty;
+                    string? b = string.Empty;
+                    string? c = {|Rename:NewMethod|}(ref a, ref b);
+                    return c ?? string.Empty;
+                }
+
+                private static string? NewMethod(ref string? a, ref string? b)
+                {
+                    string? c = a + b;
+                    a = string.Empty;
+                    b = string.Empty;
+                    a = null;
+                    b = null;
+                    c = a?.ToString();
+                    return c;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowStateNullableParameters_RefNotNull()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = string.Empty;
+                    string? b = string.Empty;
+                    [|var c = a + b;
+                    a = string.Empty;
+                    c += a;
+                    b = "test";
+                    c = a + b +c;|]
+                    return c;
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                public string M()
+                {
+                    string? a = string.Empty;
+                    string? b = string.Empty;
+                    string c = {|Rename:NewMethod|}(ref a, ref b);
+                    return c;
+                }
+
+                private static string NewMethod(ref string a, ref string b)
+                {
+                    var c = a + b;
+                    a = string.Empty;
+                    c += a;
+                    b = "test";
+                    c = a + b + c;
+                    return c;
+                }
+            }
+            """);
+
+    // There's a case below where flow state correctly asseses that the variable
+    // 'x' is non-null when returned. It's wasn't obvious when writing, but that's 
+    // due to the fact the line above it being executed as 'x.ToString()' would throw
+    // an exception and the return statement would never be hit. The only way the return
+    // statement gets executed is if the `x.ToString()` call succeeds, thus suggesting 
+    // that the value is indeed not null.
+    [Fact]
+    public Task TestFlowNullableReturn_NotNull1()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            class C
+            {
+                public string? M()
+                {
+                    [|string? x = null;
+                    x.ToString();|]
+
+                    return x;
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                public string? M()
+                {
+                    string? x = {|Rename:NewMethod|}();
+
+                    return x;
+                }
+
+                private static string NewMethod()
+                {
+                    string? x = null;
+                    x.ToString();
+                    return x;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowNullableReturn_NotNull2()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            class C
+            {
+                public string? M()
+                {
+                    [|string? x = null;
+                    x?.ToString();
+                    x = string.Empty;|]
+
+                    return x;
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                public string? M()
+                {
+                    string? x = {|Rename:NewMethod|}();
+
+                    return x;
+                }
+
+                private static string NewMethod()
+                {
+                    string? x = null;
+                    x?.ToString();
+                    x = string.Empty;
+                    return x;
+                }
+            }
+            """);
+    [Fact]
+    public Task TestFlowNullable_Lambda()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            using System;
+
+            class C
+            {
+                public string? M()
+                {
+                    [|string? x = null;
+                    Action modifyXToNonNull = () =>
+                    {
+                        x += x;
+                    };
+
+                    modifyXToNonNull();|]
+
+                    return x;
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            using System;
+
+            class C
+            {
+                public string? M()
+                {
+                    string? x = {|Rename:NewMethod|}();
+
+                    return x;
+                }
+
+                private static string? NewMethod()
+                {
+                    string? x = null;
+                    Action modifyXToNonNull = () =>
+                    {
+                        x += x;
+                    };
+
+                    modifyXToNonNull();
+                    return x;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFlowNullable_LambdaWithReturn()
+        => TestInRegularAndScript1Async(
+            """
+            #nullable enable
+
+            using System;
+
+            class C
+            {
+                public string? M()
+                {
+                    [|string? x = null;
+                    Func<string?> returnNull = () =>
+                    {
+                        return null;
+                    };
+
+                    x = returnNull() ?? string.Empty;|]
+
+                    return x;
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            using System;
+
+            class C
+            {
+                public string? M()
+                {
+                    string? x = {|Rename:NewMethod|}();
+
+                    return x;
+                }
+
+                private static string NewMethod()
+                {
+                    string? x = null;
+                    Func<string?> returnNull = () =>
+                    {
+                        return null;
+                    };
+
+                    x = returnNull() ?? string.Empty;
+                    return x;
+                }
+            }
+            """);
+
+    [Fact]
+    public async Task TestExtractReadOnlyMethod()
     {
-        static void Main(string[] args)
-        {
-            bool b = true;
-            System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
-        }
+        await TestInRegularAndScript1Async(
+            """
+            struct S1
+            {
+                readonly int M1() => 42;
+                void Main()
+                {
+                    [|int i = M1() + M1()|];
+                }
+            }
+            """,
+            """
+            struct S1
+            {
+                readonly int M1() => 42;
+                void Main()
+                {
+                    {|Rename:NewMethod|}();
+                }
 
-        private static bool NewMethod(bool b)
-        {
-            return b != true;
-        }
+                private readonly void NewMethod()
+                {
+                    int i = M1() + M1();
+                }
+            }
+            """);
     }
-    """, new TestParameters(options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOption2.FalseWithSuggestionEnforcement)));
+
+    [Fact]
+    public async Task TestExtractReadOnlyMethodInReadOnlyStruct()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            readonly struct S1
+            {
+                int M1() => 42;
+                void Main()
+                {
+                    [|int i = M1() + M1()|];
+                }
+            }
+            """,
+            """
+            readonly struct S1
+            {
+                int M1() => 42;
+                void Main()
+                {
+                    {|Rename:NewMethod|}();
+                }
+
+                private void NewMethod()
+                {
+                    int i = M1() + M1();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestExtractNonReadOnlyMethodInReadOnlyMethod()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            struct S1
+            {
+                int M1() => 42;
+                readonly void Main()
+                {
+                    [|int i = M1() + M1()|];
+                }
+            }
+            """,
+            """
+            struct S1
+            {
+                int M1() => 42;
+                readonly void Main()
+                {
+                    {|Rename:NewMethod|}();
+                }
+
+                private void NewMethod()
+                {
+                    int i = M1() + M1();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public Task TestExtractNullableObjectWithExplicitCast()
+    => TestInRegularAndScript1Async(
+        """
+        #nullable enable
+
+        using System;
+
+        class C
+        {
+            void M()
+            {
+                object? o = null;
+                var s = (string?)[|o|];
+                Console.WriteLine(s);
+            }
+        }
+        """,
+        """
+        #nullable enable
+
+        using System;
+
+        class C
+        {
+            void M()
+            {
+                object? o = null;
+                var s = (string?){|Rename:GetO|}(o);
+                Console.WriteLine(s);
+            }
+
+            private static object? GetO(object? o)
+            {
+                return o;
+            }
+        }
+        """);
+
+    [Fact]
+    public Task TestExtractNotNullableObjectWithExplicitCast()
+    => TestInRegularAndScript1Async(
+        """
+        #nullable enable
+
+        using System;
+
+        class C
+        {
+            void M()
+            {
+                object? o = new object();
+                var s = (string)[|o|];
+                Console.WriteLine(s);
+            }
+        }
+        """,
+        """
+        #nullable enable
+
+        using System;
+
+        class C
+        {
+            void M()
+            {
+                object? o = new object();
+                var s = (string){|Rename:GetO|}(o);
+                Console.WriteLine(s);
+            }
+
+            private static object GetO(object o)
+            {
+                return o;
+            }
+        }
+        """);
+
+    [Fact]
+    public Task TestExtractNotNullableWithExplicitCast()
+    => TestInRegularAndScript1Async(
+        """
+        #nullable enable
+
+        using System;
+
+        class A
+        {
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
-        public async Task ExtractLocalFunctionCallAndDeclaration()
+        class B : A 
         {
-            await TestInRegularAndScript1Async("""
-                class C
-                {
-                    public static void Main()
-                    {
-                        static void LocalParent()
-                        {
-                            [|void Local() { }
-                            Local();|]
-                        }
-                    }
-                }
-                """, """
-                class C
-                {
-                    public static void Main()
-                    {
-                        static void LocalParent()
-                        {
-                            {|Rename:NewMethod|}();
-                        }
-                    }
-
-                    private static void NewMethod()
-                    {
-                        void Local() { }
-                        Local();
-                    }
-                }
-                """);
         }
 
-        [Fact]
-        public async Task TestMissingWhenOnlyLocalFunctionCallSelected()
+        class C
         {
-            var code = """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        [|Local();|]
-                        static void Local()
-                        {
-                        }
-                    }
-                }
-                """;
-            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
+            void M()
+            {
+                B? b = new B();
+                var s = (A)[|b|];
+            }
+        }
+        """,
+        """
+        #nullable enable
+
+        using System;
+
+        class A
+        {
         }
 
-        [Fact]
-        public async Task TestOfferedWhenBothLocalFunctionCallAndDeclarationSelected()
+        class B : A 
         {
-            await TestInRegularAndScript1Async("""
-                class Program
+        }
+
+        class C
+        {
+            void M()
+            {
+                B? b = new B();
+                var s = (A){|Rename:GetB|}(b);
+            }
+
+            private static B GetB(B b)
+            {
+                return b;
+            }
+        }
+        """);
+
+    [Fact]
+    public Task TestExtractNullableWithExplicitCast()
+    => TestInRegularAndScript1Async(
+        """
+        #nullable enable
+
+        using System;
+
+        class A
+        {
+        }
+
+        class B : A 
+        {
+        }
+
+        class C
+        {
+            void M()
+            {
+                B? b = null;
+                var s = (A)[|b|];
+            }
+        }
+        """,
+        """
+        #nullable enable
+
+        using System;
+
+        class A
+        {
+        }
+
+        class B : A 
+        {
+        }
+
+        class C
+        {
+            void M()
+            {
+                B? b = null;
+                var s = (A){|Rename:GetB|}(b);
+            }
+
+            private static B? GetB(B? b)
+            {
+                return b;
+            }
+        }
+        """);
+
+    [Fact]
+    public Task TestExtractNotNullableWithExplicitCastSelected()
+    => TestInRegularAndScript1Async(
+        """
+        #nullable enable
+
+        using System;
+
+        class C
+        {
+            void M()
+            {
+                object? o = new object();
+                var s = [|(string)o|];
+                Console.WriteLine(s);
+            }
+        }
+        """,
+        """
+        #nullable enable
+
+        using System;
+
+        class C
+        {
+            void M()
+            {
+                object? o = new object();
+                var s = {|Rename:GetS|}(o);
+                Console.WriteLine(s);
+            }
+
+            private static string GetS(object o)
+            {
+                return (string)o;
+            }
+        }
+        """);
+
+    [Fact]
+    public Task TestExtractNullableWithExplicitCastSelected()
+    => TestInRegularAndScript1Async(
+        """
+        #nullable enable
+
+        using System;
+
+        class C
+        {
+            void M()
+            {
+                object? o = null;
+                var s = [|(string?)o|];
+                Console.WriteLine(s);
+            }
+        }
+        """,
+        """
+        #nullable enable
+
+        using System;
+
+        class C
+        {
+            void M()
+            {
+                object? o = null;
+                var s = {|Rename:GetS|}(o);
+                Console.WriteLine(s);
+            }
+
+            private static string? GetS(object? o)
+            {
+                return (string?)o;
+            }
+        }
+        """);
+    [Fact]
+    public Task TestExtractNullableNonNullFlowWithExplicitCastSelected()
+    => TestInRegularAndScript1Async(
+        """
+        #nullable enable
+
+        using System;
+
+        class C
+        {
+            void M()
+            {
+                object? o = new object();
+                var s = [|(string?)o|];
+                Console.WriteLine(s);
+            }
+        }
+        """,
+        """
+        #nullable enable
+
+        using System;
+
+        class C
+        {
+            void M()
+            {
+                object? o = new object();
+                var s = {|Rename:GetS|}(o);
+                Console.WriteLine(s);
+            }
+
+            private static string? GetS(object o)
+            {
+                return (string?)o;
+            }
+        }
+        """);
+
+    [Fact]
+    public Task TestExtractNullableToNonNullableWithExplicitCastSelected()
+    => TestInRegularAndScript1Async(
+        """
+        #nullable enable
+
+        using System;
+
+        class C
+        {
+            void M()
+            {
+                object? o = null;
+                var s = [|(string)o|];
+                Console.WriteLine(s);
+            }
+        }
+        """,
+        """
+        #nullable enable
+
+        using System;
+
+        class C
+        {
+            void M()
+            {
+                object? o = null;
+                var s = {|Rename:GetS|}(o);
+                Console.WriteLine(s);
+            }
+
+            private static string? GetS(object? o)
+            {
+                return (string)o;
+            }
+        }
+        """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38127")]
+    public Task TestNestedNullability_Async()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
+
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private Task<string> DoSomethingAsync() => Task.FromResult("");
+
+                public Task<string?> async M()
                 {
-                    static void Main(string[] args)
+                    [|string? x = await DoSomethingAsync();|]
+                    x = null;
+                    return x;
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private Task<string> DoSomethingAsync() => Task.FromResult("");
+
+                public Task<string?> async M()
+                {
+                    string? x = await {|Rename:NewMethod|}();
+                    x = null;
+                    return x;
+                }
+
+                private async Task<string?> NewMethod()
+                {
+                    return await DoSomethingAsync();
+                }
+            }
+            """);
+
+    [Fact]
+    public async Task EnsureStaticLocalFunctionOptionHasNoEffect()
+    {
+        await TestInRegularAndScript1Async(
+"""
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine([|b != true|] ? b = true : b = false);
+    }
+}
+""",
+"""
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = true;
+        System.Console.WriteLine({|Rename:NewMethod|}(b) ? b = true : b = false);
+    }
+
+    private static bool NewMethod(bool b)
+    {
+        return b != true;
+    }
+}
+""", new TestParameters(options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOption2.FalseWithSuggestionEnforcement)));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
+    public async Task ExtractLocalFunctionCallAndDeclaration()
+    {
+        await TestInRegularAndScript1Async("""
+            class C
+            {
+                public static void Main()
+                {
+                    static void LocalParent()
                     {
-                        [|Local();
-                        var test = 5;
-                        static void Local()
-                        {
-                        }|]
+                        [|void Local() { }
+                        Local();|]
                     }
                 }
-                """, """
-                class Program
+            }
+            """, """
+            class C
+            {
+                public static void Main()
                 {
-                    static void Main(string[] args)
+                    static void LocalParent()
                     {
                         {|Rename:NewMethod|}();
                     }
+                }
 
-                    private static void NewMethod()
+                private static void NewMethod()
+                {
+                    void Local() { }
+                    Local();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMissingWhenOnlyLocalFunctionCallSelected()
+    {
+        var code = """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|Local();|]
+                    static void Local()
                     {
-                        Local();
-                        var test = 5;
-                        static void Local()
+                    }
+                }
+            }
+            """;
+        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
+    }
+
+    [Fact]
+    public async Task TestOfferedWhenBothLocalFunctionCallAndDeclarationSelected()
+    {
+        await TestInRegularAndScript1Async("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|Local();
+                    var test = 5;
+                    static void Local()
+                    {
+                    }|]
+                }
+            }
+            """, """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    {|Rename:NewMethod|}();
+                }
+
+                private static void NewMethod()
+                {
+                    Local();
+                    var test = 5;
+                    static void Local()
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractNonAsyncMethodWithAsyncLocalFunction()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M() 
+                {
+                    [|F();
+                    async void F() => await Task.Delay(0);|]
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    {|Rename:NewMethod|}();
+                }
+
+                private static void NewMethod()
+                {
+                    F();
+                    async void F() => await Task.Delay(0);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitFalse()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration) 
+                {
+                    [|await Task.Delay(duration).ConfigureAwait(false)|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration)
+                {
+                    await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
+                }
+
+                private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
+                {
+                    return await Task.Delay(duration).ConfigureAwait(false);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseNamedParameter()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration) 
+                {
+                    [|await Task.Delay(duration).ConfigureAwait(continueOnCapturedContext: false)|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration)
+                {
+                    await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
+                }
+
+                private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
+                {
+                    return await Task.Delay(duration).ConfigureAwait(continueOnCapturedContext: false);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOnNonTask()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks
+
+            class C
+            {
+                async Task MyDelay() 
+                {
+                    [|await new ValueTask<int>(0).ConfigureAwait(false)|];
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks
+
+            class C
+            {
+                async Task MyDelay()
+                {
+                    await {|Rename:NewMethod|}().ConfigureAwait(false);
+                }
+
+                private static async Task<object> NewMethod()
+                {
+                    return await new ValueTask<int>(0).ConfigureAwait(false);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitTrue()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration) 
+                {
+                    [|await Task.Delay(duration).ConfigureAwait(true)|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration)
+                {
+                    await {|Rename:NewMethod|}(duration);
+                }
+
+                private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
+                {
+                    return await Task.Delay(duration).ConfigureAwait(true);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitNonLiteral()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration) 
+                {
+                    [|await Task.Delay(duration).ConfigureAwait(M())|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration)
+                {
+                    await {|Rename:NewMethod|}(duration);
+                }
+
+                private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
+                {
+                    return await Task.Delay(duration).ConfigureAwait(M());
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithNoConfigureAwait()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration) 
+                {
+                    [|await Task.Delay(duration)|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration)
+                {
+                    await {|Rename:NewMethod|}(duration);
+                }
+
+                private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
+                {
+                    return await Task.Delay(duration);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLambda()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration) 
+                {
+                    [|await Task.Run(async () => await Task.Delay(duration).ConfigureAwait(false))|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration)
+                {
+                    await {|Rename:NewMethod|}(duration);
+                }
+
+                private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
+                {
+                    return await Task.Run(async () => await Task.Delay(duration).ConfigureAwait(false));
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLocalMethod()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration) 
+                {
+                    [|await Task.Run(F());
+                    async Task F() => await Task.Delay(duration).ConfigureAwait(false);|]
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task MyDelay(TimeSpan duration)
+                {
+                    await {|Rename:NewMethod|}(duration);
+                }
+
+                private static async Task NewMethod(TimeSpan duration)
+                {
+                    await Task.Run(F());
+                    async Task F() => await Task.Delay(duration).ConfigureAwait(false);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration) 
+                {
+                    [|await Task.Delay(duration).ConfigureAwait(false);
+                    await Task.Delay(duration).ConfigureAwait(true);|]
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task MyDelay(TimeSpan duration)
+                {
+                    await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
+                }
+
+                private static async Task NewMethod(TimeSpan duration)
+                {
+                    await Task.Delay(duration).ConfigureAwait(false);
+                    await Task.Delay(duration).ConfigureAwait(true);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration) 
+                {
+                    [|await Task.Delay(duration).ConfigureAwait(true);
+                    await Task.Delay(duration).ConfigureAwait(false);|]
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task MyDelay(TimeSpan duration)
+                {
+                    await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
+                }
+
+                private static async Task NewMethod(TimeSpan duration)
+                {
+                    await Task.Delay(duration).ConfigureAwait(true);
+                    await Task.Delay(duration).ConfigureAwait(false);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture3()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration) 
+                {
+                    [|await Task.Delay(duration).ConfigureAwait(M());
+                    await Task.Delay(duration).ConfigureAwait(false);|]
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task MyDelay(TimeSpan duration)
+                {
+                    await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
+                }
+
+                private static async Task NewMethod(TimeSpan duration)
+                {
+                    await Task.Delay(duration).ConfigureAwait(M());
+                    await Task.Delay(duration).ConfigureAwait(false);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
+    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOutsideSelection()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                async Task MyDelay(TimeSpan duration) 
+                {
+                    await Task.Delay(duration).ConfigureAwait(false);
+                    [|await Task.Delay(duration).ConfigureAwait(true);|]
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task MyDelay(TimeSpan duration)
+                {
+                    await Task.Delay(duration).ConfigureAwait(false);
+                    await {|Rename:NewMethod|}(duration);
+                }
+
+                private static async Task NewMethod(TimeSpan duration)
+                {
+                    await Task.Delay(duration).ConfigureAwait(true);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
+    public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_True()
+    {
+        var input = """
+            <Workspace>
+                <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath = "z:\\file.cs">
+            class Program1
+            {
+                static void Main()
+                {
+                    [|bool b = true;|]
+                    System.Console.WriteLine(b != true ? b = true : b = false);
+                }
+            }
+                    </Document>
+                    <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">[*.cs]
+            csharp_style_expression_bodied_methods = true:silent
+            </AnalyzerConfigDocument>
+                </Project>
+            </Workspace>
+            """;
+
+        var expected = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                     <Document FilePath="z:\\file.cs">
+            class Program1
+            {
+                static void Main()
+                {
+                    bool b = {|Rename:NewMethod|}();
+                    System.Console.WriteLine(b != true ? b = true : b = false);
+                }
+
+                private static bool NewMethod() => true;
+            }
+                    </Document>
+                    <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">[*.cs]
+            csharp_style_expression_bodied_methods = true:silent
+            </AnalyzerConfigDocument>
+                </Project>
+            </Workspace>
+            """;
+
+        await TestInRegularAndScript1Async(input, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
+    public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_False()
+    {
+        var input = """
+            <Workspace>
+                <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath = "z:\\file.cs">
+            class Program1
+            {
+                static void Main()
+                {
+                    [|bool b = true;|]
+                    System.Console.WriteLine(b != true ? b = true : b = false);
+                }
+            }
+                    </Document>
+                    <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">[*.cs]
+            csharp_style_expression_bodied_methods = false:silent
+            </AnalyzerConfigDocument>
+                </Project>
+            </Workspace>
+            """;
+
+        var expected = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                     <Document FilePath="z:\\file.cs">
+            class Program1
+            {
+                static void Main()
+                {
+                    bool b = {|Rename:NewMethod|}();
+                    System.Console.WriteLine(b != true ? b = true : b = false);
+                }
+
+                private static bool NewMethod()
+                {
+                    return true;
+                }
+            }
+                    </Document>
+                    <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">[*.cs]
+            csharp_style_expression_bodied_methods = false:silent
+            </AnalyzerConfigDocument>
+                </Project>
+            </Workspace>
+            """;
+
+        await TestInRegularAndScript1Async(input, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
+    public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDoNotApply()
+    {
+        var input = """
+            <Workspace>
+                <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath = "z:\\file.cs">
+            class Program1
+            {
+                static void Main()
+                {
+                    [|bool b = true;|]
+                    System.Console.WriteLine(b != true ? b = true : b = false);
+                }
+            }
+                    </Document>
+                    <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">
+            """ + EditorConfigNaming_LocalFunctions_CamelCase + """
+            </AnalyzerConfigDocument>
+                </Project>
+            </Workspace>
+            """;
+
+        var expected = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                     <Document FilePath="z:\\file.cs">
+            class Program1
+            {
+                static void Main()
+                {
+                    bool b = {|Rename:NewMethod|}();
+                    System.Console.WriteLine(b != true ? b = true : b = false);
+                }
+
+                private static bool NewMethod()
+                {
+                    return true;
+                }
+            }
+                    </Document>
+                    <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">
+            """ + EditorConfigNaming_LocalFunctions_CamelCase + """
+            </AnalyzerConfigDocument>
+                </Project>
+            </Workspace>
+            """;
+
+        await TestInRegularAndScript1Async(input, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
+    public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDoNotApply_GetName()
+    {
+        var input = """
+            <Workspace>
+                <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath = "z:\\file.cs">
+            class MethodExtraction
+            {
+                void TestMethod()
+                {
+                    int a = [|1 + 1|];
+                }
+            }
+                    </Document>
+                    <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">
+            """ + EditorConfigNaming_LocalFunctions_CamelCase + """
+            </AnalyzerConfigDocument>
+                </Project>
+            </Workspace>
+            """;
+
+        var expected = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                     <Document FilePath="z:\\file.cs">
+            class MethodExtraction
+            {
+                void TestMethod()
+                {
+                    int a = {|Rename:GetA|}();
+                }
+
+                private static int GetA()
+                {
+                    return 1 + 1;
+                }
+            }
+                    </Document>
+                    <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">
+            """ + EditorConfigNaming_LocalFunctions_CamelCase + """
+            </AnalyzerConfigDocument>
+                </Project>
+            </Workspace>
+            """;
+
+        await TestInRegularAndScript1Async(input, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
+    public async Task TestOnInvalidUsingStatement_MultipleStatements()
+    {
+        var input = """
+            class C
+            {
+                void M()
+                {
+                    [|var v = 0;
+                    using System;|]
+                }
+            }
+            """;
+        var expected = """
+            class C
+            {
+                void M()
+                {
+                    {|Rename:NewMethod|}();
+                }
+
+                private static void NewMethod()
+                {
+                    var v = 0;
+                    using System;
+                }
+            }
+            """;
+        await TestInRegularAndScript1Async(input, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
+    public async Task TestMissingOnInvalidUsingStatement()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|using System;|]
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19461")]
+    public async Task TestLocalFunction()
+    {
+        await TestInRegularAndScript1Async("""
+            using System;
+
+            class Program
+            {
+                void M()
+                {
+                    int y = 0;
+                    [|var x = local();
+
+                    int local()
+                    {
+                        return y;
+                    }|]
+                }
+            }
+            """, """
+            using System;
+
+            class Program
+            {
+                void M()
+                {
+                    int y = 0;
+                    {|Rename:NewMethod|}(y);
+                }
+
+                private static void NewMethod(int y)
+                {
+                    var x = local();
+
+                    int local()
+                    {
+                        return y;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43834")]
+    public async Task TestRecursivePatternRewrite()
+    {
+        await TestInRegularAndScript1Async("""
+            using System;
+            namespace N
+            {
+                class Context
+                {
+                }
+                class C
+                {
+                    public void DoAction(Action<Context> action)
+                    {
+                    }
+                    private void Recursive(object context)
+                    {
+                        DoAction(context =>
                         {
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-        public async Task TestExtractNonAsyncMethodWithAsyncLocalFunction()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    void M() 
-                    {
-                        [|F();
-                        async void F() => await Task.Delay(0);|]
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M()
-                    {
-                        {|Rename:NewMethod|}();
-                    }
-
-                    private static void NewMethod()
-                    {
-                        F();
-                        async void F() => await Task.Delay(0);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-        public async Task TestExtractAsyncMethodWithConfigureAwaitFalse()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration) 
-                    {
-                        [|await Task.Delay(duration).ConfigureAwait(false)|];
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration)
-                    {
-                        await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
-                    }
-
-                    private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
-                    {
-                        return await Task.Delay(duration).ConfigureAwait(false);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-        public async Task TestExtractAsyncMethodWithConfigureAwaitFalseNamedParameter()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration) 
-                    {
-                        [|await Task.Delay(duration).ConfigureAwait(continueOnCapturedContext: false)|];
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration)
-                    {
-                        await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
-                    }
-
-                    private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
-                    {
-                        return await Task.Delay(duration).ConfigureAwait(continueOnCapturedContext: false);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-        public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOnNonTask()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System.Threading.Tasks
-
-                class C
-                {
-                    async Task MyDelay() 
-                    {
-                        [|await new ValueTask<int>(0).ConfigureAwait(false)|];
-                    }
-                }
-                """,
-                """
-                using System.Threading.Tasks
-
-                class C
-                {
-                    async Task MyDelay()
-                    {
-                        await {|Rename:NewMethod|}().ConfigureAwait(false);
-                    }
-
-                    private static async Task<object> NewMethod()
-                    {
-                        return await new ValueTask<int>(0).ConfigureAwait(false);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-        public async Task TestExtractAsyncMethodWithConfigureAwaitTrue()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration) 
-                    {
-                        [|await Task.Delay(duration).ConfigureAwait(true)|];
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration)
-                    {
-                        await {|Rename:NewMethod|}(duration);
-                    }
-
-                    private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
-                    {
-                        return await Task.Delay(duration).ConfigureAwait(true);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-        public async Task TestExtractAsyncMethodWithConfigureAwaitNonLiteral()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration) 
-                    {
-                        [|await Task.Delay(duration).ConfigureAwait(M())|];
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration)
-                    {
-                        await {|Rename:NewMethod|}(duration);
-                    }
-
-                    private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
-                    {
-                        return await Task.Delay(duration).ConfigureAwait(M());
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-        public async Task TestExtractAsyncMethodWithNoConfigureAwait()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration) 
-                    {
-                        [|await Task.Delay(duration)|];
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration)
-                    {
-                        await {|Rename:NewMethod|}(duration);
-                    }
-
-                    private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
-                    {
-                        return await Task.Delay(duration);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-        public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLambda()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration) 
-                    {
-                        [|await Task.Run(async () => await Task.Delay(duration).ConfigureAwait(false))|];
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration)
-                    {
-                        await {|Rename:NewMethod|}(duration);
-                    }
-
-                    private static async System.Threading.Tasks.Task<object> NewMethod(TimeSpan duration)
-                    {
-                        return await Task.Run(async () => await Task.Delay(duration).ConfigureAwait(false));
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-        public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLocalMethod()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration) 
-                    {
-                        [|await Task.Run(F());
-                        async Task F() => await Task.Delay(duration).ConfigureAwait(false);|]
-                    }
-                }
-                """,
-                """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration)
-                    {
-                        await {|Rename:NewMethod|}(duration);
-                    }
-
-                    private static async Task NewMethod(TimeSpan duration)
-                    {
-                        await Task.Run(F());
-                        async Task F() => await Task.Delay(duration).ConfigureAwait(false);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-        public async Task TestExtractAsyncMethodWithConfigureAwaitMixture1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration) 
-                    {
-                        [|await Task.Delay(duration).ConfigureAwait(false);
-                        await Task.Delay(duration).ConfigureAwait(true);|]
-                    }
-                }
-                """,
-                """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration)
-                    {
-                        await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
-                    }
-
-                    private static async Task NewMethod(TimeSpan duration)
-                    {
-                        await Task.Delay(duration).ConfigureAwait(false);
-                        await Task.Delay(duration).ConfigureAwait(true);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-        public async Task TestExtractAsyncMethodWithConfigureAwaitMixture2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration) 
-                    {
-                        [|await Task.Delay(duration).ConfigureAwait(true);
-                        await Task.Delay(duration).ConfigureAwait(false);|]
-                    }
-                }
-                """,
-                """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration)
-                    {
-                        await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
-                    }
-
-                    private static async Task NewMethod(TimeSpan duration)
-                    {
-                        await Task.Delay(duration).ConfigureAwait(true);
-                        await Task.Delay(duration).ConfigureAwait(false);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-        public async Task TestExtractAsyncMethodWithConfigureAwaitMixture3()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration) 
-                    {
-                        [|await Task.Delay(duration).ConfigureAwait(M());
-                        await Task.Delay(duration).ConfigureAwait(false);|]
-                    }
-                }
-                """,
-                """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration)
-                    {
-                        await {|Rename:NewMethod|}(duration).ConfigureAwait(false);
-                    }
-
-                    private static async Task NewMethod(TimeSpan duration)
-                    {
-                        await Task.Delay(duration).ConfigureAwait(M());
-                        await Task.Delay(duration).ConfigureAwait(false);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-        public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOutsideSelection()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration) 
-                    {
-                        await Task.Delay(duration).ConfigureAwait(false);
-                        [|await Task.Delay(duration).ConfigureAwait(true);|]
-                    }
-                }
-                """,
-                """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    async Task MyDelay(TimeSpan duration)
-                    {
-                        await Task.Delay(duration).ConfigureAwait(false);
-                        await {|Rename:NewMethod|}(duration);
-                    }
-
-                    private static async Task NewMethod(TimeSpan duration)
-                    {
-                        await Task.Delay(duration).ConfigureAwait(true);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
-        public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_True()
-        {
-            var input = """
-                <Workspace>
-                    <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document FilePath = "z:\\file.cs">
-                class Program1
-                {
-                    static void Main()
-                    {
-                        [|bool b = true;|]
-                        System.Console.WriteLine(b != true ? b = true : b = false);
-                    }
-                }
-                        </Document>
-                        <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">[*.cs]
-                csharp_style_expression_bodied_methods = true:silent
-                </AnalyzerConfigDocument>
-                    </Project>
-                </Workspace>
-                """;
-
-            var expected = """
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                         <Document FilePath="z:\\file.cs">
-                class Program1
-                {
-                    static void Main()
-                    {
-                        bool b = {|Rename:NewMethod|}();
-                        System.Console.WriteLine(b != true ? b = true : b = false);
-                    }
-
-                    private static bool NewMethod() => true;
-                }
-                        </Document>
-                        <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">[*.cs]
-                csharp_style_expression_bodied_methods = true:silent
-                </AnalyzerConfigDocument>
-                    </Project>
-                </Workspace>
-                """;
-
-            await TestInRegularAndScript1Async(input, expected);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
-        public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_False()
-        {
-            var input = """
-                <Workspace>
-                    <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document FilePath = "z:\\file.cs">
-                class Program1
-                {
-                    static void Main()
-                    {
-                        [|bool b = true;|]
-                        System.Console.WriteLine(b != true ? b = true : b = false);
-                    }
-                }
-                        </Document>
-                        <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">[*.cs]
-                csharp_style_expression_bodied_methods = false:silent
-                </AnalyzerConfigDocument>
-                    </Project>
-                </Workspace>
-                """;
-
-            var expected = """
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                         <Document FilePath="z:\\file.cs">
-                class Program1
-                {
-                    static void Main()
-                    {
-                        bool b = {|Rename:NewMethod|}();
-                        System.Console.WriteLine(b != true ? b = true : b = false);
-                    }
-
-                    private static bool NewMethod()
-                    {
-                        return true;
-                    }
-                }
-                        </Document>
-                        <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">[*.cs]
-                csharp_style_expression_bodied_methods = false:silent
-                </AnalyzerConfigDocument>
-                    </Project>
-                </Workspace>
-                """;
-
-            await TestInRegularAndScript1Async(input, expected);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
-        public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDoNotApply()
-        {
-            var input = """
-                <Workspace>
-                    <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document FilePath = "z:\\file.cs">
-                class Program1
-                {
-                    static void Main()
-                    {
-                        [|bool b = true;|]
-                        System.Console.WriteLine(b != true ? b = true : b = false);
-                    }
-                }
-                        </Document>
-                        <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">
-                """ + EditorConfigNaming_LocalFunctions_CamelCase + """
-                </AnalyzerConfigDocument>
-                    </Project>
-                </Workspace>
-                """;
-
-            var expected = """
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                         <Document FilePath="z:\\file.cs">
-                class Program1
-                {
-                    static void Main()
-                    {
-                        bool b = {|Rename:NewMethod|}();
-                        System.Console.WriteLine(b != true ? b = true : b = false);
-                    }
-
-                    private static bool NewMethod()
-                    {
-                        return true;
-                    }
-                }
-                        </Document>
-                        <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">
-                """ + EditorConfigNaming_LocalFunctions_CamelCase + """
-                </AnalyzerConfigDocument>
-                    </Project>
-                </Workspace>
-                """;
-
-            await TestInRegularAndScript1Async(input, expected);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
-        public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDoNotApply_GetName()
-        {
-            var input = """
-                <Workspace>
-                    <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document FilePath = "z:\\file.cs">
-                class MethodExtraction
-                {
-                    void TestMethod()
-                    {
-                        int a = [|1 + 1|];
-                    }
-                }
-                        </Document>
-                        <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">
-                """ + EditorConfigNaming_LocalFunctions_CamelCase + """
-                </AnalyzerConfigDocument>
-                    </Project>
-                </Workspace>
-                """;
-
-            var expected = """
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                         <Document FilePath="z:\\file.cs">
-                class MethodExtraction
-                {
-                    void TestMethod()
-                    {
-                        int a = {|Rename:GetA|}();
-                    }
-
-                    private static int GetA()
-                    {
-                        return 1 + 1;
-                    }
-                }
-                        </Document>
-                        <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">
-                """ + EditorConfigNaming_LocalFunctions_CamelCase + """
-                </AnalyzerConfigDocument>
-                    </Project>
-                </Workspace>
-                """;
-
-            await TestInRegularAndScript1Async(input, expected);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
-        public async Task TestOnInvalidUsingStatement_MultipleStatements()
-        {
-            var input = """
-                class C
-                {
-                    void M()
-                    {
-                        [|var v = 0;
-                        using System;|]
-                    }
-                }
-                """;
-            var expected = """
-                class C
-                {
-                    void M()
-                    {
-                        {|Rename:NewMethod|}();
-                    }
-
-                    private static void NewMethod()
-                    {
-                        var v = 0;
-                        using System;
-                    }
-                }
-                """;
-            await TestInRegularAndScript1Async(input, expected);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
-        public async Task TestMissingOnInvalidUsingStatement()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|using System;|]
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19461")]
-        public async Task TestLocalFunction()
-        {
-            await TestInRegularAndScript1Async("""
-                using System;
-
-                class Program
-                {
-                    void M()
-                    {
-                        int y = 0;
-                        [|var x = local();
-
-                        int local()
-                        {
-                            return y;
-                        }|]
-                    }
-                }
-                """, """
-                using System;
-
-                class Program
-                {
-                    void M()
-                    {
-                        int y = 0;
-                        {|Rename:NewMethod|}(y);
-                    }
-
-                    private static void NewMethod(int y)
-                    {
-                        var x = local();
-
-                        int local()
-                        {
-                            return y;
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43834")]
-        public async Task TestRecursivePatternRewrite()
-        {
-            await TestInRegularAndScript1Async("""
-                using System;
-                namespace N
-                {
-                    class Context
-                    {
-                    }
-                    class C
-                    {
-                        public void DoAction(Action<Context> action)
-                        {
-                        }
-                        private void Recursive(object context)
-                        {
-                            DoAction(context =>
+                            if (context is Context { })
                             {
-                                if (context is Context { })
-                                {
-                                    DoAction(
-                                        [|context =>|] context.ToString());
-                                }
-                            });
-                        }
+                                DoAction(
+                                    [|context =>|] context.ToString());
+                            }
+                        });
                     }
                 }
-                """, """
-                using System;
-                namespace N
+            }
+            """, """
+            using System;
+            namespace N
+            {
+                class Context
                 {
-                    class Context
+                }
+                class C
+                {
+                    public void DoAction(Action<Context> action)
                     {
                     }
-                    class C
+                    private void Recursive(object context)
                     {
-                        public void DoAction(Action<Context> action)
+                        DoAction(context =>
                         {
-                        }
-                        private void Recursive(object context)
-                        {
-                            DoAction(context =>
+                            if (context is Context { })
                             {
-                                if (context is Context { })
-                                {
-                                    DoAction(
-                                        {|Rename:NewMethod|}());
-                                }
-                            });
-                        }
+                                DoAction(
+                                    {|Rename:NewMethod|}());
+                            }
+                        });
+                    }
 
-                        private static Action<Context> NewMethod()
-                        {
-                            return context => context.ToString();
-                        }
+                    private static Action<Context> NewMethod()
+                    {
+                        return context => context.ToString();
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-        public async Task TestConditionalAccess1()
-        {
-            await TestInRegularAndScript1Async("""
-                using System;
-                using System.Collections.Generic;
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
+    public async Task TestConditionalAccess1()
+    {
+        await TestInRegularAndScript1Async("""
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                void Test()
                 {
-                    void Test()
-                    {
-                        List<int> b = null;
-                        b?.Clear();
-                        _ = b?.[|ToString|]();
-                    }
+                    List<int> b = null;
+                    b?.Clear();
+                    _ = b?.[|ToString|]();
                 }
-                """, """
-                using System;
-                using System.Collections.Generic;
-                class C
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                void Test()
                 {
-                    void Test()
-                    {
-                        List<int> b = null;
-                        b?.Clear();
-                        _ = {|Rename:NewMethod|}(b);
-                    }
-
-                    private static string NewMethod(List<int> b)
-                    {
-                        return b?.ToString();
-                    }
+                    List<int> b = null;
+                    b?.Clear();
+                    _ = {|Rename:NewMethod|}(b);
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-        public async Task TestConditionalAccess2()
-        {
-            await TestInRegularAndScript1Async("""
-                using System;
-                using System.Collections.Generic;
-                class C
+                private static string NewMethod(List<int> b)
                 {
-                    void Test()
-                    {
-                        List<int> b = null;
-                        b?.Clear();
-                        _ = b?.[|ToString|]().Length;
-                    }
+                    return b?.ToString();
                 }
-                """, """
-                using System;
-                using System.Collections.Generic;
-                class C
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
+    public async Task TestConditionalAccess2()
+    {
+        await TestInRegularAndScript1Async("""
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                void Test()
                 {
-                    void Test()
-                    {
-                        List<int> b = null;
-                        b?.Clear();
-                        _ = {|Rename:NewMethod|}(b);
-                    }
-
-                    private static int? NewMethod(List<int> b)
-                    {
-                        return b?.ToString().Length;
-                    }
+                    List<int> b = null;
+                    b?.Clear();
+                    _ = b?.[|ToString|]().Length;
                 }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-        public async Task TestConditionalAccess3()
-        {
-            await TestInRegularAndScript1Async("""
-                using System;
-                using System.Collections.Generic;
-                class C
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                void Test()
                 {
-                    void Test()
-                    {
-                        List<int> b = null;
-                        b?.Clear();
-                        _ = b?.Count.[|ToString|]();
-                    }
+                    List<int> b = null;
+                    b?.Clear();
+                    _ = {|Rename:NewMethod|}(b);
                 }
-                """, """
-                using System;
-                using System.Collections.Generic;
-                class C
+
+                private static int? NewMethod(List<int> b)
                 {
-                    void Test()
-                    {
-                        List<int> b = null;
-                        b?.Clear();
-                        _ = {|Rename:NewMethod|}(b);
-                    }
-
-                    private static string NewMethod(List<int> b)
-                    {
-                        return b?.Count.ToString();
-                    }
+                    return b?.ToString().Length;
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-        public async Task TestConditionalAccess4()
-        {
-            await TestInRegularAndScript1Async("""
-                using System;
-                using System.Collections.Generic;
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
+    public async Task TestConditionalAccess3()
+    {
+        await TestInRegularAndScript1Async("""
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                void Test()
                 {
-                    void Test()
-                    {
-                        List<int> b = null;
-                        b?.Clear();
-                        _ = b?.[|Count|].ToString();
-                    }
+                    List<int> b = null;
+                    b?.Clear();
+                    _ = b?.Count.[|ToString|]();
                 }
-                """, """
-                using System;
-                using System.Collections.Generic;
-                class C
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                void Test()
                 {
-                    void Test()
-                    {
-                        List<int> b = null;
-                        b?.Clear();
-                        _ = {|Rename:NewMethod|}(b);
-                    }
-
-                    private static string NewMethod(List<int> b)
-                    {
-                        return b?.Count.ToString();
-                    }
+                    List<int> b = null;
+                    b?.Clear();
+                    _ = {|Rename:NewMethod|}(b);
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-        public async Task TestConditionalAccess5()
-        {
-            await TestInRegularAndScript1Async("""
-                using System;
-                using System.Collections.Generic;
-                class C
+                private static string NewMethod(List<int> b)
                 {
-                    void Test()
-                    {
-                        List<int> b = null;
-                        b?.Clear();
-                        _ = b?.[|ToString|]()?.ToString();
-                    }
+                    return b?.Count.ToString();
                 }
-                """, """
-                using System;
-                using System.Collections.Generic;
-                class C
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
+    public async Task TestConditionalAccess4()
+    {
+        await TestInRegularAndScript1Async("""
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                void Test()
                 {
-                    void Test()
-                    {
-                        List<int> b = null;
-                        b?.Clear();
-                        _ = {|Rename:NewMethod|}(b);
-                    }
-
-                    private static string NewMethod(List<int> b)
-                    {
-                        return b?.ToString()?.ToString();
-                    }
+                    List<int> b = null;
+                    b?.Clear();
+                    _ = b?.[|Count|].ToString();
                 }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-        public async Task TestConditionalAccess6()
-        {
-            await TestInRegularAndScript1Async("""
-                using System;
-                using System.Collections.Generic;
-                class C
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                void Test()
                 {
-                    void Test()
-                    {
-                        List<int> b = null;
-                        b?.Clear();
-                        _ = b?.ToString()?.[|ToString|]();
-                    }
+                    List<int> b = null;
+                    b?.Clear();
+                    _ = {|Rename:NewMethod|}(b);
                 }
-                """, """
-                using System;
-                using System.Collections.Generic;
-                class C
+
+                private static string NewMethod(List<int> b)
                 {
-                    void Test()
-                    {
-                        List<int> b = null;
-                        b?.Clear();
-                        _ = {|Rename:NewMethod|}(b);
-                    }
-
-                    private static string NewMethod(List<int> b)
-                    {
-                        return b?.ToString()?.ToString();
-                    }
+                    return b?.Count.ToString();
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-        public async Task TestConditionalAccess7()
-        {
-            await TestInRegularAndScript1Async("""
-                using System;
-                using System.Collections.Generic;
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
+    public async Task TestConditionalAccess5()
+    {
+        await TestInRegularAndScript1Async("""
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                void Test()
                 {
-                    void Test()
-                    {
-                        List<int> b = null;
-                        b?.Clear();
-                        _ = b?[|[0]|];
-                    }
+                    List<int> b = null;
+                    b?.Clear();
+                    _ = b?.[|ToString|]()?.ToString();
                 }
-                """, """
-                using System;
-                using System.Collections.Generic;
-                class C
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                void Test()
                 {
-                    void Test()
-                    {
-                        List<int> b = null;
-                        b?.Clear();
-                        _ = {|Rename:NewMethod|}(b);
-                    }
-
-                    private static int? NewMethod(List<int> b)
-                    {
-                        return b?[0];
-                    }
+                    List<int> b = null;
+                    b?.Clear();
+                    _ = {|Rename:NewMethod|}(b);
                 }
-                """);
-        }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/48453")]
-        [InlineData("record")]
-        [InlineData("record class")]
-        public async Task TestInRecord(string record)
-        {
-            await TestInRegularAndScript1Async($@"
+                private static string NewMethod(List<int> b)
+                {
+                    return b?.ToString()?.ToString();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
+    public async Task TestConditionalAccess6()
+    {
+        await TestInRegularAndScript1Async("""
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                void Test()
+                {
+                    List<int> b = null;
+                    b?.Clear();
+                    _ = b?.ToString()?.[|ToString|]();
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                void Test()
+                {
+                    List<int> b = null;
+                    b?.Clear();
+                    _ = {|Rename:NewMethod|}(b);
+                }
+
+                private static string NewMethod(List<int> b)
+                {
+                    return b?.ToString()?.ToString();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
+    public async Task TestConditionalAccess7()
+    {
+        await TestInRegularAndScript1Async("""
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                void Test()
+                {
+                    List<int> b = null;
+                    b?.Clear();
+                    _ = b?[|[0]|];
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                void Test()
+                {
+                    List<int> b = null;
+                    b?.Clear();
+                    _ = {|Rename:NewMethod|}(b);
+                }
+
+                private static int? NewMethod(List<int> b)
+                {
+                    return b?[0];
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/48453")]
+    [InlineData("record")]
+    [InlineData("record class")]
+    public async Task TestInRecord(string record)
+    {
+        await TestInRegularAndScript1Async($@"
 {record} Program
 {{
     int field;
@@ -4905,384 +4904,383 @@ $@"
         return this.field;
     }}
 }}");
-        }
+    }
 
-        [Fact]
-        public async Task TestInRecordStruct()
-        {
-            await TestInRegularAndScript1Async("""
-                record struct Program
-                {
-                    int field;
-
-                    public int this[int i] => [|this.field|];
-                }
-                """,
-                """
-                record struct Program
-                {
-                    int field;
-
-                    public int this[int i] => {|Rename:GetField|}();
-
-                    private readonly int GetField()
-                    {
-                        return this.field;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53031")]
-        public async Task TestMethodInNamespace()
-        {
-            await TestMissingInRegularAndScriptAsync("""
-                namespace TestNamespace
-                {
-                    private bool TestMethod() => [|false|];
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53031")]
-        public async Task TestMethodInInterface()
-        {
-            await TestInRegularAndScript1Async("""
-                interface TestInterface
-                {
-                    bool TestMethod() => [|false|];
-                }
-                """,
-                """
-                interface TestInterface
-                {
-                    bool TestMethod() => {|Rename:NewMethod|}();
-
-                    bool NewMethod()
-                    {
-                        return false;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53031")]
-        public async Task TestStaticMethodInInterface()
-        {
-            await TestInRegularAndScript1Async("""
-                interface TestInterface
-                {
-                    static bool TestMethod() => [|false|];
-                }
-                """,
-                """
-                interface TestInterface
-                {
-                    static bool TestMethod() => {|Rename:NewMethod|}();
-
-                    static bool NewMethod()
-                    {
-                        return false;
-                    }
-                }
-                """);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56969")]
-        public async Task TopLevelStatement_FullStatement()
-        {
-            var code = """
-                [|System.Console.WriteLine("string");|]
-                """;
-
-            await new VerifyCS.Test
+    [Fact]
+    public async Task TestInRecordStruct()
+    {
+        await TestInRegularAndScript1Async("""
+            record struct Program
             {
-                TestState =
-                {
-                    Sources = { code },
-                    OutputKind = OutputKind.ConsoleApplication,
-                },
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
-            }.RunAsync();
-        }
+                int field;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56969")]
-        public async Task TopLevelStatement_MultipleStatements()
-        {
-            var code = """
-                System.Console.WriteLine("string");
-
-                [|int x = int.Parse("0");
-                System.Console.WriteLine(x);|]
-
-                System.Console.WriteLine(x);
-                """;
-
-            await new VerifyCS.Test
+                public int this[int i] => [|this.field|];
+            }
+            """,
+            """
+            record struct Program
             {
-                TestState =
+                int field;
+
+                public int this[int i] => {|Rename:GetField|}();
+
+                private readonly int GetField()
                 {
-                    Sources = { code },
-                    OutputKind = OutputKind.ConsoleApplication,
-                },
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
-            }.RunAsync();
-        }
+                    return this.field;
+                }
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56969")]
-        public async Task TopLevelStatement_MultipleStatementsWithUsingAndClass()
-        {
-            var code = """
-                using System;
-
-                Console.WriteLine("string");
-
-                [|int x = int.Parse("0");
-                Console.WriteLine(x);|]
-
-                Console.WriteLine(x);
-
-                class Ignored { }
-                """;
-
-            await new VerifyCS.Test
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53031")]
+    public async Task TestMethodInNamespace()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            namespace TestNamespace
             {
-                TestState =
-                {
-                    Sources = { code },
-                    OutputKind = OutputKind.ConsoleApplication,
-                },
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
-            }.RunAsync();
-        }
+                private bool TestMethod() => [|false|];
+            }
+            """);
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/56969")]
-        public async Task TopLevelStatement_MultipleStatementsWithInvalidOrdering()
-        {
-            var code = """
-                using System;
-
-                Console.WriteLine("string");
-
-                class Ignored { }
-
-                [|{|CS8803:int x = int.Parse("0");|}
-                Console.WriteLine(x);|]
-
-                Console.WriteLine(x);
-
-                class Ignored2 { }
-                """;
-
-            await new VerifyCS.Test
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53031")]
+    public async Task TestMethodInInterface()
+    {
+        await TestInRegularAndScript1Async("""
+            interface TestInterface
             {
-                TestState =
-                {
-                    Sources = { code },
-                    OutputKind = OutputKind.ConsoleApplication,
-                },
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
-            }.RunAsync();
-        }
+                bool TestMethod() => [|false|];
+            }
+            """,
+            """
+            interface TestInterface
+            {
+                bool TestMethod() => {|Rename:NewMethod|}();
 
-        [Fact, WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
-        public async Task TopLevelMethod_StaticMethod()
+                bool NewMethod()
+                {
+                    return false;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53031")]
+    public async Task TestStaticMethodInInterface()
+    {
+        await TestInRegularAndScript1Async("""
+            interface TestInterface
+            {
+                static bool TestMethod() => [|false|];
+            }
+            """,
+            """
+            interface TestInterface
+            {
+                static bool TestMethod() => {|Rename:NewMethod|}();
+
+                static bool NewMethod()
+                {
+                    return false;
+                }
+            }
+            """);
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/56969")]
+    public async Task TopLevelStatement_FullStatement()
+    {
+        var code = """
+            [|System.Console.WriteLine("string");|]
+            """;
+
+        await new VerifyCS.Test
         {
-            await TestInRegularAndScript1Async("""
+            TestState =
+            {
+                Sources = { code },
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
+        }.RunAsync();
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/56969")]
+    public async Task TopLevelStatement_MultipleStatements()
+    {
+        var code = """
+            System.Console.WriteLine("string");
+
+            [|int x = int.Parse("0");
+            System.Console.WriteLine(x);|]
+
+            System.Console.WriteLine(x);
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { code },
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
+        }.RunAsync();
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/56969")]
+    public async Task TopLevelStatement_MultipleStatementsWithUsingAndClass()
+    {
+        var code = """
+            using System;
+
+            Console.WriteLine("string");
+
+            [|int x = int.Parse("0");
+            Console.WriteLine(x);|]
+
+            Console.WriteLine(x);
+
+            class Ignored { }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { code },
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
+        }.RunAsync();
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/56969")]
+    public async Task TopLevelStatement_MultipleStatementsWithInvalidOrdering()
+    {
+        var code = """
+            using System;
+
+            Console.WriteLine("string");
+
+            class Ignored { }
+
+            [|{|CS8803:int x = int.Parse("0");|}
+            Console.WriteLine(x);|]
+
+            Console.WriteLine(x);
+
+            class Ignored2 { }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { code },
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_method),
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
+    public async Task TopLevelMethod_StaticMethod()
+    {
+        await TestInRegularAndScript1Async("""
+            static void X(string s)
+            {
+                [|s = s.Trim();|]
+            }
+            """,
+            """
+            static void X(string s)
+            {
+                s = {|Rename:NewMethod|}(s);
+            }
+
+            static string NewMethod(string s)
+            {
+                s = s.Trim();
+                return s;
+            }
+            """, parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
+    }
+
+    [Fact, WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
+    public async Task StaticMethod_ExtractStatementContainingParameter()
+    {
+        await TestInRegularAndScript1Async("""
+            public class Class
+            {
                 static void X(string s)
                 {
                     [|s = s.Trim();|]
                 }
-                """,
-                """
+            }
+            """,
+            """
+            public class Class
+            {
                 static void X(string s)
                 {
                     s = {|Rename:NewMethod|}(s);
                 }
 
-                static string NewMethod(string s)
+                private static string NewMethod(string s)
                 {
                     s = s.Trim();
                     return s;
                 }
-                """, parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
-        }
-
-        [Fact, WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
-        public async Task StaticMethod_ExtractStatementContainingParameter()
-        {
-            await TestInRegularAndScript1Async("""
-                public class Class
-                {
-                    static void X(string s)
-                    {
-                        [|s = s.Trim();|]
-                    }
-                }
-                """,
-                """
-                public class Class
-                {
-                    static void X(string s)
-                    {
-                        s = {|Rename:NewMethod|}(s);
-                    }
-
-                    private static string NewMethod(string s)
-                    {
-                        s = s.Trim();
-                        return s;
-                    }
-                }
-                """, parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57428")]
-        public async Task AttributeArgumentWithLambdaBody()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System.Runtime.InteropServices;
-                class Program
-                {
-                    static void F([DefaultParameterValue(() => { return [|null|]; })] object obj)
-                    {
-                    }
-                }
-                """,
-                """
-                using System.Runtime.InteropServices;
-                class Program
-                {
-                    static void F([DefaultParameterValue(() => { return {|Rename:NewMethod|}(); })] object obj)
-                    {
-                    }
-
-                    private static object NewMethod()
-                    {
-                        return null;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public Task ExtractMethod_InsideBaseInitializer()
-            => TestInRegularAndScript1Async(
-                """
-                class Base
-                {
-                    private readonly int _x;
-                    public Base(int x)
-                    {
-                        _x = x;
-                    }
-                }
-
-                class C : Base
-                {
-                    public C(int y)
-                        : base([|y + 1|])
-                    {
-                    }
-                }
-                """,
-                """
-                class Base
-                {
-                    private readonly int _x;
-                    public Base(int x)
-                    {
-                        _x = x;
-                    }
-                }
-
-                class C : Base
-                {
-                    public C(int y)
-                        : base({|Rename:NewMethod|}(y))
-                    {
-                    }
-
-                    private static int NewMethod(int y)
-                    {
-                        return y + 1;
-                    }
-                }
-                """);
-
-        [Fact]
-        public Task ExtractMethod_InsideThisInitializer()
-            => TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    public C(int y)
-                        : this(y, [|y + 1|])
-                    {
-                    }
-
-                    public C(int x, int y)
-                    {
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    public C(int y)
-                        : this(y, {|Rename:NewMethod|}(y))
-                    {
-                    }
-
-                    private static int NewMethod(int y)
-                    {
-                        return y + 1;
-                    }
-            
-                    public C(int x, int y)
-                    {
-                    }
-                }
-                """);
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8439")]
-        public Task TestRefReturn1()
-            => TestInRegularAndScript1Async(
-                """
-                class Program
-                {
-                    public ref int M()
-                    {
-                        return [|ref M()|];
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    public ref int M()
-                    {
-                        return ref {|Rename:NewMethod|}();
-                    }
-
-                    private ref int NewMethod()
-                    {
-                        return ref M();
-                    }
-                }
-                """);
+            }
+            """, parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57428")]
+    public async Task AttributeArgumentWithLambdaBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Runtime.InteropServices;
+            class Program
+            {
+                static void F([DefaultParameterValue(() => { return [|null|]; })] object obj)
+                {
+                }
+            }
+            """,
+            """
+            using System.Runtime.InteropServices;
+            class Program
+            {
+                static void F([DefaultParameterValue(() => { return {|Rename:NewMethod|}(); })] object obj)
+                {
+                }
+
+                private static object NewMethod()
+                {
+                    return null;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public Task ExtractMethod_InsideBaseInitializer()
+        => TestInRegularAndScript1Async(
+            """
+            class Base
+            {
+                private readonly int _x;
+                public Base(int x)
+                {
+                    _x = x;
+                }
+            }
+
+            class C : Base
+            {
+                public C(int y)
+                    : base([|y + 1|])
+                {
+                }
+            }
+            """,
+            """
+            class Base
+            {
+                private readonly int _x;
+                public Base(int x)
+                {
+                    _x = x;
+                }
+            }
+
+            class C : Base
+            {
+                public C(int y)
+                    : base({|Rename:NewMethod|}(y))
+                {
+                }
+
+                private static int NewMethod(int y)
+                {
+                    return y + 1;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task ExtractMethod_InsideThisInitializer()
+        => TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public C(int y)
+                    : this(y, [|y + 1|])
+                {
+                }
+
+                public C(int x, int y)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C(int y)
+                    : this(y, {|Rename:NewMethod|}(y))
+                {
+                }
+
+                private static int NewMethod(int y)
+                {
+                    return y + 1;
+                }
+        
+                public C(int x, int y)
+                {
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8439")]
+    public Task TestRefReturn1()
+        => TestInRegularAndScript1Async(
+            """
+            class Program
+            {
+                public ref int M()
+                {
+                    return [|ref M()|];
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                public ref int M()
+                {
+                    return ref {|Rename:NewMethod|}();
+                }
+
+                private ref int NewMethod()
+                {
+                    return ref M();
+                }
+            }
+            """);
 }

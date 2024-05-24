@@ -28,6 +28,7 @@ internal class KeywordCompletionProvider : AbstractKeywordCompletionProvider<CSh
             new AbstractKeywordRecommender(),
             new AddKeywordRecommender(),
             new AliasKeywordRecommender(),
+            new AllowsKeywordRecommender(),
             new AndKeywordRecommender(),
             new AnnotationsKeywordRecommender(),
             new AscendingKeywordRecommender(),

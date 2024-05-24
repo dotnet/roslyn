@@ -68,6 +68,7 @@ internal sealed class FindReferenceCache
 
     private ImmutableHashSet<string>? _aliasNameSet;
     private ImmutableArray<SyntaxToken> _constructorInitializerCache;
+    private ImmutableArray<SyntaxToken> _newKeywordsCache;
 
     private FindReferenceCache(
         Document document, SourceText text, SemanticModel semanticModel, SemanticModel nullableEnabledSemanticModel, SyntaxNode root, SyntaxTreeIndex syntaxTreeIndex)
@@ -130,9 +131,19 @@ internal sealed class FindReferenceCache
         // walks the root and checks all identifier tokens.
         //
         // otherwise, we can use the text of the document to quickly find candidates and test those directly.
-        return this.SyntaxTreeIndex.ProbablyContainsEscapedIdentifier(identifier)
-            ? _identifierCache.GetOrAdd(identifier, identifier => FindMatchingIdentifierTokensFromTree(identifier, cancellationToken))
-            : _identifierCache.GetOrAdd(identifier, _ => FindMatchingIdentifierTokensFromText(identifier, cancellationToken));
+        if (this.SyntaxTreeIndex.ProbablyContainsEscapedIdentifier(identifier))
+        {
+            return _identifierCache.GetOrAdd(
+                identifier,
+                identifier => FindMatchingIdentifierTokensFromTree(identifier, cancellationToken));
+        }
+
+        return _identifierCache.GetOrAdd(
+            identifier,
+            identifier => FindMatchingTokensFromText(
+                identifier,
+                static (identifier, token, @this) => @this.IsMatch(identifier, token),
+                this, cancellationToken));
     }
 
     private bool IsMatch(string identifier, SyntaxToken token)
@@ -150,9 +161,9 @@ internal sealed class FindReferenceCache
         while (stack.TryPop(out var current))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (current.IsNode)
+            if (current.AsNode(out var currentNode))
             {
-                foreach (var child in current.AsNode()!.ChildNodesAndTokens().Reverse())
+                foreach (var child in currentNode.ChildNodesAndTokens().Reverse())
                     stack.Push(child);
             }
             else if (current.IsToken)
@@ -176,55 +187,69 @@ internal sealed class FindReferenceCache
         return result.ToImmutableAndClear();
     }
 
-    private ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromText(
-        string identifier, CancellationToken cancellationToken)
+    private ImmutableArray<SyntaxToken> FindMatchingTokensFromText<TArgs>(
+        string text, Func<string, SyntaxToken, TArgs, bool> isMatch, TArgs args, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
 
         var index = 0;
-        while ((index = this.Text.IndexOf(identifier, index, this.SyntaxFacts.IsCaseSensitive)) >= 0)
+        while ((index = this.Text.IndexOf(text, index, this.SyntaxFacts.IsCaseSensitive)) >= 0)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var token = this.Root.FindToken(index, findInsideTrivia: true);
             var span = token.Span;
-            if (span.Start == index && span.Length == identifier.Length && IsMatch(identifier, token))
+            if (span.Start == index && span.Length == text.Length && isMatch(text, token, args))
                 result.Add(token);
 
-            var nextIndex = index + identifier.Length;
+            var nextIndex = index + text.Length;
             nextIndex = Math.Max(nextIndex, token.SpanStart);
             index = nextIndex;
         }
 
         return result.ToImmutableAndClear();
     }
-    public IEnumerable<SyntaxToken> GetConstructorInitializerTokens(
-        ISyntaxFactsService syntaxFacts, SyntaxNode root, CancellationToken cancellationToken)
+
+    public ImmutableArray<SyntaxToken> GetConstructorInitializerTokens(CancellationToken cancellationToken)
     {
         // this one will only get called when we know given document contains constructor initializer.
         // no reason to use text to check whether it exist first.
         if (_constructorInitializerCache.IsDefault)
-        {
-            var initializers = GetConstructorInitializerTokensWorker(syntaxFacts, root, cancellationToken);
-            ImmutableInterlocked.InterlockedInitialize(ref _constructorInitializerCache, initializers);
-        }
+            ImmutableInterlocked.InterlockedInitialize(ref _constructorInitializerCache, GetConstructorInitializerTokensWorker());
 
         return _constructorInitializerCache;
+
+        ImmutableArray<SyntaxToken> GetConstructorInitializerTokensWorker()
+        {
+            var syntaxFacts = this.SyntaxFacts;
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var initializers);
+            foreach (var constructor in syntaxFacts.GetConstructors(this.Root, cancellationToken))
+            {
+                foreach (var token in constructor.DescendantTokens(descendIntoTrivia: false))
+                {
+                    if (syntaxFacts.IsThisConstructorInitializer(token) || syntaxFacts.IsBaseConstructorInitializer(token))
+                        initializers.Add(token);
+                }
+            }
+
+            return initializers.ToImmutableAndClear();
+        }
     }
 
-    private static ImmutableArray<SyntaxToken> GetConstructorInitializerTokensWorker(
-        ISyntaxFactsService syntaxFacts, SyntaxNode root, CancellationToken cancellationToken)
+    public ImmutableArray<SyntaxToken> GetNewKeywordTokens(CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var initializers);
-        foreach (var constructor in syntaxFacts.GetConstructors(root, cancellationToken))
-        {
-            foreach (var token in constructor.DescendantTokens(descendIntoTrivia: false))
-            {
-                if (syntaxFacts.IsThisConstructorInitializer(token) || syntaxFacts.IsBaseConstructorInitializer(token))
-                    initializers.Add(token);
-            }
-        }
+        if (_newKeywordsCache.IsDefault)
+            ImmutableInterlocked.InterlockedInitialize(ref _newKeywordsCache, GetNewKeywordTokensWorker());
 
-        return initializers.ToImmutableAndClear();
+        return _newKeywordsCache;
+
+        ImmutableArray<SyntaxToken> GetNewKeywordTokensWorker()
+        {
+            return this.FindMatchingTokensFromText(
+                this.SyntaxFacts.GetText(this.SyntaxFacts.SyntaxKinds.NewKeyword),
+                static (_, token, syntaxKinds) => token.RawKind == syntaxKinds.NewKeyword,
+                this.SyntaxFacts.SyntaxKinds,
+                cancellationToken);
+        }
     }
 }
