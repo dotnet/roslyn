@@ -91,12 +91,43 @@ internal readonly partial record struct Checksum
                 checksum.WriteTo(writer);
         });
 
+    public static Checksum CreateNew(ArrayBuilder<Checksum> checksums)
+    {
+        var checksumsCount = checksums.Count;
+        if (checksumsCount <= 100)
+        {
+            Span<Checksum> hashes = stackalloc Checksum[checksumsCount];
+            for (var i = 0; i < checksumsCount; i++)
+                hashes[i] = checksums[i];
+
+            return Create(hashes);
+        }
+
+        return Create(checksums);
+    }
+
+    public static Checksum CreateNew(ImmutableArray<Checksum> checksums)
+    {
+        var hashes = ImmutableCollectionsMarshal.AsArray(checksums).AsSpan();
+
+        return Create(hashes);
+    }
+
     public static Checksum Create(ImmutableArray<Checksum> checksums)
         => Create(checksums, static (checksums, writer) =>
         {
             foreach (var checksum in checksums)
                 checksum.WriteTo(writer);
         });
+
+    public static Checksum CreateNew(ImmutableArray<byte> bytes)
+    {
+        var source = ImmutableCollectionsMarshal.AsArray(bytes).AsSpan();
+
+        Span<byte> destination = stackalloc byte[XXHash128SizeBytes];
+        XxHash128.Hash(source, destination);
+        return From(destination);
+    }
 
     public static Checksum Create(ImmutableArray<byte> bytes)
         => Create(bytes, static (bytes, writer) =>
