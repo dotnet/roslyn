@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -122,11 +123,21 @@ namespace Microsoft.CodeAnalysis.Remote
                         var newVersions = await _assetProvider.GetAssetAsync<SourceGeneratorExecutionVersionMap>(
                             AssetPathKind.SolutionSourceGeneratorExecutionVersionMap, newSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
-                        // The execution version map will be for the entire solution on the host side.  However, we may
-                        // only be syncing over a partial cone.  In that case, filter down the version map we apply to
-                        // the local solution to only be for that cone as well.
-                        newVersions = FilterToProjectCone(newVersions, newSolutionChecksums.ProjectCone);
-                        solution = solution.WithSourceGeneratorExecutionVersions(newVersions, cancellationToken);
+#if DEBUG
+                        var projectCone = newSolutionChecksums.ProjectCone;
+                        if (projectCone != null)
+                        {
+                            Debug.Assert(projectCone.ProjectIds.Count == newVersions.Map.Count);
+                            Debug.Assert(projectCone.ProjectIds.All(id => newVersions.Map.ContainsKey(id)));
+                        }
+                        else
+                        {
+                            Debug.Assert(solution.ProjectIds.Count == newVersions.Map.Count);
+                            Debug.Assert(solution.ProjectIds.All(id => newVersions.Map.ContainsKey(id)));
+                        }
+#endif
+
+                        solution = solution.UpdateSpecificSourceGeneratorExecutionVersions(newVersions, cancellationToken);
                     }
 
 #if DEBUG
@@ -139,21 +150,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable();
-                }
-
-                static SourceGeneratorExecutionVersionMap FilterToProjectCone(SourceGeneratorExecutionVersionMap map, ProjectCone? projectCone)
-                {
-                    if (projectCone is null)
-                        return map;
-
-                    var builder = map.Map.ToBuilder();
-                    foreach (var (projectId, _) in map.Map)
-                    {
-                        if (!projectCone.Contains(projectId))
-                            builder.Remove(projectId);
-                    }
-
-                    return new(builder.ToImmutable());
                 }
             }
 
