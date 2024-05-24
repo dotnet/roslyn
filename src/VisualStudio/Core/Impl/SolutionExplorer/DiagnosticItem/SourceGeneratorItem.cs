@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             : base(name: SourceGeneratorIdentity.GetGeneratorTypeName(generator))
         {
             ProjectId = projectId;
-            Identity = new SourceGeneratorIdentity(generator, analyzerReference);
+            Identity = SourceGeneratorIdentity.Create(generator, analyzerReference);
             AnalyzerReference = analyzerReference;
         }
 

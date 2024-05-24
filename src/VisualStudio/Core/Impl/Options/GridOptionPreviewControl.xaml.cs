@@ -5,17 +5,12 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -56,12 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _createViewModel = createViewModel;
             _language = language;
             _groupedEditorConfigOptions = groupedEditorConfigOptions;
-        }
-
-        internal static IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageAgnosticEditorConfigOptions()
-        {
-            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.Options);
-            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions));
         }
 
         private void LearnMoreHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
@@ -116,22 +105,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Logger.Log(FunctionId.ToolsOptions_GenerateEditorconfig);
 
             var editorconfig = EditorConfigFileGenerator.Generate(_groupedEditorConfigOptions, OptionStore, _language);
-            using (var sfd = new System.Windows.Forms.SaveFileDialog
+            using var sfd = new System.Windows.Forms.SaveFileDialog
             {
                 Filter = "All files (*.*)|",
                 FileName = ".editorconfig",
                 Title = ServicesVSResources.Save_dot_editorconfig_file,
                 InitialDirectory = GetInitialDirectory()
-            })
+            };
+            if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                IOUtilities.PerformIO(() =>
                 {
-                    IOUtilities.PerformIO(() =>
-                    {
-                        var filePath = sfd.FileName;
-                        File.WriteAllText(filePath, editorconfig.ToString());
-                    });
-                }
+                    var filePath = sfd.FileName;
+                    File.WriteAllText(filePath, editorconfig.ToString());
+                });
             }
         }
 

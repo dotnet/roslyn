@@ -5,22 +5,18 @@
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal partial class TagSpanIntervalTree<TTag>
 {
-    internal partial class TagSpanIntervalTree<TTag>
+    private readonly struct IntervalIntrospector(ITextSnapshot snapshot) : IIntervalIntrospector<TagNode>
     {
-        private readonly struct IntervalIntrospector : IIntervalIntrospector<TagNode>
-        {
-            public readonly ITextSnapshot Snapshot;
+        public readonly ITextSnapshot Snapshot = snapshot;
 
-            public IntervalIntrospector(ITextSnapshot snapshot)
-                => this.Snapshot = snapshot;
+        public int GetStart(TagNode value)
+            => value.GetStart(this.Snapshot);
 
-            public int GetStart(TagNode value)
-                => value.GetStart(this.Snapshot);
-
-            public int GetLength(TagNode value)
-                => value.GetLength(this.Snapshot);
-        }
+        public int GetLength(TagNode value)
+            => value.GetLength(this.Snapshot);
     }
 }

@@ -695,12 +695,62 @@ class Test
     unsafe async static Task M1(int* i) { }
 }";
             CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,38): error CS4005: Async methods cannot have unsafe parameters or return types
+                // (6,38): error CS4005: Async methods cannot have pointer type parameters
                 //     unsafe async static Task M1(int* i)
                 Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i"),
                 // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     unsafe async static Task M1(ref int* i)
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M1"));
+        }
+
+        [Fact]
+        public void UnsafeAsyncArgType_FunctionPointer()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class Test
+{
+    unsafe async static Task M1(delegate*<void> i) { }
+}";
+            CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,49): error CS4005: Async methods cannot have pointer type parameters
+                //     unsafe async static Task M1(delegate*<void> i) { }
+                Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i").WithLocation(6, 49),
+                // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     unsafe async static Task M1(delegate*<void> i) { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M1").WithLocation(6, 30)
+                );
+        }
+
+        [Fact]
+        public void UnsafeAsyncArgType_PointerArray()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+class Test
+{
+    unsafe async static Task M1(int*[] i) { await Task.Yield(); } // 1
+    unsafe async static Task M2(delegate*<void>[] i) { await Task.Yield(); } // 2
+    async static Task M3(int*[] i) { await Task.Yield(); } // 3
+    async static Task M4(delegate*<void>[] i) { await Task.Yield(); } // 4
+}";
+            CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (6,45): error CS4004: Cannot await in an unsafe context
+                    //     unsafe async static Task M1(int*[] i) { await Task.Yield(); } // 1
+                    Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(6, 45),
+                    // (7,56): error CS4004: Cannot await in an unsafe context
+                    //     unsafe async static Task M2(delegate*<void>[] i) { await Task.Yield(); } // 2
+                    Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(7, 56),
+                    // (8,26): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //     async static Task M3(int*[] i) { await Task.Yield(); } // 3
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(8, 26),
+                    // (9,26): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //     async static Task M4(delegate*<void>[] i) { await Task.Yield(); } // 4
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(9, 26)
+                    );
         }
 
         [Fact]
@@ -3168,9 +3218,9 @@ class Test
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (7,34): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions
+                // (7,34): error CS4012: Parameters of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions
                 //     async Task M1(TypedReference tr)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "tr").WithArguments("System.TypedReference"));
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "tr").WithArguments("System.TypedReference"));
         }
 
         [Fact]
@@ -3188,10 +3238,7 @@ class Test
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (9,9): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions
-                //         TypedReference tr;
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "TypedReference").WithArguments("System.TypedReference"),
+            CreateCompilationWithMscorlib45(source).VerifyEmitDiagnostics(
                 // (9,24): warning CS0168: The variable 'tr' is declared but never used
                 //         TypedReference tr;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "tr").WithArguments("tr"));
@@ -3208,17 +3255,32 @@ class Test
 {
     async Task M1(bool truth)
     {
-        var tr = new TypedReference();
+        var tr = new TypedReference(); // 1
         await Task.Factory.StartNew(() => { });
     }
+
+    async Task M2(bool truth)
+    {
+        var tr = new TypedReference();
+        await Task.Factory.StartNew(() => { });
+        var tr2 = tr; // 2
+    }
+
+    async Task M3()
+    {
+        var tr = new TypedReference();
+        await Task.Factory.StartNew(() => { });
+        tr = default;
+        var tr2 = tr;
+    }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (9,9): error CS4012: Parameters or locals of type 'TypedReference' cannot be declared in async methods or async lambda expressions.
-                //         var tr = new TypedReference();
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.TypedReference").WithLocation(9, 9),
+            CreateCompilationWithMscorlib45(source).VerifyEmitDiagnostics(
                 // (9,13): warning CS0219: The variable 'tr' is assigned but its value is never used
-                //         var tr = new TypedReference();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "tr").WithArguments("tr").WithLocation(9, 13));
+                //         var tr = new TypedReference(); // 1
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "tr").WithArguments("tr").WithLocation(9, 13),
+                // (17,19): error CS4007: Instance of type 'System.TypedReference' cannot be preserved across 'await' or 'yield' boundary.
+                //         var tr2 = tr; // 2
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "tr").WithArguments("System.TypedReference").WithLocation(17, 19));
         }
 
         [Fact]
@@ -3238,9 +3300,6 @@ public class MyClass
                 // (8,31): error CS0209: The type of a local declared in a fixed statement must be a pointer type
                 //         fixed (TypedReference tr) { }
                 Diagnostic(ErrorCode.ERR_BadFixedInitType, "tr"),
-                // (8,16): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions.
-                //         fixed (TypedReference tr) { }
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "TypedReference").WithArguments("System.TypedReference"),
                 // (8,31): error CS0210: You must provide an initializer in a fixed or using statement declaration
                 //         fixed (TypedReference tr) { }
                 Diagnostic(ErrorCode.ERR_FixedMustInit, "tr"),

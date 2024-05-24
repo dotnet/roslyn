@@ -13,810 +13,1131 @@ using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    UseExpressionBodyDiagnosticAnalyzer,
+    UseExpressionBodyCodeFixProvider>;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+public class UseExpressionBodyForMethodsAnalyzerTests
 {
-    using VerifyCS = CSharpCodeFixVerifier<
-        UseExpressionBodyDiagnosticAnalyzer,
-        UseExpressionBodyCodeFixProvider>;
-
-    [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-    public class UseExpressionBodyForMethodsAnalyzerTests
+    private static async Task TestWithUseExpressionBody(string code, string fixedCode, LanguageVersion version = LanguageVersion.CSharp8)
     {
-        private static async Task TestWithUseExpressionBody(string code, string fixedCode, LanguageVersion version = LanguageVersion.CSharp8)
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = code,
+            FixedCode = fixedCode,
+            LanguageVersion = version,
+            Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, ExpressionBodyPreference.WhenPossible } }
+        }.RunAsync();
+    }
+
+    private static async Task TestWithUseBlockBody(string code, string fixedCode, ReferenceAssemblies? referenceAssemblies = null)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = fixedCode,
+            Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, ExpressionBodyPreference.Never } },
+            ReferenceAssemblies = referenceAssemblies ?? ReferenceAssemblies.Default,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public void TestOptionEditorConfig1()
+    {
+        var option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+        Assert.Equal(ExpressionBodyPreference.WhenPossible, option.Value);
+        Assert.Equal(NotificationOption2.Silent, option.Notification);
+
+        option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("false", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+        Assert.Equal(ExpressionBodyPreference.Never, option.Value);
+        Assert.Equal(NotificationOption2.Silent, option.Notification);
+
+        option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_on_single_line", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+        Assert.Equal(ExpressionBodyPreference.WhenOnSingleLine, option.Value);
+        Assert.Equal(NotificationOption2.Silent, option.Notification);
+
+        option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true:blah", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+        Assert.Equal(ExpressionBodyPreference.Never, option.Value);
+        Assert.Equal(NotificationOption2.Silent, option.Notification);
+
+        option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_blah:error", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+        Assert.Equal(ExpressionBodyPreference.Never, option.Value);
+        Assert.Equal(NotificationOption2.Silent, option.Notification);
+
+        option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("false:error", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+        Assert.Equal(ExpressionBodyPreference.Never, option.Value);
+        Assert.Equal(NotificationOption2.Error.WithIsExplicitlySpecified(true), option.Notification);
+
+        option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true:warning", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+        Assert.Equal(ExpressionBodyPreference.WhenPossible, option.Value);
+        Assert.Equal(NotificationOption2.Warning.WithIsExplicitlySpecified(true), option.Notification);
+
+        option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_on_single_line:suggestion", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+        Assert.Equal(ExpressionBodyPreference.WhenOnSingleLine, option.Value);
+        Assert.Equal(NotificationOption2.Suggestion.WithIsExplicitlySpecified(true), option.Notification);
+    }
+
+    [Fact]
+    public async Task TestUseExpressionBody1()
+    {
+        var code = """
+            class C
             {
-                TestCode = code,
-                FixedCode = fixedCode,
-                LanguageVersion = version,
-                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, ExpressionBodyPreference.WhenPossible } }
-            }.RunAsync();
-        }
+                void Bar() => Bar();
 
-        private static async Task TestWithUseBlockBody(string code, string fixedCode, ReferenceAssemblies? referenceAssemblies = null)
-        {
-            await new VerifyCS.Test
+                {|IDE0022:void Goo()
+                {
+                    Bar();
+                }|}
+            }
+            """;
+        var fixedCode = """
+            class C
             {
-                TestCode = code,
-                FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, ExpressionBodyPreference.Never } },
-                ReferenceAssemblies = referenceAssemblies ?? ReferenceAssemblies.Default,
-            }.RunAsync();
-        }
+                void Bar() => Bar();
 
-        [Fact]
-        public void TestOptionEditorConfig1()
-        {
-            var option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
-            Assert.Equal(ExpressionBodyPreference.WhenPossible, option.Value);
-            Assert.Equal(NotificationOption2.Silent, option.Notification);
+                void Goo() => Bar();
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
 
-            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("false", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
-            Assert.Equal(ExpressionBodyPreference.Never, option.Value);
-            Assert.Equal(NotificationOption2.Silent, option.Notification);
+    [Fact]
+    public async Task TestUseExpressionBody2()
+    {
+        var code = """
+            class C
+            {
+                int Bar() => 0;
 
-            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_on_single_line", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
-            Assert.Equal(ExpressionBodyPreference.WhenOnSingleLine, option.Value);
-            Assert.Equal(NotificationOption2.Silent, option.Notification);
-
-            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true:blah", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
-            Assert.Equal(ExpressionBodyPreference.Never, option.Value);
-            Assert.Equal(NotificationOption2.Silent, option.Notification);
-
-            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_blah:error", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
-            Assert.Equal(ExpressionBodyPreference.Never, option.Value);
-            Assert.Equal(NotificationOption2.Silent, option.Notification);
-
-            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("false:error", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
-            Assert.Equal(ExpressionBodyPreference.Never, option.Value);
-            Assert.Equal(NotificationOption2.Error, option.Notification);
-
-            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true:warning", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
-            Assert.Equal(ExpressionBodyPreference.WhenPossible, option.Value);
-            Assert.Equal(NotificationOption2.Warning, option.Notification);
-
-            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_on_single_line:suggestion", CSharpCodeStyleOptions.NeverWithSilentEnforcement);
-            Assert.Equal(ExpressionBodyPreference.WhenOnSingleLine, option.Value);
-            Assert.Equal(NotificationOption2.Suggestion, option.Notification);
-        }
-
-        [Fact]
-        public async Task TestUseExpressionBody1()
-        {
-            var code = """
-                class C
+                {|IDE0022:int Goo()
                 {
-                    void Bar() => Bar();
+                    return Bar();
+                }|}
+            }
+            """;
+        var fixedCode = """
+            class C
+            {
+                int Bar() => 0;
 
-                    {|IDE0022:void Goo()
-                    {
-                        Bar();
-                    }|}
-                }
-                """;
-            var fixedCode = """
-                class C
+                int Goo() => Bar();
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact]
+    public async Task TestUseExpressionBody3()
+    {
+        var code = """
+            using System;
+
+            class C
+            {
+                {|IDE0022:int Goo()
                 {
-                    void Bar() => Bar();
+                    throw new NotImplementedException();
+                }|}
+            }
+            """;
+        var fixedCode = """
+            using System;
 
-                    void Goo() => Bar();
-                }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
+            class C
+            {
+                int Goo() => throw new NotImplementedException();
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
 
-        [Fact]
-        public async Task TestUseExpressionBody2()
-        {
-            var code = """
-                class C
+    [Fact]
+    public async Task TestUseExpressionBody4()
+    {
+        var code = """
+            using System;
+
+            class C
+            {
+                {|IDE0022:int Goo()
                 {
-                    int Bar() => 0;
+                    throw new NotImplementedException(); // comment
+                }|}
+            }
+            """;
+        var fixedCode = """
+            using System;
 
-                    {|IDE0022:int Goo()
-                    {
-                        return Bar();
-                    }|}
-                }
-                """;
-            var fixedCode = """
-                class C
+            class C
+            {
+                int Goo() => throw new NotImplementedException(); // comment
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact]
+    public async Task TestUseBlockBody1()
+    {
+        var code = """
+            class C
+            {
+                void Bar() { }
+
+                {|IDE0022:void Goo() => Bar();|}
+            }
+            """;
+        var fixedCode = """
+            class C
+            {
+                void Bar() { }
+
+                void Goo()
                 {
-                    int Bar() => 0;
-
-                    int Goo() => Bar();
+                    Bar();
                 }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
+            }
+            """;
+        await TestWithUseBlockBody(code, fixedCode);
+    }
 
-        [Fact]
-        public async Task TestUseExpressionBody3()
-        {
-            var code = """
-                using System;
+    [Fact]
+    public async Task TestUseBlockBody2()
+    {
+        var code = """
+            class C
+            {
+                int Bar() { return 0; }
 
-                class C
+                {|IDE0022:int Goo() => Bar();|}
+            }
+            """;
+        var fixedCode = """
+            class C
+            {
+                int Bar() { return 0; }
+
+                int Goo()
                 {
-                    {|IDE0022:int Goo()
-                    {
-                        throw new NotImplementedException();
-                    }|}
+                    return Bar();
                 }
-                """;
-            var fixedCode = """
-                using System;
+            }
+            """;
+        await TestWithUseBlockBody(code, fixedCode);
+    }
 
-                class C
+    [Fact]
+    public async Task TestUseBlockBody3()
+    {
+        var code = """
+            using System;
+
+            class C
+            {
+                {|IDE0022:int Goo() => throw new NotImplementedException();|}
+            }
+            """;
+        var fixedCode = """
+            using System;
+
+            class C
+            {
+                int Goo()
                 {
-                    int Goo() => throw new NotImplementedException();
+                    throw new NotImplementedException();
                 }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
+            }
+            """;
+        await TestWithUseBlockBody(code, fixedCode);
+    }
 
-        [Fact]
-        public async Task TestUseExpressionBody4()
-        {
-            var code = """
-                using System;
+    [Fact]
+    public async Task TestUseBlockBody4()
+    {
+        var code = """
+            using System;
 
-                class C
+            class C
+            {
+                {|IDE0022:int Goo() => throw new NotImplementedException();|} // comment
+            }
+            """;
+        var fixedCode = """
+            using System;
+
+            class C
+            {
+                int Goo()
                 {
-                    {|IDE0022:int Goo()
-                    {
-                        throw new NotImplementedException(); // comment
-                    }|}
+                    throw new NotImplementedException(); // comment
                 }
-                """;
-            var fixedCode = """
-                using System;
+            }
+            """;
+        await TestWithUseBlockBody(code, fixedCode);
+    }
 
-                class C
+    [Fact]
+    public async Task TestComments1()
+    {
+        var code = """
+            class C
+            {
+                void Bar() => Bar();
+
+                {|IDE0022:void Goo()
                 {
-                    int Goo() => throw new NotImplementedException(); // comment
-                }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
+                    // Comment
+                    Bar();
+                }|}
+            }
+            """;
+        var fixedCode = """
+            class C
+            {
+                void Bar() => Bar();
 
-        [Fact]
-        public async Task TestUseBlockBody1()
-        {
-            var code = """
-                class C
+                void Goo() =>
+                    // Comment
+                    Bar();
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact]
+    public async Task TestComments2()
+    {
+        var code = """
+            class C
+            {
+                int Bar() => 0;
+
+                {|IDE0022:int Goo()
                 {
-                    void Bar() { }
+                    // Comment
+                    return Bar();
+                }|}
+            }
+            """;
+        var fixedCode = """
+            class C
+            {
+                int Bar() => 0;
 
-                    {|IDE0022:void Goo() => Bar();|}
-                }
-                """;
-            var fixedCode = """
-                class C
+                int Goo() =>
+                    // Comment
+                    Bar();
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact]
+    public async Task TestComments3()
+    {
+        var code = """
+            using System;
+
+            class C
+            {
+                Exception Bar() => new Exception();
+
+                {|IDE0022:void Goo()
                 {
-                    void Bar() { }
+                    // Comment
+                    throw Bar();
+                }|}
+            }
+            """;
+        var fixedCode = """
+            using System;
 
-                    void Goo()
-                    {
-                        Bar();
-                    }
-                }
-                """;
-            await TestWithUseBlockBody(code, fixedCode);
-        }
+            class C
+            {
+                Exception Bar() => new Exception();
 
-        [Fact]
-        public async Task TestUseBlockBody2()
-        {
-            var code = """
-                class C
+                void Goo() =>
+                    // Comment
+                    throw Bar();
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact]
+    public async Task TestComments4()
+    {
+        var code = """
+            class C
+            {
+                void Bar() => Bar();
+
+                {|IDE0022:void Goo()
                 {
-                    int Bar() { return 0; }
+                    Bar(); // Comment
+                }|}
+            }
+            """;
+        var fixedCode = """
+            class C
+            {
+                void Bar() => Bar();
 
-                    {|IDE0022:int Goo() => Bar();|}
-                }
-                """;
-            var fixedCode = """
-                class C
+                void Goo() => Bar(); // Comment
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact]
+    public async Task TestComments5()
+    {
+        var code = """
+            class C
+            {
+                int Bar() => 0;
+
+                {|IDE0022:int Goo()
                 {
-                    int Bar() { return 0; }
+                    return Bar(); // Comment
+                }|}
+            }
+            """;
+        var fixedCode = """
+            class C
+            {
+                int Bar() => 0;
 
-                    int Goo()
-                    {
-                        return Bar();
-                    }
-                }
-                """;
-            await TestWithUseBlockBody(code, fixedCode);
-        }
+                int Goo() => Bar(); // Comment
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
 
-        [Fact]
-        public async Task TestUseBlockBody3()
-        {
-            var code = """
-                using System;
+    [Fact]
+    public async Task TestComments6()
+    {
+        var code = """
+            using System;
 
-                class C
+            class C
+            {
+                Exception Bar() => new Exception();
+
+                {|IDE0022:void Goo()
                 {
-                    {|IDE0022:int Goo() => throw new NotImplementedException();|}
-                }
-                """;
-            var fixedCode = """
-                using System;
+                    throw Bar(); // Comment
+                }|}
+            }
+            """;
+        var fixedCode = """
+            using System;
 
-                class C
+            class C
+            {
+                Exception Bar() => new Exception();
+
+                void Goo() => throw Bar(); // Comment
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+    public async Task TestDirectives1()
+    {
+        var code = """
+            #define DEBUG
+            using System;
+
+            class Program
+            {
+                {|IDE0022:void Method()
                 {
-                    int Goo()
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """;
-            await TestWithUseBlockBody(code, fixedCode);
-        }
+            #if DEBUG
+                    Console.WriteLine();
+            #endif
+                }|}
+            }
+            """;
+        var fixedCode = """
+            #define DEBUG
+            using System;
 
-        [Fact]
-        public async Task TestUseBlockBody4()
-        {
-            var code = """
-                using System;
+            class Program
+            {
+                void Method() =>
+            #if DEBUG
+                    Console.WriteLine();
+            #endif
 
-                class C
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+    public async Task TestDirectives2()
+    {
+        var code = """
+            #define DEBUG
+            using System;
+
+            class Program
+            {
+                {|IDE0022:void Method()
                 {
-                    {|IDE0022:int Goo() => throw new NotImplementedException();|} // comment
-                }
-                """;
-            var fixedCode = """
-                using System;
+            #if DEBUG
+                    Console.WriteLine(0);
+            #else
+                    Console.WriteLine(1);
+            #endif
+                }|}
+            }
+            """;
+        var fixedCode = """
+            #define DEBUG
+            using System;
 
-                class C
+            class Program
+            {
+                void Method() =>
+            #if DEBUG
+                    Console.WriteLine(0);
+            #else
+                    Console.WriteLine(1);
+            #endif
+
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69783")]
+    public async Task TestDirectives3()
+    {
+        var code = """
+            #define DEBUG
+            using System;
+
+            class Program
+            {
+                void Method()
                 {
-                    int Goo()
-                    {
-                        throw new NotImplementedException(); // comment
-                    }
+            #if DEBUG
+                    Console.WriteLine(0);
+            #else
+                    Console.WriteLine(1);
+                    Console.WriteLine(2);
+            #endif
                 }
-                """;
-            await TestWithUseBlockBody(code, fixedCode);
-        }
+            }
+            """;
+        await TestWithUseExpressionBody(code, code);
+    }
 
-        [Fact]
-        public async Task TestComments1()
-        {
-            var code = """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+    public async Task TestDirectives4()
+    {
+        var code = """
+            #define RELEASE
+            using System;
+
+            class Program
+            {
+                {|IDE0022:void Method()
                 {
-                    void Bar() => Bar();
+            #if DEBUG
+                    Console.WriteLine(0);
+            #else
+                    Console.WriteLine(1);
+            #endif
+                }|}
+            }
+            """;
+        var fixedCode = """
+            #define RELEASE
+            using System;
 
-                    {|IDE0022:void Goo()
-                    {
-                        // Comment
-                        Bar();
-                    }|}
-                }
-                """;
-            var fixedCode = """
-                class C
+            class Program
+            {
+                void Method() =>
+            #if DEBUG
+                    Console.WriteLine(0);
+            #else
+                    Console.WriteLine(1);
+            #endif
+
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+    public async Task TestDirectives5()
+    {
+        var code = """
+            #define DEBUG
+            using System;
+
+            class Program
+            {
+                {|IDE0022:void Method()
                 {
-                    void Bar() => Bar();
+            #if DEBUG
+                    Console.WriteLine(0);
+            #else
+                    throw new System.NotImplementedException();
+            #endif
+                }|}
+            }
+            """;
+        var fixedCode = """
+            #define DEBUG
+            using System;
 
-                    void Goo() =>
-                        // Comment
-                        Bar();
-                }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
+            class Program
+            {
+                void Method() =>
+            #if DEBUG
+                    Console.WriteLine(0);
+            #else
+                    throw new System.NotImplementedException();
+            #endif
 
-        [Fact]
-        public async Task TestComments2()
-        {
-            var code = """
-                class C
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+    public async Task TestDirectives6()
+    {
+        var code = """
+            #define RELEASE
+            using System;
+
+            class Program
+            {
+                {|IDE0022:void Method()
                 {
-                    int Bar() => 0;
+            #if DEBUG
+                    Console.WriteLine(0);
+            #else
+                    throw new System.NotImplementedException();
+            #endif
+                }|}
+            }
+            """;
+        var fixedCode = """
+            #define RELEASE
+            using System;
 
-                    {|IDE0022:int Goo()
-                    {
-                        // Comment
-                        return Bar();
-                    }|}
-                }
-                """;
-            var fixedCode = """
-                class C
+            class Program
+            {
+                void Method() =>
+            #if DEBUG
+                    Console.WriteLine(0);
+            #else
+                    throw new System.NotImplementedException();
+            #endif
+
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69783")]
+    public async Task TestDirectives7()
+    {
+        var code = """
+            #define DEBUG
+            using System;
+
+            class Program
+            {
+                void Method()
                 {
-                    int Bar() => 0;
-
-                    int Goo() =>
-                        // Comment
-                        Bar();
+            #if DEBUG
+            #endif
+                    Console.WriteLine(0);
                 }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
+            }
+            """;
+        await TestWithUseExpressionBody(code, code);
+    }
 
-        [Fact]
-        public async Task TestComments3()
-        {
-            var code = """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69783")]
+    public async Task TestDirectives8()
+    {
+        var code = """
+            #define DEBUG
+            using System;
 
-                class C
+            class Program
+            {
+                void Method()
                 {
-                    Exception Bar() => new Exception();
-
-                    {|IDE0022:void Goo()
-                    {
-                        // Comment
-                        throw Bar();
-                    }|}
+                    Console.WriteLine(0);
+            #if DEBUG
+            #endif
                 }
-                """;
-            var fixedCode = """
-                using System;
+            }
+            """;
+        await TestWithUseExpressionBody(code, code);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69783")]
+    public async Task TestDirectives9()
+    {
+        var code = """
+            #define DEBUG
+            using System;
+
+            class Program
+            {
+                void Method()
                 {
-                    Exception Bar() => new Exception();
+            #if DEBUG
+                    Console.WriteLine(0);
+            #else
+                    Console.WriteLine(1);
+            #endif
 
-                    void Goo() =>
-                        // Comment
-                        throw Bar();
+            #if DEBUG
+            #endif
                 }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
+            }
+            """;
+        await TestWithUseExpressionBody(code, code);
+    }
 
-        [Fact]
-        public async Task TestComments4()
-        {
-            var code = """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+    public async Task TestDirectives10()
+    {
+        var code = """
+            #define DEBUG
+            using System;
+
+            class Program
+            {
+                {|IDE0022:void Method()
                 {
-                    void Bar() => Bar();
+            #if DEBUG
+                    Console.WriteLine(0);
+            #elif RELEASE
+                    Console.WriteLine(1);
+            #else
+                    Console.WriteLine(2);
+            #endif
+                }|}
+            }
+            """;
+        var fixedCode = """
+            #define DEBUG
+            using System;
 
-                    {|IDE0022:void Goo()
-                    {
-                        Bar(); // Comment
-                    }|}
-                }
-                """;
-            var fixedCode = """
-                class C
+            class Program
+            {
+                void Method() =>
+            #if DEBUG
+                    Console.WriteLine(0);
+            #elif RELEASE
+                    Console.WriteLine(1);
+            #else
+                    Console.WriteLine(2);
+            #endif
+
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+    public async Task TestDirectives11()
+    {
+        var code = """
+            #define RELEASE
+            using System;
+
+            class Program
+            {
+                {|IDE0022:void Method()
                 {
-                    void Bar() => Bar();
+            #if DEBUG
+                    Console.WriteLine(0);
+            #elif RELEASE
+                    Console.WriteLine(1);
+            #else
+                    Console.WriteLine(2);
+            #endif
+                }|}
+            }
+            """;
+        var fixedCode = """
+            #define RELEASE
+            using System;
 
-                    void Goo() => Bar(); // Comment
-                }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
+            class Program
+            {
+                void Method() =>
+            #if DEBUG
+                    Console.WriteLine(0);
+            #elif RELEASE
+                    Console.WriteLine(1);
+            #else
+                    Console.WriteLine(2);
+            #endif
 
-        [Fact]
-        public async Task TestComments5()
-        {
-            var code = """
-                class C
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+    public async Task TestDirectives12()
+    {
+        var code = """
+            #define OTHER
+            using System;
+
+            class Program
+            {
+                {|IDE0022:void Method()
                 {
-                    int Bar() => 0;
+            #if DEBUG
+                    Console.WriteLine(0);
+            #elif RELEASE
+                    Console.WriteLine(1);
+            #else
+                    Console.WriteLine(2);
+            #endif
+                }|}
+            }
+            """;
+        var fixedCode = """
+            #define OTHER
+            using System;
 
-                    {|IDE0022:int Goo()
-                    {
-                        return Bar(); // Comment
-                    }|}
-                }
-                """;
-            var fixedCode = """
-                class C
+            class Program
+            {
+                void Method() =>
+            #if DEBUG
+                    Console.WriteLine(0);
+            #elif RELEASE
+                    Console.WriteLine(1);
+            #else
+                    Console.WriteLine(2);
+            #endif
+
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
+    public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp6()
+    {
+        var code = """
+            using System;
+            class C
+            {
+                {|IDE0022:void M() {|CS8026:=>|} {|CS8026:throw|} new NotImplementedException();|}
+            }
+            """;
+        var fixedCode = """
+            using System;
+            class C
+            {
+                void M()
                 {
-                    int Bar() => 0;
-
-                    int Goo() => Bar(); // Comment
+                    throw new NotImplementedException();
                 }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp5);
+    }
 
-        [Fact]
-        public async Task TestComments6()
-        {
-            var code = """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20352")]
+    public async Task TestDoNotOfferToConvertToBlockIfExpressionBodyPreferredIfCSharp6()
+    {
+        var code = """
+            using System;
+            class C
+            {
+                int M() => 0;
+            }
+            """;
+        await TestWithUseExpressionBody(code, code, LanguageVersion.CSharp6);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20352")]
+    public async Task TestOfferToConvertToExpressionIfCSharp6()
+    {
+        var code = """
+            using System;
+            class C
+            {
+                {|IDE0022:int M() { return 0; }|}
+            }
+            """;
+        var fixedCode = """
+            using System;
+            class C
+            {
+                int M() => 0;
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20352")]
+    public async Task TestDoNotOfferToConvertToExpressionInCSharp6IfThrowExpression()
+    {
+        var code = """
+            using System;
+            class C
+            {
+                // throw expressions not supported in C# 6.
+                void M() { throw new Exception(); }
+            }
+            """;
+        await TestWithUseExpressionBody(code, code, LanguageVersion.CSharp6);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
+    public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp6_FixAll()
+    {
+        var code = """
+            using System;
+            class C
+            {
+                {|IDE0022:void M() => {|CS8059:throw|} new NotImplementedException();|}
+                {|IDE0022:void M(int i) => {|CS8059:throw|} new NotImplementedException();|}
+                int M(bool b) => 0;
+            }
+            """;
+        var fixedCode = """
+            using System;
+            class C
+            {
+                void M()
                 {
-                    Exception Bar() => new Exception();
-
-                    {|IDE0022:void Goo()
-                    {
-                        throw Bar(); // Comment
-                    }|}
+                    throw new NotImplementedException();
                 }
-                """;
-            var fixedCode = """
-                using System;
 
-                class C
+                void M(int i)
                 {
-                    Exception Bar() => new Exception();
-
-                    void Goo() => throw Bar(); // Comment
+                    throw new NotImplementedException();
                 }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
-        public async Task TestDirectives1()
-        {
-            var code = """
-                #define DEBUG
-                using System;
+                int M(bool b) => 0;
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
+    }
 
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
+    public async Task TestUseBlockBodyAsync1()
+    {
+        var code = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0022:async Task Goo() => await Bar();|}
+
+                Task Bar() { return Task.CompletedTask; }
+            }
+            """;
+        var fixedCode = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task Goo()
                 {
-                    {|IDE0022:void Method()
-                    {
-                #if DEBUG
-                        Console.WriteLine();
-                #endif
-                    }|}
+                    await Bar();
                 }
-                """;
-            var fixedCode = """
-                #define DEBUG
-                using System;
 
-                class Program
+                Task Bar() { return Task.CompletedTask; }
+            }
+            """;
+        await TestWithUseBlockBody(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
+    public async Task TestUseBlockBodyAsync2()
+    {
+        var code = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0022:async void Goo() => await Bar();|}
+
+                Task Bar() { return Task.CompletedTask; }
+            }
+            """;
+        var fixedCode = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async void Goo()
                 {
-                    void Method() =>
-                #if DEBUG
-                        Console.WriteLine();
-                #endif
-
+                    await Bar();
                 }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
-        public async Task TestDirectives2()
-        {
-            var code = """
-                #define DEBUG
-                using System;
+                Task Bar() { return Task.CompletedTask; }
+            }
+            """;
+        await TestWithUseBlockBody(code, fixedCode);
+    }
 
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
+    public async Task TestUseBlockBodyAsync3()
+    {
+        var code = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0022:async void Goo() => await Bar();|}
+
+                Task Bar() { return Task.CompletedTask; }
+            }
+            """;
+        var fixedCode = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async void Goo()
                 {
-                    {|IDE0022:void Method()
-                    {
-                #if DEBUG
-                        Console.WriteLine(0);
-                #else
-                        Console.WriteLine(1);
-                #endif
-                    }|}
+                    await Bar();
                 }
-                """;
-            var fixedCode = """
-                #define DEBUG
-                using System;
 
-                class Program
+                Task Bar() { return Task.CompletedTask; }
+            }
+            """;
+        await TestWithUseBlockBody(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
+    public async Task TestUseBlockBodyAsync4()
+    {
+        var code = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0022:async ValueTask Goo() => await Bar();|}
+
+                Task Bar() { return Task.CompletedTask; }
+            }
+            """;
+        var fixedCode = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async ValueTask Goo()
                 {
-                    void Method() =>
-                #if DEBUG
-                        Console.WriteLine(0);
-                #else
-                        Console.WriteLine(1);
-                #endif
-
+                    await Bar();
                 }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
-        public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp6()
-        {
-            var code = """
-                using System;
-                class C
+                Task Bar() { return Task.CompletedTask; }
+            }
+            """;
+        await TestWithUseBlockBody(code, fixedCode, ReferenceAssemblies.NetStandard.NetStandard21);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
+    public async Task TestUseBlockBodyAsync5()
+    {
+        var code = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0022:async Task<int> Goo() => await Bar();|}
+
+                Task<int> Bar() { return Task.FromResult(0); }
+            }
+            """;
+        var fixedCode = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task<int> Goo()
                 {
-                    {|IDE0022:void M() {|CS8026:=>|} {|CS8026:throw|} new NotImplementedException();|}
+                    return await Bar();
                 }
-                """;
-            var fixedCode = """
-                using System;
-                class C
+
+                Task<int> Bar() { return Task.FromResult(0); }
+            }
+            """;
+        await TestWithUseBlockBody(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
+    public async Task TestUseBlockBodyAsync6()
+    {
+        var code = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|IDE0022:Task Goo() => Bar();|}
+
+                Task Bar() { return Task.CompletedTask; }
+            }
+            """;
+        var fixedCode = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                Task Goo()
                 {
-                    void M()
-                    {
-                        throw new NotImplementedException();
-                    }
+                    return Bar();
                 }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp5);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20352")]
-        public async Task TestDoNotOfferToConvertToBlockIfExpressionBodyPreferredIfCSharp6()
-        {
-            var code = """
-                using System;
-                class C
+                Task Bar() { return Task.CompletedTask; }
+            }
+            """;
+        await TestWithUseBlockBody(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53532")]
+    public async Task TestUseBlockBodyTrivia1()
+    {
+        var code = """
+            using System;
+            class C
+            {
+                {|IDE0022:void M()
+                    // Test
+                    => Console.WriteLine();|}
+            }
+            """;
+        var fixedCode = """
+            using System;
+            class C
+            {
+                void M()
                 {
-                    int M() => 0;
+                    // Test
+                    Console.WriteLine();
                 }
-                """;
-            await TestWithUseExpressionBody(code, code, LanguageVersion.CSharp6);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20352")]
-        public async Task TestOfferToConvertToExpressionIfCSharp6()
-        {
-            var code = """
-                using System;
-                class C
-                {
-                    {|IDE0022:int M() { return 0; }|}
-                }
-                """;
-            var fixedCode = """
-                using System;
-                class C
-                {
-                    int M() => 0;
-                }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20352")]
-        public async Task TestDoNotOfferToConvertToExpressionInCSharp6IfThrowExpression()
-        {
-            var code = """
-                using System;
-                class C
-                {
-                    // throw expressions not supported in C# 6.
-                    void M() { throw new Exception(); }
-                }
-                """;
-            await TestWithUseExpressionBody(code, code, LanguageVersion.CSharp6);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20362")]
-        public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp6_FixAll()
-        {
-            var code = """
-                using System;
-                class C
-                {
-                    {|IDE0022:void M() => {|CS8059:throw|} new NotImplementedException();|}
-                    {|IDE0022:void M(int i) => {|CS8059:throw|} new NotImplementedException();|}
-                    int M(bool b) => 0;
-                }
-                """;
-            var fixedCode = """
-                using System;
-                class C
-                {
-                    void M()
-                    {
-                        throw new NotImplementedException();
-                    }
-
-                    void M(int i)
-                    {
-                        throw new NotImplementedException();
-                    }
-
-                    int M(bool b) => 0;
-                }
-                """;
-            await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
-        public async Task TestUseBlockBodyAsync1()
-        {
-            var code = """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    {|IDE0022:async Task Goo() => await Bar();|}
-
-                    Task Bar() { return Task.CompletedTask; }
-                }
-                """;
-            var fixedCode = """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    async Task Goo()
-                    {
-                        await Bar();
-                    }
-
-                    Task Bar() { return Task.CompletedTask; }
-                }
-                """;
-            await TestWithUseBlockBody(code, fixedCode);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
-        public async Task TestUseBlockBodyAsync2()
-        {
-            var code = """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    {|IDE0022:async void Goo() => await Bar();|}
-
-                    Task Bar() { return Task.CompletedTask; }
-                }
-                """;
-            var fixedCode = """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    async void Goo()
-                    {
-                        await Bar();
-                    }
-
-                    Task Bar() { return Task.CompletedTask; }
-                }
-                """;
-            await TestWithUseBlockBody(code, fixedCode);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
-        public async Task TestUseBlockBodyAsync3()
-        {
-            var code = """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    {|IDE0022:async void Goo() => await Bar();|}
-
-                    Task Bar() { return Task.CompletedTask; }
-                }
-                """;
-            var fixedCode = """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    async void Goo()
-                    {
-                        await Bar();
-                    }
-
-                    Task Bar() { return Task.CompletedTask; }
-                }
-                """;
-            await TestWithUseBlockBody(code, fixedCode);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
-        public async Task TestUseBlockBodyAsync4()
-        {
-            var code = """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    {|IDE0022:async ValueTask Goo() => await Bar();|}
-
-                    Task Bar() { return Task.CompletedTask; }
-                }
-                """;
-            var fixedCode = """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    async ValueTask Goo()
-                    {
-                        await Bar();
-                    }
-
-                    Task Bar() { return Task.CompletedTask; }
-                }
-                """;
-            await TestWithUseBlockBody(code, fixedCode, ReferenceAssemblies.NetStandard.NetStandard21);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
-        public async Task TestUseBlockBodyAsync5()
-        {
-            var code = """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    {|IDE0022:async Task<int> Goo() => await Bar();|}
-
-                    Task<int> Bar() { return Task.FromResult(0); }
-                }
-                """;
-            var fixedCode = """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    async Task<int> Goo()
-                    {
-                        return await Bar();
-                    }
-
-                    Task<int> Bar() { return Task.FromResult(0); }
-                }
-                """;
-            await TestWithUseBlockBody(code, fixedCode);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25202")]
-        public async Task TestUseBlockBodyAsync6()
-        {
-            var code = """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    {|IDE0022:Task Goo() => Bar();|}
-
-                    Task Bar() { return Task.CompletedTask; }
-                }
-                """;
-            var fixedCode = """
-                using System.Threading.Tasks;
-
-                class C
-                {
-                    Task Goo()
-                    {
-                        return Bar();
-                    }
-
-                    Task Bar() { return Task.CompletedTask; }
-                }
-                """;
-            await TestWithUseBlockBody(code, fixedCode);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53532")]
-        public async Task TestUseBlockBodyTrivia1()
-        {
-            var code = """
-                using System;
-                class C
-                {
-                    {|IDE0022:void M()
-                        // Test
-                        => Console.WriteLine();|}
-                }
-                """;
-            var fixedCode = """
-                using System;
-                class C
-                {
-                    void M()
-                    {
-                        // Test
-                        Console.WriteLine();
-                    }
-                }
-                """;
-            await TestWithUseBlockBody(code, fixedCode);
-        }
+            }
+            """;
+        await TestWithUseBlockBody(code, fixedCode);
     }
 }

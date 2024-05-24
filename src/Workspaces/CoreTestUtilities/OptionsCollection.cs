@@ -6,8 +6,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
     internal sealed class OptionsCollection : IReadOnlyCollection<KeyValuePair<OptionKey2, object?>>, IOptionsReader
     {
-        private readonly Dictionary<OptionKey2, object?> _options = new();
+        private readonly Dictionary<OptionKey2, object?> _options = [];
         private readonly string _languageName;
 
         public OptionsCollection(string languageName)

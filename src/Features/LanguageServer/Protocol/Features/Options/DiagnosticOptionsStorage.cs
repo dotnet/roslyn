@@ -4,14 +4,13 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
-{
-    internal sealed class DiagnosticOptionsStorage
-    {
-        public static readonly Option2<bool> LspPullDiagnosticsFeatureFlag = new(
-            "dotnet_enable_lsp_pull_diagnostics", defaultValue: false);
+namespace Microsoft.CodeAnalysis.Diagnostics;
 
-        public static readonly Option2<bool> LogTelemetryForBackgroundAnalyzerExecution = new(
-            "dotnet_log_telemetry_for_background_analyzer_execution", defaultValue: false);
-    }
+internal sealed class DiagnosticOptionsStorage
+{
+    public static readonly Option2<bool> LogTelemetryForBackgroundAnalyzerExecution = new(
+        "dotnet_log_telemetry_for_background_analyzer_execution", defaultValue: false);
+
+    public static readonly Option2<bool> LightbulbSkipExecutingDeprioritizedAnalyzers = new(
+        "dotnet_lightbulb_skip_executing_deprioritized_analyzers", defaultValue: false);
 }

@@ -6,6 +6,7 @@ Imports System.Globalization
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Roslyn.Utilities
 Imports Xunit
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         End Property
 
         Friend Overrides Function GetExpectedOutputForNoDiagnostics(
-            cmd As CommonCompiler) As String
+            cmd As MockVisualBasicCompiler) As String
 
             Dim expectedOutput = "{{
   ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
@@ -45,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
   ]
 }}"
 
-            Return FormatOutputText(expectedOutput, cmd)
+            Return FormatOutputText(expectedOutput, cmd, hasAnalyzers:=False)
         End Function
 
         <Fact>
@@ -54,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         End Sub
 
         Friend Overrides Function GetExpectedOutputForSimpleCompilerDiagnostics(
-            cmd As CommonCompiler,
+            cmd As MockVisualBasicCompiler,
             sourceFilePath As String) As String
 
             Dim expectedOutput = "{{
@@ -146,6 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Return FormatOutputText(
                 expectedOutput,
                 cmd,
+                hasAnalyzers:=False,
                 AnalyzerForErrorLogTest.GetUriForPath(sourceFilePath),
                 Path.GetFileNameWithoutExtension(sourceFilePath))
         End Function
@@ -156,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         End Sub
 
         Friend Overrides Function GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(
-            cmd As CommonCompiler,
+            cmd As MockVisualBasicCompiler,
             sourceFilePath As String,
             ParamArray suppressionKinds As String()) As String
 
@@ -257,6 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Return FormatOutputText(
                 expectedOutput,
                 cmd,
+                hasAnalyzers:=False,
                 AnalyzerForErrorLogTest.GetUriForPath(sourceFilePath),
                 Path.GetFileNameWithoutExtension(sourceFilePath))
         End Function
@@ -276,6 +279,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
   ""runs"": [
     {{
 {5},
+      ""properties"": {{
+        ""analyzerExecutionTime"": ""{7}""
+      }},
       ""tool"": {{
         ""driver"": {{
           ""name"": ""{0}"",
@@ -293,8 +299,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Return FormatOutputText(
                 expectedOutput,
                 cmd,
+                hasAnalyzers:=True,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogResultsText(cmd.Compilation),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText())
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(cmd.DescriptorsWithInfo, CultureInfo.InvariantCulture))
         End Function
 
         <Fact>
@@ -302,7 +309,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             AnalyzerDiagnosticsWithAndWithoutLocationImpl()
         End Sub
 
-        Private Function FormatOutputText(s As String, compiler as CommonCompiler, ParamArray additionalArguments() As Object) As String
+        Private Function FormatOutputText(s As String, compiler As MockVisualBasicCompiler, hasAnalyzers As Boolean, ParamArray additionalArguments() As Object) As String
+            If hasAnalyzers Then
+                additionalArguments = additionalArguments.Append(compiler.GetAnalyzerExecutionTimeFormattedString())
+            End If
+
             Dim arguments = New List(Of Object) From {
                 compiler.GetToolName(),
                 compiler.GetCompilerVersion(),
@@ -311,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
                 compiler.GetCultureName()
             }.Concat(additionalArguments).ToArray()
 
-            Return string.Format(CultureInfo.InvariantCulture, s, arguments)
+            Return String.Format(CultureInfo.InvariantCulture, s, arguments)
         End Function
     End Class
 End Namespace

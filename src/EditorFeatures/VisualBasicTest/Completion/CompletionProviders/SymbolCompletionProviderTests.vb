@@ -2635,7 +2635,7 @@ End Module
             Await VerifyItemIsAbsentAsync(markup, "[Structure]")
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")> <Fact>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")>
         Public Async Function TestKeywordEscaping2() As Task
             Dim markup = <Text>
 Module [Structure]
@@ -2657,7 +2657,7 @@ End Module
             Await VerifyItemIsAbsentAsync(markup, "[rem]")
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")> <Fact>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")>
         Public Async Function TestKeywordEscaping3() As Task
             Dim markup = <Text>
 Namespace Goo
@@ -6259,7 +6259,7 @@ End Class
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079694")>
-        Public Async Function TestDontThrowForNullPropagatingOperatorInErase() As Task
+        Public Async Function TestDoNotThrowForNullPropagatingOperatorInErase() As Task
             Dim text =
 <code><![CDATA[
 Module Program
@@ -6328,7 +6328,7 @@ End Class
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079694")>
-        Public Async Function TestDontThrowForNullPropagatingOperatorOnTypeParameter() As Task
+        Public Async Function TestDoNotThrowForNullPropagatingOperatorOnTypeParameter() As Task
             Dim text =
 <code><![CDATA[
 Module Program
@@ -7651,7 +7651,7 @@ End Namespace
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, composition:=GetComposition())
+            Using workspace = EditorTestWorkspace.Create(input, composition:=GetComposition())
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
                 Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
@@ -8290,7 +8290,7 @@ End Class"
                 matchingFilters:=New List(Of CompletionFilter) From {FilterSet.FieldFilter})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
+        <Fact>
         Public Async Function TestTargetTypeFilter_NotOnObjectMembers() As Task
             ShowTargetTypedCompletionFilter = True
             Dim markup =
@@ -8303,6 +8303,229 @@ End Class"
             Await VerifyItemExistsAsync(
                 markup, "GetHashCode",
                 matchingFilters:=New List(Of CompletionFilter) From {FilterSet.MethodFilter})
+        End Function
+
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList1(underlyingType As String) As Task
+            Dim markup = "Enum MyEnum As $$"
+
+            Await VerifyItemExistsAsync(markup, "System")
+
+            ' Not accessible in the given context
+            Await VerifyItemIsAbsentAsync(markup, underlyingType)
+        End Function
+
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList2(underlyingType As String) As Task
+            Dim markup =
+"Enum MyEnum As $$
+
+Class System
+End Class"
+
+            ' class `System` shadows the namespace in regular source
+            Await VerifyItemIsAbsentAsync(markup, "System", sourceCodeKind:=SourceCodeKind.Regular)
+
+            ' Not accessible in the given context
+            Await VerifyItemIsAbsentAsync(markup, underlyingType)
+        End Function
+
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList3(underlyingType As String) As Task
+            Dim markup =
+"Imports System;
+
+Enum MyEnum As $$"
+
+            Await VerifyItemExistsAsync(markup, "System")
+
+            Await VerifyItemExistsAsync(markup, underlyingType)
+
+            ' Verify that other things from `System` namespace are not present
+            Await VerifyItemIsAbsentAsync(markup, "Console")
+            Await VerifyItemIsAbsentAsync(markup, "Action")
+            Await VerifyItemIsAbsentAsync(markup, "DateTime")
+        End Function
+
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList4(underlyingType As String) As Task
+            Dim markup =
+"Namespace MyNamespace
+End Namespace
+
+Enum MyEnum As Global.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, "MyEnum")
+
+            Await VerifyItemExistsAsync(markup, "System")
+            Await VerifyItemIsAbsentAsync(markup, "MyNamespace")
+
+            ' Not accessible in the given context
+            Await VerifyItemIsAbsentAsync(markup, underlyingType)
+        End Function
+
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList5(underlyingType As String) As Task
+            Dim markup = "Enum MyEnum As System.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, "System")
+
+            Await VerifyItemExistsAsync(markup, underlyingType)
+
+            ' Verify that other things from `System` namespace are not present
+            Await VerifyItemIsAbsentAsync(markup, "Console")
+            Await VerifyItemIsAbsentAsync(markup, "Action")
+            Await VerifyItemIsAbsentAsync(markup, "DateTime")
+        End Function
+
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList6(underlyingType As String) As Task
+            Dim markup = "Enum MyEnum As Global.System.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, "System")
+
+            Await VerifyItemExistsAsync(markup, underlyingType)
+
+            ' Verify that other things from `System` namespace are not present
+            Await VerifyItemIsAbsentAsync(markup, "Console")
+            Await VerifyItemIsAbsentAsync(markup, "Action")
+            Await VerifyItemIsAbsentAsync(markup, "DateTime")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList7() As Task
+            Dim markup = "Enum MyEnum As System.Collections.Generic.$$"
+
+            Await VerifyNoItemsExistAsync(markup)
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList8() As Task
+            Dim markup =
+"Namespace MyNamespace
+    Namespace System
+    End Namespace
+    Public Structure Byte
+    End Structure
+    Public Structure SByte
+    End Structure
+    Public Structure Int16
+    End Structure
+    Public Structure UInt16
+    End Structure
+    Public Structure Int32
+    End Structure
+    Public Structure UInt32
+    End Structure
+    Public Structure Int64
+    End Structure
+    Public Structure UInt64
+    End Structure
+End Namespace
+
+Enum MyEnum As MyNamespace.$$"
+
+            Await VerifyNoItemsExistAsync(markup)
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList9() As Task
+            Dim markup =
+"Imports MySystem = System
+
+Enum MyEnum As $$"
+
+            Await VerifyItemExistsAsync(markup, "MySystem")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList10() As Task
+            Dim markup =
+"Imports MySystem = System
+
+Enum MyEnum As Global.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, "MySystem")
+        End Function
+
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList11(underlyingType As String) As Task
+            Dim markup =
+"Imports MySystem = System
+
+Enum MyEnum As MySystem.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, "System")
+            Await VerifyItemIsAbsentAsync(markup, "MySystem")
+
+            Await VerifyItemExistsAsync(markup, underlyingType)
+
+            ' Verify that other things from `System` namespace are not present
+            Await VerifyItemIsAbsentAsync(markup, "Console")
+            Await VerifyItemIsAbsentAsync(markup, "Action")
+            Await VerifyItemIsAbsentAsync(markup, "DateTime")
+        End Function
+
+        <Fact>
+        Public Async Function TestEnumBaseList12() As Task
+            Dim markup =
+"Imports MySystem = System
+
+Enum MyEnum As Global.MySystem.$$"
+
+            Await VerifyNoItemsExistAsync(markup)
+        End Function
+
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList13(underlyingType As String) As Task
+            Dim markup =
+$"Imports My{underlyingType} = System.{underlyingType}
+
+Enum MyEnum As $$"
+
+            Await VerifyItemExistsAsync(markup, $"My{underlyingType}")
+        End Function
+
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList14(underlyingType As String) As Task
+            Dim markup =
+$"Imports My{underlyingType} = System.{underlyingType}
+
+Enum MyEnum As Global.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, $"My{underlyingType}")
+        End Function
+
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList15(underlyingType As String) As Task
+            Dim markup =
+$"Imports My{underlyingType} = System.{underlyingType}
+
+Enum MyEnum As System.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, $"My{underlyingType}")
+        End Function
+
+        <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
+        Public Async Function TestEnumBaseList16(underlyingType As String) As Task
+            Dim markup =
+$"Imports MySystem = System
+Imports My{underlyingType} = System.{underlyingType}
+
+Enum MyEnum As MySystem.$$"
+
+            Await VerifyItemIsAbsentAsync(markup, $"My{underlyingType}")
+        End Function
+
+        Public Shared Iterator Function ValidEnumUnderlyingTypeNames() As IEnumerable(Of Object())
+            Yield {"Byte"}
+            Yield {"SByte"}
+            Yield {"Int16"}
+            Yield {"UInt16"}
+            Yield {"Int32"}
+            Yield {"UInt32"}
+            Yield {"Int64"}
+            Yield {"UInt64"}
         End Function
     End Class
 End Namespace

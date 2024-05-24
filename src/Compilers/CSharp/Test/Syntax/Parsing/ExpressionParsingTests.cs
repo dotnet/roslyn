@@ -6075,20 +6075,13 @@ select t";
             EOF();
         }
 
-        [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [Fact, WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadRefElementAccess()
         {
             UsingExpression("new[] { ref[] }",
                 // (1,9): error CS1525: Invalid expression term 'ref'
                 // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref[]").WithArguments("ref").WithLocation(1, 9),
-                // (1,12): error CS1525: Invalid expression term '['
-                // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 12),
-                // (1,13): error CS0443: Syntax error; value expected
-                // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref[]").WithArguments("ref").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -6101,24 +6094,10 @@ select t";
                     N(SyntaxKind.RefExpression);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ElementAccessExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.BracketedArgumentList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                M(SyntaxKind.Argument);
-                                {
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.CloseBracketToken);
                         }
                     }
                     N(SyntaxKind.CloseBraceToken);
@@ -6414,8 +6393,7 @@ select t";
             EOF();
         }
 
-        [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [Fact, WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadInElementAccess()
         {
             UsingExpression("new[] { in[] }",
@@ -6431,14 +6409,18 @@ select t";
                 N(SyntaxKind.ArrayInitializerExpression);
                 {
                     N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CollectionExpression);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.CloseBracketToken);
+                    }
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
             EOF();
         }
 
-        [Fact]
-        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        [Fact, WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadOutElementAccess()
         {
             UsingExpression("new[] { out[] }",
@@ -6454,6 +6436,11 @@ select t";
                 N(SyntaxKind.ArrayInitializerExpression);
                 {
                     N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CollectionExpression);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.CloseBracketToken);
+                    }
                     N(SyntaxKind.CloseBraceToken);
                 }
             }

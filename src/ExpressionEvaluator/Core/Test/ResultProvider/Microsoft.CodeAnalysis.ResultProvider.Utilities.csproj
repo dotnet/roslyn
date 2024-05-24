@@ -8,6 +8,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net472</TargetFramework>
     <IsShipping>false</IsShipping>
+    <IsTestUtilityProject>true</IsTestUtilityProject>
 
     <!-- Disable CA1825 (Avoid unnecessary zero-length array allocations. Use Array.Empty<X>() instead) as Array.Empty not available in one of the targets for this shared project -->
     <NoWarn>$(NoWarn);CA1825</NoWarn>
@@ -20,8 +21,8 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)" />
+    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\Dependencies\PooledObjects\PooledStringBuilder.cs">
@@ -56,6 +57,9 @@
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\SymbolDisplay\ObjectDisplayOptions.cs">
       <Link>Compiler\SymbolDisplay\ObjectDisplayOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\CommonGeneratedNames.cs">
+      <Link>Compiler\Symbols\CommonGeneratedNames.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs">
       <Link>Compiler\Symbols\WellKnownMemberNames.cs</Link>

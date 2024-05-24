@@ -4,19 +4,11 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.ExtractInterface
-{
-    internal sealed class ExtractInterfaceResult
-    {
-        public bool Succeeded { get; }
-        public Solution UpdatedSolution { get; }
-        public DocumentId NavigationDocumentId { get; }
+namespace Microsoft.CodeAnalysis.ExtractInterface;
 
-        public ExtractInterfaceResult(bool succeeded, Solution updatedSolution = null, DocumentId navigationDocumentId = null)
-        {
-            Succeeded = succeeded;
-            UpdatedSolution = updatedSolution;
-            NavigationDocumentId = navigationDocumentId;
-        }
-    }
+internal sealed class ExtractInterfaceResult(bool succeeded, Solution updatedSolution = null, DocumentId navigationDocumentId = null)
+{
+    public bool Succeeded { get; } = succeeded;
+    public Solution UpdatedSolution { get; } = updatedSolution;
+    public DocumentId NavigationDocumentId { get; } = navigationDocumentId;
 }

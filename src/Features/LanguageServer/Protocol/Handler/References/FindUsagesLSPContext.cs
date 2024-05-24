@@ -5,16 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,11 +19,10 @@ using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Core.Imaging;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -46,13 +42,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         private readonly SemaphoreSlim _semaphore = new(1);
 
-        private readonly Dictionary<DefinitionItem, int> _definitionToId = new();
+        private readonly Dictionary<DefinitionItem, int> _definitionToId = [];
 
         /// <summary>
         /// Keeps track of definitions that cannot be reported without references and which we have
         /// not yet found a reference for.
         /// </summary>
-        private readonly Dictionary<int, SumType<VSInternalReferenceItem, LSP.Location>> _definitionsWithoutReference = new();
+        private readonly Dictionary<int, SumType<VSInternalReferenceItem, LSP.Location>> _definitionsWithoutReference = [];
 
         /// <summary>
         /// Set of the locations we've found references at.  We may end up with multiple references
@@ -64,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// to override an already reported VSReferenceItem, we could also reissue the item with the
         /// additional information about all the projects it is found in.
         /// </summary>
-        private readonly HashSet<(string? filePath, TextSpan span)> _referenceLocations = new();
+        private readonly HashSet<(string? filePath, TextSpan span)> _referenceLocations = [];
 
         /// <summary>
         /// We report the results in chunks. A batch, if it contains results, is reported every 0.5s.
@@ -91,11 +87,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _metadataAsSourceFileService = metadataAsSourceFileService;
             _globalOptions = globalOptions;
             _workQueue = new AsyncBatchingWorkQueue<SumType<VSInternalReferenceItem, LSP.Location>>(
-                TimeSpan.FromMilliseconds(500), ReportReferencesAsync, asyncListener, cancellationToken);
+                DelayTimeSpan.Medium, ReportReferencesAsync, asyncListener, cancellationToken);
         }
-
-        public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
 
         // After all definitions/references have been found, wait here until all results have been reported.
         public override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
@@ -136,41 +129,44 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        public override async ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+        public override async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
         {
-            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            await foreach (var reference in references)
             {
-                // Each reference should be associated with a definition. If this somehow isn't the
-                // case, we bail out early.
-                if (!_definitionToId.TryGetValue(reference.Definition, out var definitionId))
-                    return;
-
-                var documentSpan = reference.SourceSpan;
-                var document = documentSpan.Document;
-
-                // If this is reference to the same physical location we've already reported, just
-                // filter this out.  it will clutter the UI to show the same places.
-                if (!_referenceLocations.Add((document.FilePath, reference.SourceSpan.SourceSpan)))
-                    return;
-
-                // If the definition hasn't been reported yet, add it to our list of references to report.
-                if (_definitionsWithoutReference.TryGetValue(definitionId, out var definition))
+                using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    _workQueue.AddWork(definition);
-                    _definitionsWithoutReference.Remove(definitionId);
+                    // Each reference should be associated with a definition. If this somehow isn't the
+                    // case, we bail out early.
+                    if (!_definitionToId.TryGetValue(reference.Definition, out var definitionId))
+                        return;
+
+                    var documentSpan = reference.SourceSpan;
+                    var document = documentSpan.Document;
+
+                    // If this is reference to the same physical location we've already reported, just
+                    // filter this out.  it will clutter the UI to show the same places.
+                    if (!_referenceLocations.Add((document.FilePath, reference.SourceSpan.SourceSpan)))
+                        return;
+
+                    // If the definition hasn't been reported yet, add it to our list of references to report.
+                    if (_definitionsWithoutReference.TryGetValue(definitionId, out var definition))
+                    {
+                        _workQueue.AddWork(definition);
+                        _definitionsWithoutReference.Remove(definitionId);
+                    }
+
+                    // give this reference a fresh id.
+                    _id++;
+
+                    // Creating a new VSReferenceItem for the reference
+                    var referenceItem = await GenerateVSReferenceItemAsync(
+                        definitionId, _id, reference.SourceSpan,
+                        reference.AdditionalProperties, definitionText: null,
+                        definitionGlyph: Glyph.None, reference.SymbolUsageInfo, reference.IsWrittenTo, cancellationToken).ConfigureAwait(false);
+
+                    if (referenceItem != null)
+                        _workQueue.AddWork(referenceItem.Value);
                 }
-
-                // give this reference a fresh id.
-                _id++;
-
-                // Creating a new VSReferenceItem for the reference
-                var referenceItem = await GenerateVSReferenceItemAsync(
-                    definitionId, _id, reference.SourceSpan,
-                    reference.AdditionalProperties, definitionText: null,
-                    definitionGlyph: Glyph.None, reference.SymbolUsageInfo, reference.IsWrittenTo, cancellationToken).ConfigureAwait(false);
-
-                if (referenceItem != null)
-                    _workQueue.AddWork(referenceItem.Value);
             }
         }
 
@@ -178,7 +174,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             int definitionId,
             int id,
             DocumentSpan? documentSpan,
-            ImmutableDictionary<string, string> properties,
+            ImmutableArray<(string key, string value)> properties,
             ClassifiedTextElement? definitionText,
             Glyph definitionGlyph,
             SymbolUsageInfo? symbolUsageInfo,
@@ -234,7 +230,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 return new LSP.Location
                 {
-                    Uri = ProtocolConversions.GetUriFromFilePath(declarationFile.FilePath),
+                    Uri = ProtocolConversions.CreateAbsoluteUri(declarationFile.FilePath),
                     Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                 };
             }
@@ -256,16 +252,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (documentSpan != null)
             {
                 var document = documentSpan.Value.Document;
-                var options = await GetOptionsAsync(document.Project.Language, cancellationToken).ConfigureAwait(false);
+                var options = _globalOptions.GetClassificationOptions(document.Project.Language);
 
                 var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-                    documentSpan.Value, options.ClassificationOptions, cancellationToken).ConfigureAwait(false);
+                    documentSpan.Value, classifiedSpans: null, options, cancellationToken).ConfigureAwait(false);
 
                 var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
-                var docText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var docText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var classifiedTextRuns = GetClassifiedTextRuns(_id, definitionId, documentSpan.Value, isWrittenTo, classifiedSpans, docText);
 
-                return new ClassifiedTextElement(classifiedTextRuns.ToArray());
+                return new ClassifiedTextElement([.. classifiedTextRuns]);
             }
 
             // Certain definitions may not have a DocumentSpan, such as namespace and metadata definitions
@@ -323,7 +319,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private ValueTask ReportReferencesAsync(ImmutableSegmentedList<SumType<VSInternalReferenceItem, LSP.Location>> referencesToReport, CancellationToken cancellationToken)
         {
             // We can report outside of the lock here since _progress is thread-safe.
-            _progress.Report(referencesToReport.ToArray());
+            _progress.Report([.. referencesToReport]);
             return ValueTaskFactory.CompletedTask;
         }
     }

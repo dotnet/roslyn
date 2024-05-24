@@ -243,18 +243,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             var assembly = typeof(PerformanceTrackerServiceTests).Assembly;
             var resourceName = GetResourceName(assembly, name);
 
-            using (var stream = assembly.GetManifestResourceStream(resourceName))
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null)
             {
-                if (stream == null)
-                {
-                    throw new InvalidOperationException($"Resource '{resourceName}' not found in {assembly.FullName}.");
-                }
-
-                using (var reader = new StreamReader(stream))
-                {
-                    return reader.ReadToEnd();
-                }
+                throw new InvalidOperationException($"Resource '{resourceName}' not found in {assembly.FullName}.");
             }
+
+            using var reader = new StreamReader(stream);
+            return reader.ReadToEnd();
         }
 
         private static string GetResourceName(Assembly assembly, string name)

@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Collections.Generic;
-using Roslyn.Utilities;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -32,13 +31,13 @@ namespace Roslyn.Test.Utilities
         protected override IEnumerable<IXunitTestCase> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object[] dataRow)
         {
             var testCase = new WpfTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, dataRow);
-            return SpecializedCollections.SingletonEnumerable(testCase);
+            return [testCase];
         }
 
         protected override IEnumerable<IXunitTestCase> CreateTestCasesForTheory(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute)
         {
             var testCase = new WpfTheoryTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod);
-            return SpecializedCollections.SingletonEnumerable(testCase);
+            return [testCase];
         }
     }
 }

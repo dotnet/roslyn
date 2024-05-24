@@ -185,7 +185,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 		/// <param name="expected">The expected IL</param>
         public void VerifyTypeIL(string typeName, string expected)
         {
-            VerifyTypeIL(typeName, output => AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output, escapeQuotes: false));
+            VerifyTypeIL(typeName, output =>
+            {
+                // All our tests predate ilspy adding `// Header size: ...` to the contents.  So trim that out since we
+                // really don't need to validate superfluous IL comments
+                expected = RemoveHeaderComments(expected);
+                output = RemoveHeaderComments(output);
+
+                output = FixupCodeSizeComments(output);
+
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output, escapeQuotes: false);
+            });
+        }
+
+        private static readonly Regex s_headerCommentsRegex = new("""^\s*// Header size: [0-9]+\s*$""", RegexOptions.Multiline);
+        private static readonly Regex s_codeSizeCommentsRegex = new("""^\s*// Code size(:) [0-9]+\s*""", RegexOptions.Multiline);
+
+        private static string RemoveHeaderComments(string value)
+        {
+            return s_headerCommentsRegex.Replace(value, "");
+        }
+
+        private static string FixupCodeSizeComments(string output)
+        {
+            // We use the form `// Code size 7 (0x7)` while ilspy moved to the form `// Code size: 7 (0x7)` (with an
+            // extra colon).  Strip the colon to make these match.
+            return s_codeSizeCommentsRegex.Replace(output, match => match.Groups[0].Value.Replace(match.Groups[1].Value, ""));
         }
 
         /// <summary>
@@ -275,20 +300,30 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private sealed class Resolver : ILVerify.ResolverBase
+        private sealed class Resolver : ILVerify.IResolver
         {
-            private readonly Dictionary<string, ImmutableArray<byte>> _imagesByName;
+            private readonly Dictionary<string, PEReader> _readersByName;
 
-            internal Resolver(Dictionary<string, ImmutableArray<byte>> imagesByName)
+            internal Resolver(Dictionary<string, PEReader> readersByName)
             {
-                _imagesByName = imagesByName;
+                _readersByName = readersByName;
             }
 
-            protected override PEReader ResolveCore(string simpleName)
+            public PEReader ResolveAssembly(AssemblyName assemblyName)
             {
-                if (_imagesByName.TryGetValue(simpleName, out var image))
+                return Resolve(assemblyName.Name);
+            }
+
+            public PEReader ResolveModule(AssemblyName referencingAssembly, string fileName)
+            {
+                throw new NotImplementedException();
+            }
+
+            public PEReader Resolve(string simpleName)
+            {
+                if (_readersByName.TryGetValue(simpleName, out var reader))
                 {
-                    return new PEReader(image);
+                    return reader;
                 }
 
                 throw new Exception($"ILVerify was not able to resolve a module named '{simpleName}'");
@@ -302,11 +337,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return;
             }
 
-            var imagesByName = new Dictionary<string, ImmutableArray<byte>>(StringComparer.OrdinalIgnoreCase);
+            var readersByName = new Dictionary<string, PEReader>(StringComparer.OrdinalIgnoreCase);
             foreach (var module in _allModuleData)
             {
                 string name = module.SimpleName;
-                if (imagesByName.ContainsKey(name))
+                if (readersByName.ContainsKey(name))
                 {
                     if (verification.Status.HasFlag(VerificationStatus.FailsILVerify) && verification.ILVerifyMessage is null)
                     {
@@ -315,10 +350,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     throw new Exception($"Multiple modules named '{name}' were found");
                 }
-                imagesByName.Add(name, module.Image);
+                readersByName.Add(name, new PEReader(module.Image));
             }
 
-            var resolver = new Resolver(imagesByName);
+            var resolver = new Resolver(readersByName);
             var verifier = new ILVerify.Verifier(resolver);
             var mscorlibModule = _allModuleData.SingleOrDefault(m => m.IsCorLib);
             if (mscorlibModule is null)
@@ -334,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Main module is the first one
             var mainModuleReader = resolver.Resolve(_allModuleData[0].SimpleName);
 
-            var (actualSuccess, actualMessage) = verify(verifier, mscorlibModule.SimpleName, mainModuleReader);
+            var (actualSuccess, actualMessage) = verify(verifier, mscorlibModule.FullName, mainModuleReader);
             var expectedSuccess = !verification.Status.HasFlag(VerificationStatus.FailsILVerify);
 
             if (actualSuccess != expectedSuccess)

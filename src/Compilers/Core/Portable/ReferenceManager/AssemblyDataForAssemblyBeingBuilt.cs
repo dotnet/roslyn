@@ -35,16 +35,19 @@ namespace Microsoft.CodeAnalysis
 
                 _referencedAssemblyData = referencedAssemblyData;
 
-                var refs = ArrayBuilder<AssemblyIdentity>.GetInstance(referencedAssemblyData.Length + modules.Length); //approximate size
+                // Pre-calculate size to ensure this code only requires a single array allocation.
+                var builderSize = referencedAssemblyData.Length + modules.Sum(static module => module.ReferencedAssemblies.Length);
+                var refs = ArrayBuilder<AssemblyIdentity>.GetInstance(builderSize);
+
                 foreach (AssemblyData data in referencedAssemblyData)
                 {
                     refs.Add(data.Identity);
                 }
 
                 // add assembly names from modules:
-                for (int i = 1; i <= modules.Length; i++)
+                for (int i = 0; i < modules.Length; i++)
                 {
-                    refs.AddRange(modules[i - 1].ReferencedAssemblies);
+                    refs.AddRange(modules[i].ReferencedAssemblies);
                 }
 
                 _referencedAssemblies = refs.ToImmutableAndFree();
@@ -66,7 +69,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public override IEnumerable<TAssemblySymbol> AvailableSymbols
+            public override ImmutableArray<TAssemblySymbol> AvailableSymbols
             {
                 get
                 {

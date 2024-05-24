@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => BackgroundAnalysisScope.None;
 
         public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Active_File_Tag
-            => BackgroundAnalysisScope.ActiveFile;
+            => BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics;
 
         public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Open_Files_Tag
             => BackgroundAnalysisScope.OpenFiles;
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => CompilerDiagnosticsScope.None;
 
         public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Visible_Files_Tag
-            => CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics;
+            => CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics;
 
         public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Open_Files_Tag
             => CompilerDiagnosticsScope.OpenFiles;
@@ -74,12 +74,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Always_use_default_symbol_servers_for_navigation
             => ServicesVSResources.Always_use_default_symbol_servers_for_navigation;
-
-        public static string Option_Enable_pull_diagnostics_experimental_requires_restart
-            => ServicesVSResources.Enable_pull_diagnostics_experimental_requires_restart;
-
-        public static string Option_Enable_Razor_pull_diagnostics_experimental_requires_restart
-            => ServicesVSResources.Enable_Razor_pull_diagnostics_experimental_requires_restart;
 
         public static string Option_run_code_analysis_in_separate_process
             => ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart;
@@ -153,6 +147,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Underline_reassigned_variables
             => ServicesVSResources.Underline_reassigned_variables;
 
+        public static string Option_Strike_out_obsolete_symbols
+            => ServicesVSResources.Strike_out_obsolete_symbols;
+
         public static string Option_DontPutOutOrRefOnStruct
             => CSharpVSResources.Don_t_put_ref_or_out_on_custom_struct;
 
@@ -225,9 +222,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Quick_Actions
             => ServicesVSResources.Quick_Actions;
 
-        public static string Option_Compute_Quick_Actions_asynchronously_experimental
-            => ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental;
-
         public static string Option_Outlining
             => ServicesVSResources.Outlining;
 
@@ -255,6 +249,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Collapse_regions_when_collapsing_to_definitions
             => ServicesVSResources.Collapse_regions_when_collapsing_to_definitions;
 
+        public static string Option_Collapse_local_functions_when_collapsing_to_definitions
+            => ServicesVSResources.Collapse_local_functions_when_collapsing_to_definitions;
+
         public static string Option_Block_Structure_Guides
             => ServicesVSResources.Block_Structure_Guides;
 
@@ -263,6 +260,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Show_guides_for_code_level_constructs
             => ServicesVSResources.Show_guides_for_code_level_constructs;
+
+        public static string Option_Show_guides_for_comments_and_preprocessor_regions
+            => ServicesVSResources.Show_guides_for_comments_and_preprocessor_regions;
 
         public static string Option_Fading
             => ServicesVSResources.Fading;
@@ -398,5 +398,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Show_UI_as_dashboard_in_top_right
             => ServicesVSResources.Show_UI_as_dashboard_in_top_right;
+
+        public static string Document_Outline
+            => ServicesVSResources.Document_Outline;
+
+        public static string Option_Enable_document_outline_experimental_requires_restart
+            => ServicesVSResources.Enable_document_outline_experimental_requires_restart;
+
+        public static string Option_Source_Generators
+            => ServicesVSResources.Source_Generators;
+
+        public static string Option_Source_generator_execution_requires_restart
+            => ServicesVSResources.Source_generator_execution_requires_restart;
+
+        public static string Option_Automatic_Run_generators_after_any_change
+            => ServicesVSResources.Automatic_Run_generators_after_any_change;
+
+        public static string Option_Balanced_Run_generators_after_saving_or_building
+            => ServicesVSResources.Balanced_Run_generators_after_saving_or_building;
     }
 }

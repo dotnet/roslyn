@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -15,7 +12,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
 public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
@@ -25,7 +22,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
     }
 
     [Theory, CombinatorialData]
-    public async Task TestWorkspaceDiagnosticsReportsAdditionalFileDiagnostic(bool useVSDiagnostics)
+    public async Task TestWorkspaceDiagnosticsReportsAdditionalFileDiagnostic(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var workspaceXml =
 @$"<Workspace>
@@ -35,7 +32,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
     </Project>
 </Workspace>";
 
-        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         AssertEx.Equal(new[]
@@ -47,14 +44,11 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
-        Assert.Null(results2[0].Diagnostics);
-        Assert.Null(results2[1].Diagnostics);
-        Assert.Equal(results[1].ResultId, results2[1].ResultId);
-        Assert.Null(results2[2].Diagnostics);
+        Assert.Empty(results2);
     }
 
     [Theory, CombinatorialData]
-    public async Task TestWorkspaceDiagnosticsWithRemovedAdditionalFile(bool useVSDiagnostics)
+    public async Task TestWorkspaceDiagnosticsWithRemovedAdditionalFile(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var workspaceXml =
 @$"<Workspace>
@@ -64,7 +58,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
     </Project>
 </Workspace>";
 
-        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         Assert.Equal(3, results.Length);
@@ -82,7 +76,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         Assert.Equal(3, results2.Length);
 
         // The first report is the report for the removed additional file.
-        Assert.Equal(useVSDiagnostics ? null : Array.Empty<LSP.Diagnostic>(), results2[0].Diagnostics);
+        Assert.Equal(useVSDiagnostics ? null : [], results2[0].Diagnostics);
         Assert.Null(results2[0].ResultId);
 
         // The other files should have new results since the solution changed.
@@ -92,8 +86,8 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         Assert.NotNull(results2[2].ResultId);
     }
 
-    [Fact]
-    public async Task TestWorkspaceDiagnosticsWithAdditionalFileInMultipleProjects()
+    [Theory, CombinatorialData]
+    public async Task TestWorkspaceDiagnosticsWithAdditionalFileInMultipleProjects(bool mutatingLspWorkspace)
     {
         var workspaceXml =
 @$"<Workspace>
@@ -107,7 +101,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
     </Project>
 </Workspace>";
 
-        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: true);
+        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: true);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true);
         Assert.Equal(6, results.Length);
@@ -121,8 +115,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
-        Assert.Equal(results[1].ResultId, results2[1].ResultId);
-        Assert.Equal(results[4].ResultId, results2[4].ResultId);
+        Assert.Empty(results2);
     }
 
     protected override TestComposition Composition => base.Composition.AddParts(typeof(MockAdditionalFileDiagnosticAnalyzer));

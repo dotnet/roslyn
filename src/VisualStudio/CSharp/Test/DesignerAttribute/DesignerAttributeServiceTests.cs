@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
@@ -88,7 +87,7 @@ class Test { }", "Form");
 
             var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
             var actual = await DesignerAttributeDiscoveryService.ComputeDesignerAttributeCategoryAsync(
-                AsyncLazy.Create(compilation.DesignerCategoryAttributeType() != null), document, CancellationToken.None);
+                compilation.DesignerCategoryAttributeType() != null, document.Project, document.Id, CancellationToken.None);
 
             Assert.Equal(category, actual);
         }

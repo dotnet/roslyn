@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -14,13 +13,11 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Formatting;
@@ -44,7 +41,7 @@ public class GlobalOptionsTests
     [Export(typeof(IGlobalOptionService)), Shared, PartNotDiscoverable]
     internal class TestGlobalOptions : IGlobalOptionService
     {
-        public readonly List<OptionKey2> AccessedOptionKeys = new();
+        public readonly List<OptionKey2> AccessedOptionKeys = [];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -77,10 +74,6 @@ public class GlobalOptionsTests
 
         #region Unused
 
-#pragma warning disable CS0067
-        public event EventHandler<OptionChangedEventArgs>? OptionChanged;
-#pragma warning restore
-
         public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey2> optionKeys)
             => throw new NotImplementedException();
 
@@ -97,6 +90,12 @@ public class GlobalOptionsTests
             => throw new NotImplementedException();
 
         public bool SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
+            => throw new NotImplementedException();
+
+        public void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+            => throw new NotImplementedException();
+
+        public void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
             => throw new NotImplementedException();
 
         #endregion
@@ -132,9 +131,9 @@ public class GlobalOptionsTests
 
                         if (propertyType != property.PropertyType)
                         {
-                            var getValueOrDefault = property.PropertyType.GetMethod("GetValueOrDefault", Array.Empty<Type>());
-                            value = getValueOrDefault.Invoke(value, Array.Empty<object>());
-                            defaultValue = getValueOrDefault.Invoke(defaultValue, Array.Empty<object>());
+                            var getValueOrDefault = property.PropertyType.GetMethod("GetValueOrDefault", []);
+                            value = getValueOrDefault.Invoke(value, []);
+                            defaultValue = getValueOrDefault.Invoke(defaultValue, []);
                         }
 
                         Recurse(propertyType, value, defaultValue, language);
@@ -163,7 +162,8 @@ public class GlobalOptionsTests
              property.DeclaringType == typeof(AddImportPlacementOptions) && property.Name == nameof(AddImportPlacementOptions.UsingDirectivePlacement) && language == LanguageNames.VisualBasic ||
              property.DeclaringType == typeof(DocumentFormattingOptions) && property.Name == nameof(DocumentFormattingOptions.FileHeaderTemplate) ||
              property.DeclaringType == typeof(DocumentFormattingOptions) && property.Name == nameof(DocumentFormattingOptions.InsertFinalNewLine) ||
-             property.DeclaringType == typeof(ClassificationOptions) && property.Name == nameof(ClassificationOptions.ForceFrozenPartialSemanticsForCrossProcessOperations) ||
+             property.DeclaringType == typeof(ClassificationOptions) && property.Name == nameof(ClassificationOptions.FrozenPartialSemantics) ||
+             property.DeclaringType == typeof(HighlightingOptions) && property.Name == nameof(HighlightingOptions.FrozenPartialSemantics) ||
              property.DeclaringType == typeof(BlockStructureOptions) && property.Name == nameof(BlockStructureOptions.IsMetadataAsSource));
 
     /// <summary>

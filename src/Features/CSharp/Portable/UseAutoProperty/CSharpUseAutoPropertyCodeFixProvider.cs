@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -18,168 +19,165 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.UseAutoProperty;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
+namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseAutoProperty), Shared]
+internal class CSharpUseAutoPropertyCodeFixProvider
+    : AbstractUseAutoPropertyCodeFixProvider<TypeDeclarationSyntax, PropertyDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseAutoProperty), Shared]
-    internal class CSharpUseAutoPropertyCodeFixProvider
-        : AbstractUseAutoPropertyCodeFixProvider<TypeDeclarationSyntax, PropertyDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
+    [ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    public CSharpUseAutoPropertyCodeFixProvider()
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpUseAutoPropertyCodeFixProvider()
+    }
+
+    protected override PropertyDeclarationSyntax GetPropertyDeclaration(SyntaxNode node)
+        => (PropertyDeclarationSyntax)node;
+
+    protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
+    {
+        var fieldDeclaration = (FieldDeclarationSyntax)declarator.Parent.Parent;
+        var nodeToRemove = fieldDeclaration.Declaration.Variables.Count > 1 ? declarator : (SyntaxNode)fieldDeclaration;
+        return nodeToRemove;
+    }
+
+    protected override async Task<SyntaxNode> UpdatePropertyAsync(
+        Document propertyDocument, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol,
+        PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor, CancellationToken cancellationToken)
+    {
+        var project = propertyDocument.Project;
+        var trailingTrivia = propertyDeclaration.GetTrailingTrivia();
+
+        var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList))
+                                                 .WithExpressionBody(null)
+                                                 .WithSemicolonToken(Token(SyntaxKind.None));
+
+        // We may need to add a setter if the field is written to outside of the constructor
+        // of it's class.
+        if (NeedsSetter(compilation, propertyDeclaration, isWrittenOutsideOfConstructor))
         {
-        }
+            var accessor = AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                           .WithSemicolonToken(SemicolonToken);
+            var generator = SyntaxGenerator.GetGenerator(project);
 
-        protected override PropertyDeclarationSyntax GetPropertyDeclaration(SyntaxNode node)
-            => (PropertyDeclarationSyntax)node;
-
-        protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
-        {
-            var fieldDeclaration = (FieldDeclarationSyntax)declarator.Parent.Parent;
-            var nodeToRemove = fieldDeclaration.Declaration.Variables.Count > 1 ? declarator : (SyntaxNode)fieldDeclaration;
-            return nodeToRemove;
-        }
-
-        protected override async Task<SyntaxNode> UpdatePropertyAsync(
-            Document propertyDocument, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol,
-            PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor, CancellationToken cancellationToken)
-        {
-            var project = propertyDocument.Project;
-            var trailingTrivia = propertyDeclaration.GetTrailingTrivia();
-
-            var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList))
-                                                     .WithExpressionBody(null)
-                                                     .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
-
-            // We may need to add a setter if the field is written to outside of the constructor
-            // of it's class.
-            if (NeedsSetter(compilation, propertyDeclaration, isWrittenOutsideOfConstructor))
+            if (fieldSymbol.DeclaredAccessibility != propertySymbol.DeclaredAccessibility)
             {
-                var accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                               .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-                var generator = SyntaxGenerator.GetGenerator(project);
-
-                if (fieldSymbol.DeclaredAccessibility != propertySymbol.DeclaredAccessibility)
-                {
-                    accessor = (AccessorDeclarationSyntax)generator.WithAccessibility(accessor, fieldSymbol.DeclaredAccessibility);
-                }
-
-                var modifiers = SyntaxFactory.TokenList(
-                    updatedProperty.Modifiers.Where(token => !token.IsKind(SyntaxKind.ReadOnlyKeyword)));
-
-                updatedProperty = updatedProperty.WithModifiers(modifiers)
-                                                 .AddAccessorListAccessors(accessor);
+                accessor = (AccessorDeclarationSyntax)generator.WithAccessibility(accessor, fieldSymbol.DeclaredAccessibility);
             }
 
-            var fieldInitializer = await GetFieldInitializerAsync(fieldSymbol, cancellationToken).ConfigureAwait(false);
-            if (fieldInitializer != null)
-            {
-                updatedProperty = updatedProperty.WithInitializer(SyntaxFactory.EqualsValueClause(fieldInitializer))
-                                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-            }
+            var modifiers = TokenList(
+                updatedProperty.Modifiers.Where(token => !token.IsKind(SyntaxKind.ReadOnlyKeyword)));
 
-            return updatedProperty.WithTrailingTrivia(trailingTrivia).WithAdditionalAnnotations(SpecializedFormattingAnnotation);
+            updatedProperty = updatedProperty.WithModifiers(modifiers)
+                                             .AddAccessorListAccessors(accessor);
         }
 
-        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
+        var fieldInitializer = await GetFieldInitializerAsync(fieldSymbol, cancellationToken).ConfigureAwait(false);
+        if (fieldInitializer != null)
         {
-            var rules = new List<AbstractFormattingRule> { new SingleLinePropertyFormattingRule() };
-            rules.AddRange(Formatter.GetDefaultFormattingRules(document));
-
-            return rules;
+            updatedProperty = updatedProperty.WithInitializer(EqualsValueClause(fieldInitializer))
+                                             .WithSemicolonToken(SemicolonToken);
         }
 
-        private class SingleLinePropertyFormattingRule : AbstractFormattingRule
+        return updatedProperty.WithTrailingTrivia(trailingTrivia).WithAdditionalAnnotations(SpecializedFormattingAnnotation);
+    }
+
+    protected override ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
+        => [new SingleLinePropertyFormattingRule(), .. Formatter.GetDefaultFormattingRules(document)];
+
+    private class SingleLinePropertyFormattingRule : AbstractFormattingRule
+    {
+        private static bool ForceSingleSpace(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            private static bool ForceSingleSpace(SyntaxToken previousToken, SyntaxToken currentToken)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AccessorList))
             {
-                if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AccessorList))
-                {
-                    return true;
-                }
-
-                if (previousToken.IsKind(SyntaxKind.OpenBraceToken) && previousToken.Parent.IsKind(SyntaxKind.AccessorList))
-                {
-                    return true;
-                }
-
-                if (currentToken.IsKind(SyntaxKind.CloseBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AccessorList))
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
-            {
-                if (ForceSingleSpace(previousToken, currentToken))
-                {
-                    return null;
-                }
-
-                return base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
-            }
-
-            public override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
-            {
-                if (ForceSingleSpace(previousToken, currentToken))
-                {
-                    return new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
-                }
-
-                return base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
-            }
-        }
-
-        private static async Task<ExpressionSyntax> GetFieldInitializerAsync(IFieldSymbol fieldSymbol, CancellationToken cancellationToken)
-        {
-            var variableDeclarator = (VariableDeclaratorSyntax)await fieldSymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-            return variableDeclarator.Initializer?.Value;
-        }
-
-        private static bool NeedsSetter(Compilation compilation, PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)
-        {
-            if (propertyDeclaration.AccessorList?.Accessors.Any(SyntaxKind.SetAccessorDeclaration) == true)
-            {
-                // Already has a setter.
-                return false;
-            }
-
-            if (!SupportsReadOnlyProperties(compilation))
-            {
-                // If the language doesn't have readonly properties, then we'll need a 
-                // setter here.
                 return true;
             }
 
-            // If we're written outside a constructor we need a setter.
-            return isWrittenOutsideOfConstructor;
-        }
-
-        private static bool SupportsReadOnlyProperties(Compilation compilation)
-            => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
-
-        private static AccessorListSyntax UpdateAccessorList(AccessorListSyntax accessorList)
-        {
-            if (accessorList == null)
+            if (previousToken.IsKind(SyntaxKind.OpenBraceToken) && previousToken.Parent.IsKind(SyntaxKind.AccessorList))
             {
-                var getter = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                                          .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-                return SyntaxFactory.AccessorList(SyntaxFactory.List(Enumerable.Repeat(getter, 1)));
+                return true;
             }
 
-            return accessorList.WithAccessors(SyntaxFactory.List(GetAccessors(accessorList.Accessors)));
+            if (currentToken.IsKind(SyntaxKind.CloseBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AccessorList))
+            {
+                return true;
+            }
+
+            return false;
         }
 
-        private static IEnumerable<AccessorDeclarationSyntax> GetAccessors(SyntaxList<AccessorDeclarationSyntax> accessors)
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
-            foreach (var accessor in accessors)
+            if (ForceSingleSpace(previousToken, currentToken))
             {
-                yield return accessor.WithBody(null)
-                                     .WithExpressionBody(null)
-                                     .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                return null;
             }
+
+            return base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
+        }
+
+        public override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        {
+            if (ForceSingleSpace(previousToken, currentToken))
+            {
+                return new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+            }
+
+            return base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
+        }
+    }
+
+    private static async Task<ExpressionSyntax> GetFieldInitializerAsync(IFieldSymbol fieldSymbol, CancellationToken cancellationToken)
+    {
+        var variableDeclarator = (VariableDeclaratorSyntax)await fieldSymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+        return variableDeclarator.Initializer?.Value;
+    }
+
+    private static bool NeedsSetter(Compilation compilation, PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)
+    {
+        if (propertyDeclaration.AccessorList?.Accessors.Any(SyntaxKind.SetAccessorDeclaration) == true)
+        {
+            // Already has a setter.
+            return false;
+        }
+
+        if (!SupportsReadOnlyProperties(compilation))
+        {
+            // If the language doesn't have readonly properties, then we'll need a 
+            // setter here.
+            return true;
+        }
+
+        // If we're written outside a constructor we need a setter.
+        return isWrittenOutsideOfConstructor;
+    }
+
+    private static bool SupportsReadOnlyProperties(Compilation compilation)
+        => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
+
+    private static AccessorListSyntax UpdateAccessorList(AccessorListSyntax accessorList)
+    {
+        if (accessorList == null)
+        {
+            var getter = AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                                      .WithSemicolonToken(SemicolonToken);
+            return AccessorList([getter]);
+        }
+
+        return accessorList.WithAccessors([.. GetAccessors(accessorList.Accessors)]);
+    }
+
+    private static IEnumerable<AccessorDeclarationSyntax> GetAccessors(SyntaxList<AccessorDeclarationSyntax> accessors)
+    {
+        foreach (var accessor in accessors)
+        {
+            yield return accessor.WithBody(null)
+                                 .WithExpressionBody(null)
+                                 .WithSemicolonToken(SemicolonToken);
         }
     }
 }

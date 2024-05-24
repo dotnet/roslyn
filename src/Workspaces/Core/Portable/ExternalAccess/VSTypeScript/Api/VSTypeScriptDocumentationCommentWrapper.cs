@@ -4,26 +4,20 @@
 
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal readonly struct VSTypeScriptDocumentationCommentWrapper(DocumentationComment underlyingObject)
 {
-    internal readonly struct VSTypeScriptDocumentationCommentWrapper
-    {
-        private readonly DocumentationComment _underlyingObject;
+    public static VSTypeScriptDocumentationCommentWrapper FromXmlFragment(string xml)
+        => new(DocumentationComment.FromXmlFragment(xml));
 
-        public VSTypeScriptDocumentationCommentWrapper(DocumentationComment underlyingObject)
-            => _underlyingObject = underlyingObject;
+    public bool IsDefault
+        => underlyingObject == null;
 
-        public static VSTypeScriptDocumentationCommentWrapper FromXmlFragment(string xml)
-            => new(DocumentationComment.FromXmlFragment(xml));
+    public string? SummaryTextOpt
+        => underlyingObject?.SummaryText;
 
-        public bool IsDefault
-            => _underlyingObject == null;
+    public string? GetParameterTextOpt(string parameterName)
+        => underlyingObject?.GetParameterText(parameterName);
 
-        public string? SummaryTextOpt
-            => _underlyingObject?.SummaryText;
-
-        public string? GetParameterTextOpt(string parameterName)
-            => _underlyingObject?.GetParameterText(parameterName);
-
-    }
 }

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         static ResultProvider()
         {
-            FatalError.Handler = FailFast.Handler;
+            FatalError.SetHandlers(FailFast.Handler, nonFatalHandler: null);
         }
 
         internal ResultProvider(IDkmClrFormatter2 formatter2, IDkmClrFullNameProvider fullNameProvider)

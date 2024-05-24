@@ -1359,20 +1359,44 @@ unsafe class Program
         yield return sizeof(System.UIntPtr);
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics(
-                // (6,22): error CS1629: Unsafe code may not appear in iterators
+            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
+            var expectedDiagnostics = new[]
+            {
+                // (6,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         yield return sizeof(nint);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "sizeof(nint)").WithLocation(6, 22),
-                // (7,22): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 22),
+                // (7,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         yield return sizeof(nuint);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "sizeof(nuint)").WithLocation(7, 22),
-                // (8,22): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nuint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 22),
+                // (8,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         yield return sizeof(System.IntPtr);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "sizeof(System.IntPtr)").WithLocation(8, 22),
-                // (9,22): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(System.IntPtr)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 22),
+                // (9,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         yield return sizeof(System.UIntPtr);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "sizeof(System.UIntPtr)").WithLocation(9, 22));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(System.UIntPtr)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 22)
+            };
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
+
+            expectedDiagnostics = new[]
+            {
+                // (6,22): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         yield return sizeof(nint);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(6, 22),
+                // (7,22): error CS0233: 'nuint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         yield return sizeof(nuint);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nuint)").WithArguments("nuint").WithLocation(7, 22),
+                // (8,22): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         yield return sizeof(System.IntPtr);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(System.IntPtr)").WithArguments("nint").WithLocation(8, 22),
+                // (9,22): error CS0233: 'nuint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         yield return sizeof(System.UIntPtr);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(System.UIntPtr)").WithArguments("nuint").WithLocation(9, 22)
+            };
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -1537,7 +1561,7 @@ class Program
                 static void verifyUnaryOperators(CSharpCompilation comp, UnaryOperatorKind operatorKind, bool skipNativeIntegerOperators)
                 {
                     var builder = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
-                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder, skipNativeIntegerOperators);
+                    comp.BuiltInOperators.GetSimpleBuiltInOperators(operatorKind, builder, skipNativeIntegerOperators);
                     var operators = builder.ToImmutableAndFree();
                     int expectedSigned = skipNativeIntegerOperators ? 0 : 1;
                     int expectedUnsigned = skipNativeIntegerOperators ? 0 : (operatorKind == UnaryOperatorKind.UnaryMinus) ? 0 : 1;
@@ -1548,7 +1572,7 @@ class Program
                 static void verifyBinaryOperators(CSharpCompilation comp, BinaryOperatorKind operatorKind, bool skipNativeIntegerOperators)
                 {
                     var builder = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
-                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder, skipNativeIntegerOperators);
+                    comp.BuiltInOperators.GetSimpleBuiltInOperators(operatorKind, builder, skipNativeIntegerOperators);
                     var operators = builder.ToImmutableAndFree();
                     int expected = skipNativeIntegerOperators ? 0 : 1;
                     verifyOperators(operators, (op, signed) => isNativeInt(op.LeftType, signed), expected, expected);
@@ -11755,6 +11779,29 @@ class Program
 }
 """);
             }
+        }
+
+        [WorkItem(67041, "https://github.com/dotnet/roslyn/issues/67041")]
+        [Theory]
+        [CombinatorialData]
+        public void PointerSubtraction(bool useNumericIntPtr)
+        {
+            var source = """
+                class Program
+                {
+                    static unsafe long F(int* p1)
+                    {
+                        byte* p2 = (byte*)p1;
+                        p2++;
+                        return p2 - (byte*)p1;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                options: TestOptions.UnsafeReleaseDll,
+                targetFramework: useNumericIntPtr ? TargetFramework.Net60 : TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
         }
 
         private void VerifyNoNativeIntegerAttributeEmitted(CSharpCompilation comp)

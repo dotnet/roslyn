@@ -12,6 +12,11 @@
         <target state="translated">Agregar llaves a la instrucción '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Anonymous_function_can_be_made_static">
+        <source>Anonymous function can be made static</source>
+        <target state="new">Anonymous function can be made static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
         <source>Blank line not allowed after arrow expression clause token</source>
         <target state="translated">No se permite una línea en blanco después del token de la cláusula de expresión de flecha</target>
@@ -92,9 +97,14 @@
         <target state="translated">Se puede quitar la expresión lambda</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_anonymous_function_static">
+        <source>Make anonymous function static</source>
+        <target state="new">Make anonymous function static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_member_readonly">
         <source>Make member 'readonly'</source>
-        <target state="new">Make member 'readonly'</target>
+        <target state="translated">Convertir el miembro en 'readonly'</target>
         <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_struct_readonly">
@@ -102,9 +112,9 @@
         <target state="translated">Convertir estructura en "readonly"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Member can be made readonly">
+      <trans-unit id="Member_can_be_made_readonly">
         <source>Member can be made 'readonly'</source>
-        <target state="new">Member can be made 'readonly'</target>
+        <target state="translated">El miembro se puede hacer "readonly"</target>
         <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
@@ -170,11 +180,6 @@
       <trans-unit id="Remove_redundant_nullable_directive">
         <source>Remove redundant nullable directive</source>
         <target state="translated">Quitar directiva redundante que admite un valor NULL</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">Quitar operadores de supresión</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
@@ -387,6 +392,11 @@
         <target state="translated">Usar coincidencia de patrones (puede cambiar el significado del código)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_primary_constructor">
+        <source>Use primary constructor</source>
+        <target state="translated">Usar constructor principal</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="translated">Usar el operador de intervalo</target>
@@ -452,8 +462,8 @@
         <target state="translated">La expresión "new" se puede simplificar.</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
         <target state="translated">"typeof" puede convertirse en "nameof"</target>
         <note />
       </trans-unit>

@@ -4,21 +4,12 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.SignatureHelp
-{
-    internal readonly struct SignatureHelpState
-    {
-        public readonly int ArgumentIndex;
-        public readonly int ArgumentCount;
-        public readonly string? ArgumentName;
-        public readonly ImmutableArray<string> ArgumentNames;
+namespace Microsoft.CodeAnalysis.SignatureHelp;
 
-        public SignatureHelpState(int argumentIndex, int argumentCount, string? argumentName, ImmutableArray<string> argumentNames)
-        {
-            ArgumentIndex = argumentIndex;
-            ArgumentCount = argumentCount;
-            ArgumentName = argumentName;
-            ArgumentNames = argumentNames;
-        }
-    }
+internal readonly struct SignatureHelpState(int argumentIndex, int argumentCount, string? argumentName, ImmutableArray<string> argumentNames)
+{
+    public readonly int ArgumentIndex = argumentIndex;
+    public readonly int ArgumentCount = argumentCount;
+    public readonly string? ArgumentName = argumentName;
+    public readonly ImmutableArray<string> ArgumentNames = argumentNames;
 }

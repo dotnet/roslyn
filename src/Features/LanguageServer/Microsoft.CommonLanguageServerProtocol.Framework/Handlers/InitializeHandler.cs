@@ -2,13 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
+#nullable enable
+
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 
-[LanguageServerEndpoint("initialize")]
-public class InitializeHandler<TRequest, TResponse, TRequestContext>
+[LanguageServerEndpoint("initialize", LanguageServerConstants.DefaultLanguageName)]
+internal class InitializeHandler<TRequest, TResponse, TRequestContext>
     : IRequestHandler<TRequest, TResponse, TRequestContext>
 {
     private readonly IInitializeManager<TRequest, TResponse> _capabilitiesManager;
@@ -19,8 +22,6 @@ public class InitializeHandler<TRequest, TResponse, TRequestContext>
     }
 
     public bool MutatesSolutionState => true;
-
-    public bool RequiresLSPSolution => false;
 
     public Task<TResponse> HandleRequestAsync(TRequest request, TRequestContext context, CancellationToken cancellationToken)
     {

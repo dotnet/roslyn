@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -29,11 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
 
                 var compilationState = new TypeCompilationState(sourceSymbol.ContainingType, compilation, null);
-                var boundBody = MethodCompiler.BindSynthesizedMethodBody(sourceSymbol, compilationState, new BindingDiagnosticBag(new DiagnosticBag()));
+                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+
+                var boundBody = MethodCompiler.BindSynthesizedMethodBody(sourceSymbol, compilationState, diagnostics);
                 if (boundBody != null)
                 {
                     FlowAnalysisPass.Rewrite(sourceSymbol, boundBody, compilationState, flowDiagnostics, hasTrailingExpression: false, originalBodyNested: false);
                 }
+
+                diagnostics.Free();
             }
 
             return flowDiagnostics.ToReadOnlyAndFree().Diagnostics;
@@ -82,6 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         protected DataFlowAnalysis CompileAndAnalyzeDataFlowExpression(string program, params MetadataReference[] references)
         {
             return CompileAndGetModelAndExpression(program, (model, expression) => model.AnalyzeDataFlow(expression), references);
+        }
+
+        protected DataFlowAnalysis CompileAndAnalyzeDataFlowExpression(string program, TargetFramework targetFramework, params MetadataReference[] references)
+        {
+            return CompileAndGetModelAndExpression(program, (model, expression) => model.AnalyzeDataFlow(expression), targetFramework, assertNoDiagnostics: true, references);
         }
 
         protected DataFlowAnalysis CompileAndAnalyzeDataFlowConstructorInitializer(string program, params MetadataReference[] references)
@@ -148,7 +158,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected T CompileAndGetModelAndExpression<T>(string program, Func<SemanticModel, ExpressionSyntax, T> analysisDelegate, params MetadataReference[] references)
         {
-            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularPreview, references: references);
+            return CompileAndGetModelAndExpression<T>(program, analysisDelegate, TargetFramework.Standard, assertNoDiagnostics: false, references);
+        }
+
+        protected T CompileAndGetModelAndExpression<T>(string program, Func<SemanticModel, ExpressionSyntax, T> analysisDelegate, TargetFramework targetFramework, bool assertNoDiagnostics, params MetadataReference[] references)
+        {
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularPreview, targetFramework: targetFramework, references: references);
+
+            if (assertNoDiagnostics)
+            {
+                comp.VerifyDiagnostics();
+            }
+
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             int start = program.IndexOf(StartString, StringComparison.Ordinal) + StartString.Length;

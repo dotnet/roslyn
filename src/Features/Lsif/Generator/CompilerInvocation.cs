@@ -6,15 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Newtonsoft.Json;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
@@ -68,6 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 }
             }
 
+            var documentationProvider = workspace.Services.GetRequiredService<IDocumentationProviderService>();
             var commandLineParserService = languageServices.GetRequiredService<ICommandLineParserService>();
             var parsedCommandLine = commandLineParserService.Parse(splitCommandLine, Path.GetDirectoryName(invocationInfo.ProjectFilePath), isInteractive: false, sdkDirectory: null);
 
@@ -90,7 +87,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 parsedCommandLine.ParseOptions,
                 parsedCommandLine.SourceFiles.Select(s => CreateDocumentInfo(unmappedPath: s.Path)),
                 projectReferences: null,
-                metadataReferences: parsedCommandLine.MetadataReferences.Select(r => MetadataReference.CreateFromFile(mapPath(r.Reference), r.Properties)),
+                metadataReferences: parsedCommandLine.MetadataReferences.Select(
+                    r =>
+                    {
+                        var mappedPath = mapPath(r.Reference);
+                        return MetadataReference.CreateFromFile(mappedPath, r.Properties, documentationProvider.GetDocumentationProvider(mappedPath));
+                    }),
                 additionalDocuments: parsedCommandLine.AdditionalFiles.Select(f => CreateDocumentInfo(unmappedPath: f.Path)),
                 analyzerReferences: parsedCommandLine.AnalyzerReferences.Select(r => new AnalyzerFileReference(r.FilePath, analyzerLoader)),
                 analyzerConfigDocuments: parsedCommandLine.AnalyzerConfigPaths.Select(CreateDocumentInfo),
@@ -182,15 +184,13 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             public string ProjectFilePath { get; set; }
 
-            public List<PathMapping> PathMappings { get; set; } = new List<PathMapping>();
+            public List<PathMapping> PathMappings { get; set; } = [];
 
             public sealed class PathMapping
             {
                 public string From { get; set; }
                 public string To { get; set; }
             }
-
-#nullable disable
         }
     }
 }

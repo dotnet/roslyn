@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -258,7 +259,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var args = new ConstraintsHelper.CheckConstraintsArgsBoxed(DeclaringCompilation, new TypeConversions(ContainingAssembly.CorLibrary), _locations[0], diagnostics);
+            var args = ConstraintsHelper.CheckConstraintsArgsBoxed.Allocate(
+                DeclaringCompilation, ContainingAssembly.CorLibrary.TypeConversions, _locations[0], diagnostics);
             foreach (var constraintType in constraintTypes)
             {
                 if (!diagnostics.ReportUseSite(constraintType.Type, args.Args.Location))
@@ -266,6 +268,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     constraintType.Type.CheckAllConstraints(args);
                 }
             }
+
+            args.Free();
         }
 
         private void CheckUnmanagedConstraint(BindingDiagnosticBag diagnostics)
@@ -342,8 +346,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.ContainingAssembly.GetSpecialType(SpecialType.System_Object);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation locationOpt, Predicate<Symbol> filter, CancellationToken cancellationToken)
         {
+            Debug.Assert(filter == null);
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -499,6 +504,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool AllowsRefLikeType
+        {
+            get
+            {
+                var constraints = this.GetConstraintKinds();
+                return (constraints & TypeParameterConstraintKind.AllowByRefLike) != 0;
+            }
+        }
+
         public override bool IsValueTypeFromConstraintTypes
         {
             get
@@ -629,6 +643,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var constraints = this.GetConstraintKinds();
                 return (constraints & TypeParameterConstraintKind.AllValueTypeKinds) != 0;
+            }
+        }
+
+        public override bool AllowsRefLikeType
+        {
+            get
+            {
+                var constraints = this.GetConstraintKinds();
+                return (constraints & TypeParameterConstraintKind.AllowByRefLike) != 0;
             }
         }
 
@@ -883,6 +906,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var typeParameter = this.OverriddenTypeParameter;
                 return ((object)typeParameter != null) && typeParameter.HasValueTypeConstraint;
+            }
+        }
+
+        public override bool AllowsRefLikeType
+        {
+            get
+            {
+                var typeParameter = this.OverriddenTypeParameter;
+                return ((object)typeParameter != null) && typeParameter.AllowsRefLikeType;
             }
         }
 

@@ -518,5 +518,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             ' retargeting symbols refer to a symbol from another compilation, they don't define locals in the current compilation
             Throw ExceptionUtilities.Unreachable
         End Function
+
+        Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return _underlyingMethod.HasSetsRequiredMembers
+            End Get
+        End Property
     End Class
 End Namespace

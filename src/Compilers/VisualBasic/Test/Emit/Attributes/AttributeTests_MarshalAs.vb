@@ -498,6 +498,7 @@ End Class
             }
 
             Dim verifier = CompileAndVerifyFieldMarshal(source, blobs)
+            verifier.VerifyDiagnostics()
             VerifyFieldMetadataDecoding(verifier, blobs)
         End Sub
 

@@ -45,8 +45,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public override Stream? Stream => null;
-
             protected override Stream? CreateStream(DiagnosticBag diagnostics)
             {
                 Debug.Assert(_streamToDispose == null);

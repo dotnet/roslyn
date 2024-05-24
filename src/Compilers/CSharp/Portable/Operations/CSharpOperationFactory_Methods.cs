@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Operations
         internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol? parameter, BoundExpression expression)
         {
             // put argument syntax to argument operation
-            IOperation value = Create(expression);
+            IOperation value = Create(expression is BoundConversion { IsParamsArrayOrCollection: true } conversion ? conversion.Operand : expression);
             (SyntaxNode syntax, bool isImplicit) = expression.Syntax is { Parent: ArgumentSyntax or AttributeArgumentSyntax } ? (expression.Syntax.Parent, expression.WasCompilerGenerated) : (value.Syntax, true);
             return new ArgumentOperation(
                 kind,
@@ -204,9 +204,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                     property,
                                     boundObjectInitializerMember.Arguments,
                                     boundObjectInitializerMember.ArgsToParamsOpt,
-                                    boundObjectInitializerMember.DefaultArguments,
-                                    boundObjectInitializerMember.Expanded,
-                                    boundObjectInitializerMember.Syntax);
+                                    boundObjectInitializerMember.DefaultArguments);
                     }
                 case BoundKind.IndexerAccess:
                     {
@@ -214,9 +212,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         return DeriveArguments(boundIndexer.Indexer,
                                                boundIndexer.Arguments,
                                                boundIndexer.ArgsToParamsOpt,
-                                               boundIndexer.DefaultArguments,
-                                               boundIndexer.Expanded,
-                                               boundIndexer.Syntax);
+                                               boundIndexer.DefaultArguments);
                     }
                 case BoundKind.ObjectCreationExpression:
                     {
@@ -224,9 +220,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         return DeriveArguments(objectCreation.Constructor,
                                                objectCreation.Arguments,
                                                objectCreation.ArgsToParamsOpt,
-                                               objectCreation.DefaultArguments,
-                                               objectCreation.Expanded,
-                                               objectCreation.Syntax);
+                                               objectCreation.DefaultArguments);
                     }
                 case BoundKind.Attribute:
                     var attribute = (BoundAttribute)containingExpression;
@@ -234,9 +228,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     return DeriveArguments(attribute.Constructor,
                                            attribute.ConstructorArguments,
                                            attribute.ConstructorArgumentsToParamsOpt,
-                                           attribute.ConstructorDefaultArguments,
-                                           attribute.ConstructorExpanded,
-                                           attribute.Syntax);
+                                           attribute.ConstructorDefaultArguments);
                 case BoundKind.Call:
                     {
                         var boundCall = (BoundCall)containingExpression;
@@ -244,8 +236,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                                boundCall.Arguments,
                                                boundCall.ArgsToParamsOpt,
                                                boundCall.DefaultArguments,
-                                               boundCall.Expanded,
-                                               boundCall.Syntax,
                                                boundCall.InvokedAsExtensionMethod);
                     }
                 case BoundKind.CollectionElementInitializer:
@@ -255,8 +245,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                                boundCollectionElementInitializer.Arguments,
                                                boundCollectionElementInitializer.ArgsToParamsOpt,
                                                boundCollectionElementInitializer.DefaultArguments,
-                                               boundCollectionElementInitializer.Expanded,
-                                               boundCollectionElementInitializer.Syntax,
                                                boundCollectionElementInitializer.InvokedAsExtensionMethod);
                     }
                 case BoundKind.FunctionPointerInvocation:
@@ -266,8 +254,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                                boundFunctionPointerInvocation.Arguments,
                                                default,
                                                BitVector.Empty,
-                                               false,
-                                               boundFunctionPointerInvocation.Syntax,
                                                false);
                     }
                 default:
@@ -280,8 +266,6 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<BoundExpression> boundArguments,
             ImmutableArray<int> argumentsToParametersOpt,
             BitVector defaultArguments,
-            bool expanded,
-            SyntaxNode invocationSyntax,
             bool invokedAsExtensionMethod = false)
         {
             // We can simply return empty array only if both parameters and boundArguments are empty, because:
@@ -292,16 +276,112 @@ namespace Microsoft.CodeAnalysis.Operations
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
 
-            return LocalRewriter.MakeArgumentsInEvaluationOrder(
+            return MakeArgumentsInEvaluationOrder(
                  operationFactory: this,
-                 compilation: (CSharpCompilation)_semanticModel.Compilation,
-                 syntax: invocationSyntax,
                  arguments: boundArguments,
                  methodOrIndexer: methodOrIndexer,
-                 expanded: expanded,
                  argsToParamsOpt: argumentsToParametersOpt,
                  defaultArguments: defaultArguments,
                  invokedAsExtensionMethod: invokedAsExtensionMethod);
+        }
+
+        private static ImmutableArray<IArgumentOperation> MakeArgumentsInEvaluationOrder(
+            CSharpOperationFactory operationFactory,
+            ImmutableArray<BoundExpression> arguments,
+            Symbol methodOrIndexer,
+            ImmutableArray<int> argsToParamsOpt,
+            BitVector defaultArguments,
+            bool invokedAsExtensionMethod)
+        {
+            // We need to do a fancy rewrite under the following circumstances:
+            // (1) a params array is being used; we need to generate the array. 
+            // (2) named arguments were provided out-of-order of the parameters.
+            //
+            // If neither of those are the case then we can just take an early out.
+
+            if (LocalRewriter.CanSkipRewriting(arguments, methodOrIndexer, argsToParamsOpt, invokedAsExtensionMethod, true, out _))
+            {
+                // In this case, there's no named argument provided.
+                // So we just return list of arguments as is.
+
+                ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
+                ArrayBuilder<IArgumentOperation> argumentsBuilder = ArrayBuilder<IArgumentOperation>.GetInstance(arguments.Length);
+
+                int i = 0;
+                for (; i < parameters.Length; ++i)
+                {
+                    var argumentKind = GetArgumentKind(arguments[i], ref defaultArguments, i);
+                    argumentsBuilder.Add(operationFactory.CreateArgumentOperation(argumentKind, parameters[i].GetPublicSymbol(), arguments[i]));
+                }
+
+                // TODO: In case of __arglist, we will have more arguments than parameters, 
+                //       set the parameter to null for __arglist argument for now.
+                //       https://github.com/dotnet/roslyn/issues/19673
+                for (; i < arguments.Length; ++i)
+                {
+                    var argumentKind = defaultArguments[i] ? ArgumentKind.DefaultValue : ArgumentKind.Explicit;
+                    argumentsBuilder.Add(operationFactory.CreateArgumentOperation(argumentKind, null, arguments[i]));
+                }
+
+                Debug.Assert(methodOrIndexer.GetIsVararg() ^ parameters.Length == arguments.Length);
+
+                return argumentsBuilder.ToImmutableAndFree();
+            }
+
+            return BuildArgumentsInEvaluationOrder(
+                operationFactory,
+                methodOrIndexer,
+                argsToParamsOpt,
+                defaultArguments,
+                arguments);
+        }
+
+        private static ArgumentKind GetArgumentKind(BoundExpression argument, ref BitVector defaultArguments, int i)
+        {
+            ArgumentKind argumentKind;
+            if (defaultArguments[i])
+            {
+                argumentKind = ArgumentKind.DefaultValue;
+            }
+            else if (argument.IsParamsArrayOrCollection)
+            {
+                argumentKind = argument.Type?.IsSZArray() == true ? ArgumentKind.ParamArray : ArgumentKind.ParamCollection;
+            }
+            else
+            {
+                argumentKind = ArgumentKind.Explicit;
+            }
+
+            return argumentKind;
+        }
+
+        // This fills in the arguments in evaluation order.
+        private static ImmutableArray<IArgumentOperation> BuildArgumentsInEvaluationOrder(
+            CSharpOperationFactory operationFactory,
+            Symbol methodOrIndexer,
+            ImmutableArray<int> argsToParamsOpt,
+            BitVector defaultArguments,
+            ImmutableArray<BoundExpression> arguments)
+        {
+            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
+
+            ArrayBuilder<IArgumentOperation> argumentsInEvaluationBuilder = ArrayBuilder<IArgumentOperation>.GetInstance(parameters.Length);
+
+            // First, fill in all the explicitly provided arguments.
+            for (int a = 0; a < arguments.Length; ++a)
+            {
+                BoundExpression argument = arguments[a];
+
+                int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
+                var parameter = parameters[p];
+
+                ArgumentKind kind = GetArgumentKind(argument, ref defaultArguments, a);
+
+                argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter.GetPublicSymbol(), argument));
+            }
+
+            Debug.Assert(argumentsInEvaluationBuilder.All(static arg => arg is not null));
+            return argumentsInEvaluationBuilder.ToImmutableAndFree();
         }
 
         internal static ImmutableArray<BoundNode> CreateInvalidChildrenFromArgumentsExpression(BoundNode? receiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression? additionalNodeOpt = null)

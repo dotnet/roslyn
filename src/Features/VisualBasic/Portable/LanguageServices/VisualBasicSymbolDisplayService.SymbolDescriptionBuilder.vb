@@ -29,11 +29,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
 
             Public Sub New(semanticModel As SemanticModel,
                            position As Integer,
-                           services As SolutionServices,
-                           structuralTypeDisplayService As IStructuralTypeDisplayService,
+                           languageServices As Host.LanguageServices,
                            options As SymbolDescriptionOptions,
                            cancellationToken As CancellationToken)
-                MyBase.New(semanticModel, position, services, structuralTypeDisplayService, options, cancellationToken)
+                MyBase.New(semanticModel, position, languageServices, options, cancellationToken)
             End Sub
 
             Protected Overrides Sub AddDeprecatedPrefix()
@@ -159,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     Dim semanticModel = GetSemanticModel(equalsValue.SyntaxTree)
                     If semanticModel IsNot Nothing Then
                         Return Await Classifier.GetClassifiedSymbolDisplayPartsAsync(
-                            Services, semanticModel, equalsValue.Value.Span, Options.ClassificationOptions, CancellationToken).ConfigureAwait(False)
+                            LanguageServices, semanticModel, equalsValue.Value.Span, Options.ClassificationOptions, CancellationToken).ConfigureAwait(False)
                     End If
                 End If
 

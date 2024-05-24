@@ -1206,6 +1206,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                      statementInfo.CurrentProperty,
                                                      statementInfo.MoveNextMethod,
                                                      isAsynchronous:=False,
+                                                     inlineArrayConversion:=Nothing,
+                                                     collectionIsInlineArrayValue:=False,
                                                      boundForEachStatement.EnumeratorInfo.NeedToDispose,
                                                      knownToImplementIDisposable:=boundForEachStatement.EnumeratorInfo.NeedToDispose AndAlso
                                                                                   boundForEachStatement.EnumeratorInfo.IsOrInheritsFromOrImplementsIDisposable,

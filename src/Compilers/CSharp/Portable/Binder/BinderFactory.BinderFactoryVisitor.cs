@@ -17,25 +17,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class BinderFactory
     {
-        private sealed class BinderFactoryVisitor : CSharpSyntaxVisitor<Binder>
+        internal sealed class BinderFactoryVisitor : CSharpSyntaxVisitor<Binder>
         {
             private int _position;
             private CSharpSyntaxNode _memberDeclarationOpt;
             private Symbol _memberOpt;
-            private readonly BinderFactory _factory;
+            private BinderFactory _factory;
 
-            internal BinderFactoryVisitor(BinderFactory factory)
-            {
-                _factory = factory;
-            }
-
-            internal void Initialize(int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
+            internal void Initialize(BinderFactory factory, int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
             {
                 Debug.Assert((memberDeclarationOpt == null) == (memberOpt == null));
 
+                _factory = factory;
                 _position = position;
                 _memberDeclarationOpt = memberDeclarationOpt;
                 _memberOpt = memberOpt;
+            }
+
+            internal void Clear()
+            {
+                _factory = null;
+                _position = 0;
+                _memberDeclarationOpt = null;
+                _memberOpt = null;
             }
 
             private CSharpCompilation compilation
@@ -167,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     SourceMemberMethodSymbol method = null;
+                    bool isIteratorBody = false;
 
                     if (usage != NodeUsage.Normal && methodDecl.TypeParameterList != null)
                     {
@@ -177,10 +182,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (usage == NodeUsage.MethodBody)
                     {
                         method = method ?? GetMethodSymbol(methodDecl, resultBinder);
+                        isIteratorBody = method.IsIterator;
                         resultBinder = new InMethodBinder(method, resultBinder);
                     }
 
-                    resultBinder = resultBinder.WithUnsafeRegionIfNecessary(methodDecl.Modifiers);
+                    resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(methodDecl.Modifiers, isIteratorBody: isIteratorBody);
                     binderCache.TryAdd(key, resultBinder);
                 }
 
@@ -218,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);
+                    resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
 
                     binderCache.TryAdd(key, resultBinder);
                 }
@@ -245,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SourceMemberMethodSymbol method = GetMethodSymbol(parent, resultBinder);
                     resultBinder = new InMethodBinder(method, resultBinder);
 
-                    resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);
+                    resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
 
                     binderCache.TryAdd(key, resultBinder);
                 }
@@ -307,6 +313,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((object)accessor != null)
                         {
                             resultBinder = new InMethodBinder(accessor, resultBinder);
+
+                            resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(
+                                modifiers: default,
+                                isIteratorBody: accessor.IsIterator);
                         }
                     }
 
@@ -334,12 +344,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultBinder = VisitCore(parent.Parent);
 
                     MethodSymbol method = GetMethodSymbol(parent, resultBinder);
+                    bool isIteratorBody = false;
                     if ((object)method != null && inBody)
                     {
+                        isIteratorBody = method.IsIterator;
                         resultBinder = new InMethodBinder(method, resultBinder);
                     }
 
-                    resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);
+                    resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(parent.Modifiers, isIteratorBody: isIteratorBody);
 
                     binderCache.TryAdd(key, resultBinder);
                 }
@@ -359,24 +371,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override Binder VisitFieldDeclaration(FieldDeclarationSyntax parent)
             {
-                return VisitCore(parent.Parent).WithUnsafeRegionIfNecessary(parent.Modifiers);
+                return VisitCore(parent.Parent).SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
             }
 
             public override Binder VisitEventDeclaration(EventDeclarationSyntax parent)
             {
-                return VisitCore(parent.Parent).WithUnsafeRegionIfNecessary(parent.Modifiers);
+                return VisitCore(parent.Parent).SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
             }
 
             public override Binder VisitEventFieldDeclaration(EventFieldDeclarationSyntax parent)
             {
-                return VisitCore(parent.Parent).WithUnsafeRegionIfNecessary(parent.Modifiers);
+                return VisitCore(parent.Parent).SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
             }
 
             public override Binder VisitPropertyDeclaration(PropertyDeclarationSyntax parent)
             {
                 if (!LookupPosition.IsInBody(_position, parent))
                 {
-                    return VisitCore(parent.Parent).WithUnsafeRegionIfNecessary(parent.Modifiers);
+                    return VisitCore(parent.Parent).SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
                 }
 
                 return VisitPropertyOrIndexerExpressionBody(parent);
@@ -386,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!LookupPosition.IsInBody(_position, parent))
                 {
-                    return VisitCore(parent.Parent).WithUnsafeRegionIfNecessary(parent.Modifiers);
+                    return VisitCore(parent.Parent).SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
                 }
 
                 return VisitPropertyOrIndexerExpressionBody(parent);
@@ -399,12 +411,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder resultBinder;
                 if (!binderCache.TryGetValue(key, out resultBinder))
                 {
-                    resultBinder = VisitCore(parent.Parent).WithUnsafeRegionIfNecessary(parent.Modifiers);
+                    resultBinder = VisitCore(parent.Parent).SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
 
                     var propertySymbol = GetPropertySymbol(parent, resultBinder);
                     var accessor = propertySymbol.GetMethod;
                     if ((object)accessor != null)
                     {
+                        // Expression body cannot be an iterator, otherwise we would need to pass
+                        // `isIteratorBody` to `SetOrClearUnsafeRegionIfNecessary` above.
+                        Debug.Assert(!accessor.IsIterator);
+
                         resultBinder = new InMethodBinder(accessor, resultBinder);
                     }
 
@@ -544,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event);
 
-                if (container is SourceMemberContainerTypeSymbol { PrimaryConstructor: not null } sourceMemberContainerTypeSymbol)
+                if (container is SourceMemberContainerTypeSymbol { HasPrimaryConstructor: true } sourceMemberContainerTypeSymbol)
                 {
                     foreach (Symbol sym in sourceMemberContainerTypeSymbol.GetMembersToMatchAgainstDeclarationSpan())
                     {
@@ -583,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (sym.Kind == SymbolKind.Method)
                     {
-                        if (InSpan(sym.Locations[0], this.syntaxTree, memberSpan))
+                        if (InSpan(sym.GetFirstLocation(), this.syntaxTree, memberSpan))
                         {
                             return true;
                         }
@@ -594,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var implementation = ((MethodSymbol)sym).PartialImplementationPart;
                         if ((object)implementation != null)
                         {
-                            if (InSpan(implementation.Locations[0], this.syntaxTree, memberSpan))
+                            if (InSpan(implementation.GetFirstLocation(), this.syntaxTree, memberSpan))
                             {
                                 result = implementation;
                                 return true;
@@ -659,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resultBinder = new WithClassTypeParametersBinder(container, resultBinder);
                     }
 
-                    resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);
+                    resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
 
                     binderCache.TryAdd(key, resultBinder);
                 }
@@ -687,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     resultBinder = new InContainerBinder(container, outer);
 
-                    resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);
+                    resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
 
                     binderCache.TryAdd(key, resultBinder);
                 }
@@ -769,7 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);
+                    resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
 
                     binderCache.TryAdd(key, resultBinder);
                 }
@@ -1220,8 +1236,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new WithParametersBinder(method.Parameters, nextBinder);
                 }
 
-                if (memberSyntax is TypeDeclarationSyntax { ParameterList: { ParameterCount: > 0 } })
+                if (memberSyntax is TypeDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } typeDeclaration)
                 {
+                    _ = typeDeclaration.ParameterList;
                     Binder outerBinder = VisitCore(memberSyntax);
                     SourceNamedTypeSymbol type = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
                     var primaryConstructor = type.PrimaryConstructor;
@@ -1392,7 +1409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             StructuredTriviaSyntax structuredTrivia = GetEnclosingDocumentationComment(xmlSyntax);
             SyntaxTrivia containingTrivia = structuredTrivia.ParentTrivia;
-            SyntaxToken associatedToken = (SyntaxToken)containingTrivia.Token;
+            SyntaxToken associatedToken = containingTrivia.Token;
 
             CSharpSyntaxNode curr = (CSharpSyntaxNode)associatedToken.Parent;
             while (curr != null)
@@ -1400,7 +1417,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberDeclarationSyntax memberSyntax = curr as MemberDeclarationSyntax;
                 if (memberSyntax != null)
                 {
-                    // CONSIDER: require that the xml syntax precede the start of the member span?
+                    // The doc comment must be in the leading trivia of its associated member.
+                    if (!memberSyntax.GetLeadingTrivia().Contains(containingTrivia))
+                    {
+                        return null;
+                    }
+
                     return memberSyntax;
                 }
                 curr = curr.Parent;

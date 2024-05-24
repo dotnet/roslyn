@@ -10,103 +10,99 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+internal class ChainedFormattingRules
 {
-    internal class ChainedFormattingRules
+    private static readonly ConcurrentDictionary<(Type type, string name), Type?> s_typeImplementingMethod = [];
+
+    private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
+    private readonly SyntaxFormattingOptions _options;
+
+    private readonly ImmutableArray<AbstractFormattingRule> _addSuppressOperationsRules;
+    private readonly ImmutableArray<AbstractFormattingRule> _addAnchorIndentationOperationsRules;
+    private readonly ImmutableArray<AbstractFormattingRule> _addIndentBlockOperationsRules;
+    private readonly ImmutableArray<AbstractFormattingRule> _addAlignTokensOperationsRules;
+    private readonly ImmutableArray<AbstractFormattingRule> _getAdjustNewLinesOperationRules;
+    private readonly ImmutableArray<AbstractFormattingRule> _getAdjustSpacesOperationRules;
+
+    public ChainedFormattingRules(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxFormattingOptions options)
     {
-        private static readonly ConcurrentDictionary<(Type type, string name), Type?> s_typeImplementingMethod = new();
+        Contract.ThrowIfNull(formattingRules);
 
-        private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
-        private readonly SyntaxFormattingOptions _options;
+        _formattingRules = formattingRules.SelectAsArray(rule => rule.WithOptions(options));
+        _options = options;
 
-        private readonly ImmutableArray<AbstractFormattingRule> _addSuppressOperationsRules;
-        private readonly ImmutableArray<AbstractFormattingRule> _addAnchorIndentationOperationsRules;
-        private readonly ImmutableArray<AbstractFormattingRule> _addIndentBlockOperationsRules;
-        private readonly ImmutableArray<AbstractFormattingRule> _addAlignTokensOperationsRules;
-        private readonly ImmutableArray<AbstractFormattingRule> _getAdjustNewLinesOperationRules;
-        private readonly ImmutableArray<AbstractFormattingRule> _getAdjustSpacesOperationRules;
+        _addSuppressOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddSuppressOperations));
+        _addAnchorIndentationOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddAnchorIndentationOperations));
+        _addIndentBlockOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddIndentBlockOperations));
+        _addAlignTokensOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddAlignTokensOperations));
+        _getAdjustNewLinesOperationRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.GetAdjustNewLinesOperation));
+        _getAdjustSpacesOperationRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.GetAdjustSpacesOperation));
+    }
 
-        public ChainedFormattingRules(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxFormattingOptions options)
+    public void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode currentNode)
+    {
+        var action = new NextSuppressOperationAction(_addSuppressOperationsRules, index: 0, currentNode, list);
+        action.Invoke();
+    }
+
+    public void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode currentNode)
+    {
+        var action = new NextAnchorIndentationOperationAction(_addAnchorIndentationOperationsRules, index: 0, currentNode, list);
+        action.Invoke();
+    }
+
+    public void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode currentNode)
+    {
+        var action = new NextIndentBlockOperationAction(_addIndentBlockOperationsRules, index: 0, currentNode, list);
+        action.Invoke();
+    }
+
+    public void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode currentNode)
+    {
+        var action = new NextAlignTokensOperationAction(_addAlignTokensOperationsRules, index: 0, currentNode, list);
+        action.Invoke();
+    }
+
+    public AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
+    {
+        var action = new NextGetAdjustNewLinesOperation(_getAdjustNewLinesOperationRules, index: 0);
+        return action.Invoke(in previousToken, in currentToken);
+    }
+
+    public AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
+    {
+        var action = new NextGetAdjustSpacesOperation(_getAdjustSpacesOperationRules, index: 0);
+        return action.Invoke(in previousToken, in currentToken);
+    }
+
+    private static ImmutableArray<AbstractFormattingRule> FilterToRulesImplementingMethod(ImmutableArray<AbstractFormattingRule> rules, string name)
+    {
+        return rules.WhereAsArray(rule =>
         {
-            Contract.ThrowIfNull(formattingRules);
+            var type = GetTypeImplementingMethod(rule, name);
+            if (type == typeof(AbstractFormattingRule))
+                return false;
 
-            _formattingRules = formattingRules.Select(rule => rule.WithOptions(options)).ToImmutableArray();
-            _options = options;
-
-            _addSuppressOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddSuppressOperations));
-            _addAnchorIndentationOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddAnchorIndentationOperations));
-            _addIndentBlockOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddIndentBlockOperations));
-            _addAlignTokensOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddAlignTokensOperations));
-            _getAdjustNewLinesOperationRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.GetAdjustNewLinesOperation));
-            _getAdjustSpacesOperationRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.GetAdjustSpacesOperation));
-        }
-
-        public void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode currentNode)
-        {
-            var action = new NextSuppressOperationAction(_addSuppressOperationsRules, index: 0, currentNode, list);
-            action.Invoke();
-        }
-
-        public void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode currentNode)
-        {
-            var action = new NextAnchorIndentationOperationAction(_addAnchorIndentationOperationsRules, index: 0, currentNode, list);
-            action.Invoke();
-        }
-
-        public void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode currentNode)
-        {
-            var action = new NextIndentBlockOperationAction(_addIndentBlockOperationsRules, index: 0, currentNode, list);
-            action.Invoke();
-        }
-
-        public void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode currentNode)
-        {
-            var action = new NextAlignTokensOperationAction(_addAlignTokensOperationsRules, index: 0, currentNode, list);
-            action.Invoke();
-        }
-
-        public AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
-        {
-            var action = new NextGetAdjustNewLinesOperation(_getAdjustNewLinesOperationRules, index: 0);
-            return action.Invoke(in previousToken, in currentToken);
-        }
-
-        public AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
-        {
-            var action = new NextGetAdjustSpacesOperation(_getAdjustSpacesOperationRules, index: 0);
-            return action.Invoke(in previousToken, in currentToken);
-        }
-
-        private static ImmutableArray<AbstractFormattingRule> FilterToRulesImplementingMethod(ImmutableArray<AbstractFormattingRule> rules, string name)
-        {
-            return rules.Where(rule =>
+            if (type == typeof(CompatAbstractFormattingRule))
             {
-                var type = GetTypeImplementingMethod(rule, name);
-                if (type == typeof(AbstractFormattingRule))
-                {
-                    return false;
-                }
-
+                type = GetTypeImplementingMethod(rule, name + "Slow");
                 if (type == typeof(CompatAbstractFormattingRule))
-                {
-                    type = GetTypeImplementingMethod(rule, name + "Slow");
-                    if (type == typeof(CompatAbstractFormattingRule))
-                    {
-                        return false;
-                    }
-                }
+                    return false;
+            }
 
-                return true;
-            }).ToImmutableArray();
-        }
+            return true;
+        });
+    }
 
-        private static Type? GetTypeImplementingMethod(object obj, string name)
-        {
-            return s_typeImplementingMethod.GetOrAdd(
-                (obj.GetType(), name),
-                key => key.type.GetRuntimeMethods().FirstOrDefault(method => method.Name == key.name)?.DeclaringType);
-        }
+    private static Type? GetTypeImplementingMethod(object obj, string name)
+    {
+        return s_typeImplementingMethod.GetOrAdd(
+            (obj.GetType(), name),
+            key => key.type.GetRuntimeMethods().FirstOrDefault(method => method.Name == key.name)?.DeclaringType);
     }
 }

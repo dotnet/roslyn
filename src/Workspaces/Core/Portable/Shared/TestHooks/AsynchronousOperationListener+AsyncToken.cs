@@ -5,35 +5,34 @@
 using System;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.Shared.TestHooks
+namespace Microsoft.CodeAnalysis.Shared.TestHooks;
+
+internal partial class AsynchronousOperationListener
 {
-    internal partial class AsynchronousOperationListener
+    internal class AsyncToken : IAsyncToken
     {
-        internal class AsyncToken : IAsyncToken
+        private bool _disposed;
+
+        public AsyncToken(AsynchronousOperationListener listener)
         {
-            private readonly AsynchronousOperationListener _listener;
+            Listener = listener;
 
-            private bool _disposed;
+            listener.Increment_NoLock();
+        }
 
-            public AsyncToken(AsynchronousOperationListener listener)
+        public AsynchronousOperationListener Listener { get; }
+
+        public void Dispose()
+        {
+            using (Listener._gate.DisposableWait(CancellationToken.None))
             {
-                _listener = listener;
-
-                listener.Increment_NoLock();
-            }
-
-            public void Dispose()
-            {
-                using (_listener._gate.DisposableWait(CancellationToken.None))
+                if (_disposed)
                 {
-                    if (_disposed)
-                    {
-                        throw new InvalidOperationException("Double disposing of an async token");
-                    }
-
-                    _disposed = true;
-                    _listener.Decrement_NoLock(this);
+                    throw new InvalidOperationException("Double disposing of an async token");
                 }
+
+                _disposed = true;
+                Listener.Decrement_NoLock(this);
             }
         }
     }

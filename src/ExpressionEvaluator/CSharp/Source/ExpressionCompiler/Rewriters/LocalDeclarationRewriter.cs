@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var call = BoundCall.Synthesized(
                 syntax,
                 receiverOpt: null,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: method,
                 arguments: ImmutableArray.Create(type, name, customTypeInfoPayloadId, customTypeInfoPayload));
             statements.Add(new BoundExpressionStatement(syntax, call));

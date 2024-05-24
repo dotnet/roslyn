@@ -6,38 +6,28 @@ using System;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers
+namespace Microsoft.CodeAnalysis.Completion.Providers;
+
+[DataContract]
+internal sealed class SerializableUnimportedExtensionMethods(
+    ImmutableArray<SerializableImportCompletionItem> completionItems,
+    bool isPartialResult,
+    TimeSpan getSymbolsTime,
+    TimeSpan createItemsTime,
+    TimeSpan? remoteAssetSyncTime)
 {
-    [DataContract]
-    internal sealed class SerializableUnimportedExtensionMethods
-    {
-        [DataMember(Order = 0)]
-        public readonly ImmutableArray<SerializableImportCompletionItem> CompletionItems;
+    [DataMember(Order = 0)]
+    public readonly ImmutableArray<SerializableImportCompletionItem> CompletionItems = completionItems;
 
-        [DataMember(Order = 1)]
-        public readonly bool IsPartialResult;
+    [DataMember(Order = 1)]
+    public readonly bool IsPartialResult = isPartialResult;
 
-        [DataMember(Order = 2)]
-        public TimeSpan GetSymbolsTime { get; set; }
+    [DataMember(Order = 2)]
+    public TimeSpan GetSymbolsTime { get; set; } = getSymbolsTime;
 
-        [DataMember(Order = 3)]
-        public readonly TimeSpan CreateItemsTime;
+    [DataMember(Order = 3)]
+    public readonly TimeSpan CreateItemsTime = createItemsTime;
 
-        [DataMember(Order = 4)]
-        public readonly TimeSpan? RemoteAssetSyncTime;
-
-        public SerializableUnimportedExtensionMethods(
-            ImmutableArray<SerializableImportCompletionItem> completionItems,
-            bool isPartialResult,
-            TimeSpan getSymbolsTime,
-            TimeSpan createItemsTime,
-            TimeSpan? remoteAssetSyncTime)
-        {
-            CompletionItems = completionItems;
-            IsPartialResult = isPartialResult;
-            GetSymbolsTime = getSymbolsTime;
-            CreateItemsTime = createItemsTime;
-            RemoteAssetSyncTime = remoteAssetSyncTime;
-        }
-    }
+    [DataMember(Order = 4)]
+    public readonly TimeSpan? RemoteAssetSyncTime = remoteAssetSyncTime;
 }

@@ -1126,5 +1126,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Sub
 
+        Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Get
+                Return _underlyingType.HasAnyDeclaredRequiredMembers
+            End Get
+        End Property
     End Class
 End Namespace

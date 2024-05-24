@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
@@ -35,7 +36,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <param name="array">A read-only reference to a temporary array which is part of a <c>using</c> statement.</param>
         /// <returns>A mutable reference to the temporary array.</returns>
         public static ref TemporaryArray<T> AsRef<T>(this in TemporaryArray<T> array)
+#pragma warning disable RS0042 // https://github.com/dotnet/roslyn-analyzers/issues/7128
             => ref Unsafe.AsRef(in array);
+#pragma warning restore RS0042
 
         public static bool Any<T>(this in TemporaryArray<T> array, Func<T, bool> predicate)
         {
@@ -57,6 +60,51 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
 
             return true;
+        }
+
+        private static void ThrowSequenceContainsMoreThanOneElement()
+            => new[] { 0, 0 }.Single();
+
+        public static T? SingleOrDefault<T>(this in TemporaryArray<T> array, Func<T, bool> predicate)
+        {
+            var first = true;
+            T? result = default;
+            foreach (var item in array)
+            {
+                if (predicate(item))
+                {
+                    if (!first)
+                    {
+                        ThrowSequenceContainsMoreThanOneElement();
+                    }
+
+                    first = false;
+                    result = item;
+                }
+            }
+
+            return result;
+        }
+
+        public static T? SingleOrDefault<T, TArg>(this in TemporaryArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            var first = true;
+            T? result = default;
+            foreach (var item in array)
+            {
+                if (predicate(item, arg))
+                {
+                    if (!first)
+                    {
+                        ThrowSequenceContainsMoreThanOneElement();
+                    }
+
+                    first = false;
+                    result = item;
+                }
+            }
+
+            return result;
         }
 
         public static void AddIfNotNull<T>(this ref TemporaryArray<T> array, T? value)

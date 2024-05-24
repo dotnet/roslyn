@@ -706,11 +706,11 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         internal static bool TryParseClientArgs(
             IEnumerable<string> args,
-            out List<string>? parsedArgs,
+            [NotNullWhen(true)] out List<string>? parsedArgs,
             out bool containsShared,
             out string? keepAliveValue,
             out string? pipeName,
-            out string? errorMessage)
+            [NotNullWhen(false)] out string? errorMessage)
         {
             containsShared = false;
             keepAliveValue = null;

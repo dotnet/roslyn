@@ -6,40 +6,31 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols;
+
+/// <summary>
+/// Ephemeral information that find-references needs for a particular document when searching for a <em>specific</em>
+/// symbol.  Importantly, it contains the global aliases to that symbol within the current project.
+/// </summary>
+internal sealed class FindReferencesDocumentState(
+    FindReferenceCache cache,
+    HashSet<string>? globalAliases)
 {
-    internal class FindReferencesDocumentState
-    {
-        private static readonly HashSet<string> s_empty = new();
+    private static readonly HashSet<string> s_empty = [];
 
-        public readonly Document Document;
-        public readonly SemanticModel SemanticModel;
-        public readonly SyntaxNode Root;
-        public readonly FindReferenceCache Cache;
-        public readonly HashSet<string> GlobalAliases;
+    public readonly FindReferenceCache Cache = cache;
+    public readonly HashSet<string> GlobalAliases = globalAliases ?? s_empty;
 
-        public readonly Solution Solution;
-        public readonly SyntaxTree SyntaxTree;
-        public readonly ISyntaxFactsService SyntaxFacts;
-        public readonly ISemanticFactsService SemanticFacts;
+    public Document Document => this.Cache.Document;
+    public SyntaxNode Root => this.Cache.Root;
+    public SemanticModel SemanticModel => this.Cache.SemanticModel;
+    public SyntaxTree SyntaxTree => this.SemanticModel.SyntaxTree;
 
-        public FindReferencesDocumentState(
-            Document document,
-            SemanticModel semanticModel,
-            SyntaxNode root,
-            FindReferenceCache cache,
-            HashSet<string>? globalAliases)
-        {
-            Document = document;
-            SemanticModel = semanticModel;
-            Root = root;
-            Cache = cache;
-            GlobalAliases = globalAliases ?? s_empty;
+    public Solution Solution => this.Document.Project.Solution;
 
-            Solution = document.Project.Solution;
-            SyntaxTree = semanticModel.SyntaxTree;
-            SyntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            SemanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
-        }
-    }
+    // These are expensive enough (in the GetRequiredLanguageService call) that we cache this up front in stead of
+    // computing on demand.
+
+    public ISyntaxFactsService SyntaxFacts { get; } = cache.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+    public ISemanticFactsService SemanticFacts { get; } = cache.Document.GetRequiredLanguageService<ISemanticFactsService>();
 }

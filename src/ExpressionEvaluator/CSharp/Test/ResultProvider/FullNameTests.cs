@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             IDkmClrFullNameProvider fullNameProvider = new CSharpFormatter();
             var inspectionContext = CreateDkmInspectionContext();
             Assert.Equal("[]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new string[0]));
-            Assert.Equal("[]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "" }));
-            Assert.Equal("[ ]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { " " }));
-            Assert.Equal("[1]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "1" }));
-            Assert.Equal("[[], 2, 3]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "[]", "2", "3" }));
-            Assert.Equal("[, , ]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "", "", "" }));
+            Assert.Equal("[]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, [""]));
+            Assert.Equal("[ ]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, [" "]));
+            Assert.Equal("[1]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, ["1"]));
+            Assert.Equal("[[], 2, 3]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, ["[]", "2", "3"]));
+            Assert.Equal("[, , ]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, ["", "", ""]));
         }
 
         [Fact]
@@ -962,9 +962,8 @@ namespace @namespace
             Assert.Equal("myClass", fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
         }
 
-        // https://github.com/dotnet/roslyn/issues/67107: should clone this test for parameter backing field
         [Fact]
-        public void MangledName_SimplifyBackingField()
+        public void MangledName_SimplifyBackingField_01()
         {
             var il = @"
 .class public C
@@ -982,6 +981,27 @@ namespace @namespace
             IDkmClrFullNameProvider2 fullNameProvider = new CSharpFormatter();
             var inspectionContext = CreateDkmInspectionContext();
             Assert.Equal("StringProperty", fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
+        }
+
+        [Fact]
+        public void MangledName_SimplifyBackingField_02()
+        {
+            var il = @"
+.class public C
+{
+  .field public object '<StringParameter>P'
+}
+";
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var fieldToken = assembly.GetType("C").GetFields().First().MetadataToken;
+
+            IDkmClrFullNameProvider2 fullNameProvider = new CSharpFormatter();
+            var inspectionContext = CreateDkmInspectionContext();
+            Assert.Equal("<StringParameter>P", fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
         }
     }
 }

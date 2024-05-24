@@ -318,5 +318,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
         internal override bool UseUpdatedEscapeRules => _underlyingModule.UseUpdatedEscapeRules;
+
+#nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+            => _underlyingModule.ObsoleteAttributeData;
     }
 }

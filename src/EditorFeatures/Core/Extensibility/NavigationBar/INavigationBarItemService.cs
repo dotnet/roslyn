@@ -9,22 +9,21 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor
-{
-    internal interface INavigationBarItemService : ILanguageService
-    {
-        Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(
-            Document document,
-            bool workspaceSupportsDocumentChanges,
-            bool forceFrozenPartialSemanticsForCrossProcessOperations,
-            ITextVersion textVersion,
-            CancellationToken cancellationToken);
-        bool ShowItemGrayedIfNear(NavigationBarItem item);
+namespace Microsoft.CodeAnalysis.Editor;
 
-        /// <summary>
-        /// Returns <see langword="true"/> if navigation (or generation) happened.  <see langword="false"/> otherwise.
-        /// </summary>
-        Task<bool> TryNavigateToItemAsync(
-            Document document, NavigationBarItem item, ITextView view, ITextVersion textVersion, CancellationToken cancellationToken);
-    }
+internal interface INavigationBarItemService : ILanguageService
+{
+    Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(
+        Document document,
+        bool workspaceSupportsDocumentChanges,
+        bool forceFrozenPartialSemanticsForCrossProcessOperations,
+        ITextVersion textVersion,
+        CancellationToken cancellationToken);
+    bool ShowItemGrayedIfNear(NavigationBarItem item);
+
+    /// <summary>
+    /// Returns <see langword="true"/> if navigation (or generation) happened.  <see langword="false"/> otherwise.
+    /// </summary>
+    Task<bool> TryNavigateToItemAsync(
+        Document document, NavigationBarItem item, ITextView view, ITextVersion textVersion, CancellationToken cancellationToken);
 }

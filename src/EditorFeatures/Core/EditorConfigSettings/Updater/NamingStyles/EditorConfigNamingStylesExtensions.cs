@@ -11,74 +11,73 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles;
 using Microsoft.CodeAnalysis.NamingStyles;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+
+internal static class EditorConfigNamingStylesExtensions
 {
-    internal static class EditorConfigNamingStylesExtensions
+    public static bool TryGetParseResultForRule(
+        this EditorConfigNamingStyles editorConfigNamingStyles,
+        NamingStyleSetting namingStyleSetting,
+        [NotNullWhen(true)] out NamingStyleOption? namingStyleOption)
     {
-        public static bool TryGetParseResultForRule(
-            this EditorConfigNamingStyles editorConfigNamingStyles,
-            NamingStyleSetting namingStyleSetting,
-            [NotNullWhen(true)] out NamingStyleOption? namingStyleOption)
+        namingStyleOption = null;
+        foreach (var (option, optionAsNamingStyle) in editorConfigNamingStyles.Rules.AsNamingStyleSettings())
         {
-            namingStyleOption = null;
-            foreach (var (option, optionAsNamingStyle) in editorConfigNamingStyles.Rules.AsNamingStyleSettings())
+            if (AreSameRule(optionAsNamingStyle, namingStyleSetting))
             {
-                if (AreSameRule(optionAsNamingStyle, namingStyleSetting))
-                {
-                    namingStyleOption = option;
-                    return true;
-                }
+                namingStyleOption = option;
+                return true;
             }
-
-            return false;
-
-            static bool AreSameRule(NamingStyleSetting left, NamingStyleSetting right)
-                => left.Severity == right.Severity &&
-                   AreSameSymbolSpec(left.Type, right.Type) &&
-                   AreSameNamingStyle(left.Style, right.Style);
-
-            static bool AreSameSymbolSpec(SymbolSpecification? left, SymbolSpecification? right)
-            {
-                if (left is null && right is null)
-                {
-                    return true;
-                }
-
-                if (left is null || right is null)
-                {
-                    return false;
-                }
-
-                return left.ApplicableSymbolKindList.SequenceEqual(right!.ApplicableSymbolKindList) &&
-                       left.ApplicableAccessibilityList.SequenceEqual(right.ApplicableAccessibilityList) &&
-                       left.RequiredModifierList.SequenceEqual(right.RequiredModifierList);
-            }
-
-            static bool AreSameNamingStyle(NamingStyle left, NamingStyle right)
-                => left.Prefix == right.Prefix &&
-                   left.Suffix == right.Suffix &&
-                   left.WordSeparator == right.WordSeparator &&
-                   left.CapitalizationScheme == right.CapitalizationScheme;
         }
 
-        public static ImmutableArray<(NamingStyleOption namingStyleOption, NamingStyleSetting namingStyleSetting)> AsNamingStyleSettings(this ImmutableArray<NamingStyleOption> namingStyleOptions)
-            => namingStyleOptions.SelectAsArray(rule => (rule, NamingStyleSetting.FromParseResult(rule)));
+        return false;
 
-        public static NamingStyle AsNamingStyle(this NamingScheme namingScheme)
-            => new(
-                Guid.NewGuid(),
-                namingScheme.OptionName,
-                namingScheme.Prefix,
-                namingScheme.Suffix,
-                namingScheme.WordSeparator,
-                namingScheme.Capitalization);
+        static bool AreSameRule(NamingStyleSetting left, NamingStyleSetting right)
+            => left.Severity == right.Severity &&
+               AreSameSymbolSpec(left.Type, right.Type) &&
+               AreSameNamingStyle(left.Style, right.Style);
 
-        public static SymbolSpecification AsSymbolSpecification(this ApplicableSymbolInfo applicableSymbolInfo)
-            => new(
-                Guid.NewGuid(),
-                applicableSymbolInfo.OptionName,
-                applicableSymbolInfo.SymbolKinds,
-                applicableSymbolInfo.Accessibilities,
-                applicableSymbolInfo.Modifiers);
+        static bool AreSameSymbolSpec(SymbolSpecification? left, SymbolSpecification? right)
+        {
+            if (left is null && right is null)
+            {
+                return true;
+            }
+
+            if (left is null || right is null)
+            {
+                return false;
+            }
+
+            return left.ApplicableSymbolKindList.SequenceEqual(right!.ApplicableSymbolKindList) &&
+                   left.ApplicableAccessibilityList.SequenceEqual(right.ApplicableAccessibilityList) &&
+                   left.RequiredModifierList.SequenceEqual(right.RequiredModifierList);
+        }
+
+        static bool AreSameNamingStyle(NamingStyle left, NamingStyle right)
+            => left.Prefix == right.Prefix &&
+               left.Suffix == right.Suffix &&
+               left.WordSeparator == right.WordSeparator &&
+               left.CapitalizationScheme == right.CapitalizationScheme;
     }
+
+    public static ImmutableArray<(NamingStyleOption namingStyleOption, NamingStyleSetting namingStyleSetting)> AsNamingStyleSettings(this ImmutableArray<NamingStyleOption> namingStyleOptions)
+        => namingStyleOptions.SelectAsArray(rule => (rule, NamingStyleSetting.FromParseResult(rule)));
+
+    public static NamingStyle AsNamingStyle(this NamingScheme namingScheme)
+        => new(
+            Guid.NewGuid(),
+            namingScheme.OptionName,
+            namingScheme.Prefix,
+            namingScheme.Suffix,
+            namingScheme.WordSeparator,
+            namingScheme.Capitalization);
+
+    public static SymbolSpecification AsSymbolSpecification(this ApplicableSymbolInfo applicableSymbolInfo)
+        => new(
+            Guid.NewGuid(),
+            applicableSymbolInfo.OptionName,
+            applicableSymbolInfo.SymbolKinds,
+            applicableSymbolInfo.Accessibilities,
+            applicableSymbolInfo.Modifiers);
 }

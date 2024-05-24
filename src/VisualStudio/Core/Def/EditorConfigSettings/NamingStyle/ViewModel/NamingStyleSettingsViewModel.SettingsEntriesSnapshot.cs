@@ -6,27 +6,26 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
+
+internal partial class NamingStyleSettingsViewModel
 {
-    internal partial class NamingStyleSettingsViewModel
+    internal class SettingsEntriesSnapshot : SettingsEntriesSnapshotBase<NamingStyleSetting>
     {
-        internal class SettingsEntriesSnapshot : SettingsEntriesSnapshotBase<NamingStyleSetting>
+        public SettingsEntriesSnapshot(ImmutableArray<NamingStyleSetting> data, int currentVersionNumber) : base(data, currentVersionNumber) { }
+
+        protected override bool TryGetValue(NamingStyleSetting result, string keyName, out object? content)
         {
-            public SettingsEntriesSnapshot(ImmutableArray<NamingStyleSetting> data, int currentVersionNumber) : base(data, currentVersionNumber) { }
-
-            protected override bool TryGetValue(NamingStyleSetting result, string keyName, out object? content)
+            content = keyName switch
             {
-                content = keyName switch
-                {
-                    ColumnDefinitions.NamingStyle.Type => result,
-                    ColumnDefinitions.NamingStyle.Style => result,
-                    ColumnDefinitions.NamingStyle.Severity => result,
-                    ColumnDefinitions.NamingStyle.Location => result,
-                    _ => null,
-                };
+                ColumnDefinitions.NamingStyle.Type => result,
+                ColumnDefinitions.NamingStyle.Style => result,
+                ColumnDefinitions.NamingStyle.Severity => result,
+                ColumnDefinitions.NamingStyle.Location => result,
+                _ => null,
+            };
 
-                return content is not null;
-            }
+            return content is not null;
         }
     }
 }

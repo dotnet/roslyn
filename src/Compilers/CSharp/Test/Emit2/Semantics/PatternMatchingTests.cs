@@ -3221,13 +3221,13 @@ public class X
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (9,18): error CS0150: A constant value is expected
+                // (9,18): error CS9133: A constant value of type 'Type' is expected
                 //             case typeof(string):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string)").WithLocation(9, 18),
-                // (12,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "typeof(string)").WithArguments("System.Type").WithLocation(9, 18),
+                // (12,18): error CS9133: A constant value of type 'Type' is expected
                 //             case typeof(string[]):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "typeof(string[])").WithArguments("System.Type").WithLocation(12, 18)
+            );
             // If we support switching on System.Type as proposed, the expectation would be
             // something like CompileAndVerify(compilation, expectedOutput: @"string[]");
         }
@@ -4378,13 +4378,13 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                    // (9,29): error CS0118: '_' is a variable but is used like a type
-                    //         Write($"is _: {i is _}, ");
-                    Diagnostic(ErrorCode.ERR_BadSKknown, "_").WithArguments("_", "variable", "type").WithLocation(9, 29),
-                    // (12,18): error CS0150: A constant value is expected
-                    //             case _:
-                    Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18)
-                );
+                // (9,29): error CS0118: '_' is a variable but is used like a type
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_BadSKknown, "_").WithArguments("_", "variable", "type").WithLocation(9, 29),
+                // (12,18): error CS9133: A constant value of type 'int' is expected
+                //             case _:
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "_").WithArguments("int").WithLocation(12, 18)
+            );
         }
 
         [Fact]
@@ -4815,9 +4815,9 @@ public class Program5815
     private static object M() => null;
 }";
             var compilation = CreateCompilation(program).VerifyDiagnostics(
-                // (9,18): error CS0150: A constant value is expected
+                // (9,18): error CS9133: A constant value of type 'int' is expected
                 //             case true ? x3 : 4:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "true ? x3 : 4").WithLocation(9, 18),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "true ? x3 : 4").WithArguments("int").WithLocation(9, 18),
                 // (9,25): error CS0165: Use of unassigned local variable 'x3'
                 //             case true ? x3 : 4:
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(9, 25)
@@ -7684,7 +7684,7 @@ class C
   .locals init (int V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ComputeReadOnlySpanHash""
+  IL_0001:  call       ""uint <PrivateImplementationDetails>.ComputeReadOnlySpanHash(System.ReadOnlySpan<char>)""
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x75b03721
@@ -8000,7 +8000,7 @@ class C
   .maxstack  2
   .locals init (uint V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ComputeReadOnlySpanHash""
+  IL_0001:  call       ""uint <PrivateImplementationDetails>.ComputeReadOnlySpanHash(System.ReadOnlySpan<char>)""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0x75b03721
@@ -8689,9 +8689,9 @@ class C
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (5,58): error CS0150: A constant value is expected
+                // (5,58): error CS9133: A constant value of type 'ReadOnlySpan<char>' is expected
                 //     static bool M1(ReadOnlySpan<char> chars) => chars is null;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 58),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "null").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 58),
                 // (6,58): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //     static bool M2(ReadOnlySpan<char> chars) => chars is default;
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 58));
@@ -8762,9 +8762,10 @@ class C
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (5,63): error CS0150: A constant value is expected
+                    // (5,63): error CS9133: A constant value of type 'ReadOnlySpan<char>' is expected
                     //     static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
-                    Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 63));
+                    Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "null").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 63)
+                );
         }
 
         [Fact]
@@ -9281,7 +9282,7 @@ class C
   .locals init (int V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ComputeSpanHash""
+  IL_0001:  call       ""uint <PrivateImplementationDetails>.ComputeSpanHash(System.Span<char>)""
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x75b03721
@@ -9598,7 +9599,7 @@ class C
   .maxstack  2
   .locals init (uint V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ComputeSpanHash""
+  IL_0001:  call       ""uint <PrivateImplementationDetails>.ComputeSpanHash(System.Span<char>)""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0x75b03721
@@ -10289,9 +10290,9 @@ class C
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (5,50): error CS0150: A constant value is expected
+                // (5,50): error CS9133: A constant value of type 'Span<char>' is expected
                 //     static bool M1(Span<char> chars) => chars is null;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 50),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "null").WithArguments("System.Span<char>").WithLocation(5, 50),
                 // (6,50): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //     static bool M2(Span<char> chars) => chars is default;
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 50));
@@ -10361,10 +10362,11 @@ class C
     static bool M(Span<char> chars) => chars switch { null => true, _ => false };
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyDiagnostics(
-                    // (5,55): error CS0150: A constant value is expected
-                    //     static bool M(Span<char> chars) => chars switch { null => true, _ => false };
-                    Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 55));
+            .VerifyDiagnostics(
+                // (5,55): error CS9133: A constant value of type 'Span<char>' is expected
+                //     static bool M(Span<char> chars) => chars switch { null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "null").WithArguments("System.Span<char>").WithLocation(5, 55)
+            );
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -10698,12 +10700,12 @@ class Program
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
-                // (5,56): error CS0150: A constant value is expected
+                // (5,56): error CS9133: A constant value of type 'ReadOnlySpan<char>' is expected
                 //     static bool F1(ReadOnlySpan<char> span) => span is $"{123}";
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"$""{123}""").WithLocation(5, 56),
-                // (6,48): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"$""{123}""").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 56),
+                // (6,48): error CS9133: A constant value of type 'Span<char>' is expected
                 //     static bool F2(Span<char> span) => span is $"{n}";
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"$""{n}""").WithLocation(6, 48));
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"$""{n}""").WithArguments("System.Span<char>").WithLocation(6, 48));
         }
 
         [Fact]
@@ -10747,12 +10749,12 @@ class Program
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
-                // (4,65): error CS0150: A constant value is expected
+                // (4,65): error CS9133: A constant value of type 'ReadOnlySpan<char>' is expected
                 //     static bool F1(ReadOnlySpan<char> span, bool b) => span is (b ? "" : "ABC");
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"b ? """" : ""ABC""").WithLocation(4, 65),
-                // (5,57): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"b ? """" : ""ABC""").WithArguments("System.ReadOnlySpan<char>").WithLocation(4, 65),
+                // (5,57): error CS9133: A constant value of type 'Span<char>' is expected
                 //     static bool F2(Span<char> span, bool b) => span is (b ? "" : "123");
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"b ? """" : ""123""").WithLocation(5, 57));
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"b ? """" : ""123""").WithArguments("System.Span<char>").WithLocation(5, 57));
         }
 
         [Fact]
@@ -10795,12 +10797,12 @@ class Program
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
-                // (4,64): error CS0150: A constant value is expected
+                // (4,64): error CS9133: A constant value of type 'ReadOnlySpan<char>' is expected
                 //     static bool F1(ReadOnlySpan<char> span, bool b) => span is b switch { true => "", false => "ABC" };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"b switch { true => """", false => ""ABC"" }").WithLocation(4, 64),
-                // (5,56): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"b switch { true => """", false => ""ABC"" }").WithArguments("System.ReadOnlySpan<char>").WithLocation(4, 64),
+                // (5,56): error CS9133: A constant value of type 'Span<char>' is expected
                 //     static bool F2(Span<char> span, bool b) => span is b switch { false => "", true => "123" };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"b switch { false => """", true => ""123"" }").WithLocation(5, 56));
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"b switch { false => """", true => ""123"" }").WithArguments("System.Span<char>").WithLocation(5, 56));
         }
 
         [Fact]
@@ -12276,6 +12278,81 @@ ref struct G<T> where T : class
                 //         var y2 = x2 as T;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x2 as T").WithArguments("as", "G<object>", "T").WithLocation(11, 18)
                 );
+        }
+
+        [Fact]
+        [WorkItem(63476, "https://github.com/dotnet/roslyn/issues/63476")]
+        public void PatternNonConstant_UserDefinedImplicit_ConvertionToInputType()
+        {
+            var source =
+@"
+class A {
+    public string S { get; set; }
+    public static implicit operator A(string s) { return new A { S = s }; }
+}
+class C
+{
+    static bool M(A a) => a switch { ""implicitA"" => true, _ => false };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (8,38): error CS9133: A constant value of type 'A' is expected
+                    //     static bool M(A a) => a switch { "implicitA" => true, _ => false };
+                    Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"""implicitA""").WithArguments("A").WithLocation(8, 38)
+                );
+        }
+
+        [Fact]
+        [WorkItem(63476, "https://github.com/dotnet/roslyn/issues/63476")]
+        public void PatternNonConstant_UserDefinedExplicit_ConvertionToInputType()
+        {
+            var source =
+@"
+class A {
+    public string S { get; set; }
+    public static implicit operator A(string s) { return new A { S = s }; }
+}
+class C
+{
+    static bool M(A a) => a switch { (A)""castedA"" => true, _ => false };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (8,38): error CS9133: A constant value of type 'A' is expected
+                    //     static bool M(A a) => a switch { (A)"castedA" => true, _ => false };
+                    Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"(A)""castedA""").WithArguments("A").WithLocation(8, 38)
+                );
+        }
+
+        [Fact]
+        public void PatternReadOnlySpan_ImplicitBuiltInConvertion_ToString()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars switch { """" => true, _ => false };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(); // Allowed due to built in conversion
+        }
+
+        [Fact]
+        public void PatternNoImplicitConvertionToInputType()
+        {
+            // Cannot implicitly cast long to byte..
+            var source =
+@"
+class C
+{
+    static bool M(byte b) => b switch { 1L => true, _ => false };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (4,41): error CS0266: Cannot implicitly convert type 'long' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                    //     static bool M(byte b) => b switch { 1l => true, _ => false };
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1L").WithArguments("long", "byte").WithLocation(4, 41));
         }
     }
 }

@@ -7,19 +7,13 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
-{
-    [ExportWorkspaceService(typeof(IWorkspaceThreadingServiceProvider)), Shared]
-    internal sealed class WorkspaceThreadingServiceProvider : IWorkspaceThreadingServiceProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspaceThreadingServiceProvider(
-            IWorkspaceThreadingService service)
-        {
-            Service = service;
-        }
+namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
-        public IWorkspaceThreadingService Service { get; }
-    }
+[ExportWorkspaceService(typeof(IWorkspaceThreadingServiceProvider)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class WorkspaceThreadingServiceProvider(
+    IWorkspaceThreadingService service) : IWorkspaceThreadingServiceProvider
+{
+    public IWorkspaceThreadingService Service { get; } = service;
 }

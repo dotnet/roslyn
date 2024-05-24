@@ -317,6 +317,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public MustOverride ReadOnly Property HasValueTypeConstraint As Boolean Implements ITypeParameterSymbol.HasValueTypeConstraint
 
+        Public MustOverride ReadOnly Property AllowsRefLikeType As Boolean Implements ITypeParameterSymbol.AllowsRefLikeType
+
         Private ReadOnly Property HasUnmanagedTypeConstraint As Boolean Implements ITypeParameterSymbol.HasUnmanagedTypeConstraint
             Get
                 Return False

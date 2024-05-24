@@ -2,12 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -19,12 +14,12 @@ public class LspWorkspaceRegistrationServiceTests : AbstractLanguageServerProtoc
     {
     }
 
-    [Fact]
-    public async Task TestDisposedWorkspaceDeregistered()
+    [Theory, CombinatorialData]
+    public async Task TestDisposedWorkspaceDeregistered(bool mutatingLspWorkspace)
     {
         var markup = "";
         TestWorkspaceRegistrationService registrationService;
-        await using (var testLspServer = await CreateTestLspServerAsync(markup))
+        await using (var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace))
         {
             registrationService = (TestWorkspaceRegistrationService)testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationService>();
         }

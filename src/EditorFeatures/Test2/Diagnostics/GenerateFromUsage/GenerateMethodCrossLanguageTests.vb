@@ -518,8 +518,7 @@ End Module]]>
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
         Public Async Function GenerateMethodUsingTypeConstraint_2BaseTypeConstraints() As Task
             Dim input =
         <Workspace>
@@ -588,8 +587,7 @@ End Module]]>
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
         Public Async Function GenerateMethodUsingTypeConstraint_2BaseTypeConstraints_Interfaces() As Task
             Dim input =
         <Workspace>
@@ -658,8 +656,7 @@ End Module]]>
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
         Public Async Function GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_NoCommonDerived() As Task
             Dim input =
         <Workspace>
@@ -827,8 +824,7 @@ End Module]]>
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
         Public Async Function GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerivedNestedType() As Task
             Dim input =
         <Workspace>
@@ -912,8 +908,7 @@ End Module]]>
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
         Public Async Function GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerivedInstantiatedTypes() As Task
             Dim input =
         <Workspace>
@@ -1004,8 +999,7 @@ End Module]]>
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608827")>
         Public Async Function GenerateMethodUsingTypeConstraint_InstantiatedGenerics() As Task
             Dim input =
         <Workspace>

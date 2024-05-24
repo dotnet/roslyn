@@ -5,10 +5,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -19,19 +17,17 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
-using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
     [Export(typeof(IProjectCodeModelFactory))]
     [Export(typeof(ProjectCodeModelFactory))]
-    internal sealed class ProjectCodeModelFactory : ForegroundThreadAffinitizedObject, IProjectCodeModelFactory
+    internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory
     {
-        private readonly ConcurrentDictionary<ProjectId, ProjectCodeModel> _projectCodeModels = new ConcurrentDictionary<ProjectId, ProjectCodeModel>();
+        private readonly ConcurrentDictionary<ProjectId, ProjectCodeModel> _projectCodeModels = [];
 
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
         private readonly IServiceProvider _serviceProvider;
@@ -49,7 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, assertIsForeground: false)
         {
             _visualStudioWorkspace = visualStudioWorkspace;
             _serviceProvider = serviceProvider;
@@ -62,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // for the same documents.  Once enough time has passed, take the documents that were changed and run
             // through them, firing their latest events.
             _documentsToFireEventsFor = new AsyncBatchingWorkQueue<DocumentId>(
-                SolutionCrawlerTimeSpan.AllFilesWorkerBackOff,
+                DelayTimeSpan.Idle,
                 ProcessNextDocumentBatchAsync,
                 // We only care about unique doc-ids, so pass in this comparer to collapse streams of changes for a
                 // single document down to one notification.
@@ -83,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // have, we wait 50ms before continuing.  These constants are just what we defined from
             // legacy, and otherwise have no special meaning.
             const int MaxTimeSlice = 15;
-            var delayBetweenProcessing = TimeSpan.FromMilliseconds(50);
+            var delayBetweenProcessing = DelayTimeSpan.NearImmediate;
 
             Debug.Assert(!_threadingContext.JoinableTaskContext.IsOnMainThread, "The following context switch is not expected to cause runtime overhead.");
             await TaskScheduler.Default;
@@ -92,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // This code avoids allocations where possible.
             // https://github.com/dotnet/roslyn/issues/54159
             string? previousLanguage = null;
-            foreach (var (_, projectState) in _visualStudioWorkspace.CurrentSolution.State.ProjectStates)
+            foreach (var (_, projectState) in _visualStudioWorkspace.CurrentSolution.SolutionState.ProjectStates)
             {
                 if (projectState.Language == previousLanguage)
                 {
@@ -144,6 +139,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 var codeModel = fileCodeModelHandle.Object;
                 codeModel.FireEvents();
                 return;
+            }
+
+            // Returns true if any keyboard or mouse button input is pending on the message queue.
+            static bool IsInputPending()
+            {
+                // The code below invokes into user32.dll, which is not available in non-Windows.
+                if (PlatformInformation.IsUnix)
+                    return false;
+
+                // The return value of GetQueueStatus is HIWORD:LOWORD.
+                // A non-zero value in HIWORD indicates some input message in the queue.
+                var result = NativeMethods.GetQueueStatus(NativeMethods.QS_INPUT);
+
+                const uint InputMask = NativeMethods.QS_INPUT | (NativeMethods.QS_INPUT << 16);
+                return (result & InputMask) != 0;
             }
         }
 

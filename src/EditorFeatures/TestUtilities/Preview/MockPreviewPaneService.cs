@@ -12,7 +12,6 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
         public object GetPreviewPane(DiagnosticData diagnostic, IReadOnlyList<object> previewContents)
         {
-            var contents = previewContents ?? SpecializedCollections.EmptyEnumerable<object>();
+            var contents = previewContents ?? [];
 
             foreach (var content in contents.OfType<IDisposable>())
             {

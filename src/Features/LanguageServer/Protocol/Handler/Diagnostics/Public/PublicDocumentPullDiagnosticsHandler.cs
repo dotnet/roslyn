@@ -2,69 +2,68 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 
-using DocumentDiagnosticReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport>;
-
 // A document diagnostic partial report is defined as having the first literal send = DocumentDiagnosticReport (aka changed / unchanged) followed
 // by n DocumentDiagnosticPartialResult literals.
-// See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
+// See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentDiagnosticParams
 using DocumentDiagnosticPartialReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>;
+using DocumentDiagnosticReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport>;
 
 [Method(Methods.TextDocumentDiagnosticName)]
-internal class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
+internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
 {
+    private readonly IClientLanguageServerManager _clientLanguageServerManager;
+
     public PublicDocumentPullDiagnosticsHandler(
+        IClientLanguageServerManager clientLanguageServerManager,
         IDiagnosticAnalyzerService analyzerService,
-        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+        IDiagnosticSourceManager diagnosticSourceManager,
+        IDiagnosticsRefresher diagnosticsRefresher,
         IGlobalOptionService globalOptions)
-        : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
+        : base(analyzerService, diagnosticsRefresher, diagnosticSourceManager, globalOptions)
     {
+        _clientLanguageServerManager = clientLanguageServerManager;
     }
 
-    /// <summary>
-    /// Public API doesn't support categories (yet).
-    /// </summary>
-    protected override string? GetDiagnosticCategory(DocumentDiagnosticParams diagnosticsParams)
-        => null;
+    protected override string? GetRequestDiagnosticCategory(DocumentDiagnosticParams diagnosticsParams)
+        => diagnosticsParams.Identifier;
 
-    public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
+    public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams)
+        => diagnosticsParams.TextDocument;
 
-    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
-    {
-        return ConvertTags(diagnosticData, potentialDuplicate: false);
-    }
+    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
+        => ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: false);
 
-    protected override DocumentDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
-        => new DocumentDiagnosticPartialReport(new RelatedFullDocumentDiagnosticReport
+    protected override DocumentDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
+        => new(new RelatedFullDocumentDiagnosticReport
         {
             ResultId = resultId,
             Items = diagnostics,
         });
 
     protected override DocumentDiagnosticPartialReport CreateRemovedReport(TextDocumentIdentifier identifier)
-        => new DocumentDiagnosticPartialReport(new RelatedFullDocumentDiagnosticReport
+        => new(new RelatedFullDocumentDiagnosticReport
         {
             ResultId = null,
-            Items = Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>(),
+            Items = [],
         });
 
-    protected override DocumentDiagnosticPartialReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
-        => new DocumentDiagnosticPartialReport(new RelatedUnchangedDocumentDiagnosticReport
+    protected override bool TryCreateUnchangedReport(TextDocumentIdentifier identifier, string resultId, out DocumentDiagnosticPartialReport report)
+    {
+        report = new RelatedUnchangedDocumentDiagnosticReport
         {
             ResultId = resultId
-        });
+        };
+        return true;
+    }
 
     protected override DocumentDiagnosticReport? CreateReturn(BufferedProgress<DocumentDiagnosticPartialReport> progress)
     {
@@ -81,12 +80,6 @@ internal class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagno
         }
 
         return null;
-    }
-
-    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(DocumentDiagnosticParams diagnosticParams, RequestContext context, CancellationToken cancellationToken)
-    {
-        // Task list items are not reported through the public LSP diagnostic API.
-        return ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetDiagnosticSources(DiagnosticKind.All, taskList: false, context, GlobalOptions));
     }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)

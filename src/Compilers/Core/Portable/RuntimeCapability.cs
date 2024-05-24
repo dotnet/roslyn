@@ -39,5 +39,15 @@ namespace Microsoft.CodeAnalysis
         /// Indicates that this version of runtime supports virtual static members of interfaces.
         /// </summary>
         VirtualStaticsInInterfaces = 6,
+
+        /// <summary>
+        /// Indicates that this version of runtime supports inline array types.
+        /// </summary>
+        InlineArrayTypes = 7,
+
+        /// <summary>
+        /// Indicates that this version of runtime supports generic type parameters allowing substitution with a ref struct.
+        /// </summary>
+        ByRefLikeGenerics = 8,
     }
 }

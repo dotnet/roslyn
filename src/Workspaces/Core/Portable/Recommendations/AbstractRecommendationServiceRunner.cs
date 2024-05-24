@@ -97,7 +97,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
 
             if (TryGetExplicitTypeOfLambdaParameter(lambdaSyntax, parameter.Ordinal, out var explicitLambdaParameterType))
             {
-                parameterTypeSymbols = ImmutableArray.Create(explicitLambdaParameterType);
+                parameterTypeSymbols = [explicitLambdaParameterType];
             }
             else
             {
@@ -122,8 +122,11 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
 
             // For each type of b., return all suitable members. Also, ensure we consider the actual type of the
             // parameter the compiler inferred as it may have made a completely suitable inference for it.
+            // (Only add the actual type if it's not already in the set, otherwise the type and all of its members will be considered twice.)
+            if (!parameterTypeSymbols.Contains(parameter.Type, SymbolEqualityComparer.Default))
+                parameterTypeSymbols = parameterTypeSymbols.Concat(parameter.Type);
+
             return parameterTypeSymbols
-                .Concat(parameter.Type)
                 .SelectManyAsArray(parameterTypeSymbol =>
                     GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false, unwrapNullable, isForDereference));
         }
@@ -167,7 +170,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
                 }
             }
 
-            return concreteTypes.ToImmutable();
+            return concreteTypes.ToImmutableAndClear();
         }
 
         /// <summary>
@@ -270,7 +273,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
         {
             var declarationSyntax = _context.TargetToken.GetAncestor<TNamespaceDeclarationSyntax>();
             if (declarationSyntax == null)
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             var semanticModel = _context.SemanticModel;
             var containingNamespaceSymbol = semanticModel.Compilation.GetCompilationNamespace(
@@ -280,6 +283,50 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
                                        .WhereAsArray(recommendationSymbol => IsNonIntersectingNamespace(recommendationSymbol, declarationSyntax));
 
             return symbols;
+        }
+
+        protected ImmutableArray<ISymbol> GetSymbolsForEnumBaseList(INamespaceOrTypeSymbol container)
+        {
+            var semanticModel = _context.SemanticModel;
+            var systemNamespace = container is not (null or INamespaceSymbol { IsGlobalNamespace: true })
+                ? null
+                 : semanticModel.LookupNamespacesAndTypes(_context.Position, semanticModel.Compilation.GlobalNamespace, nameof(System))
+                     .OfType<INamespaceSymbol>().FirstOrDefault();
+
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
+
+            if (systemNamespace is not null)
+            {
+                builder.Add(systemNamespace);
+
+                var aliases = semanticModel.LookupSymbols(_context.Position, container).OfType<IAliasSymbol>().Where(a => systemNamespace.Equals(a.Target));
+                builder.AddRange(aliases);
+            }
+
+            AddSpecialTypeSymbolAndItsAliases(nameof(Byte), SpecialType.System_Byte);
+            AddSpecialTypeSymbolAndItsAliases(nameof(SByte), SpecialType.System_SByte);
+            AddSpecialTypeSymbolAndItsAliases(nameof(Int16), SpecialType.System_Int16);
+            AddSpecialTypeSymbolAndItsAliases(nameof(UInt16), SpecialType.System_UInt16);
+            AddSpecialTypeSymbolAndItsAliases(nameof(Int32), SpecialType.System_Int32);
+            AddSpecialTypeSymbolAndItsAliases(nameof(UInt32), SpecialType.System_UInt32);
+            AddSpecialTypeSymbolAndItsAliases(nameof(Int64), SpecialType.System_Int64);
+            AddSpecialTypeSymbolAndItsAliases(nameof(UInt64), SpecialType.System_UInt64);
+
+            return builder.ToImmutableAndClear();
+
+            void AddSpecialTypeSymbolAndItsAliases(string name, SpecialType specialType)
+            {
+                var specialTypeSymbol = _context.SemanticModel
+                    .LookupNamespacesAndTypes(_context.Position, container, name)
+                    .FirstOrDefault(s => s is INamedTypeSymbol namedType && namedType.SpecialType == specialType);
+
+                builder.AddIfNotNull(specialTypeSymbol);
+
+                specialTypeSymbol ??= _context.SemanticModel.Compilation.GetSpecialType(specialType);
+
+                var aliases = _context.SemanticModel.LookupSymbols(_context.Position, container).OfType<IAliasSymbol>().Where(a => specialTypeSymbol.Equals(a.Target));
+                builder.AddRange(aliases);
+            }
         }
 
         protected static bool IsNonIntersectingNamespace(ISymbol recommendationSymbol, SyntaxNode declarationSyntax)
@@ -326,7 +373,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             }
 
             if (container is not INamespaceOrTypeSymbol namespaceOrType)
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             if (unwrapNullable && namespaceOrType is ITypeSymbol typeSymbol)
             {
@@ -375,7 +422,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
                 result.Add(member);
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
 
             static bool MatchesConstraints(ITypeSymbol originalContainerType, ImmutableArray<ITypeSymbol> constraintTypes)
             {
@@ -408,21 +455,45 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
                 }
                 else if (originalConstraintType.TypeKind == TypeKind.Interface)
                 {
-                    // If the constraint is an interface then see if that interface appears in the interface inheritance
-                    // hierarchy of the type we're dotting off of.
-                    foreach (var interfaceType in originalContainerType.AllInterfaces)
+                    if (originalContainerType is ITypeParameterSymbol typeParameterContainer)
                     {
-                        if (SymbolEqualityComparer.Default.Equals(interfaceType.OriginalDefinition, originalConstraintType))
-                            return true;
+                        // If the container type is a type parameter, we attempt to match all the interfaces from its constraint types.
+                        foreach (var constraintType in typeParameterContainer.ConstraintTypes)
+                        {
+                            foreach (var constraintTypeInterface in constraintType.GetAllInterfacesIncludingThis())
+                            {
+                                if (SymbolEqualityComparer.Default.Equals(constraintTypeInterface.OriginalDefinition, originalConstraintType))
+                                    return true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // If the constraint is an interface then see if that interface appears in the interface inheritance
+                        // hierarchy of the type we're dotting off of.
+                        foreach (var interfaceType in originalContainerType.AllInterfaces)
+                        {
+                            if (SymbolEqualityComparer.Default.Equals(interfaceType.OriginalDefinition, originalConstraintType))
+                                return true;
+                        }
                     }
                 }
                 else if (originalConstraintType.TypeKind == TypeKind.Class)
                 {
-                    // If the constraint is an interface then see if that interface appears in the base type inheritance
-                    // hierarchy of the type we're dotting off of.
-                    for (var current = originalContainerType.BaseType; current != null; current = current.BaseType)
+                    if (originalContainerType is ITypeParameterSymbol typeParameterContainer)
                     {
-                        if (SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, originalConstraintType))
+                        // If the container type is a type parameter, we iterate through all the type's constrained types.
+                        foreach (var constrainedType in typeParameterContainer.ConstraintTypes)
+                        {
+                            if (MatchesAnyBaseTypes(constrainedType, originalConstraintType))
+                                return true;
+                        }
+                    }
+                    else
+                    {
+                        // If the constraint is an interface then see if that interface appears in the base type inheritance
+                        // hierarchy of the type we're dotting off of.
+                        if (MatchesAnyBaseTypes(originalContainerType.BaseType, originalConstraintType))
                             return true;
                     }
                 }
@@ -436,6 +507,17 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
 
                 // For anything else, we don't consider this a match.  This can be adjusted in the future if need be.
                 return false;
+
+                static bool MatchesAnyBaseTypes(ITypeSymbol source, ITypeSymbol matched)
+                {
+                    for (var current = source; current != null; current = current.BaseType)
+                    {
+                        if (SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, matched))
+                            return true;
+                    }
+
+                    return false;
+                }
             }
         }
 

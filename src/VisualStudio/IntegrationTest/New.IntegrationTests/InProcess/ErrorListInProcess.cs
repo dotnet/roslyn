@@ -15,115 +15,113 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Threading;
 
-namespace Roslyn.VisualStudio.IntegrationTests.InProcess
+namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
+
+[TestService]
+internal partial class ErrorListInProcess
 {
-    [TestService]
-    internal partial class ErrorListInProcess
+    public Task ShowErrorListAsync(CancellationToken cancellationToken)
+        => ShowErrorListAsync(ErrorSource.Build | ErrorSource.Other, minimumSeverity: __VSERRORCATEGORY.EC_WARNING, cancellationToken);
+
+    public Task ShowBuildErrorsAsync(CancellationToken cancellationToken)
+        => ShowErrorListAsync(ErrorSource.Build, minimumSeverity: __VSERRORCATEGORY.EC_WARNING, cancellationToken);
+
+    public async Task ShowErrorListAsync(ErrorSource errorSource, __VSERRORCATEGORY minimumSeverity, CancellationToken cancellationToken)
     {
-        public Task ShowErrorListAsync(CancellationToken cancellationToken)
-            => ShowErrorListAsync(ErrorSource.Build | ErrorSource.Other, minimumSeverity: __VSERRORCATEGORY.EC_WARNING, cancellationToken);
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        public Task ShowBuildErrorsAsync(CancellationToken cancellationToken)
-            => ShowErrorListAsync(ErrorSource.Build, minimumSeverity: __VSERRORCATEGORY.EC_WARNING, cancellationToken);
+        var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
+        ((IVsErrorList)errorList).BringToFront();
+        errorList.AreBuildErrorSourceEntriesShown = errorSource.HasFlag(ErrorSource.Build);
+        errorList.AreOtherErrorSourceEntriesShown = errorSource.HasFlag(ErrorSource.Other);
+        errorList.AreErrorsShown = minimumSeverity >= __VSERRORCATEGORY.EC_ERROR;
+        errorList.AreWarningsShown = minimumSeverity >= __VSERRORCATEGORY.EC_WARNING;
+        errorList.AreMessagesShown = minimumSeverity >= __VSERRORCATEGORY.EC_MESSAGE;
+    }
 
-        public async Task ShowErrorListAsync(ErrorSource errorSource, __VSERRORCATEGORY minimumSeverity, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+    public Task<ImmutableArray<string>> GetErrorsAsync(CancellationToken cancellationToken)
+        => GetErrorsAsync(ErrorSource.Build | ErrorSource.Other, minimumSeverity: __VSERRORCATEGORY.EC_WARNING, cancellationToken);
 
-            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
-            ((IVsErrorList)errorList).BringToFront();
-            errorList.AreBuildErrorSourceEntriesShown = errorSource.HasFlag(ErrorSource.Build);
-            errorList.AreOtherErrorSourceEntriesShown = errorSource.HasFlag(ErrorSource.Other);
-            errorList.AreErrorsShown = minimumSeverity >= __VSERRORCATEGORY.EC_ERROR;
-            errorList.AreWarningsShown = minimumSeverity >= __VSERRORCATEGORY.EC_WARNING;
-            errorList.AreMessagesShown = minimumSeverity >= __VSERRORCATEGORY.EC_MESSAGE;
-        }
+    public Task<ImmutableArray<string>> GetBuildErrorsAsync(CancellationToken cancellationToken)
+        => GetErrorsAsync(ErrorSource.Build, minimumSeverity: __VSERRORCATEGORY.EC_WARNING, cancellationToken);
 
-        public Task<ImmutableArray<string>> GetErrorsAsync(CancellationToken cancellationToken)
-            => GetErrorsAsync(ErrorSource.Build | ErrorSource.Other, minimumSeverity: __VSERRORCATEGORY.EC_WARNING, cancellationToken);
+    public async Task<ImmutableArray<string>> GetErrorsAsync(ErrorSource errorSource, __VSERRORCATEGORY minimumSeverity, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        public Task<ImmutableArray<string>> GetBuildErrorsAsync(CancellationToken cancellationToken)
-            => GetErrorsAsync(ErrorSource.Build, minimumSeverity: __VSERRORCATEGORY.EC_WARNING, cancellationToken);
+        var errorItems = await GetErrorItemsAsync(errorSource, minimumSeverity, cancellationToken);
+        var list = errorItems.Select(GetMessage).ToList();
 
-        public async Task<ImmutableArray<string>> GetErrorsAsync(ErrorSource errorSource, __VSERRORCATEGORY minimumSeverity, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        return list
+            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(x => x, StringComparer.Ordinal)
+            .ToImmutableArray();
+    }
 
-            var errorItems = await GetErrorItemsAsync(errorSource, minimumSeverity, cancellationToken);
-            var list = errorItems.Select(GetMessage).ToList();
+    public async Task<string> NavigateToErrorListItemAsync(int item, bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            return list
-                .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(x => x, StringComparer.Ordinal)
-                .ToImmutableArray();
-        }
+        var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
+        ErrorSource errorSource = 0;
+        if (errorList.AreBuildErrorSourceEntriesShown)
+            errorSource |= ErrorSource.Build;
 
-        public async Task<string> NavigateToErrorListItemAsync(int item, bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        if (errorList.AreOtherErrorSourceEntriesShown)
+            errorSource |= ErrorSource.Other;
 
-            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
-            ErrorSource errorSource = 0;
-            if (errorList.AreBuildErrorSourceEntriesShown)
-                errorSource |= ErrorSource.Build;
+        var minimumSeverity =
+            errorList.AreMessagesShown ? __VSERRORCATEGORY.EC_MESSAGE :
+            errorList.AreWarningsShown ? __VSERRORCATEGORY.EC_WARNING :
+            __VSERRORCATEGORY.EC_ERROR;
 
-            if (errorList.AreOtherErrorSourceEntriesShown)
-                errorSource |= ErrorSource.Other;
+        var items = await GetErrorItemsAsync(errorSource, minimumSeverity, cancellationToken);
 
-            var minimumSeverity =
-                errorList.AreMessagesShown ? __VSERRORCATEGORY.EC_MESSAGE :
-                errorList.AreWarningsShown ? __VSERRORCATEGORY.EC_WARNING :
-                __VSERRORCATEGORY.EC_ERROR;
+        items[item].NavigateTo(isPreview, shouldActivate);
+        return GetMessage(items[item]);
+    }
 
-            var items = await GetErrorItemsAsync(errorSource, minimumSeverity, cancellationToken);
+    private async Task<ImmutableArray<ITableEntryHandle>> GetErrorItemsAsync(ErrorSource errorSource, __VSERRORCATEGORY minimumSeverity, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            items[item].NavigateTo(isPreview, shouldActivate);
-            return GetMessage(items[item]);
-        }
-
-        private async Task<ImmutableArray<ITableEntryHandle>> GetErrorItemsAsync(ErrorSource errorSource, __VSERRORCATEGORY minimumSeverity, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
-            var args = await errorList.TableControl.ForceUpdateAsync().WithCancellation(cancellationToken);
-            return args.AllEntries
-                .Where(item =>
-                {
-                    if (item.GetCategory() > minimumSeverity)
-                    {
-                        return false;
-                    }
-
-                    if (item.GetErrorSource() is not { } itemErrorSource
-                        || !errorSource.HasFlag(itemErrorSource))
-                    {
-                        return false;
-                    }
-
-                    return true;
-                })
-                .ToImmutableArray();
-        }
-
-        private static string GetMessage(ITableEntryHandle item)
-        {
-            var source = item.GetBuildTool();
-            var document = Path.GetFileName(item.GetPath() ?? item.GetDocumentName()) ?? "<unknown>";
-            var line = item.GetLine() ?? -1;
-            var column = item.GetColumn() ?? -1;
-            var errorCode = item.GetErrorCode() ?? "<unknown>";
-            var text = item.GetText() ?? "<unknown>";
-            var severity = item.GetCategory() switch
+        var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
+        var args = await errorList.TableControl.ForceUpdateAsync().WithCancellation(cancellationToken);
+        return args.AllEntries
+            .Where(item =>
             {
-                __VSERRORCATEGORY.EC_ERROR => "error",
-                __VSERRORCATEGORY.EC_WARNING => "warning",
-                __VSERRORCATEGORY.EC_MESSAGE => "info",
-                var unknown => unknown.ToString(),
-            };
+                if (item.GetCategory() > minimumSeverity)
+                {
+                    return false;
+                }
 
-            var message = $"({source}) {document}({line + 1}, {column + 1}): {severity} {errorCode}: {text}";
-            return message;
-        }
+                if (item.GetErrorSource() is not { } itemErrorSource
+                    || !errorSource.HasFlag(itemErrorSource))
+                {
+                    return false;
+                }
+
+                return true;
+            })
+            .ToImmutableArray();
+    }
+
+    private static string GetMessage(ITableEntryHandle item)
+    {
+        var document = Path.GetFileName(item.GetPath() ?? item.GetDocumentName()) ?? "<unknown>";
+        var line = item.GetLine() ?? -1;
+        var column = item.GetColumn() ?? -1;
+        var errorCode = item.GetErrorCode() ?? "<unknown>";
+        var text = item.GetText() ?? "<unknown>";
+        var severity = item.GetCategory() switch
+        {
+            __VSERRORCATEGORY.EC_ERROR => "error",
+            __VSERRORCATEGORY.EC_WARNING => "warning",
+            __VSERRORCATEGORY.EC_MESSAGE => "info",
+            var unknown => unknown.ToString(),
+        };
+
+        var message = $"{document}({line + 1}, {column + 1}): {severity} {errorCode}: {text}";
+        return message;
     }
 }

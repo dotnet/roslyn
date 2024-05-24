@@ -6,12 +6,11 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 
-namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
+namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
+
+internal class ValueTrackingEditorCommandArgs : EditorCommandArgs
 {
-    internal class ValueTrackingEditorCommandArgs : EditorCommandArgs
+    public ValueTrackingEditorCommandArgs(ITextView textView, ITextBuffer subjectBuffer) : base(textView, subjectBuffer)
     {
-        public ValueTrackingEditorCommandArgs(ITextView textView, ITextBuffer subjectBuffer) : base(textView, subjectBuffer)
-        {
-        }
     }
 }

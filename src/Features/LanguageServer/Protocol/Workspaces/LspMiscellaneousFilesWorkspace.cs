@@ -3,15 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -28,22 +24,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// Future work for this workspace includes supporting basic metadata references (mscorlib, System dlls, etc),
     /// but that is dependent on having a x-plat mechanism for retrieving those references from the framework / sdk.
     /// </summary>
-    internal class LspMiscellaneousFilesWorkspace : Workspace, ILspService
+    internal sealed class LspMiscellaneousFilesWorkspace : Workspace, ILspService, ILspWorkspace
     {
-        private static readonly LanguageInformation s_csharpLanguageInformation = new(LanguageNames.CSharp, ".csx");
-        private static readonly LanguageInformation s_vbLanguageInformation = new(LanguageNames.VisualBasic, ".vbx");
+        private readonly ILspServices _lspServices;
 
-        private static readonly Dictionary<string, LanguageInformation> s_extensionToLanguageInformation = new()
+        public LspMiscellaneousFilesWorkspace(ILspServices lspServices, HostServices hostServices) : base(hostServices, WorkspaceKind.MiscellaneousFiles)
         {
-            { ".cs", s_csharpLanguageInformation },
-            { ".csx", s_csharpLanguageInformation },
-            { ".vb", s_vbLanguageInformation },
-            { ".vbx", s_vbLanguageInformation },
-        };
-
-        public LspMiscellaneousFilesWorkspace(HostServices hostServices) : base(hostServices, WorkspaceKind.MiscellaneousFiles)
-        {
+            _lspServices = lspServices;
         }
+
+        public bool SupportsMutation => true;
 
         /// <summary>
         /// Takes in a file URI and text and creates a misc project and document for the file.
@@ -51,19 +41,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// Calls to this method and <see cref="TryRemoveMiscellaneousDocument(Uri)"/> are made
         /// from LSP text sync request handling which do not run concurrently.
         /// </summary>
-        public Document? AddMiscellaneousDocument(Uri uri, SourceText documentText, ILspLogger logger)
+        public Document? AddMiscellaneousDocument(Uri uri, SourceText documentText, string languageId, ILspLogger logger)
         {
-            var uriAbsolutePath = uri.AbsolutePath;
-            if (!s_extensionToLanguageInformation.TryGetValue(Path.GetExtension(uriAbsolutePath), out var languageInformation))
+            var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
+            var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
+            var languageInformation = languageInfoProvider.GetLanguageInformation(documentFilePath, languageId);
+            if (languageInformation == null)
             {
                 // Only log here since throwing here could take down the LSP server.
-                logger.LogError($"Could not find language information for {uri} with absolute path {uriAbsolutePath}");
+                logger.LogError($"Could not find language information for {uri} with absolute path {documentFilePath}");
                 return null;
             }
 
-            var sourceTextLoader = new SourceTextLoader(documentText, uriAbsolutePath);
+            var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
 
-            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(uri.AbsolutePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, ImmutableArray<MetadataReference>.Empty);
+            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
+                this, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, []);
             OnProjectAdded(projectInfo);
 
             var id = projectInfo.Documents.Single().Id;
@@ -73,18 +66,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <summary>
         /// Removes a document with the matching file path from this workspace.
         /// 
-        /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri, SourceText, ILspLogger)"/> are made
+        /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri, SourceText, string, ILspLogger)"/> are made
         /// from LSP text sync request handling which do not run concurrently.
         /// </summary>
         public void TryRemoveMiscellaneousDocument(Uri uri)
         {
-            var uriAbsolutePath = uri.AbsolutePath;
-
-            // We only add misc files to this workspace using the absolute file path.
-            var matchingDocument = CurrentSolution.GetDocumentIdsWithFilePath(uriAbsolutePath).SingleOrDefault();
+            // We'll only ever have a single document matching this URI in the misc solution.
+            var matchingDocument = CurrentSolution.GetDocumentIds(uri).SingleOrDefault();
             if (matchingDocument != null)
             {
-                OnDocumentRemoved(matchingDocument);
+                if (CurrentSolution.ContainsDocument(matchingDocument))
+                {
+                    OnDocumentRemoved(matchingDocument);
+                }
+                else if (CurrentSolution.ContainsAdditionalDocument(matchingDocument))
+                {
+                    OnAdditionalDocumentRemoved(matchingDocument);
+                }
 
                 // Also remove the project - we always create a new project for each misc file we add
                 // so it should never have other documents in it.
@@ -93,23 +91,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        private sealed class SourceTextLoader : TextLoader
+        public ValueTask UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken)
         {
-            private readonly SourceText _sourceText;
-            private readonly string _fileUri;
-
-            public SourceTextLoader(SourceText sourceText, string fileUri)
-            {
-                _sourceText = sourceText;
-                _fileUri = fileUri;
-            }
-
-            internal override string? FilePath
-                => _fileUri;
-
-            // TODO (https://github.com/dotnet/roslyn/issues/63583): Use options.ChecksumAlgorithm 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-                => Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Create(), _fileUri));
+            this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
+            return ValueTaskFactory.CompletedTask;
         }
     }
 }

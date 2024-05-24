@@ -4,24 +4,23 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
-{
-    internal static class BaseParameterListSyntaxExtensions
-    {
-        public static SyntaxToken GetOpenToken(this BaseParameterListSyntax node)
-            => node switch
-            {
-                ParameterListSyntax list => list.OpenParenToken,
-                BracketedParameterListSyntax bracketedList => bracketedList.OpenBracketToken,
-                _ => default,
-            };
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
-        public static SyntaxToken GetCloseToken(this BaseParameterListSyntax node)
-            => node switch
-            {
-                ParameterListSyntax list => list.CloseParenToken,
-                BracketedParameterListSyntax bracketedList => bracketedList.CloseBracketToken,
-                _ => default,
-            };
-    }
+internal static class BaseParameterListSyntaxExtensions
+{
+    public static SyntaxToken GetOpenToken(this BaseParameterListSyntax node)
+        => node switch
+        {
+            ParameterListSyntax list => list.OpenParenToken,
+            BracketedParameterListSyntax bracketedList => bracketedList.OpenBracketToken,
+            _ => default,
+        };
+
+    public static SyntaxToken GetCloseToken(this BaseParameterListSyntax node)
+        => node switch
+        {
+            ParameterListSyntax list => list.CloseParenToken,
+            BracketedParameterListSyntax bracketedList => bracketedList.CloseBracketToken,
+            _ => default,
+        };
 }

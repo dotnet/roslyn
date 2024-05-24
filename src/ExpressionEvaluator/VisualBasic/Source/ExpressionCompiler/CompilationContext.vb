@@ -488,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function BindExpression(binder As Binder, syntax As ExpressionSyntax, diagnostics As DiagnosticBag, <Out> ByRef resultProperties As ResultProperties) As BoundStatement
-            Dim bindingDiagnostics = New BindingDiagnosticBag(diagnostics)
+            Dim bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
             Dim expression = binder.BindExpression(syntax, bindingDiagnostics)
 
             Dim flags = DkmClrCompilationResultFlags.None
@@ -510,6 +510,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 expression = binder.MakeRValue(expression, bindingDiagnostics)
             End If
 
+            diagnostics.AddRange(bindingDiagnostics.DiagnosticBag)
+            bindingDiagnostics.Free()
+
             Select Case expression.Type.SpecialType
                 Case SpecialType.System_Void
                     Debug.Assert(expression.ConstantValueOpt Is Nothing)
@@ -524,7 +527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function IsAssignableExpression(binder As Binder, expression As BoundExpression) As Boolean
-            Dim diagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
             Dim value = binder.ReclassifyAsValue(expression, diagnostics)
             Dim result = False
             If Binder.IsValidAssignmentTarget(value) AndAlso Not diagnostics.HasAnyErrors() Then
@@ -555,7 +558,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Shared Function BindStatement(binder As Binder, syntax As StatementSyntax, diagnostics As DiagnosticBag, <Out> ByRef resultProperties As ResultProperties) As BoundStatement
             resultProperties = New ResultProperties(DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            Return binder.BindStatement(syntax, New BindingDiagnosticBag(diagnostics)).MakeCompilerGenerated()
+            Dim builder = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
+            Dim result = binder.BindStatement(syntax, builder).MakeCompilerGenerated()
+            diagnostics.AddRange(builder.DiagnosticBag)
+            builder.Free()
+            Return result
         End Function
 
         Private Shared Function CreateBinderChain(
@@ -1281,10 +1288,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     variableKind = DisplayClassVariableKind.Parameter
                 End If
 
-                If displayClassVariablesBuilder.ContainsKey(variableName) Then
+                Dim displayClassVariable As DisplayClassVariable = Nothing
+                If displayClassVariablesBuilder.TryGetValue(variableName, displayClassVariable) Then
                     ' Only expecting duplicates for async state machine
                     ' fields (that should be at the top-level).
-                    Debug.Assert(displayClassVariablesBuilder(variableName).DisplayClassFields.Count() = 1)
+                    Debug.Assert(displayClassVariable.DisplayClassFields.Count() = 1)
 
                     If Not instance.Fields.Any() Then
                         ' Prefer parameters over locals.

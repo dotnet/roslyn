@@ -59,6 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                     Return symbols
                 ElseIf _context.IsNamespaceDeclarationNameContext Then
                     Return GetSymbolsForNamespaceDeclarationNameContext(Of NamespaceBlockSyntax)()
+                ElseIf _context.IsEnumBaseListContext Then
+                    Return GetSymbolsForEnumBaseList(container:=Nothing)
                 End If
 
                 Return ImmutableArray(Of ISymbol).Empty
@@ -168,6 +170,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
                 If leftHandSymbol Is Nothing AndAlso Not couldBeMergedNamespace Then
                     Return ImmutableArray(Of ISymbol).Empty
+                End If
+
+                If TypeOf node.GetAncestor(Of AsClauseSyntax)()?.Parent Is EnumStatementSyntax Then
+                    Return GetSymbolsForEnumBaseList(leftHandSymbol)
                 End If
 
                 Dim symbols As ImmutableArray(Of ISymbol)

@@ -17,6 +17,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
 {
+#pragma warning disable CA1416 // Validate platform compatibility
     internal sealed class InProcRemoteHostClientProvider : IRemoteHostClientProvider, IDisposable
     {
         [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider), ServiceLayer.Test), Shared, PartNotDiscoverable]
@@ -35,15 +36,22 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         private sealed class WorkspaceManager : RemoteWorkspaceManager
         {
-            public WorkspaceManager(Func<RemoteWorkspace, SolutionAssetCache> createAssetStorage, ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, Type[]? additionalRemoteParts)
-                : base(createAssetStorage, CreateRemoteWorkspace(sharedTestGeneratorReferences, additionalRemoteParts))
+            public WorkspaceManager(
+                Func<RemoteWorkspace, SolutionAssetCache> createAssetStorage,
+                ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences,
+                Type[]? additionalRemoteParts,
+                Type[]? excludedRemoteParts)
+                : base(createAssetStorage, CreateRemoteWorkspace(sharedTestGeneratorReferences, additionalRemoteParts, excludedRemoteParts))
             {
             }
         }
 
-        private static RemoteWorkspace CreateRemoteWorkspace(ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, Type[]? additionalRemoteParts)
+        private static RemoteWorkspace CreateRemoteWorkspace(
+            ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences,
+            Type[]? additionalRemoteParts,
+            Type[]? excludedRemoteParts)
         {
-            var hostServices = FeaturesTestCompositions.RemoteHost.AddParts(additionalRemoteParts).GetHostServices();
+            var hostServices = FeaturesTestCompositions.RemoteHost.AddParts(additionalRemoteParts).AddExcludedPartTypes(excludedRemoteParts).GetHostServices();
 
             // We want to allow references to source generators to be shared between the "in proc" and "remote" workspaces and
             // MEF compositions, so tell the serializer service to use the same map for this "remote" workspace as the in-proc one.
@@ -56,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private readonly Lazy<RemoteHostClient> _lazyClient;
 
         public Type[]? AdditionalRemoteParts { get; set; }
+        public Type[]? ExcludedRemoteParts { get; set; }
         public TraceListener? TraceListener { get; set; }
 
         public InProcRemoteHostClientProvider(SolutionServices services, RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
@@ -68,7 +77,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 () => new WorkspaceManager(
                     _ => new SolutionAssetCache(),
                     testSerializerServiceFactory.SharedTestGeneratorReferences,
-                    AdditionalRemoteParts));
+                    AdditionalRemoteParts,
+                    ExcludedRemoteParts));
             _lazyClient = new Lazy<RemoteHostClient>(
                 () => InProcRemoteHostClient.Create(
                     _services,
@@ -90,4 +100,5 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             => Task.FromResult<RemoteHostClient?>(_lazyClient.Value);
     }
+#pragma warning restore CA1416 // Validate platform compatibility
 }

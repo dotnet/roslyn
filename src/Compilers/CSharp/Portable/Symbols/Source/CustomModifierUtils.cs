@@ -160,6 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return modifiers.Any(static modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeInAttribute());
         }
 
+        internal static bool HasRequiresLocationAttributeModifier(this ImmutableArray<CustomModifier> modifiers)
+        {
+            return modifiers.Any(static modifier => modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeRequiresLocationAttribute());
+        }
+
         internal static bool HasIsExternalInitModifier(this ImmutableArray<CustomModifier> modifiers)
         {
             return modifiers.Any(static modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeIsExternalInit());

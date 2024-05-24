@@ -3001,7 +3001,7 @@ class C{0}
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("C" + i));
 
             // Complete all the types at the same time.
-            Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
+            Parallel.ForEach(types, t => t.ForceComplete(null, filter: null, default(CancellationToken)));
 
             compilation.VerifyDiagnostics(
                 // (4,22): error CS0110: The evaluation of the constant value for 'C0.X' involves a circular definition
@@ -3033,7 +3033,7 @@ class C{0}
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("C" + i));
 
             // Complete all the types at the same time.
-            Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
+            Parallel.ForEach(types, t => t.ForceComplete(null, filter: null, default(CancellationToken)));
 
             // All but C9.X, which is not (lexically) first in any cycle.
             compilation.VerifyDiagnostics(
@@ -3088,7 +3088,7 @@ enum E{0}
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
 
             // Complete all the types at the same time.
-            Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
+            Parallel.ForEach(types, t => t.ForceComplete(null, filter: null, default(CancellationToken)));
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS0110: The evaluation of the constant value for 'E0.X' involves a circular definition
@@ -3120,7 +3120,7 @@ enum E{0}
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
 
             // Complete all the types at the same time.
-            Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
+            Parallel.ForEach(types, t => t.ForceComplete(null, filter: null, default(CancellationToken)));
 
             // All but E9.X, which is not (lexically) first in any cycle.
             compilation.VerifyDiagnostics(
@@ -3178,7 +3178,7 @@ enum E{0}
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
 
             // Complete all the types at the same time.
-            Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
+            Parallel.ForEach(types, t => t.ForceComplete(null, filter: null, default(CancellationToken)));
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS0110: The evaluation of the constant value for 'E0.A' involves a circular definition
@@ -3213,7 +3213,7 @@ enum E{0}
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
 
             // Complete all the types at the same time.
-            Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
+            Parallel.ForEach(types, t => t.ForceComplete(null, filter: null, default(CancellationToken)));
 
             // All but E9.X, which is not (lexically) first in any cycle.
             compilation.VerifyDiagnostics(
@@ -3403,18 +3403,18 @@ void f() { if () const int i = 0; }
                 // (13,27): error CS0134: 'y3' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
                 //         const object y3 = "y";
                 Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""y""").WithArguments("y3", "object").WithLocation(13, 27),
-                // (19,18): error CS0150: A constant value is expected
+                // (19,18): error CS9135: A constant value of type 'string' is expected
                 //             case (string)(object)"b":
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"(string)(object)""b""").WithLocation(19, 18),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"(string)(object)""b""").WithArguments("string").WithLocation(19, 18),
                 // (21,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //             case (object)null:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(21, 18),
                 // (23,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //             case (object)"b":
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""b""").WithArguments("object", "string").WithLocation(23, 18),
-                // (23,18): error CS0150: A constant value is expected
+                // (23,18): error CS9135: A constant value of type 'string' is expected
                 //             case (object)"b":
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"(object)""b""").WithLocation(23, 18),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"(object)""b""").WithArguments("string").WithLocation(23, 18),
                 // (21,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
                 //             case (object)null:
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (object)null:").WithArguments("null").WithLocation(21, 13));

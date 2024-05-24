@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
@@ -20,6 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
             MyBase.New(unusedValueExpressionStatementOption:=VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
                        unusedValueAssignmentOption:=VisualBasicCodeStyleOptions.UnusedValueAssignment)
         End Sub
+
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
         Protected Overrides Function GetUnusedValueExpressionStatementOption(provider As AnalyzerOptionsProvider) As CodeStyleOption2(Of UnusedValuePreference)
             Return CType(provider, VisualBasicAnalyzerOptionsProvider).UnusedValueExpressionStatement

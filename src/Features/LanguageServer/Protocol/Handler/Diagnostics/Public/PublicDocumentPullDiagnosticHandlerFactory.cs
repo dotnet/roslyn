@@ -5,10 +5,9 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 
@@ -16,24 +15,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 // by n DocumentDiagnosticPartialResult literals.
 // See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
 [ExportCSharpVisualBasicLspServiceFactory(typeof(PublicDocumentPullDiagnosticsHandler)), Shared]
-internal class PublicDocumentPullDiagnosticHandlerFactory : ILspServiceFactory
+internal sealed class PublicDocumentPullDiagnosticHandlerFactory : ILspServiceFactory
 {
     private readonly IDiagnosticAnalyzerService _analyzerService;
-    private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
+    private readonly IDiagnosticSourceManager _diagnosticSourceManager;
+    private readonly IDiagnosticsRefresher _diagnosticRefresher;
     private readonly IGlobalOptionService _globalOptions;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public PublicDocumentPullDiagnosticHandlerFactory(
         IDiagnosticAnalyzerService analyzerService,
-        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+        IDiagnosticSourceManager diagnosticSourceManager,
+        IDiagnosticsRefresher diagnosticRefresher,
         IGlobalOptionService globalOptions)
     {
         _analyzerService = analyzerService;
-        _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
+        _diagnosticSourceManager = diagnosticSourceManager;
+        _diagnosticRefresher = diagnosticRefresher;
         _globalOptions = globalOptions;
     }
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new PublicDocumentPullDiagnosticsHandler(_analyzerService, _editAndContinueDiagnosticUpdateSource, _globalOptions);
+    {
+        var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+        return new PublicDocumentPullDiagnosticsHandler(clientLanguageServerManager, _analyzerService, _diagnosticSourceManager, _diagnosticRefresher, _globalOptions);
+    }
 }

@@ -903,8 +903,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(typeParameter.HasConstructorConstraint)
 
             Select Case typeArgument.TypeKind
-                Case TypeKind.Enum,
-                    TypeKind.Structure
+                Case TypeKind.Enum
                     Return True
 
                 Case TypeKind.TypeParameter
@@ -919,28 +918,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
 
                 Case Else
-                    If typeArgument.TypeKind = TypeKind.Class Then
-                        Dim classType = DirectCast(typeArgument, NamedTypeSymbol)
+                    Dim isStructure As Boolean = typeArgument.TypeKind = TypeKind.Structure
 
-                        If HasPublicParameterlessConstructor(classType) Then
-                            If classType.IsMustInherit Then
-                                If diagnosticsBuilder IsNot Nothing Then
-                                    ' "Type argument '{0}' is declared 'MustInherit' and does not satisfy the 'New' constraint for type parameter '{1}'."
-                                    diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_MustInheritForNewConstraint2, typeArgument, typeParameter)))
-                                End If
-                                Return False
-                            Else
-                                Return True
-                            End If
+                    Dim constraintError = ConstructorConstraintError.NoPublicParameterlessConstructor
+
+                    If typeArgument.TypeKind = TypeKind.Class OrElse isStructure Then
+                        Dim namedType = DirectCast(typeArgument, NamedTypeSymbol)
+                        constraintError = HasPublicParameterlessConstructor(namedType)
+
+                        If constraintError = ConstructorConstraintError.None AndAlso namedType.IsMustInherit Then
+                            constraintError = ConstructorConstraintError.MustInheritType
                         End If
-
                     End If
 
                     If diagnosticsBuilder IsNot Nothing Then
-                        ' "Type argument '{0}' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter '{1}'."
-                        diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_NoSuitableNewForNewConstraint2, typeArgument, typeParameter)))
+                        Select Case constraintError
+                            Case ConstructorConstraintError.NoPublicParameterlessConstructor
+                                ' "Type argument '{0}' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter '{1}'."
+                                diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_NoSuitableNewForNewConstraint2, typeArgument, typeParameter)))
+                            Case ConstructorConstraintError.MustInheritType
+                                ' "Type argument '{0}' is declared 'MustInherit' and does not satisfy the 'New' constraint for type parameter '{1}'."
+                                diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_MustInheritForNewConstraint2, typeArgument, typeParameter)))
+                            Case ConstructorConstraintError.HasRequiredMembers
+                                ' '{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.
+                                diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_NewConstraintCannotHaveRequiredMembers, typeParameter.ContainingSymbol, typeParameter, typeArgument)))
+                            Case ConstructorConstraintError.None
+                            Case Else
+                                Throw ExceptionUtilities.UnexpectedValue(constraintError)
+                        End Select
                     End If
-                    Return False
+
+                    Return constraintError = ConstructorConstraintError.None
 
             End Select
         End Function
@@ -1110,28 +1118,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New CompoundDiagnosticInfo(diagnostics)
         End Function
 
+        Public Enum ConstructorConstraintError
+            None
+            NoPublicParameterlessConstructor
+            MustInheritType
+            HasRequiredMembers
+        End Enum
+
         ''' <summary>
         ''' Return true if the class type has a public parameterless constructor.
         ''' </summary>
-        Public Function HasPublicParameterlessConstructor(type As NamedTypeSymbol) As Boolean
+        Public Function HasPublicParameterlessConstructor(type As NamedTypeSymbol) As ConstructorConstraintError
             type = type.OriginalDefinition
-            Debug.Assert(type.TypeKind = TypeKind.Class)
+            Debug.Assert(type.TypeKind = TypeKind.Class OrElse type.TypeKind = TypeKind.Structure)
 
-            Dim sourceNamedType = TryCast(type, SourceNamedTypeSymbol)
+            Dim sourceClass = If(type.TypeKind = TypeKind.Class, TryCast(type, SourceNamedTypeSymbol), Nothing)
 
-            If sourceNamedType IsNot Nothing AndAlso Not sourceNamedType.MembersHaveBeenCreated Then
+            If sourceClass IsNot Nothing AndAlso Not sourceClass.MembersHaveBeenCreated Then
                 ' When we are dealing with group classes and synthetic entry points,
                 ' we can end up here while we are building the set of members for the type.
                 ' Using InstanceConstructors property will send us into an infinite loop.
-                Return sourceNamedType.InferFromSyntaxIfClassWillHavePublicParameterlessConstructor()
+                If sourceClass.InferFromSyntaxIfClassWillHavePublicParameterlessConstructor() Then
+                    Return ConstructorConstraintError.None
+                Else
+                    Return ConstructorConstraintError.NoPublicParameterlessConstructor
+                End If
             End If
+
+            Dim hasRequiredMembers = type.AllRequiredMembers.Count > 0 OrElse type.HasRequiredMembersError
 
             For Each constructor In type.InstanceConstructors
                 If constructor.ParameterCount = 0 Then
-                    Return constructor.DeclaredAccessibility = Accessibility.Public
+                    If constructor.DeclaredAccessibility <> Accessibility.Public Then
+                        Return ConstructorConstraintError.NoPublicParameterlessConstructor
+                    ElseIf hasRequiredMembers AndAlso Not constructor.HasSetsRequiredMembers Then
+                        Return ConstructorConstraintError.HasRequiredMembers
+                    Else
+                        Return ConstructorConstraintError.None
+                    End If
                 End If
             Next
-            Return False
+
+            If Not type.TypeKind = TypeKind.Structure Then
+                Return ConstructorConstraintError.NoPublicParameterlessConstructor
+            ElseIf hasRequiredMembers Then
+                Return ConstructorConstraintError.HasRequiredMembers
+            Else
+                Return ConstructorConstraintError.None
+            End If
         End Function
 
         ''' <summary>

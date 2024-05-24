@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">
         <source>Keep alive service</source>
-        <target state="new">Keep alive service</target>
+        <target state="translated">서비스 연결 유지</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
@@ -127,9 +127,19 @@
         <target state="translated">의미 체계 분류</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SemanticSearch">
+        <source>Semantic search</source>
+        <target state="new">Semantic search</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">자산 공급자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">원본 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">

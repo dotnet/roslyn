@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (SyntaxFacts.IsCheckedOperator(name))
             {
-                MessageID.IDS_FeatureCheckedUserDefinedOperators.CheckFeatureAvailability(diagnostics, syntax, syntax.CheckedKeyword.GetLocation());
+                MessageID.IDS_FeatureCheckedUserDefinedOperators.CheckFeatureAvailability(diagnostics, syntax.CheckedKeyword);
             }
             else if (!syntax.OperatorToken.IsMissing && syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword))
             {
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (name == WellKnownMemberNames.UnsignedRightShiftOperatorName)
             {
-                MessageID.IDS_FeatureUnsignedRightShift.CheckFeatureAvailability(diagnostics, syntax, syntax.OperatorToken.GetLocation());
+                MessageID.IDS_FeatureUnsignedRightShift.CheckFeatureAvailability(diagnostics, syntax.OperatorToken);
             }
 
             var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location,
                 syntax,
                 MakeDeclarationModifiers(methodKind, containingType.IsInterface, syntax, location, diagnostics),
-                hasBody: syntax.HasAnyBody(),
-                isExpressionBodied: syntax.Body == null && syntax.ExpressionBody != null,
+                hasAnyBody: syntax.HasAnyBody(),
+                isExpressionBodied: syntax.IsExpressionBodied(),
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 diagnostics)

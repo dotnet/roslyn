@@ -58,18 +58,58 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (original.IsConstructorInitializer())
             {
-                switch (original.Syntax.Kind())
+                switch (original.Syntax)
                 {
-                    case SyntaxKind.ConstructorDeclaration:
-                        // This is an implicit constructor initializer.
-                        var decl = (ConstructorDeclarationSyntax)original.Syntax;
-                        return new BoundSequencePointWithSpan(decl, rewritten, CreateSpanForConstructorInitializer(decl));
-                    case SyntaxKind.BaseConstructorInitializer:
-                    case SyntaxKind.ThisConstructorInitializer:
-                        var init = (ConstructorInitializerSyntax)original.Syntax;
-                        Debug.Assert(init.Parent is object);
-                        return new BoundSequencePointWithSpan(init, rewritten, CreateSpanForConstructorInitializer((ConstructorDeclarationSyntax)init.Parent));
+                    case ConstructorDeclarationSyntax ctorDecl:
+                        // Implicit constructor initializer:
+                        Debug.Assert(ctorDecl.Initializer == null);
+
+                        TextSpan span;
+                        if (ctorDecl.Modifiers.Any(SyntaxKind.StaticKeyword))
+                        {
+                            Debug.Assert(ctorDecl.Body != null);
+
+                            // [SomeAttribute] static MyCtorName(...) [|{|] ... }
+                            var start = ctorDecl.Body.OpenBraceToken.SpanStart;
+                            var end = ctorDecl.Body.OpenBraceToken.Span.End;
+                            span = TextSpan.FromBounds(start, end);
+                        }
+                        else
+                        {
+                            //  [SomeAttribute] [|public MyCtorName(params int[] values)|] { ... }
+                            span = CreateSpan(ctorDecl.Modifiers, ctorDecl.Identifier, ctorDecl.ParameterList.CloseParenToken);
+                        }
+
+                        return new BoundSequencePointWithSpan(ctorDecl, rewritten, span);
+
+                    case ConstructorInitializerSyntax ctorInit:
+                        // Explicit constructor initializer:
+
+                        //  [SomeAttribute] public MyCtorName(params int[] values): [|base()|] { ... }
+                        return new BoundSequencePointWithSpan(ctorInit, rewritten,
+                            TextSpan.FromBounds(ctorInit.ThisOrBaseKeyword.SpanStart, ctorInit.ArgumentList.CloseParenToken.Span.End));
+
+                    case TypeDeclarationSyntax typeDecl:
+                        // Primary constructor with implicit base initializer:
+                        //   class [|C<T>(int X, int Y)|] : B;
+                        Debug.Assert(typeDecl.ParameterList != null);
+                        Debug.Assert(typeDecl.BaseList?.Types.Any(t => t is PrimaryConstructorBaseTypeSyntax { ArgumentList: not null }) != true);
+
+                        return new BoundSequencePointWithSpan(typeDecl, rewritten, TextSpan.FromBounds(typeDecl.Identifier.SpanStart, typeDecl.ParameterList.Span.End));
+
+                    case PrimaryConstructorBaseTypeSyntax baseInit:
+                        // Explicit base initializer:
+                        //   class C<T>(int X, int Y) : [|B(...)|];
+                        return new BoundSequencePointWithSpan(baseInit, rewritten, baseInit.Span);
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(original.Syntax.Kind());
                 }
+            }
+            else if (original.Syntax is ParameterSyntax parameterSyntax)
+            {
+                // Record property setter sequence point.
+                return new BoundSequencePointWithSpan(parameterSyntax, rewritten, CreateSpan(parameterSyntax));
             }
 
             return AddSequencePoint(rewritten);
@@ -94,7 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (syntax.IsKind(SyntaxKind.Parameter))
             {
                 // This is an initialization of a generated property based on record parameter.
-                return AddSequencePoint(rewritten);
+                // Do not add sequence point - the initialization is trivial and there is no value stepping over every backing field assignment.
+                return rewritten;
             }
 
             Debug.Assert(syntax is { Parent: { Parent: { } } });
@@ -163,13 +204,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (original == rewriter.CurrentMethodBody)
             {
-                if (previousPrologue != null)
+                // Add hidden sequence point at the start of
+                // 1) a prologue added by instrumentation.
+                // 2) a synthesized main entry point for top-level code.
+                // 3) synthesized body of primary and copy constructors of a record type that has at least one parameter.
+                //    This hidden sequence point covers assignments of parameters/original fields to the current instance backing fields.
+                //    These assignments do not have their own sequence points.
+                if (previousPrologue != null ||
+                    rewriter.Factory.TopLevelMethod is SynthesizedSimpleProgramEntryPointSymbol ||
+                    original.Syntax is RecordDeclarationSyntax { ParameterList.Parameters.Count: > 0 })
                 {
                     prologue = BoundSequencePoint.CreateHidden(previousPrologue);
-                }
-                else if (rewriter.Factory.TopLevelMethod is SynthesizedSimpleProgramEntryPointSymbol)
-                {
-                    prologue = BoundSequencePoint.CreateHidden();
                 }
 
                 if (previousEpilogue != null)
@@ -362,6 +407,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // implicit return added by the compiler
                 return new BoundSequencePointWithSpan(original.Syntax, rewritten, ((BlockSyntax)original.Syntax).CloseBraceToken.Span);
+            }
+
+            if (original.Syntax is ParameterSyntax parameterSyntax)
+            {
+                Debug.Assert(parameterSyntax is { Parent.Parent: RecordDeclarationSyntax });
+
+                // Record property getter sequence point
+                return new BoundSequencePointWithSpan(parameterSyntax, rewritten, CreateSpan(parameterSyntax));
             }
 
             return new BoundSequencePoint(original.Syntax, rewritten);

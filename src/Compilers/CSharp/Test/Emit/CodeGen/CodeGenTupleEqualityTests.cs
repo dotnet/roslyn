@@ -534,43 +534,22 @@ class C
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
-  // Code size       63 (0x3f)
+  // Code size       32 (0x20)
   .maxstack  2
-  .locals init (System.ValueTuple<int?, bool?> V_0,
-                int? V_1,
-                int V_2,
-                bool? V_3,
-                bool V_4)
+  .locals init (System.ValueTuple<int?, bool?> V_0)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldfld      ""int? System.ValueTuple<int?, bool?>.Item1""
-  IL_0008:  stloc.1
-  IL_0009:  ldc.i4.2
-  IL_000a:  stloc.2
-  IL_000b:  ldloca.s   V_1
-  IL_000d:  call       ""int int?.GetValueOrDefault()""
-  IL_0012:  ldloc.2
-  IL_0013:  ceq
-  IL_0015:  ldloca.s   V_1
-  IL_0017:  call       ""bool int?.HasValue.get""
-  IL_001c:  and
-  IL_001d:  brfalse.s  IL_003d
-  IL_001f:  ldloc.0
-  IL_0020:  ldfld      ""bool? System.ValueTuple<int?, bool?>.Item2""
-  IL_0025:  stloc.3
-  IL_0026:  ldc.i4.1
-  IL_0027:  stloc.s    V_4
-  IL_0029:  ldloca.s   V_3
-  IL_002b:  call       ""bool bool?.GetValueOrDefault()""
-  IL_0030:  ldloc.s    V_4
-  IL_0032:  ceq
-  IL_0034:  ldloca.s   V_3
-  IL_0036:  call       ""bool bool?.HasValue.get""
-  IL_003b:  and
-  IL_003c:  ret
-  IL_003d:  ldc.i4.0
-  IL_003e:  ret
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldflda     ""int? System.ValueTuple<int?, bool?>.Item1""
+  IL_0009:  call       ""int int?.GetValueOrDefault()""
+  IL_000e:  ldc.i4.2
+  IL_000f:  bne.un.s   IL_001e
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  ldflda     ""bool? System.ValueTuple<int?, bool?>.Item2""
+  IL_0018:  call       ""bool bool?.GetValueOrDefault()""
+  IL_001d:  ret
+  IL_001e:  ldc.i4.0
+  IL_001f:  ret
 }");
         }
 
@@ -1963,18 +1942,18 @@ ref struct S
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,35): error CS0306: The type 'S' may not be used as a type argument
+                // (6,35): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         System.Console.Write(("", s1) == (null, s2));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "s1").WithArguments("S").WithLocation(6, 35),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "s1").WithArguments("(T1, T2)", "T2", "S").WithLocation(6, 35),
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'S' and 'S'
                 //         System.Console.Write(("", s1) == (null, s2));
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, @"("""", s1) == (null, s2)").WithArguments("==", "S", "S").WithLocation(6, 30),
-                // (6,35): error CS0306: The type 'S' may not be used as a type argument
+                // (6,35): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         System.Console.Write(("", s1) == (null, s2));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "s1").WithArguments("S").WithLocation(6, 35),
-                // (6,49): error CS0306: The type 'S' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "s1").WithArguments("(T1, T2)", "T2", "S").WithLocation(6, 35),
+                // (6,49): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         System.Console.Write(("", s1) == (null, s2));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "s2").WithArguments("S").WithLocation(6, 49)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "s2").WithArguments("(T1, T2)", "T2", "S").WithLocation(6, 49)
                 );
         }
 
@@ -5682,6 +5661,260 @@ class K
 ";
             var comp = CompileAndVerify(source, expectedOutput: "True");
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66265")]
+        public void Issue66265_01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (byte, byte) a = (1, 2);
+        var eq = ((int, int))a == a;
+        System.Console.Write(eq ? 1 : 0);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       70 (0x46)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0,
+                byte V_1,
+                byte V_2,
+                System.ValueTuple<byte, byte> V_3)
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""System.ValueTuple<byte, byte>..ctor(byte, byte)""
+  IL_0007:  dup
+  IL_0008:  stloc.3
+  IL_0009:  ldloc.3
+  IL_000a:  ldfld      ""byte System.ValueTuple<byte, byte>.Item1""
+  IL_000f:  ldloc.3
+  IL_0010:  ldfld      ""byte System.ValueTuple<byte, byte>.Item2""
+  IL_0015:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_001a:  stloc.0
+  IL_001b:  dup
+  IL_001c:  ldfld      ""byte System.ValueTuple<byte, byte>.Item1""
+  IL_0021:  stloc.1
+  IL_0022:  ldfld      ""byte System.ValueTuple<byte, byte>.Item2""
+  IL_0027:  stloc.2
+  IL_0028:  ldloc.0
+  IL_0029:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_002e:  ldloc.1
+  IL_002f:  bne.un.s   IL_003c
+  IL_0031:  ldloc.0
+  IL_0032:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0037:  ldloc.2
+  IL_0038:  ceq
+  IL_003a:  br.s       IL_003d
+  IL_003c:  ldc.i4.0
+  IL_003d:  ldc.i4.0
+  IL_003e:  cgt.un
+  IL_0040:  call       ""void System.Console.Write(int)""
+  IL_0045:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66265")]
+        public void Issue66265_02()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, int) a = (1, 2);
+        var eq = M1() == a;
+        System.Console.Write(eq ? 1 : 0);
+    }
+
+    static (byte, byte) M1()
+    {
+        System.Console.Write(""M1"");
+        return (1, 2);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "M11").VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (byte V_0,
+            byte V_1,
+            System.ValueTuple<int, int> V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0007:  call       ""System.ValueTuple<byte, byte> C.M1()""
+  IL_000c:  dup
+  IL_000d:  ldfld      ""byte System.ValueTuple<byte, byte>.Item1""
+  IL_0012:  stloc.0
+  IL_0013:  ldfld      ""byte System.ValueTuple<byte, byte>.Item2""
+  IL_0018:  stloc.1
+  IL_0019:  stloc.2
+  IL_001a:  ldloc.0
+  IL_001b:  ldloc.2
+  IL_001c:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0021:  bne.un.s   IL_002e
+  IL_0023:  ldloc.1
+  IL_0024:  ldloc.2
+  IL_0025:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_002a:  ceq
+  IL_002c:  br.s       IL_002f
+  IL_002e:  ldc.i4.0
+  IL_002f:  ldc.i4.0
+  IL_0030:  cgt.un
+  IL_0032:  call       ""void System.Console.Write(int)""
+  IL_0037:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66265")]
+        public void Issue66265_03()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        ((byte, byte), byte) a = ((1, 2), 3);
+        var eq = (((int, int), int))a == a;
+        System.Console.Write(eq ? 1 : 0);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      131 (0x83)
+  .maxstack  3
+  .locals init (System.ValueTuple<System.ValueTuple<int, int>, int> V_0,
+            byte V_1,
+            byte V_2,
+            byte V_3,
+            System.ValueTuple<System.ValueTuple<byte, byte>, byte> V_4,
+            System.ValueTuple<byte, byte> V_5)
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""System.ValueTuple<byte, byte>..ctor(byte, byte)""
+  IL_0007:  ldc.i4.3
+  IL_0008:  newobj     ""System.ValueTuple<System.ValueTuple<byte, byte>, byte>..ctor(System.ValueTuple<byte, byte>, byte)""
+  IL_000d:  dup
+  IL_000e:  stloc.s    V_4
+  IL_0010:  ldloc.s    V_4
+  IL_0012:  ldfld      ""System.ValueTuple<byte, byte> System.ValueTuple<System.ValueTuple<byte, byte>, byte>.Item1""
+  IL_0017:  stloc.s    V_5
+  IL_0019:  ldloc.s    V_5
+  IL_001b:  ldfld      ""byte System.ValueTuple<byte, byte>.Item1""
+  IL_0020:  ldloc.s    V_5
+  IL_0022:  ldfld      ""byte System.ValueTuple<byte, byte>.Item2""
+  IL_0027:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_002c:  ldloc.s    V_4
+  IL_002e:  ldfld      ""byte System.ValueTuple<System.ValueTuple<byte, byte>, byte>.Item2""
+  IL_0033:  newobj     ""System.ValueTuple<System.ValueTuple<int, int>, int>..ctor(System.ValueTuple<int, int>, int)""
+  IL_0038:  stloc.0
+  IL_0039:  dup
+  IL_003a:  ldfld      ""System.ValueTuple<byte, byte> System.ValueTuple<System.ValueTuple<byte, byte>, byte>.Item1""
+  IL_003f:  dup
+  IL_0040:  ldfld      ""byte System.ValueTuple<byte, byte>.Item1""
+  IL_0045:  stloc.1
+  IL_0046:  ldfld      ""byte System.ValueTuple<byte, byte>.Item2""
+  IL_004b:  stloc.2
+  IL_004c:  ldfld      ""byte System.ValueTuple<System.ValueTuple<byte, byte>, byte>.Item2""
+  IL_0051:  stloc.3
+  IL_0052:  ldloc.0
+  IL_0053:  ldfld      ""System.ValueTuple<int, int> System.ValueTuple<System.ValueTuple<int, int>, int>.Item1""
+  IL_0058:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_005d:  ldloc.1
+  IL_005e:  bne.un.s   IL_0079
+  IL_0060:  ldloc.0
+  IL_0061:  ldfld      ""System.ValueTuple<int, int> System.ValueTuple<System.ValueTuple<int, int>, int>.Item1""
+  IL_0066:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_006b:  ldloc.2
+  IL_006c:  bne.un.s   IL_0079
+  IL_006e:  ldloc.0
+  IL_006f:  ldfld      ""int System.ValueTuple<System.ValueTuple<int, int>, int>.Item2""
+  IL_0074:  ldloc.3
+  IL_0075:  ceq
+  IL_0077:  br.s       IL_007a
+  IL_0079:  ldc.i4.0
+  IL_007a:  ldc.i4.0
+  IL_007b:  cgt.un
+  IL_007d:  call       ""void System.Console.Write(int)""
+  IL_0082:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66265")]
+        public void Issue66265_04()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (byte, byte) a = (1, 2);
+        (int, int) b = (1, 2);
+        var eq = a == b;
+        System.Console.Write(eq ? 1 : 0);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       61 (0x3d)
+  .maxstack  4
+  .locals init (System.ValueTuple<int, int> V_0, //b
+                byte V_1,
+                byte V_2,
+                System.ValueTuple<int, int> V_3)
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""System.ValueTuple<byte, byte>..ctor(byte, byte)""
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldc.i4.1
+  IL_000a:  ldc.i4.2
+  IL_000b:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0010:  dup
+  IL_0011:  ldfld      ""byte System.ValueTuple<byte, byte>.Item1""
+  IL_0016:  stloc.1
+  IL_0017:  ldfld      ""byte System.ValueTuple<byte, byte>.Item2""
+  IL_001c:  stloc.2
+  IL_001d:  ldloc.0
+  IL_001e:  stloc.3
+  IL_001f:  ldloc.1
+  IL_0020:  ldloc.3
+  IL_0021:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0026:  bne.un.s   IL_0033
+  IL_0028:  ldloc.2
+  IL_0029:  ldloc.3
+  IL_002a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_002f:  ceq
+  IL_0031:  br.s       IL_0034
+  IL_0033:  ldc.i4.0
+  IL_0034:  ldc.i4.0
+  IL_0035:  cgt.un
+  IL_0037:  call       ""void System.Console.Write(int)""
+  IL_003c:  ret
+}
+");
         }
     }
 }

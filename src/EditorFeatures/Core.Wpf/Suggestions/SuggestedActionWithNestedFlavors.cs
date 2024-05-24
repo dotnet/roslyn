@@ -32,27 +32,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// </summary>
     internal abstract partial class SuggestedActionWithNestedFlavors : SuggestedAction, ISuggestedActionWithFlavors
     {
-        private readonly SuggestedActionSet _additionalFlavors;
+        private readonly SuggestedActionSet _fixAllFlavors;
         private ImmutableArray<SuggestedActionSet> _nestedFlavors;
+
+        public TextDocument OriginalDocument { get; }
 
         public SuggestedActionWithNestedFlavors(
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
-            Solution originalSolution,
+            TextDocument originalDocument,
             ITextBuffer subjectBuffer,
             object provider,
             CodeAction codeAction,
-            SuggestedActionSet additionalFlavors)
+            SuggestedActionSet fixAllFlavors)
             : base(threadingContext,
                    sourceProvider,
                    workspace,
-                   originalSolution,
+                   originalDocument.Project.Solution,
                    subjectBuffer,
                    provider,
                    codeAction)
         {
-            _additionalFlavors = additionalFlavors;
+            _fixAllFlavors = fixAllFlavors;
+            OriginalDocument = originalDocument;
         }
 
         /// <summary>
@@ -65,16 +68,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             cancellationToken.ThrowIfCancellationRequested();
 
             // Light bulb will always invoke this property on the UI thread.
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             if (_nestedFlavors.IsDefault)
             {
                 var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
 
-                // We use ConfigureAwait(true) to stay on the UI thread.
+                // Note: We must ensure that CreateAllFlavorsAsync does not perform any expensive
+                // long running operations as it will be invoked when a lightbulb preview is brought
+                // up for any code action. Currently, the only async method call within CreateAllFlavorsAsync
+                // is made within 'RefineUsingCopilotSuggestedAction.TryCreateAsync', which needs to
+                // check if Copilot service is available using a relatively cheap, but async method call.
                 _nestedFlavors = await extensionManager.PerformFunctionAsync(
-                    Provider, () => CreateAllFlavorsAsync(cancellationToken),
-                    defaultValue: ImmutableArray<SuggestedActionSet>.Empty).ConfigureAwait(true);
+                    Provider, CreateAllFlavorsAsync,
+                    defaultValue: ImmutableArray<SuggestedActionSet>.Empty, cancellationToken).ConfigureAwait(false);
             }
 
             Contract.ThrowIfTrue(_nestedFlavors.IsDefault);
@@ -85,32 +92,43 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             var builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
-            // We use ConfigureAwait(true) to stay on the UI thread.
-            var previewChangesSuggestedActionSet = await GetPreviewChangesFlavorAsync(cancellationToken).ConfigureAwait(true);
-            if (previewChangesSuggestedActionSet != null)
-            {
-                builder.Add(previewChangesSuggestedActionSet);
-            }
+            var primarySuggestedActionSet = await GetPrimarySuggestedActionSetAsync(cancellationToken).ConfigureAwait(false);
+            builder.Add(primarySuggestedActionSet);
 
-            if (_additionalFlavors != null)
+            if (_fixAllFlavors != null)
             {
-                builder.Add(_additionalFlavors);
+                builder.Add(_fixAllFlavors);
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        private async Task<SuggestedActionSet> GetPreviewChangesFlavorAsync(CancellationToken cancellationToken)
+        private async Task<SuggestedActionSet> GetPrimarySuggestedActionSetAsync(CancellationToken cancellationToken)
         {
-            // We use ConfigureAwait(true) to stay on the UI thread.
-            var previewChangesAction = await PreviewChangesSuggestedAction.CreateAsync(
-                this, cancellationToken).ConfigureAwait(true);
-            if (previewChangesAction == null)
+            // In this method we add all the primary flavored suggested actions that need to show up
+            // as hyperlinks on the lightbulb preview pane for all code actions.
+            //  - We always add the 'Preview Changes' suggested action.
+            //  - We add the 'Refine using Copilot' suggested action, if certain conditions are met. See comments
+            //    inside 'RefineUsingCopilotSuggestedAction.TryCreateAsync' for details.
+            //  - We add the custom suggested actions corresponding to the additional flavored actions defined
+            //    by the underlying code action.
+            // Note that flavored suggested actions for Fix All operations are added in a separate
+            // suggested action set by our caller, we don't add them here.
+
+            using var _ = ArrayBuilder<SuggestedAction>.GetInstance(out var suggestedActions);
+            var previewChangesAction = PreviewChangesSuggestedAction.Create(this);
+            suggestedActions.Add(previewChangesAction);
+
+            var refineUsingCopilotAction = await RefineUsingCopilotSuggestedAction.TryCreateAsync(this, cancellationToken).ConfigureAwait(false);
+            if (refineUsingCopilotAction != null)
+                suggestedActions.Add(refineUsingCopilotAction);
+
+            foreach (var action in this.CodeAction.AdditionalPreviewFlavors)
             {
-                return null;
+                suggestedActions.Add(FlavoredSuggestedAction.Create(this, action));
             }
 
-            return new SuggestedActionSet(categoryName: null, actions: ImmutableArray.Create(previewChangesAction));
+            return new SuggestedActionSet(categoryName: null, actions: suggestedActions.ToImmutable());
         }
 
         // HasPreview is called synchronously on the UI thread. In order to avoid blocking the UI thread,
@@ -127,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             cancellationToken.ThrowIfCancellationRequested();
 
             // Light bulb will always invoke this function on the UI thread.
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
             if (previewPaneService == null)
@@ -141,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var preferredProjectId = preferredDocumentId?.ProjectId;
 
             var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
-            var previewContents = await extensionManager.PerformFunctionAsync(Provider, async () =>
+            var previewContents = await extensionManager.PerformFunctionAsync(Provider, async cancellationToken =>
             {
                 // We need to stay on UI thread after GetPreviewResultAsync() so that TakeNextPreviewAsync()
                 // below can execute on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
@@ -153,15 +171,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 else
                 {
                     // TakeNextPreviewAsync() needs to run on UI thread.
-                    AssertIsForeground();
+                    this.ThreadingContext.ThrowIfNotOnUIThread();
                     return await previewResult.GetPreviewsAsync(preferredDocumentId, preferredProjectId, cancellationToken).ConfigureAwait(true);
                 }
 
                 // GetPreviewPane() below needs to run on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
-            }, defaultValue: null).ConfigureAwait(true);
+            }, defaultValue: null, cancellationToken).ConfigureAwait(true);
 
             // GetPreviewPane() needs to run on the UI thread.
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             return previewPaneService.GetPreviewPane(GetDiagnostic(), previewContents);
         }

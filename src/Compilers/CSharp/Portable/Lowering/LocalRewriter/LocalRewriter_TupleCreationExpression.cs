@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol smallestConstructor = smallestCtor.AsMember(smallestType);
                 BoundObjectCreationExpression currentCreation = new BoundObjectCreationExpression(syntax, smallestConstructor, smallestCtorArguments);
 
+                Binder.CheckRequiredMembersInObjectInitializer(smallestConstructor, initializers: ImmutableArray<BoundExpression>.Empty, syntax, _diagnostics);
+
                 if (underlyingTupleTypeChain.Count > 0)
                 {
                     NamedTypeSymbol tuple8Type = underlyingTupleTypeChain.Peek();
@@ -77,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return _factory.BadExpression(type);
                     }
+
+                    Binder.CheckRequiredMembersInObjectInitializer(tuple8Ctor, initializers: ImmutableArray<BoundExpression>.Empty, syntax, _diagnostics);
 
                     // make successively larger creation expressions containing the previous one
                     do

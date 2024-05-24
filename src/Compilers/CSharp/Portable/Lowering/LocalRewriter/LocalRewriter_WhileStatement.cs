@@ -39,14 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement RewriteWhileStatement(
-            BoundLoopStatement loop,
+            BoundNode loop,
             BoundExpression rewrittenCondition,
             BoundStatement rewrittenBody,
             GeneratedLabelSymbol breakLabel,
             GeneratedLabelSymbol continueLabel,
             bool hasErrors)
         {
-            Debug.Assert(loop.Kind == BoundKind.WhileStatement || loop.Kind == BoundKind.ForEachStatement);
+            Debug.Assert(loop.Kind is BoundKind.WhileStatement or BoundKind.ForEachStatement or BoundKind.CollectionExpressionSpreadElement);
 
             // while (condition) 
             //   body;
@@ -77,6 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.ForEachStatement:
                         ifConditionGotoStart = Instrumenter.InstrumentForEachStatementConditionalGotoStart((BoundForEachStatement)loop, ifConditionGotoStart);
+                        break;
+
+                    case BoundKind.CollectionExpressionSpreadElement:
+                        // No instrumentation needed since the loop for the spread expression
+                        // was generated in lowering, and not explicit in the source.
                         break;
 
                     default:

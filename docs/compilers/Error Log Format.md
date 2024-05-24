@@ -16,17 +16,23 @@ This section provides a high level overview of the contents of the SARIF v2 erro
 "version": "2.1.0",
 ```
 
-2. `runs` information: The core entry in the error log file is the `runs` section with a single run entry within it for the build. The run entry has 3 main parts:
-  1. `results` section: This section contains an array of result entries, where each result corresponds to information about a reported compiler or analyzer `Diagnostic`. More details in [`Result` format for each compiler or analyzer `Diagnostic` instance](#result-format-for-each-compiler-or-analyzer-diagnostic-instance).
-  2. `tools` section: This section contains information about the compiler build and version. Additionally, it contains a `rules` array, where each rule entry corresponds to metadata or `DiagnosticDescriptor` information about each reported analyzer diagnostic. More details in [`Rule` format for each analyzer supported `DiagnosticDescriptor` instance](#rule-format-for-each-analyzer-supported-diagnosticdescriptor-instance)
-  3. `columnKind` section: This section contains information about the unit in which the tool measures columns. C# and Visual Basic compilers uses utf16 code units.
+2. `runs` information: The core entry in the error log file is the `runs` section with a single run entry within it for the build. The run entry has the following main parts:
+   1. `results` section: This section contains an array of result entries, where each result corresponds to information about a reported compiler or analyzer `Diagnostic`. More details in [`Result` format for each compiler or analyzer `Diagnostic` instance](#result-format-for-each-compiler-or-analyzer-diagnostic-instance).
+   2. `properties` section: This section contains custom key-value properties associated with the run. Following properties are currently emitted:
+      1. `analyzerExecutionTime`: Execution time in seconds for execution of all analyzers, as reported with the `/reportAnalyzer` compiler switch.
+   3. `tools` section: This section contains information about the compiler build and version. Additionally, it contains a `rules` array, where each rule entry corresponds to metadata or `DiagnosticDescriptor` information about each reported analyzer diagnostic. More details in [`Rule` format for each analyzer supported `DiagnosticDescriptor` instance](#rule-format-for-each-analyzer-supported-diagnosticdescriptor-instance)
+   4. `invocations` section: This section contains information about the end user specified configurations for the rules for compiler invocation/run. We emit this section only if at least one rule had one or more severity configuration overrides for a part or whole of the compilation via options. More details in [`Rule Configuration Override` format for each rule severity override](#rule-configuration-override-format-for-each-rule-severity-override).
+   5. `columnKind` section: This section contains information about the unit in which the tool measures columns. C# and Visual Basic compilers uses utf16 code units.
 
-Example `runs` section, with stripped off `results` and `rules` sections:
+Example `runs` section, with stripped off `results`, `rules` and `ruleConfigurationOverrides` sections:
 ```json
 "runs": [
 {
   "results": [
   ],
+  "properties": {
+    "analyzerExecutionTime": "x.xxx"
+  },
   "tool": {
     "driver": {
       "name": "Microsoft (R) Visual C# Compiler",
@@ -38,6 +44,13 @@ Example `runs` section, with stripped off `results` and `rules` sections:
       ]
     }
   },
+  "invocations": [
+    {
+      "executionSuccessful": true,
+      "ruleConfigurationOverrides": [
+      ]
+    }
+  ],
   "columnKind": "utf16CodeUnits"
 }
 ]
@@ -51,9 +64,9 @@ The results section contains an array of result entries, where each result corre
 3. `level`: Severity level for the diagnostic, such as `error`, `warning`, `note`, etc.
 4. `message`: User facing message for the diagnostic.
 5. `suppressions`: For each diagnostic instance that is suppressed with a pragma directive, SuppressMessageAttribute or via a DiagnosticSuppressor, the result entry contains `suppressions` section with the following data:
-  1. `kind` information: C# and Visual Basic compilers support a single `inSource` suppression kind.
-  2. `justification` information: Justification pertaining to the suppression. Currently, this field is populated only for `SuppressMessageAttribute` based suppression, with a non-null justification argument.
-  3. `suppressionType` property with one of these three values: `Pramga Directive`, `SuppressMessageAttribute`, or `DiagnosticSuppressor`. This data helps analyze the preferred in-source suppression mechanisms in a code base.
+   1. `kind` information: C# and Visual Basic compilers support a single `inSource` suppression kind.
+   2. `justification` information: Justification pertaining to the suppression. Currently, this field is populated only for `SuppressMessageAttribute` based suppression, with a non-null justification argument.
+   3. `suppressionType` property with one of these three values: `Pramga Directive`, `SuppressMessageAttribute`, or `DiagnosticSuppressor`. This data helps analyze the preferred in-source suppression mechanisms in a code base.
 6. `locations`: One or more locations associated with the diagnostic.
 7. `properties`: One or more custom key-value string pairs associated with the diagnostic.
 
@@ -105,11 +118,13 @@ The `rules` section contains a rule entry that corresponds to metadata or `Diagn
 4. `defaultConfiguration`: Default severity level for the diagnostics reported for the descriptor, such as `error`, `warning`, `note`, etc.
 5. `helpUri`: Help uri for help information associated with the descriptor.
 6. `properties`: One or more custom properties associated with the descriptor. It includes the following:
-  1. `category`: `Category` associated with the descriptor, such as, `Design`, `Performance`, `Security`, etc.
-  2. `isEverSuppressed` and `suppressionKinds`: If a rule had either a source suppression or was disabled for part or whole of the compilation via options, the rule metadata contains a special flag `isEverSuppressed = true` and an array `suppressionKinds` with either or both of the below suppression kinds:
-    1. `inSource` suppression kind for one or more reported diagnostic(s) that were suppressed through pragma directive, SuppressMessageAttribute or a DiagnosticSuppressor.
-    2. `external` suppression kind for diagnostic ID that is disabled either for the entire compilation (via global options such as /nowarn, ruleset, globalconfig, etc.) or for certain files or folders in the compilation (via editorconfig options).
-  3. `tags`: An array of one of more `CustomTags` associated with the descriptor.
+   1. `category`: `Category` associated with the descriptor, such as, `Design`, `Performance`, `Security`, etc.
+   2. `isEverSuppressed` and `suppressionKinds`: If a rule had either a source suppression or was disabled for part or whole of the compilation via options, the rule metadata contains a special flag `isEverSuppressed = true` and an array `suppressionKinds` with either or both of the below suppression kinds:
+      1. `inSource` suppression kind for one or more reported diagnostic(s) that were suppressed through pragma directive, SuppressMessageAttribute or a DiagnosticSuppressor.
+      2. `external` suppression kind for diagnostic ID that is disabled either for the entire compilation (via global options such as /nowarn, ruleset, globalconfig, etc.) or for certain files or folders in the compilation (via editorconfig options).
+   3. `executionTimeInSeconds`: Execution time in seconds associated with the analyzer, as reported with the `/reportAnalyzer` compiler switch. Values less than `0.001` seconds are reported as `<0.001`.
+   4. `executionTimeInPercentage`: Execution time in percentage associated with the analyzer, as reported with the `/reportAnalyzer` compiler switch. Values less than `1` are reported as `<1`.
+   5. `tags`: An array of one of more `CustomTags` associated with the descriptor.
   
 Example `rule` entry:
 ```json
@@ -131,11 +146,56 @@ Example `rule` entry:
     "suppressionKinds": [
       "external"
     ],
+    "executionTimeInSeconds": "x.xxx",
+    "executionTimeInPercentage": "xx",
     "tags": [
       "PortedFromFxCop",
       "Telemetry",
       "EnabledRuleInAggressiveMode"
     ]
+  }
+}
+```
+
+### `Rule Configuration Override` format for each rule severity override
+
+The `ruleConfigurationOverrides` section contains an array of entries, with an entry for every rule severity configuration override for the whole or part of the compilation via options, i.e. editorconfig, globalconfig, command line options, ruleset, etc. Each rule configuration override entry contains the following information:
+1. `descriptor`: Property containing information to map back to the relevant `descriptor` or the `rule` in the `rules` section. Currently, it contains the below child properties:
+   1. `id`: Rule id string for the rule or diagnostic.
+   2. `index`: A zero-based integral index value into the `rules` array for the rule mapping.
+2. `configuration`: Configuration property for the effective overridden severity for the rule. Currently, it may include one of the below child properties:
+   1. `enabled`: A boolean property indicating if the rule has been explicitly disabled or enabled with the configuration override entry.
+   1. `level`: Property for the effective severity of the rule, such as `error`, `warning` or `note`. Note that this property is not emitted for rules disabled with configuration override, we instead emit `enabled: false` for them.
+
+Note that we can have multiple `ruleConfigurationOverride` entries for the same descriptor if the rule is configured to fire at different severities across different parts of the compilation. For example, editorconfig based severity configurations can specify different effective severity for the same rule ID for different files or folders in a project.
+
+Example `ruleConfigurationOverride` entry:
+```json
+{
+  "descriptor": {
+    "id": "CA1000",
+    "index": 0
+  },
+  "configuration": {
+    "level": "error"
+  }
+},
+{
+  "descriptor": {
+    "id": "CA1000",
+    "index": 0
+  },
+  "configuration": {
+    "enabled": false
+  }
+},
+{
+  "descriptor": {
+    "id": "CA1001",
+    "index": 1
+  },
+  "configuration": {
+    "level": "warning"
   }
 }
 ```

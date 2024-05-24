@@ -1,7 +1,13 @@
 #nullable enable
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreAddPackageCodeAction
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.AspNetCoreInstallPackageData() -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.AspNetCoreInstallPackageData(string? packageSource, string! packageName, string? packageVersionOpt, string! packageNamespaceName) -> void
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.AspNetCoreBraceMatchingResult() -> void
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.AspNetCoreBraceMatchingResult(Microsoft.CodeAnalysis.Text.TextSpan LeftSpan, Microsoft.CodeAnalysis.Text.TextSpan RightSpan) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.Deconstruct(out Microsoft.CodeAnalysis.Text.TextSpan LeftSpan, out Microsoft.CodeAnalysis.Text.TextSpan RightSpan) -> void
+Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.Equals(Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult other) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.LeftSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.LeftSpan.init -> void
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.RightSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
@@ -77,11 +83,21 @@ Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.IAspNetCoreEm
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.IAspNetCoreEmbeddedLanguageClassifier.RegisterClassifications(Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreEmbeddedLanguageClassificationContext context) -> void
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.IAspNetCoreEmbeddedLanguageDocumentHighlighter
 Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.IAspNetCoreEmbeddedLanguageDocumentHighlighter.GetDocumentHighlights(Microsoft.CodeAnalysis.SemanticModel! semanticModel, Microsoft.CodeAnalysis.SyntaxToken token, int position, System.Threading.CancellationToken cancellationToken) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreDocumentHighlights>
+override Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.Equals(object? obj) -> bool
 override Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.ToString() -> string!
+readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.PackageName -> string!
+readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.PackageNamespaceName -> string!
+readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.PackageSource -> string?
+readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData.PackageVersionOpt -> string?
 readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualChar.VirtualChar -> Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualChar
+static Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreAddPackageCodeAction.TryCreateCodeActionAsync(Microsoft.CodeAnalysis.Document! document, int position, Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.AddPackage.AspNetCoreInstallPackageData installPackageData, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction?>!
+static Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.operator !=(Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult left, Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.operator ==(Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult left, Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreCSharpVirtualCharService.Instance.get -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreCSharpVirtualCharService!
 static Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.FromBounds(Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence chars1, Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence chars2) -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence
 static readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreCSharpRouteSyntaxDetector.Instance -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreCSharpRouteSyntaxDetector!
 static readonly Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence.Empty -> Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreVirtualCharSequence
+~override Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages.AspNetCoreBraceMatchingResult.ToString() -> string

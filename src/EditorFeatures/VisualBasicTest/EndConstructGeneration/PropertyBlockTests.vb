@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class PropertyBlockTests
         <WpfFact>
-        Public Sub DontApplyForAutoProperty()
+        Public Sub DoNotApplyForAutoProperty()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     Property goo As Integer
@@ -16,7 +16,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyForAutoPropertyWithEmptyParens()
+        Public Sub DoNotApplyForAutoPropertyWithEmptyParens()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     Property goo() As Integer
@@ -24,9 +24,8 @@ End Class",
                 caret:={1, -1})
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530329")>
-        <WpfFact>
-        Public Sub DontApplyForMustInheritProperty()
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530329")>
+        Public Sub DoNotApplyForMustInheritProperty()
             VerifyStatementEndConstructNotApplied(
                 text:="MustInherit Class C
     MustOverride Property goo(x as integer) As Integer
@@ -55,7 +54,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyForReadOnlyProperty()
+        Public Sub DoNotApplyForReadOnlyProperty()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property goo As Integer
@@ -64,7 +63,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyForReadOnlyPropertyAfterExistingGet()
+        Public Sub DoNotApplyForReadOnlyPropertyAfterExistingGet()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property goo As Integer
@@ -77,7 +76,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyForReadOnlyWithSecondGetPropertyAfterExistingGet()
+        Public Sub DoNotApplyForReadOnlyWithSecondGetPropertyAfterExistingGet()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property goo As Integer
@@ -92,7 +91,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyForWriteOnlyProperty()
+        Public Sub DoNotApplyForWriteOnlyProperty()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     WriteOnly Property goo As Integer
@@ -143,7 +142,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyForReadOnlyPropertyIfEndPropertyMissingWhenInvokedAfterProperty()
+        Public Sub DoNotApplyForReadOnlyPropertyIfEndPropertyMissingWhenInvokedAfterProperty()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property goo As Integer
@@ -180,7 +179,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyForWriteOnlyPropertyWithTypeCharacter()
+        Public Sub DoNotApplyForWriteOnlyPropertyWithTypeCharacter()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     WriteOnly Property goo$
@@ -209,7 +208,7 @@ End Class",
         End Sub
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
-        Public Sub DontApplyForDuplicateGet()
+        Public Sub DoNotApplyForDuplicateGet()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property goo As Integer
@@ -223,7 +222,7 @@ End Class",
         End Sub
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
-        Public Sub DontApplyForDuplicateSet()
+        Public Sub DoNotApplyForDuplicateSet()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     WriteOnly Property goo As Integer
@@ -237,7 +236,7 @@ End Class",
         End Sub
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
-        Public Sub DontApplyForSetInReadOnly()
+        Public Sub DoNotApplyForSetInReadOnly()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     ReadOnly Property goo As Integer
@@ -247,9 +246,8 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
-        <WpfFact>
-        Public Sub DontApplyForGetInReadOnly()
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
+        Public Sub DoNotApplyForGetInReadOnly()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
     WriteOnly Property goo As Integer
@@ -268,9 +266,8 @@ End Class",
                 caret:={1, -1})
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544197")>
-        <WpfFact>
-        Public Sub DontApplyInsideAnInterface()
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544197")>
+        Public Sub DoNotApplyInsideAnInterface()
             VerifyStatementEndConstructNotApplied(
                 text:="Interface IGoo
     Property Goo(x As Integer) As String
@@ -279,7 +276,7 @@ End Interface",
         End Sub
 
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2096")>
-        Public Sub TestDontGenerateSetForReadonlyProperty()
+        Public Sub TestDoNotGenerateSetForReadonlyProperty()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
     Readonly Property goo(arg as Integer) As Integer
@@ -296,7 +293,7 @@ End Class",
         End Sub
 
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2096")>
-        Public Sub TestDontGenerateGetForWriteonlyProperty()
+        Public Sub TestDoNotGenerateGetForWriteonlyProperty()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
     Writeonly Property goo(arg as Integer) As Integer

@@ -647,7 +647,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @"""Hi!""").WithArguments(@"""Hi!""").WithLocation(4, 30)
                 };
 
-            comp.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, cancellationToken: default).Verify(expected);
+            comp.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, symbolFilter: null, cancellationToken: default).Verify(expected);
             comp.VerifyDiagnostics(expected);
         }
 
@@ -675,7 +675,7 @@ namespace Test
                 Diagnostic(ErrorCode.ERR_EOFExpected, @"""Hi!""").WithLocation(4, 30)
                 };
 
-            comp.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, cancellationToken: default).Verify(expected);
+            comp.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, symbolFilter: null, cancellationToken: default).Verify(expected);
             comp.VerifyDiagnostics(expected);
         }
 
@@ -1113,13 +1113,24 @@ System.Console.Write(d);
 await System.Threading.Tasks.Task.Yield();
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-
-            comp.VerifyDiagnostics(
-                // (3,9): error CS8177: Async methods cannot have by-reference locals
+            var expectedDiagnostics = new[]
+            {
+                // (3,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // ref int d = ref c;
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "d").WithLocation(3, 9)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "d").WithArguments("ref and unsafe in async and iterator methods").WithLocation(3, 9)
+            };
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(text, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -6445,7 +6456,7 @@ class B : A
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[globalStatement.Parent];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(globalStatement.Statement).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(globalStatement.Statement).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(globalStatement.Statement));
             }
@@ -6923,7 +6934,7 @@ class B : A
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[unit];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(unit));
             }
@@ -6991,7 +7002,7 @@ class B : A
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[unit];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(unit));
             }
@@ -7077,7 +7088,7 @@ class Test
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[decl];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(node).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(node).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(node));
             }
@@ -9700,6 +9711,118 @@ public class C
             model.TryGetSpeculativeSemanticModel(root.DescendantNodes().Single(n => n is ExpressionStatementSyntax { Parent: BlockSyntax }).Span.End, nodeToSpeculate, out var speculativeModelOutsideTopLevel);
             var conversionOutsideTopLevel = speculativeModelOutsideTopLevel.GetConversion(nodeToSpeculate.DescendantTokens().Single(n => n.ValueText == "x").Parent);
             Assert.Equal(ConversionKind.NoConversion, conversionOutsideTopLevel.Kind);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67050")]
+        public void EmptyLocalDeclaration()
+        {
+            var src = """
+struct S { }
+partial ext X
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (1,13): error CS1031: Type expected
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 13),
+                // (1,13): error CS1525: Invalid expression term 'partial'
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 13),
+                // (1,13): error CS1003: Syntax error, ',' expected
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
+                // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "").WithLocation(2, 1),
+                // (2,14): error CS1002: ; expected
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70909")]
+        public void ExplicitBase_01()
+        {
+            var src1 = """
+PrintLine();
+""";
+
+            var src2 = """
+﻿public class ProgramBase
+{
+    public static void PrintLine()
+    {
+        System.Console.WriteLine("Done");
+    }
+}
+
+partial class Program : ProgramBase
+{
+}
+""";
+            var comp = CreateCompilation(new[] { src1, src2 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src2, src1 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70909")]
+        public void ExplicitBase_02()
+        {
+            var src1 = """
+ProgramBase.PrintLine();
+""";
+
+            var src2 = """
+﻿public class ProgramBase
+{
+    public static void PrintLine()
+    {
+        System.Console.WriteLine("Done");
+    }
+}
+
+partial class Program : object
+{
+}
+""";
+            var comp = CreateCompilation(new[] { src1, src2 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src2, src1 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70909")]
+        public void ExplicitBase_03()
+        {
+            var src1 = """
+ProgramBase.PrintLine();
+""";
+
+            var src2 = """
+﻿public class ProgramBase
+{
+    public static void PrintLine()
+    {
+        System.Console.WriteLine("Done");
+    }
+}
+
+partial class Program
+{
+}
+""";
+            var comp = CreateCompilation(new[] { src1, src2 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src2, src1 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
         }
     }
 }

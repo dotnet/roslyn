@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                          this._module.Compilation.IsReadOnlySpanType(typeTo),
                          "only special kinds of conversions involving ReadOnlySpan may be handled in emit");
 
-            if (!TryEmitReadonlySpanAsBlobWrapper(typeTo, operand, used, inPlaceTarget: null, avoidInPlace: out _))
+            if (!TryEmitOptimizedReadonlySpanCreation(typeTo, operand, used, inPlaceTarget: null, avoidInPlace: out _))
             {
                 // there are several reasons that could prevent us from emitting a wrapper
                 // in such case we just emit the operand and then invoke the conversion method 
@@ -156,7 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             Debug.Assert(
                                 (toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.IntPtr || toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.UIntPtr) && !toType.IsNativeIntegerWrapperType ||
                                 toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.Pointer ||
-                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.FunctionPointer);
+                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.FunctionPointer ||
+                                (fromPredefTypeKind == Cci.PrimitiveTypeCode.IntPtr && conversion.Operand is BoundBinaryOperator { OperatorKind: BinaryOperatorKind.Division })); // pointer subtraction: see LocalRewriter.RewritePointerSubtraction()
                             break;
                     }
 #endif

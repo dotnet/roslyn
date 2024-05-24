@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -36,6 +36,7 @@ internal class ExecuteWorkspaceCommandHandler : ILspServiceRequestHandler<Execut
 
         var result = await requestExecutionQueue.ExecuteAsync<ExecuteCommandParams, object?>(
             request,
+            LanguageServerConstants.DefaultLanguageName,
             requestMethod,
             lspServices,
             cancellationToken).ConfigureAwait(false);

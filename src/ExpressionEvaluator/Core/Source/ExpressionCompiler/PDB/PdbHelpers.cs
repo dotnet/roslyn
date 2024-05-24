@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             if (type.TypeKind == TypeKind.Enum)
             {
-                type = ((INamedTypeSymbolInternal)type).EnumUnderlyingType;
+                type = ((INamedTypeSymbolInternal)type).EnumUnderlyingType!;
             }
 
             return (type.SpecialType, symValue) switch

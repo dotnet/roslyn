@@ -1081,6 +1081,23 @@ End Operator")
         End Sub
 
         <Fact>
+        Public Sub TestOperatorDeclarationSymbolOverload()
+            Dim tree = VisualBasicSyntaxTree.ParseText(
+"
+Public Class C
+    Shared Operator +(c1 As C, c2 As C) As C
+    End Operator
+End Class")
+            Dim compilation = VisualBasicCompilation.Create("AssemblyName", syntaxTrees:={tree})
+
+            Dim additionOperatorSymbol = DirectCast(compilation.GetTypeByMetadataName("C").GetMembers(WellKnownMemberNames.AdditionOperatorName).Single(), IMethodSymbol)
+            VerifySyntax(Of OperatorBlockSyntax)(
+                Generator.OperatorDeclaration(additionOperatorSymbol),
+"Public Shared Operator +(c1 As Global.C, c2 As Global.C) As Global.C
+End Operator")
+        End Sub
+
+        <Fact>
         Public Sub MethodDeclarationCanRoundTrip()
             Dim tree = VisualBasicSyntaxTree.ParseText(
 "
@@ -2429,6 +2446,33 @@ End Class"))
             VerifySyntax(Of MethodBlockSyntax)(Generator.Declaration(method),
 "Protected Overrides Sub Finalize()
 End Sub")
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69376")>
+        Public Sub TestConstantDecimalFieldDeclarationFromMetadata()
+            Dim compilation = _emptyCompilation.
+                WithOptions(New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).
+                AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(
+"Class C
+    Public Const F As Decimal = 8675309000000 
+End Class"))
+            Dim reference = compilation.EmitToPortableExecutableReference()
+
+            compilation = _emptyCompilation.AddReferences(reference)
+
+            Dim type = compilation.GetTypeByMetadataName("C")
+            Dim field = type.GetMembers("F").Single()
+
+            VerifySyntax(Of FieldDeclarationSyntax)(Generator.Declaration(field),
+                "Public Const F As System.Decimal = 8675309000000D")
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69380")>
+        Public Sub TestConstantFieldDeclarationSpecialTypes()
+            Dim field = _emptyCompilation.GetSpecialType(SpecialType.System_UInt32).GetMembers(NameOf(UInt32.MaxValue)).Single()
+
+            VerifySyntax(Of FieldDeclarationSyntax)(Generator.Declaration(field),
+                "Public Const MaxValue As System.UInt32 = 4294967295UI")
         End Sub
 
 #End Region

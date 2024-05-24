@@ -4,14 +4,13 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.SymbolSearch
+namespace Microsoft.CodeAnalysis.SymbolSearch;
+
+internal partial class SymbolSearchUpdateEngine
 {
-    internal partial class SymbolSearchUpdateEngine
+    private class PatchService : IPatchService
     {
-        private class PatchService : IPatchService
-        {
-            public byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes)
-                => NativePatching.ApplyPatch(databaseBytes, patchBytes);
-        }
+        public byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes)
+            => NativePatching.ApplyPatch(databaseBytes, patchBytes);
     }
 }

@@ -11,7 +11,7 @@ strategies that can be applied in a high performance way by the hosting layer.
 - Allow for a finer grained approach to defining a generator
 - Scale source generators to support 'Roslyn/CoreCLR' scale projects in Visual Studio
 - Exploit caching between fine grained steps to reduce duplicate work
-- Support generating more items that just source texts
+- Support generating more items than just source texts
 - Exist alongside `ISourceGenerator` based implementations
 
 ## Simple Example
@@ -390,18 +390,18 @@ public static partial class IncrementalValueSourceExtensions
 ```
 
 ```ascii
-                                          Select<TSource, TResult>
+                                               Where<TSource>
                                    .......................................
                                    .                   ┌───────────┐     .
                                    .   predicate(Item1)│           │     .
                                    . ┌────────────────►│   Item1   ├───┐ .
                                    . │                 │           │   │ .
-IncrementalValuesProvider<TSource> . │                 └───────────┘   │ . IncrementalValuesProvider<TResult>
-          ┌───────────┐            . │                                 │ .        ┌────────────┐
-          │           │            . │ predicate(Item2)                │ .        │            │
-          │  TSource  ├──────────────┼─────────────────X               ├─────────►│   TResult  │
-          │           │            . │                                 │ .        │            │
-          └───────────┘            . │                                 │ .        └────────────┘
+IncrementalValuesProvider<TSource> . │                 └───────────┘   │ . IncrementalValuesProvider<TSource>
+          ┌───────────┐            . │                                 │ .        ┌───────────┐
+          │           │            . │ predicate(Item2)                │ .        │           │
+          │  TSource  ├──────────────┼─────────────────X               ├─────────►│  TSource  │
+          │           │            . │                                 │ .        │           │
+          └───────────┘            . │                                 │ .        └───────────┘
              3 Items               . │                 ┌───────────┐   │ .           2 Items
                                    . │ predicate(Item3)│           │   │ .
                                    . └────────────────►│   Item3   ├───┘ .
@@ -658,7 +658,7 @@ inputs and combine them into a single source of data. For example:
 IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
 
 // combine each additional text with the parse options
-IncrementalValuesProvider<(AdditionalText, ParseOptions)> combined = initContext.AdditionalTextsProvider.Combine(initContext.ParseOptionsProvider);
+IncrementalValuesProvider<(AdditionalText, ParseOptions)> combined = additionalTexts.Combine(initContext.ParseOptionsProvider);
 
 // perform a transform on each text, with access to the options
 var transformed = combined.Select(static (pair, _) => 
@@ -686,7 +686,7 @@ dedicated input node that instead exposes a sub-set of the syntax they are
 interested in. The syntax provider is specialized in this way to achieve a
 desired level of performance.
 
-**CreateSyntaxProvider**:
+#### CreateSyntaxProvider
 
 Currently the provider exposes a single method `CreateSyntaxProvider` that
 allows the author to construct an input node.
@@ -731,7 +731,7 @@ As an author I can make an input node that extracts the return type information
 
 ```csharp
 // create a syntax provider that extracts the return type kind of method symbols
-    var returnKinds = initContext.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is MethodDeclarationSyntax,
+var returnKinds = initContext.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is MethodDeclarationSyntax,
                                                                   static (n, _) => ((IMethodSymbol)n.SemanticModel.GetDeclaredSymbol(n.Node)).ReturnType.Kind);
 ```
 
@@ -768,7 +768,7 @@ public class Class4
 The `predicate` will be re-run for `file1.cs` as it has changed, and will pick
 out the method symbol `Method1()` again.  Next, because the `transform` is
 re-run for _all_ the methods, the return type kind for `Method2()` is correctly
-changed to `Error` as `Class1` no longer exists.
+changed to `ErrorType` as `Class1` no longer exists.
 
 Note that we didn't need to run the `predicate` over for nodes in `file2.cs`
 even though they referenced something in `file1.cs`. Because the first check is
@@ -780,6 +780,48 @@ due to cross file dependencies. Because the initial syntactic check
 allows the driver to substantially filter the number of nodes on which the
 semantic checks have to be re-run, significantly improved performance
 characteristics are still observed when editing a syntax tree.
+
+#### ForAttributeWithMetadataName (FAWMN)
+
+One extremely common action we observe generators being written for is taking
+actions driven on attributes applied to specific syntax constructs.
+
+```csharp
+public readonly struct SyntaxValueProvider
+{
+    public IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
+        string fullyQualifiedMetadataName,
+        Func<SyntaxNode, CancellationToken, bool> predicate,
+        Func<GeneratorAttributeSyntaxContext, CancellationToken, T> transform);
+}
+```
+
+This area is particularly nice for optimization, as we can efficiently eliminate
+a significant number of syntax nodes and edits before even needing to call the
+provided `predicate` from the user, avoiding realizing a significant number of
+`SyntaxNode` instances. Roslyn can even further optimize this by tracking whether or
+not a given attribute could possibly be the attribute the generator cares about by
+maintaining a small index and comparing type names as an initial heuristic.
+This index is cheap to maintain and, importantly, can only have false positives, not
+false negatives. This allows us to eliminate 99% of syntax in a Compilation from ever
+needing to be checked for semantic information (to eliminate false positives from the
+heuristic cache) or by the user `predicate` function (saving a significant number of
+allocations of `SyntaxNode` instances).
+
+Given this, when at all possible, it is recommended to use attributes to drive source
+generators, rather than other syntax constructs. Real world testing has indicated this
+approach is usually 99x more efficient than `CreateSyntaxProvider`, even when the
+generator is otherwise not well-behaved; some pathological scenarios are even more efficient
+than that.
+
+Attributes are provided by the user as the fully-qualified metadata name, without the
+assembly name portion. For example, given the C# type `My.Namespace.MyAttribute<T>`,
+the fully-qualified metadata-name would be ``My.Namespace.MyAttribute`1``. Given that
+attributes are usually restricted to specific constructs by an `AttributeUsage`
+attribute, it is common that the `predicate` a user provides will simply return `true`.
+For the transformation step, everything stated in the [previous section](#createsyntaxprovider)
+is still relevant; that step will still be rerun with every change to ensure that changed
+semantics are observed.
 
 ## Outputting values
 
@@ -901,7 +943,7 @@ public void Initialize(IncrementalGeneratorInitializationContext context)
 {
     var txtFiles = context.AdditionalTextsProvider.Where(static f => f.Path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase));
     
-    // ensure we forward the cancellation token to GeText
+    // ensure we forward the cancellation token to GetText
     var fileContents = txtFiles.Select(static (file, cancellationToken) => file.GetText(cancellationToken));   
 }
 ```

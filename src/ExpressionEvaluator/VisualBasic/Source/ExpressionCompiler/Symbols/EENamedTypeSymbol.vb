@@ -348,6 +348,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
             Throw ExceptionUtilities.Unreachable
         End Sub
@@ -364,6 +370,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Debug.Assert(typeParameter.Ordinal = i)
             Next
         End Sub
+
+        Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+            guidString = Nothing
+            Return False
+        End Function
 
         Friend Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()

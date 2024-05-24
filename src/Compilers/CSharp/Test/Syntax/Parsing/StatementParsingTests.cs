@@ -2515,38 +2515,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(36413, "https://github.com/dotnet/roslyn/issues/36413")]
         public void TestUsingVarWithInvalidDeclaration()
         {
-            var text = "using public readonly var a = b;";
-            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
+            UsingStatement("using public readonly var a = b;", TestOptions.Regular8,
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
+                // using public readonly var a = b;
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "public").WithLocation(1, 7),
+                // (1,14): error CS9229: Modifiers cannot be placed on using declarations
+                // using public readonly var a = b;
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(1, 14));
 
-            Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
-            Assert.Equal(text, statement.ToString());
-            Assert.Equal(2, statement.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_BadMemberFlag, statement.Errors()[0].Code);
-            Assert.Equal("public", statement.Errors()[0].Arguments[0]);
-            Assert.Equal((int)ErrorCode.ERR_BadMemberFlag, statement.Errors()[1].Code);
-            Assert.Equal("readonly", statement.Errors()[1].Arguments[0]);
-
-            var us = (LocalDeclarationStatementSyntax)statement;
-            Assert.NotEqual(default, us.UsingKeyword);
-            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
-
-            Assert.NotNull(us.Declaration);
-            Assert.NotNull(us.Declaration.Type);
-            Assert.Equal("var", us.Declaration.Type.ToString());
-            Assert.Equal(SyntaxKind.IdentifierName, us.Declaration.Type.Kind());
-            Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)us.Declaration.Type).Identifier.Kind());
-            Assert.Equal(2, us.Modifiers.Count);
-            Assert.Equal("public", us.Modifiers[0].ToString());
-            Assert.Equal("readonly", us.Modifiers[1].ToString());
-            Assert.Equal(1, us.Declaration.Variables.Count);
-            Assert.NotEqual(default, us.Declaration.Variables[0].Identifier);
-            Assert.Equal("a", us.Declaration.Variables[0].Identifier.ToString());
-            Assert.Null(us.Declaration.Variables[0].ArgumentList);
-            Assert.NotNull(us.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(default, us.Declaration.Variables[0].Initializer.EqualsToken);
-            Assert.NotNull(us.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal("b", us.Declaration.Variables[0].Initializer.Value.ToString());
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.ReadOnlyKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -3286,9 +3289,9 @@ class C
         public void TestUsingVarReadonlyMultipleDeclarations()
         {
             UsingStatement("using readonly var x, y = ref z;", TestOptions.Regular8,
-                // (1,7): error CS0106: The modifier 'readonly' is not valid for this item
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
                 // using readonly var x, y = ref z;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 7));
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(1, 7));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -4178,37 +4181,64 @@ System.Console.WriteLine(true)";
         [Fact]
         public void ParsePointerToArray()
         {
-            UsingStatement("int []* p;",
-                // (1,7): error CS1001: Identifier expected
-                // int []* p;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "*").WithLocation(1, 7),
-                // (1,7): error CS1003: Syntax error, ',' expected
-                // int []* p;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "*").WithArguments(",").WithLocation(1, 7)
-                );
+            UsingStatement("int []* p;");
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.ArrayType);
+                    N(SyntaxKind.PointerType);
                     {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.ArrayType);
                         {
-                            N(SyntaxKind.IntKeyword);
-                        }
-                        N(SyntaxKind.ArrayRankSpecifier);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.OmittedArraySizeExpression);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.CloseBracketToken);
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
                         }
+                        N(SyntaxKind.AsteriskToken);
                     }
-                    M(SyntaxKind.VariableDeclarator);
+                    N(SyntaxKind.VariableDeclarator);
                     {
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "p");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParsePointerToNullableType()
+        {
+            UsingStatement("int?* p;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.PointerType);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.AsteriskToken);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "p");
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
@@ -4733,6 +4763,727 @@ System.Console.WriteLine(true)";
                     N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67757")]
+        public void ParseSwitchStatementWithUnclosedRecursivePattern1()
+        {
+            UsingStatement("""
+                switch (obj)
+                {
+                    case Type { Prop: Type { }:
+                    case Type { Prop: Type { }:
+                       break;
+                }
+                """,
+                // (3,31): error CS1513: } expected
+                //     case Type { Prop: Type { }:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(3, 31),
+                // (4,31): error CS1513: } expected
+                //     case Type { Prop: Type { }:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(4, 31)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "obj");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.PropertyPatternClause);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.Subpattern);
+                                {
+                                    N(SyntaxKind.NameColon);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Prop");
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.RecursivePattern);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Type");
+                                        }
+                                        N(SyntaxKind.PropertyPatternClause);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.PropertyPatternClause);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.Subpattern);
+                                {
+                                    N(SyntaxKind.NameColon);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Prop");
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.RecursivePattern);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Type");
+                                        }
+                                        N(SyntaxKind.PropertyPatternClause);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67757")]
+        public void ParseSwitchStatementWithUnclosedRecursivePattern2()
+        {
+            UsingStatement("""
+                switch (obj)
+                {
+                    case Type { Prop: Type {:
+                    case Type { Prop: Type {:
+                       break;
+                }
+                """,
+                // (3,29): error CS1513: } expected
+                //     case Type { Prop: Type {:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(3, 29),
+                // (3,29): error CS1513: } expected
+                //     case Type { Prop: Type {:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(3, 29),
+                // (4,29): error CS1513: } expected
+                //     case Type { Prop: Type {:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(4, 29),
+                // (4,29): error CS1513: } expected
+                //     case Type { Prop: Type {:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(4, 29)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "obj");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.PropertyPatternClause);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.Subpattern);
+                                {
+                                    N(SyntaxKind.NameColon);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Prop");
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.RecursivePattern);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Type");
+                                        }
+                                        N(SyntaxKind.PropertyPatternClause);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            M(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.PropertyPatternClause);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.Subpattern);
+                                {
+                                    N(SyntaxKind.NameColon);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Prop");
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.RecursivePattern);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Type");
+                                        }
+                                        N(SyntaxKind.PropertyPatternClause);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            M(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67757")]
+        public void ParseSwitchStatementWithUnclosedRecursivePattern3()
+        {
+            UsingStatement("""
+                switch (obj)
+                {
+                    case { Prop: { Prop: {:
+                    case { Prop: { Prop: {:
+                       break;
+                }
+                """,
+                // (3,27): error CS1513: } expected
+                //     case { Prop: { Prop: {:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(3, 27),
+                // (3,27): error CS1513: } expected
+                //     case { Prop: { Prop: {:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(3, 27),
+                // (3,27): error CS1513: } expected
+                //     case { Prop: { Prop: {:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(3, 27),
+                // (4,27): error CS1513: } expected
+                //     case { Prop: { Prop: {:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(4, 27),
+                // (4,27): error CS1513: } expected
+                //     case { Prop: { Prop: {:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(4, 27),
+                // (4,27): error CS1513: } expected
+                //     case { Prop: { Prop: {:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(4, 27)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "obj");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.PropertyPatternClause);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.Subpattern);
+                                {
+                                    N(SyntaxKind.NameColon);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Prop");
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.RecursivePattern);
+                                    {
+                                        N(SyntaxKind.PropertyPatternClause);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.Subpattern);
+                                            {
+                                                N(SyntaxKind.NameColon);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Prop");
+                                                    }
+                                                    N(SyntaxKind.ColonToken);
+                                                }
+                                                N(SyntaxKind.RecursivePattern);
+                                                {
+                                                    N(SyntaxKind.PropertyPatternClause);
+                                                    {
+                                                        N(SyntaxKind.OpenBraceToken);
+                                                        M(SyntaxKind.CloseBraceToken);
+                                                    }
+                                                }
+                                            }
+                                            M(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.PropertyPatternClause);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.Subpattern);
+                                {
+                                    N(SyntaxKind.NameColon);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Prop");
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.RecursivePattern);
+                                    {
+                                        N(SyntaxKind.PropertyPatternClause);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.Subpattern);
+                                            {
+                                                N(SyntaxKind.NameColon);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Prop");
+                                                    }
+                                                    N(SyntaxKind.ColonToken);
+                                                }
+                                                N(SyntaxKind.RecursivePattern);
+                                                {
+                                                    N(SyntaxKind.PropertyPatternClause);
+                                                    {
+                                                        N(SyntaxKind.OpenBraceToken);
+                                                        M(SyntaxKind.CloseBraceToken);
+                                                    }
+                                                }
+                                            }
+                                            M(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67757")]
+        public void ParseSwitchStatementWithUnclosedListPattern1()
+        {
+            UsingStatement("""
+                switch (obj)
+                {
+                    case [:
+                    case [:
+                       break;
+                }
+                """,
+                // (3,11): error CS1003: Syntax error, ']' expected
+                //     case [:
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("]").WithLocation(3, 11),
+                // (4,11): error CS1003: Syntax error, ']' expected
+                //     case [:
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("]").WithLocation(4, 11)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "obj");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ListPattern);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            M(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ListPattern);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            M(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67757")]
+        public void ParseSwitchStatementWithUnclosedListPattern2()
+        {
+            UsingStatement("""
+                switch (obj)
+                {
+                    case [[:
+                    case [[:
+                       break;
+                }
+                """,
+                // (3,12): error CS1003: Syntax error, ']' expected
+                //     case [[:
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("]").WithLocation(3, 12),
+                // (3,12): error CS1003: Syntax error, ']' expected
+                //     case [[:
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("]").WithLocation(3, 12),
+                // (4,12): error CS1003: Syntax error, ']' expected
+                //     case [[:
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("]").WithLocation(4, 12),
+                // (4,12): error CS1003: Syntax error, ']' expected
+                //     case [[:
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("]").WithLocation(4, 12)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "obj");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ListPattern);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.ListPattern);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                M(SyntaxKind.CloseBracketToken);
+                            }
+                            M(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ListPattern);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.ListPattern);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                M(SyntaxKind.CloseBracketToken);
+                            }
+                            M(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67757")]
+        public void ParseSwitchStatementWithUnclosedListPattern3()
+        {
+            UsingStatement("""
+                switch (obj)
+                {
+                    case [[[:
+                    case [[[:
+                       break;
+                }
+                """,
+                // (3,13): error CS1003: Syntax error, ']' expected
+                //     case [[[:
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("]").WithLocation(3, 13),
+                // (3,13): error CS1003: Syntax error, ']' expected
+                //     case [[[:
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("]").WithLocation(3, 13),
+                // (3,13): error CS1003: Syntax error, ']' expected
+                //     case [[[:
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("]").WithLocation(3, 13),
+                // (4,13): error CS1003: Syntax error, ']' expected
+                //     case [[[:
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("]").WithLocation(4, 13),
+                // (4,13): error CS1003: Syntax error, ']' expected
+                //     case [[[:
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("]").WithLocation(4, 13),
+                // (4,13): error CS1003: Syntax error, ']' expected
+                //     case [[[:
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("]").WithLocation(4, 13)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "obj");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ListPattern);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.ListPattern);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.ListPattern);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    M(SyntaxKind.CloseBracketToken);
+                                }
+                                M(SyntaxKind.CloseBracketToken);
+                            }
+                            M(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ListPattern);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.ListPattern);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.ListPattern);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    M(SyntaxKind.CloseBracketToken);
+                                }
+                                M(SyntaxKind.CloseBracketToken);
+                            }
+                            M(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseSwitchStatementWithUnclosedPatternAndArrow()
+        {
+            // No good error recovery strategy yet
+            UsingStatement("""
+                switch (obj)
+                {
+                    case { =>
+                        break;
+                    case { =>
+                        break;
+                }
+                """,
+                // (3,12): error CS1001: Identifier expected
+                //     case { =>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(3, 12),
+                // (4,14): error CS1513: } expected
+                //         break;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(4, 14),
+                // (4,14): error CS1003: Syntax error, ':' expected
+                //         break;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(4, 14),
+                // (5,12): error CS1001: Identifier expected
+                //     case { =>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(5, 12),
+                // (6,14): error CS1513: } expected
+                //         break;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(6, 14),
+                // (6,14): error CS1003: Syntax error, ':' expected
+                //         break;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(6, 14));
+
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "obj");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.PropertyPatternClause);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        M(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.PropertyPatternClause);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        M(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }

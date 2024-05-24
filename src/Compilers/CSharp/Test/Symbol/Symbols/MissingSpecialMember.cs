@@ -530,8 +530,9 @@ namespace System
                 var symbol = comp.GetSpecialType(special);
                 Assert.NotNull(symbol);
 
-                if (special == SpecialType.System_Runtime_CompilerServices_RuntimeFeature ||
-                    special == SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute)
+                if (special is SpecialType.System_Runtime_CompilerServices_RuntimeFeature or
+                               SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute or
+                               SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute)
                 {
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind); // Not available
                 }
@@ -553,13 +554,21 @@ namespace System
                 if (special == SpecialMember.Count) continue; // Not a real value;
 
                 var symbol = comp.GetSpecialTypeMember(special);
-                if (special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
+                if (special == SpecialMember.System_String__Concat_2ReadOnlySpans
+                    || special == SpecialMember.System_String__Concat_3ReadOnlySpans
+                    || special == SpecialMember.System_String__Concat_4ReadOnlySpans
+                    || special == SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
-                    || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor)
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics
+                    || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
+                    || special == SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor
+                    || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference
+                    || special == SpecialMember.System_Array__Empty)
                 {
                     Assert.Null(symbol); // Not available
                 }
@@ -602,9 +611,11 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_NullableContextAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
                     case WellKnownType.System_Span_T:
                     case WellKnownType.System_ReadOnlySpan_T:
+                    case WellKnownType.System_Collections_Immutable_ImmutableArray_T:
                     case WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute:
                     case WellKnownType.System_Index:
                     case WellKnownType.System_Range:
@@ -633,6 +644,9 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute:
                     case WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute:
+                    case WellKnownType.System_Runtime_InteropServices_MemoryMarshal:
+                    case WellKnownType.System_Runtime_CompilerServices_Unsafe:
+                    case WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -640,6 +654,8 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_ITuple:
                     case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute:
                     case WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute:
+                    case WellKnownType.System_Runtime_InteropServices_CollectionsMarshal:
+                    case WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal:
                         // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:
@@ -677,18 +693,15 @@ namespace System
         {
             foreach (var type in new[] {
                             WellKnownType.System_Math,
-                            WellKnownType.System_Array,
                             WellKnownType.System_Attribute,
                             WellKnownType.System_CLSCompliantAttribute,
                             WellKnownType.System_Convert,
+                            WellKnownType.System_Collections_Immutable_ImmutableArray_T,
                             WellKnownType.System_Exception,
                             WellKnownType.System_FlagsAttribute,
                             WellKnownType.System_FormattableString,
                             WellKnownType.System_Guid,
                             WellKnownType.System_IFormattable,
-                            WellKnownType.System_RuntimeTypeHandle,
-                            WellKnownType.System_RuntimeFieldHandle,
-                            WellKnownType.System_RuntimeMethodHandle,
                             WellKnownType.System_MarshalByRefObject,
                             WellKnownType.System_Type,
                             WellKnownType.System_Reflection_AssemblyKeyFileAttribute,
@@ -896,15 +909,14 @@ namespace System
 
                             WellKnownType.System_Environment,
 
-                            WellKnownType.System_Runtime_GCLatencyMode,
-                            WellKnownType.System_IFormatProvider }
+                            WellKnownType.System_Runtime_GCLatencyMode}
                 )
             {
                 Assert.True(type <= WellKnownType.CSharp7Sentinel);
             }
 
-            // There were 204 well-known types prior to CSharp7
-            Assert.Equal(204, (int)(WellKnownType.CSharp7Sentinel - WellKnownType.First));
+            // There were 200 well-known types prior to CSharp7
+            Assert.Equal(200, (int)(WellKnownType.CSharp7Sentinel - WellKnownType.First));
         }
 
         [Fact]
@@ -936,7 +948,6 @@ namespace System
                     case WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean:
                         // C# can't embed VB core.
                         continue;
-                    case WellKnownMember.System_Array__Empty:
                     case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte:
                     case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags:
                     case WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor:
@@ -945,11 +956,13 @@ namespace System
                     case WellKnownMember.System_Span_T__ctor_Array:
                     case WellKnownMember.System_Span_T__get_Item:
                     case WellKnownMember.System_Span_T__get_Length:
+                    case WellKnownMember.System_Span_T__Slice_Int_Int:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Array:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
+                    case WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int:
                     case WellKnownMember.System_Index__ctor:
                     case WellKnownMember.System_Index__GetOffset:
                     case WellKnownMember.System_Range__ctor:
@@ -1002,6 +1015,13 @@ namespace System
                     case WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle:
+                    case WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan:
+                    case WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan:
+                    case WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T:
+                    case WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T:
+                    case WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T:
+                    case WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
@@ -1044,6 +1064,16 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length:
+                    case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T:
+                    case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T:
+                    case WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T:
+                    case WellKnownMember.System_Span_T__ToArray:
+                    case WellKnownMember.System_ReadOnlySpan_T__ToArray:
+                    case WellKnownMember.System_Span_T__CopyTo_Span_T:
+                    case WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T:
+                    case WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan:
+                    case WellKnownMember.System_Span_T__ctor_ref_T:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T:
                         // Not always available.
                         continue;
                 }
@@ -1568,11 +1598,9 @@ namespace Test
 
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
-            compilation.VerifyEmitDiagnostics(
-                // (23,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
-                //             S.v = s ?? -1;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "s").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(23, 19)
-                );
+
+            // We use more optimal `GetValueOrDefault(defaultValue)` member for this case, so no error about missing `GetValueOrDefault()` is reported
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2380,7 +2408,69 @@ public class Test
             compilation.VerifyEmitDiagnostics(
                 // (9,27): error CS0656: Missing compiler required member 'System.Object.ToString'
                 //         Console.WriteLine(c + "3");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"c + ""3""").WithArguments("System.Object", "ToString").WithLocation(9, 27)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(9, 27)
+                );
+        }
+
+        [Fact]
+        public void System_Object__ToString_3Args()
+        {
+            var source = """
+                using System;
+
+                public class Test
+                {
+                    static void Main()
+                    {
+                        char c = 'c';
+                        int i = 2;
+                        Console.WriteLine(c + "3" + i);
+                    }
+                }
+                """;
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Object__ToString);
+            compilation.VerifyEmitDiagnostics(
+                // (9,27): error CS0656: Missing compiler required member 'System.Object.ToString'
+                //         Console.WriteLine(c + "3" + i);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(9, 27),
+                // (9,37): error CS0656: Missing compiler required member 'System.Object.ToString'
+                //         Console.WriteLine(c + "3" + i);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "i").WithArguments("System.Object", "ToString").WithLocation(9, 37)
+                );
+        }
+
+        [Fact]
+        public void System_Object__ToString_4Args()
+        {
+            var source = """
+                using System;
+
+                public class Test
+                {
+                    static void Main()
+                    {
+                        char c = 'c';
+                        int i = 2;
+                        double d = 0.7;
+                        Console.WriteLine(c + "3" + i + d);
+                    }
+                }
+                """;
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Object__ToString);
+            compilation.VerifyEmitDiagnostics(
+                // (10,27): error CS0656: Missing compiler required member 'System.Object.ToString'
+                //         Console.WriteLine(c + "3" + i + d);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(10, 27),
+                // (10,37): error CS0656: Missing compiler required member 'System.Object.ToString'
+                //         Console.WriteLine(c + "3" + i + d);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "i").WithArguments("System.Object", "ToString").WithLocation(10, 37),
+                // (10,41): error CS0656: Missing compiler required member 'System.Object.ToString'
+                //         Console.WriteLine(c + "3" + i + d);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Object", "ToString").WithLocation(10, 41)
                 );
         }
 

@@ -2,75 +2,72 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers
+namespace Microsoft.CodeAnalysis.Completion.Providers;
+
+internal class MemberInsertionCompletionItem
 {
-    internal class MemberInsertionCompletionItem
+    public static CompletionItem Create(
+        string displayText,
+        string displayTextSuffix,
+        DeclarationModifiers modifiers,
+        int line,
+        ISymbol symbol,
+        SyntaxToken token,
+        int descriptionPosition,
+        CompletionItemRules rules)
     {
-        public static CompletionItem Create(
-            string displayText,
-            string displayTextSuffix,
-            DeclarationModifiers modifiers,
-            int line,
-            ISymbol symbol,
-            SyntaxToken token,
-            int descriptionPosition,
-            CompletionItemRules rules)
-        {
-            var props = ImmutableDictionary<string, string>.Empty
-                .Add("Line", line.ToString())
-                .Add("Modifiers", modifiers.ToString())
-                .Add("TokenSpanEnd", token.Span.End.ToString());
+        return SymbolCompletionItem.CreateWithSymbolId(
+            displayText: displayText,
+            displayTextSuffix: displayTextSuffix,
+            symbols: [symbol],
+            contextPosition: descriptionPosition,
+            properties: [
+                KeyValuePairUtil.Create("Line", line.ToString()),
+                KeyValuePairUtil.Create("Modifiers", modifiers.ToString()),
+                KeyValuePairUtil.Create("TokenSpanEnd", token.Span.End.ToString())],
+            rules: rules,
+            isComplexTextEdit: true);
+    }
 
-            return SymbolCompletionItem.CreateWithSymbolId(
-                displayText: displayText,
-                displayTextSuffix: displayTextSuffix,
-                symbols: ImmutableArray.Create(symbol),
-                contextPosition: descriptionPosition,
-                properties: props,
-                rules: rules,
-                isComplexTextEdit: true);
+    public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, SymbolDescriptionOptions options, CancellationToken cancellationToken)
+        => SymbolCompletionItem.GetDescriptionAsync(item, document, options, cancellationToken);
+
+    public static DeclarationModifiers GetModifiers(CompletionItem item)
+    {
+        if (item.TryGetProperty("Modifiers", out var text) &&
+            DeclarationModifiers.TryParse(text, out var modifiers))
+        {
+            return modifiers;
         }
 
-        public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, SymbolDescriptionOptions options, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, options, cancellationToken);
+        return default;
+    }
 
-        public static DeclarationModifiers GetModifiers(CompletionItem item)
+    public static int GetLine(CompletionItem item)
+    {
+        if (item.TryGetProperty("Line", out var text)
+            && int.TryParse(text, out var number))
         {
-            if (item.Properties.TryGetValue("Modifiers", out var text) &&
-                DeclarationModifiers.TryParse(text, out var modifiers))
-            {
-                return modifiers;
-            }
-
-            return default;
+            return number;
         }
 
-        public static int GetLine(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("Line", out var text)
-                && int.TryParse(text, out var number))
-            {
-                return number;
-            }
+        return 0;
+    }
 
-            return 0;
+    public static int GetTokenSpanEnd(CompletionItem item)
+    {
+        if (item.TryGetProperty("TokenSpanEnd", out var text)
+            && int.TryParse(text, out var number))
+        {
+            return number;
         }
 
-        public static int GetTokenSpanEnd(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("TokenSpanEnd", out var text)
-                && int.TryParse(text, out var number))
-            {
-                return number;
-            }
-
-            return 0;
-        }
+        return 0;
     }
 }

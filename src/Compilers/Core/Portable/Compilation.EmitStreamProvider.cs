@@ -21,14 +21,17 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// Abstraction that allows the caller to delay the creation of the <see cref="Stream"/> values 
-        /// until they are actually needed.
+        /// until they are actually needed. The <see cref="Stream"/> provided here is owned by 
+        /// this type and consumers should not dispose it.
         /// </summary>
         internal abstract class EmitStreamProvider
         {
-            /// <summary>
-            /// Returns an existing open stream or null if no stream has been open.
-            /// </summary>
-            public abstract Stream? Stream { get; }
+            private Stream? _stream;
+
+            protected EmitStreamProvider(Stream? stream = null)
+            {
+                _stream = stream;
+            }
 
             /// <summary>
             /// This method will be called once during Emit at the time the Compilation needs 
@@ -43,21 +46,22 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public Stream? GetOrCreateStream(DiagnosticBag diagnostics)
             {
-                return Stream ?? CreateStream(diagnostics);
+                if (_stream is null)
+                {
+                    _stream = CreateStream(diagnostics);
+                }
+
+                return _stream;
             }
         }
 
         internal sealed class SimpleEmitStreamProvider : EmitStreamProvider
         {
-            private readonly Stream _stream;
-
             internal SimpleEmitStreamProvider(Stream stream)
+                : base(stream)
             {
                 RoslynDebug.Assert(stream != null);
-                _stream = stream;
             }
-
-            public override Stream Stream => _stream;
 
             protected override Stream CreateStream(DiagnosticBag diagnostics)
             {

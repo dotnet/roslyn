@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (end < start)
             {
-                throw new ArgumentException(CodeAnalysisResources.EndMustNotBeLessThanStart, nameof(end));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.EndMustNotBeLessThanStart, start, end), nameof(end));
             }
 
             _start = start;

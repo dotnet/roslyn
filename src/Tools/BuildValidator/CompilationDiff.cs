@@ -216,7 +216,7 @@ namespace BuildValidator
                     writeMissingReferences();
                     break;
                 case RebuildResult.MiscError:
-                    // No artifacts to write here
+                    File.WriteAllText(Path.Combine(debugPath, "error.txt"), MiscErrorMessage);
                     break;
                 default:
                     throw new Exception($"Unexpected value {Result}");

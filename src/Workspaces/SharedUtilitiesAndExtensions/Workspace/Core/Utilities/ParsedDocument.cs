@@ -33,7 +33,7 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
 
     public static async ValueTask<ParsedDocument> CreateAsync(Document document, CancellationToken cancellationToken)
     {
-        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         return new ParsedDocument(document.Id, text, root, document.Project.GetExtendedLanguageServices());
     }
@@ -73,9 +73,7 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
         Contract.ThrowIfFalse(Id == oldDocument.Id);
 
         if (Text == oldDocument.Text || SyntaxTree == oldDocument.SyntaxTree)
-        {
-            return SpecializedCollections.EmptyEnumerable<TextChange>();
-        }
+            return [];
 
         var textChanges = Text.GetTextChanges(oldDocument.Text);
 

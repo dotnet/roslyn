@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
@@ -118,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
             }
 
-            var newMember = member.WithModifiers(SyntaxFactory.TokenList(newModifierList));
+            var newMember = member.WithModifiers([.. newModifierList]);
             return newMember.WithLeadingTrivia(leadingTrivia);
         }
     }

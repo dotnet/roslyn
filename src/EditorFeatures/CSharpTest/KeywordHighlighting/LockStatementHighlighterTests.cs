@@ -10,38 +10,39 @@ using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
-{
-    public class LockStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
-    {
-        internal override Type GetHighlighterType()
-            => typeof(LockStatementHighlighter);
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample1_1()
-        {
-            await TestAsync(
-@"class Account
+public class LockStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
-    object lockObj = new object();
-    int balance;
+    internal override Type GetHighlighterType()
+        => typeof(LockStatementHighlighter);
 
-    int Withdraw(int amount)
+    [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+    public async Task TestExample1_1()
     {
-        {|Cursor:[|lock|]|} (lockObj)
-        {
-            if (balance >= amount)
+        await TestAsync(
+            """
+            class Account
             {
-                balance = balance – amount;
-                return amount;
+                object lockObj = new object();
+                int balance;
+
+                int Withdraw(int amount)
+                {
+                    {|Cursor:[|lock|]|} (lockObj)
+                    {
+                        if (balance >= amount)
+                        {
+                            balance = balance – amount;
+                            return amount;
+                        }
+                        else
+                        {
+                            return -1;
+                        }
+                    }
+                }
             }
-            else
-            {
-                return -1;
-            }
-        }
-    }
-}");
-        }
+            """);
     }
 }

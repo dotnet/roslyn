@@ -9,104 +9,104 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes
+namespace Microsoft.CodeAnalysis.CodeFixes;
+
+/// <summary>
+/// Context for "Fix all occurrences" code fixes provided by a <see cref="FixAllProvider"/>.
+/// </summary>
+public partial class FixAllContext
 {
     /// <summary>
-    /// Context for "Fix all occurrences" code fixes provided by a <see cref="FixAllProvider"/>.
+    /// Diagnostic provider to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
     /// </summary>
-    public partial class FixAllContext
+    public abstract class DiagnosticProvider
     {
         /// <summary>
-        /// Diagnostic provider to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
+        /// Gets all the diagnostics to fix in the given document in a <see cref="FixAllContext"/>.
         /// </summary>
-        public abstract class DiagnosticProvider
+        public abstract Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Gets all the project-level diagnostics to fix, i.e. diagnostics with no source location, in the given project in a <see cref="FixAllContext"/>.
+        /// </summary>
+        public abstract Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Gets all the diagnostics to fix in the given project in a <see cref="FixAllContext"/>.
+        /// This includes both document-level diagnostics for all documents in the given project and project-level diagnostics, i.e. diagnostics with no source location, in the given project. 
+        /// </summary>
+        public abstract Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken);
+
+        internal static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
         {
-            /// <summary>
-            /// Gets all the diagnostics to fix in the given document in a <see cref="FixAllContext"/>.
-            /// </summary>
-            public abstract Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken);
+            var result = await GetDocumentDiagnosticsToFixWorkerAsync(fixAllContext).ConfigureAwait(false);
 
-            /// <summary>
-            /// Gets all the project-level diagnostics to fix, i.e. diagnostics with no source location, in the given project in a <see cref="FixAllContext"/>.
-            /// </summary>
-            public abstract Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken);
+            // Filter out any documents that we don't have any diagnostics for.
+            return result.Where(kvp => !kvp.Value.IsDefaultOrEmpty).ToImmutableDictionary();
 
-            /// <summary>
-            /// Gets all the diagnostics to fix in the given project in a <see cref="FixAllContext"/>.
-            /// This includes both document-level diagnostics for all documents in the given project and project-level diagnostics, i.e. diagnostics with no source location, in the given project. 
-            /// </summary>
-            public abstract Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken);
-
-            internal static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
+            static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(FixAllContext fixAllContext)
             {
-                var result = await GetDocumentDiagnosticsToFixWorkerAsync(fixAllContext).ConfigureAwait(false);
-
-                // Filter out any documents that we don't have any diagnostics for.
-                return result.Where(kvp => !kvp.Value.IsDefaultOrEmpty).ToImmutableDictionary();
-
-                static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(FixAllContext fixAllContext)
+                if (fixAllContext.State.DiagnosticProvider is FixAllState.FixMultipleDiagnosticProvider fixMultipleDiagnosticProvider)
                 {
-                    if (fixAllContext.State.DiagnosticProvider is FixAllState.FixMultipleDiagnosticProvider fixMultipleDiagnosticProvider)
-                    {
-                        return fixMultipleDiagnosticProvider.DocumentDiagnosticsMap;
-                    }
+                    return fixMultipleDiagnosticProvider.DocumentDiagnosticsMap;
+                }
 
-                    using (Logger.LogBlock(
-                            FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics,
-                            FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
-                            fixAllContext.CancellationToken))
-                    {
-                        return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-                    }
+                using (Logger.LogBlock(
+                        FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics,
+                        FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
+                        fixAllContext.CancellationToken))
+                {
+                    return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
                 }
             }
+        }
 
-            internal static async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
-                FixAllContext fixAllContext)
+        internal static async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
+            FixAllContext fixAllContext)
+        {
+            using (Logger.LogBlock(
+                FunctionId.CodeFixes_FixAllOccurrencesComputation_Project_Diagnostics,
+                FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
+                fixAllContext.CancellationToken))
             {
-                using (Logger.LogBlock(
-                    FunctionId.CodeFixes_FixAllOccurrencesComputation_Project_Diagnostics,
-                    FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
-                    fixAllContext.CancellationToken))
+                var project = fixAllContext.Project;
+                if (project != null)
                 {
-                    var project = fixAllContext.Project;
-                    if (project != null)
+                    switch (fixAllContext.Scope)
                     {
-                        switch (fixAllContext.Scope)
-                        {
-                            case FixAllScope.Project:
-                                var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
-                                var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create(project, diagnostics));
-                                return ImmutableDictionary.CreateRange(kvp);
+                        case FixAllScope.Project:
+                            var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
+                            return ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(project, diagnostics)]);
 
-                            case FixAllScope.Solution:
-                                var projectsAndDiagnostics = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
-
-                                var tasks = project.Solution.Projects.Select(async p => new
+                        case FixAllScope.Solution:
+                            return await ProducerConsumer<(Project project, ImmutableArray<Diagnostic> diagnostics)>.RunParallelAsync(
+                                source: project.Solution.Projects,
+                                produceItems: static async (project, callback, fixAllContext, cancellationToken) =>
                                 {
-                                    Project = p,
-                                    Diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(p).ConfigureAwait(false)
-                                }).ToArray();
-
-                                await Task.WhenAll(tasks).ConfigureAwait(false);
-
-                                foreach (var task in tasks)
+                                    var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
+                                    callback((project, diagnostics));
+                                },
+                                consumeItems: static async (results, args, cancellationToken) =>
                                 {
-                                    var projectAndDiagnostics = await task.ConfigureAwait(false);
-                                    if (projectAndDiagnostics.Diagnostics.Any())
+                                    var projectsAndDiagnostics = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
+
+                                    await foreach (var (project, diagnostics) in results)
                                     {
-                                        projectsAndDiagnostics[projectAndDiagnostics.Project] = projectAndDiagnostics.Diagnostics;
+                                        if (diagnostics.Any())
+                                            projectsAndDiagnostics.Add(project, diagnostics);
                                     }
-                                }
 
-                                return projectsAndDiagnostics.ToImmutable();
-                        }
+                                    return projectsAndDiagnostics.ToImmutable();
+                                },
+                                args: fixAllContext,
+                                fixAllContext.CancellationToken).ConfigureAwait(false);
                     }
-
-                    return ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty;
                 }
+
+                return ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty;
             }
         }
     }

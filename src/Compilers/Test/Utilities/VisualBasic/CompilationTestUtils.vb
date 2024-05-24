@@ -33,6 +33,19 @@ Friend Module CompilationUtils
         Return CreateEmptyCompilation(source, references, options, parseOptions, assemblyName)
     End Function
 
+    Public Function CreateCompilationWithIdentity(
+            identity As AssemblyIdentity,
+            source As BasicTestSource,
+            Optional references As IEnumerable(Of MetadataReference) = Nothing,
+            Optional targetFramework As TargetFramework = TargetFramework.StandardAndVBRuntime) As VisualBasicCompilation
+
+        Dim c = CreateCompilation(source, references, assemblyName:=identity.Name)
+        Assert.NotNull(c.Assembly) ' force creation Of SourceAssemblySymbol
+        DirectCast(c.Assembly, SourceAssemblySymbol).m_lazyIdentity = identity
+
+        Return c
+    End Function
+
     Public Function CreateEmptyCompilation(
             source As BasicTestSource,
             Optional references As IEnumerable(Of MetadataReference) = Nothing,
@@ -947,7 +960,7 @@ Friend Module CompilationUtils
             actualLine = actualReader.ReadLine()
         End While
 
-        Assert.Equal(expectedPooledBuilder.ToStringAndFree(), actualPooledBuilder.ToStringAndFree())
+        AssertEx.Equal(expectedPooledBuilder.ToStringAndFree(), actualPooledBuilder.ToStringAndFree())
     End Sub
 
     ' There are certain cases where multiple distinct errors are

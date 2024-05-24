@@ -23,5 +23,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the current DiagnosticFormatter instance.
         ''' </summary>
         Public Shared Shadows ReadOnly Property Instance As New VisualBasicDiagnosticFormatter()
+
+        Friend Overrides Function HasDefaultHelpLinkUri(diagnostic As Diagnostic) As Boolean
+            Return diagnostic.Descriptor.HelpLinkUri = ErrorFactory.GetHelpLink(CType(diagnostic.Code, ERRID))
+        End Function
     End Class
 End Namespace

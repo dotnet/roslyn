@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
@@ -12,69 +11,55 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+[ExportLanguageService(typeof(IFindUsagesService), InternalLanguageNames.TypeScript), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSTypeScriptFindUsagesService(IVSTypeScriptFindUsagesService underlyingService) : IFindUsagesService
 {
-    [ExportLanguageService(typeof(IFindUsagesService), InternalLanguageNames.TypeScript), Shared]
-    internal sealed class VSTypeScriptFindUsagesService : IFindUsagesService
+    private readonly IVSTypeScriptFindUsagesService _underlyingService = underlyingService;
+
+    public Task FindReferencesAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+        => _underlyingService.FindReferencesAsync(document, position, new Context(context), cancellationToken);
+
+    public Task FindImplementationsAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+        => _underlyingService.FindImplementationsAsync(document, position, new Context(context), cancellationToken);
+
+    private sealed class Context(IFindUsagesContext context) : IVSTypeScriptFindUsagesContext
     {
-        private readonly IVSTypeScriptFindUsagesService _underlyingService;
+        private readonly IFindUsagesContext _context = context;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptFindUsagesService(IVSTypeScriptFindUsagesService underlyingService)
-        {
-            _underlyingService = underlyingService;
-        }
+        public IVSTypeScriptStreamingProgressTracker ProgressTracker
+            => new ProgressTracker(_context.ProgressTracker);
 
-        public Task FindReferencesAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
-            => _underlyingService.FindReferencesAsync(document, position, new Context(context), cancellationToken);
+        public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
+            => _context.ReportNoResultsAsync(message, cancellationToken);
 
-        public Task FindImplementationsAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
-            => _underlyingService.FindImplementationsAsync(document, position, new Context(context), cancellationToken);
+        public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
+            => _context.SetSearchTitleAsync(title, cancellationToken);
 
-        private sealed class Context : IVSTypeScriptFindUsagesContext
-        {
-            private readonly IFindUsagesContext _context;
+        public ValueTask OnDefinitionFoundAsync(VSTypeScriptDefinitionItem definition, CancellationToken cancellationToken)
+            => _context.OnDefinitionFoundAsync(definition.UnderlyingObject, cancellationToken);
 
-            public Context(IFindUsagesContext context)
-            {
-                _context = context;
-            }
+        public ValueTask OnReferenceFoundAsync(VSTypeScriptSourceReferenceItem reference, CancellationToken cancellationToken)
+            => _context.OnReferencesFoundAsync(IAsyncEnumerableExtensions.SingletonAsync(reference.UnderlyingObject), cancellationToken);
 
-            public IVSTypeScriptStreamingProgressTracker ProgressTracker
-                => new ProgressTracker(_context.ProgressTracker);
+        public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
+            => ValueTaskFactory.CompletedTask;
+    }
 
-            public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
-                => _context.ReportMessageAsync(message, cancellationToken);
+    private sealed class ProgressTracker(IStreamingProgressTracker progressTracker) : IVSTypeScriptStreamingProgressTracker
+    {
+        private readonly IStreamingProgressTracker _progressTracker = progressTracker;
 
-            public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
-                => _context.SetSearchTitleAsync(title, cancellationToken);
+        public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
+            => _progressTracker.AddItemsAsync(count, cancellationToken);
 
-            public ValueTask OnDefinitionFoundAsync(VSTypeScriptDefinitionItem definition, CancellationToken cancellationToken)
-                => _context.OnDefinitionFoundAsync(definition.UnderlyingObject, cancellationToken);
-
-            public ValueTask OnReferenceFoundAsync(VSTypeScriptSourceReferenceItem reference, CancellationToken cancellationToken)
-                => _context.OnReferenceFoundAsync(reference.UnderlyingObject, cancellationToken);
-
-            public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
-                => ValueTaskFactory.CompletedTask;
-        }
-
-        private sealed class ProgressTracker : IVSTypeScriptStreamingProgressTracker
-        {
-            private readonly IStreamingProgressTracker _progressTracker;
-
-            public ProgressTracker(IStreamingProgressTracker progressTracker)
-            {
-                _progressTracker = progressTracker;
-            }
-
-            public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
-                => _progressTracker.AddItemsAsync(count, cancellationToken);
-
-            public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
-                => _progressTracker.ItemCompletedAsync(cancellationToken);
-        }
+        public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
+            => _progressTracker.ItemCompletedAsync(cancellationToken);
     }
 }

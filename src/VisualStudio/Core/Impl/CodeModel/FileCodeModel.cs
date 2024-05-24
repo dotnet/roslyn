@@ -22,7 +22,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collectio
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
@@ -666,7 +665,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 if (_editCount == 1)
                 {
                     _batchMode = true;
-                    _batchElements = new List<AbstractKeyedCodeElement>();
+                    _batchElements = [];
                 }
 
                 return VSConstants.S_OK;
@@ -694,7 +693,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                             var node = element.LookupNode();
                             if (node != null)
                             {
-                                elementAndPaths ??= new List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>>();
+                                elementAndPaths ??= [];
                                 elementAndPaths.Add(ValueTuple.Create(element, new SyntaxPath(node)));
                             }
                         }

@@ -13,145 +13,144 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFunction
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFunction;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
+public partial class RemoveUnusedLocalFunctionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
-    public partial class RemoveUnusedLocalFunctionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public RemoveUnusedLocalFunctionTests(ITestOutputHelper logger)
+      : base(logger)
     {
-        public RemoveUnusedLocalFunctionTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
+    }
 
-        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpRemoveUnusedLocalFunctionCodeFixProvider());
+    internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (null, new CSharpRemoveUnusedLocalFunctionCodeFixProvider());
 
-        [Fact]
-        public async Task RemoveUnusedLocalFunction()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact]
+    public async Task RemoveUnusedLocalFunction()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        void [|Goo|]() { }
-                    }
+                    void [|Goo|]() { }
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                    }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task RemoveUnusedLocalFunctionFixAll1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact]
+    public async Task RemoveUnusedLocalFunctionFixAll1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        void {|FixAllInDocument:F|}() { }
-                        void G() { }
-                    }
+                    void {|FixAllInDocument:F|}() { }
+                    void G() { }
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                    }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task RemoveUnusedLocalFunctionFixAll2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact]
+    public async Task RemoveUnusedLocalFunctionFixAll2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        void G() { }
-                        void {|FixAllInDocument:F|}() { }
-                    }
+                    void G() { }
+                    void {|FixAllInDocument:F|}() { }
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                    }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task RemoveUnusedLocalFunctionFixAll3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact]
+    public async Task RemoveUnusedLocalFunctionFixAll3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        void {|FixAllInDocument:F|}() { void G() { } }
-                    }
+                    void {|FixAllInDocument:F|}() { void G() { } }
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                    }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task RemoveUnusedLocalFunctionFixAll4()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact]
+    public async Task RemoveUnusedLocalFunctionFixAll4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        void G() { void {|FixAllInDocument:F|}() { } }
-                    }
+                    void G() { void {|FixAllInDocument:F|}() { } }
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                    }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44272")]
-        public async Task TopLevelStatement()
-        {
-            await TestAsync("""
-                void [|local()|] { }
-                """,
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44272")]
+    public async Task TopLevelStatement()
+    {
+        await TestAsync("""
+            void [|local()|] { }
+            """,
+            """
 
-                """, TestOptions.Regular);
-        }
+            """, TestOptions.Regular);
     }
 }

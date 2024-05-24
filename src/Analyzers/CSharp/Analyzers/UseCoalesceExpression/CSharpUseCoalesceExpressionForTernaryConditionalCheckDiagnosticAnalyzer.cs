@@ -9,23 +9,19 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.UseCoalesceExpression;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression
-{
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer :
-        AbstractUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer<
-            SyntaxKind,
-            ExpressionSyntax,
-            ConditionalExpressionSyntax,
-            BinaryExpressionSyntax>
-    {
-        protected override ISyntaxFacts GetSyntaxFacts()
-            => CSharpSyntaxFacts.Instance;
+namespace Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression;
 
-        protected override bool IsTargetTyped(SemanticModel semanticModel, ConditionalExpressionSyntax conditional, CancellationToken cancellationToken)
-        {
-            var conversion = semanticModel.GetConversion(conditional, cancellationToken);
-            return conversion.IsConditionalExpression;
-        }
-    }
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal class CSharpUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer :
+    AbstractUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer<
+        SyntaxKind,
+        ExpressionSyntax,
+        ConditionalExpressionSyntax,
+        BinaryExpressionSyntax>
+{
+    protected override ISyntaxFacts GetSyntaxFacts()
+        => CSharpSyntaxFacts.Instance;
+
+    protected override bool IsTargetTyped(SemanticModel semanticModel, ConditionalExpressionSyntax conditional, CancellationToken cancellationToken)
+        => UseCoalesceExpressionHelpers.IsTargetTyped(semanticModel, conditional, cancellationToken);
 }

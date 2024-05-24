@@ -748,7 +748,7 @@ namespace A
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898563")>
-        Public Async Function TestGenerateType_DontGenerateIntoExistingFile() As Task
+        Public Async Function TestGenerateType_DoNotGenerateIntoExistingFile() As Task
             ' Get a Temp Folder Path
             Dim projectRootFolder = Path.GetTempPath()
 
@@ -835,7 +835,7 @@ namespace A
             Optional projectRootFilePath As String = Nothing) As Tasks.Task(Of GenerateTypeDialogViewModel)
 
             Dim workspaceXml = If(content.Name.LocalName = "Workspace", content, GetOneProjectWorkspace(content, languageName, projectName, documentName, projectRootFilePath))
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim testDoc = workspace.Documents.SingleOrDefault(Function(d) d.CursorPosition.HasValue)
                 Assert.NotNull(testDoc)
                 Dim document = workspace.CurrentSolution.GetDocument(testDoc.Id)

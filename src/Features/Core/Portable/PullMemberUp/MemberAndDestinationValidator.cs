@@ -3,50 +3,48 @@
 // See the LICENSE file in the project root for more information.  
 
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.PullMemberUp
+namespace Microsoft.CodeAnalysis.PullMemberUp;
+
+internal static class MemberAndDestinationValidator
 {
-    internal static class MemberAndDestinationValidator
+    public static bool IsDestinationValid(Solution solution, INamedTypeSymbol destination, CancellationToken cancellationToken)
     {
-        public static bool IsDestinationValid(Solution solution, INamedTypeSymbol destination, CancellationToken cancellationToken)
+        // Make sure destination is class or interface since it could be ErrorTypeSymbol
+        if (destination.TypeKind is not TypeKind.Interface and not TypeKind.Class)
         {
-            // Make sure destination is class or interface since it could be ErrorTypeSymbol
-            if (destination.TypeKind is not TypeKind.Interface and not TypeKind.Class)
-            {
-                return false;
-            }
-
-            // Don't provide any refactoring option if the destination is not in source.
-            // If the destination is generated code, also don't provide refactoring since we can't make sure if we won't break it.
-            var isDestinationInSourceAndNotGeneratedCode =
-                destination.Locations.Any(static (location, arg) => location.IsInSource && !arg.solution.GetRequiredDocument(location.SourceTree).IsGeneratedCode(arg.cancellationToken), (solution, cancellationToken));
-            return isDestinationInSourceAndNotGeneratedCode;
+            return false;
         }
 
-        public static bool IsMemberValid([NotNullWhen(true)] ISymbol? member)
+        // Don't provide any refactoring option if the destination is not in source.
+        // If the destination is generated code, also don't provide refactoring since we can't make sure if we won't break it.
+        var isDestinationInSourceAndNotGeneratedCode =
+            destination.Locations.Any(static (location, arg) => location.IsInSource && !arg.solution.GetRequiredDocument(location.SourceTree).IsGeneratedCode(arg.cancellationToken), (solution, cancellationToken));
+        return isDestinationInSourceAndNotGeneratedCode;
+    }
+
+    public static bool IsMemberValid([NotNullWhen(true)] ISymbol? member)
+    {
+        if (member is null)
         {
-            if (member is null)
-            {
-                return false;
-            }
-
-            if (member.IsImplicitlyDeclared)
-            {
-                return false;
-            }
-
-            // Static, abstract and accessiblity are not checked here but in PullMembersUpOptionsBuilder.cs since there are
-            // two refactoring options provided for pull members up,
-            // 1. Quick Action (Only allow members that don't cause error)
-            // 2. Dialog box (Allow modifers may cause error and will provide fixing)
-            return member switch
-            {
-                IMethodSymbol methodSymbol => methodSymbol.MethodKind == MethodKind.Ordinary,
-                _ => member.IsKind(SymbolKind.Property) || member.IsKind(SymbolKind.Event) || member.IsKind(SymbolKind.Field),
-            };
+            return false;
         }
+
+        if (member.IsImplicitlyDeclared)
+        {
+            return false;
+        }
+
+        // Static, abstract and accessiblity are not checked here but in PullMembersUpOptionsBuilder.cs since there are
+        // two refactoring options provided for pull members up,
+        // 1. Quick Action (Only allow members that don't cause error)
+        // 2. Dialog box (Allow modifers may cause error and will provide fixing)
+        return member switch
+        {
+            IMethodSymbol methodSymbol => methodSymbol.MethodKind == MethodKind.Ordinary,
+            _ => member.IsKind(SymbolKind.Property) || member.IsKind(SymbolKind.Event) || member.IsKind(SymbolKind.Field),
+        };
     }
 }

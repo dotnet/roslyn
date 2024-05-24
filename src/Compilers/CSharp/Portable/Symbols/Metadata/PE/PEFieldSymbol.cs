@@ -216,7 +216,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
+#pragma warning disable SYSLIB0050 // 'TypeAttributes.Serializable' is obsolete
                 return (_flags & FieldAttributes.NotSerialized) != 0;
+#pragma warning restore SYSLIB0050
             }
         }
 
@@ -632,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
                 if (RefKind != RefKind.None &&
-                    (IsFixedSizeBuffer || Type.IsRefLikeType == true))
+                    (IsFixedSizeBuffer || Type.IsRefLikeOrAllowsRefLikeType()))
                 {
                     MergeUseSiteInfo(ref result, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
                 }

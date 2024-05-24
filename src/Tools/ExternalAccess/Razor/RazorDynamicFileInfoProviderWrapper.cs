@@ -40,6 +40,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             }
 
             var result = await _innerDynamicFileInfoProvider.Value.GetDynamicFileInfoAsync(projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
+            // This might not be a file/project Razor is interested in
+            if (result is null)
+            {
+                return null;
+            }
+
             var serviceProvider = new RazorDocumentServiceProviderWrapper(result.DocumentServiceProvider);
             var razorDocumentPropertiesService = result.DocumentServiceProvider.GetService<IRazorDocumentPropertiesService>();
             var designTimeOnly = razorDocumentPropertiesService?.DesignTimeOnly ?? false;

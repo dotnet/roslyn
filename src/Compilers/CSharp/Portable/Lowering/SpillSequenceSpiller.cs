@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -335,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
 
                     case BoundKind.Sequence:
-                        if (refKind != RefKind.None)
+                        if (refKind != RefKind.None || expression.Type?.IsRefLikeOrAllowsRefLikeType() == true)
                         {
                             var sequence = (BoundSequence)expression;
 
@@ -429,6 +428,71 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // later, if needed
                         return expression;
 
+                    case BoundKind.Call:
+                        var call = (BoundCall)expression;
+
+                        // If the method is known to have no observable side-effects, we can spill its receiver and arguments,
+                        // and call it later, after some other (unrelated) side-effects are evaluated.
+                        // It is similar to spilling a field/array access.
+                        if (refKind != RefKind.None)
+                        {
+                            if (call.Method.OriginalDefinition is SynthesizedInlineArrayFirstElementRefMethod or SynthesizedInlineArrayFirstElementRefReadOnlyMethod)
+                            {
+                                Debug.Assert(call.Arguments.Length == 1);
+                                return call.Update(ImmutableArray.Create(Spill(builder, call.Arguments[0], call.ArgumentRefKindsOpt[0])));
+                            }
+                            else if (call.Method.OriginalDefinition is SynthesizedInlineArrayElementRefMethod or SynthesizedInlineArrayElementRefReadOnlyMethod)
+                            {
+                                return spillInlineArrayHelperWithTwoArguments(builder, call);
+                            }
+                            else if (call.Method.OriginalDefinition == _F.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Item) ||
+                                call.Method.OriginalDefinition == _F.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Item))
+                            {
+                                Debug.Assert(call.Arguments.Length == 1);
+                                return call.Update(Spill(builder, call.ReceiverOpt, ReceiverSpillRefKind(call.ReceiverOpt)),
+                                                   initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                                                   call.Method,
+                                                   ImmutableArray.Create(Spill(builder, call.Arguments[0])));
+                            }
+                        }
+                        else if (call.Method.OriginalDefinition is SynthesizedInlineArrayAsSpanMethod or SynthesizedInlineArrayAsReadOnlySpanMethod)
+                        {
+                            return spillInlineArrayHelperWithTwoArguments(builder, call);
+                        }
+                        else if (call.Method.OriginalDefinition == _F.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__Slice_Int_Int) ||
+                                 call.Method.OriginalDefinition == _F.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int))
+                        {
+                            Debug.Assert(call.Arguments.Length == 2);
+                            return call.Update(Spill(builder, call.ReceiverOpt, ReceiverSpillRefKind(call.ReceiverOpt)),
+                                               initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                                               call.Method,
+                                               ImmutableArray.Create(Spill(builder, call.Arguments[0]), Spill(builder, call.Arguments[1])));
+                        }
+                        else if (call.Method == _F.Compilation.GetSpecialTypeMember(SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar))
+                        {
+                            Debug.Assert(call.Arguments.Length == 1);
+                            return call.Update([Spill(builder, call.Arguments[0])]);
+                        }
+
+                        goto default;
+
+                    case BoundKind.ObjectCreationExpression:
+                        var objectCreationExpression = (BoundObjectCreationExpression)expression;
+
+                        if (refKind == RefKind.None &&
+                            objectCreationExpression.InitializerExpressionOpt is null &&
+                            objectCreationExpression.Constructor.OriginalDefinition == _F.Compilation.GetSpecialTypeMember(SpecialMember.System_ReadOnlySpan_T__ctor_Reference))
+                        {
+                            Debug.Assert(objectCreationExpression.Arguments.Length == 1);
+                            var argRefKinds = objectCreationExpression.ArgumentRefKindsOpt;
+                            return objectCreationExpression.Update(objectCreationExpression.Constructor,
+                                                                   [Spill(builder, objectCreationExpression.Arguments[0], argRefKinds.IsDefault ? RefKind.None : argRefKinds[0])],
+                                                                   objectCreationExpression.ArgumentRefKindsOpt,
+                                                                   newInitializerExpression: null);
+                        }
+
+                        goto default;
+
                     default:
                         if (expression.Type.IsVoidType() || sideEffectsOnly)
                         {
@@ -451,6 +515,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return replacement;
                         }
                 }
+            }
+
+            BoundExpression spillInlineArrayHelperWithTwoArguments(BoundSpillSequenceBuilder builder, BoundCall call)
+            {
+                Debug.Assert(call.Arguments.Length == 2);
+                return call.Update(ImmutableArray.Create(Spill(builder, call.Arguments[0], call.ArgumentRefKindsOpt[0]),
+                                                         call.Arguments[1].ConstantValueOpt is { } ? call.Arguments[1] : Spill(builder, call.Arguments[1])));
             }
         }
 
@@ -672,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the spilling will occur in the enclosing node.
             BoundSpillSequenceBuilder builder = null;
             var expr = VisitExpression(ref builder, node.Expression);
-            return UpdateExpression(builder, node.Update(expr, node.AwaitableInfo, node.Type));
+            return UpdateExpression(builder, node.Update(expr, node.AwaitableInfo, node.DebugInfo, node.Type));
         }
 
         public override BoundNode VisitSpillSequence(BoundSpillSequence node)
@@ -994,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder = receiverBuilder;
             }
 
-            return UpdateExpression(builder, node.Update(receiver, node.Method, arguments));
+            return UpdateExpression(builder, node.Update(receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, node.Method, arguments));
         }
 
         private static RefKind ReceiverSpillRefKind(BoundExpression receiver)
@@ -1193,9 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (hasValueOpt == null)
                 {
-                    condition = _F.ObjectNotEqual(
-                        _F.Convert(_F.SpecialType(SpecialType.System_Object), receiver),
-                        _F.Null(_F.SpecialType(SpecialType.System_Object)));
+                    condition = _F.IsNotNullReference(receiver);
                 }
                 else
                 {
@@ -1211,18 +1280,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverBuilder.AddLocal(clone);
 
                 //  (object)default(T) != null
-                var isNotClass = _F.ObjectNotEqual(
-                                _F.Convert(_F.SpecialType(SpecialType.System_Object), _F.Default(receiver.Type)),
-                                _F.Null(_F.SpecialType(SpecialType.System_Object)));
+                var isNotClass = _F.IsNotNullReference(_F.Default(receiver.Type));
 
                 // isNotCalss || {clone = receiver; (object)clone != null}
                 condition = _F.LogicalOr(
                                     isNotClass,
                                     _F.MakeSequence(
                                         _F.AssignmentExpression(_F.Local(clone), receiver),
-                                        _F.ObjectNotEqual(
-                                            _F.Convert(_F.SpecialType(SpecialType.System_Object), _F.Local(clone)),
-                                            _F.Null(_F.SpecialType(SpecialType.System_Object))))
+                                        _F.IsNotNullReference(_F.Local(clone)))
                                     );
 
                 receiver = _F.ComplexConditionalReceiver(receiver, _F.Local(clone));

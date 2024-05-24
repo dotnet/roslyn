@@ -4,10 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using Microsoft.Internal.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -37,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             _updateMenu();
 
-            var shell = Package.GetGlobalService(typeof(SVsUIShell)) as IVsUIShell;
+            var shell = Shell.Package.GetGlobalService(typeof(SVsUIShell)) as IVsUIShell;
             var guidContextMenu = Guids.RoslynGroupId;
             var locationPoints = new[] { new POINTS() { x = (short)location.X, y = (short)location.Y } };
             return shell != null && ErrorHandler.Succeeded(shell.ShowContextMenu(

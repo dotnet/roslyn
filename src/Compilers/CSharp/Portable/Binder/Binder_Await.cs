@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindAwait(AwaitExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureAsync.CheckFeatureAvailability(diagnostics, node, node.AwaitKeyword.GetLocation());
+            MessageID.IDS_FeatureAsync.CheckFeatureAvailability(diagnostics, node.AwaitKeyword);
 
             BoundExpression expression = BindRValueWithoutTargetType(node.Expression, diagnostics);
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = false;
             var placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, expression.Type);
 
-            ReportBadAwaitDiagnostics(node, node.Location, diagnostics, ref hasErrors);
+            ReportBadAwaitDiagnostics(node, diagnostics, ref hasErrors);
             var info = BindAwaitInfo(placeholder, node, diagnostics, ref hasErrors, expressionOpt: expression);
 
             // Spec 7.7.7.2:
@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // non-void return type T, the await-expression is classified as a value of type T.
             TypeSymbol awaitExpressionType = info.GetResult?.ReturnType ?? (hasErrors ? CreateErrorType() : Compilation.DynamicType);
 
-            return new BoundAwaitExpression(node, expression, info, awaitExpressionType, hasErrors);
+            return new BoundAwaitExpression(node, expression, info, debugInfo: default, awaitExpressionType, hasErrors);
         }
 
-        internal void ReportBadAwaitDiagnostics(SyntaxNode node, Location location, BindingDiagnosticBag diagnostics, ref bool hasErrors)
+        internal void ReportBadAwaitDiagnostics(SyntaxNodeOrToken nodeOrToken, BindingDiagnosticBag diagnostics, ref bool hasErrors)
         {
-            hasErrors |= ReportBadAwaitWithoutAsync(location, diagnostics);
-            hasErrors |= ReportBadAwaitContext(node, location, diagnostics);
+            hasErrors |= ReportBadAwaitWithoutAsync(nodeOrToken, diagnostics);
+            hasErrors |= ReportBadAwaitContext(nodeOrToken, diagnostics);
         }
 
         internal BoundAwaitableInfo BindAwaitInfo(BoundAwaitableValuePlaceholder placeholder, SyntaxNode node, BindingDiagnosticBag diagnostics, ref bool hasErrors, BoundExpression? expressionOpt = null)
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Could we bind await on this expression (ignoring whether we are in async context)?
             var syntax = expression.Syntax;
-            if (ReportBadAwaitContext(syntax, syntax.Location, BindingDiagnosticBag.Discarded))
+            if (ReportBadAwaitContext(syntax, BindingDiagnosticBag.Discarded))
             {
                 return false;
             }
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <returns>True if the expression contains errors.</returns>
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "'await without async' refers to the error scenario.")]
-        private bool ReportBadAwaitWithoutAsync(Location location, BindingDiagnosticBag diagnostics)
+        private bool ReportBadAwaitWithoutAsync(SyntaxNodeOrToken nodeOrToken, BindingDiagnosticBag diagnostics)
         {
             DiagnosticInfo? info = null;
             var containingMemberOrLambda = this.ContainingMemberOrLambda;
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 info = new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsync);
             }
-            Error(diagnostics, info, location);
+            Error(diagnostics, info, nodeOrToken.GetLocation()!);
             return true;
         }
 
@@ -200,33 +200,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Report diagnostics if the await expression occurs in a context where it is not allowed.
         /// </summary>
         /// <returns>True if errors were found.</returns>
-        private bool ReportBadAwaitContext(SyntaxNode node, Location location, BindingDiagnosticBag diagnostics)
+        private bool ReportBadAwaitContext(SyntaxNodeOrToken nodeOrToken, BindingDiagnosticBag diagnostics)
         {
             if (this.InUnsafeRegion && !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext))
             {
-                Error(diagnostics, ErrorCode.ERR_AwaitInUnsafeContext, location);
+                Error(diagnostics, ErrorCode.ERR_AwaitInUnsafeContext, nodeOrToken.GetLocation()!);
                 return true;
             }
             else if (this.Flags.Includes(BinderFlags.InLockBody))
             {
-                Error(diagnostics, ErrorCode.ERR_BadAwaitInLock, location);
+                Error(diagnostics, ErrorCode.ERR_BadAwaitInLock, nodeOrToken.GetLocation()!);
                 return true;
             }
             else if (this.Flags.Includes(BinderFlags.InCatchFilter))
             {
-                Error(diagnostics, ErrorCode.ERR_BadAwaitInCatchFilter, location);
+                Error(diagnostics, ErrorCode.ERR_BadAwaitInCatchFilter, nodeOrToken.GetLocation()!);
                 return true;
             }
             else if (this.Flags.Includes(BinderFlags.InFinallyBlock) &&
-                (node.SyntaxTree as CSharpSyntaxTree)?.Options?.IsFeatureEnabled(MessageID.IDS_AwaitInCatchAndFinally) == false)
+                (nodeOrToken.SyntaxTree as CSharpSyntaxTree)?.Options?.IsFeatureEnabled(MessageID.IDS_AwaitInCatchAndFinally) == false)
             {
-                Error(diagnostics, ErrorCode.ERR_BadAwaitInFinally, location);
+                Error(diagnostics, ErrorCode.ERR_BadAwaitInFinally, nodeOrToken.GetLocation()!);
                 return true;
             }
             else if (this.Flags.Includes(BinderFlags.InCatchBlock) &&
-                (node.SyntaxTree as CSharpSyntaxTree)?.Options?.IsFeatureEnabled(MessageID.IDS_AwaitInCatchAndFinally) == false)
+                (nodeOrToken.SyntaxTree as CSharpSyntaxTree)?.Options?.IsFeatureEnabled(MessageID.IDS_AwaitInCatchAndFinally) == false)
             {
-                Error(diagnostics, ErrorCode.ERR_BadAwaitInCatch, location);
+                Error(diagnostics, ErrorCode.ERR_BadAwaitInCatch, nodeOrToken.GetLocation()!);
                 return true;
             }
             else
@@ -344,9 +344,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var getAwaiterMethod = ((BoundCall)getAwaiterCall).Method;
+            var call = (BoundCall)getAwaiterCall;
+            var getAwaiterMethod = call.Method;
             if (getAwaiterMethod is ErrorMethodSymbol ||
-                HasOptionalOrVariableParameters(getAwaiterMethod) || // We might have been able to resolve a GetAwaiter overload with optional parameters, so check for that here
+                call.Expanded || HasOptionalParameters(getAwaiterMethod) || // We might have been able to resolve a GetAwaiter overload with optional parameters, so check for that here
                 getAwaiterMethod.ReturnsVoid) // If GetAwaiter returns void, don't bother checking that it returns an Awaiter.
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaitArg, node, expression.Type);
@@ -451,7 +452,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            getResultMethod = ((BoundCall)getAwaiterGetResultCall).Method;
+            var call = (BoundCall)getAwaiterGetResultCall;
+            getResultMethod = call.Method;
             if (getResultMethod.IsExtensionMethod)
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMember, node, awaiterType, WellKnownMemberNames.GetResult);
@@ -460,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (HasOptionalOrVariableParameters(getResultMethod) || getResultMethod.IsConditional)
+            if (call.Expanded || HasOptionalParameters(getResultMethod) || getResultMethod.IsConditional)
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaiterPattern, node, awaiterType, awaitedExpressionType);
                 getResultMethod = null;
@@ -472,14 +474,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static bool HasOptionalOrVariableParameters(MethodSymbol method)
+        private static bool HasOptionalParameters(MethodSymbol method)
         {
             RoslynDebug.Assert(method != null);
 
             if (method.ParameterCount != 0)
             {
                 var parameter = method.Parameters[method.ParameterCount - 1];
-                return parameter.IsOptional || parameter.IsParams;
+                return parameter.IsOptional;
             }
 
             return false;

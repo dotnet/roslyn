@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -13,7 +11,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -73,8 +71,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _callback = callback;
         }
 
-        private IEditAndContinueWorkspaceService GetService()
-            => GetWorkspace().Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        private IEditAndContinueService GetService()
+            => GetWorkspace().Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         private ActiveStatementSpanProvider CreateActiveStatementSpanProvider(RemoteServiceCallbackId callbackId)
             => new((documentId, filePath, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetSpansAsync(callbackId, documentId, filePath, cancellationToken), cancellationToken));
@@ -97,24 +95,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> BreakStateOrCapabilitiesChangedAsync(DebuggingSessionId sessionId, bool? inBreakState, CancellationToken cancellationToken)
+        public ValueTask BreakStateOrCapabilitiesChangedAsync(DebuggingSessionId sessionId, bool? inBreakState, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().BreakStateOrCapabilitiesChanged(sessionId, inBreakState, out var documentsToReanalyze);
-                return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
+                GetService().BreakStateOrCapabilitiesChanged(sessionId, inBreakState);
+                return ValueTaskFactory.CompletedTask;
             }, cancellationToken);
         }
 
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
+        public ValueTask EndDebuggingSessionAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().EndDebuggingSession(sessionId, out var documentsToReanalyze);
-                return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
+                GetService().EndDebuggingSession(sessionId);
+                return ValueTaskFactory.CompletedTask;
             }, cancellationToken);
         }
 
@@ -156,25 +154,33 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
-                    var updates = new ModuleUpdates(ModuleUpdateStatus.Blocked, ImmutableArray<ModuleUpdate>.Empty);
-                    var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
-                    var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
-                    var diagnostics = ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
-
-                    return new EmitSolutionUpdateResults.Data(updates, diagnostics, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty, syntaxError: null);
+                    return new EmitSolutionUpdateResults.Data()
+                    {
+                        ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, []),
+                        Diagnostics = GetUnexpectedUpdateError(solution, e),
+                        RudeEdits = [],
+                        SyntaxError = null,
+                    };
                 }
             }, cancellationToken);
+        }
+
+        private static ImmutableArray<DiagnosticData> GetUnexpectedUpdateError(Solution solution, Exception e)
+        {
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
+            var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
+            return [DiagnosticData.Create(solution, diagnostic, project: null)];
         }
 
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> CommitSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
+        public ValueTask CommitSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().CommitSolutionUpdate(sessionId, out var documentsToReanalyze);
-                return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
+                GetService().CommitSolutionUpdate(sessionId);
+                return ValueTaskFactory.CompletedTask;
             }, cancellationToken);
         }
 
@@ -210,28 +216,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var document = await solution.GetRequiredTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 return await GetService().GetAdjustedActiveStatementSpansAsync(sessionId, document, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
-
-        /// <summary>
-        /// Remote API.
-        /// </summary>
-        public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                return await GetService().IsActiveStatementInExceptionRegionAsync(sessionId, solution, instructionId, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
-
-        /// <summary>
-        /// Remote API.
-        /// </summary>
-        public ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                return await GetService().GetCurrentActiveStatementPositionAsync(sessionId, solution, CreateActiveStatementSpanProvider(callbackId), instructionId, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 

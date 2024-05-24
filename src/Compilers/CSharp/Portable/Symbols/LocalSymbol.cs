@@ -273,7 +273,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns the syntax node that declares the variable.
+        /// Returns the syntax node that declares the variable.  Should always return a value if <see
+        /// cref="HasSourceLocation"/> returns <see langword="true"/>.  May throw if it returns <see langword="false"/>.
         /// </summary>
         /// <remarks>
         /// All user-defined and long-lived synthesized variables must return a reference to a node that is 
@@ -283,6 +284,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The location of the declarator is used to calculate <see cref="LocalDebugId.SyntaxOffset"/> during emit.
         /// </remarks>
         internal abstract SyntaxNode GetDeclaratorSyntax();
+
+        /// <summary>
+        /// <see langword="true"/> if this has a real syntax location in source code, <see langword="false"/> otherwise.
+        /// A common example of a local without a source location is an EE local symbol.
+        /// </summary>
+        internal abstract bool HasSourceLocation { get; }
 
         /// <summary>
         /// Describes whether this represents a modifiable variable. Note that
@@ -353,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics = null);
 
-        internal abstract ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue);
+        internal abstract ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue);
 
         public bool IsRef => RefKind != RefKind.None;
 

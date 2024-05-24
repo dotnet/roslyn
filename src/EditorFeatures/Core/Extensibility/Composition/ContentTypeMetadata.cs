@@ -7,13 +7,9 @@
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor
-{
-    internal class ContentTypeMetadata : IContentTypeMetadata
-    {
-        public IEnumerable<string> ContentTypes { get; }
+namespace Microsoft.CodeAnalysis.Editor;
 
-        public ContentTypeMetadata(IDictionary<string, object> data)
-            => this.ContentTypes = (IEnumerable<string>)data.GetValueOrDefault("ContentTypes");
-    }
+internal class ContentTypeMetadata(IDictionary<string, object> data) : IContentTypeMetadata
+{
+    public IEnumerable<string> ContentTypes { get; } = (IEnumerable<string>)data.GetValueOrDefault("ContentTypes");
 }

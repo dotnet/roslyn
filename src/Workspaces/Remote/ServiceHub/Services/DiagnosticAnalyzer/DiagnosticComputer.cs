@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,7 +17,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using static Microsoft.VisualStudio.Threading.ThreadingTools;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
@@ -37,6 +38,38 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         /// pressure when there are large number of open documents across different projects to be analyzed by background analysis.
         /// </summary>
         private static CompilationWithAnalyzersCacheEntry? s_compilationWithAnalyzersCache = null;
+
+        /// <summary>
+        /// Set of high priority diagnostic computation tasks which are currently executing.
+        /// Any new high priority diagnostic request is added to this set before the core diagnostics
+        /// compute call is performed, and removed from this list after the computation finishes.
+        /// Any new normal priority diagnostic request first waits for all the high priority tasks in this set
+        /// to complete, and moves ahead only after this list becomes empty.
+        /// </summary>
+        /// <remarks>
+        /// Read/write access to this field is guarded by <see cref="s_gate"/>.
+        /// </remarks>
+        private static ImmutableHashSet<Task> s_highPriorityComputeTasks = [];
+
+        /// <summary>
+        /// Set of cancellation token sources for normal priority diagnostic computation tasks which are currently executing.
+        /// For any new normal priority diagnostic request, a new cancellation token source is created and added to this set
+        /// before the core diagnostics compute call is performed, and removed from this set after the computation finishes.
+        /// Any new high priority diagnostic request first fires cancellation on all the cancellation token sources in this set
+        /// to avoid resource contention between normal and high priority requests.
+        /// Canceled normal priority diagnostic requests are re-attempted from scratch after all the high priority requests complete.
+        /// </summary>
+        /// <remarks>
+        /// Read/write access to this field is guarded by <see cref="s_gate"/>.
+        /// </remarks>
+        private static ImmutableHashSet<CancellationTokenSource> s_normalPriorityCancellationTokenSources = [];
+
+        /// <summary>
+        /// Static gate controlling access to following static fields:
+        /// - <see cref="s_compilationWithAnalyzersCache"/>
+        /// - <see cref="s_highPriorityComputeTasks"/>
+        /// - <see cref="s_normalPriorityCancellationTokenSources"/>
+        /// </summary>
         private static readonly object s_gate = new();
 
         /// <summary>
@@ -86,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             AnalysisKind? analysisKind,
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
             HostWorkspaceServices hostWorkspaceServices,
+            bool isExplicit,
             bool reportSuppressedDiagnostics,
             bool logPerformanceInfo,
             bool getTelemetryInfo,
@@ -111,9 +145,177 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
-            var diagnosticsComputer = new DiagnosticComputer(document, project,
-                solutionChecksum, ideOptions, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
-            return diagnosticsComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+            // We execute explicit, user-invoked diagnostics requests with higher priority compared to implicit requests
+            // from clients such as editor diagnostic tagger to show squiggles, background analysis to populate the error list, etc.
+            var diagnosticsComputer = new DiagnosticComputer(document, project, solutionChecksum, ideOptions, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
+            return isExplicit
+                ? diagnosticsComputer.GetHighPriorityDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken)
+                : diagnosticsComputer.GetNormalPriorityDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+        }
+
+        private async Task<SerializableDiagnosticAnalysisResults> GetHighPriorityDiagnosticsAsync(
+            IEnumerable<string> analyzerIds,
+            bool reportSuppressedDiagnostics,
+            bool logPerformanceInfo,
+            bool getTelemetryInfo,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Step 1:
+            //  - Create the core 'computeTask' for computing diagnostics.
+            var computeTask = GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+
+            // Step 2:
+            //  - Add this computeTask to the set of currently executing high priority tasks.
+            //    This set of high priority tasks is used in 'GetNormalPriorityDiagnosticsAsync'
+            //    method to ensure that any new or cancelled normal priority task waits for all
+            //    the executing high priority tasks before starting its execution.
+            //  - Note that it is critical to do this step prior to Step 3 below to ensure that
+            //    any canceled normal priority tasks in Step 3 do not resume execution prior to
+            //    completion of this high priority computeTask. 
+            lock (s_gate)
+            {
+                Debug.Assert(!s_highPriorityComputeTasks.Contains(computeTask));
+                s_highPriorityComputeTasks = s_highPriorityComputeTasks.Add(computeTask);
+            }
+
+            try
+            {
+                // Step 3:
+                //  - Force cancellation of all the executing normal priority tasks
+                //    to minimize resource and CPU contention between normal priority tasks
+                //    and the high priority computeTask in Step 4 below.
+                CancelNormalPriorityTasks();
+
+                // Step 4:
+                //  - Execute the core 'computeTask' for diagnostic computation.
+                return await computeTask.ConfigureAwait(false);
+            }
+            finally
+            {
+                // Step 5:
+                //  - Remove the 'computeTask' from the set of current executing high priority tasks.
+                lock (s_gate)
+                {
+                    Debug.Assert(s_highPriorityComputeTasks.Contains(computeTask));
+                    s_highPriorityComputeTasks = s_highPriorityComputeTasks.Remove(computeTask);
+                }
+            }
+
+            static void CancelNormalPriorityTasks()
+            {
+                ImmutableHashSet<CancellationTokenSource> cancellationTokenSources;
+                lock (s_gate)
+                {
+                    cancellationTokenSources = s_normalPriorityCancellationTokenSources;
+                }
+
+                foreach (var cancellationTokenSource in cancellationTokenSources)
+                {
+                    try
+                    {
+                        cancellationTokenSource.Cancel();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // CancellationTokenSource might get disposed if the normal priority
+                        // task completes while we were executing this foreach loop.
+                        // Gracefully handle this case and ignore this exception.
+                    }
+                }
+            }
+        }
+
+        private async Task<SerializableDiagnosticAnalysisResults> GetNormalPriorityDiagnosticsAsync(
+            IEnumerable<string> analyzerIds,
+            bool reportSuppressedDiagnostics,
+            bool logPerformanceInfo,
+            bool getTelemetryInfo,
+            CancellationToken cancellationToken)
+        {
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Step 1:
+                //  - Normal priority task must wait for all the executing high priority tasks to complete
+                //    before beginning execution.
+                await WaitForHighPriorityTasksAsync(cancellationToken).ConfigureAwait(false);
+
+                // Step 2:
+                //  - Create a custom 'cancellationTokenSource' associated with the current normal priority
+                //    request and add it to the tracked set of normal priority cancellation token sources.
+                //    This token source allows normal priority computeTasks to be cancelled when
+                //    a subsequent high priority diagnostic request is received.
+                using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                lock (s_gate)
+                {
+                    s_normalPriorityCancellationTokenSources = s_normalPriorityCancellationTokenSources.Add(cancellationTokenSource);
+                }
+
+                try
+                {
+                    // Step 3:
+                    //  - Execute the core compute task for diagnostic computation.
+                    return await GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo,
+                        cancellationTokenSource.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException ex) when (ex.CancellationToken == cancellationTokenSource.Token)
+                {
+                    // Step 4:
+                    //  - Attempt to re-execute this cancelled normal priority task by running the loop again.
+                    continue;
+                }
+                finally
+                {
+                    // Step 5:
+                    //  - Remove the 'cancellationTokenSource' for completed or cancelled task.
+                    //    For the case where the computeTask was cancelled, we will create a new
+                    //    'cancellationTokenSource' for the retry.
+                    lock (s_gate)
+                    {
+                        Debug.Assert(s_normalPriorityCancellationTokenSources.Contains(cancellationTokenSource));
+                        s_normalPriorityCancellationTokenSources = s_normalPriorityCancellationTokenSources.Remove(cancellationTokenSource);
+                    }
+                }
+            }
+
+            static async Task WaitForHighPriorityTasksAsync(CancellationToken cancellationToken)
+            {
+                // We loop continuously until we have an empty high priority task queue.
+                while (true)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    ImmutableHashSet<Task> highPriorityTasksToAwait;
+                    lock (s_gate)
+                    {
+                        highPriorityTasksToAwait = s_highPriorityComputeTasks;
+                    }
+
+                    if (highPriorityTasksToAwait.IsEmpty)
+                    {
+                        return;
+                    }
+
+                    // Wait for all the high priority tasks, ignoring all exceptions from it. Loop directly to avoid
+                    // expensive allocations in Task.WhenAll.
+                    foreach (var task in highPriorityTasksToAwait)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        if (task.IsCompleted)
+                        {
+                            // Make sure to yield so continuations of 'task' can make progress.
+                            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+                        }
+                        else
+                        {
+                            await task.WithCancellation(cancellationToken).NoThrowAwaitable(false);
+                        }
+                    }
+                }
+            }
         }
 
         private async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
@@ -124,6 +326,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             CancellationToken cancellationToken)
         {
             var (compilationWithAnalyzers, analyzerToIdMap) = await GetOrCreateCompilationWithAnalyzersAsync(cancellationToken).ConfigureAwait(false);
+            if (compilationWithAnalyzers == null)
+            {
+                return SerializableDiagnosticAnalysisResults.Empty;
+            }
 
             var analyzers = GetAnalyzers(analyzerToIdMap, analyzerIds);
             if (analyzers.IsEmpty)
@@ -183,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             var telemetry = getTelemetryInfo
                 ? GetTelemetryInfo(analysisResult, analyzers, analyzerToIdMap)
-                : ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo)>.Empty;
+                : [];
 
             return new SerializableDiagnosticAnalysisResults(Dehydrate(builderMap, analyzerToIdMap), telemetry);
         }
@@ -192,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder> builderMap,
             BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
         {
-            using var _ = ArrayBuilder<(string analyzerId, SerializableDiagnosticMap diagnosticMap)>.GetInstance(out var diagnostics);
+            var diagnostics = new FixedSizeArrayBuilder<(string analyzerId, SerializableDiagnosticMap diagnosticMap)>(builderMap.Count);
 
             foreach (var (analyzer, analyzerResults) in builderMap)
             {
@@ -206,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                         analyzerResults.Others)));
             }
 
-            return diagnostics.ToImmutable();
+            return diagnostics.MoveToImmutable();
         }
 
         private static ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo)> GetTelemetryInfo(
@@ -238,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
-            return telemetryBuilder.ToImmutable();
+            return telemetryBuilder.ToImmutableAndClear();
         }
 
         private static string GetAnalyzerId(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, DiagnosticAnalyzer analyzer)
@@ -262,10 +468,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
-        private async Task<(CompilationWithAnalyzers compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)> GetOrCreateCompilationWithAnalyzersAsync(CancellationToken cancellationToken)
+        private async Task<(CompilationWithAnalyzers? compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)> GetOrCreateCompilationWithAnalyzersAsync(CancellationToken cancellationToken)
         {
             var cacheEntry = await GetOrCreateCacheEntryAsync().ConfigureAwait(false);
             return (cacheEntry.CompilationWithAnalyzers, cacheEntry.AnalyzerToIdMap);
@@ -320,7 +526,9 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 analyzerMapBuilder.AppendAnalyzerMap(analyzers);
             }
 
-            var compilationWithAnalyzers = await CreateCompilationWithAnalyzerAsync(analyzerBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false);
+            var compilationWithAnalyzers = analyzerBuilder.Count > 0
+                ? await CreateCompilationWithAnalyzerAsync(analyzerBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false)
+                : null;
             var analyzerToIdMap = new BidirectionalMap<string, DiagnosticAnalyzer>(analyzerMapBuilder);
 
             return new CompilationWithAnalyzersCacheEntry(_solutionChecksum, _project, compilationWithAnalyzers, analyzerToIdMap);
@@ -328,6 +536,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         private async Task<CompilationWithAnalyzers> CreateCompilationWithAnalyzerAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfFalse(!analyzers.IsEmpty);
+
             // Always run analyzers concurrently in OOP
             const bool concurrentAnalysis = true;
 
@@ -358,10 +568,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         {
             public Checksum SolutionChecksum { get; }
             public Project Project { get; }
-            public CompilationWithAnalyzers CompilationWithAnalyzers { get; }
+            public CompilationWithAnalyzers? CompilationWithAnalyzers { get; }
             public BidirectionalMap<string, DiagnosticAnalyzer> AnalyzerToIdMap { get; }
 
-            public CompilationWithAnalyzersCacheEntry(Checksum solutionChecksum, Project project, CompilationWithAnalyzers compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
+            public CompilationWithAnalyzersCacheEntry(Checksum solutionChecksum, Project project, CompilationWithAnalyzers? compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
             {
                 SolutionChecksum = solutionChecksum;
                 Project = project;

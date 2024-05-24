@@ -5,12 +5,12 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
+
+public abstract class AbstractInteractiveCSharpCompletionProviderTests : AbstractCSharpCompletionProviderTests<InteractiveCSharpTestWorkspaceFixture>
 {
-    public abstract class AbstractInteractiveCSharpCompletionProviderTests : AbstractCSharpCompletionProviderTests<InteractiveCSharpTestWorkspaceFixture>
-    {
-        protected override TestWorkspace CreateWorkspace(string fileContents)
-            => InteractiveCSharpTestWorkspaceFixture.CreateInteractiveWorkspace(fileContents, composition: GetComposition());
-    }
+    protected override EditorTestWorkspace CreateWorkspace(string fileContents)
+        => InteractiveCSharpTestWorkspaceFixture.CreateInteractiveWorkspace(fileContents, composition: GetComposition());
 }

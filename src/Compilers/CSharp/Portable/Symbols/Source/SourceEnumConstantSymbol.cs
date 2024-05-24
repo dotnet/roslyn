@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -23,9 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EnumMemberDeclarationSyntax syntax,
             BindingDiagnosticBag diagnostics)
         {
-            var initializer = syntax.EqualsValue;
-            Debug.Assert(initializer != null);
-            return new ExplicitValuedEnumConstantSymbol(containingEnum, syntax, initializer, diagnostics);
+            return new ExplicitValuedEnumConstantSymbol(containingEnum, syntax, diagnostics);
         }
 
         public static SourceEnumConstantSymbol CreateImplicitValuedConstant(
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected SourceEnumConstantSymbol(SourceMemberContainerTypeSymbol containingEnum, EnumMemberDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
-            : base(containingEnum, syntax.Identifier.ValueText, syntax.GetReference(), syntax.Identifier.GetLocation())
+            : base(containingEnum, syntax.Identifier.ValueText, syntax.GetReference(), syntax.Identifier.Span)
         {
             if (this.Name == WellKnownMemberNames.EnumBackingFieldName)
             {
@@ -100,8 +99,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+#nullable enable
+        internal sealed override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
+            if (filter?.Invoke(this) == false)
+            {
+                return;
+            }
+
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -137,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 state.SpinWaitComplete(incompletePart, cancellationToken);
             }
         }
+#nullable disable
 
         private sealed class ZeroValuedEnumConstantSymbol : SourceEnumConstantSymbol
         {
@@ -157,21 +163,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class ExplicitValuedEnumConstantSymbol : SourceEnumConstantSymbol
         {
-            private readonly SyntaxReference _equalsValueNodeRef;
-
             public ExplicitValuedEnumConstantSymbol(
                 SourceMemberContainerTypeSymbol containingEnum,
                 EnumMemberDeclarationSyntax syntax,
-                EqualsValueClauseSyntax initializer,
                 BindingDiagnosticBag diagnostics) :
                 base(containingEnum, syntax, diagnostics)
             {
-                _equalsValueNodeRef = initializer.GetReference();
+                Debug.Assert(syntax.EqualsValue != null);
             }
 
             protected override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, BindingDiagnosticBag diagnostics)
             {
-                return ConstantValueUtils.EvaluateFieldConstant(this, (EqualsValueClauseSyntax)_equalsValueNodeRef.GetSyntax(), dependencies, earlyDecodingWellKnownAttributes, diagnostics);
+                var syntax = this.SyntaxNode;
+                Debug.Assert(syntax.EqualsValue != null);
+
+                return ConstantValueUtils.EvaluateFieldConstant(this, syntax.EqualsValue, dependencies, earlyDecodingWellKnownAttributes, diagnostics);
             }
         }
 
@@ -214,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // Report an error if the value is immediately
                     // outside the range, but not otherwise.
-                    diagnostics.Add(ErrorCode.ERR_EnumeratorOverflow, this.Locations[0], this);
+                    diagnostics.Add(ErrorCode.ERR_EnumeratorOverflow, this.GetFirstLocation(), this);
                 }
                 return value;
             }

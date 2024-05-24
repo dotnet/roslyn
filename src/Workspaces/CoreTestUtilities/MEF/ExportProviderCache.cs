@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.UnitTests.Remote;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
@@ -259,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public Assembly LoadAssembly(AssemblyName assemblyName)
                 => Assembly.Load(assemblyName);
 
-            public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
+            public Assembly LoadAssembly(string assemblyFullName, string? codeBasePath)
             {
                 var assemblyName = new AssemblyName(assemblyFullName);
                 if (!string.IsNullOrEmpty(codeBasePath))

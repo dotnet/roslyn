@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     inspectionContext,
                     proxyTypeAndInfo.ClrType,
                     proxyTypeAndInfo.Info,
-                    new[] { fullName });
+                    [fullName]);
             var formatSpecifiers = isRootExpression ? Formatter.NoFormatSpecifiers : parent.FormatSpecifiers;
             return new EvalResult(
                 ExpansionKind.DynamicView,

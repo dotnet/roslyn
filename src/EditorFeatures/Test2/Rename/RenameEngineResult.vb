@@ -2,16 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
-Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Xunit.Abstractions
 Imports Xunit.Sdk
@@ -55,18 +55,24 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 host As RenameTestHost,
                 Optional renameOptions As SymbolRenameOptions = Nothing,
                 Optional expectFailure As Boolean = False,
-                Optional sourceGenerator As ISourceGenerator = Nothing) As RenameEngineResult
+                Optional sourceGenerator As ISourceGenerator = Nothing,
+                Optional executionPreference As SourceGeneratorExecutionPreference = SourceGeneratorExecutionPreference.Automatic) As RenameEngineResult
 
             Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
                 GetType(NoCompilationContentTypeLanguageService),
                 GetType(NoCompilationContentTypeDefinitions),
-                GetType(WorkspaceTestLogger))
+                GetType(WorkspaceTestLogger),
+                GetType(TestWorkspaceConfigurationService))
 
             If host = RenameTestHost.OutOfProcess_SingleCall OrElse host = RenameTestHost.OutOfProcess_SplitCall Then
                 composition = composition.WithTestHostParts(TestHost.OutOfProcess)
             End If
 
             Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=composition)
+
+            Dim configService = workspace.ExportProvider.GetExportedValue(Of TestWorkspaceConfigurationService)
+            configService.Options = New WorkspaceConfigurationOptions(SourceGeneratorExecution:=executionPreference)
+
             workspace.Services.SolutionServices.SetWorkspaceTestOutput(helper)
 
             If sourceGenerator IsNot Nothing Then
@@ -129,9 +135,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ' features that need to call each part independently and operate on the intermediary values.
 
                 Dim locations = Renamer.FindRenameLocationsAsync(
-                    solution, symbol, renameOptions, CodeActionOptions.DefaultProvider, CancellationToken.None).GetAwaiter().GetResult()
+                    solution, symbol, renameOptions, CancellationToken.None).GetAwaiter().GetResult()
 
-                Return locations.ResolveConflictsAsync(symbol, renameTo, nonConflictSymbolKeys:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
+                Return locations.ResolveConflictsAsync(symbol, renameTo, nonConflictSymbolKeys:=Nothing, CodeActionOptions.DefaultProvider, CancellationToken.None).GetAwaiter().GetResult()
             Else
                 ' This tests that rename properly works when the entire call is remoted to OOP and the final result is
                 ' marshaled back.
@@ -197,10 +203,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             For Each document In _workspace.Documents
                 Dim annotatedSpans = document.AnnotatedSpans
 
-                If annotatedSpans.ContainsKey(label) Then
+                Dim spans As ImmutableArray(Of TextSpan) = Nothing
+                If annotatedSpans.TryGetValue(label, spans) Then
                     Dim syntaxTree = _workspace.CurrentSolution.GetDocument(document.Id).GetSyntaxTreeAsync().Result
 
-                    For Each span In annotatedSpans(label)
+                    For Each span In spans
                         locations.Add(syntaxTree.GetLocation(span))
                     Next
                 End If

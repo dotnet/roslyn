@@ -3,22 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+/// <summary>
+/// Service to keep track of build-only diagnostics reported from explicit Build/Rebuild commands.
+/// Note that this service only keeps track of those diagnostics that can never be reported from live analysis.
+/// </summary>
+internal interface IBuildOnlyDiagnosticsService : IWorkspaceService
 {
-    /// <summary>
-    /// Service to keep track of build-only diagnostics reported from explicit Build/Rebuild commands.
-    /// Note that this service only keeps track of those diagnostics that can never be reported from live analysis.
-    /// </summary>
-    internal interface IBuildOnlyDiagnosticsService : IWorkspaceService
-    {
-        void AddBuildOnlyDiagnostics(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableArray<DiagnosticData> diagnostics);
+    Task AddBuildOnlyDiagnosticsAsync(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics, CancellationToken cancellationToken);
 
-        void ClearBuildOnlyDiagnostics(Solution solution, ProjectId? projectId, DocumentId? documentId);
+    Task ClearBuildOnlyDiagnosticsAsync(Project project, DocumentId? documentId, CancellationToken cancellationToken);
 
-        ImmutableArray<DiagnosticData> GetBuildOnlyDiagnostics(DocumentId documentId);
-
-        ImmutableArray<DiagnosticData> GetBuildOnlyDiagnostics(ProjectId projectId);
-    }
+    ValueTask<ImmutableArray<DiagnosticData>> GetBuildOnlyDiagnosticsAsync(DocumentId documentId, CancellationToken cancellationToken);
 }

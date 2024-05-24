@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(
             TestParameters parameters,
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             string expectedMarkup,
             string expectedDocumentName,
             ImmutableArray<string> expectedContainers)
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         private async Task<Tuple<Solution, Solution>> TestAddDocument(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             string expectedMarkup,
             ImmutableArray<string> expectedFolders,
             string expectedDocumentName,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected static async Task<Tuple<Solution, Solution>> TestAddDocument(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             string expected,
             ImmutableArray<CodeActionOperation> operations,
             bool hasProjectChange,
@@ -126,10 +126,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 // If there is just one document change then we expect the preview to be a WpfTextView
                 var previews = await editHandler.GetPreviewsAsync(workspace, operations, CancellationToken.None);
                 var content = (await previews.GetPreviewsAsync())[0];
-                using (var diffView = content as DifferenceViewerPreview)
-                {
-                    Assert.NotNull(diffView.Viewer);
-                }
+                using var diffView = content as DifferenceViewerPreview;
+                Assert.NotNull(diffView.Viewer);
             }
             else
             {

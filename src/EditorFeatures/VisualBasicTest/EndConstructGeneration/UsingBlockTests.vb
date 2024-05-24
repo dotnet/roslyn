@@ -26,7 +26,7 @@ End Class",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyForMatchedUsing()
+        Public Sub DoNotApplyForMatchedUsing()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 Sub goo()

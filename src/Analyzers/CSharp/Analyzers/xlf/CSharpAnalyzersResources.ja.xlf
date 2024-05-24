@@ -12,6 +12,11 @@
         <target state="translated">'{0}' ステートメントに波かっこを追加します。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Anonymous_function_can_be_made_static">
+        <source>Anonymous function can be made static</source>
+        <target state="new">Anonymous function can be made static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
         <source>Blank line not allowed after arrow expression clause token</source>
         <target state="translated">矢印式句トークンの後に空白行は許可されていません</target>
@@ -92,9 +97,14 @@
         <target state="translated">ラムダ式を削除できます</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_anonymous_function_static">
+        <source>Make anonymous function static</source>
+        <target state="new">Make anonymous function static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_member_readonly">
         <source>Make member 'readonly'</source>
-        <target state="new">Make member 'readonly'</target>
+        <target state="translated">メンバーを 'readonly' にする</target>
         <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_struct_readonly">
@@ -102,9 +112,9 @@
         <target state="translated">構造体を '読み取り専用' にする</target>
         <note />
       </trans-unit>
-      <trans-unit id="Member can be made readonly">
+      <trans-unit id="Member_can_be_made_readonly">
         <source>Member can be made 'readonly'</source>
-        <target state="new">Member can be made 'readonly'</target>
+        <target state="translated">メンバーを 'readonly' にすることができます</target>
         <note>{Locked="readonly"} "readonly" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
@@ -170,11 +180,6 @@
       <trans-unit id="Remove_redundant_nullable_directive">
         <source>Remove redundant nullable directive</source>
         <target state="translated">冗長な null 許容ディレクティブを削除します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">抑制演算子の削除</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
@@ -387,6 +392,11 @@
         <target state="translated">パターン マッチングを使用する (コードが変わる可能性があります)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_primary_constructor">
+        <source>Use primary constructor</source>
+        <target state="translated">プライマリ コンストラクターの使用</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="translated">範囲演算子を使用</target>
@@ -452,8 +462,8 @@
         <target state="translated">'new' 式を簡素化できます</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
         <target state="translated">'typeof' を 'nameof' に変換できます</target>
         <note />
       </trans-unit>

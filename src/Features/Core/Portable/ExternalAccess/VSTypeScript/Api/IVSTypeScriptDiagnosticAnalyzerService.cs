@@ -4,10 +4,15 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal interface IVSTypeScriptDiagnosticAnalyzerService
 {
-    internal interface IVSTypeScriptDiagnosticAnalyzerService
-    {
-        void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false);
-    }
+    /// <summary>
+    /// Issues a request to invalidate <em>all</em> diagnostics reported to the LSP client, and have them all be
+    /// recomputed.  This is equivalent to an LSP diagnostic refresh request.  This should be used sparingly.  For
+    /// example: when a user changes an option controlling diagnostics.  Note: all arguments are unused and are only
+    /// kept around for legacy binary compat purposes.
+    /// </summary>
+    void Reanalyze(Workspace? workspace = null, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false);
 }

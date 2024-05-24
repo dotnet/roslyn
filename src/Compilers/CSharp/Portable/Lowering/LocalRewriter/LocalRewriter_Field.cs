@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteInfo = useSiteInfo.AdjustDiagnosticInfo(null);
             }
 
-            _diagnostics.Add(useSiteInfo, syntax.Location);
+            _diagnostics.Add(useSiteInfo, syntax);
 
             return MakeTupleFieldAccess(syntax, field, tuple);
         }

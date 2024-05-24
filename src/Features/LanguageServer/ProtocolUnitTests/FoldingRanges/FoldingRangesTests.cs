@@ -4,14 +4,13 @@
 
 #nullable disable
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FoldingRanges
 {
@@ -21,13 +20,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FoldingRanges
         {
         }
 
-        [Fact]
-        public async Task TestGetFoldingRangeAsync_Imports()
+        [Theory, CombinatorialData]
+        public async Task TestGetFoldingRangeAsync_Imports(bool mutatingLspWorkspace)
         {
             var markup =
 @"using {|foldingRange:System;
 using System.Linq;|}";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var expected = testLspServer.GetLocations("foldingRange")
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Imports, location.Range, "..."))
                 .ToArray();
@@ -36,14 +35,14 @@ using System.Linq;|}";
             AssertJsonEquals(expected, results);
         }
 
-        [Fact(Skip = "GetFoldingRangeAsync does not yet support comments.")]
-        public async Task TestGetFoldingRangeAsync_Comments()
+        [Theory(Skip = "GetFoldingRangeAsync does not yet support comments."), CombinatorialData]
+        public async Task TestGetFoldingRangeAsync_Comments(bool mutatingLspWorkspace)
         {
             var markup =
 @"{|foldingRange:// A comment|}
 {|foldingRange:/* A multiline
 comment */|}";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var expected = testLspServer.GetLocations("foldingRange")
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Comment, location.Range, ""))
                 .ToArray();
@@ -52,14 +51,14 @@ comment */|}";
             AssertJsonEquals(expected, results);
         }
 
-        [Fact(Skip = "GetFoldingRangeAsync does not yet support regions.")]
-        public async Task TestGetFoldingRangeAsync_Regions()
+        [Theory, CombinatorialData]
+        public async Task TestGetFoldingRangeAsync_Regions(bool mutatingLspWorkspace)
         {
             var markup =
 @"{|foldingRange:#region ARegion
 #endregion|}
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var expected = testLspServer.GetLocations("foldingRange")
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Region, location.Range, "ARegion"))
                 .ToArray();
@@ -73,7 +72,7 @@ comment */|}";
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var request = new LSP.FoldingRangeParams()
             {
-                TextDocument = CreateTextDocumentIdentifier(new Uri(document.FilePath))
+                TextDocument = CreateTextDocumentIdentifier(document.GetURI())
             };
 
             return await testLspServer.ExecuteRequestAsync<LSP.FoldingRangeParams, LSP.FoldingRange[]>(LSP.Methods.TextDocumentFoldingRangeName,

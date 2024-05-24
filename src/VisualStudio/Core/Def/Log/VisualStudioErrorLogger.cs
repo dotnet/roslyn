@@ -12,31 +12,30 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using static Microsoft.CodeAnalysis.RoslynAssemblyHelper;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log;
+
+[ExportWorkspaceService(typeof(IErrorLoggerService), ServiceLayer.Host), Export(typeof(IErrorLoggerService)), Shared]
+internal class VisualStudioErrorLogger : IErrorLoggerService
 {
-    [ExportWorkspaceService(typeof(IErrorLoggerService), ServiceLayer.Host), Export(typeof(IErrorLoggerService)), Shared]
-    internal class VisualStudioErrorLogger : IErrorLoggerService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioErrorLogger()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioErrorLogger()
-        {
-        }
-
-        public void LogException(object source, Exception exception)
-        {
-            var name = source.GetType().Name;
-            ActivityLog.LogError(name, ToLogFormat(exception));
-
-            if (ShouldReportCrashDumps(source))
-            {
-                FatalError.ReportAndCatch(exception);
-            }
-        }
-
-        private static bool ShouldReportCrashDumps(object source) => HasRoslynPublicKey(source);
-
-        private static string ToLogFormat(Exception exception)
-            => exception.Message + Environment.NewLine + exception.StackTrace;
     }
+
+    public void LogException(object source, Exception exception)
+    {
+        var name = source.GetType().Name;
+        ActivityLog.LogError(name, ToLogFormat(exception));
+
+        if (ShouldReportCrashDumps(source))
+        {
+            FatalError.ReportAndCatch(exception);
+        }
+    }
+
+    private static bool ShouldReportCrashDumps(object source) => HasRoslynPublicKey(source);
+
+    private static string ToLogFormat(Exception exception)
+        => exception.Message + Environment.NewLine + exception.StackTrace;
 }

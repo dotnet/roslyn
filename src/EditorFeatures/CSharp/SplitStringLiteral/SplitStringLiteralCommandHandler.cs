@@ -20,126 +20,118 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
-{
-    [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [Name(nameof(SplitStringLiteralCommandHandler))]
-    [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal partial class SplitStringLiteralCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
-    {
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SplitStringLiteralCommandHandler(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            EditorOptionsService editorOptionsService)
+[Export(typeof(ICommandHandler))]
+[ContentType(ContentTypeNames.CSharpContentType)]
+[Name(nameof(SplitStringLiteralCommandHandler))]
+[Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal partial class SplitStringLiteralCommandHandler(
+    ITextUndoHistoryRegistry undoHistoryRegistry,
+    IEditorOperationsFactoryService editorOperationsFactoryService,
+    EditorOptionsService editorOptionsService) : ICommandHandler<ReturnKeyCommandArgs>
+{
+    private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
+    private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
+    private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+
+    public string DisplayName => CSharpEditorResources.Split_string;
+
+    public CommandState GetCommandState(ReturnKeyCommandArgs args)
+        => CommandState.Unspecified;
+
+    public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
+        => ExecuteCommandWorker(args, context.OperationContext.UserCancellationToken);
+
+    public bool ExecuteCommandWorker(ReturnKeyCommandArgs args, CancellationToken cancellationToken)
+    {
+        if (!_editorOptionsService.GlobalOptions.GetOption(SplitStringLiteralOptionsStorage.Enabled))
         {
-            _undoHistoryRegistry = undoHistoryRegistry;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptionsService = editorOptionsService;
+            return false;
         }
 
-        public string DisplayName => CSharpEditorResources.Split_string;
+        var textView = args.TextView;
+        var subjectBuffer = args.SubjectBuffer;
+        var spans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
 
-        public CommandState GetCommandState(ReturnKeyCommandArgs args)
-            => CommandState.Unspecified;
+        // Don't split strings if there is any actual selection.
+        // We must check all spans to account for multi-carets.
+        if (spans.IsEmpty() || !spans.All(s => s.IsEmpty))
+            return false;
 
-        public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
-            => ExecuteCommandWorker(args, context.OperationContext.UserCancellationToken);
+        var caret = textView.GetCaretPoint(subjectBuffer);
+        if (caret == null)
+            return false;
 
-        public bool ExecuteCommandWorker(ReturnKeyCommandArgs args, CancellationToken cancellationToken)
+        // First, we need to verify that we are only working with string literals.
+        // Otherwise, let the editor handle all carets.
+        foreach (var span in spans)
         {
-            if (!_editorOptionsService.GlobalOptions.GetOption(SplitStringLiteralOptionsStorage.Enabled))
+            var spanStart = span.Start;
+            var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(span.Start);
+            if (!LineContainsQuote(line, span.Start))
+                return false;
+        }
+
+        var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+        if (document == null)
+            return false;
+
+        var parsedDocument = ParsedDocument.CreateSynchronously(document, CancellationToken.None);
+        var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: false);
+
+        // We now go through the verified string literals and split each of them.
+        // The list of spans is traversed in reverse order so we do not have to
+        // deal with updating later caret positions to account for the added space
+        // from splitting at earlier caret positions.
+        foreach (var span in spans.Reverse())
+        {
+            using var transaction = CaretPreservingEditTransaction.TryCreate(
+                CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+
+            var splitter = StringSplitter.TryCreate(parsedDocument, span.Start.Position, indentationOptions, cancellationToken);
+            if (splitter is null ||
+                !splitter.TrySplit(out var newRoot, out var newPosition))
             {
                 return false;
             }
 
-            var textView = args.TextView;
-            var subjectBuffer = args.SubjectBuffer;
-            var spans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
+            // apply the change:
+            var newDocument = parsedDocument.WithChangedRoot(newRoot, cancellationToken);
+            var newSnapshot = subjectBuffer.ApplyChanges(newDocument.GetChanges(parsedDocument));
+            parsedDocument = newDocument;
 
-            // Don't split strings if there is any actual selection.
-            // We must check all spans to account for multi-carets.
-            if (spans.IsEmpty() || !spans.All(s => s.IsEmpty))
-                return false;
-
-            var caret = textView.GetCaretPoint(subjectBuffer);
-            if (caret == null)
-                return false;
-
-            // First, we need to verify that we are only working with string literals.
-            // Otherwise, let the editor handle all carets.
-            foreach (var span in spans)
+            // The buffer edit may have adjusted to position of the current caret but we might need a different location.
+            // Only adjust caret if it is the only one (no multi-caret support: https://github.com/dotnet/roslyn/issues/64812).
+            if (spans.Count == 1)
             {
-                var spanStart = span.Start;
-                var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(span.Start);
-                if (!LineContainsQuote(line, span.Start))
-                    return false;
+                var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
+                    new SnapshotPoint(newSnapshot, newPosition),
+                    PointTrackingMode.Negative,
+                    PositionAffinity.Predecessor,
+                    textView.TextBuffer);
+
+                if (newCaretPoint != null)
+                    textView.Caret.MoveTo(newCaretPoint.Value);
             }
 
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-                return false;
+            transaction?.Complete();
+        }
 
-            var parsedDocument = ParsedDocument.CreateSynchronously(document, CancellationToken.None);
-            var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: false);
+        return true;
 
-            // We now go through the verified string literals and split each of them.
-            // The list of spans is traversed in reverse order so we do not have to
-            // deal with updating later caret positions to account for the added space
-            // from splitting at earlier caret positions.
-            foreach (var span in spans.Reverse())
+        static bool LineContainsQuote(ITextSnapshotLine line, int caretPosition)
+        {
+            var snapshot = line.Snapshot;
+            for (int i = line.Start; i < caretPosition; i++)
             {
-                using var transaction = CaretPreservingEditTransaction.TryCreate(
-                    CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
-
-                var splitter = StringSplitter.TryCreate(parsedDocument, span.Start.Position, indentationOptions, cancellationToken);
-                if (splitter is null ||
-                    !splitter.TrySplit(out var newRoot, out var newPosition))
-                {
-                    return false;
-                }
-
-                // apply the change:
-                var newDocument = parsedDocument.WithChangedRoot(newRoot, cancellationToken);
-                var newSnapshot = subjectBuffer.ApplyChanges(newDocument.GetChanges(parsedDocument));
-                parsedDocument = newDocument;
-
-                // The buffer edit may have adjusted to position of the current caret but we might need a different location.
-                // Only adjust caret if it is the only one (no multi-caret support: https://github.com/dotnet/roslyn/issues/64812).
-                if (spans.Count == 1)
-                {
-                    var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
-                        new SnapshotPoint(newSnapshot, newPosition),
-                        PointTrackingMode.Negative,
-                        PositionAffinity.Predecessor,
-                        textView.TextBuffer);
-
-                    if (newCaretPoint != null)
-                        textView.Caret.MoveTo(newCaretPoint.Value);
-                }
-
-                transaction?.Complete();
+                if (snapshot[i] == '"')
+                    return true;
             }
 
-            return true;
-
-            static bool LineContainsQuote(ITextSnapshotLine line, int caretPosition)
-            {
-                var snapshot = line.Snapshot;
-                for (int i = line.Start; i < caretPosition; i++)
-                {
-                    if (snapshot[i] == '"')
-                        return true;
-                }
-
-                return false;
-            }
+            return false;
         }
     }
 }

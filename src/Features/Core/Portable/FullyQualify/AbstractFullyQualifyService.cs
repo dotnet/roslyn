@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -77,8 +76,8 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
             var inAttributeContext = syntaxFacts.IsAttributeName(simpleName);
 
             var matchingTypes = await FindAsync(name, ignoreCase, SymbolFilter.Type).ConfigureAwait(false);
-            var matchingAttributeTypes = inAttributeContext ? await FindAsync(name + nameof(Attribute), ignoreCase, SymbolFilter.Type).ConfigureAwait(false) : ImmutableArray<ISymbol>.Empty;
-            var matchingNamespaces = inAttributeContext ? ImmutableArray<ISymbol>.Empty : await FindAsync(name, ignoreCase, SymbolFilter.Namespace).ConfigureAwait(false);
+            var matchingAttributeTypes = inAttributeContext ? await FindAsync(name + nameof(Attribute), ignoreCase, SymbolFilter.Type).ConfigureAwait(false) : [];
+            var matchingNamespaces = inAttributeContext ? [] : await FindAsync(name, ignoreCase, SymbolFilter.Namespace).ConfigureAwait(false);
 
             if (matchingTypes.IsEmpty && matchingAttributeTypes.IsEmpty && matchingNamespaces.IsEmpty)
                 return null;
@@ -111,8 +110,9 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
 
         async Task<ImmutableArray<ISymbol>> FindAsync(string name, bool ignoreCase, SymbolFilter filter)
         {
+            using var query = SearchQuery.Create(name, ignoreCase);
             return await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
-                project, SearchQuery.Create(name, ignoreCase), filter, cancellationToken).ConfigureAwait(false);
+                project, query, filter, cancellationToken).ConfigureAwait(false);
         }
 
         ImmutableArray<SymbolResult> GetTypeSearchResults(

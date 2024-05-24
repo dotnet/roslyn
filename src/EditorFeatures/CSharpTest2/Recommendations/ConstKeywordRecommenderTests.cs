@@ -22,24 +22,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterClass()
         {
             await VerifyKeywordAsync(
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalStatement()
         {
             await VerifyKeywordAsync(
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalVariableDeclaration()
         {
             await VerifyKeywordAsync(
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -56,8 +62,7 @@ $$");
 @"global using Goo = $$");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInEmptyStatement(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -67,63 +72,79 @@ $$");
         [Fact]
         public async Task TestAfterExtern()
         {
-            await VerifyKeywordAsync(@"extern alias Goo;
-$$");
+            await VerifyKeywordAsync("""
+                extern alias Goo;
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterUsing()
         {
-            await VerifyKeywordAsync(@"using Goo;
-$$");
+            await VerifyKeywordAsync("""
+                using Goo;
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalUsing()
         {
-            await VerifyKeywordAsync(@"global using Goo;
-$$");
+            await VerifyKeywordAsync("""
+                global using Goo;
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNamespace()
         {
-            await VerifyKeywordAsync(@"namespace N {}
-$$");
+            await VerifyKeywordAsync("""
+                namespace N {}
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterDelegateDeclaration()
         {
-            await VerifyKeywordAsync(@"delegate void Goo();
-$$");
+            await VerifyKeywordAsync("""
+                delegate void Goo();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterMethod()
         {
             await VerifyKeywordAsync(
-@"class C {
-  void Goo() {}
-  $$");
+                """
+                class C {
+                  void Goo() {}
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterField()
         {
             await VerifyKeywordAsync(
-@"class C {
-  int i;
-  $$");
+                """
+                class C {
+                  int i;
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterProperty()
         {
             await VerifyKeywordAsync(
-@"class C {
-  int i { get; }
-  $$");
+                """
+                class C {
+                  int i { get; }
+                  $$
+                """);
         }
 
         [Theory]
@@ -132,8 +153,10 @@ $$");
         public async Task TestNotBeforeUsing(SourceCodeKind sourceCodeKind)
         {
             await VerifyAbsenceAsync(sourceCodeKind,
-@"$$
-using Goo;");
+                """
+                $$
+                using Goo;
+                """);
         }
 
         [Theory]
@@ -142,68 +165,86 @@ using Goo;");
         public async Task TestNotBeforeGlobalUsing(SourceCodeKind sourceCodeKind)
         {
             await VerifyAbsenceAsync(sourceCodeKind,
-@"$$
-global using Goo;");
+                """
+                $$
+                global using Goo;
+                """);
         }
 
         [Fact]
         public async Task TestAfterAssemblyAttribute()
         {
-            await VerifyKeywordAsync(@"[assembly: goo]
-$$");
+            await VerifyKeywordAsync("""
+                [assembly: goo]
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterRootAttribute()
         {
-            await VerifyKeywordAsync(SourceCodeKind.Regular, @"[goo]
-$$");
+            await VerifyKeywordAsync(SourceCodeKind.Regular, """
+                [goo]
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterRootAttribute_Interactive()
         {
-            await VerifyKeywordAsync(SourceCodeKind.Script, @"[goo]
-$$");
+            await VerifyKeywordAsync(SourceCodeKind.Script, """
+                [goo]
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedAttribute()
         {
             await VerifyKeywordAsync(
-@"class C {
-  [goo]
-  $$");
+                """
+                class C {
+                  [goo]
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideStruct()
         {
             await VerifyKeywordAsync(
-@"struct S {
-   $$");
+                """
+                struct S {
+                   $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideInterface()
         {
-            await VerifyKeywordAsync(@"interface I {
-   $$");
+            await VerifyKeywordAsync("""
+                interface I {
+                   $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInsideEnum()
         {
-            await VerifyAbsenceAsync(@"enum E {
-   $$");
+            await VerifyAbsenceAsync("""
+                enum E {
+                   $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideClass()
         {
             await VerifyKeywordAsync(
-@"class C {
-   $$");
+                """
+                class C {
+                   $$
+                """);
         }
 
         [Fact]
@@ -226,8 +267,10 @@ $$");
         public async Task TestAfterNestedInternal()
         {
             await VerifyKeywordAsync(
-@"class C {
-    internal $$");
+                """
+                class C {
+                    internal $$
+                """);
         }
 
         [Fact]
@@ -242,8 +285,10 @@ $$");
         public async Task TestAfterNestedPublic()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public $$");
+                """
+                class C {
+                    public $$
+                """);
         }
 
         [Fact]
@@ -264,8 +309,10 @@ $$");
         public async Task TestAfterNestedPrivate()
         {
             await VerifyKeywordAsync(
-@"class C {
-    private $$");
+                """
+                class C {
+                    private $$
+                """);
         }
 
         [Fact]
@@ -279,8 +326,10 @@ $$");
         public async Task TestAfterNestedProtected()
         {
             await VerifyKeywordAsync(
-@"class C {
-    protected $$");
+                """
+                class C {
+                    protected $$
+                """);
         }
 
         [Fact]
@@ -291,8 +340,10 @@ $$");
         public async Task TestNotAfterNestedSealed()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    sealed $$");
+                """
+                class C {
+                    sealed $$
+                """);
         }
 
         [Fact]
@@ -303,8 +354,10 @@ $$");
         public async Task TestNotAfterNestedStatic()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    static $$");
+                """
+                class C {
+                    static $$
+                """);
         }
 
         [Fact]
@@ -315,8 +368,10 @@ $$");
         public async Task TestNotAfterNestedStaticPublic()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    static public $$");
+                """
+                class C {
+                    static public $$
+                """);
         }
 
         [Fact]
@@ -327,16 +382,20 @@ $$");
         public async Task TestNotAfterEvent()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    event $$");
+                """
+                class C {
+                    event $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterConst()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    const $$");
+                """
+                class C {
+                    const $$
+                """);
         }
 
         [Fact]
@@ -350,36 +409,44 @@ $$");
         public async Task TestAfterNestedNew()
         {
             await VerifyKeywordAsync(
-@"class C {
-   new $$");
+                """
+                class C {
+                   new $$
+                """);
         }
 
         [Fact]
         public async Task TestInMethod()
         {
             await VerifyKeywordAsync(
-@"class C {
-   void Goo() {
-     $$");
+                """
+                class C {
+                   void Goo() {
+                     $$
+                """);
         }
 
         [Fact]
         public async Task TestInMethodNotAfterConst()
         {
             await VerifyAbsenceAsync(
-@"class C {
-   void Goo() {
-     const $$");
+                """
+                class C {
+                   void Goo() {
+                     const $$
+                """);
         }
 
         [Fact]
         public async Task TestInProperty()
         {
             await VerifyKeywordAsync(
-@"class C {
-   int Goo {
-     get {
-       $$");
+                """
+                class C {
+                   int Goo {
+                     get {
+                       $$
+                """);
         }
     }
 }

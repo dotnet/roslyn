@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
 {
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         }
 
         public override IEnumerable<IPeekRelationship> Relationships
-            => SpecializedCollections.SingletonEnumerable(PredefinedPeekRelationships.Definitions);
+            => [PredefinedPeekRelationships.Definitions];
 
         public override IPeekResultSource GetOrCreateResultSource(string relationshipName)
             => new ResultSource(this);

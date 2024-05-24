@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal abstract TypeConversions TypeConversions { get; }
+
         /// <summary>
         /// A helper method for ReferenceManager to set the system assembly, which provides primitive 
         /// types like Object, String, etc., e.g. mscorlib.dll. 
@@ -276,15 +278,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
-        /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
-        /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
-        {
-            get { return null; }
-        }
-
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
@@ -311,6 +304,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
         }
+
+        internal abstract bool HasImportedFromTypeLibAttribute { get; }
+
+        internal abstract bool HasPrimaryInteropAssemblyAttribute { get; }
 
 #nullable enable
         /// <summary>
@@ -380,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Lookup declaration for predefined CorLib type in this Assembly.
         /// </summary>
         /// <returns>The symbol for the pre-defined type or an error type if the type is not defined in the core library.</returns>
-        internal abstract NamedTypeSymbol GetDeclaredSpecialType(SpecialType type);
+        internal abstract NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type);
 
         /// <summary>
         /// Register declaration of predefined CorLib type in this Assembly.
@@ -428,6 +425,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.RuntimeSupportsUnmanagedSignatureCallingConvention;
                 case RuntimeCapability.VirtualStaticsInInterfaces:
                     return this.RuntimeSupportsStaticAbstractMembersInInterfaces;
+                case RuntimeCapability.InlineArrayTypes:
+                    return this.RuntimeSupportsInlineArrayTypes;
+                case RuntimeCapability.ByRefLikeGenerics:
+                    return this.RuntimeSupportsByRefLikeGenerics;
             }
 
             return false;
@@ -466,10 +467,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Figure out if the target runtime supports inline array types.
+        /// </summary>
+        internal bool RuntimeSupportsInlineArrayTypes
+        {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsInlineArrayTypes
+            get
+            {
+                return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor) is object;
+            }
+        }
+
+        /// <summary>
+        /// Figure out if the target runtime supports inline array types.
+        /// </summary>
+        internal bool RuntimeSupportsByRefLikeGenerics
+        {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsByRefLikeGenerics
+            get
+            {
+                // CorLibrary should never be null, but that invariant is broken in some cases for MissingAssemblySymbol.
+                // Tracked by https://github.com/dotnet/roslyn/issues/61262
+                return CorLibrary is not null &&
+                    RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics);
+            }
+        }
+
         protected bool RuntimeSupportsFeature(SpecialMember feature)
         {
             // Keep in sync with VB's AssemblySymbol.RuntimeSupportsFeature
-            Debug.Assert((SpecialType)SpecialMembers.GetDescriptor(feature).DeclaringTypeId == SpecialType.System_Runtime_CompilerServices_RuntimeFeature);
+            Debug.Assert(SpecialMembers.GetDescriptor(feature).DeclaringSpecialType == SpecialType.System_Runtime_CompilerServices_RuntimeFeature);
             return GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature) is { TypeKind: TypeKind.Class, IsStatic: true } &&
                    GetSpecialTypeMember(feature) is object;
         }
@@ -514,7 +542,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract ImmutableArray<AssemblySymbol> GetLinkedReferencedAssemblies();
         internal abstract void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies);
 
+        IEnumerable<ImmutableArray<byte>> IAssemblySymbolInternal.GetInternalsVisibleToPublicKeys(string simpleName)
+            => GetInternalsVisibleToPublicKeys(simpleName);
+
         internal abstract IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName);
+
+        IEnumerable<string> IAssemblySymbolInternal.GetInternalsVisibleToAssemblyNames()
+            => GetInternalsVisibleToAssemblyNames();
+
+        internal abstract IEnumerable<string> GetInternalsVisibleToAssemblyNames();
+
+        bool IAssemblySymbolInternal.AreInternalsVisibleToThisAssembly(IAssemblySymbolInternal otherAssembly)
+            => AreInternalsVisibleToThisAssembly((AssemblySymbol)otherAssembly);
+
         internal abstract bool AreInternalsVisibleToThisAssembly(AssemblySymbol other);
 
         /// <summary>
@@ -527,10 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// the string might be null or an invalid guid representation. False, 
         /// if there is no GuidAttribute with string argument.
         /// </summary>
-        internal virtual bool GetGuidString(out string guidString)
-        {
-            return GetGuidStringDefaultImplementation(out guidString);
-        }
+        internal abstract bool GetGuidString(out string guidString);
 
         /// <summary>
         /// Gets the set of type identifiers from this assembly.
@@ -564,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets the symbol for the pre-defined type from core library associated with this assembly.
         /// </summary>
         /// <returns>The symbol for the pre-defined type or an error type if the type is not defined in the core library.</returns>
-        internal NamedTypeSymbol GetSpecialType(SpecialType type)
+        internal NamedTypeSymbol GetSpecialType(ExtendedSpecialType type)
         {
             return CorLibrary.GetDeclaredSpecialType(type);
         }

@@ -2,8 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    internal sealed class CollectionBuilderAttributeData
+    {
+        public static readonly CollectionBuilderAttributeData Uninitialized = new CollectionBuilderAttributeData(null, null);
+
+        public CollectionBuilderAttributeData(TypeSymbol? builderType, string? methodName)
+        {
+            BuilderType = builderType;
+            MethodName = methodName;
+        }
+
+        public readonly TypeSymbol? BuilderType;
+        public readonly string? MethodName;
+    }
+
     /// <summary>
     /// Information decoded early from well-known custom attributes applied on a type.
     /// </summary>
@@ -22,6 +38,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 VerifySealed(expected: false);
                 _hasInterpolatedStringHandlerAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region InlineArrayAttribute
+
+        private int _inlineArrayLength;
+        public int InlineArrayLength
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _inlineArrayLength;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+
+                Debug.Assert(value is -1 or > 0);
+                if (_inlineArrayLength == 0)
+                {
+                    _inlineArrayLength = value;
+                }
+
+                SetDataStored();
+            }
+        }
+
+        #endregion
+
+        #region CollectionBuilderAttribute
+        private CollectionBuilderAttributeData? _collectionBuilder;
+        public CollectionBuilderAttributeData? CollectionBuilder
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _collectionBuilder;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _collectionBuilder ??= value;
                 SetDataStored();
             }
         }

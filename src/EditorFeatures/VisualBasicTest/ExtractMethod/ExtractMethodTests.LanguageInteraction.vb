@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
@@ -2066,7 +2067,7 @@ End Module</text>
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             <WorkItem(10341, "DevDiv_Projects/Roslyn")>
-            Public Async Function TestTryCatchPartDontCrash() As Task
+            Public Async Function TestTryCatchPartDoNotCrash() As Task
                 Dim code = <text>Module Program
     Sub Main(nwindConn As String())
         Dim nwindTxn As SqlTransaction = nwindConn.BeginTransaction()
@@ -3247,7 +3248,7 @@ End Module
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Async Function TestDontPutOutOrRefOnStructOff() As Task
+            Public Async Function TestDoNotPutOutOrRefOnStructOff() As Task
                 Dim code =
 <text>
 Imports System.Threading.Tasks
@@ -3277,7 +3278,7 @@ End Namespace
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Async Function TestDontPutOutOrRefOnStructOn() As Task
+            Public Async Function TestDoNotPutOutOrRefOnStructOn() As Task
                 Dim code =
 <text>
 Imports System.Threading.Tasks
@@ -3340,7 +3341,7 @@ End Namespace
                 Const code = "
 Imports System
 
-" & FormattableStringType & "
+" & CodeSnippets.VBFormattableStringType & "
 
 Namespace N
     Class C
@@ -3353,7 +3354,7 @@ End Namespace"
                 Const expected = "
 Imports System
 
-" & FormattableStringType & "
+" & CodeSnippets.VBFormattableStringType & "
 
 Namespace N
     Class C
@@ -3374,7 +3375,7 @@ End Namespace"
             <Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             <Trait(Traits.Feature, Traits.Features.Interactive)>
             Public Sub TestExtractMethodCommandDisabledInSubmission()
-                Using workspace = TestWorkspace.Create(
+                Using workspace = EditorTestWorkspace.Create(
                     <Workspace>
                         <Submission Language="Visual Basic" CommonReferences="true">  
                             GetType(String).$$Name

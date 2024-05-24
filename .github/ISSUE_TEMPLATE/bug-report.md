@@ -15,7 +15,7 @@ A minimal repro, with source-code provided, is ideal.  Using [sharplab](https://
 
 **Diagnostic Id**:
 
-If this is a report about a bug in an analyzer, please include the diagnostic if possible (e.g. `"IDE0030"`).
+If this is a report about a bug in an analyzer, please include the diagnostic ID and message if possible (e.g. `"IDE0030: Use coalesce expression"`).
 
 **Expected Behavior**:
 

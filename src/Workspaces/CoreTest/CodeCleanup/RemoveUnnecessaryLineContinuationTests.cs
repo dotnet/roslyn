@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -1132,7 +1131,7 @@ End Class";
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530621")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631933")]
-        public async Task DontRemoveLineContinuationAfterColonInSingleLineIfStatement()
+        public async Task DoNotRemoveLineContinuationAfterColonInSingleLineIfStatement()
         {
             var code = @"[|Module Program
     Dim x = Sub() If True Then Dim y : _
@@ -1149,7 +1148,7 @@ End Module";
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609481")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631933")]
-        public async Task DontRemoveLineContinuationInSingleLineIfStatement()
+        public async Task DoNotRemoveLineContinuationInSingleLineIfStatement()
         {
             var code = @"[|
 Module Program
@@ -1179,7 +1178,7 @@ End Module
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609481")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631933")]
-        public async Task DontRemoveLineContinuationInNestedSingleLineIfStatement()
+        public async Task DoNotRemoveLineContinuationInNestedSingleLineIfStatement()
         {
             var code = @"[|
 Module Program
@@ -1236,7 +1235,7 @@ End Module
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/710")]
-        public async Task DontRemoveLineContinuationInStringInterpolation1()
+        public async Task DoNotRemoveLineContinuationInStringInterpolation1()
         {
             var code = @"[|
 Module Program
@@ -1255,7 +1254,7 @@ End Module
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/710")]
-        public async Task DontRemoveLineContinuationInStringInterpolation2()
+        public async Task DoNotRemoveLineContinuationInStringInterpolation2()
         {
             var code = @"[|
 Module Program
@@ -1274,7 +1273,7 @@ End Module
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/710")]
-        public async Task DontRemoveLineContinuationInStringInterpolation3()
+        public async Task DoNotRemoveLineContinuationInStringInterpolation3()
         {
             var code = @"[|
 Module Program
@@ -1293,13 +1292,79 @@ Module Program
 1 _
 
 }""
+End Module
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [Theory]
+        [InlineData("_")]
+        [InlineData("_ ' Comment")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69696")]
+        public async Task LineContinuationInString1(string continuation)
+        {
+            var code = $@"[|
+Module Program
+    Dim x = ""1"" {continuation}
+            & ""2"" {continuation}
+            & ""3""
+End Module
+|]";
+
+            var expected = $@"
+Module Program
+    Dim x = ""1"" {continuation}
+            & ""2"" {continuation}
+            & ""3""
+End Module
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69696")]
+        public async Task LineContinuationInString2()
+        {
+            var code = $@"[|
+Module Program
+    Dim x = ""1"" & _
+            ""2"" & _
+            ""3""
+End Module
+|]";
+
+            var expected = $@"
+Module Program
+    Dim x = ""1"" &
+            ""2"" &
+            ""3""
+End Module
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69696")]
+        public async Task LineContinuationInString3()
+        {
+            var code = $@"[|
+Module Program
+    Dim x = ""1"" & ' Comment
+            ""2"" & ' Comment
+            ""3""
+End Module
+|]";
+
+            var expected = $@"
+Module Program
+    Dim x = ""1"" & ' Comment
+            ""2"" & ' Comment
+            ""3""
 End Module
 ";
             await VerifyAsync(code, expected);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085887")]
-        public async Task DontRemoveLineContinuationInVisualBasic9()
+        public async Task DoNotRemoveLineContinuationInVisualBasic9()
         {
             var code = @"[|
 Module Program
@@ -1371,16 +1436,15 @@ End Class";
 
         private static async Task VerifyAsync(string codeWithMarker, string expectedResult, LanguageVersion langVersion = LanguageVersion.VisualBasic14)
         {
-            MarkupTestFile.GetSpans(codeWithMarker,
-                out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
+            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out var textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic, langVersion);
             var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.RemoveUnnecessaryLineContinuation or PredefinedCodeCleanupProviderNames.Format);
 
             var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], CodeCleanupOptions.GetDefault(document.Project.Services), codeCleanups);
 
-            var actualResult = (await cleanDocument.GetSyntaxRootAsync()).ToFullString();
-            Assert.Equal(expectedResult, actualResult);
+            var actualResult = (await cleanDocument.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString();
+            AssertEx.EqualOrDiff(expectedResult, actualResult);
         }
 
         private static Document CreateDocument(string code, string language, LanguageVersion langVersion)
@@ -1389,8 +1453,9 @@ End Class";
             var projectId = ProjectId.CreateNewId();
             var project = solution
                 .AddProject(projectId, "Project", "Project.dll", language)
-                .GetProject(projectId);
+                .GetRequiredProject(projectId);
 
+            AssertEx.NotNull(project.ParseOptions);
             var parseOptions = (VisualBasicParseOptions)project.ParseOptions;
             parseOptions = parseOptions.WithLanguageVersion(langVersion);
             project = project.WithParseOptions(parseOptions);

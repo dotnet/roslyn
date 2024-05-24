@@ -14,11 +14,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SemanticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Protected Overrides Async Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions, testHost As TestHost) As Task(Of ImmutableArray(Of ClassifiedSpan))
+        Protected Overrides Async Function GetClassificationSpansAsync(code As String, spans As ImmutableArray(Of TextSpan), parseOptions As ParseOptions, testHost As TestHost) As Task(Of ImmutableArray(Of ClassifiedSpan))
             Using workspace = CreateWorkspace(code, testHost)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
-                Return Await GetSemanticClassificationsAsync(document, span)
+                Return Await GetSemanticClassificationsAsync(document, spans)
             End Using
         End Function
 
@@ -263,13 +263,13 @@ q = From"
 
         <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        Public Async Function TestDontColorThingsOtherThanFromInDeclaration(testHost As TestHost) As Task
+        Public Async Function TestDoNotColorThingsOtherThanFromInDeclaration(testHost As TestHost) As Task
             Await TestInExpressionAsync("Fro ", testHost)
         End Function
 
         <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        Public Async Function TestDontColorThingsOtherThanFromInAssignment(testHost As TestHost) As Task
+        Public Async Function TestDoNotColorThingsOtherThanFromInAssignment(testHost As TestHost) As Task
             Dim code =
 "Dim q = 3
 q = Fro "
@@ -281,7 +281,7 @@ q = Fro "
 
         <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        Public Async Function TestDontColorFromWhenBoundInDeclaration(testHost As TestHost) As Task
+        Public Async Function TestDoNotColorFromWhenBoundInDeclaration(testHost As TestHost) As Task
             Dim code =
 "Dim From = 3
 Dim q = From"
@@ -293,7 +293,7 @@ Dim q = From"
 
         <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")>
-        Public Async Function TestDontColorFromWhenBoundInAssignment(testHost As TestHost) As Task
+        Public Async Function TestDoNotColorFromWhenBoundInAssignment(testHost As TestHost) As Task
             Dim code =
 "Dim From = 3
 Dim q = 3
@@ -888,6 +888,37 @@ Regex.Grouping(")"))
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69237")>
+        Public Async Function TestRegexStringSyntaxAttribute_Initializer(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    <StringSyntax(StringSyntaxAttribute.Regex)>
+    public property P as string
+
+    sub Goo()
+        dim x = new Program With {
+            [|.P = ""$(\b\G\z)""|]
+        }
+    end sub
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+[Property]("P"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestRegexNotOnUnannotatedParameter(testHost As TestHost) As Task
             Await TestAsync(
 "
@@ -1211,5 +1242,33 @@ End Try"
                 [Class]("Exception"),
                 Local("ex"))
         End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestEscapeFourBytesCharacter(testHost As TestHost) As Task
+            Dim code =
+"
+Public Class C
+    Private x As String = ""𠀀𠀁𠣶𤆐𥽠𪛕""
+End Class
+"
+
+            Await TestInMethodAsync(code,
+                testHost)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestEscapeCharacter(testHost As TestHost) As Task
+            Dim code =
+"
+Public Class C
+    Private x As String = """"""""
+End Class
+"
+
+            Await TestInMethodAsync(code,
+                testHost,
+                Escape(""""""))
+        End Function
+
     End Class
 End Namespace

@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
 {
@@ -27,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         }
 
         public override IEnumerable<IPeekRelationship> Relationships
-        {
-            get { return SpecializedCollections.SingletonEnumerable(_relationship); }
-        }
+            => [_relationship];
 
         public override IPeekResultSource GetOrCreateResultSource(string relationshipName)
             => new ResultSource(this);

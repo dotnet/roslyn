@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ChangeSignature
+Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Formatting
@@ -734,8 +735,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return results.ToImmutableAndFree()
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
-            Return SpecializedCollections.SingletonEnumerable(Of AbstractFormattingRule)(New ChangeSignatureFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document))
+        Protected Overrides Function GetFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
+            Dim coreRules = Formatter.GetDefaultFormattingRules(document)
+            Dim result = New FixedSizeArrayBuilder(Of AbstractFormattingRule)(1 + coreRules.Length)
+            result.Add(New ChangeSignatureFormattingRule())
+            result.AddRange(coreRules)
+            Return result.MoveToImmutable()
         End Function
 
         Protected Overrides Function TransferLeadingWhitespaceTrivia(Of T As SyntaxNode)(newArgument As T, oldArgument As SyntaxNode) As T
@@ -754,21 +759,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End Get
         End Property
 
-        Protected Overrides Function CreateExplicitParamsArrayFromIndividualArguments(newArguments As SeparatedSyntaxList(Of SyntaxNode), indexInExistingList As Integer, parameterSymbol As IParameterSymbol) As SyntaxNode
+        Protected Overrides Function CreateExplicitParamsArrayFromIndividualArguments(Of TArgumentSyntax As SyntaxNode)(newArguments As SeparatedSyntaxList(Of TArgumentSyntax), indexInExistingList As Integer, parameterSymbol As IParameterSymbol) As TArgumentSyntax
             ' A params array cannot be introduced due to the addition of an omitted 
             ' argument in VB because you cannot have a named argument to a params array.
             Throw New InvalidOperationException()
         End Function
 
-        Protected Overrides Function AddNameToArgument(newArgument As SyntaxNode, name As String) As SyntaxNode
+        Protected Overrides Function AddNameToArgument(Of TArgumentSyntax As SyntaxNode)(newArgument As TArgumentSyntax, name As String) As TArgumentSyntax
             Dim simpleArgument = TryCast(newArgument, SimpleArgumentSyntax)
             If simpleArgument IsNot Nothing Then
-                Return simpleArgument.WithNameColonEquals(NameColonEquals(IdentifierName(name)))
+                Return CType(CType(simpleArgument.WithNameColonEquals(NameColonEquals(IdentifierName(name))), SyntaxNode), TArgumentSyntax)
             End If
 
             Dim omittedArgument = TryCast(newArgument, OmittedArgumentSyntax)
             If omittedArgument IsNot Nothing Then
-                Return omittedArgument
+                Return CType(CType(omittedArgument, SyntaxNode), TArgumentSyntax)
             End If
 
             Throw ExceptionUtilities.UnexpectedValue(newArgument.Kind())

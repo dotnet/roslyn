@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -11,87 +11,80 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpConstructorSnippetProvider() : AbstractConstructorSnippetProvider<ConstructorDeclarationSyntax>
 {
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpConstructorSnippetProvider : AbstractConstructorSnippetProvider
+    private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpConstructorSnippetProvider()
+        SyntaxKind.PublicKeyword,
+        SyntaxKind.PrivateKeyword,
+        SyntaxKind.ProtectedKeyword,
+        SyntaxKind.InternalKeyword,
+        SyntaxKind.StaticKeyword,
+    };
+
+    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
+    {
+        var syntaxContext = (CSharpSyntaxContext)context.SyntaxContext;
+
+        var precedingModifiers = syntaxContext.PrecedingModifiers;
+
+        if (!(precedingModifiers.All(SyntaxFacts.IsAccessibilityModifier) ||
+            precedingModifiers.Count == 1 && precedingModifiers.Single() == SyntaxKind.StaticKeyword))
         {
+            return false;
         }
 
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-
-            return
-                syntaxContext.IsMemberDeclarationContext(
-                    validTypeDeclarations: SyntaxKindSet.ClassStructRecordTypeDeclarations,
-                    canBePartial: true,
-                    cancellationToken: cancellationToken);
-        }
-
-        /// <summary>
-        /// Gets the start of the BlockSyntax of the constructor declaration
-        /// to be able to insert the caret position at that location.
-        /// </summary>
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-        {
-            var constructorDeclaration = (ConstructorDeclarationSyntax)caretTarget;
-            var blockStatement = constructorDeclaration.Body;
-
-            var triviaSpan = blockStatement!.CloseBraceToken.LeadingTrivia.Span;
-            var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
-            // Getting the location at the end of the line before the newline.
-            return line.Span.End;
-        }
-
-        private static string GetIndentation(Document document, ConstructorDeclarationSyntax constructorDeclaration, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
-        {
-            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(constructorDeclaration.Body!.SpanStart).LineNumber;
-
-            var indentationOptions = new IndentationOptions(syntaxFormattingOptions);
-            var newLine = indentationOptions.FormattingOptions.NewLine;
-
-            var indentationService = parsedDocument.LanguageServices.GetRequiredService<IIndentationService>();
-            var indentation = indentationService.GetIndentation(parsedDocument, openBraceLine + 1, indentationOptions, cancellationToken);
-
-            // Adding the offset calculated with one tab so that it is indented once past the line containing the opening brace
-            var newIndentation = new IndentationResult(indentation.BasePosition, indentation.Offset + syntaxFormattingOptions.TabSize);
-            return newIndentation.GetIndentationString(parsedDocument.Text, syntaxFormattingOptions.UseTabs, syntaxFormattingOptions.TabSize) + newLine;
-        }
-
-        protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
-
-            if (snippet is not ConstructorDeclarationSyntax constructorDeclaration)
-                return document;
-
-            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = GetIndentation(document, constructorDeclaration, syntaxFormattingOptions, cancellationToken);
-
-            var blockStatement = constructorDeclaration.Body;
-            blockStatement = blockStatement!.WithCloseBraceToken(blockStatement.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
-            var newConstructorDeclaration = constructorDeclaration.ReplaceNode(constructorDeclaration.Body!, blockStatement);
-
-            var newRoot = root.ReplaceNode(constructorDeclaration, newConstructorDeclaration);
-            return document.WithSyntaxRoot(newRoot);
-        }
+        return
+            syntaxContext.IsMemberDeclarationContext(
+                validModifiers: s_validModifiers,
+                validTypeDeclarations: SyntaxKindSet.ClassStructRecordTypeDeclarations,
+                canBePartial: true,
+                cancellationToken: cancellationToken);
     }
+
+    protected override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+        var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+
+        var containingType = syntaxContext.ContainingTypeDeclaration;
+        Contract.ThrowIfNull(containingType);
+
+        var containingTypeSymbol = semanticModel.GetDeclaredSymbol(containingType, cancellationToken);
+        Contract.ThrowIfNull(containingTypeSymbol);
+
+        var generator = SyntaxGenerator.GetGenerator(document);
+        var constructorDeclaration = generator.ConstructorDeclaration(
+            containingTypeName: containingType.Identifier.ToString(),
+            accessibility: syntaxContext.PrecedingModifiers.Any() ? Accessibility.NotApplicable : (containingTypeSymbol.IsAbstract ? Accessibility.Protected : Accessibility.Public));
+
+        return new TextChange(TextSpan.FromBounds(position, position), constructorDeclaration.NormalizeWhitespace().ToFullString());
+    }
+
+    protected override int GetTargetCaretPosition(ConstructorDeclarationSyntax constructorDeclaration, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
+            constructorDeclaration,
+            static d => d.Body!,
+            sourceText);
+
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, ConstructorDeclarationSyntax constructorDeclaration, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
+            document,
+            constructorDeclaration,
+            static d => d.Body!,
+            cancellationToken);
 }

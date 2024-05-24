@@ -5,108 +5,92 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
+
+internal partial class UnitTestingSolutionCrawlerRegistrationService
 {
-    internal partial class UnitTestingSolutionCrawlerRegistrationService
+    internal partial class UnitTestingWorkCoordinator
     {
-        internal partial class UnitTestingWorkCoordinator
+        private sealed class UnitTestingAsyncProjectWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter) : UnitTestingAsyncWorkItemQueue<ProjectId>(progressReporter)
         {
-            private sealed class UnitTestingAsyncProjectWorkItemQueue : UnitTestingAsyncWorkItemQueue<ProjectId>
+            private readonly Dictionary<ProjectId, UnitTestingWorkItem> _projectWorkQueue = [];
+
+            protected override int WorkItemCount_NoLock => _projectWorkQueue.Count;
+
+            public override Task WaitAsync(CancellationToken cancellationToken)
             {
-                private readonly Dictionary<ProjectId, UnitTestingWorkItem> _projectWorkQueue = new();
-
-                public UnitTestingAsyncProjectWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter)
-                    : base(progressReporter)
+                if (!HasAnyWork)
                 {
+                    Logger.Log(FunctionId.WorkCoordinator_AsyncWorkItemQueue_LastItem);
                 }
 
-                protected override int WorkItemCount_NoLock => _projectWorkQueue.Count;
+                return base.WaitAsync(cancellationToken);
+            }
 
-                public override Task WaitAsync(CancellationToken cancellationToken)
+            protected override bool TryTake_NoLock(ProjectId key, out UnitTestingWorkItem workInfo)
+            {
+                if (!_projectWorkQueue.TryGetValue(key, out workInfo))
                 {
-                    if (!HasAnyWork)
-                    {
-                        Logger.Log(FunctionId.WorkCoordinator_AsyncWorkItemQueue_LastItem);
-                    }
-
-                    return base.WaitAsync(cancellationToken);
+                    workInfo = default;
+                    return false;
                 }
 
-                protected override bool TryTake_NoLock(ProjectId key, out UnitTestingWorkItem workInfo)
-                {
-                    if (!_projectWorkQueue.TryGetValue(key, out workInfo))
-                    {
-                        workInfo = default;
-                        return false;
-                    }
+                return _projectWorkQueue.Remove(key);
+            }
 
-                    return _projectWorkQueue.Remove(key);
+            protected override bool TryTakeAnyWork_NoLock(
+                ProjectId? preferableProjectId,
+                out UnitTestingWorkItem workItem)
+            {
+                // there must be at least one item in the map when this is called unless host is shutting down.
+                if (_projectWorkQueue.Count == 0)
+                {
+                    workItem = default;
+                    return false;
                 }
 
-                protected override bool TryTakeAnyWork_NoLock(
-                    ProjectId? preferableProjectId,
-#if false // Not used in unit testing crawling
-                    ProjectDependencyGraph dependencyGraph,
-                    IDiagnosticAnalyzerService? analyzerService,
-#endif
-                    out UnitTestingWorkItem workItem)
+                var projectId = GetBestProjectId_NoLock(
+                    _projectWorkQueue, preferableProjectId);
+                if (TryTake_NoLock(projectId, out workItem))
                 {
-                    // there must be at least one item in the map when this is called unless host is shutting down.
-                    if (_projectWorkQueue.Count == 0)
-                    {
-                        workItem = default;
-                        return false;
-                    }
-
-                    var projectId = GetBestProjectId_NoLock(
-                        _projectWorkQueue, preferableProjectId
-#if false // Not used in unit testing crawling
-                        , dependencyGraph
-                        , analyzerService
-#endif
-                        );
-                    if (TryTake_NoLock(projectId, out workItem))
-                    {
-                        return true;
-                    }
-
-                    throw ExceptionUtilities.Unreachable();
-                }
-
-                protected override bool AddOrReplace_NoLock(UnitTestingWorkItem item)
-                {
-                    var key = item.ProjectId;
-                    Cancel_NoLock(key);
-                    // now document work
-
-                    // see whether we need to update
-                    if (_projectWorkQueue.TryGetValue(key, out var existingWorkItem))
-                    {
-                        // replace it.
-                        _projectWorkQueue[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.SpecificAnalyzers, item.IsRetry, item.AsyncToken);
-                        return false;
-                    }
-
-                    // okay, it is new one
-                    // always hold onto the most recent one for the same project
-                    _projectWorkQueue.Add(key, item);
-
                     return true;
                 }
 
-                protected override void Dispose_NoLock()
-                {
-                    foreach (var workItem in _projectWorkQueue.Values)
-                    {
-                        workItem.AsyncToken.Dispose();
-                    }
+                throw ExceptionUtilities.Unreachable();
+            }
 
-                    _projectWorkQueue.Clear();
+            protected override bool AddOrReplace_NoLock(UnitTestingWorkItem item)
+            {
+                var key = item.ProjectId;
+                Cancel_NoLock(key);
+                // now document work
+
+                // see whether we need to update
+                if (_projectWorkQueue.TryGetValue(key, out var existingWorkItem))
+                {
+                    // replace it.
+                    _projectWorkQueue[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.SpecificAnalyzers, item.IsRetry, item.AsyncToken);
+                    return false;
                 }
+
+                // okay, it is new one
+                // always hold onto the most recent one for the same project
+                _projectWorkQueue.Add(key, item);
+
+                return true;
+            }
+
+            protected override void Dispose_NoLock()
+            {
+                foreach (var workItem in _projectWorkQueue.Values)
+                {
+                    workItem.AsyncToken.Dispose();
+                }
+
+                _projectWorkQueue.Clear();
             }
         }
     }

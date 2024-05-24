@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.Interactive
             => _registry = registry;
 
         public string Description
-            => EditorFeaturesWpfResources.Reset_the_execution_environment_to_the_initial_state_keep_history;
+            => EditorFeaturesWpfResources.Reset_the_execution_environment_to_the_initial_state_and_keep_history_with_the_option_to_switch_the_runtime_of_the_host_process;
 
         public IEnumerable<string> DetailedDescription
             => null;
 
         public IEnumerable<string> Names
-            => SpecializedCollections.SingletonEnumerable(CommandName);
+            => [CommandName];
 
         public string CommandLine
             => "[" + NoConfigParameterName + "] [" + PlatformNames + "]";
@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             get
             {
-                yield return new KeyValuePair<string, string>(NoConfigParameterName, EditorFeaturesWpfResources.Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script);
-                yield return new KeyValuePair<string, string>(PlatformNames, EditorFeaturesWpfResources.Interactive_host_process_platform);
+                yield return KeyValuePairUtil.Create(NoConfigParameterName, EditorFeaturesWpfResources.Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script);
+                yield return KeyValuePairUtil.Create(PlatformNames, EditorFeaturesWpfResources.Interactive_host_process_platform);
             }
         }
 

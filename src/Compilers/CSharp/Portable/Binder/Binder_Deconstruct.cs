@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DeconstructionVariable locals = BindDeconstructionVariables(left, diagnostics, ref declaration, ref expression);
             Debug.Assert(locals.NestedVariables is object);
 
-            var deconstructionDiagnostics = new BindingDiagnosticBag(new DiagnosticBag(), diagnostics.DependenciesBag);
+            var deconstructionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
             BoundExpression boundRight = rightPlaceholder ?? BindValue(right, deconstructionDiagnostics, BindValueKind.RValue);
 
             boundRight = FixTupleLiteral(locals.NestedVariables, boundRight, deconstruction, deconstructionDiagnostics);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var assignment = BindDeconstructionAssignment(deconstruction, left, boundRight, locals.NestedVariables, resultIsUsed, deconstructionDiagnostics);
             DeconstructionVariable.FreeDeconstructionVariables(locals.NestedVariables);
 
-            diagnostics.AddRange(deconstructionDiagnostics.DiagnosticBag);
+            diagnostics.AddRangeAndFree(deconstructionDiagnostics);
             return assignment;
         }
 
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Those placeholders are also recorded in the outVar for easy access below, by the `SetInferredType` call on the outVar nodes.
                 BoundExpression result = BindMethodGroupInvocation(
                     rightSyntax, rightSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
-                    allowUnexpandedForm: true, anyApplicableCandidates: out anyApplicableCandidates);
+                    ignoreNormalFormIfHasValidParamsParameter: false, anyApplicableCandidates: out anyApplicableCandidates);
 
                 result.WasCompilerGenerated = true;
 
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     if (declTypeWithAnnotations.HasType &&
-                        localSymbol.Scope == ScopedKind.ScopedValue && !declTypeWithAnnotations.Type.IsErrorTypeOrRefLikeType())
+                        localSymbol.Scope == ScopedKind.ScopedValue && !declTypeWithAnnotations.Type.IsErrorOrRefLikeOrAllowsRefLikeType())
                     {
                         diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
                     }

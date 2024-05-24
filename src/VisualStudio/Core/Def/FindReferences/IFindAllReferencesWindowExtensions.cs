@@ -6,14 +6,13 @@ using System.Linq;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindUsages
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
+
+internal static class IFindAllReferencesWindowExtensions
 {
-    internal static class IFindAllReferencesWindowExtensions
+    public static ColumnState2 GetDefinitionColumn(this IFindAllReferencesWindow window)
     {
-        public static ColumnState2 GetDefinitionColumn(this IFindAllReferencesWindow window)
-        {
-            return (ColumnState2)window.TableControl.ColumnStates.First(
-                s => s.Name == StandardTableColumnDefinitions2.Definition);
-        }
+        return (ColumnState2)window.TableControl.ColumnStates.First(
+            s => s.Name == StandardTableColumnDefinitions2.Definition);
     }
 }

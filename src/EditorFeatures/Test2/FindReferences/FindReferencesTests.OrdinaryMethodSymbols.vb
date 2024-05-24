@@ -1366,7 +1366,7 @@ class C
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538726")>
         <WpfTheory, CombinatorialData>
-        Public Async Function TestOrdinaryMethodInterfaceMethodsDontCascadeThroughOtherInterfaceMethods1(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestOrdinaryMethodInterfaceMethodsDoNotCascadeThroughOtherInterfaceMethods1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1393,7 +1393,7 @@ class C
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538726")>
         <WpfTheory, CombinatorialData>
-        Public Async Function TestOrdinaryMethodInterfaceMethodsDontCascadeThroughOtherInterfaceMethods2(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestOrdinaryMethodInterfaceMethodsDoNotCascadeThroughOtherInterfaceMethods2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1420,7 +1420,7 @@ class C
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538726")>
         <WpfTheory, CombinatorialData>
-        Public Async Function TestOrdinaryMethodInterfaceMethodsDontCascadeThroughOtherInterfaceMethods3(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestOrdinaryMethodInterfaceMethodsDoNotCascadeThroughOtherInterfaceMethods3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">

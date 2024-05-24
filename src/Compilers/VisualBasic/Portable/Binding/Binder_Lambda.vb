@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                returnsByRef:=False)
                     End If
 
-                    Dim typeInfo As KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)) = source.InferReturnType(targetForInference)
+                    Dim typeInfo As KeyValuePair(Of TypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol)) = source.InferReturnType(targetForInference)
 
                     targetReturnType = typeInfo.Key
                     diagnostics.AddRange(typeInfo.Value)
@@ -764,7 +764,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Friend Function InferAnonymousDelegateForLambda(source As UnboundLambda) As KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))
+        Friend Function InferAnonymousDelegateForLambda(source As UnboundLambda) As KeyValuePair(Of NamedTypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))
             Debug.Assert(Me Is source.Binder)
 
             Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, source.WithDependencies)
@@ -773,7 +773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim targetSignature As New UnboundLambda.TargetSignature(ImmutableArray(Of ParameterSymbol).Empty, Compilation.GetSpecialType(SpecialType.System_Void), returnsByRef:=False)
             Dim parameters As ImmutableArray(Of BoundLambdaParameterSymbol) = BuildBoundLambdaParameters(source, targetSignature, diagnostics)
 
-            Dim returnTypeInfo As KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))
+            Dim returnTypeInfo As KeyValuePair(Of TypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))
             returnTypeInfo = source.InferReturnType(New UnboundLambda.TargetSignature(StaticCast(Of ParameterSymbol).From(parameters), targetSignature.ReturnType, targetSignature.ReturnsByRef))
             Dim returnType As TypeSymbol = returnTypeInfo.Key
 
@@ -781,7 +781,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim delegateType As NamedTypeSymbol = ConstructAnonymousDelegateSymbol(source, parameters, returnType, diagnostics)
 
-            Return New KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))(delegateType, diagnostics.ToReadOnlyAndFree())
+            Return New KeyValuePair(Of NamedTypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))(delegateType, diagnostics.ToReadOnlyAndFree())
         End Function
 
         Private Function ConstructAnonymousDelegateSymbol(
@@ -885,14 +885,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function InferFunctionLambdaReturnType(
             source As UnboundLambda,
             targetParameters As UnboundLambda.TargetSignature
-        ) As KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))
+        ) As KeyValuePair(Of TypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))
             Debug.Assert(Me Is source.Binder AndAlso source.IsFunctionLambda AndAlso
                          source.ReturnType Is Nothing AndAlso targetParameters.ReturnType.IsVoidType())
 
             ' If both Async and Iterator are specified, we cannot really infer return type.
             If source.Flags = (SourceMemberFlags.Async Or SourceMemberFlags.Iterator) Then
                 ' No need to report any error because we complained about conflicting modifiers.
-                Return New KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))(LambdaSymbol.ReturnTypeIsUnknown, ImmutableBindingDiagnostic(Of AssemblySymbol).Empty)
+                Return New KeyValuePair(Of TypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))(LambdaSymbol.ReturnTypeIsUnknown, ReadOnlyBindingDiagnostic(Of AssemblySymbol).Empty)
             End If
 
             Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, source.WithDependencies)
@@ -904,7 +904,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim block As BoundBlock = BindLambdaBody(symbol, diagnostics, lambdaBinder:=Nothing)
 
             If block.HasErrors OrElse diagnostics.HasAnyErrors() Then
-                Return New KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))(LambdaSymbol.ReturnTypeIsUnknown, diagnostics.ToReadOnlyAndFree())
+                Return New KeyValuePair(Of TypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))(LambdaSymbol.ReturnTypeIsUnknown, diagnostics.ToReadOnlyAndFree())
             End If
 
             diagnostics.Clear()
@@ -1001,7 +1001,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             returnExpressions.Free()
 
-            Return New KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))(lambdaReturnType, diagnostics.ToReadOnlyAndFree())
+            Return New KeyValuePair(Of TypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))(lambdaReturnType, diagnostics.ToReadOnlyAndFree())
         End Function
 
         Private Shared Function LambdaHeaderErrorNode(source As UnboundLambda) As SyntaxNode

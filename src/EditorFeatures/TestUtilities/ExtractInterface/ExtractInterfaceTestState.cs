@@ -8,18 +8,13 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
@@ -29,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             typeof(TestExtractInterfaceOptionsService));
 
         private readonly TestHostDocument _testDocument;
-        public TestWorkspace Workspace { get; }
+        public EditorTestWorkspace Workspace { get; }
         public Document ExtractFromDocument { get; }
         public AbstractExtractInterfaceService ExtractInterfaceService { get; }
         public Solution OriginalSolution { get; }
@@ -44,15 +39,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             OptionsCollection options = null)
         {
             var workspace = languageName == LanguageNames.CSharp
-                ? TestWorkspace.CreateCSharp(markup, composition: Composition, compilationOptions: compilationOptions, parseOptions: parseOptions)
-                : TestWorkspace.CreateVisualBasic(markup, composition: Composition, compilationOptions: compilationOptions, parseOptions: parseOptions);
+                ? EditorTestWorkspace.CreateCSharp(markup, composition: Composition, compilationOptions: compilationOptions, parseOptions: parseOptions)
+                : EditorTestWorkspace.CreateVisualBasic(markup, composition: Composition, compilationOptions: compilationOptions, parseOptions: parseOptions);
 
             options?.SetGlobalOptions(workspace.GlobalOptions);
 
             return new ExtractInterfaceTestState(workspace);
         }
 
-        public ExtractInterfaceTestState(TestWorkspace workspace)
+        public ExtractInterfaceTestState(EditorTestWorkspace workspace)
         {
             Workspace = workspace;
 
@@ -120,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 options.FallbackOptions);
 
             var operations = await action.GetOperationsAsync(
-                this.OriginalSolution, changedOptions, CancellationToken.None);
+                this.OriginalSolution, changedOptions, CodeAnalysisProgress.None, CancellationToken.None);
             foreach (var operation in operations)
             {
                 operation.Apply(Workspace, CancellationToken.None);

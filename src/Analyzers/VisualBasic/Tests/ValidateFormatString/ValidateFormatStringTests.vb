@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatString
     <Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
     Public Class ValidateFormatStringTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(
                 workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)

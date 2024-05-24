@@ -12,45 +12,39 @@ using Microsoft.CodeAnalysis.Internal.Editing;
 using Microsoft.CodeAnalysis.Editing;
 #endif
 
-namespace Microsoft.CodeAnalysis.CodeGeneration
+namespace Microsoft.CodeAnalysis.CodeGeneration;
+
+internal class CodeGenerationConstructorSymbol(
+    INamedTypeSymbol containingType,
+    ImmutableArray<AttributeData> attributes,
+    Accessibility accessibility,
+    DeclarationModifiers modifiers,
+    ImmutableArray<IParameterSymbol> parameters) : CodeGenerationMethodSymbol(containingType,
+           attributes,
+           accessibility,
+           modifiers,
+           returnType: null,
+           refKind: RefKind.None,
+           explicitInterfaceImplementations: default,
+           name: string.Empty,
+           typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+           parameters: parameters,
+           returnTypeAttributes: ImmutableArray<AttributeData>.Empty)
 {
-    internal class CodeGenerationConstructorSymbol : CodeGenerationMethodSymbol
+    public override MethodKind MethodKind => MethodKind.Constructor;
+
+    protected override CodeGenerationSymbol Clone()
     {
-        public CodeGenerationConstructorSymbol(
-            INamedTypeSymbol containingType,
-            ImmutableArray<AttributeData> attributes,
-            Accessibility accessibility,
-            DeclarationModifiers modifiers,
-            ImmutableArray<IParameterSymbol> parameters)
-            : base(containingType,
-                   attributes,
-                   accessibility,
-                   modifiers,
-                   returnType: null,
-                   refKind: RefKind.None,
-                   explicitInterfaceImplementations: default,
-                   name: string.Empty,
-                   typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
-                   parameters: parameters,
-                   returnTypeAttributes: ImmutableArray<AttributeData>.Empty)
-        {
-        }
+        var result = new CodeGenerationConstructorSymbol(this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers, this.Parameters);
 
-        public override MethodKind MethodKind => MethodKind.Constructor;
+        CodeGenerationConstructorInfo.Attach(result,
+            CodeGenerationConstructorInfo.GetIsPrimaryConstructor(this),
+            CodeGenerationConstructorInfo.GetIsUnsafe(this),
+            CodeGenerationConstructorInfo.GetTypeName(this),
+            CodeGenerationConstructorInfo.GetStatements(this),
+            CodeGenerationConstructorInfo.GetBaseConstructorArgumentsOpt(this),
+            CodeGenerationConstructorInfo.GetThisConstructorArgumentsOpt(this));
 
-        protected override CodeGenerationSymbol Clone()
-        {
-            var result = new CodeGenerationConstructorSymbol(this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers, this.Parameters);
-
-            CodeGenerationConstructorInfo.Attach(result,
-                CodeGenerationConstructorInfo.GetIsPrimaryConstructor(this),
-                CodeGenerationConstructorInfo.GetIsUnsafe(this),
-                CodeGenerationConstructorInfo.GetTypeName(this),
-                CodeGenerationConstructorInfo.GetStatements(this),
-                CodeGenerationConstructorInfo.GetBaseConstructorArgumentsOpt(this),
-                CodeGenerationConstructorInfo.GetThisConstructorArgumentsOpt(this));
-
-            return result;
-        }
+        return result;
     }
 }

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -111,6 +112,28 @@ public class C
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70782")]
+        public async Task TestNintNuint()
+        {
+            var source = @"
+
+public class C
+{
+    void M(nint x);
+    void N(nuint x);
+}
+";
+            var netstandardReferences = await ReferenceAssemblies.NetStandard.NetStandard20.ResolveAsync(LanguageNames.CSharp, cancellationToken: default);
+            var netcoreReferences = await ReferenceAssemblies.Net.Net70.ResolveAsync(LanguageNames.CSharp, cancellationToken: default);
+
+            var compilation1 = GetCompilation(source, LanguageNames.CSharp, references: [.. netstandardReferences]);
+            var compilation2 = GetCompilation(source, LanguageNames.CSharp, references: [.. netcoreReferences]);
+            TestRoundTrip(GetDeclaredSymbols(compilation1), compilation1, useSymbolEquivalence: false);
+            TestRoundTrip(GetDeclaredSymbols(compilation1), compilation2, useSymbolEquivalence: true);
+            TestRoundTrip(GetDeclaredSymbols(compilation2), compilation1, useSymbolEquivalence: true);
+            TestRoundTrip(GetDeclaredSymbols(compilation2), compilation2, useSymbolEquivalence: false);
         }
 
         [Fact]
@@ -308,7 +331,7 @@ namespace A { namespace N { } }
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             var symbols = GetDeclaredSymbols(compilation);
             Assert.Equal(5, symbols.Count());
-            Assert.Equal(new[] { "N", "A", "A.B", "A.B.C", "A.N" },
+            Assert.Equal(["N", "A", "A.B", "A.B.C", "A.N"],
                 symbols.Select(s => s.ToDisplayString()));
             TestRoundTrip(symbols, compilation);
         }
@@ -373,6 +396,54 @@ public class C
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             TestRoundTrip(GetDeclaredSymbols(compilation).OfType<IMethodSymbol>().SelectMany(ms => ms.Parameters), compilation);
+        }
+
+        [Fact]
+        public void TestParameterRename()
+        {
+            var source1 = @"
+public class C
+{
+    public void M(int a, int b, int c) { }
+}
+";
+            var source2 = @"
+public class C
+{
+    public void M(int a, int x, int c) { }
+}
+";
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var b = ((IMethodSymbol)compilation1.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single()).Parameters[1];
+            var key = SymbolKey.CreateString(b);
+            var resolved = SymbolKey.ResolveString(key, compilation2).Symbol;
+            Assert.Equal("x", resolved?.Name);
+        }
+
+        [Fact]
+        public void TestParameterReorder()
+        {
+            var source1 = @"
+public class C
+{
+    public void M(int a, int b, int c) { }
+}
+";
+            var source2 = @"
+public class C
+{
+    public void M(int b, int a, int c) { }
+}
+";
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var b = ((IMethodSymbol)compilation1.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single()).Parameters[1];
+            var key = SymbolKey.CreateString(b);
+            var resolved = SymbolKey.ResolveString(key, compilation2).Symbol;
+            Assert.Equal("b", resolved?.Name);
         }
 
         [Fact]
@@ -1014,8 +1085,8 @@ class C
 }";
 
             // We don't add metadata references, so even `int` will be an error type.
-            var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs", Array.Empty<MetadataReference>());
-            var compilation2 = GetCompilation(source, LanguageNames.CSharp, "File2.cs", Array.Empty<MetadataReference>());
+            var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs", []);
+            var compilation2 = GetCompilation(source, LanguageNames.CSharp, "File2.cs", []);
 
             var symbol = (IPropertySymbol)GetAllSymbols(
                 compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
@@ -1049,8 +1120,8 @@ class C
 end class";
 
             // We don't add metadata references, so even `int` will be an error type.
-            var compilation1 = GetCompilation(source, LanguageNames.VisualBasic, "File1.vb", Array.Empty<MetadataReference>());
-            var compilation2 = GetCompilation(source, LanguageNames.VisualBasic, "File2.vb", Array.Empty<MetadataReference>());
+            var compilation1 = GetCompilation(source, LanguageNames.VisualBasic, "File1.vb", []);
+            var compilation2 = GetCompilation(source, LanguageNames.VisualBasic, "File2.vb", []);
 
             var symbol = (IPropertySymbol)GetAllSymbols(
                 compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
@@ -1250,15 +1321,128 @@ public class C
             Assert.True(SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: true).Equals(symbolKey1, symbolKey2));
         }
 
-        private static void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
+        [Fact]
+        public void TestBodySymbolsWithEdits()
         {
+            var source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public void M()
+    {
+        void InteriorMethod()
+        {
+            int a, b;
+            if (a > b) {
+               int c = a + b;
+            }
+
+            {
+                string d = "";
+            }
+
+            {
+                double d = 0.0;
+            }
+
+            {
+                bool d = false;
+            }
+
+            var q = new { };
+
+            int[] xs = new int[] { 1, 2, 3, 4 };
+
+            {
+                var q = from x in xs where x > 2 select x;
+            }
+
+            {
+                var q2 = from x in xs where x < 4 select x;
+            }
+
+            start: goto end;
+            end: goto start;
+            end: ; // duplicate label
+
+            DeepLocalFunction();
+
+            void DeepLocalFunction()
+            {
+                int[] xs = new int[] { 1, 2, 3, 4 };
+
+                {
+                    string d = "";
+                }
+
+                {
+                    double d = 0.0;
+                }
+
+                {
+                    bool d = false;
+                }
+
+                {
+                    var q = from x in xs where x > 2 select x;
+                }
+
+                {
+                    var q2 = from x in xs where x < 4 select x;
+                }
+
+                InteriorMethod();
+            }
+        }
+    }
+}
+";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            var methods = GetDeclaredSymbols(compilation).OfType<IMethodSymbol>();
+            var symbols = methods.SelectMany(ms => GetInteriorSymbols(ms, compilation)).Where(s => SymbolKey.IsBodyLevelSymbol(s)).ToList();
+            Assert.Equal(25, symbols.Count);
+
+            // Ensure we have coverage for all our body symbols.
+            Assert.True(symbols.Any(s => s is ILocalSymbol));
+            Assert.True(symbols.Any(s => s is ILabelSymbol));
+            Assert.True(symbols.Any(s => s is IRangeVariableSymbol));
+            Assert.True(symbols.Any(s => s.IsLocalFunction()));
+
+            TestRoundTrip(symbols, compilation);
+
+            var syntaxTree = compilation.SyntaxTrees.Single();
+            var text = syntaxTree.GetText();
+
+            // replace all spaces with double spaces.  So nothing is in the same location anymore.
+            var newTree = syntaxTree.WithChangedText(text.WithChanges(new TextChange(new TextSpan(0, text.Length), text.ToString().Replace(" ", "  "))));
+            var newCompilation = compilation.ReplaceSyntaxTree(syntaxTree, newTree);
+
             foreach (var symbol in symbols)
             {
-                TestRoundTrip(symbol, compilation, fnId: fnId);
+                var key = SymbolKey.Create(symbol);
+                var resolved = key.Resolve(newCompilation);
+
+                Assert.NotNull(resolved.Symbol);
+
+                Assert.Equal(resolved.Symbol.Name, symbol.Name);
+                Assert.Equal(resolved.Symbol.Kind, symbol.Kind);
+
+                // Ensure that the local moved later in the file.
+                Assert.True(resolved.Symbol.Locations[0].SourceSpan.Start > symbol.Locations[0].SourceSpan.Start);
             }
         }
 
-        private static void TestRoundTrip(ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null)
+        private static void TestRoundTrip(
+            IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null, bool useSymbolEquivalence = false)
+        {
+            foreach (var symbol in symbols)
+                TestRoundTrip(symbol, compilation, fnId, useSymbolEquivalence);
+        }
+
+        private static void TestRoundTrip(
+            ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null, bool useSymbolEquivalence = false)
         {
             var id = SymbolKey.CreateString(symbol);
             Assert.NotNull(id);
@@ -1273,7 +1457,14 @@ public class C
             }
             else
             {
-                Assert.Equal(symbol, found);
+                if (useSymbolEquivalence)
+                {
+                    Assert.True(SymbolEquivalenceComparer.Instance.Equals(symbol, found));
+                }
+                else
+                {
+                    Assert.Equal(symbol, found);
+                }
             }
         }
 
@@ -1288,18 +1479,18 @@ public class C
             if (language == LanguageNames.CSharp)
             {
                 var tree = CSharp.SyntaxFactory.ParseSyntaxTree(source, path: path);
-                return CSharp.CSharpCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
+                return CSharp.CSharpCompilation.Create("Test", syntaxTrees: [tree], references: references);
             }
             else if (language == LanguageNames.VisualBasic)
             {
                 var tree = VisualBasic.SyntaxFactory.ParseSyntaxTree(source, path: path);
-                return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
+                return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: [tree], references: references);
             }
 
             throw new NotSupportedException();
         }
 
-        private List<ISymbol> GetAllSymbols(
+        private static List<ISymbol> GetAllSymbols(
             SemanticModel model, Func<SyntaxNode, bool> predicate = null)
         {
             var list = new List<ISymbol>();
@@ -1307,7 +1498,7 @@ public class C
             return list;
         }
 
-        private void GetAllSymbols(
+        private static void GetAllSymbols(
             SemanticModel model, SyntaxNode node,
             List<ISymbol> list, Func<SyntaxNode, bool> predicate)
         {
@@ -1335,14 +1526,14 @@ public class C
             }
         }
 
-        private List<ISymbol> GetDeclaredSymbols(Compilation compilation)
+        private static List<ISymbol> GetDeclaredSymbols(Compilation compilation)
         {
             var list = new List<ISymbol>();
             GetDeclaredSymbols(compilation.Assembly.GlobalNamespace, list);
             return list;
         }
 
-        private void GetDeclaredSymbols(INamespaceOrTypeSymbol container, List<ISymbol> symbols)
+        private static void GetDeclaredSymbols(INamespaceOrTypeSymbol container, List<ISymbol> symbols)
         {
             foreach (var member in container.GetMembers())
             {

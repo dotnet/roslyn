@@ -18,29 +18,29 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public MustInherit Class AbstractSimplificationTests
 
         Private Protected Shared Async Function TestAsync(definition As XElement, expected As XElement, Optional options As OptionsCollection = Nothing, Optional csharpParseOptions As CSharpParseOptions = Nothing) As System.Threading.Tasks.Task
-            Using workspace = CreateTestWorkspace(definition, csharpParseOptions)
+            Using workspace = Await CreateTestWorkspaceAsync(definition, csharpParseOptions)
                 Dim simplifiedDocument = Await SimplifyAsync(workspace, options).ConfigureAwait(False)
                 Await AssertCodeEqual(expected, simplifiedDocument)
             End Using
         End Function
 
-        Protected Shared Function CreateTestWorkspace(definition As XElement, Optional csharpParseOptions As CSharpParseOptions = Nothing) As TestWorkspace
-            Dim workspace = TestWorkspace.Create(definition)
+        Protected Shared Async Function CreateTestWorkspaceAsync(definition As XElement, Optional csharpParseOptions As CSharpParseOptions = Nothing) As Task(Of EditorTestWorkspace)
+            Dim workspace = EditorTestWorkspace.Create(definition)
 
             If csharpParseOptions IsNot Nothing Then
                 For Each project In workspace.CurrentSolution.Projects
-                    workspace.ChangeSolution(workspace.CurrentSolution.WithProjectParseOptions(project.Id, csharpParseOptions))
+                    Await workspace.ChangeSolutionAsync(workspace.CurrentSolution.WithProjectParseOptions(project.Id, csharpParseOptions))
                 Next
             End If
 
             Return workspace
         End Function
 
-        Protected Shared Function SimplifyAsync(workspace As TestWorkspace) As Task(Of Document)
+        Protected Shared Function SimplifyAsync(workspace As EditorTestWorkspace) As Task(Of Document)
             Return SimplifyAsync(workspace, Nothing)
         End Function
 
-        Private Shared Async Function SimplifyAsync(workspace As TestWorkspace, options As OptionsCollection) As Task(Of Document)
+        Private Shared Async Function SimplifyAsync(workspace As EditorTestWorkspace, options As OptionsCollection) As Task(Of Document)
             Dim hostDocument = workspace.Documents.Single()
 
             Dim spansToAddSimplifierAnnotation = hostDocument.AnnotatedSpans.Where(Function(kvp) kvp.Key.StartsWith("Simplify", StringComparison.Ordinal))
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         End Function
 
         Private Shared Async Function SimplifyAsync(
-            workspace As TestWorkspace,
+            workspace As EditorTestWorkspace,
             listOfLabelToAddSimplifierAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, ImmutableArray(Of TextSpan))),
             explicitSpansToSimplifyWithin As ImmutableArray(Of TextSpan),
             options As OptionsCollection) As Task(Of Document)

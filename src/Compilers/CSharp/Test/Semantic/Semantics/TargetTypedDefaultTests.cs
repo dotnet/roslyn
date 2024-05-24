@@ -3759,5 +3759,46 @@ class C
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("y2", "S?").WithLocation(14, 2)
                 );
         }
+
+        [Fact]
+        public void TypelessExpressionInBinaryOperation()
+        {
+            string source = """
+MyDelegate d = M;
+d += M;
+
+d = new MyDelegate(M);
+d += new MyDelegate(M);
+
+d = null;
+d += null;
+
+d = new(M);
+d += new(M); // 1
+
+d = default;
+d += default; // 2
+
+bool b = true;
+d += b switch { _ => new(M) };
+d += b switch { _ => null };
+d += b switch { _ => default };
+
+d.Invoke();
+
+void M() { }
+
+public delegate void MyDelegate();
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,1): error CS8310: Operator '+=' cannot be applied to operand 'new(method group)'
+                // d += new(M); // 1
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "d += new(M)").WithArguments("+=", "new(method group)").WithLocation(11, 1),
+                // (14,1): error CS8310: Operator '+=' cannot be applied to operand 'default'
+                // d += default; // 2
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "d += default").WithArguments("+=", "default").WithLocation(14, 1)
+                );
+        }
     }
 }

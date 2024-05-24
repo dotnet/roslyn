@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// <summary>
         /// stores the parameter hint tags in a global location
         /// </summary>
-        private readonly List<(IMappingTagSpan<InlineHintDataTag> mappingTagSpan, ITagSpan<IntraTextAdornmentTag>? tagSpan)> _cache = new();
+        private readonly List<(IMappingTagSpan<InlineHintDataTag> mappingTagSpan, ITagSpan<IntraTextAdornmentTag>? tagSpan)> _cache = [];
 
         /// <summary>
         /// Stores the snapshot associated with the cached tags in <see cref="_cache" />

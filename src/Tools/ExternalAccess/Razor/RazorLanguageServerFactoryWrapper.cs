@@ -5,22 +5,19 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Threading.Tasks;
-using Microsoft.CommonLanguageServerProtocol.Framework;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
-using StreamJsonRpc;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.LanguageServer.Protocol;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    [Export(typeof(IRazorLanguageServerFactoryWrapper))]
+    [Export(typeof(AbstractRazorLanguageServerFactoryWrapper))]
     [Shared]
-    internal class RazorLanguageServerFactoryWrapper : IRazorLanguageServerFactoryWrapper
+    internal class RazorLanguageServerFactoryWrapper : AbstractRazorLanguageServerFactoryWrapper
     {
         private readonly ILanguageServerFactory _languageServerFactory;
 
@@ -36,15 +33,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             _languageServerFactory = languageServerFactory;
         }
 
-        public IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorCapabilitiesProvider razorCapabilitiesProvider, HostServices hostServices)
+        internal override IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, JsonSerializerOptions options, IRazorTestCapabilitiesProvider razorCapabilitiesProvider, HostServices hostServices)
         {
-            var capabilitiesProvider = new RazorCapabilitiesProvider(razorCapabilitiesProvider);
-            var languageServer = _languageServerFactory.Create(jsonRpc, capabilitiesProvider, WellKnownLspServerKinds.RazorLspServer, NoOpLspLogger.Instance, hostServices);
+            var capabilitiesProvider = new RazorCapabilitiesProvider(razorCapabilitiesProvider, options);
+            var languageServer = _languageServerFactory.Create(jsonRpc, options, capabilitiesProvider, WellKnownLspServerKinds.RazorLspServer, NoOpLspLogger.Instance, hostServices);
 
             return new RazorLanguageServerTargetWrapper(languageServer);
         }
 
-        public DocumentInfo CreateDocumentInfo(
+        internal override DocumentInfo CreateDocumentInfo(
             DocumentId id,
             string name,
             IReadOnlyList<string>? folders = null,
@@ -68,17 +65,37 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 .WithDocumentServiceProvider(documentServiceProvider);
         }
 
+        internal override void AddJsonConverters(JsonSerializerOptions options)
+        {
+            ProtocolConversions.AddLspSerializerOptions(options);
+        }
+
         private class RazorCapabilitiesProvider : ICapabilitiesProvider
         {
-            private readonly IRazorCapabilitiesProvider _razorCapabilitiesProvider;
+            private readonly IRazorTestCapabilitiesProvider _razorTestCapabilitiesProvider;
+            private readonly JsonSerializerOptions _options;
 
-            public RazorCapabilitiesProvider(IRazorCapabilitiesProvider razorCapabilitiesProvider)
+            public RazorCapabilitiesProvider(IRazorTestCapabilitiesProvider razorTestCapabilitiesProvider, JsonSerializerOptions options)
             {
-                _razorCapabilitiesProvider = razorCapabilitiesProvider;
+                _razorTestCapabilitiesProvider = razorTestCapabilitiesProvider;
+                _options = options;
             }
 
             public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
-                => _razorCapabilitiesProvider.GetCapabilities(clientCapabilities);
+            {
+                // To avoid exposing types from MS.VS.LanguageServer.Protocol types we serialize and deserialize the capabilities
+                // so we can just pass string around. This is obviously not great for perf, but it is only used in Razor tests.
+                var clientCapabilitiesJson = JsonSerializer.Serialize(clientCapabilities, _options);
+                var serverCapabilitiesJson = _razorTestCapabilitiesProvider.GetServerCapabilitiesJson(clientCapabilitiesJson);
+                var serverCapabilities = JsonSerializer.Deserialize<VSInternalServerCapabilities>(serverCapabilitiesJson, _options);
+
+                if (serverCapabilities is null)
+                {
+                    throw new InvalidOperationException("Could not deserialize server capabilities as VSInternalServerCapabilities");
+                }
+
+                return serverCapabilities;
+            }
         }
     }
 }

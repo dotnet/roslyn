@@ -5,44 +5,42 @@
 #nullable disable
 
 using System;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library;
+
+internal partial class AbstractLibraryManager : IOleCommandTarget
 {
-    internal partial class AbstractLibraryManager : IOleCommandTarget
+    protected virtual bool TryQueryStatus(Guid commandGroup, uint commandId, ref OLECMDF commandFlags)
+        => false;
+
+    protected virtual bool TryExec(Guid commandGroup, uint commandId)
+        => false;
+
+    int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
     {
-        protected virtual bool TryQueryStatus(Guid commandGroup, uint commandId, ref OLECMDF commandFlags)
-            => false;
-
-        protected virtual bool TryExec(Guid commandGroup, uint commandId)
-            => false;
-
-        int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
+        if (TryExec(pguidCmdGroup, nCmdID))
         {
-            if (TryExec(pguidCmdGroup, nCmdID))
-            {
-                return VSConstants.S_OK;
-            }
-
-            return (int)Constants.OLECMDERR_E_NOTSUPPORTED;
+            return VSConstants.S_OK;
         }
 
-        int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
+        return (int)Constants.OLECMDERR_E_NOTSUPPORTED;
+    }
+
+    int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
+    {
+        if (cCmds != 1)
         {
-            if (cCmds != 1)
-            {
-                return VSConstants.E_UNEXPECTED;
-            }
-
-            var flags = (OLECMDF)prgCmds[0].cmdf;
-            if (TryQueryStatus(pguidCmdGroup, prgCmds[0].cmdID, ref flags))
-            {
-                prgCmds[0].cmdf = (uint)flags;
-                return VSConstants.S_OK;
-            }
-
-            return (int)Constants.OLECMDERR_E_NOTSUPPORTED;
+            return VSConstants.E_UNEXPECTED;
         }
+
+        var flags = (OLECMDF)prgCmds[0].cmdf;
+        if (TryQueryStatus(pguidCmdGroup, prgCmds[0].cmdID, ref flags))
+        {
+            prgCmds[0].cmdf = (uint)flags;
+            return VSConstants.S_OK;
+        }
+
+        return (int)Constants.OLECMDERR_E_NOTSUPPORTED;
     }
 }

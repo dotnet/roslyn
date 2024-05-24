@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -15,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalScopeBinder : Binder
     {
+        protected const int DefaultLocalSymbolArrayCapacity = 16;
+
         private ImmutableArray<LocalSymbol> _locals;
         private ImmutableArray<LocalFunctionSymbol> _localFunctions;
         private ImmutableArray<LabelSymbol> _labels;
@@ -158,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 #endif
 
-            ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance();
+            ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance(DefaultLocalSymbolArrayCapacity);
             foreach (var statement in statements)
             {
                 BuildLocals(enclosingBinder, statement, locals);
@@ -189,11 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             foreach (var expression in rankSpecifier.Sizes)
                             {
-                                if (expression.Kind() != SyntaxKind.OmittedArraySizeExpression)
-                                {
-                                    ExpressionVariableFinder.FindExpressionVariables(args.localScopeBinder, args.locals, expression, args.localDeclarationBinder);
-                                }
+                                findExpressionVariablesInRankSpecifier(expression, args);
                             }
+
                         }, (localScopeBinder: this, locals: locals, localDeclarationBinder: localDeclarationBinder));
 
                         LocalDeclarationKind kind;
@@ -221,6 +222,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case SyntaxKind.LocalFunctionStatement:
+                    {
+                        Binder localFunctionDeclarationBinder = enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder;
+                        var decl = (LocalFunctionStatementSyntax)innerStatement;
+
+                        foreach (var parameter in decl.ParameterList.Parameters)
+                        {
+                            parameter.Type?.VisitRankSpecifiers((rankSpecifier, args) =>
+                            {
+                                foreach (var expression in rankSpecifier.Sizes)
+                                {
+                                    findExpressionVariablesInRankSpecifier(expression, args);
+                                }
+                            }, (localScopeBinder: this, locals: locals, localDeclarationBinder: localFunctionDeclarationBinder));
+                        }
+
+                        foreach (var constraintClause in decl.ConstraintClauses)
+                        {
+                            foreach (var constraint in constraintClause.Constraints)
+                            {
+                                if (constraint is TypeConstraintSyntax typeConstraint)
+                                {
+                                    typeConstraint.Type.VisitRankSpecifiers((rankSpecifier, args) =>
+                                    {
+                                        foreach (var expression in rankSpecifier.Sizes)
+                                        {
+                                            findExpressionVariablesInRankSpecifier(expression, args);
+                                        }
+                                    }, (localScopeBinder: this, locals: locals, localDeclarationBinder: localFunctionDeclarationBinder));
+                                }
+                            }
+                        }
+                    }
+                    break;
+
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:
@@ -244,6 +280,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     // no other statement introduces local variables into the enclosing scope
                     break;
+            }
+
+            return;
+
+            static void findExpressionVariablesInRankSpecifier(ExpressionSyntax expression, (LocalScopeBinder localScopeBinder, ArrayBuilder<LocalSymbol> locals, Binder localDeclarationBinder) args)
+            {
+                if (expression.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                {
+                    ExpressionVariableFinder.FindExpressionVariables(args.localScopeBinder, args.locals, expression, args.localDeclarationBinder);
+                }
             }
         }
 
@@ -464,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             declaredInThisScope |= newSymbolKind == SymbolKind.Local && this.Locals.Contains((LocalSymbol)newSymbol);
             declaredInThisScope |= newSymbolKind == SymbolKind.Method && this.LocalFunctions.Contains((LocalFunctionSymbol)newSymbol);
 
-            if (declaredInThisScope && newLocation.SourceSpan.Start >= local.Locations[0].SourceSpan.Start)
+            if (declaredInThisScope && newLocation.SourceSpan.Start >= local.GetFirstLocation().SourceSpan.Start)
             {
                 // A local variable or function named '{0}' is already defined in this scope
                 diagnostics.Add(ErrorCode.ERR_LocalDuplicate, newLocation, name);

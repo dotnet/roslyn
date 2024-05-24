@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -14,9 +14,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         public AbstractLanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
+            JsonSerializerOptions options,
             ICapabilitiesProvider capabilitiesProvider,
             WellKnownLspServerKinds serverKind,
-            ILspServiceLogger logger,
+            AbstractLspLogger logger,
             HostServices hostServices);
     }
 }

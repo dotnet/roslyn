@@ -13,41 +13,35 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.BraceMatching
+namespace Microsoft.CodeAnalysis.BraceMatching;
+
+[Export(typeof(IBraceMatchingService)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class BraceMatchingService(
+    [ImportMany] IEnumerable<Lazy<IBraceMatcher, LanguageMetadata>> braceMatchers) : IBraceMatchingService
 {
-    [Export(typeof(IBraceMatchingService)), Shared]
-    internal class BraceMatchingService : IBraceMatchingService
+    private readonly ImmutableArray<Lazy<IBraceMatcher, LanguageMetadata>> _braceMatchers = braceMatchers.ToImmutableArray();
+
+    public async Task<BraceMatchingResult?> GetMatchingBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
     {
-        private readonly ImmutableArray<Lazy<IBraceMatcher, LanguageMetadata>> _braceMatchers;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public BraceMatchingService(
-            [ImportMany] IEnumerable<Lazy<IBraceMatcher, LanguageMetadata>> braceMatchers)
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        if (position < 0 || position > text.Length)
         {
-            _braceMatchers = braceMatchers.ToImmutableArray();
+            throw new ArgumentException(nameof(position));
         }
 
-        public async Task<BraceMatchingResult?> GetMatchingBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
+        var matchers = _braceMatchers.Where(b => b.Metadata.Language == document.Project.Language);
+        foreach (var matcher in matchers)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (position < 0 || position > text.Length)
+            cancellationToken.ThrowIfCancellationRequested();
+            var braces = await matcher.Value.FindBracesAsync(document, position, options, cancellationToken).ConfigureAwait(false);
+            if (braces.HasValue)
             {
-                throw new ArgumentException(nameof(position));
+                return braces;
             }
-
-            var matchers = _braceMatchers.Where(b => b.Metadata.Language == document.Project.Language);
-            foreach (var matcher in matchers)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var braces = await matcher.Value.FindBracesAsync(document, position, options, cancellationToken).ConfigureAwait(false);
-                if (braces.HasValue)
-                {
-                    return braces;
-                }
-            }
-
-            return null;
         }
+
+        return null;
     }
 }

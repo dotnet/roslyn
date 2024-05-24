@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, BindingDiagnosticBag diagnostics)
         {
-            var oldLocation = parameter.Locations[0];
+            var oldLocation = parameter.GetFirstLocation();
             if (oldLocation == newLocation)
             {
                 // a query variable and its corresponding lambda parameter, for example

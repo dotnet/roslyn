@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
             => await AssertFormatAsync("namespace A/*1*/{}/*2*/ class A {}", "namespace A{ } class A {}");
 
         [Fact]
-        public async Task DontFormatTriviaOutsideOfSpan_IncludingTrailingTriviaOnNewLine()
+        public async Task DoNotFormatTriviaOutsideOfSpan_IncludingTrailingTriviaOnNewLine()
         {
             var content = @"namespace A
 /*1*/{

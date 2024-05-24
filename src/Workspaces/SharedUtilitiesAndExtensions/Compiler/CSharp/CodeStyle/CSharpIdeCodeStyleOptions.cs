@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
@@ -15,18 +14,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle;
 [DataContract]
 internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatable<CSharpIdeCodeStyleOptions>
 {
-    private static readonly ImmutableArray<SyntaxKind> s_preferredModifierOrderDefault = ImmutableArray.Create(
-        SyntaxKind.PublicKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword,
+    private static readonly ImmutableArray<SyntaxKind> s_preferredModifierOrderDefault =
+    [
+        SyntaxKind.PublicKeyword,
+        SyntaxKind.PrivateKeyword,
+        SyntaxKind.ProtectedKeyword,
+        SyntaxKind.InternalKeyword,
         SyntaxKind.FileKeyword,
         SyntaxKind.StaticKeyword,
         SyntaxKind.ExternKeyword,
         SyntaxKind.NewKeyword,
-        SyntaxKind.VirtualKeyword, SyntaxKind.AbstractKeyword, SyntaxKind.SealedKeyword, SyntaxKind.OverrideKeyword,
+        SyntaxKind.VirtualKeyword,
+        SyntaxKind.AbstractKeyword,
+        SyntaxKind.SealedKeyword,
+        SyntaxKind.OverrideKeyword,
         SyntaxKind.ReadOnlyKeyword,
         SyntaxKind.UnsafeKeyword,
         SyntaxKind.RequiredKeyword,
         SyntaxKind.VolatileKeyword,
-        SyntaxKind.AsyncKeyword);
+        SyntaxKind.AsyncKeyword,
+    ];
 
     private static readonly CodeStyleOption2<UnusedValuePreference> s_discardVariableWithSilentEnforcement =
         new(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent);
@@ -36,9 +43,6 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
 
     private static readonly CodeStyleOption2<string> s_defaultModifierOrder =
         new(string.Join(",", s_preferredModifierOrderDefault.Select(SyntaxFacts.GetText)), NotificationOption2.Silent);
-
-    public static readonly CodeStyleOption2<AddImportPlacement> s_outsideNamespacePlacementWithSilentEnforcement =
-        new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent);
 
     private static readonly CodeStyleOption2<ExpressionBodyPreference> s_whenPossibleWithSilentEnforcement =
         new(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent);
@@ -75,7 +79,10 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
     [DataMember] public CodeStyleOption2<bool> PreferReadOnlyStruct { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferReadOnlyStructMember { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferStaticLocalFunction { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferStaticAnonymousFunction { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas { get; init; } = s_whenPossibleWithSilentEnforcement;
+
+    [DataMember] public CodeStyleOption2<bool> PreferPrimaryConstructors { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
 
     public CSharpIdeCodeStyleOptions()
         : base()
@@ -114,5 +121,7 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
         PreferReadOnlyStruct = options.GetOption(CSharpCodeStyleOptions.PreferReadOnlyStruct, fallbackOptions.PreferReadOnlyStruct);
         PreferReadOnlyStructMember = options.GetOption(CSharpCodeStyleOptions.PreferReadOnlyStructMember, fallbackOptions.PreferReadOnlyStructMember);
         PreferStaticLocalFunction = options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, fallbackOptions.PreferStaticLocalFunction);
+        PreferStaticAnonymousFunction = options.GetOption(CSharpCodeStyleOptions.PreferStaticAnonymousFunction, fallbackOptions.PreferStaticAnonymousFunction);
+        PreferPrimaryConstructors = options.GetOption(CSharpCodeStyleOptions.PreferPrimaryConstructors, fallbackOptions.PreferPrimaryConstructors);
     }
 }

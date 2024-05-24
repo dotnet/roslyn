@@ -14,111 +14,110 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpdateProjectToAllowUnsafe
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpdateProjectToAllowUnsafe;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
+public class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
-    public class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public UpdateProjectToAllowUnsafeTests(ITestOutputHelper logger)
+       : base(logger)
     {
-        public UpdateProjectToAllowUnsafeTests(ITestOutputHelper logger)
-           : base(logger)
+    }
+
+    internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (null, new CSharpUpdateProjectToAllowUnsafeCodeFixProvider());
+
+    private async Task TestAllowUnsafeEnabledIfDisabledAsync(string initialMarkup)
+    {
+        var parameters = new TestParameters();
+        using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
         {
+            var (_, action) = await GetCodeActionsAsync(workspace, parameters);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action);
+
+            var (oldSolution, newSolution) = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
+            Assert.True(((CSharpCompilationOptions)newSolution.Projects.Single().CompilationOptions!).AllowUnsafe);
         }
 
-        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpUpdateProjectToAllowUnsafeCodeFixProvider());
+        // no action offered if unsafe was already enabled
+        await TestMissingAsync(initialMarkup, new TestParameters(compilationOptions:
+            new CSharpCompilationOptions(outputKind: default, allowUnsafe: true)));
+    }
 
-        private async Task TestAllowUnsafeEnabledIfDisabledAsync(string initialMarkup)
-        {
-            var parameters = new TestParameters();
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
+    [Fact]
+    public async Task OnUnsafeClass()
+    {
+        await TestAllowUnsafeEnabledIfDisabledAsync(
+            """
+            unsafe class [|C|] // The compiler reports this on the name, not the 'unsafe' keyword.
             {
-                var (_, action) = await GetCodeActionsAsync(workspace, parameters);
-                var operations = await VerifyActionAndGetOperationsAsync(workspace, action);
-
-                var (oldSolution, newSolution) = await ApplyOperationsAndGetSolutionAsync(workspace, operations);
-                Assert.True(((CSharpCompilationOptions)newSolution.Projects.Single().CompilationOptions!).AllowUnsafe);
             }
+            """);
+    }
 
-            // no action offered if unsafe was already enabled
-            await TestMissingAsync(initialMarkup, new TestParameters(compilationOptions:
-                new CSharpCompilationOptions(outputKind: default, allowUnsafe: true)));
-        }
-
-        [Fact]
-        public async Task OnUnsafeClass()
-        {
-            await TestAllowUnsafeEnabledIfDisabledAsync(
-                """
-                unsafe class [|C|] // The compiler reports this on the name, not the 'unsafe' keyword.
+    [Fact]
+    public async Task OnUnsafeMethod()
+    {
+        await TestAllowUnsafeEnabledIfDisabledAsync(
+            """
+            class C
+            {
+                unsafe void [|M|]()
                 {
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task OnUnsafeMethod()
-        {
-            await TestAllowUnsafeEnabledIfDisabledAsync(
-                """
-                class C
+    [Fact]
+    public async Task OnUnsafeLocalFunction()
+    {
+        await TestAllowUnsafeEnabledIfDisabledAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    unsafe void [|M|]()
+                    unsafe void [|F|]()
                     {
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task OnUnsafeLocalFunction()
-        {
-            await TestAllowUnsafeEnabledIfDisabledAsync(
-                """
-                class C
+    [Fact]
+    public async Task OnUnsafeBlock()
+    {
+        await TestAllowUnsafeEnabledIfDisabledAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    [|unsafe|]
                     {
-                        unsafe void [|F|]()
-                        {
-                        }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task OnUnsafeBlock()
-        {
-            await TestAllowUnsafeEnabledIfDisabledAsync(
-                """
-                class C
+    [Fact]
+    public async Task NotInsideUnsafeBlock()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    unsafe
                     {
-                        [|unsafe|]
-                        {
-                        }
+                        [|int * p;|]
                     }
                 }
-                """);
-        }
-
-        [Fact]
-        public async Task NotInsideUnsafeBlock()
-        {
-            await TestMissingAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        unsafe
-                        {
-                            [|int * p;|]
-                        }
-                    }
-                }
-                """);
-        }
+            }
+            """);
     }
 }

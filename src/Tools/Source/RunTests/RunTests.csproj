@@ -3,19 +3,32 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>$(NetRoslyn)</TargetFramework>
     <SignAssembly>false</SignAssembly>
     <IsShipping>false</IsShipping>
+    <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <PackageReference Include="System.Security.Principal" Version="$(SystemSecurityPrincipalVersion)" />
-    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
-    <PackageReference Include="System.Management" Version="$(SystemManagementVersion)" />
-    <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="$(MicrosoftWin32RegistryVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="$(MicrosoftTeamFoundationServerClientVersion)" />
+    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Security.Principal" />
+    <PackageReference Include="System.Reflection.Metadata" />
+    <PackageReference Include="System.Management" />
+    <PackageReference Include="Mono.Options" />
+    <PackageReference Include="Microsoft.Win32.Registry" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Microsoft.TeamFoundationServer.Client" />
     <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
+
+  
+  <!-- Include the VSIX installer so we have it in the build payload for integration tests -->
+  <ItemGroup>
+    <PackageReference Include="RoslynTools.VSIXExpInstaller" GeneratePathProperty="true" />
+  </ItemGroup>
+  <ItemGroup>
+    <_CopyItems Include="$(PkgRoslynTools_VSIXExpInstaller)\tools\*.*" />
+  </ItemGroup>
+  <Target Name="CopyCustomContent" AfterTargets="AfterBuild" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <Copy SourceFiles="@(_CopyItems)" DestinationFolder="$(OutDir)/VSIXExpInstaller" />
+  </Target>
 </Project>

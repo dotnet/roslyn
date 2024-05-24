@@ -208,8 +208,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             Assert.True(model3.IsSpeculativeSemanticModel);
         }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
         public async Task TestOutOfBoundsInSyntaxContext1_CSharp()
         {
@@ -230,8 +229,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             CSharpSyntaxContext.CreateContext(document2, model2, source.IndexOf("void"), CancellationToken.None);
         }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
         public async Task TestOutOfBoundsInSyntaxContext2_CSharp()
         {
@@ -509,8 +507,7 @@ end class"));
             Assert.True(model3.IsSpeculativeSemanticModel);
         }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
         public async Task TestOutOfBoundsInSyntaxContext1_VisualBasic()
         {
@@ -541,8 +538,7 @@ end class"));
             VisualBasicSyntaxContext.CreateContext(document2, model2, source.IndexOf("sub"), CancellationToken.None);
         }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
         public async Task TestOutOfBoundsInSyntaxContext2_VisualBasic()
         {

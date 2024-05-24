@@ -5,19 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Options;
-using Microsoft.VisualStudio.Settings;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
@@ -91,7 +84,7 @@ public sealed class GlobalOptionsTest : AbstractIntegrationTest
                 await vsSettingsPersister.PersistAsync(storage, key, differentValue);
 
                 // make sure we fetch the value from the storage:
-                globalOptions.ClearCachedValues();
+                globalOptions.GetTestAccessor().ClearCachedValues();
 
                 object? updatedValue;
                 try

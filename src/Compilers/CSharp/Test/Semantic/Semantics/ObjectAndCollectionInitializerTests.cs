@@ -6,6 +6,8 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -2826,14 +2828,14 @@ class Program
         var d = /*<bind>*/new Dictionary<object, object>()
         {
             {""s"", 1 },
-        var x = 1/*</bind>*/;
-    }
+        var x = 1;
+    }/*</bind>*/
 }
 ";
             string expectedOperationTree = @"
-IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: 'new Diction ... /*</bind>*/')
+IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: 'new Diction ... }')
   Children(1):
-      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: '{ ... /*</bind>*/')
+      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: '{ ... }')
         Initializers(3):
             IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '{""s"", 1 }')
               Children(2):
@@ -2842,33 +2844,39 @@ IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System
             IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'var')
               Children(0)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'x = 1')
-              Left: 
+              Left:
                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x')
                   Children(1):
                       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'x')
                         Children(1):
                             IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Dictionary<System.Object, System.Object>, IsInvalid, IsImplicit) (Syntax: 'Dictionary< ... ct, object>')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1003: Syntax error, ',' expected
-                //         var x = 1/*</bind>*/;
+                // (9,13): error CS1003: Syntax error, ',' expected
+                //         var x = 1;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(9, 13),
-                // CS1513: } expected
-                //         var x = 1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(9, 29),
-                // CS0246: The type or namespace name 'Dictionary<,>' could not be found (are you missing a using directive or an assembly reference?)
+                // (9,18): error CS1003: Syntax error, ',' expected
+                //         var x = 1;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(9, 18),
+                // (10,6): error CS1002: ; expected
+                //     }/*</bind>*/
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 6),
+                // (11,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(11, 2),
+                // (6,31): error CS0246: The type or namespace name 'Dictionary<,>' could not be found (are you missing a using directive or an assembly reference?)
                 //         var d = /*<bind>*/new Dictionary<object, object>()
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Dictionary<object, object>").WithArguments("Dictionary<,>").WithLocation(6, 31),
-                // CS0747: Invalid initializer member declarator
+                // (8,13): error CS0747: Invalid initializer member declarator
                 //             {"s", 1 },
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"{""s"", 1 }").WithLocation(8, 13),
-                // CS0103: The name 'var' does not exist in the current context
-                //         var x = 1/*</bind>*/;
+                // (9,9): error CS0103: The name 'var' does not exist in the current context
+                //         var x = 1;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(9, 9),
-                // CS0747: Invalid initializer member declarator
-                //         var x = 1/*</bind>*/;
+                // (9,9): error CS0747: Invalid initializer member declarator
+                //         var x = 1;
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var").WithLocation(9, 9)
             };
 
@@ -3510,7 +3518,7 @@ class X : Base
             Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
             Assert.Equal(new[] {"void X.Add(System.Collections.Generic.List<System.Byte> x)",
                           "void X.Add(X x)"},
-                          Roslyn.Utilities.EnumerableExtensions.Order(symbolInfo.CandidateSymbols.Select(s => s.ToTestDisplayString())).ToArray());
+                          symbolInfo.CandidateSymbols.Select(s => s.ToTestDisplayString()).Order().ToArray());
         }
 
         [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
@@ -3777,6 +3785,77 @@ class C : System.Collections.Generic.List<C>
             {
                 symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(expression);
                 Assert.Equal("void System.Collections.Generic.List<C>.Add(C item)", symbolInfo.Symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void GetComplexCollectionInitializerConversionInfo_NoConversion()
+        {
+            var source = """
+                using System.Collections.Generic;
+                _ = new Dictionary<string, string> { { "a", "b" } };
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+            var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(2, literals.Length);
+            foreach (var literal in literals)
+            {
+                var conversion = model.GetConversion(literal);
+                Assert.Equal(ConversionKind.Identity, conversion.Kind);
+                var typeInfo = model.GetTypeInfo(literal);
+                Assert.Same(typeInfo.Type, typeInfo.ConvertedType);
+            }
+        }
+
+        [Fact]
+        public void GetComplexCollectionInitializerConversionInfo_ImplicitReferenceConversion()
+        {
+            var source = """
+                using System.Collections.Generic;
+                _ = new Dictionary<object, object> { { "a", "b" } };
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+            var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(2, literals.Length);
+            foreach (var literal in literals)
+            {
+                var conversion = model.GetConversion(literal);
+                Assert.Equal(ConversionKind.ImplicitReference, conversion.Kind);
+                var typeInfo = model.GetTypeInfo(literal);
+                Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
+                Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
+            }
+        }
+
+        [Fact]
+        public void GetComplexCollectionInitializerConversionInfo_ImplicitBoxingConversion()
+        {
+            var source = """
+                using System.Collections.Generic;
+                _ = new Dictionary<object, object> { { 1, 2 } };
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+            var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(2, literals.Length);
+            foreach (var literal in literals)
+            {
+                var conversion = model.GetConversion(literal);
+                Assert.Equal(ConversionKind.Boxing, conversion.Kind);
+                var typeInfo = model.GetTypeInfo(literal);
+                Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+                Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
             }
         }
 
@@ -4080,6 +4159,139 @@ interface I : IEnumerable<int>
             var typeInfo = semanticModel.GetTypeInfo(node);
             Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
             Assert.Equal("I", typeInfo.ConvertedType.ToDisplayString());
+        }
+
+        [Fact]
+        public void DynamicInvocationOnRefStructs()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                dynamic d = null;
+                S s = new S() { d };
+
+                ref struct S : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add<T>(T t) => throw null;
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,11): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // S s = new S() { d };
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "S").WithArguments("S").WithLocation(5, 11)
+            );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72916")]
+        public void RefReturning_Indexer()
+        {
+            var source = """
+                public class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C() { [1] = 2 };
+                        System.Console.WriteLine(c[1]);        
+                    }
+
+                    int _test1 = 0;    
+                    ref int this[int x]
+                    {
+                        get => ref _test1;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
+
+            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
+            var symbolInfo = model.GetSymbolInfo(elementAccess);
+            AssertEx.Equal("ref System.Int32 C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(elementAccess);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
+            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            Assert.Equal(typeInfo.Type, propertyRef.Type);
+
+            var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
+            typeInfo = model.GetTypeInfo(assignment);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IAssignmentOperation)model.GetOperation(assignment);
+            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+
+            var right = assignment.Right;
+            typeInfo = model.GetTypeInfo(right);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72916")]
+        public void RefReturning_Property()
+        {
+            var source = """
+                public class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C() { P = 2 };
+                        System.Console.WriteLine(c.P);        
+                    }
+
+                    int _test1 = 0;    
+                    ref int P
+                    {
+                        get => ref _test1;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
+
+            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var propertyAccess = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First().Left;
+            var symbolInfo = model.GetSymbolInfo(propertyAccess);
+            AssertEx.Equal("ref System.Int32 C.P { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(propertyAccess);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(propertyAccess);
+            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            Assert.Equal(typeInfo.Type, propertyRef.Type);
+
+            var assignment = (AssignmentExpressionSyntax)propertyAccess.Parent;
+            typeInfo = model.GetTypeInfo(assignment);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IAssignmentOperation)model.GetOperation(assignment);
+            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+
+            var right = assignment.Right;
+            typeInfo = model.GetTypeInfo(right);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
         }
     }
 }

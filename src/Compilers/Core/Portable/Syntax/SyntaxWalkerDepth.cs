@@ -4,9 +4,11 @@
 
 namespace Microsoft.CodeAnalysis
 {
+#pragma warning disable RS0030 // Do not use banned APIs: SyntaxWalker
     /// <summary>
     /// Syntax the <see cref="SyntaxWalker"/> should descend into.
     /// </summary>
+#pragma warning restore
     public enum SyntaxWalkerDepth : int
     {
         /// <summary>

@@ -1393,7 +1393,7 @@ public static class C {
     }
 }";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (4,19): warning CS8618: Non-nullable field 'o' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (4,19): warning CS8618: Non-nullable field 'o' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     static object o;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "o").WithArguments("field", "o").WithLocation(4, 19),
                 // (4,19): warning CS0649: Field 'C.o' is never assigned to, and will always have its default value null
@@ -5873,9 +5873,9 @@ class C
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
             compilation.VerifyDiagnostics(
-                // (5,18): error CS0150: A constant value is expected
+                // (5,18): error CS9133: A constant value of type 'int' is expected
                 //         if (a is a is > 0 and < 500) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "a").WithLocation(5, 18),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "a").WithArguments("int").WithLocation(5, 18),
                 // (5,25): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //         if (a is a is > 0 and < 500) { }
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(5, 25),
@@ -5891,7 +5891,7 @@ class C
                 // (7,21): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //         if (true is 0) { }
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(7, 21)
-                );
+            );
         }
 
         [Fact, WorkItem(44518, "https://github.com/dotnet/roslyn/issues/44518")]

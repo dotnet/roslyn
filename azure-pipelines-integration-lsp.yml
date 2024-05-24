@@ -34,6 +34,12 @@ pr:
     - release/dev17.2
     - release/dev17.3
 
+variables:
+- name: Codeql.Enabled
+  value: false
+- name: Codeql.SkipTaskAutoInjection
+  value: true
+
 parameters:
 - name: poolName
   displayName: Pool Name
@@ -56,20 +62,14 @@ parameters:
   type: number
   default: 150
 
-variables:
-- name: XUNIT_LOGS
-  value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
-
-jobs:
-- job: VS_Integration_LSP
-  pool:
-    name: ${{ parameters.poolName }}
-    demands: ImageOverride -equals ${{ parameters.queueName }}
-  timeoutInMinutes: ${{ parameters.timeout }}
-
-  steps:
-    - template: eng/pipelines/test-integration-job.yml
-      parameters:
-        configuration: Debug
-        oop64bit: true
+stages:
+- template: eng/pipelines/test-integration-helix.yml
+  parameters:
+    poolName: ${{ parameters.poolName }}
+    queueName: ${{ parameters.queueName }}
+    timeout: ${{ parameters.timeout }}
+    configuration: Debug
+    testRuns:
+      - oop64bit: true
         lspEditor: true
+        runName: VS_Integration_LSP_Debug_64

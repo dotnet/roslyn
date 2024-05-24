@@ -2,27 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
+namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
+
+internal abstract class AbstractWhileLoopSnippetProvider<TWhileStatementSyntax, TExpressionSyntax>
+    : AbstractConditionalBlockSnippetProvider<TWhileStatementSyntax, TExpressionSyntax>
+    where TWhileStatementSyntax : SyntaxNode
+    where TExpressionSyntax : SyntaxNode
 {
-    internal abstract class AbstractWhileLoopSnippetProvider : AbstractConditionalBlockSnippetProvider
-    {
-        public override string Identifier => "while";
-
-        public override string Description => FeaturesResources.while_loop;
-
-        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsWhileStatement;
-
-        protected override TextChange GenerateSnippetTextChange(Document document, int position)
-        {
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var whileStatement = generator.WhileStatement(generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
-
-            return new TextChange(TextSpan.FromBounds(position, position), whileStatement.ToFullString());
-        }
-    }
+    protected sealed override TWhileStatementSyntax GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
+        => (TWhileStatementSyntax)generator.WhileStatement(inlineExpressionInfo?.Node.WithoutLeadingTrivia() ?? generator.TrueLiteralExpression(), []);
 }

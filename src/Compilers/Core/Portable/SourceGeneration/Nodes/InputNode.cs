@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -18,6 +19,8 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the input</typeparam>
     internal sealed class InputNode<T> : IIncrementalGeneratorNode<T>
     {
+        private static readonly string? s_tableType = typeof(T).FullName;
+
         private readonly Func<DriverStateTable.Builder, ImmutableArray<T>> _getInput;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
         private readonly IEqualityComparer<T> _inputComparer;
@@ -45,17 +48,22 @@ namespace Microsoft.CodeAnalysis
             TimeSpan elapsedTime = stopwatch.Elapsed;
 
             // create a mutable hashset of the new items we can check against
-            HashSet<T> itemsSet = new HashSet<T>(_inputComparer);
+            var itemsSet = (_inputComparer == EqualityComparer<T>.Default) ? PooledHashSet<T>.GetInstance() : new HashSet<T>(_inputComparer);
+
+#if NETCOREAPP
+            itemsSet.EnsureCapacity(inputItems.Length);
+#endif
+
             foreach (var item in inputItems)
             {
                 var added = itemsSet.Add(item);
                 Debug.Assert(added);
             }
 
-            var builder = graphState.CreateTableBuilder(previousTable, _name, _comparer);
+            var tableBuilder = graphState.CreateTableBuilder(previousTable, _name, _comparer);
 
             // We always have no inputs steps into an InputNode, but we track the difference between "no inputs" (empty collection) and "no step information" (default value)
-            var noInputStepsStepInfo = builder.TrackIncrementalSteps ? ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default;
+            var noInputStepsStepInfo = tableBuilder.TrackIncrementalSteps ? ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default;
 
             if (previousTable is not null)
             {
@@ -66,7 +74,7 @@ namespace Microsoft.CodeAnalysis
                     if (itemsSet.Remove(oldItem))
                     {
                         // we're iterating the table, so know that it has entries
-                        var usedCache = builder.TryUseCachedEntries(elapsedTime, noInputStepsStepInfo);
+                        var usedCache = tableBuilder.TryUseCachedEntries(elapsedTime, noInputStepsStepInfo);
                         Debug.Assert(usedCache);
                     }
                     else if (inputItems.Length == previousTable.Count)
@@ -75,13 +83,13 @@ namespace Microsoft.CodeAnalysis
                         // This allows us to correctly 'replace' items even when they aren't actually the same. In the case that the
                         // item really isn't modified, but a new item, we still function correctly as we mostly treat them the same,
                         // but will perform an extra comparison that is omitted in the pure 'added' case.
-                        var modified = builder.TryModifyEntry(inputItems[itemIndex], _comparer, elapsedTime, noInputStepsStepInfo, EntryState.Modified);
+                        var modified = tableBuilder.TryModifyEntry(inputItems[itemIndex], _comparer, elapsedTime, noInputStepsStepInfo, EntryState.Modified);
                         Debug.Assert(modified);
                         itemsSet.Remove(inputItems[itemIndex]);
                     }
                     else
                     {
-                        var removed = builder.TryRemoveEntries(elapsedTime, noInputStepsStepInfo);
+                        var removed = tableBuilder.TryRemoveEntries(elapsedTime, noInputStepsStepInfo);
                         Debug.Assert(removed);
                     }
                     itemIndex++;
@@ -91,10 +99,16 @@ namespace Microsoft.CodeAnalysis
             // any remaining new items are added
             foreach (var newItem in itemsSet)
             {
-                builder.AddEntry(newItem, EntryState.Added, elapsedTime, noInputStepsStepInfo, EntryState.Added);
+                tableBuilder.AddEntry(newItem, EntryState.Added, elapsedTime, noInputStepsStepInfo, EntryState.Added);
             }
 
-            return builder.ToImmutableAndFree();
+            var newTable = tableBuilder.ToImmutableAndFree();
+            this.LogTables(previousTable, newTable, inputItems);
+
+            (itemsSet as PooledHashSet<T>)?.Free();
+
+            return newTable;
+
         }
 
         public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new InputNode<T>(_getInput, _registerOutput, _inputComparer, comparer, _name);
@@ -104,5 +118,23 @@ namespace Microsoft.CodeAnalysis
         public InputNode<T> WithRegisterOutput(Action<IIncrementalGeneratorOutputNode> registerOutput) => new InputNode<T>(_getInput, registerOutput, _inputComparer, _comparer, _name);
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutput(output);
+
+        private void LogTables(NodeStateTable<T>? previousTable, NodeStateTable<T> newTable, ImmutableArray<T> inputs)
+        {
+            if (!CodeAnalysisEventSource.Log.IsEnabled())
+            {
+                // don't bother building the dummy table if we're not going to log anyway
+                return;
+            }
+
+            var tableBuilder = NodeStateTable<T>.Empty.ToBuilder(_name, stepTrackingEnabled: false, tableCapacity: inputs.Length);
+            foreach (var input in inputs)
+            {
+                tableBuilder.AddEntry(input, EntryState.Added, TimeSpan.Zero, stepInputs: default, EntryState.Added);
+            }
+            var inputTable = tableBuilder.ToImmutableAndFree();
+
+            this.LogTables(_name, s_tableType, previousTable, newTable, inputTable);
+        }
     }
 }

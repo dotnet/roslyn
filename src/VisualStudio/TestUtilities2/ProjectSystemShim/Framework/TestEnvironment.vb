@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -19,7 +18,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
@@ -27,7 +25,6 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Leg
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
-Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
@@ -53,23 +50,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         '        GetType(MockWorkspaceEventListenerProvider))
 
         Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf _
-            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
             .AddParts(
                 GetType(FileChangeWatcherProvider),
                 GetType(MockVisualStudioWorkspace),
                 GetType(VisualStudioProjectFactory),
                 GetType(MockVisualStudioDiagnosticAnalyzerProviderFactory),
                 GetType(MockServiceProvider),
+                GetType(StubVsServiceExporter(Of )),
+                GetType(StubVsServiceExporter(Of ,)),
                 GetType(SolutionEventsBatchScopeCreator),
                 GetType(ProjectCodeModelFactory),
                 GetType(CPSProjectFactory),
                 GetType(VisualStudioRuleSetManagerFactory),
-                GetType(VsMetadataServiceFactory),
+                GetType(VisualStudioMetadataServiceFactory),
                 GetType(VisualStudioMetadataReferenceManagerFactory),
                 GetType(MockWorkspaceEventListenerProvider),
-                GetType(HostDiagnosticUpdateSource),
                 GetType(HierarchyItemToProjectIdMap),
-                GetType(DiagnosticService))
+                GetType(DiagnosticAnalyzerService))
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)

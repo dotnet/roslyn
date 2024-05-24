@@ -9,21 +9,15 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyzer
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyzer;
+
+[ExportWorkspaceServiceFactory(typeof(IWorkspaceSettingsProviderFactory<AnalyzerSetting>)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class AnalyzerSettingsWorkspaceServiceFactory(IDiagnosticAnalyzerService analyzerService) : IWorkspaceServiceFactory
 {
-    [ExportWorkspaceServiceFactory(typeof(IWorkspaceSettingsProviderFactory<AnalyzerSetting>)), Shared]
-    internal class AnalyzerSettingsWorkspaceServiceFactory : IWorkspaceServiceFactory
-    {
-        private readonly IDiagnosticAnalyzerService _analyzerService;
+    private readonly IDiagnosticAnalyzerService _analyzerService = analyzerService;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AnalyzerSettingsWorkspaceServiceFactory(IDiagnosticAnalyzerService analyzerService)
-        {
-            _analyzerService = analyzerService;
-        }
-
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new AnalyzerSettingsProviderFactory(workspaceServices.Workspace, _analyzerService);
-    }
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new AnalyzerSettingsProviderFactory(workspaceServices.Workspace, _analyzerService);
 }

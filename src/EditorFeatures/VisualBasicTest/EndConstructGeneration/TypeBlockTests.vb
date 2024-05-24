@@ -29,7 +29,7 @@ End Module",
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyForMatchedClass()
+        Public Sub DoNotApplyForMatchedClass()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 End Class",

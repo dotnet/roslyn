@@ -49,6 +49,11 @@ namespace Microsoft.Cci
             get { return _parentParameter.MustBeValueType; }
         }
 
+        public bool AllowsRefLikeType
+        {
+            get { return _parentParameter.AllowsRefLikeType; }
+        }
+
         public bool MustHaveDefaultConstructor
         {
             get { return _parentParameter.MustHaveDefaultConstructor; }
@@ -62,6 +67,9 @@ namespace Microsoft.Cci
         #endregion
 
         #region ITypeDefinition Members
+
+        public bool IsEncDeleted
+            => false;
 
         public ushort Alignment
         {

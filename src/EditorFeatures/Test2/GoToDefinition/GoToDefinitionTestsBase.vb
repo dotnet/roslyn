@@ -3,12 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
+Imports Microsoft.CodeAnalysis.Editor.CSharp.Navigation
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
-Imports Microsoft.CodeAnalysis.GoToDefinition
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Navigation
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.VisualStudio.Text
 
@@ -17,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
         Public Shared Async Function TestAsync(
                 workspaceDefinition As XElement,
                 Optional expectedResult As Boolean = True) As Task
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=GoToTestHelpers.Composition)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=GoToTestHelpers.Composition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -39,15 +38,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                 Dim presenterCalled As Boolean = False
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
-                Dim presenter = New MockStreamingFindUsagesPresenter(workspace.GlobalOptions, Sub() presenterCalled = True)
+                Dim presenter = New MockStreamingFindUsagesPresenter(Sub() presenterCalled = True)
 
                 Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                    DirectCast(New CSharpAsyncGoToDefinitionService(threadingContext, presenter), IAsyncGoToDefinitionService),
-                    New VisualBasicAsyncGoToDefinitionService(threadingContext, presenter))
+                    DirectCast(New CSharpDefinitionLocationService(threadingContext, presenter), IDefinitionLocationService),
+                    New VisualBasicDefinitionLocationService(threadingContext, presenter))
 
-                Dim defLocationAndSpan = Await goToDefService.FindDefinitionLocationAsync(
-                    document, cursorPosition, includeType:=True, CancellationToken.None)
-                Dim defLocation = defLocationAndSpan.location
+                Dim defLocationAndSpan = Await goToDefService.GetDefinitionLocationAsync(
+                    document, cursorPosition, CancellationToken.None)
+                Dim defLocation = defLocationAndSpan?.Location
 
                 Dim actualResult = defLocation IsNot Nothing AndAlso
                     Await defLocation.NavigateToAsync(NavigationOptions.Default, CancellationToken.None)
@@ -90,7 +89,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                             ' The INavigableItemsPresenter should not have been called
                             Assert.False(presenterCalled)
                         Else
-                            Assert.False(mockDocumentNavigationService._triedNavigationToLineAndOffset)
                             Assert.True(presenterCalled)
 
                             Dim actualLocations As New List(Of FilePathAndSpan)

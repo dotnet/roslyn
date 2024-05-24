@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeDefinitionMember,
         Cci.ISpecializedFieldReference
     {
+        public bool IsEncDeleted
+            => false;
+
         Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
@@ -279,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return PEModuleBuilder.MemberVisibility(AdaptedFieldSymbol);
+                return AdaptedFieldSymbol.MetadataVisibility;
             }
         }
 

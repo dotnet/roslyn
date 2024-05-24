@@ -3,27 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
-using Microsoft.CommonLanguageServerProtocol.Framework;
-using Moq;
 using Nerdbank.Streams;
+using Newtonsoft.Json;
 using StreamJsonRpc;
 using Xunit;
-using static Microsoft.CommonLanguageServerProtocol.Framework.UnitTests.HandlerProviderTests;
-using static Microsoft.CommonLanguageServerProtocol.Framework.UnitTests.RequestExecutionQueueTests;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
 public class RequestExecutionQueueTests
 {
-    private class MockServer : AbstractLanguageServer<TestRequestContext>
+    private class MockServer : NewtonsoftLanguageServer<TestRequestContext>
     {
-        public MockServer() : base(new JsonRpc(new HeaderDelimitedMessageHandler(FullDuplexStream.CreatePair().Item1)), NoOpLspLogger.Instance)
+        public MockServer() : base(new JsonRpc(new HeaderDelimitedMessageHandler(FullDuplexStream.CreatePair().Item1)), JsonSerializer.CreateDefault(), NoOpLspLogger.Instance)
         {
         }
 
@@ -33,63 +26,32 @@ public class RequestExecutionQueueTests
         }
     }
 
-    private const string MethodName = "SomeMethod";
-    private const string CancellingMethod = "CancellingMethod";
-    private const string CompletingMethod = "CompletingMethod";
-    private const string MutatingMethod = "MutatingMethod";
-
-    private static RequestExecutionQueue<TestRequestContext> GetRequestExecutionQueue(bool cancelInProgressWorkUponMutatingRequest, params IMethodHandler[] methodHandlers)
+    private static RequestExecutionQueue<TestRequestContext> GetRequestExecutionQueue(
+        bool cancelInProgressWorkUponMutatingRequest,
+        params (RequestHandlerMetadata metadata, IMethodHandler handler)[] handlers)
     {
-        var handlerProvider = new Mock<IHandlerProvider>(MockBehavior.Strict);
-        if (methodHandlers.Length == 0)
-        {
-            var handler = GetTestMethodHandler();
-            handlerProvider.Setup(h => h.GetMethodHandler(MethodName, TestMethodHandler.RequestType, TestMethodHandler.ResponseType)).Returns(handler);
-        }
+        var provider = new TestHandlerProvider(handlers);
 
-        foreach (var methodHandler in methodHandlers)
-        {
-            var methodType = methodHandler.GetType();
-            var methodAttribute = methodType.GetCustomAttribute<LanguageServerEndpointAttribute>();
-            var method = methodAttribute.Method;
-
-            handlerProvider.Setup(h => h.GetMethodHandler(method, typeof(int), typeof(string))).Returns(methodHandler);
-        }
-
-        var executionQueue = new TestRequestExecutionQueue(new MockServer(), NoOpLspLogger.Instance, handlerProvider.Object, cancelInProgressWorkUponMutatingRequest);
+        var executionQueue = new TestRequestExecutionQueue(new MockServer(), NoOpLspLogger.Instance, provider, cancelInProgressWorkUponMutatingRequest);
         executionQueue.Start();
 
         return executionQueue;
     }
 
-    private static ILspServices GetLspServices()
-    {
-        var requestContextFactory = new Mock<IRequestContextFactory<TestRequestContext>>(MockBehavior.Strict);
-        requestContextFactory.Setup(f => f.CreateRequestContextAsync<int>(It.IsAny<IQueueItem<TestRequestContext>>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult(new TestRequestContext()));
-        var services = new List<(Type, object)> { (typeof(IRequestContextFactory<TestRequestContext>), requestContextFactory.Object) };
-        var lspServices = new TestLspServices(services, supportsGetRegisteredServices: false);
-
-        return lspServices;
-    }
-
-    private static TestMethodHandler GetTestMethodHandler()
-    {
-        var methodHandler = new TestMethodHandler();
-
-        return methodHandler;
-    }
+    private static TestLspServices GetLspServices()
+        => new(
+            services: new[] { (typeof(AbstractRequestContextFactory<TestRequestContext>), (object)TestRequestContext.Factory.Instance) },
+            supportsGetRegisteredServices: false);
 
     [Fact]
     public async Task ExecuteAsync_ThrowCompletes()
     {
         // Arrange
-        var throwingHandler = new ThrowingHandler();
-        var requestExecutionQueue = GetRequestExecutionQueue(false, throwingHandler);
+        var requestExecutionQueue = GetRequestExecutionQueue(false, (ThrowingHandler.Metadata, ThrowingHandler.Instance));
         var lspServices = GetLspServices();
 
         // Act & Assert
-        await Assert.ThrowsAsync<NotImplementedException>(() => requestExecutionQueue.ExecuteAsync<int, string>(1, MethodName, lspServices, CancellationToken.None));
+        await Assert.ThrowsAsync<NotImplementedException>(() => requestExecutionQueue.ExecuteAsync<int, string>(1, ThrowingHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None));
     }
 
     [Fact]
@@ -99,21 +61,23 @@ public class RequestExecutionQueueTests
         for (var i = 0; i < 20; i++)
         {
             // Arrange
-            var mutatingHandler = new MutatingHandler();
-            var cancellingHandler = new CancellingHandler();
-            var completingHandler = new CompletingHandler();
-            var requestExecutionQueue = GetRequestExecutionQueue(cancelInProgressWorkUponMutatingRequest: true, methodHandlers: new IMethodHandler[] { cancellingHandler, completingHandler, mutatingHandler });
+            var requestExecutionQueue = GetRequestExecutionQueue(cancelInProgressWorkUponMutatingRequest: true, handlers: new[]
+            {
+                (CancellingHandler.Metadata, CancellingHandler.Instance),
+                (CompletingHandler.Metadata, CompletingHandler.Instance),
+                (MutatingHandler.Metadata, MutatingHandler.Instance),
+            });
             var lspServices = GetLspServices();
 
             var cancellingRequestCancellationToken = new CancellationToken();
             var completingRequestCancellationToken = new CancellationToken();
 
-            var _ = requestExecutionQueue.ExecuteAsync<int, string>(1, CancellingMethod, lspServices, cancellingRequestCancellationToken);
-            var _1 = requestExecutionQueue.ExecuteAsync<int, string>(1, CompletingMethod, lspServices, completingRequestCancellationToken);
+            var _ = requestExecutionQueue.ExecuteAsync<int, string>(1, CancellingHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, cancellingRequestCancellationToken);
+            var _1 = requestExecutionQueue.ExecuteAsync<int, string>(1, CompletingHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, completingRequestCancellationToken);
 
             // Act & Assert
             // A Debug.Assert would throw if the tasks hadn't completed when the mutating request is called.
-            await requestExecutionQueue.ExecuteAsync<int, string>(1, MutatingMethod, lspServices, CancellationToken.None);
+            await requestExecutionQueue.ExecuteAsync<int, string>(1, MutatingHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None);
         }
     }
 
@@ -121,7 +85,7 @@ public class RequestExecutionQueueTests
     public async Task Dispose_MultipleTimes_Succeeds()
     {
         // Arrange
-        var requestExecutionQueue = GetRequestExecutionQueue(false);
+        var requestExecutionQueue = GetRequestExecutionQueue(false, (TestMethodHandler.Metadata, TestMethodHandler.Instance));
 
         // Act
         await requestExecutionQueue.DisposeAsync();
@@ -133,24 +97,52 @@ public class RequestExecutionQueueTests
     [Fact]
     public async Task ExecuteAsync_CompletesTask()
     {
-        var requestExecutionQueue = GetRequestExecutionQueue(false);
-        var request = 1;
+        var requestExecutionQueue = GetRequestExecutionQueue(false, (TestMethodHandler.Metadata, TestMethodHandler.Instance));
         var lspServices = GetLspServices();
 
-        var response = await requestExecutionQueue.ExecuteAsync<int, string>(request, MethodName, lspServices, CancellationToken.None);
-
+        var response = await requestExecutionQueue.ExecuteAsync<int, string>(request: 1, TestMethodHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None);
         Assert.Equal("stuff", response);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_CompletesTask_Parameterless()
+    {
+        var requestExecutionQueue = GetRequestExecutionQueue(false, (TestParameterlessMethodHandler.Metadata, TestParameterlessMethodHandler.Instance));
+        var lspServices = GetLspServices();
+
+        var response = await requestExecutionQueue.ExecuteAsync<NoValue, bool>(request: NoValue.Instance, TestParameterlessMethodHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None);
+        Assert.True(response);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_CompletesTask_Notification()
+    {
+        var requestExecutionQueue = GetRequestExecutionQueue(false, (TestNotificationHandler.Metadata, TestNotificationHandler.Instance));
+        var lspServices = GetLspServices();
+
+        var response = await requestExecutionQueue.ExecuteAsync<bool, NoValue>(request: true, TestNotificationHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None);
+        Assert.Same(NoValue.Instance, response);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_CompletesTask_Notification_Parameterless()
+    {
+        var requestExecutionQueue = GetRequestExecutionQueue(false, (TestParameterlessNotificationHandler.Metadata, TestParameterlessNotificationHandler.Instance));
+        var lspServices = GetLspServices();
+
+        var response = await requestExecutionQueue.ExecuteAsync<NoValue, NoValue>(request: NoValue.Instance, TestParameterlessNotificationHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None);
+        Assert.Same(NoValue.Instance, response);
     }
 
     [Fact]
     public async Task Queue_DrainsOnShutdown()
     {
-        var requestExecutionQueue = GetRequestExecutionQueue(false);
+        var requestExecutionQueue = GetRequestExecutionQueue(false, (TestMethodHandler.Metadata, TestMethodHandler.Instance));
         var request = 1;
         var lspServices = GetLspServices();
 
-        var task1 = requestExecutionQueue.ExecuteAsync<int, string>(request, MethodName, lspServices, CancellationToken.None);
-        var task2 = requestExecutionQueue.ExecuteAsync<int, string>(request, MethodName, lspServices, CancellationToken.None);
+        var task1 = requestExecutionQueue.ExecuteAsync<int, string>(request, TestMethodHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None);
+        var task2 = requestExecutionQueue.ExecuteAsync<int, string>(request, TestMethodHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None);
 
         await requestExecutionQueue.DisposeAsync();
 
@@ -162,71 +154,12 @@ public class RequestExecutionQueueTests
     {
         private readonly bool _cancelInProgressWorkUponMutatingRequest;
 
-        public TestRequestExecutionQueue(AbstractLanguageServer<TestRequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider, bool cancelInProgressWorkUponMutatingRequest)
+        public TestRequestExecutionQueue(AbstractLanguageServer<TestRequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider, bool cancelInProgressWorkUponMutatingRequest)
             : base(languageServer, logger, handlerProvider)
         {
             _cancelInProgressWorkUponMutatingRequest = cancelInProgressWorkUponMutatingRequest;
         }
 
         protected override bool CancelInProgressWorkUponMutatingRequest => _cancelInProgressWorkUponMutatingRequest;
-    }
-
-    [LanguageServerEndpoint(MutatingMethod)]
-    public class MutatingHandler : IRequestHandler<int, string, TestRequestContext>
-    {
-        public MutatingHandler()
-        {
-        }
-
-        public bool MutatesSolutionState => true;
-
-        public Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(string.Empty);
-        }
-    }
-
-    [LanguageServerEndpoint(CompletingMethod)]
-    public class CompletingHandler : IRequestHandler<int, string, TestRequestContext>
-    {
-        public bool MutatesSolutionState => false;
-
-        public async Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
-        {
-            while (true)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return "I completed!";
-                }
-                await Task.Delay(100);
-            }
-        }
-    }
-
-    [LanguageServerEndpoint(CancellingMethod)]
-    public class CancellingHandler : IRequestHandler<int, string, TestRequestContext>
-    {
-        public bool MutatesSolutionState => false;
-
-        public async Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
-        {
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await Task.Delay(100);
-            }
-        }
-    }
-
-    [LanguageServerEndpoint(MethodName)]
-    public class ThrowingHandler : IRequestHandler<int, string, TestRequestContext>
-    {
-        public bool MutatesSolutionState => false;
-
-        public Task<string> HandleRequestAsync(int request, TestRequestContext context, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

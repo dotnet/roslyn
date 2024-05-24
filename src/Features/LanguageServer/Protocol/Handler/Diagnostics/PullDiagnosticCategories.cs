@@ -2,29 +2,37 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+
+internal static class PullDiagnosticCategories
 {
-    internal static class PullDiagnosticCategories
-    {
-        /// <summary>
-        /// Task list items.  Can be for Document or Workspace pull requests.
-        /// </summary>
-        public static readonly string Task = VSInternalDiagnosticKind.Task.Value;
+    /// <summary>
+    /// Task list items.  Can be for Document or Workspace pull requests.
+    /// </summary>
+    public static readonly string Task = VSInternalDiagnosticKind.Task.Value;
 
-        // Workspace categories
+    /// <summary>
+    /// Edit and Continue diagnostics. Can be for Document or Workspace pull requests.
+    /// </summary>
+    public static readonly string EditAndContinue = VSInternalDiagnosticKind.EditAndContiue.Value;
 
-        /// <summary>
-        /// Diagnostics for workspace documents and project.  We don't support fine-grained diagnostics requests for these (yet).
-        /// </summary>
-        public const string WorkspaceDocumentsAndProject = nameof(WorkspaceDocumentsAndProject);
+    // Workspace categories
 
-        // Fine-grained document pull categories to allow diagnostics to more quickly reach the user.
+    /// <summary>
+    /// Diagnostics for workspace documents and project.  We don't support fine-grained diagnostics requests for these (yet).
+    /// </summary>
+    public const string WorkspaceDocumentsAndProject = nameof(WorkspaceDocumentsAndProject);
 
-        public const string DocumentCompilerSyntax = nameof(DocumentCompilerSyntax);
-        public const string DocumentCompilerSemantic = nameof(DocumentCompilerSemantic);
-        public const string DocumentAnalyzerSyntax = nameof(DocumentAnalyzerSyntax);
-        public const string DocumentAnalyzerSemantic = nameof(DocumentAnalyzerSemantic);
-    }
+    // Fine-grained document pull categories to allow diagnostics to more quickly reach the user.
+
+    // VSLanguageServerClient's RemoteDocumentDiagnosticBroker uses this exact string to determine
+    // when syntax errors are being provided via pull diagnostics. Alternatively when 17.9 preview 1 packages
+    // are consumable by Roslyn, this could be updated to reference VSInternalDiagnosticKind.Syntax.Value directly.
+    public const string DocumentCompilerSyntax = "syntax";
+
+    public const string DocumentCompilerSemantic = nameof(DocumentCompilerSemantic);
+    public const string DocumentAnalyzerSyntax = nameof(DocumentAnalyzerSyntax);
+    public const string DocumentAnalyzerSemantic = nameof(DocumentAnalyzerSemantic);
 }

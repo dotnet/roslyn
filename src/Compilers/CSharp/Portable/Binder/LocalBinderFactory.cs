@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -240,8 +241,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            base.VisitInvocationExpression(node);
+            if (receiverIsInvocation(node, out InvocationExpressionSyntax? nested))
+            {
+                var invocations = ArrayBuilder<InvocationExpressionSyntax>.GetInstance();
+
+                invocations.Push(node);
+
+                node = nested;
+                while (receiverIsInvocation(node, out nested))
+                {
+                    invocations.Push(node);
+                    node = nested;
+                }
+
+                Visit(node.Expression);
+
+                do
+                {
+                    Visit(node.ArgumentList);
+                }
+                while (invocations.TryPop(out node!));
+
+                invocations.Free();
+            }
+            else
+            {
+                Visit(node.Expression);
+                Visit(node.ArgumentList);
+            }
+
             return;
+
+            static bool receiverIsInvocation(InvocationExpressionSyntax node, [NotNullWhen(true)] out InvocationExpressionSyntax? nested)
+            {
+                if (node.Expression is MemberAccessExpressionSyntax { Expression: InvocationExpressionSyntax receiver } && !receiver.MayBeNameofOperator())
+                {
+                    nested = receiver;
+                    return true;
+                }
+
+                nested = null;
+                return false;
+            }
 
             static Symbol getAttributeTarget(Binder current)
             {
@@ -375,7 +416,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? new WithMethodTypeParametersBinder(match, _enclosing)
                     : _enclosing;
 
-                binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers);
+                binder = binder.SetOrClearUnsafeRegionIfNecessary(node.Modifiers,
+                    isIteratorBody: match.IsIterator);
+
                 binder = new InMethodBinder(match, binder);
             }
 
@@ -410,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var candidate in possibleScopeBinder.LocalFunctions)
                 {
-                    if (candidate.Locations[0] == node.Identifier.GetLocation())
+                    if (candidate.GetFirstLocation() == node.Identifier.GetLocation())
                     {
                         match = candidate;
                     }
@@ -605,6 +648,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var binder = new ForEachLoopBinder(patternBinder, node);
             AddToMap(node, binder);
+
+            if (node is ForEachVariableStatementSyntax forEachVariable && !forEachVariable.Variable.IsDeconstructionLeft())
+            {
+                // We will bind this expression for error recovery, anything could be there
+                Visit(forEachVariable.Variable, binder);
+            }
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);
         }

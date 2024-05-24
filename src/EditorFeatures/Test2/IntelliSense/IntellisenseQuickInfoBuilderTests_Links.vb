@@ -107,5 +107,50 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Function
+
+        <WpfFact>
+        Public Async Function QuickInfoForBuiltInTypeReference() As Task
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System.Threading;
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// This contains a link to &lt;see cref="string"/&gt;.
+                                /// &lt;/summary&gt;
+                                void MyMethod() {
+                                    MyM$$ethod();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "void MyClass.MyMethod()"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "This contains a link to"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "string", navigationAction:=Sub() Return, "string"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
+
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
+        End Function
     End Class
 End Namespace

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             object provider,
             CodeAction codeAction,
             SuggestedActionSet nestedActionSet)
-            : this(threadingContext, sourceProvider, workspace, originalSolution, subjectBuffer, provider, codeAction, ImmutableArray.Create(nestedActionSet))
+            : this(threadingContext, sourceProvider, workspace, originalSolution, subjectBuffer, provider, codeAction, [nestedActionSet])
         {
         }
 
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
             => Task.FromResult<IEnumerable<SuggestedActionSet>>(NestedActionSets);
 
-        protected override Task InnerInvokeAsync(IProgressTracker progressTracker, CancellationToken cancellationToken)
+        protected override Task InnerInvokeAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             // A code action with nested actions is itself never invokable.  So just do nothing if this ever gets asked.
             // Report a message in debug and log a watson exception so that if this is hit we can try to narrow down how

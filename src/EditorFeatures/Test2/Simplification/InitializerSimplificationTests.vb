@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 #Region "VB tests"
 
         <Fact>
-        Public Async Function TestVisualBasic_DontRemovePropertyNameForObjectCreationInitializer() As Task
+        Public Async Function TestVisualBasic_DoNotRemovePropertyNameForObjectCreationInitializer() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -84,7 +84,7 @@ End Class
 #End Region
 
         Private Shared Async Function AssertCompilesAndEqual(input As XElement, expected As XElement) As Task
-            Using workspace = CreateTestWorkspace(input)
+            Using workspace = Await CreateTestWorkspaceAsync(input)
                 Dim simplifiedDocument = Await SimplifyAsync(workspace).ConfigureAwait(False)
 
                 Dim semanticModel = Await simplifiedDocument.GetSemanticModelAsync()

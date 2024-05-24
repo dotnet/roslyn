@@ -8222,6 +8222,73 @@ class C
                 SymbolDisplayPartKind.Punctuation);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67464")]
+        public void Parameter_Standalone()
+        {
+            var source = """
+                class C
+                {
+                    void M(ref int p) { }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            var methodSymbol = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+            var parameterSymbol = methodSymbol.Parameters.Single();
+
+            var format = s_memberSignatureDisplayFormat.RemoveParameterOptions(SymbolDisplayParameterOptions.IncludeName);
+
+            Verify(methodSymbol.ToDisplayParts(format), "void C.M(ref int)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation);
+
+            Verify(methodSymbol.ToDisplayParts(SymbolDisplayFormat.CSharpErrorMessageFormat), "C.M(ref int)",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation);
+
+            Verify(methodSymbol.ToDisplayParts(SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat), "C.M(ref int)",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation);
+
+            Verify(parameterSymbol.ToDisplayParts(format), "ref int p",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName);
+
+            Verify(parameterSymbol.ToDisplayParts(SymbolDisplayFormat.CSharpErrorMessageFormat), "ref int p",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName);
+
+            Verify(parameterSymbol.ToDisplayParts(SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat), "ref int",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword);
+        }
+
         [Fact]
         public void TestRequiredProperty()
         {

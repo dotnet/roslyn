@@ -12,31 +12,20 @@ using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteConvertTupleToStructCodeRefactoringService : BrokeredServiceBase, IRemoteConvertTupleToStructCodeRefactoringService
+    internal sealed class RemoteConvertTupleToStructCodeRefactoringService(in BrokeredServiceBase.ServiceConstructionArguments arguments, RemoteCallback<IRemoteConvertTupleToStructCodeRefactoringService.ICallback> callback)
+        : BrokeredServiceBase(arguments), IRemoteConvertTupleToStructCodeRefactoringService
     {
         internal sealed class Factory : FactoryBase<IRemoteConvertTupleToStructCodeRefactoringService, IRemoteConvertTupleToStructCodeRefactoringService.ICallback>
         {
             protected override IRemoteConvertTupleToStructCodeRefactoringService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteConvertTupleToStructCodeRefactoringService.ICallback> callback)
                 => new RemoteConvertTupleToStructCodeRefactoringService(arguments, callback);
         }
-
-        private readonly RemoteCallback<IRemoteConvertTupleToStructCodeRefactoringService.ICallback> _callback;
-
-        public RemoteConvertTupleToStructCodeRefactoringService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteConvertTupleToStructCodeRefactoringService.ICallback> callback)
-            : base(arguments)
-        {
-            _callback = callback;
-        }
-
-        // TODO: Use generic IRemoteOptionsCallback<TOptions> once https://github.com/microsoft/vs-streamjsonrpc/issues/789 is fixed
-        private CleanCodeGenerationOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
-            => new ClientCleanCodeGenerationOptionsProvider(
-                (callbackId, language, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
 
         public ValueTask<SerializableConvertTupleToStructResult> ConvertToStructAsync(
             Checksum solutionChecksum,
@@ -52,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var document = solution.GetRequiredDocument(documentId);
 
                 var service = document.GetRequiredLanguageService<IConvertTupleToStructCodeRefactoringProvider>();
-                var fallbackOptions = GetClientOptionsProvider(callbackId);
+                var fallbackOptions = GetClientOptionsProvider<CleanCodeGenerationOptions, IRemoteConvertTupleToStructCodeRefactoringService.ICallback>(callback, callbackId).ToCleanCodeGenerationOptionsProvider();
 
                 var updatedSolution = await service.ConvertToStructAsync(document, span, scope, fallbackOptions, isRecord, cancellationToken).ConfigureAwait(false);
 
@@ -91,18 +80,22 @@ namespace Microsoft.CodeAnalysis.Remote
             var changes = newSolution.GetChangedDocuments(oldSolution);
             var final = newSolution;
 
-            foreach (var docId in changes)
-            {
-                var document = newSolution.GetRequiredDocument(docId);
+            var changedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+                source: changes,
+                produceItems: static async (docId, callback, args, cancellationToken) =>
+                {
+                    var document = args.newSolution.GetRequiredDocument(docId);
 
-                var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-                var cleaned = await CodeAction.CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+                    var options = await document.GetCodeCleanupOptionsAsync(args.fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    var cleaned = await CodeAction.CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
 
-                var cleanedRoot = await cleaned.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                final = final.WithDocumentSyntaxRoot(docId, cleanedRoot);
-            }
+                    var cleanedRoot = await cleaned.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    callback((docId, cleanedRoot));
+                },
+                args: (newSolution, fallbackOptions),
+                cancellationToken).ConfigureAwait(false);
 
-            return final;
+            return newSolution.WithDocumentSyntaxRoots(changedDocuments);
         }
     }
 }

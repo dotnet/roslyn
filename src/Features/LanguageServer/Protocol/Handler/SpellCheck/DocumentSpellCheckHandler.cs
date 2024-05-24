@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
@@ -15,10 +14,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         public override TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams requestParams)
             => requestParams.TextDocument;
 
-        protected override VSInternalSpellCheckableRangeReport CreateReport(TextDocumentIdentifier identifier, VSInternalSpellCheckableRange[]? ranges, string? resultId)
+        protected override VSInternalSpellCheckableRangeReport CreateReport(TextDocumentIdentifier identifier, int[]? ranges, string? resultId)
             => new()
             {
-                Ranges = ranges!,
+                Ranges = ranges,
                 ResultId = resultId,
             };
 
@@ -49,16 +48,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             if (context.Document == null)
             {
                 context.TraceInformation("Ignoring spell check request because no document was provided");
-                return ImmutableArray<Document>.Empty;
+                return [];
             }
 
             if (!context.IsTracking(context.Document.GetURI()))
             {
                 context.TraceInformation($"Ignoring spell check request for untracked document: {context.Document.GetURI()}");
-                return ImmutableArray<Document>.Empty;
+                return [];
             }
 
-            return ImmutableArray.Create(context.Document);
+            return [context.Document];
         }
     }
 }

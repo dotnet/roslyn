@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.MakeTypePartial
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.MakeTypePartial
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.MakeDeclarationsPartial), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.MakeTypePartial), [Shared]>
     Friend Class VisualBasicMakeTypePartialCodeFixProvider
         Inherits AbstractMakeTypePartialCodeFixProvider
 

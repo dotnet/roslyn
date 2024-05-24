@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly int _memberOffset;
 
         protected SynthesizedRecordEqualityOperatorBase(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(MethodKind.UserDefinedOperator, explicitInterfaceType: null, name, containingType, containingType.Locations[0], (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(),
-                   DeclarationModifiers.Public | DeclarationModifiers.Static, hasBody: true, isExpressionBodied: false, isIterator: false, isNullableAnalysisEnabled: false, diagnostics)
+            : base(MethodKind.UserDefinedOperator, explicitInterfaceType: null, name, containingType, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(),
+                   DeclarationModifiers.Public | DeclarationModifiers.Static, hasAnyBody: true, isExpressionBodied: false, isIterator: false, isNullableAnalysisEnabled: false, diagnostics)
         {
             Debug.Assert(name == WellKnownMemberNames.EqualityOperatorName || name == WellKnownMemberNames.InequalityOperatorName);
             _memberOffset = memberOffset;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool IsImplicitlyDeclared => true;
 
-        protected sealed override Location ReturnTypeLocation => Locations[0];
+        protected sealed override Location ReturnTypeLocation => GetFirstLocation();
 
         internal sealed override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
@@ -70,10 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
                                                                     TypeWithAnnotations.Create(ContainingType, annotation),
-                                                                    ordinal: 0, RefKind.None, ScopedKind.None, "left", Locations),
+                                                                    ordinal: 0, RefKind.None, "left", Locations),
                                     new SourceSimpleParameterSymbol(owner: this,
                                                                     TypeWithAnnotations.Create(ContainingType, annotation),
-                                                                    ordinal: 1, RefKind.None, ScopedKind.None, "right", Locations)));
+                                                                    ordinal: 1, RefKind.None, "right", Locations)));
         }
 
         protected override int GetParameterCountFromSyntax() => 2;

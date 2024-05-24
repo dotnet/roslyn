@@ -13,7 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteNavigateToSearchService : BrokeredServiceBase, IRemoteNavigateToSearchService
+    internal sealed class RemoteNavigateToSearchService(
+        in BrokeredServiceBase.ServiceConstructionArguments arguments,
+        RemoteCallback<IRemoteNavigateToSearchService.ICallback> callback)
+        : BrokeredServiceBase(arguments), IRemoteNavigateToSearchService
     {
         internal sealed class Factory : FactoryBase<IRemoteNavigateToSearchService, IRemoteNavigateToSearchService.ICallback>
         {
@@ -22,20 +25,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 => new RemoteNavigateToSearchService(arguments, callback);
         }
 
-        private readonly RemoteCallback<IRemoteNavigateToSearchService.ICallback> _callback;
+        private readonly RemoteCallback<IRemoteNavigateToSearchService.ICallback> _callback = callback;
 
-        public RemoteNavigateToSearchService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteNavigateToSearchService.ICallback> callback)
-            : base(arguments)
-        {
-            _callback = callback;
-        }
-
-        private Func<RoslynNavigateToItem, Task> GetCallback(
+        private (Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound, Func<Task> onProjectCompleted) GetCallbacks(
             RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
-            return async i => await _callback.InvokeAsync((callback, c) =>
-                callback.OnResultFoundAsync(callbackId, i),
-                cancellationToken).ConfigureAwait(false);
+            return (
+                async (array, _, cancellationToken) => await _callback.InvokeAsync((callback, cancellationToken) => callback.OnItemsFoundAsync(callbackId, array), cancellationToken).ConfigureAwait(false),
+                async () => await _callback.InvokeAsync((callback, cancellationToken) => callback.OnProjectCompletedAsync(callbackId), cancellationToken).ConfigureAwait(false));
         }
 
         public ValueTask HydrateAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
@@ -58,16 +55,16 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var document = solution.GetRequiredDocument(documentId);
-                var callback = GetCallback(callbackId, cancellationToken);
+                var (onItemsFound, onProjectCompleted) = GetCallbacks(callbackId, cancellationToken);
 
                 await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                    document, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                    document, searchPattern, kinds.ToImmutableHashSet(), onItemsFound, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
-        public ValueTask SearchProjectAsync(
+        public ValueTask SearchProjectsAsync(
             Checksum solutionChecksum,
-            ProjectId projectId,
+            ImmutableArray<ProjectId> projectIds,
             ImmutableArray<DocumentId> priorityDocumentIds,
             string searchPattern,
             ImmutableArray<string> kinds,
@@ -76,19 +73,19 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var project = solution.GetRequiredProject(projectId);
-                var callback = GetCallback(callbackId, cancellationToken);
+                var projects = projectIds.SelectAsArray(solution.GetRequiredProject);
+                var (onItemsFound, onProjectCompleted) = GetCallbacks(callbackId, cancellationToken);
 
                 var priorityDocuments = priorityDocumentIds.SelectAsArray(d => solution.GetRequiredDocument(d));
 
-                await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                await AbstractNavigateToSearchService.SearchProjectsInCurrentProcessAsync(
+                    projects, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), onItemsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
         public ValueTask SearchGeneratedDocumentsAsync(
             Checksum solutionChecksum,
-            ProjectId projectId,
+            ImmutableArray<ProjectId> projectIds,
             string searchPattern,
             ImmutableArray<string> kinds,
             RemoteServiceCallbackId callbackId,
@@ -96,25 +93,31 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var project = solution.GetRequiredProject(projectId);
-                var callback = GetCallback(callbackId, cancellationToken);
+                var projects = projectIds.SelectAsArray(solution.GetRequiredProject);
+                var (onItemsFound, onProjectCompleted) = GetCallbacks(callbackId, cancellationToken);
 
                 await AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
-                    project, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                    projects, searchPattern, kinds.ToImmutableHashSet(), onItemsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
-        public ValueTask SearchCachedDocumentsAsync(ImmutableArray<DocumentKey> documentKeys, ImmutableArray<DocumentKey> priorityDocumentKeys, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        public ValueTask SearchCachedDocumentsAsync(
+            ImmutableArray<DocumentKey> documentKeys,
+            ImmutableArray<DocumentKey> priorityDocumentKeys,
+            string searchPattern,
+            ImmutableArray<string> kinds,
+            RemoteServiceCallbackId callbackId,
+            CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
                 // Intentionally do not call GetSolutionAsync here.  We do not want the cost of
                 // synchronizing the solution over to the remote side.  Instead, we just directly
                 // check whatever cached data we have from the previous vs session.
-                var callback = GetCallback(callbackId, cancellationToken);
+                var (onItemsFound, onProjectCompleted) = GetCallbacks(callbackId, cancellationToken);
                 var storageService = GetWorkspaceServices().GetPersistentStorageService();
                 await AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
-                    storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                    storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), onItemsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

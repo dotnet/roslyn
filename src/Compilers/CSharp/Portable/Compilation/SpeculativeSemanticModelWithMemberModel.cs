@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -126,6 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override CSharpSyntaxNode Root => _memberModel.Root;
 
         public override SyntaxTree SyntaxTree => _memberModel.SyntaxTree;
+
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
+        public override bool NullableAnalysisIsDisabled => _parentSemanticModel.NullableAnalysisIsDisabled;
 
         public override bool IgnoresAccessibility => _parentSemanticModel.IgnoresAccessibility;
 
@@ -273,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetEnclosingMemberModel(declarationSyntax).GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
-        public override ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        public override IMethodSymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             return GetEnclosingMemberModel(declarationSyntax).GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }

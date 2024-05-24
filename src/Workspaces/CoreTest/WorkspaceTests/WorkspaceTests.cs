@@ -10,9 +10,6 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using System;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Formating;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -58,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(0, originalDoc.Folders.Count);
 
-            var changedDoc = originalDoc.WithFolders(new[] { "A", "B" });
+            var changedDoc = originalDoc.WithFolders(["A", "B"]);
             Assert.Equal(2, changedDoc.Folders.Count);
             Assert.Equal("A", changedDoc.Folders[0]);
             Assert.Equal("B", changedDoc.Folders[1]);

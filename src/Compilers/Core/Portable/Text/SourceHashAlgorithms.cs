@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Security.Cryptography;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -44,5 +45,20 @@ namespace Microsoft.CodeAnalysis.Text
             => (guid == s_guidSha256) ? SourceHashAlgorithm.Sha256 :
                (guid == s_guidSha1) ? SourceHashAlgorithm.Sha1 :
                SourceHashAlgorithm.None;
+
+        private static HashAlgorithm CreateInstance(SourceHashAlgorithm algorithm)
+        {
+            return algorithm switch
+            {
+                SourceHashAlgorithm.Sha1 => SHA1.Create(),
+                SourceHashAlgorithm.Sha256 => SHA256.Create(),
+                _ => throw ExceptionUtilities.UnexpectedValue(algorithm)
+            };
+        }
+
+        public static HashAlgorithm CreateDefaultInstance()
+        {
+            return CreateInstance(Default);
+        }
     }
 }

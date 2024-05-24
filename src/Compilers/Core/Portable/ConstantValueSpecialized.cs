@@ -529,6 +529,7 @@ namespace Microsoft.CodeAnalysis
             public static readonly ConstantValueOne Double = new ConstantValueOne(ConstantValueTypeDiscriminator.Double);
             public static readonly ConstantValueOne Decimal = new ConstantValueDecimalOne();
             public static readonly ConstantValueOne Boolean = new ConstantValueOne(ConstantValueTypeDiscriminator.Boolean);
+            public static readonly ConstantValueOne Char = new ConstantValueOne(ConstantValueTypeDiscriminator.Char);
 
             protected ConstantValueOne(ConstantValueTypeDiscriminator discriminator)
                 : base(discriminator)
@@ -628,6 +629,22 @@ namespace Microsoft.CodeAnalysis
                 get
                 {
                     return 1;
+                }
+            }
+
+            public override char CharValue
+            {
+                get
+                {
+                    return (char)1;
+                }
+            }
+
+            public override bool IsOne
+            {
+                get
+                {
+                    return true;
                 }
             }
 

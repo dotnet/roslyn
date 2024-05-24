@@ -6,14 +6,13 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
+namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
+
+[Trait(Traits.Feature, Traits.Features.ErrorList)]
+public class BasicErrorListDesktop : BasicErrorListCommon
 {
-    [Trait(Traits.Feature, Traits.Features.ErrorList)]
-    public class BasicErrorListDesktop : BasicErrorListCommon
+    public BasicErrorListDesktop()
+        : base(WellKnownProjectTemplates.ClassLibrary)
     {
-        public BasicErrorListDesktop()
-            : base(WellKnownProjectTemplates.ClassLibrary)
-        {
-        }
     }
 }

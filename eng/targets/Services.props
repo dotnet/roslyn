@@ -43,6 +43,8 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CompilationAvailable" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCompilationAvailableService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.StackTraceExplorer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteStackTraceExplorerService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.UnitTestingSearch" ClassName="Microsoft.CodeAnalysis.Remote.RemoteUnitTestingSearchService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SourceGeneration" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSourceGenerationService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SemanticSearch" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSemanticSearchService+Factory" />
   </ItemGroup>
 
   <!--
@@ -51,5 +53,6 @@
   <ItemGroup>
     <InProcService Include="Microsoft.VisualStudio.LanguageServices.SolutionAssetProvider" />
     <InProcService Include="Microsoft.VisualStudio.LanguageServices.WorkspaceProjectFactoryService" />
+    <InProcService Include="Microsoft.CodeAnalysis.LanguageServer.ManagedHotReloadLanguageService" Version="0.1" />
   </ItemGroup>
 </Project>

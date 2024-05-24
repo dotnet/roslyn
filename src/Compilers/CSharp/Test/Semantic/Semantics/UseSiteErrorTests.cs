@@ -949,12 +949,12 @@ class C : ILErrors.InterfaceEvents
                 // (16,30): error CS7024: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         object myDelegate3 = new DelegateWithoutInvoke.DelegateSubWithoutInvoke(bar2);
                 Diagnostic(ErrorCode.ERR_InvalidDelegateType, "new DelegateWithoutInvoke.DelegateSubWithoutInvoke(bar2)").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke").WithLocation(16, 30),
-                // (17,70): error CS7024: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
+                // (17,72): error CS7024: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         DelegateWithoutInvoke.DelegateSubWithoutInvoke myDelegate4 = x => System.Console.WriteLine("Hello World");
-                Diagnostic(ErrorCode.ERR_InvalidDelegateType, @"x => System.Console.WriteLine(""Hello World"")").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke").WithLocation(17, 70),
-                // (18,87): error CS7024: Delegate 'DelegateWithoutInvoke.DelegateFunctionWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
+                Diagnostic(ErrorCode.ERR_InvalidDelegateType, "=>").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke").WithLocation(17, 72),
+                // (18,89): error CS7024: Delegate 'DelegateWithoutInvoke.DelegateFunctionWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         object myDelegate6 = new DelegateWithoutInvoke.DelegateFunctionWithoutInvoke( x => "Hello World");
-                Diagnostic(ErrorCode.ERR_InvalidDelegateType, @"x => ""Hello World""").WithArguments("DelegateWithoutInvoke.DelegateFunctionWithoutInvoke").WithLocation(18, 87));
+                Diagnostic(ErrorCode.ERR_InvalidDelegateType, "=>").WithArguments("DelegateWithoutInvoke.DelegateFunctionWithoutInvoke").WithLocation(18, 89));
         }
 
         [Fact]
@@ -995,27 +995,27 @@ class C : ILErrors.InterfaceEvents
             var csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
             var ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
             CreateCompilation(text, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference }).VerifyDiagnostics(
-                // (7,16): error CS0012: The type 'UnavailableClass<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         return del.Invoke("goo");
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "del.Invoke").WithArguments("UnavailableClass<>", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 16),
-                // (13,56): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         CSharpErrors.DelegateReturnType1 myDelegate1 = bar;
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "bar").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(13, 56),
-                // (14,9): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         myDelegate1("goo");
-                Diagnostic(ErrorCode.ERR_NoTypeDef, @"myDelegate1(""goo"")").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(14, 9),
-                // (15,56): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         CSharpErrors.DelegateReturnType1 myDelegate2 = new CSharpErrors.DelegateReturnType1(myDelegate1);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "new CSharpErrors.DelegateReturnType1(myDelegate1)").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(15, 56),
-                // (16,30): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         object myDelegate3 = new CSharpErrors.DelegateReturnType1(bar);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "new CSharpErrors.DelegateReturnType1(bar)").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(16, 30),
-                // (17,56): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         CSharpErrors.DelegateReturnType1 myDelegate4 = x => System.Console.WriteLine("Hello World");
-                Diagnostic(ErrorCode.ERR_NoTypeDef, @"x => System.Console.WriteLine(""Hello World"")").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(17, 56),
-                // (18,68): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         object myDelegate6 = new CSharpErrors.DelegateReturnType1( x => "Hello World");
-                Diagnostic(ErrorCode.ERR_NoTypeDef, @"x => ""Hello World""").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(18, 68));
+                    // (7,16): error CS0012: The type 'UnavailableClass<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    //         return del.Invoke("goo");
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, "del.Invoke").WithArguments("UnavailableClass<>", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 16),
+                    // (13,56): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    //         CSharpErrors.DelegateReturnType1 myDelegate1 = bar;
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, "bar").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(13, 56),
+                    // (14,9): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    //         myDelegate1("goo");
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, @"myDelegate1(""goo"")").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(14, 9),
+                    // (15,56): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    //         CSharpErrors.DelegateReturnType1 myDelegate2 = new CSharpErrors.DelegateReturnType1(myDelegate1);
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, "new CSharpErrors.DelegateReturnType1(myDelegate1)").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(15, 56),
+                    // (16,30): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    //         object myDelegate3 = new CSharpErrors.DelegateReturnType1(bar);
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, "new CSharpErrors.DelegateReturnType1(bar)").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(16, 30),
+                    // (17,58): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    //         CSharpErrors.DelegateReturnType1 myDelegate4 = x => System.Console.WriteLine("Hello World");
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, "=>").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(17, 58),
+                    // (18,70): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    //         object myDelegate6 = new CSharpErrors.DelegateReturnType1( x => "Hello World");
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, "=>").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(18, 70));
         }
 
         [Fact, WorkItem(531090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531090")]

@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We only report exhaustive warnings when the default label is reachable through some series of
             // tests that do not include a test in which the value is known to be null.  Handling paths with
             // nulls is the job of the nullable walker.
-            bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(SpecializedCollections.SingletonEnumerable(decisionDag.RootNode), nonNullSuccessors, out var nodes);
+            bool wasAcyclic = TopologicalSort.TryIterativeSort(decisionDag.RootNode, addNonNullSuccessors, out var nodes);
             // Since decisionDag.RootNode is acyclic by construction, its subset of nodes sorted here cannot be cyclic
             Debug.Assert(wasAcyclic);
             foreach (var n in nodes)
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
 
-            ImmutableArray<BoundDecisionDagNode> nonNullSuccessors(BoundDecisionDagNode n)
+            static void addNonNullSuccessors(ref TemporaryArray<BoundDecisionDagNode> builder, BoundDecisionDagNode n)
             {
                 switch (n)
                 {
@@ -115,14 +116,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (p.Test)
                         {
                             case BoundDagNonNullTest t: // checks that the input is not null
-                                return ImmutableArray.Create(p.WhenTrue);
+                                builder.Add(p.WhenTrue);
+                                return;
                             case BoundDagExplicitNullTest t: // checks that the input is null
-                                return ImmutableArray.Create(p.WhenFalse);
+                                builder.Add(p.WhenFalse);
+                                return;
                             default:
-                                return BoundDecisionDag.Successors(n);
+                                BoundDecisionDag.AddSuccessors(ref builder, n);
+                                return;
                         }
                     default:
-                        return BoundDecisionDag.Successors(n);
+                        BoundDecisionDag.AddSuccessors(ref builder, n);
+                        return;
                 }
             }
         }

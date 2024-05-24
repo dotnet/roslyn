@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!documentedParameters.Contains(parameter))
                         {
-                            Location location = parameter.Locations[0];
+                            Location location = parameter.GetFirstLocation();
                             Debug.Assert(location.SourceTree!.ReportDocumentationCommentDiagnostics()); //Should be the same tree as for the symbol.
 
                             // NOTE: parameter name, since the parameter would be displayed as just its type.
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!documentedTypeParameters.Contains(typeParameter))
                         {
-                            Location location = typeParameter.Locations[0];
+                            Location location = typeParameter.GetFirstLocation();
                             Debug.Assert(location.SourceTree!.ReportDocumentationCommentDiagnostics()); //Should be the same tree as for the symbol.
 
                             _diagnostics.Add(ErrorCode.WRN_MissingTypeParamTag, location, typeParameter, symbol);

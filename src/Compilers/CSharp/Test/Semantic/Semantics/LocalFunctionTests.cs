@@ -2366,7 +2366,7 @@ class C
             })();
     }
 }";
-            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", "never"));
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12.WithFeature("run-nullable-analysis", "never"));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -2382,33 +2382,64 @@ class C
             Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
 
             comp.VerifyDiagnostics(
-                // (8,37): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (8,37): error CS1637: Iterators cannot have pointer type parameters
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
-                // (17,41): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (17,41): error CS1637: Iterators cannot have pointer type parameters
                 //             IEnumerable<int> Local(int* x) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "x").WithLocation(17, 41),
-                // (27,37): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (27,37): error CS1637: Iterators cannot have pointer type parameters
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
-                // (33,44): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (33,44): error CS1637: Iterators cannot have pointer type parameters
                 //     public unsafe IEnumerable<int> M4(int* a)
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
-                // (33,36): error CS1629: Unsafe code may not appear in iterators
+                // (33,36): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public unsafe IEnumerable<int> M4(int* a)
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "M4").WithLocation(33, 36),
-                // (37,40): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M4").WithArguments("ref and unsafe in async and iterator methods").WithLocation(33, 36),
+                // (37,40): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //                 IEnumerable<int> Local(int* b) { yield break; }
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "int*").WithLocation(37, 40),
-                // (39,23): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("ref and unsafe in async and iterator methods").WithLocation(37, 40),
+                // (39,23): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //                 Local(&x);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "&x").WithLocation(39, 23),
-                // (39,17): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("ref and unsafe in async and iterator methods").WithLocation(39, 23),
+                // (39,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //                 Local(&x);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17),
-                // (37,45): error CS1637: Iterators cannot have unsafe parameters or yield types
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Local(&x)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(39, 17),
+                // (37,45): error CS1637: Iterators cannot have pointer type parameters
                 //                 IEnumerable<int> Local(int* b) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,37): error CS1637: Iterators cannot have pointer type parameters
+                //         IEnumerable<int> Local(int* a) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
+                // (17,41): error CS1637: Iterators cannot have pointer type parameters
+                //             IEnumerable<int> Local(int* x) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "x").WithLocation(17, 41),
+                // (27,37): error CS1637: Iterators cannot have pointer type parameters
+                //         IEnumerable<int> Local(int* a) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
+                // (33,44): error CS1637: Iterators cannot have pointer type parameters
+                //     public unsafe IEnumerable<int> M4(int* a)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
+                // (37,40): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(37, 40),
+                // (37,45): error CS1637: Iterators cannot have pointer type parameters
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45),
+                // (39,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Local(&x)").WithLocation(39, 17),
+                // (39,23): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(39, 23)
+            };
+
+            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", "never")).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never")).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -2550,9 +2581,9 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (8,21): error CS0225: The params parameter must be a single dimensional array
+    // (8,21): error CS0225: The params parameter must have a valid collection type
     //         void Params(params int x)
-    Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(8, 21)
+    Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(8, 21)
     );
         }
 
@@ -2705,15 +2736,15 @@ class C
     }
 }";
             VerifyDiagnostics(src,
-                // (10,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                // (10,17): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(val, val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(val, val)").WithArguments("ys", "L1").WithLocation(10, 9),
-                // (11,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(10, 17),
+                // (11,16): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(ys: val, x: val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val, x: val)").WithArguments("ys", "L1").WithLocation(11, 9),
-                // (12,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(11, 16),
+                // (12,16): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(ys: val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val)").WithArguments("ys", "L1").WithLocation(12, 9));
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(12, 16));
         }
 
         [Fact]
@@ -2762,6 +2793,71 @@ class C
                 // (10,9): error CS1501: No overload for method 'Local' takes 2 arguments
                 //         Local(val, val);
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Local").WithArguments("Local", "2").WithLocation(10, 9));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgWithRefKind_01()
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        dynamic i = 1;
+        
+        local1(i);
+        local1(ref i);
+
+        local2(i);
+        local3(i);
+        
+        void local1(ref int x){ x++; }
+        void local2(ref object x){ }
+        void local3(ref dynamic x){ x++; }
+    }
+}";
+            VerifyDiagnostics(src,
+                // (8,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local1(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(8, 16),
+                // (9,20): error CS1503: Argument 1: cannot convert from 'ref dynamic' to 'ref int'
+                //         local1(ref i);
+                Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "ref dynamic", "ref int").WithLocation(9, 20),
+                // (11,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local2(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(11, 16),
+                // (12,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local3(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgWithRefKind_02()
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        dynamic i = 1;
+        
+        local2(ref i);
+        System.Console.Write(i);
+        local3(ref i);
+        System.Console.Write(i);
+        
+        void local2(ref object x){ ref dynamic y = ref x; y++; }
+        void local3(ref dynamic x){ x++; }
+    }
+}";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
         }
 
         [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
@@ -3451,7 +3547,7 @@ class Program
                 // (10,31): error CS0190: The __arglist construct is valid only within a variable argument method
                 //             Console.WriteLine(__arglist);
                 Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(10, 31),
-                // (18,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                // (18,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //             Console.WriteLine(__arglist);
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(18, 31),
                 // (24,20): error CS1669: __arglist is not valid in this context
@@ -3463,7 +3559,7 @@ class Program
                 // (32,20): error CS1669: __arglist is not valid in this context
                 //         void Local(__arglist)
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(32, 20),
-                // (34,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                // (34,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //             Console.WriteLine(__arglist);
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(34, 31)
     );
@@ -9039,9 +9135,6 @@ public class MyAttribute : System.Attribute
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,35): error CS1525: Invalid expression term '['
-                //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(6, 35),
                 // (6,36): error CS0103: The name 'My' does not exist in the current context
                 //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "My").WithArguments("My").WithLocation(6, 36),
@@ -9053,8 +9146,7 @@ public class MyAttribute : System.Attribute
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "delegate").WithLocation(6, 59),
                 // (6,81): error CS1002: ; expected
                 //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 81)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 81));
         }
 
         [Theory, CombinatorialData]
@@ -10281,6 +10373,27 @@ public class C
                 //         Console.WriteLine(a);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(11, 27)
                 );
+        }
+
+        [Fact]
+        public void TestLocalFunctionDeclaration()
+        {
+            var compilation = CreateCompilation("""
+                                                class Test
+                                                {
+                                                  void M()
+                                                  {
+                                                      int LocalFunc(string s) {}
+                                                  }
+                                                }
+                                                """);
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+            var localFunction = root.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            IMethodSymbol methodSymbol = semanticModel.GetDeclaredSymbol(localFunction);
+
+            Assert.Equal("System.Int32 LocalFunc(System.String s)", methodSymbol.ToTestDisplayString());
         }
     }
 }

@@ -2,19 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+namespace Microsoft.CodeAnalysis.Precedence;
 
-namespace Microsoft.CodeAnalysis.Precedence
+internal enum PrecedenceKind
 {
-    internal enum PrecedenceKind
-    {
-        Arithmetic,
-        Shift,
-        Relational,
-        Equality,
-        Bitwise,
-        Logical,
-        Coalesce,
-        Other
-    }
+    Arithmetic,
+    Shift,
+    Relational,
+    Equality,
+    Bitwise,
+    Logical,
+    Coalesce,
+    Other
 }

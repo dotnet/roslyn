@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Semantics
 
         protected readonly Regex UnderTestRegex = new Regex(@"\[\|(?<content>.*?)\|\]");
 
-        protected readonly MetadataReference[] References = new[]
-        {
+        protected readonly MetadataReference[] References =
+        [
             MscorlibRef,
             SystemRef,
             SystemCoreRef,
             MsvbRef
-        };
+        ];
 
         protected void Test(string code, string replacementExpression, bool semanticChanges, string expressionToAnalyze = null, bool isBrokenCode = false)
         {
@@ -52,10 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Semantics
 
         private void CheckCompilation(Compilation compilation)
         {
-            using (var temporaryStream = new MemoryStream())
-            {
-                Assert.True(CompilationSucceeded(compilation, temporaryStream));
-            }
+            using var temporaryStream = new MemoryStream();
+            Assert.True(CompilationSucceeded(compilation, temporaryStream));
         }
 
         protected abstract SyntaxTree Parse(string text);

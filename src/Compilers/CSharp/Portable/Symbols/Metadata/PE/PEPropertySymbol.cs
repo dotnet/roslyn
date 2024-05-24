@@ -740,9 +740,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var lastPropertyParamIndex = propertyParams.Length - 1;
                 var getHandle = getMethodParams[lastPropertyParamIndex].Handle;
                 var setHandle = setMethodParams[lastPropertyParamIndex].Handle;
-                var getterHasParamArray = !getHandle.IsNil && module.HasParamsAttribute(getHandle);
-                var setterHasParamArray = !setHandle.IsNil && module.HasParamsAttribute(setHandle);
-                if (getterHasParamArray != setterHasParamArray)
+                var getterHasParamArray = !getHandle.IsNil && module.HasParamArrayAttribute(getHandle);
+                var setterHasParamArray = !setHandle.IsNil && module.HasParamArrayAttribute(setHandle);
+                var getterHasParamCollection = !getHandle.IsNil && module.HasParamCollectionAttribute(getHandle);
+                var setterHasParamCollection = !setHandle.IsNil && module.HasParamCollectionAttribute(setHandle);
+                if (getterHasParamArray != setterHasParamArray || getterHasParamCollection != setterHasParamCollection)
                 {
                     return false;
                 }

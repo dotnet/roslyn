@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,16 +15,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTestGenerator.Api;
 
 [Export]
 [Shared]
-internal class UnitTestGeneratorOrganizeImportsAccessor
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class UnitTestGeneratorOrganizeImportsAccessor(IGlobalOptionService globalOptions)
 {
-    private readonly IGlobalOptionService _globalOptions;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public UnitTestGeneratorOrganizeImportsAccessor(IGlobalOptionService globalOptions)
-    {
-        _globalOptions = globalOptions;
-    }
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     public async Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken)
     {

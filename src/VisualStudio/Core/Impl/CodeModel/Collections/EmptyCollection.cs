@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -15,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
     [ComDefaultInterface(typeof(ICodeElements))]
     public sealed class EmptyCollection : AbstractCodeElementCollection
     {
-        private static readonly Snapshot s_snapshot = new CodeElementSnapshot(ImmutableArray.Create<EnvDTE.CodeElement>());
+        private static readonly Snapshot s_snapshot = new CodeElementSnapshot([]);
 
         internal static EnvDTE.CodeElements Create(
             CodeModelState state,

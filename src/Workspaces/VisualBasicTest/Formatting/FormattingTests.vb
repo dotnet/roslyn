@@ -4030,7 +4030,7 @@ End Module
         End Function
 
         <Fact>
-        Public Async Function TestDontCrashOnMissingTokenWithComment() As Task
+        Public Async Function TestDoNotCrashOnMissingTokenWithComment() As Task
             Dim code =
 <Code><![CDATA[
 Namespace NS

@@ -41,7 +41,7 @@ internal abstract class SnippetFunctionService : ILanguageService
         var updatedTextSpan = new TextSpan(fieldSpan.Start, fullyQualifiedTypeName.Length);
 
         var textChange = new TextChange(fieldSpan, fullyQualifiedTypeName);
-        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var documentWithFullyQualifiedTypeName = document.WithText(text.WithChanges(textChange));
 
         // Simplify

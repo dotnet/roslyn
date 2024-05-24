@@ -2,24 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
-{
-    internal sealed class UnmergedDocumentChanges
-    {
-        public IEnumerable<TextChange> UnmergedChanges { get; }
-        public string ProjectName { get; }
-        public DocumentId DocumentId { get; }
+namespace Microsoft.CodeAnalysis;
 
-        public UnmergedDocumentChanges(IEnumerable<TextChange> unmergedChanges, string projectName, DocumentId documentId)
-        {
-            UnmergedChanges = unmergedChanges;
-            ProjectName = projectName;
-            DocumentId = documentId;
-        }
-    }
+internal readonly struct UnmergedDocumentChanges(ImmutableArray<TextChange> unmergedChanges, string projectName, DocumentId documentId)
+{
+    public readonly ImmutableArray<TextChange> UnmergedChanges = unmergedChanges;
+    public readonly string ProjectName = projectName;
+    public readonly DocumentId DocumentId = documentId;
 }

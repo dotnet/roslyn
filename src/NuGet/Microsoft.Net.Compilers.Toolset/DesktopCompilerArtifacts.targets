@@ -47,7 +47,7 @@
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)vbc$(_ExeDirSuffix)\$(Configuration)\net472\vbc.rsp"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)VBCSCompiler$(_ExeDirSuffix)\$(Configuration)\net472\VBCSCompiler.exe" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" NgenPriority="1"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)VBCSCompiler$(_ExeDirSuffix)\$(Configuration)\net472\VBCSCompiler.exe.config"/>
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Build.Tasks.CodeAnalysis.dll" NgenArchitecture="all" NgenPriority="1"/>
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Build.Tasks.CodeAnalysis.dll"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Managed.Core.CurrentVersions.targets"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Managed.Core.targets"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.CSharp.Core.targets"/>

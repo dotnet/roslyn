@@ -213,9 +213,6 @@ End Module
 
             compilation.VerifyPdb("Module1.F",
 <symbols>
-    <files>
-        <file id="1" name="" language="VB"/>
-    </files>
     <methods>
         <method containingType="Module1" name="F" parameterNames="a">
             <customDebugInfo>
@@ -226,13 +223,10 @@ End Module
             </customDebugInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.ExcludeDocuments)
 
             compilation.VerifyPdb("Module1+VB$StateMachine_1_F.MoveNext",
 <symbols>
-    <files>
-        <file id="1" name="" language="VB"/>
-    </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_1_F" name="MoveNext">
             <customDebugInfo>
@@ -246,18 +240,6 @@ End Module
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x7" hidden="true" document="1"/>
-                <entry offset="0xe" startLine="11" startColumn="5" endLine="11" endColumn="68" document="1"/>
-                <entry offset="0xf" startLine="12" startColumn="9" endLine="12" endColumn="25" document="1"/>
-                <entry offset="0x1e" hidden="true" document="1"/>
-                <entry offset="0x7a" startLine="13" startColumn="9" endLine="13" endColumn="17" document="1"/>
-                <entry offset="0x7e" hidden="true" document="1"/>
-                <entry offset="0x86" hidden="true" document="1"/>
-                <entry offset="0xa3" startLine="14" startColumn="5" endLine="14" endColumn="17" document="1"/>
-                <entry offset="0xad" hidden="true" document="1"/>
-            </sequencePoints>
             <scope startOffset="0x0" endOffset="0xbb">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
@@ -267,38 +249,32 @@ End Module
             </asyncInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.ExcludeDocuments Or PdbValidationOptions.ExcludeSequencePoints)
 
             compilation.VerifyPdb("Module1.Test",
 <symbols>
-    <files>
-        <file id="1" name="" language="VB"/>
-    </files>
     <methods>
         <method containingType="Module1" name="Test">
             <customDebugInfo>
                 <forwardIterator name="VB$StateMachine_2_Test"/>
                 <encStateMachineStateMap>
+                    <state number="8" offset="0"/>
+                    <state number="2" offset="8"/>
                     <state number="0" offset="38"/>
                     <state number="1" offset="94"/>
-                    <state number="2" offset="8"/>
-                    <state number="3" offset="171"/>
-                    <state number="4" offset="163"/>
-                    <state number="5" offset="155"/>
-                    <state number="6" offset="205"/>
                     <state number="7" offset="125"/>
-                    <state number="8" offset="0"/>
+                    <state number="5" offset="155"/>
+                    <state number="4" offset="163"/>
+                    <state number="3" offset="171"/>
+                    <state number="6" offset="205"/>
                 </encStateMachineStateMap>
             </customDebugInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.ExcludeDocuments)
 
             compilation.VerifyPdb("Module1+VB$StateMachine_2_Test.MoveNext",
 <symbols>
-    <files>
-        <file id="1" name="" language="VB"/>
-    </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_2_Test" name="MoveNext">
             <customDebugInfo>
@@ -318,26 +294,6 @@ End Module
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x7" hidden="true" document="1"/>
-                <entry offset="0x5d" startLine="16" startColumn="5" endLine="16" endColumn="34" document="1"/>
-                <entry offset="0x5e" startLine="17" startColumn="9" endLine="23" endColumn="34" document="1"/>
-                <entry offset="0x70" hidden="true" document="1"/>
-                <entry offset="0xf1" hidden="true" document="1"/>
-                <entry offset="0x176" hidden="true" document="1"/>
-                <entry offset="0x1f0" hidden="true" document="1"/>
-                <entry offset="0x269" hidden="true" document="1"/>
-                <entry offset="0x2e2" hidden="true" document="1"/>
-                <entry offset="0x363" hidden="true" document="1"/>
-                <entry offset="0x3e4" hidden="true" document="1"/>
-                <entry offset="0x463" hidden="true" document="1"/>
-                <entry offset="0x4bf" startLine="24" startColumn="5" endLine="24" endColumn="17" document="1"/>
-                <entry offset="0x4c1" hidden="true" document="1"/>
-                <entry offset="0x4c9" hidden="true" document="1"/>
-                <entry offset="0x4e6" startLine="24" startColumn="5" endLine="24" endColumn="17" document="1"/>
-                <entry offset="0x4f0" hidden="true" document="1"/>
-            </sequencePoints>
             <scope startOffset="0x0" endOffset="0x4fd">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
@@ -355,13 +311,10 @@ End Module
             </asyncInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.ExcludeDocuments Or PdbValidationOptions.ExcludeSequencePoints)
 
             compilation.VerifyPdb("Module1.S",
 <symbols>
-    <files>
-        <file id="1" name="" language="VB"/>
-    </files>
     <methods>
         <method containingType="Module1" name="S">
             <customDebugInfo>
@@ -372,13 +325,10 @@ End Module
             </customDebugInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.ExcludeDocuments)
 
             compilation.VerifyPdb("Module1+VB$StateMachine_3_S.MoveNext",
 <symbols>
-    <files>
-        <file id="1" name="" language="VB"/>
-    </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_3_S" name="MoveNext">
             <customDebugInfo>
@@ -390,18 +340,6 @@ End Module
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x7" hidden="true" document="1"/>
-                <entry offset="0xe" startLine="26" startColumn="5" endLine="26" endColumn="18" document="1"/>
-                <entry offset="0xf" startLine="27" startColumn="9" endLine="27" endColumn="25" document="1"/>
-                <entry offset="0x1d" hidden="true" document="1"/>
-                <entry offset="0x78" startLine="28" startColumn="5" endLine="28" endColumn="12" document="1"/>
-                <entry offset="0x7a" hidden="true" document="1"/>
-                <entry offset="0x82" hidden="true" document="1"/>
-                <entry offset="0x9f" startLine="28" startColumn="5" endLine="28" endColumn="12" document="1"/>
-                <entry offset="0xa9" hidden="true" document="1"/>
-            </sequencePoints>
             <scope startOffset="0x0" endOffset="0xb6">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
@@ -412,7 +350,7 @@ End Module
             </asyncInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.ExcludeDocuments Or PdbValidationOptions.ExcludeSequencePoints)
         End Sub
 
         <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>

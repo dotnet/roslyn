@@ -165,7 +165,7 @@ End Module
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198")>
-        Public Async Function TestDontSimplifyModuleNameInFieldInitializerAndConflictOfModuleNameAndField() As Task
+        Public Async Function TestDoNotSimplifyModuleNameInFieldInitializerAndConflictOfModuleNameAndField() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -188,7 +188,7 @@ End Module
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198")>
-        Public Async Function TestDontSimplifyModuleNameInFieldInitializerAndConflictOfModuleNameAndField_2() As Task
+        Public Async Function TestDoNotSimplifyModuleNameInFieldInitializerAndConflictOfModuleNameAndField_2() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">

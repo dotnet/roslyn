@@ -3,16 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.AddMissingImports;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTestGenerator.Api;
 
-internal sealed class WrappedMissingImportsAnalysisResult
+internal sealed class WrappedMissingImportsAnalysisResult(ImmutableArray<WrappedAddImportFixData> addImportFixDatas)
 {
-    public ImmutableArray<WrappedAddImportFixData> AddImportFixDatas;
-
-    public WrappedMissingImportsAnalysisResult(ImmutableArray<WrappedAddImportFixData> addImportFixDatas)
-    {
-        AddImportFixDatas = addImportFixDatas;
-    }
+    public ImmutableArray<WrappedAddImportFixData> AddImportFixDatas = addImportFixDatas;
 }

@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!_labelsUsed.Contains(label))
                 {
-                    Diagnostics.Add(ErrorCode.WRN_UnreferencedLabel, label.Locations[0]);
+                    Diagnostics.Add(ErrorCode.WRN_UnreferencedLabel, label.GetFirstLocation());
                 }
             }
 
@@ -340,11 +340,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // check for illegal jumps across using declarations
             var sourceLocation = node.Syntax.Location;
             var sourceStart = sourceLocation.SourceSpan.Start;
-            var targetStart = node.Label.Locations[0].SourceSpan.Start;
+            var targetStart = node.Label.GetFirstLocation().SourceSpan.Start;
 
             foreach (var usingDecl in _usingDeclarations)
             {
-                var usingStart = usingDecl.symbol.Locations[0].SourceSpan.Start;
+                var usingStart = usingDecl.symbol.GetFirstLocation().SourceSpan.Start;
                 if (sourceStart < usingStart && targetStart > usingStart)
                 {
                     // No forward jumps
@@ -353,13 +353,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (sourceStart > usingStart && targetStart < usingStart)
                 {
-                    // Backwards jump, so we must have already seen the label, or it must be a switch case label. If it is a switch case label, we know
+                    // Backwards jump, so we must have already seen the label, or it must be a switch case label, or it might be in outer scope. If it is a switch case label, we know
                     // that either the user received an error for having a using declaration at the top level in a switch statement, or the label is a valid
                     // target to branch to.
-                    Debug.Assert(_labelsDefined.ContainsKey(node.Label));
 
                     // Error if label and using are part of the same block
-                    if (_labelsDefined[node.Label] == usingDecl.block)
+                    if (_labelsDefined.TryGetValue(node.Label, out BoundNode target) && target == usingDecl.block)
                     {
                         Diagnostics.Add(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, sourceLocation);
                         break;

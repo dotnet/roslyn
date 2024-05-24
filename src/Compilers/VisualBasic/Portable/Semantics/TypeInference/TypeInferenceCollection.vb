@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 AppendArrayElements(DirectCast(candidate.ResultType, ArrayLiteralTypeSymbol).ArrayLiteral.Initializer, elements)
                             Next
 
-                            Dim dominantTypeDiagnostics = New BindingDiagnosticBag(diagnosticBag:=Nothing, PooledHashSet(Of AssemblySymbol).GetInstance())
+                            Dim dominantTypeDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=False, withDependencies:=True)
                             Dim inferredElementType = DirectCast(resultList(0).ResultType, ArrayLiteralTypeSymbol).ArrayLiteral.
                                     Binder.InferDominantTypeOfExpressions(VisualBasicSyntaxTree.Dummy.GetRoot(Nothing), elements, dominantTypeDiagnostics, Nothing)
 

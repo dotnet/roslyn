@@ -18,118 +18,109 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.SpellChecker;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.SpellCheck
+namespace Microsoft.CodeAnalysis.SpellCheck;
+
+[Obsolete]
+[Export(typeof(ISpellCheckFixerProvider))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[Name(nameof(RoslynSpellCheckFixerProvider))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class RoslynSpellCheckFixerProvider(
+    IThreadingContext threadingContext) : ISpellCheckFixerProvider
 {
-    [Obsolete]
-    [Export(typeof(ISpellCheckFixerProvider))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(nameof(RoslynSpellCheckFixerProvider))]
-    internal sealed class RoslynSpellCheckFixerProvider : ISpellCheckFixerProvider
+    private readonly IThreadingContext _threadingContext = threadingContext;
+
+    public Task RenameWordAsync(
+        SnapshotSpan span,
+        string replacement,
+        IUIThreadOperationContext operationContext)
     {
-        private readonly IThreadingContext _threadingContext;
+        var cancellationToken = operationContext.UserCancellationToken;
+        return RenameWordAsync(span, replacement, cancellationToken);
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RoslynSpellCheckFixerProvider(
-            IThreadingContext threadingContext)
+    private async Task<(FunctionId functionId, string? message)?> RenameWordAsync(
+        SnapshotSpan span,
+        string replacement,
+        CancellationToken cancellationToken)
+    {
+        var result = await TryRenameAsync(span, replacement, cancellationToken).ConfigureAwait(false);
+
+        // If we succeeded at renaming then nothing more to do.
+        if (result != null)
         {
-            _threadingContext = threadingContext;
+            // Record why we failed so we can determine what issues may be arising in the wild.
+            var (functionId, message) = result.Value;
+            Logger.Log(functionId, message);
+
+            // Then just apply the text change directly.
+            await ApplySimpleChangeAsync(span, replacement, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task RenameWordAsync(
-            SnapshotSpan span,
-            string replacement,
-            IUIThreadOperationContext operationContext)
-        {
-            var cancellationToken = operationContext.UserCancellationToken;
-            return RenameWordAsync(span, replacement, cancellationToken);
-        }
+        return result;
+    }
 
-        private async Task<(FunctionId functionId, string? message)?> RenameWordAsync(
-            SnapshotSpan span,
-            string replacement,
-            CancellationToken cancellationToken)
-        {
-            var result = await TryRenameAsync(span, replacement, cancellationToken).ConfigureAwait(false);
+    private async Task ApplySimpleChangeAsync(SnapshotSpan span, string replacement, CancellationToken cancellationToken)
+    {
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // If we succeeded at renaming then nothing more to do.
-            if (result != null)
-            {
-                // Record why we failed so we can determine what issues may be arising in the wild.
-                var (functionId, message) = result.Value;
-                Logger.Log(functionId, message);
+        var buffer = span.Snapshot.TextBuffer;
+        var edit = buffer.CreateEdit();
 
-                // Then just apply the text change directly.
-                await ApplySimpleChangeAsync(span, replacement, cancellationToken).ConfigureAwait(false);
-            }
+        edit.Replace(span.TranslateTo(buffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive), replacement);
+        edit.Apply();
+    }
 
-            return result;
-        }
+    private async Task<(FunctionId functionId, string? message)?> TryRenameAsync(SnapshotSpan span, string replacement, CancellationToken cancellationToken)
+    {
+        // See if we can map this to a roslyn document.
+        var snapshot = span.Snapshot;
+        var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+        if (document is null)
+            return (FunctionId.SpellCheckFixer_CouldNotFindDocument, null);
 
-        private async Task ApplySimpleChangeAsync(SnapshotSpan span, string replacement, CancellationToken cancellationToken)
-        {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        // If so, see if the language supports smart rename capabilities.
+        var renameService = document.GetLanguageService<IEditorInlineRenameService>();
+        if (renameService is null)
+            return (FunctionId.SpellCheckFixer_LanguageDoesNotSupportRename, null);
 
-            var buffer = span.Snapshot.TextBuffer;
-            var edit = buffer.CreateEdit();
+        // Attempt to figure out what the language would rename here given the position of the misspelled word in
+        // the full token.
+        var info = await renameService.GetRenameInfoAsync(document, span.Span.Start, cancellationToken).ConfigureAwait(false);
+        if (!info.CanRename)
+            return (FunctionId.SpellCheckFixer_LanguageCouldNotGetRenameInfo, null);
 
-            edit.Replace(span.TranslateTo(buffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive), replacement);
-            edit.Apply();
-        }
+        // The subspan we're being asked to rename better fall entirely within the span of the token we're renaming.
+        var fullTokenSpan = info.TriggerSpan;
+        var subSpanBeingRenamed = span.Span.ToTextSpan();
+        if (!fullTokenSpan.Contains(subSpanBeingRenamed))
+            return (FunctionId.SpellCheckFixer_RenameSpanNotWithinTokenSpan, null);
 
-        private async Task<(FunctionId functionId, string? message)?> TryRenameAsync(SnapshotSpan span, string replacement, CancellationToken cancellationToken)
-        {
-            // See if we can map this to a roslyn document.
-            var snapshot = span.Snapshot;
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document is null)
-                return (FunctionId.SpellCheckFixer_CouldNotFindDocument, null);
+        // Now attempt to call into the language to actually perform the rename.
+        var options = new SymbolRenameOptions();
+        var renameLocations = await info.FindRenameLocationsAsync(options, cancellationToken).ConfigureAwait(false);
+        var replacements = await renameLocations.GetReplacementsAsync(replacement, options, cancellationToken).ConfigureAwait(false);
+        if (!replacements.ReplacementTextValid)
+            return (FunctionId.SpellCheckFixer_ReplacementTextInvalid, $"Renaming: '{span.GetText()}' to '{replacement}'");
 
-            // If so, see if the language supports smart rename capabilities.
-            var renameService = document.GetLanguageService<IEditorInlineRenameService>();
-            if (renameService is null)
-                return (FunctionId.SpellCheckFixer_LanguageDoesNotSupportRename, null);
+        // Finally, apply the rename to the solution.
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        var workspace = document.Project.Solution.Workspace;
+        if (!workspace.TryApplyChanges(replacements.NewSolution))
+            return (FunctionId.SpellCheckFixer_TryApplyChangesFailure, null);
 
-            // Attempt to figure out what the language would rename here given the position of the misspelled word in
-            // the full token.
-            var info = await renameService.GetRenameInfoAsync(document, span.Span.Start, cancellationToken).ConfigureAwait(false);
-            if (!info.CanRename)
-                return (FunctionId.SpellCheckFixer_LanguageCouldNotGetRenameInfo, null);
+        return null;
+    }
 
-            // The subspan we're being asked to rename better fall entirely within the span of the token we're renaming.
-            var fullTokenSpan = info.TriggerSpan;
-            var subSpanBeingRenamed = span.Span.ToTextSpan();
-            if (!fullTokenSpan.Contains(subSpanBeingRenamed))
-                return (FunctionId.SpellCheckFixer_RenameSpanNotWithinTokenSpan, null);
+    public TestAccessor GetTestAccessor()
+        => new(this);
 
-            // Now attempt to call into the language to actually perform the rename.
-            var options = new SymbolRenameOptions();
-            var renameLocations = await info.FindRenameLocationsAsync(options, cancellationToken).ConfigureAwait(false);
-            var replacements = await renameLocations.GetReplacementsAsync(replacement, options, cancellationToken).ConfigureAwait(false);
-            if (!replacements.ReplacementTextValid)
-                return (FunctionId.SpellCheckFixer_ReplacementTextInvalid, $"Renaming: '{span.GetText()}' to '{replacement}'");
+    public readonly struct TestAccessor(RoslynSpellCheckFixerProvider provider)
+    {
+        private readonly RoslynSpellCheckFixerProvider _provider = provider;
 
-            // Finally, apply the rename to the solution.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            var workspace = document.Project.Solution.Workspace;
-            if (!workspace.TryApplyChanges(replacements.NewSolution))
-                return (FunctionId.SpellCheckFixer_TryApplyChangesFailure, null);
-
-            return null;
-        }
-
-        public TestAccessor GetTestAccessor()
-            => new(this);
-
-        public readonly struct TestAccessor
-        {
-            private readonly RoslynSpellCheckFixerProvider _provider;
-
-            public TestAccessor(RoslynSpellCheckFixerProvider provider)
-                => _provider = provider;
-
-            public Task<(FunctionId functionId, string? message)?> TryRenameAsync(SnapshotSpan span, string replacement, CancellationToken cancellationToken)
-                => _provider.RenameWordAsync(span, replacement, cancellationToken);
-        }
+        public Task<(FunctionId functionId, string? message)?> TryRenameAsync(SnapshotSpan span, string replacement, CancellationToken cancellationToken)
+            => _provider.RenameWordAsync(span, replacement, cancellationToken);
     }
 }

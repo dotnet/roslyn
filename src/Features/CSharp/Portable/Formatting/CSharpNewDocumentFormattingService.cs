@@ -5,23 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.Formatting
-{
-    [ExportLanguageService(typeof(INewDocumentFormattingService), LanguageNames.CSharp)]
-    [Shared]
-    internal class CSharpNewDocumentFormattingService : AbstractNewDocumentFormattingService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpNewDocumentFormattingService([ImportMany] IEnumerable<Lazy<INewDocumentFormattingProvider, LanguageMetadata>> providers)
-            : base(providers)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-        protected override string Language => LanguageNames.CSharp;
-    }
+[ExportLanguageService(typeof(INewDocumentFormattingService), LanguageNames.CSharp)]
+[Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class CSharpNewDocumentFormattingService([ImportMany] IEnumerable<Lazy<INewDocumentFormattingProvider, LanguageMetadata>> providers) : AbstractNewDocumentFormattingService(providers)
+{
+    protected override string Language => LanguageNames.CSharp;
 }

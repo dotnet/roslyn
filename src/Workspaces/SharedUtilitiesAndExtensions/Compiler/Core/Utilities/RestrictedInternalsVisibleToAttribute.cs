@@ -4,18 +4,11 @@
 
 using System.Collections.Immutable;
 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-    internal sealed class RestrictedInternalsVisibleToAttribute : Attribute
-    {
-        public RestrictedInternalsVisibleToAttribute(string assemblyName, params string[] allowedNamespaces)
-        {
-            AssemblyName = assemblyName;
-            AllowedNamespaces = allowedNamespaces.ToImmutableArray();
-        }
+namespace System.Runtime.CompilerServices;
 
-        public string AssemblyName { get; }
-        public ImmutableArray<string> AllowedNamespaces { get; }
-    }
+[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+internal sealed class RestrictedInternalsVisibleToAttribute(string assemblyName, params string[] allowedNamespaces) : Attribute
+{
+    public string AssemblyName { get; } = assemblyName;
+    public ImmutableArray<string> AllowedNamespaces { get; } = [.. allowedNamespaces];
 }

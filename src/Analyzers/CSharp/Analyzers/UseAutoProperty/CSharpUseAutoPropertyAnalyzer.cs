@@ -9,245 +9,208 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseAutoProperty;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
+namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<
+    SyntaxKind,
+    PropertyDeclarationSyntax,
+    ConstructorDeclarationSyntax,
+    FieldDeclarationSyntax,
+    VariableDeclaratorSyntax,
+    ExpressionSyntax,
+    IdentifierNameSyntax>
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<
-        PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
+    protected override SyntaxKind PropertyDeclarationKind
+        => SyntaxKind.PropertyDeclaration;
+
+    protected override ISemanticFacts SemanticFacts
+        => CSharpSemanticFacts.Instance;
+
+    protected override bool SupportsReadOnlyProperties(Compilation compilation)
+        => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
+
+    protected override bool SupportsPropertyInitializer(Compilation compilation)
+        => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
+
+    protected override bool CanExplicitInterfaceImplementationsBeFixed()
+        => false;
+
+    protected override ExpressionSyntax? GetFieldInitializer(VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
+        => variable.Initializer?.Value;
+
+    protected override void RegisterIneligibleFieldsAction(
+        HashSet<string> fieldNames,
+        ConcurrentSet<IFieldSymbol> ineligibleFields,
+        SemanticModel semanticModel,
+        SyntaxNode codeBlock,
+        CancellationToken cancellationToken)
     {
-        protected override bool SupportsReadOnlyProperties(Compilation compilation)
-            => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
-
-        protected override bool SupportsPropertyInitializer(Compilation compilation)
-            => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
-
-        protected override bool CanExplicitInterfaceImplementationsBeFixed()
-            => false;
-
-        protected override void AnalyzeCompilationUnit(
-            SemanticModelAnalysisContext context, SyntaxNode root, List<AnalysisResult> analysisResults)
-            => AnalyzeMembers(context, ((CompilationUnitSyntax)root).Members, analysisResults);
-
-        private void AnalyzeMembers(
-            SemanticModelAnalysisContext context,
-            SyntaxList<MemberDeclarationSyntax> members,
-            List<AnalysisResult> analysisResults)
+        foreach (var argument in codeBlock.DescendantNodesAndSelf().OfType<ArgumentSyntax>())
         {
-            foreach (var memberDeclaration in members)
-            {
-                AnalyzeMemberDeclaration(context, memberDeclaration, analysisResults);
-            }
+            // An argument will disqualify a field if that field is used in a ref/out position.  
+            // We can't change such field references to be property references in C#.
+            if (argument.RefKindKeyword.Kind() != SyntaxKind.None)
+                AddIneligibleFieldsForExpression(argument.Expression);
         }
 
-        private void AnalyzeMemberDeclaration(
-            SemanticModelAnalysisContext context,
-            MemberDeclarationSyntax member,
-            List<AnalysisResult> analysisResults)
+        foreach (var refExpression in codeBlock.DescendantNodesAndSelf().OfType<RefExpressionSyntax>())
+            AddIneligibleFieldsForExpression(refExpression.Expression);
+
+        // Can't take the address of an auto-prop.  So disallow for fields that we do `&x` on.
+        foreach (var addressOfExpression in codeBlock.DescendantNodesAndSelf().OfType<PrefixUnaryExpressionSyntax>())
         {
-            if (member is BaseNamespaceDeclarationSyntax namespaceDeclaration)
-            {
-                AnalyzeMembers(context, namespaceDeclaration.Members, analysisResults);
-            }
-            else if (member is TypeDeclarationSyntax(
-                SyntaxKind.ClassDeclaration or
-                SyntaxKind.StructDeclaration or
-                SyntaxKind.RecordDeclaration or
-                SyntaxKind.RecordStructDeclaration) typeDeclaration)
-            {
-                // If we have a class or struct, recurse inwards.
-                AnalyzeMembers(context, typeDeclaration.Members, analysisResults);
-            }
-            else if (member is PropertyDeclarationSyntax propertyDeclaration)
-            {
-                AnalyzeProperty(context, propertyDeclaration, analysisResults);
-            }
+            if (addressOfExpression.Kind() == SyntaxKind.AddressOfExpression)
+                AddIneligibleFieldsForExpression(addressOfExpression.Operand);
         }
 
-        protected override void RegisterIneligibleFieldsAction(
-            List<AnalysisResult> analysisResults, HashSet<IFieldSymbol> ineligibleFields,
-            Compilation compilation, CancellationToken cancellationToken)
+        foreach (var memberAccess in codeBlock.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>())
         {
-            var groups = analysisResults.Select(r => (typeDeclaration: (TypeDeclarationSyntax)r.PropertyDeclaration.Parent!, r.SemanticModel))
-                                        .Distinct()
-                                        .GroupBy(n => n.typeDeclaration.SyntaxTree);
-
-            foreach (var (tree, typeDeclarations) in groups)
-            {
-                foreach (var (typeDeclaration, semanticModel) in typeDeclarations)
-                {
-                    foreach (var argument in typeDeclaration.DescendantNodesAndSelf().OfType<ArgumentSyntax>())
-                    {
-                        // An argument will disqualify a field if that field is used in a ref/out position.  
-                        // We can't change such field references to be property references in C#.
-                        if (argument.RefKindKeyword.Kind() != SyntaxKind.None)
-                            AddIneligibleFields(semanticModel, argument.Expression, ineligibleFields, cancellationToken);
-                    }
-
-                    foreach (var refExpression in typeDeclaration.DescendantNodesAndSelf().OfType<RefExpressionSyntax>())
-                        AddIneligibleFields(semanticModel, refExpression.Expression, ineligibleFields, cancellationToken);
-
-                    // Can't take the address of an auto-prop.  So disallow for fields that we do `&x` on.
-                    foreach (var addressOfExpression in typeDeclaration.DescendantNodesAndSelf().OfType<PrefixUnaryExpressionSyntax>())
-                    {
-                        if (addressOfExpression.Kind() == SyntaxKind.AddressOfExpression)
-                            AddIneligibleFields(semanticModel, addressOfExpression.Operand, ineligibleFields, cancellationToken);
-                    }
-
-                    foreach (var memberAccess in typeDeclaration.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>())
-                        AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(semanticModel, memberAccess, ineligibleFields, cancellationToken);
-                }
-            }
+            if (CouldReferenceField(memberAccess))
+                AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(semanticModel, memberAccess, ineligibleFields, cancellationToken);
         }
 
-        private static void AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(
-            SemanticModel semanticModel, MemberAccessExpressionSyntax memberAccess, HashSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
+        bool CouldReferenceField(ExpressionSyntax expression)
         {
-            // `c.x = ...` can't be converted to `c.X = ...` if `c` is a struct and isn't definitely assigned as that point.
+            // Don't bother binding if the expression isn't even referencing the name of a field we know about.
+            var rightmostName = expression.GetRightmostName()?.Identifier.ValueText;
+            return rightmostName != null && fieldNames.Contains(rightmostName);
+        }
 
-            // only care about writes.  if this was a read, then it must be def assigned and thus is safe to convert to a prop.
-            if (!memberAccess.IsOnlyWrittenTo())
+        void AddIneligibleFieldsForExpression(ExpressionSyntax expression)
+        {
+            if (!CouldReferenceField(expression))
                 return;
 
-            // this only matters for a field access off of a struct.  They can be declared unassigned and have their
-            // fields directly written into.
-            var symbolInfo = semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
-            if (symbolInfo.GetAnySymbol() is not IFieldSymbol { ContainingType.TypeKind: TypeKind.Struct })
-                return;
-
-            var exprSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).GetAnySymbol();
-            if (exprSymbol is not IParameterSymbol and not ILocalSymbol)
-                return;
-
-            var dataFlow = semanticModel.AnalyzeDataFlow(memberAccess.Expression);
-            if (dataFlow != null && !dataFlow.DefinitelyAssignedOnEntry.Contains(exprSymbol))
-                AddIneligibleFields(ineligibleFields, symbolInfo);
-        }
-
-        protected override ExpressionSyntax? GetFieldInitializer(
-            VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
-        {
-            return variable.Initializer?.Value;
-        }
-
-        private static void AddIneligibleFields(
-            SemanticModel semanticModel, ExpressionSyntax expression, HashSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
-        {
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
             AddIneligibleFields(ineligibleFields, symbolInfo);
         }
+    }
 
-        private static void AddIneligibleFields(HashSet<IFieldSymbol> ineligibleFields, SymbolInfo symbolInfo)
+    private static void AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(
+        SemanticModel semanticModel, MemberAccessExpressionSyntax memberAccess, ConcurrentSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
+    {
+        // `c.x = ...` can't be converted to `c.X = ...` if `c` is a struct and isn't definitely assigned as that point.
+
+        // only care about writes.  if this was a read, then it must be def assigned and thus is safe to convert to a prop.
+        if (!memberAccess.IsOnlyWrittenTo())
+            return;
+
+        // this only matters for a field access off of a struct.  They can be declared unassigned and have their
+        // fields directly written into.
+        var symbolInfo = semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
+        if (symbolInfo.GetAnySymbol() is not IFieldSymbol { ContainingType.TypeKind: TypeKind.Struct })
+            return;
+
+        var exprSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).GetAnySymbol();
+        if (exprSymbol is not IParameterSymbol and not ILocalSymbol)
+            return;
+
+        var dataFlow = semanticModel.AnalyzeDataFlow(memberAccess.Expression);
+        if (dataFlow != null && !dataFlow.DefinitelyAssignedOnEntry.Contains(exprSymbol))
+            AddIneligibleFields(ineligibleFields, symbolInfo);
+    }
+
+    private static void AddIneligibleFields(ConcurrentSet<IFieldSymbol> ineligibleFields, SymbolInfo symbolInfo)
+    {
+        AddIneligibleField(symbolInfo.Symbol);
+        foreach (var symbol in symbolInfo.CandidateSymbols)
+            AddIneligibleField(symbol);
+
+        void AddIneligibleField(ISymbol? symbol)
         {
-            AddIneligibleField(symbolInfo.Symbol);
-            foreach (var symbol in symbolInfo.CandidateSymbols)
-                AddIneligibleField(symbol);
+            if (symbol is IFieldSymbol field)
+                ineligibleFields.Add(field);
+        }
+    }
 
-            void AddIneligibleField(ISymbol? symbol)
+    private static bool CheckExpressionSyntactically(ExpressionSyntax expression)
+    {
+        if (expression is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression)
             {
-                if (symbol is IFieldSymbol field)
-                    ineligibleFields.Add(field);
-            }
+                Expression: (kind: SyntaxKind.ThisExpression),
+                Name: (kind: SyntaxKind.IdentifierName),
+            })
+        {
+            return true;
+        }
+        else if (expression.IsKind(SyntaxKind.IdentifierName))
+        {
+            return true;
         }
 
-        private static bool CheckExpressionSyntactically(ExpressionSyntax expression)
-        {
-            if (expression is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccessExpression)
-            {
-                return memberAccessExpression.Expression.Kind() == SyntaxKind.ThisExpression &&
-                    memberAccessExpression.Name.Kind() == SyntaxKind.IdentifierName;
-            }
-            else if (expression.IsKind(SyntaxKind.IdentifierName))
-            {
-                return true;
-            }
+        return false;
+    }
 
-            return false;
-        }
-
-        protected override ExpressionSyntax? GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken)
-        {
-            // Getter has to be of the form:
-            // 1. Getter can be defined as accessor or expression bodied lambda
-            //     get { return field; }
-            //     get => field;
-            //     int Property => field;
-            // 2. Underlying field can be accessed with this qualifier or not
-            //     get { return field; }
-            //     get { return this.field; }
-            var expr = GetGetterExpressionFromSymbol(getMethod, cancellationToken);
-            if (expr == null)
-            {
-                return null;
-            }
-
-            return CheckExpressionSyntactically(expr) ? expr : null;
-        }
-
-        private static ExpressionSyntax? GetGetterExpressionFromSymbol(IMethodSymbol getMethod, CancellationToken cancellationToken)
-        {
-            var declaration = getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-            switch (declaration)
-            {
-                case AccessorDeclarationSyntax accessorDeclaration:
-                    return accessorDeclaration.ExpressionBody?.Expression ??
-                           GetSingleStatementFromAccessor<ReturnStatementSyntax>(accessorDeclaration)?.Expression;
-                case ArrowExpressionClauseSyntax arrowExpression:
-                    return arrowExpression.Expression;
-                case null: return null;
-                default: throw ExceptionUtilities.Unreachable();
-            }
-        }
-
-        private static T? GetSingleStatementFromAccessor<T>(AccessorDeclarationSyntax? accessorDeclaration) where T : StatementSyntax
-        {
-            var statements = accessorDeclaration?.Body?.Statements;
-            if (statements?.Count == 1)
-            {
-                var statement = statements.Value[0];
-                return statement as T;
-            }
-
+    protected override ExpressionSyntax? GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken)
+    {
+        // Getter has to be of the form:
+        // 1. Getter can be defined as accessor or expression bodied lambda
+        //     get { return field; }
+        //     get => field;
+        //     int Property => field;
+        // 2. Underlying field can be accessed with this qualifier or not
+        //     get { return field; }
+        //     get { return this.field; }
+        var expr = GetGetterExpressionFromSymbol(getMethod, cancellationToken);
+        if (expr == null)
             return null;
-        }
 
-        protected override ExpressionSyntax? GetSetterExpression(
-            IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken)
+        return CheckExpressionSyntactically(expr) ? expr : null;
+    }
+
+    private static ExpressionSyntax? GetGetterExpressionFromSymbol(IMethodSymbol getMethod, CancellationToken cancellationToken)
+    {
+        var declaration = getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+        return declaration switch
         {
-            // Setter has to be of the form:
-            //
-            //     set { field = value; }
-            //     set { this.field = value; }
-            //     set => field = value; 
-            //     set => this.field = value; 
-            var setAccessor = setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as AccessorDeclarationSyntax;
-            var setExpression = GetExpressionFromSetter(setAccessor);
-            if (setExpression?.Kind() == SyntaxKind.SimpleAssignmentExpression)
+            AccessorDeclarationSyntax accessorDeclaration =>
+                accessorDeclaration.ExpressionBody?.Expression ?? GetSingleStatementFromAccessor<ReturnStatementSyntax>(accessorDeclaration)?.Expression,
+            ArrowExpressionClauseSyntax arrowExpression => arrowExpression.Expression,
+            null => null,
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
+    }
+
+    private static T? GetSingleStatementFromAccessor<T>(AccessorDeclarationSyntax? accessorDeclaration) where T : StatementSyntax
+        => accessorDeclaration is { Body.Statements: [T statement] } ? statement : null;
+
+    protected override ExpressionSyntax? GetSetterExpression(
+        IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        // Setter has to be of the form:
+        //
+        //     set { field = value; }
+        //     set { this.field = value; }
+        //     set => field = value; 
+        //     set => this.field = value; 
+        var setAccessor = setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as AccessorDeclarationSyntax;
+        var setExpression = GetExpressionFromSetter(setAccessor);
+        if (setExpression is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression)
             {
-                var assignmentExpression = (AssignmentExpressionSyntax)setExpression;
-                if (assignmentExpression.Right.Kind() == SyntaxKind.IdentifierName &&
-                    ((IdentifierNameSyntax)assignmentExpression.Right).Identifier.ValueText == "value")
-                {
-                    return CheckExpressionSyntactically(assignmentExpression.Left) ? assignmentExpression.Left : null;
-                }
-            }
-
-            return null;
-        }
-
-        private static ExpressionSyntax? GetExpressionFromSetter(AccessorDeclarationSyntax? setAccessor)
-            => setAccessor?.ExpressionBody?.Expression ??
-               GetSingleStatementFromAccessor<ExpressionStatementSyntax>(setAccessor)?.Expression;
-
-        protected override SyntaxNode GetFieldNode(
-            FieldDeclarationSyntax fieldDeclaration, VariableDeclaratorSyntax variableDeclarator)
+                Right: IdentifierNameSyntax { Identifier.ValueText: "value" }
+            } assignmentExpression)
         {
-            return fieldDeclaration.Declaration.Variables.Count == 1
-                ? fieldDeclaration
-                : variableDeclarator;
+            return CheckExpressionSyntactically(assignmentExpression.Left) ? assignmentExpression.Left : null;
         }
+
+        return null;
+    }
+
+    private static ExpressionSyntax? GetExpressionFromSetter(AccessorDeclarationSyntax? setAccessor)
+        => setAccessor?.ExpressionBody?.Expression ??
+           GetSingleStatementFromAccessor<ExpressionStatementSyntax>(setAccessor)?.Expression;
+
+    protected override SyntaxNode GetFieldNode(
+        FieldDeclarationSyntax fieldDeclaration, VariableDeclaratorSyntax variableDeclarator)
+    {
+        return fieldDeclaration.Declaration.Variables.Count == 1
+            ? fieldDeclaration
+            : variableDeclarator;
     }
 }

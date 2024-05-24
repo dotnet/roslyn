@@ -6,31 +6,24 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+public class WorkspaceDiagnostic(WorkspaceDiagnosticKind kind, string message)
 {
-    public class WorkspaceDiagnostic
+    public WorkspaceDiagnosticKind Kind { get; } = kind;
+    public string Message { get; } = message;
+
+    public override string ToString()
     {
-        public WorkspaceDiagnosticKind Kind { get; }
-        public string Message { get; }
+        string kindText;
 
-        public WorkspaceDiagnostic(WorkspaceDiagnosticKind kind, string message)
+        switch (Kind)
         {
-            this.Kind = kind;
-            this.Message = message;
+            case WorkspaceDiagnosticKind.Failure: kindText = WorkspacesResources.Failure; break;
+            case WorkspaceDiagnosticKind.Warning: kindText = WorkspacesResources.Warning; break;
+            default: throw ExceptionUtilities.UnexpectedValue(Kind);
         }
 
-        public override string ToString()
-        {
-            string kindText;
-
-            switch (Kind)
-            {
-                case WorkspaceDiagnosticKind.Failure: kindText = WorkspacesResources.Failure; break;
-                case WorkspaceDiagnosticKind.Warning: kindText = WorkspacesResources.Warning; break;
-                default: throw ExceptionUtilities.UnexpectedValue(Kind);
-            }
-
-            return $"[{kindText}] {Message}";
-        }
+        return $"[{kindText}] {Message}";
     }
 }

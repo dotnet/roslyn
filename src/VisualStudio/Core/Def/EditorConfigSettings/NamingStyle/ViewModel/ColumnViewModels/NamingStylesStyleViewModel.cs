@@ -7,61 +7,60 @@ using System.ComponentModel;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
+
+internal class NamingStylesStyleViewModel : NotifyPropertyChangedBase
 {
-    internal class NamingStylesStyleViewModel : NotifyPropertyChangedBase
+    private readonly NamingStyleSetting _setting;
+    private string _selectedStyleValue;
+    private string[] _styleValues;
+
+    public NamingStylesStyleViewModel(NamingStyleSetting setting)
     {
-        private readonly NamingStyleSetting _setting;
-        private string _selectedStyleValue;
-        private string[] _styleValues;
+        _setting = setting;
+        _setting.SettingChanged += OnSettingChanged;
+        var selectedStyleIndex = Array.IndexOf(_setting.AllStyles, _setting.StyleName);
+        _styleValues = _setting.AllStyles;
+        _selectedStyleValue = _styleValues[selectedStyleIndex];
+    }
 
-        public NamingStylesStyleViewModel(NamingStyleSetting setting)
+    public static string StyleToolTip => ServicesVSResources.Naming_Style;
+
+    public static string StyleAutomationName => ServicesVSResources.Naming_Style;
+
+    public string[] StyleValues
+    {
+        get => _styleValues;
+        set
         {
-            _setting = setting;
-            _setting.SettingChanged += OnSettingChanged;
-            var selectedStyleIndex = Array.IndexOf(_setting.AllStyles, _setting.StyleName);
-            _styleValues = _setting.AllStyles;
-            _selectedStyleValue = _styleValues[selectedStyleIndex];
-        }
-
-        public static string StyleToolTip => ServicesVSResources.Naming_Style;
-
-        public static string StyleAutomationName => ServicesVSResources.Naming_Style;
-
-        public string[] StyleValues
-        {
-            get => _styleValues;
-            set
+            if (value is not null && !_styleValues.SequenceEqual(value))
             {
-                if (value is not null && !_styleValues.SequenceEqual(value))
-                {
-                    _styleValues = value;
-                    OnPropertyChanged(new PropertyChangedEventArgs(nameof(StyleValues)));
-                }
+                _styleValues = value;
+                OnPropertyChanged(new PropertyChangedEventArgs(nameof(StyleValues)));
             }
         }
+    }
 
-        public string SelectedStyleValue
+    public string SelectedStyleValue
+    {
+        get => _selectedStyleValue;
+        set
         {
-            get => _selectedStyleValue;
-            set
+            if (value is not null && _selectedStyleValue != value)
             {
-                if (value is not null && _selectedStyleValue != value)
-                {
-                    _selectedStyleValue = value;
-                    OnPropertyChanged(new PropertyChangedEventArgs(nameof(SelectedStyleValue)));
-                }
+                _selectedStyleValue = value;
+                OnPropertyChanged(new PropertyChangedEventArgs(nameof(SelectedStyleValue)));
             }
         }
+    }
 
-        internal void SelectionChanged(int selectedIndex)
-            => _setting.ChangeStyle(selectedIndex);
+    internal void SelectionChanged(int selectedIndex)
+        => _setting.ChangeStyle(selectedIndex);
 
-        private void OnSettingChanged(object sender, EventArgs e)
-        {
-            var selectedStyleIndex = Array.IndexOf(_setting.AllStyles, _setting.StyleName);
-            StyleValues = _setting.AllStyles;
-            SelectedStyleValue = StyleValues[selectedStyleIndex];
-        }
+    private void OnSettingChanged(object sender, EventArgs e)
+    {
+        var selectedStyleIndex = Array.IndexOf(_setting.AllStyles, _setting.StyleName);
+        StyleValues = _setting.AllStyles;
+        SelectedStyleValue = StyleValues[selectedStyleIndex];
     }
 }

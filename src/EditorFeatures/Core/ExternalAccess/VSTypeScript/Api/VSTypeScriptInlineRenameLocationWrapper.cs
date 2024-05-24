@@ -7,16 +7,12 @@
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal readonly struct VSTypeScriptInlineRenameLocationWrapper(InlineRenameLocation underlyingObject)
 {
-    internal readonly struct VSTypeScriptInlineRenameLocationWrapper
-    {
-        private readonly InlineRenameLocation _underlyingObject;
+    private readonly InlineRenameLocation _underlyingObject = underlyingObject;
 
-        public VSTypeScriptInlineRenameLocationWrapper(InlineRenameLocation underlyingObject)
-            => _underlyingObject = underlyingObject;
-
-        public Document Document => _underlyingObject.Document;
-        public TextSpan TextSpan => _underlyingObject.TextSpan;
-    }
+    public Document Document => _underlyingObject.Document;
+    public TextSpan TextSpan => _underlyingObject.TextSpan;
 }

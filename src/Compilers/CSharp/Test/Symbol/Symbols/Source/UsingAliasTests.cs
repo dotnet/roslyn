@@ -4,8 +4,10 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -751,6 +753,315 @@ class Test
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void TestAliasToGenericWithPointer_NoElementAccess()
+        {
+            var text =
+@"
+// Legal in C# 11
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    void M(X x)
+    {
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(7, 12));
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (3,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 43),
+                // (7,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(7, 12));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void TestAliasToGenericWithPointer_ElementAccess1()
+        {
+            var text =
+@"
+// Legal in C# 11
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    void M(X x)
+    {
+        var y = x[0];
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(7, 12),
+                // (9,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = x[0];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(9, 17),
+                // (9,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = x[0];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0]").WithLocation(9, 17));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void TestAliasToGenericWithPointer_ElementAccess2()
+        {
+            var text = @"
+// Legal in C# 11
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    void M(X x)
+    {
+        var y = x[0][0];
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(7, 12),
+                // (9,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = x[0][0];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(9, 17),
+                // (9,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = x[0][0];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0]").WithLocation(9, 17),
+                // (9,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = x[0][0];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0][0]").WithLocation(9, 17));
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (3,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 43),
+                // (7,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(7, 12),
+                // (9,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = x[0][0];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(9, 17),
+                // (9,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = x[0][0];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0]").WithLocation(9, 17),
+                // (9,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var y = x[0][0];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0][0]").WithLocation(9, 17));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void TestAliasToGenericWithPointer()
+        {
+            var text = @"
+using X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    void M(X x)
+    {
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (6,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 12));
+
+            var expected = new[]
+            {
+                // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43),
+                // (6,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(X x)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 12)
+            };
+
+            CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expected);
+            CreateCompilation(text).VerifyDiagnostics(expected);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
+        public void TestAliasToGenericWithPointer_UnsafeAlias()
+        {
+            var text = @"
+using unsafe X = System.Collections.Generic.List<int*[]>;
+
+class C
+{
+    unsafe void M(X x)
+    {
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // using unsafe X = System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7),
+                // (6,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     unsafe void M(X x)
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 17));
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67989")]
+        public void AliasToPointerReferencedInExpression()
+        {
+            CreateCompilation("""
+                using unsafe Alias = int*;
+
+                namespace N
+                {
+                    internal unsafe class C
+                    {
+                        const int Factor = 3;
+
+                        void M()
+                        {
+                            _ = Alias * Factor;
+                        }
+                    }
+                }
+                """, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (11,17): error CS0119: 'int*' is a type, which is not valid in the given context
+                //             _ = Alias * Factor;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Alias").WithArguments("int*", "type").WithLocation(11, 17));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67989")]
+        public void AliasToTupleReferencedInExpression()
+        {
+            CreateCompilation("""
+                using Alias = (int, int);
+
+                internal class C
+                {
+                    void M()
+                    {
+                        Alias.Equals(null, null);
+                    }
+                }
+                """).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67989")]
+        public void AliasToPointerReferencedInNameof()
+        {
+            CreateCompilation("""
+                using Alias = (int, int);
+
+                internal class C
+                {
+                    void M()
+                    {
+                        System.Console.WriteLine(nameof(Alias));
+                    }
+                }
+                """).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68546")]
+        public void AliasToArrayReferencedInUsingStatic()
+        {
+            CreateCompilation("""
+                using A = int[];
+
+                namespace N
+                {
+                    using static A;
+                }
+                """).VerifyDiagnostics(
+                    // (5,5): hidden CS8019: Unnecessary using directive.
+                    //     using static A;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5),
+                    // (5,18): error CS9137: 'array' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate or namespace can be used.
+                    //     using static A;
+                    Diagnostic(ErrorCode.ERR_BadUsingStaticType, "A").WithArguments("array").WithLocation(5, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68546")]
+        public void AliasToPointerReferencedInUsingStatic()
+        {
+            CreateCompilation("""
+                using unsafe A = int*;
+
+                namespace N
+                {
+                    using static A;
+                }
+                """, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                    // (5,5): hidden CS8019: Unnecessary using directive.
+                    //     using static A;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5),
+                    // (5,18): error CS9137: 'pointer' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate or namespace can be used.
+                    //     using static A;
+                    Diagnostic(ErrorCode.ERR_BadUsingStaticType, "A").WithArguments("pointer").WithLocation(5, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68546")]
+        public void AliasToFunctionPointerReferencedInUsingStatic()
+        {
+            CreateCompilation("""
+                using unsafe A = delegate*<int,int>;
+
+                namespace N
+                {
+                    using static A;
+                }
+                """, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                    // (5,5): hidden CS8019: Unnecessary using directive.
+                    //     using static A;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5),
+                    // (5,18): error CS9137: 'function pointer' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate or namespace can be used.
+                    //     using static A;
+                    Diagnostic(ErrorCode.ERR_BadUsingStaticType, "A").WithArguments("function pointer").WithLocation(5, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68546")]
+        public void AliasToDynamicReferencedInUsingStatic()
+        {
+            CreateCompilation("""
+                using A = dynamic;
+
+                namespace N
+                {
+                    using static A;
+                }
+                """).VerifyDiagnostics(
+                    // (5,5): hidden CS8019: Unnecessary using directive.
+                    //     using static A;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5),
+                    // (5,18): error CS9137: 'dynamic' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate or namespace can be used.
+                    //     using static A;
+                    Diagnostic(ErrorCode.ERR_BadUsingStaticType, "A").WithArguments("dynamic").WithLocation(5, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68546")]
+        public void AliasToTupleReferencedInUsingStatic()
+        {
+            // Allowed, as it's the same as `using A = System.ValueTuple<int, int>;`
+            CreateCompilation("""
+                using A = (int, int);
+
+                namespace N
+                {
+                    using static A;
+                }
+                """).VerifyDiagnostics(
+                    // (5,5): hidden CS8019: Unnecessary using directive.
+                    //     using static A;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5));
         }
     }
 }

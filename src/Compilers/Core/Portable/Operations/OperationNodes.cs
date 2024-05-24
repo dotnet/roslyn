@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal abstract partial class HasDynamicArgumentsExpression : Operation
     {
-        protected HasDynamicArgumentsExpression(ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
+        protected HasDynamicArgumentsExpression(ImmutableArray<IOperation> arguments, ImmutableArray<string?> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
             base(semanticModel, syntax, isImplicit)
         {
             Arguments = SetParentOperation(arguments, this);
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
 
-        public ImmutableArray<string> ArgumentNames { get; }
+        public ImmutableArray<string?> ArgumentNames { get; }
         public ImmutableArray<RefKind> ArgumentRefKinds { get; }
         public ImmutableArray<IOperation> Arguments { get; }
         public override ITypeSymbol? Type { get; }
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class DynamicObjectCreationOperation : HasDynamicArgumentsExpression, IDynamicObjectCreationOperation
     {
-        public DynamicObjectCreationOperation(IObjectOrCollectionInitializerOperation? initializer, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
+        public DynamicObjectCreationOperation(IObjectOrCollectionInitializerOperation? initializer, ImmutableArray<IOperation> arguments, ImmutableArray<string?> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
             base(arguments, argumentNames, argumentRefKinds, semanticModel, syntax, type, isImplicit)
         {
             Initializer = SetParentOperation(initializer, this);
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class DynamicInvocationOperation : HasDynamicArgumentsExpression, IDynamicInvocationOperation
     {
-        public DynamicInvocationOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
+        public DynamicInvocationOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string?> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
             base(arguments, argumentNames, argumentRefKinds, semanticModel, syntax, type, isImplicit)
         {
             Operation = SetParentOperation(operation, this);
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class DynamicIndexerAccessOperation : HasDynamicArgumentsExpression, IDynamicIndexerAccessOperation
     {
-        public DynamicIndexerAccessOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
+        public DynamicIndexerAccessOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string?> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
             base(arguments, argumentNames, argumentRefKinds, semanticModel, syntax, type, isImplicit)
         {
             Operation = SetParentOperation(operation, this);

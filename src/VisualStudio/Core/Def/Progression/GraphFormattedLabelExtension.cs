@@ -4,53 +4,45 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.GraphModel;
-using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
+
+internal sealed class GraphFormattedLabelExtension : IGraphFormattedLabel
 {
-    internal sealed class GraphFormattedLabelExtension : IGraphFormattedLabel
+    public string Description(GraphObject graphObject, string graphCommandDefinitionIdentifier)
     {
-        public string Description(GraphObject graphObject, string graphCommandDefinitionIdentifier)
-        {
-            return GetStringPropertyForGraphObject(
-                graphObject,
-                graphCommandDefinitionIdentifier,
-                RoslynGraphProperties.Description,
-                RoslynGraphProperties.DescriptionWithContainingSymbol);
-        }
+        return GetStringPropertyForGraphObject(
+            graphObject,
+            graphCommandDefinitionIdentifier,
+            RoslynGraphProperties.Description,
+            RoslynGraphProperties.DescriptionWithContainingSymbol);
+    }
 
-        public string Label(GraphObject graphObject, string graphCommandDefinitionIdentifier)
-        {
-            return GetStringPropertyForGraphObject(
-                graphObject,
-                graphCommandDefinitionIdentifier,
-                RoslynGraphProperties.FormattedLabelWithoutContainingSymbol,
-                RoslynGraphProperties.FormattedLabelWithContainingSymbol);
-        }
+    public string Label(GraphObject graphObject, string graphCommandDefinitionIdentifier)
+    {
+        return GetStringPropertyForGraphObject(
+            graphObject,
+            graphCommandDefinitionIdentifier,
+            RoslynGraphProperties.FormattedLabelWithoutContainingSymbol,
+            RoslynGraphProperties.FormattedLabelWithContainingSymbol);
+    }
 
-        private static string GetStringPropertyForGraphObject(GraphObject graphObject, string graphCommandDefinitionIdentifier, GraphProperty propertyWithoutContainingSymbol, GraphProperty propertyWithContainingSymbol)
-        {
+    private static string GetStringPropertyForGraphObject(GraphObject graphObject, string graphCommandDefinitionIdentifier, GraphProperty propertyWithoutContainingSymbol, GraphProperty propertyWithContainingSymbol)
+    {
 
-            if (graphObject is GraphNode graphNode)
+        if (graphObject is GraphNode graphNode)
+        {
+            if (graphCommandDefinitionIdentifier != GraphCommandDefinition.Contains.Id)
             {
-                if (graphCommandDefinitionIdentifier != GraphCommandDefinition.Contains.Id)
-                {
-                    return graphNode.GetValue<string>(propertyWithContainingSymbol);
-                }
-                else
-                {
-                    return graphNode.GetValue<string>(propertyWithoutContainingSymbol);
-                }
+                return graphNode.GetValue<string>(propertyWithContainingSymbol);
             }
-
-            return null;
+            else
+            {
+                return graphNode.GetValue<string>(propertyWithoutContainingSymbol);
+            }
         }
+
+        return null;
     }
 }

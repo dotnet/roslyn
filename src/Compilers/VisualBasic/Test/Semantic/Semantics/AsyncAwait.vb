@@ -5668,7 +5668,7 @@ End Class
             CompileAndVerify(compilation,
             <![CDATA[
 M2 is called for item 'Goo'
-M1 is called for item 'Bar'
+M1 is called for item 'Goo'
 ]]>)
         End Sub
 

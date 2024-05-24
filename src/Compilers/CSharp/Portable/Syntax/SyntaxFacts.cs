@@ -515,6 +515,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (declaration.Body ?? (SyntaxNode?)declaration.ExpressionBody) != null;
         }
 
+        internal static bool IsExpressionBodied(this BaseMethodDeclarationSyntax declaration)
+        {
+            return declaration.Body == null && declaration.ExpressionBody != null;
+        }
+
+        internal static bool IsVarArg(this BaseMethodDeclarationSyntax declaration)
+        {
+            return IsVarArg(declaration.ParameterList);
+        }
+
+        internal static bool IsVarArg(this ParameterListSyntax parameterList)
+        {
+            return parameterList.Parameters.Any(static p => p.IsArgList);
+        }
+
         internal static bool IsTopLevelStatement([NotNullWhen(true)] GlobalStatementSyntax? syntax)
         {
             return syntax?.Parent?.IsKind(SyntaxKind.CompilationUnit) == true;

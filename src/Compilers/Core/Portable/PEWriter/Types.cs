@@ -126,7 +126,7 @@ namespace Microsoft.Cci
     /// <summary>
     /// The definition of a type parameter of a generic type or method.
     /// </summary>
-    internal interface IGenericParameter : IGenericParameterReference
+    internal interface IGenericParameter : IDefinition, IGenericParameterReference
     {
         /// <summary>
         /// A list of classes or interfaces. All type arguments matching this parameter must be derived from all of the classes and implement all of the interfaces.
@@ -149,6 +149,11 @@ namespace Microsoft.Cci
         {
             get;
             // ^ ensures result ==> !this.MustBeReferenceType;
+        }
+
+        bool AllowsRefLikeType
+        {
+            get;
         }
 
         /// <summary>

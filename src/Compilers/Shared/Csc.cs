@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 
         internal static int Run(string[] args, BuildPaths buildPaths, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
         {
-            FatalError.Handler = FailFast.Handler;
+            FatalError.SetHandlers(FailFast.Handler, nonFatalHandler: null);
 
             var responseFile = Path.Combine(buildPaths.ClientDirectory, CSharpCompiler.ResponseFileName);
             var compiler = new Csc(responseFile, buildPaths, args, analyzerLoader);

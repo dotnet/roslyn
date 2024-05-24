@@ -2342,7 +2342,8 @@ End Structure
         </file>
     </compilation>
 
-            CompileAndVerify(source,
+            Dim verifier = CompileAndVerify(source,
+                         verify:=Verification.FailsILVerify.WithILVerifyMessage("[Test15]: Unrecognized arguments for delegate .ctor. { Offset = 0x1f }"),
                          expectedOutput:=<![CDATA[
 -- Test1 --
 SideEffect1
@@ -2399,6 +2400,29 @@ P1
 1
 2
 ]]>)
+
+            verifier.VerifyIL("Module1.Test15", "
+{
+  // Code size       58 (0x3a)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  ldstr      ""-- Test15 --""
+  IL_0005:  call       ""Sub System.Console.WriteLine(String)""
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  initobj    ""S1""
+  IL_0012:  ldloc.0
+  IL_0013:  box        ""S1""
+  IL_0018:  dup
+  IL_0019:  ldvirtftn  ""Function Object.GetHashCode() As Integer""
+  IL_001f:  newobj     ""Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)""
+  IL_0024:  dup
+  IL_0025:  callvirt   ""Function System.Func(Of Integer).Invoke() As Integer""
+  IL_002a:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_002f:  callvirt   ""Function System.Func(Of Integer).Invoke() As Integer""
+  IL_0034:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0039:  ret
+}
+")
 
         End Sub
 

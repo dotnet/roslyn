@@ -37,6 +37,35 @@
         <target state="translated">Modifizierer "readonly" hinzufügen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_the_following_PropertyGroup_to_your_MSBuild_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build">
+        <source>Add the following PropertyGroup to your MSBuild project file to enable IDE0005 (Remove unnecessary usings/imports) on build:
+  &lt;PropertyGroup&gt;
+    &lt;!--
+      Make sure any documentation comments which are included in code get checked for syntax during the build, but do
+      not report warnings for missing comments.
+      CS1573: Parameter 'parameter' has no matching param tag in the XML comment for 'parameter' (but other parameters do)
+      CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member'
+      CS1712: Type parameter 'type_parameter' has no matching typeparam tag in the XML comment on 'type_or_member' (but other type parameters do)
+    --&gt;
+    &lt;GenerateDocumentationFile&gt;True&lt;/GenerateDocumentationFile&gt;
+    &lt;NoWarn&gt;$(NoWarn),1573,1591,1712&lt;/NoWarn&gt;
+  &lt;/PropertyGroup&gt;
+    </source>
+        <target state="translated">Fügen Sie die folgende PropertyGroup zu Ihrer MSBuild-Projektdatei hinzu, um IDE0005 (Nicht benötigte Using-Direktiven/Importe entfernen) beim Build zu aktivieren:
+  &lt;PropertyGroup&gt;
+    &lt;!--
+      Stellen Sie sicher, dass alle Dokumentationskommentare, die im Code enthalten sind, während des Builds auf Syntax geprüft werden,
+      aber melden Sie keine Warnungen für fehlende Kommentare.
+      CS1573: Der Parameter 'parameter' hat kein passendes param-Tag im XML-Kommentar für 'parameter' (andere Parameter jedoch schon)
+      CS1591: Fehlender XML-Kommentar für öffentlich sichtbaren Typ oder Member 'Type_or_Member'
+      CS1712: Der Typparameter 'type_parameter' hat kein passendes typeparam-Tag im XML-Kommentar zu 'type_or_member' (andere Typparameter jedoch schon)
+    --&gt;
+    &lt;GenerateDocumentationFile&gt;TRUE&lt;/GenerateDocumentationFile&gt;
+    &lt;NoWarn&gt;$(NoWarn),1573,1591,1712&lt;/NoWarn&gt;
+  &lt;/PropertyGroup&gt;
+    </target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
         <source>Add 'this' or 'Me' qualification</source>
         <target state="translated">Qualifizierung 'this' oder 'Me' hinzufügen</target>
@@ -310,6 +339,16 @@
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
         <target state="translated">Nicht verwendete private Member entfernen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_MSBuild_Property_GenerateDocumentationFile_to_true">
+        <source>Set MSBuild property 'GenerateDocumentationFile' to 'true'</source>
+        <target state="translated">MSBuild-Eigenschaft "GenerateDocumentationFile" auf "true" festlegen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_MSBuild_Property_GenerateDocumentationFile_to_true_in_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build">
+        <source>Set MSBuild property 'GenerateDocumentationFile' to 'true' in project file to enable IDE0005 (Remove unnecessary usings/imports) on build</source>
+        <target state="translated">Legen Sie die MSBuild-Eigenschaft "GenerateDocumentationFile" in der Projektdatei auf "true" fest, um IDE0005 (Nicht benötigte Using-Direktiven/Importe entfernen) beim Build zu aktivieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_LINQ_expression">

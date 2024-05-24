@@ -13,46 +13,39 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
+namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
+
+internal partial class SmartIndent(ITextView textView, EditorOptionsService editorOptionsService) : ISmartIndent
 {
-    internal partial class SmartIndent : ISmartIndent
+    private readonly ITextView _textView = textView;
+    private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+
+    public int? GetDesiredIndentation(ITextSnapshotLine line)
+        => GetDesiredIndentation(line, CancellationToken.None);
+
+    public void Dispose()
     {
-        private readonly ITextView _textView;
-        private readonly EditorOptionsService _editorOptionsService;
+    }
 
-        public SmartIndent(ITextView textView, EditorOptionsService editorOptionsService)
+    private int? GetDesiredIndentation(ITextSnapshotLine line, CancellationToken cancellationToken)
+    {
+        if (line == null)
+            throw new ArgumentNullException(nameof(line));
+
+        using (Logger.LogBlock(FunctionId.SmartIndentation_Start, cancellationToken))
         {
-            _textView = textView;
-            _editorOptionsService = editorOptionsService;
-        }
+            var document = line.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+                return null;
 
-        public int? GetDesiredIndentation(ITextSnapshotLine line)
-            => GetDesiredIndentation(line, CancellationToken.None);
+            var newService = document.GetLanguageService<IIndentationService>();
+            if (newService == null)
+                return null;
 
-        public void Dispose()
-        {
-        }
-
-        private int? GetDesiredIndentation(ITextSnapshotLine line, CancellationToken cancellationToken)
-        {
-            if (line == null)
-                throw new ArgumentNullException(nameof(line));
-
-            using (Logger.LogBlock(FunctionId.SmartIndentation_Start, cancellationToken))
-            {
-                var document = line.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document == null)
-                    return null;
-
-                var newService = document.GetLanguageService<IIndentationService>();
-                if (newService == null)
-                    return null;
-
-                var indentationOptions = line.Snapshot.TextBuffer.GetIndentationOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
-                var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-                var result = newService.GetIndentation(parsedDocument, line.LineNumber, indentationOptions, cancellationToken);
-                return result.GetIndentation(_textView, line);
-            }
+            var indentationOptions = line.Snapshot.TextBuffer.GetIndentationOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+            var result = newService.GetIndentation(parsedDocument, line.LineNumber, indentationOptions, cancellationToken);
+            return result.GetIndentation(_textView, line);
         }
     }
 }

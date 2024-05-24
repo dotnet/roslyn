@@ -475,7 +475,7 @@ class C
         [Fact]
         public void ShouldTryAgain_RPC_E_DISCONNECTED()
         {
-            IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
+            static IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
             {
                 Marshal.ThrowExceptionForHR(unchecked((int)0x80010108));
                 throw ExceptionUtilities.Unreachable();
@@ -489,7 +489,7 @@ class C
         [Fact]
         public void ShouldTryAgain_Exception()
         {
-            IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
+            static IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
             {
                 throw new Exception();
             }

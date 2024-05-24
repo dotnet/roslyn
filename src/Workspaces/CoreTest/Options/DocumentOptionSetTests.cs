@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -30,10 +28,11 @@ public sealed class DocumentOptionSetTests
         var set = new DocumentOptionSet(configOptions, underlyingSet, LanguageNames.CSharp);
 
         // option stored in analyzer config:
-        Assert.Equal(new CodeStyleOption<bool>(true, NotificationOption.Warning), set.GetOption(CodeStyleOptions.QualifyEventAccess, LanguageNames.CSharp));
+        var internalCodeStyleOption = new CodeStyleOption2<bool>(true, NotificationOption2.Warning.WithIsExplicitlySpecified(true));
+        Assert.Equal(new CodeStyleOption<bool>(internalCodeStyleOption), set.GetOption(CodeStyleOptions.QualifyEventAccess, LanguageNames.CSharp));
 
         // cache hit:
-        Assert.Equal(new CodeStyleOption<bool>(true, NotificationOption.Warning), set.GetOption(CodeStyleOptions.QualifyEventAccess, LanguageNames.CSharp));
+        Assert.Equal(new CodeStyleOption<bool>(internalCodeStyleOption), set.GetOption(CodeStyleOptions.QualifyEventAccess, LanguageNames.CSharp));
 
         // option stored in underlying config:
         Assert.Equal(new CodeStyleOption<bool>(true, NotificationOption.Error), set.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp));

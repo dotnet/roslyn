@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -12,57 +13,47 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
+namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols;
+
+internal partial class NavigableSymbolService
 {
-    internal partial class NavigableSymbolService
+    private sealed class NavigableSymbolSource(
+        NavigableSymbolService service,
+        ITextView textView) : INavigableSymbolSource
     {
-        private sealed class NavigableSymbolSource : INavigableSymbolSource
+        private bool _disposed;
+
+        public void Dispose()
+            => _disposed = true;
+
+        public async Task<INavigableSymbol?> GetNavigableSymbolAsync(SnapshotSpan triggerSpan, CancellationToken cancellationToken)
         {
-            private readonly NavigableSymbolService _service;
-            private readonly ITextView _textView;
+            if (_disposed)
+                return null;
 
-            private bool _disposed;
+            var snapshot = triggerSpan.Snapshot;
+            var position = triggerSpan.Start;
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+                return null;
 
-            public NavigableSymbolSource(
-                NavigableSymbolService service,
-                ITextView textView)
-            {
-                _service = service;
-                _textView = textView;
-            }
+            var definitionLocationService = document.GetLanguageService<IDefinitionLocationService>();
+            if (definitionLocationService == null)
+                return null;
 
-            public void Dispose()
-                => _disposed = true;
+            var definitionLocation = await definitionLocationService.GetDefinitionLocationAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
+            if (definitionLocation == null)
+                return null;
 
-            public async Task<INavigableSymbol?> GetNavigableSymbolAsync(SnapshotSpan triggerSpan, CancellationToken cancellationToken)
-            {
-                if (_disposed)
-                    return null;
+            var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
 
-                var snapshot = triggerSpan.Snapshot;
-                var position = triggerSpan.Start;
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document == null)
-                    return null;
-
-                var service = document.GetLanguageService<IAsyncGoToDefinitionService>();
-                if (service == null)
-                    return null;
-
-                var (navigableLocation, symbolSpan) = await service.FindDefinitionLocationAsync(
-                    document, position, includeType: false, cancellationToken).ConfigureAwait(false);
-                if (navigableLocation == null)
-                    return null;
-
-                var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-
-                return new NavigableSymbol(
-                    _service,
-                    _textView,
-                    navigableLocation,
-                    snapshot.GetSpan(symbolSpan.ToSpan()),
-                    indicatorFactory);
-            }
+            return new NavigableSymbol(
+                service,
+                textView,
+                definitionLocation.Location,
+                snapshot.GetSpan(definitionLocation.Span.SourceSpan.ToSpan()),
+                indicatorFactory);
         }
     }
 }

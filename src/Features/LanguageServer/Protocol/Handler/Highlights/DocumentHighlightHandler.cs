@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -46,25 +46,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (document == null)
                 return null;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             // First check if this is a keyword that needs highlighting.
             var keywordHighlights = await GetKeywordHighlightsAsync(document, text, position, cancellationToken).ConfigureAwait(false);
             if (keywordHighlights.Any())
             {
-                return keywordHighlights.ToArray();
+                return [.. keywordHighlights];
             }
 
             // Not a keyword, check if it is a reference that needs highlighting.
             var referenceHighlights = await GetReferenceHighlightsAsync(document, text, position, cancellationToken).ConfigureAwait(false);
             if (referenceHighlights.Any())
             {
-                return referenceHighlights.ToArray();
+                return [.. referenceHighlights];
             }
 
             // No keyword or references to highlight at this location.
-            return Array.Empty<DocumentHighlight>();
+            return [];
         }
 
         private async Task<ImmutableArray<DocumentHighlight>> GetKeywordHighlightsAsync(Document document, SourceText text, int position, CancellationToken cancellationToken)
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 });
             }
 
-            return ImmutableArray<DocumentHighlight>.Empty;
+            return [];
         }
     }
 }

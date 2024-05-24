@@ -4,10 +4,12 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,11 +19,34 @@ using CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    using BoxedMemberNames = StrongBox<ImmutableSegmentedHashSet<string>>;
+
     internal sealed class DeclarationTreeBuilder : CSharpSyntaxVisitor<SingleNamespaceOrTypeDeclaration>
     {
+        /// <summary>
+        /// Cache of node to the last set of member names computed for it.  Helpful for avoiding excess hashset
+        /// allocations for common scenarios where compilations are created with the same trees used to create prior
+        /// compilations.
+        /// </summary>
+        /// <remarks>
+        /// We store as green nodes for two purposes.  First, it allows the data to be stored, without holding onto the
+        /// whole tree.  It allows files with multiple types in them to reuse the member names for untouched types when
+        /// others in the file are edited.
+        /// </remarks>
+        private static readonly ConditionalWeakTable<GreenNode, BoxedMemberNames> s_nodeToMemberNames
+            = new ConditionalWeakTable<GreenNode, BoxedMemberNames>();
+
+        private static readonly BoxedMemberNames s_emptyMemberNames = new BoxedMemberNames(ImmutableSegmentedHashSet<string>.Empty);
+
         private readonly SyntaxTree _syntaxTree;
         private readonly string _scriptClassName;
         private readonly bool _isSubmission;
+
+        /// <summary>
+        /// Stored in lexical order for the types in this tree that had member names the last time we created decls for
+        /// the tree.
+        /// </summary>
+        private readonly OneOrMany<WeakReference<BoxedMemberNames>> _previousMemberNames;
 
         /// <summary>
         /// Any special attributes we may be referencing through a using alias in the file.
@@ -29,20 +54,70 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private QuickAttributes _nonGlobalAliasedQuickAttributes;
 
-        private DeclarationTreeBuilder(SyntaxTree syntaxTree, string scriptClassName, bool isSubmission)
+        /// <summary>
+        /// The index of the current type we're processing in lexicographic order with respect to all other types in the
+        /// file.  For example:
+        /// <code>
+        /// class A // Index 0
+        /// {
+        ///     class B // Index 1
+        ///     {
+        ///     }
+        /// }
+        /// 
+        /// class C // Index 2
+        /// {
+        /// }
+        /// </code>
+        /// </summary>
+        private int _currentTypeIndex;
+
+        private DeclarationTreeBuilder(
+            SyntaxTree syntaxTree,
+            string scriptClassName,
+            bool isSubmission,
+            OneOrMany<WeakReference<BoxedMemberNames>> previousMemberNames)
         {
             _syntaxTree = syntaxTree;
             _scriptClassName = scriptClassName;
             _isSubmission = isSubmission;
+            _previousMemberNames = previousMemberNames;
         }
 
         public static RootSingleNamespaceDeclaration ForTree(
             SyntaxTree syntaxTree,
             string scriptClassName,
-            bool isSubmission)
+            bool isSubmission,
+            OneOrMany<WeakReference<BoxedMemberNames>>? previousMemberNames = null)
         {
-            var builder = new DeclarationTreeBuilder(syntaxTree, scriptClassName, isSubmission);
+            var builder = new DeclarationTreeBuilder(
+                syntaxTree, scriptClassName, isSubmission,
+                previousMemberNames ?? OneOrMany<WeakReference<BoxedMemberNames>>.Empty);
             return (RootSingleNamespaceDeclaration)builder.Visit(syntaxTree.GetRoot());
+        }
+
+        public static bool CachesComputedMemberNames(SingleTypeDeclaration typeDeclaration)
+        {
+            return typeDeclaration.Kind switch
+            {
+                // A type declaration can't ever be a namespace.
+                DeclarationKind.Namespace => throw ExceptionUtilities.Unreachable(),
+
+                // Delegates also do not cache any members names as the member names are always a known fixed set.
+                DeclarationKind.Delegate => false,
+
+                DeclarationKind.Class or
+                DeclarationKind.Interface or
+                DeclarationKind.Struct or
+                DeclarationKind.Enum or
+                DeclarationKind.Script or
+                DeclarationKind.Submission or
+                DeclarationKind.ImplicitClass or
+                DeclarationKind.Record or
+                DeclarationKind.RecordStruct => true,
+
+                _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind)
+            };
         }
 
         private ImmutableArray<SingleNamespaceOrTypeDeclaration> VisitNamespaceChildren(
@@ -129,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 //The implicit class is not static and has no extensions
                 SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None;
-                var memberNames = GetNonTypeMemberNames(internalMembers, ref declFlags, skipGlobalStatements: acceptSimpleProgram);
+                var memberNames = GetNonTypeMemberNames(node, internalMembers, ref declFlags, skipGlobalStatements: acceptSimpleProgram);
                 var container = _syntaxTree.GetReference(node);
 
                 childrenBuilder.Add(CreateImplicitClass(memberNames, container, declFlags));
@@ -138,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return childrenBuilder.ToImmutableAndFree();
         }
 
-        private static SingleNamespaceOrTypeDeclaration CreateImplicitClass(ImmutableSegmentedDictionary<string, VoidResult> memberNames, SyntaxReference container, SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+        private static SingleNamespaceOrTypeDeclaration CreateImplicitClass(BoxedMemberNames memberNames, SyntaxReference container, SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.ImplicitClass,
@@ -156,6 +231,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(GlobalStatementSyntax firstGlobalStatement, bool hasAwaitExpressions, bool isIterator, bool hasReturnWithExpression, ImmutableArray<Diagnostic> diagnostics)
         {
+            var nameLocation = new SourceLocation(firstGlobalStatement.GetFirstToken());
+
+            if (nameLocation.SourceTree is null)
+            {
+                nameLocation = new SourceLocation(firstGlobalStatement.GetFirstToken(includeSkipped: true));
+            }
+
+            Debug.Assert(nameLocation.SourceTree is not null);
+
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Class,
                 name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
@@ -166,8 +250,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                            (hasReturnWithExpression ? SingleTypeDeclaration.TypeDeclarationFlags.HasReturnWithExpression : SingleTypeDeclaration.TypeDeclarationFlags.None) |
                            SingleTypeDeclaration.TypeDeclarationFlags.IsSimpleProgram,
                 syntaxReference: firstGlobalStatement.SyntaxTree.GetReference(firstGlobalStatement.Parent),
-                nameLocation: new SourceLocation(firstGlobalStatement.GetFirstToken()),
-                memberNames: ImmutableSegmentedDictionary<string, VoidResult>.Empty,
+                nameLocation: nameLocation,
+                memberNames: s_emptyMemberNames,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
                 diagnostics: diagnostics,
                 quickAttributes: QuickAttributes.None);
@@ -205,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //Script class is not static and contains no extensions.
             SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None;
-            var membernames = GetNonTypeMemberNames(((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members, ref declFlags);
+            var membernames = GetNonTypeMemberNames(compilationUnit, ((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members, ref declFlags);
             rootChildren.Add(
                 CreateScriptClass(
                     compilationUnit,
@@ -236,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SingleNamespaceOrTypeDeclaration CreateScriptClass(
             CompilationUnitSyntax parent,
             ImmutableArray<SingleTypeDeclaration> children,
-            ImmutableSegmentedDictionary<string, VoidResult> memberNames,
+            BoxedMemberNames memberNames,
             SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             Debug.Assert(parent.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind != SourceCodeKind.Regular);
@@ -596,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitTypeDeclaration(node, declarationKind);
         }
 
-        private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
+        private SingleTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
             var declFlags = node.AttributeLists.Any()
                 ? SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes
@@ -613,15 +697,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol.ReportErrorIfHasConstraints(node.ConstraintClauses, diagnostics);
             }
 
-            // A type with parameters at least has a primary constructor
-            bool hasPrimaryCtor = node is TypeDeclarationSyntax { ParameterList: { } };
+            var hasPrimaryCtor = node.ParameterList != null && node is RecordDeclarationSyntax or ClassDeclarationSyntax or StructDeclarationSyntax;
             if (hasPrimaryCtor)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasPrimaryConstructor;
+
+                foreach (var attributeListSyntax in node.AttributeLists)
+                {
+                    if (attributeListSyntax.Target?.Identifier.ToAttributeLocation() == AttributeLocation.Method)
+                    {
+                        declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes;
+                        break;
+                    }
+                }
             }
 
-            var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
-                                                    ref declFlags, hasPrimaryCtor: hasPrimaryCtor);
+            var memberNames = GetNonTypeMemberNames(
+                node, ((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
+                ref declFlags, hasPrimaryCtor: hasPrimaryCtor);
 
             // If we have `record class` or `record struct` check that this is supported in the language. Note: we don't
             // have to do any check for the simple `record` case as the parser itself would never produce such a node
@@ -728,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags: declFlags,
                 syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
-                memberNames: ImmutableSegmentedDictionary<string, VoidResult>.Empty,
+                memberNames: s_emptyMemberNames,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
                 diagnostics: diagnostics.ToReadOnlyAndFree(),
                 _nonGlobalAliasedQuickAttributes | quickAttributes);
@@ -747,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations;
             }
 
-            ImmutableSegmentedDictionary<string, VoidResult> memberNames = GetEnumMemberNames(members, ref declFlags);
+            var memberNames = GetEnumMemberNames(node, ref declFlags);
 
             var diagnostics = DiagnosticBag.GetInstance();
             var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
@@ -786,63 +880,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static readonly ObjectPool<ImmutableSegmentedDictionary<string, VoidResult>.Builder> s_memberNameBuilderPool =
-            new ObjectPool<ImmutableSegmentedDictionary<string, VoidResult>.Builder>(() => ImmutableSegmentedDictionary.CreateBuilder<string, VoidResult>());
-
-        private static ImmutableSegmentedDictionary<string, VoidResult> ToImmutableAndFree(ImmutableSegmentedDictionary<string, VoidResult>.Builder builder)
+        private BoxedMemberNames GetEnumMemberNames(
+            EnumDeclarationSyntax enumDeclaration,
+            ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
-            var result = builder.ToImmutable();
-            builder.Clear();
-            s_memberNameBuilderPool.Free(builder);
-            return result;
-        }
-
-        private static ImmutableSegmentedDictionary<string, VoidResult> GetEnumMemberNames(SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
-        {
+            var members = enumDeclaration.Members;
             var cnt = members.Count;
 
-            var memberNamesBuilder = s_memberNameBuilderPool.Allocate();
             if (cnt != 0)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
-            bool anyMemberHasAttributes = false;
-            foreach (var member in members)
-            {
-                memberNamesBuilder.TryAdd(member.Identifier.ValueText);
-                if (!anyMemberHasAttributes && member.AttributeLists.Any())
-                {
-                    anyMemberHasAttributes = true;
-                }
-            }
+            bool anyMemberHasAttributes = members.Any(static m => m.AttributeLists.Any());
 
             if (anyMemberHasAttributes)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes;
             }
 
-            return ToImmutableAndFree(memberNamesBuilder);
+            return GetOrComputeMemberNames(
+                enumDeclaration,
+                static (memberNamesBuilder, members) =>
+                {
+                    foreach (var member in members)
+                        memberNamesBuilder.Add(member.Identifier.ValueText);
+                },
+                members);
         }
 
-        private static ImmutableSegmentedDictionary<string, VoidResult> GetNonTypeMemberNames(
-            CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags, bool skipGlobalStatements = false, bool hasPrimaryCtor = false)
+        private BoxedMemberNames GetNonTypeMemberNames(
+            CSharpSyntaxNode parent,
+            CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members,
+            ref SingleTypeDeclaration.TypeDeclarationFlags declFlags,
+            bool skipGlobalStatements = false,
+            bool hasPrimaryCtor = false)
         {
             bool anyMethodHadExtensionSyntax = false;
             bool anyMemberHasAttributes = false;
             bool anyNonTypeMembers = false;
             bool anyRequiredMembers = false;
 
-            var memberNameBuilder = s_memberNameBuilderPool.Allocate();
-
-            if (hasPrimaryCtor)
-            {
-                memberNameBuilder.TryAdd(WellKnownMemberNames.InstanceConstructorName);
-            }
-
             foreach (var member in members)
             {
-                AddNonTypeMemberNames(member, memberNameBuilder, ref anyNonTypeMembers, skipGlobalStatements);
+                if (!anyNonTypeMembers && HasAnyNonTypeMemberNames(member, skipGlobalStatements))
+                {
+                    anyNonTypeMembers = true;
+                }
 
                 // Check to see if any method contains a 'this' modifier on its first parameter.
                 // This data is used to determine if a type needs to have its members materialized
@@ -860,6 +944,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!anyRequiredMembers && checkPropertyOrFieldMemberForRequiredModifier(member))
                 {
                     anyRequiredMembers = true;
+                }
+
+                // Break early if we've hit all sorts of members.
+                if (anyNonTypeMembers && anyMethodHadExtensionSyntax && anyMemberHasAttributes && anyRequiredMembers)
+                {
+                    break;
                 }
             }
 
@@ -883,7 +973,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasRequiredMembers;
             }
 
-            return ToImmutableAndFree(memberNameBuilder);
+            return GetOrComputeMemberNames(
+                parent,
+                static (memberNamesBuilder, tuple) =>
+                {
+                    if (tuple.hasPrimaryCtor)
+                        memberNamesBuilder.Add(WellKnownMemberNames.InstanceConstructorName);
+
+                    foreach (var member in tuple.members)
+                        AddNonTypeMemberNames(member, memberNamesBuilder);
+                },
+                (members, hasPrimaryCtor));
 
             static bool checkPropertyOrFieldMemberForRequiredModifier(Syntax.InternalSyntax.CSharpSyntaxNode member)
             {
@@ -895,6 +995,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
 
                 return modifiers.Any((int)SyntaxKind.RequiredKeyword);
+            }
+        }
+
+        private BoxedMemberNames GetOrComputeMemberNames<TData>(
+            SyntaxNode parent,
+            Action<HashSet<string>, TData> addMemberNames,
+            TData data)
+        {
+            // Compute the member names, then always ensure we move our current type index pointer forward.
+            var result = getOrComputeMemberNamesWorker();
+            _currentTypeIndex++;
+            return result;
+
+            BoxedMemberNames getOrComputeMemberNamesWorker()
+            {
+                // Lookup in the cache first.
+                var greenNode = parent.Green;
+                if (!s_nodeToMemberNames.TryGetValue(greenNode, out BoxedMemberNames memberNames))
+                {
+                    // If not there, make a fresh set, and add all the member names to it.
+                    var memberNamesBuilder = PooledHashSet<string>.GetInstance();
+                    addMemberNames(memberNamesBuilder, data);
+
+                    // Try to obtain the prior member names computed for the corresponding type decl (in lexicographic order)
+                    // from the prior version of this tree.
+                    var previousMemberNames = _currentTypeIndex < _previousMemberNames.Count && _previousMemberNames[_currentTypeIndex].TryGetTarget(out var previousNames)
+                        ? previousNames
+                        : s_emptyMemberNames;
+
+                    // If the members names are the same as the prior computed ones, then use that instead.
+                    memberNames = previousMemberNames.Value.Count == memberNamesBuilder.Count && previousMemberNames.Value.SetEquals(memberNamesBuilder)
+                        ? previousMemberNames
+                        : memberNamesBuilder.Count == 0
+                            ? s_emptyMemberNames
+                            : new BoxedMemberNames(ImmutableSegmentedHashSet.CreateRange(memberNamesBuilder));
+                    memberNamesBuilder.Free();
+
+                    // Store the names in the cache to be found in the next compilation update. But don't bother caching
+                    // when there are no member names (common for most compilation units).  If another thread beat us to
+                    // this, then use their values instead.
+                    if (memberNames.Value.Count > 0)
+                    {
+                        // Avoid unnecessary allocation (as CWT on NET6 and prior has no non-allocating way to try to
+                        // get an existing value, and only add if that particular KVP is not already present).
+                        using PooledDelegates.Releaser _ = PooledDelegates.GetPooledCreateValueCallback(
+                            static (GreenNode _, BoxedMemberNames memberNames) => memberNames, memberNames, out var pooledCallback);
+                        memberNames = s_nodeToMemberNames.GetValue(greenNode, pooledCallback);
+                    }
+                }
+
+                return memberNames;
             }
         }
 
@@ -975,34 +1126,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void AddNonTypeMemberNames(
-            Syntax.InternalSyntax.CSharpSyntaxNode member, ImmutableSegmentedDictionary<string, VoidResult>.Builder set, ref bool anyNonTypeMembers, bool skipGlobalStatements)
+            Syntax.InternalSyntax.CSharpSyntaxNode member, HashSet<string> set)
         {
             switch (member.Kind)
             {
                 case SyntaxKind.FieldDeclaration:
-                    anyNonTypeMembers = true;
                     CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> fieldDeclarators =
                         ((Syntax.InternalSyntax.FieldDeclarationSyntax)member).Declaration.Variables;
                     int numFieldDeclarators = fieldDeclarators.Count;
                     for (int i = 0; i < numFieldDeclarators; i++)
                     {
-                        set.TryAdd(fieldDeclarators[i].Identifier.ValueText);
+                        set.Add(fieldDeclarators[i].Identifier.ValueText);
                     }
                     break;
 
                 case SyntaxKind.EventFieldDeclaration:
-                    anyNonTypeMembers = true;
                     CoreInternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax> eventDeclarators =
                         ((Syntax.InternalSyntax.EventFieldDeclarationSyntax)member).Declaration.Variables;
                     int numEventDeclarators = eventDeclarators.Count;
                     for (int i = 0; i < numEventDeclarators; i++)
                     {
-                        set.TryAdd(eventDeclarators[i].Identifier.ValueText);
+                        set.Add(eventDeclarators[i].Identifier.ValueText);
                     }
                     break;
 
                 case SyntaxKind.MethodDeclaration:
-                    anyNonTypeMembers = true;
                     // Member names are exposed via NamedTypeSymbol.MemberNames and are used primarily
                     // as an acid test to determine whether a more in-depth search of a type is worthwhile.
                     // We decided that it was reasonable to exclude explicit interface implementations
@@ -1010,84 +1158,93 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var methodDecl = (Syntax.InternalSyntax.MethodDeclarationSyntax)member;
                     if (methodDecl.ExplicitInterfaceSpecifier == null)
                     {
-                        set.TryAdd(methodDecl.Identifier.ValueText);
+                        set.Add(methodDecl.Identifier.ValueText);
                     }
                     break;
 
                 case SyntaxKind.PropertyDeclaration:
-                    anyNonTypeMembers = true;
                     // Handle in the same way as explicit method implementations
                     var propertyDecl = (Syntax.InternalSyntax.PropertyDeclarationSyntax)member;
                     if (propertyDecl.ExplicitInterfaceSpecifier == null)
                     {
-                        set.TryAdd(propertyDecl.Identifier.ValueText);
+                        set.Add(propertyDecl.Identifier.ValueText);
                     }
                     break;
 
                 case SyntaxKind.EventDeclaration:
-                    anyNonTypeMembers = true;
                     // Handle in the same way as explicit method implementations
                     var eventDecl = (Syntax.InternalSyntax.EventDeclarationSyntax)member;
                     if (eventDecl.ExplicitInterfaceSpecifier == null)
                     {
-                        set.TryAdd(eventDecl.Identifier.ValueText);
+                        set.Add(eventDecl.Identifier.ValueText);
                     }
                     break;
 
                 case SyntaxKind.ConstructorDeclaration:
-                    anyNonTypeMembers = true;
-                    set.TryAdd(((Syntax.InternalSyntax.ConstructorDeclarationSyntax)member).Modifiers.Any((int)SyntaxKind.StaticKeyword)
+                    set.Add(((Syntax.InternalSyntax.ConstructorDeclarationSyntax)member).Modifiers.Any((int)SyntaxKind.StaticKeyword)
                         ? WellKnownMemberNames.StaticConstructorName
                         : WellKnownMemberNames.InstanceConstructorName);
+
                     break;
 
                 case SyntaxKind.DestructorDeclaration:
-                    anyNonTypeMembers = true;
-                    set.TryAdd(WellKnownMemberNames.DestructorName);
+                    set.Add(WellKnownMemberNames.DestructorName);
                     break;
 
                 case SyntaxKind.IndexerDeclaration:
-                    anyNonTypeMembers = true;
-                    set.TryAdd(WellKnownMemberNames.Indexer);
+                    set.Add(WellKnownMemberNames.Indexer);
                     break;
 
                 case SyntaxKind.OperatorDeclaration:
                     {
-                        anyNonTypeMembers = true;
-
                         // Handle in the same way as explicit method implementations
                         var opDecl = (Syntax.InternalSyntax.OperatorDeclarationSyntax)member;
 
                         if (opDecl.ExplicitInterfaceSpecifier == null)
                         {
                             var name = OperatorFacts.OperatorNameFromDeclaration(opDecl);
-                            set.TryAdd(name);
+                            set.Add(name);
                         }
                     }
                     break;
 
                 case SyntaxKind.ConversionOperatorDeclaration:
                     {
-                        anyNonTypeMembers = true;
-
                         // Handle in the same way as explicit method implementations
                         var opDecl = (Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax)member;
 
                         if (opDecl.ExplicitInterfaceSpecifier == null)
                         {
                             var name = OperatorFacts.OperatorNameFromDeclaration(opDecl);
-                            set.TryAdd(name);
+                            set.Add(name);
                         }
                     }
                     break;
+            }
+        }
+
+        private static bool HasAnyNonTypeMemberNames(
+            Syntax.InternalSyntax.CSharpSyntaxNode member, bool skipGlobalStatements)
+        {
+            switch (member.Kind)
+            {
+                case SyntaxKind.FieldDeclaration:
+                case SyntaxKind.EventFieldDeclaration:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.EventDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                case SyntaxKind.IndexerDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    return true;
 
                 case SyntaxKind.GlobalStatement:
-                    if (!skipGlobalStatements)
-                    {
-                        anyNonTypeMembers = true;
-                    }
-                    break;
+                    return !skipGlobalStatements;
             }
+
+            return false;
         }
     }
 }

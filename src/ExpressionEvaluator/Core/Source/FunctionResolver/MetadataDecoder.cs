@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 case SignatureTypeCode.TypeHandle:
                     {
                         int typeArgumentOffset = 0;
-                        return DecodeType(signatureReader.ReadTypeHandle(), ImmutableArray<TypeSignature>.Empty, ref typeArgumentOffset);
+                        return DecodeType(signatureReader.ReadTypeHandle(), [], ref typeArgumentOffset);
                     }
                 case SignatureTypeCode.Array:
                     {

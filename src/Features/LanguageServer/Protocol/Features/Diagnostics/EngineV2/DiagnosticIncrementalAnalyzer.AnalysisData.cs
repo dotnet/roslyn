@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -20,12 +19,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private readonly struct DocumentAnalysisData
         {
-            public static readonly DocumentAnalysisData Empty = new(VersionStamp.Default, ImmutableArray<DiagnosticData>.Empty);
+            public static readonly DocumentAnalysisData Empty = new(VersionStamp.Default, lineCount: 0, []);
 
             /// <summary>
             /// Version of the diagnostic data.
             /// </summary>
             public readonly VersionStamp Version;
+
+            /// <summary>
+            /// Number of lines in the document.
+            /// </summary>
+            public readonly int LineCount;
 
             /// <summary>
             /// Current data that matches the version.
@@ -37,28 +41,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public readonly ImmutableArray<DiagnosticData> OldItems;
 
-            public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> items)
+            public DocumentAnalysisData(VersionStamp version, int lineCount, ImmutableArray<DiagnosticData> items)
             {
                 Debug.Assert(!items.IsDefault);
 
                 Version = version;
+                LineCount = lineCount;
                 Items = items;
                 OldItems = default;
             }
 
-            public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
-                : this(version, newItems)
+            public DocumentAnalysisData(VersionStamp version, int lineCount, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
+                : this(version, lineCount, newItems)
             {
                 Debug.Assert(!oldItems.IsDefault);
                 OldItems = oldItems;
-            }
-
-            public DocumentAnalysisData ToPersistData()
-                => new(Version, Items);
-
-            public bool FromCache
-            {
-                get { return OldItems.IsDefault; }
             }
         }
 

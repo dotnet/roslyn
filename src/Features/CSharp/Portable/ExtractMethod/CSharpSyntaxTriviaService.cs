@@ -4,15 +4,14 @@
 
 using Microsoft.CodeAnalysis.ExtractMethod;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
-{
-    internal class CSharpSyntaxTriviaService : AbstractSyntaxTriviaService
-    {
-        public static readonly CSharpSyntaxTriviaService Instance = new CSharpSyntaxTriviaService();
+namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-        private CSharpSyntaxTriviaService()
-            : base((int)SyntaxKind.EndOfLineTrivia)
-        {
-        }
+internal class CSharpSyntaxTriviaService : AbstractSyntaxTriviaService
+{
+    public static readonly CSharpSyntaxTriviaService Instance = new CSharpSyntaxTriviaService();
+
+    private CSharpSyntaxTriviaService()
+        : base((int)SyntaxKind.EndOfLineTrivia)
+    {
     }
 }

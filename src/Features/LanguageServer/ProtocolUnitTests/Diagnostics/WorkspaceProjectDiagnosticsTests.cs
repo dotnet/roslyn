@@ -2,19 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
 public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
@@ -24,35 +20,33 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
     }
 
     [Theory, CombinatorialData]
-    public async Task TestWorkspaceDiagnosticsReportsProjectDiagnostic(bool useVSDiagnostics)
+    public async Task TestWorkspaceDiagnosticsReportsProjectDiagnostic(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
-        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
         Assert.Equal(2, results.Length);
         Assert.Empty(results[0].Diagnostics);
         Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
-        Assert.Equal(ProtocolConversions.GetUriFromFilePath(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
-        Assert.Null(results2[0].Diagnostics);
-        Assert.Null(results2[1].Diagnostics);
-        Assert.Equal(results[1].ResultId, results2[1].ResultId);
+        Assert.Empty(results2);
     }
 
     [Theory, CombinatorialData]
-    public async Task TestWorkspaceDiagnosticsWithRemovedProject(bool useVSDiagnostics)
+    public async Task TestWorkspaceDiagnosticsWithRemovedProject(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
-        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
         Assert.Equal(2, results.Length);
         Assert.Empty(results[0].Diagnostics);
         Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
-        Assert.Equal(ProtocolConversions.GetUriFromFilePath(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         var initialSolution = testLspServer.GetCurrentSolution();
         var newSolution = initialSolution.RemoveProject(initialSolution.Projects.First().Id);
@@ -60,9 +54,9 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
         Assert.Equal(2, results2.Length);
-        Assert.Equal(useVSDiagnostics ? null : Array.Empty<LSP.Diagnostic>(), results2[0].Diagnostics);
+        Assert.Equal(useVSDiagnostics ? null : [], results2[0].Diagnostics);
         Assert.Null(results2[0].ResultId);
-        Assert.Equal(useVSDiagnostics ? null : Array.Empty<LSP.Diagnostic>(), results2[1].Diagnostics);
+        Assert.Equal(useVSDiagnostics ? null : [], results2[1].Diagnostics);
         Assert.Null(results2[1].ResultId);
     }
 

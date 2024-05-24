@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceParameter
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.IntroduceParameter), [Shared]>
     Friend Class VisualBasicIntroduceParameterCodeRefactoringProvider
-        Inherits AbstractIntroduceParameterCodeRefactoringProvider(Of ExpressionSyntax, InvocationExpressionSyntax, ObjectCreationExpressionSyntax, IdentifierNameSyntax)
+        Inherits AbstractIntroduceParameterCodeRefactoringProvider(Of ExpressionSyntax, InvocationExpressionSyntax, ObjectCreationExpressionSyntax, IdentifierNameSyntax, ArgumentSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceParameter
             Return TryCast(variableDecl.Parent, LocalDeclarationStatementSyntax)
         End Function
 
-        Protected Overrides Function UpdateArgumentListSyntax(node As SyntaxNode, arguments As SeparatedSyntaxList(Of SyntaxNode)) As SyntaxNode
+        Protected Overrides Function UpdateArgumentListSyntax(node As SyntaxNode, arguments As SeparatedSyntaxList(Of ArgumentSyntax)) As SyntaxNode
             Return DirectCast(node, ArgumentListSyntax).WithArguments(arguments)
         End Function
 

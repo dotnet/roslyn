@@ -442,15 +442,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void ConditionalAccess_05()
         {
             UsingNode("x?.y?![0].ToString()", options: null,
-                // (1,7): error CS1525: Invalid expression term '['
-                // x?.y?![0].ToString()
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[", isSuppressed: false).WithArguments("[").WithLocation(1, 7),
                 // (1,21): error CS1003: Syntax error, ':' expected
                 // x?.y?![0].ToString()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 21),
                 // (1,21): error CS1733: Expected expression
                 // x?.y?![0].ToString()
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "", isSuppressed: false).WithLocation(1, 21));
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 21));
 
             N(SyntaxKind.ConditionalExpression);
             {
@@ -478,24 +475,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.ElementAccessExpression);
+                            N(SyntaxKind.CollectionExpression);
                             {
-                                M(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.ExpressionElement);
                                 {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                                N(SyntaxKind.BracketedArgumentList);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Argument);
+                                    N(SyntaxKind.NumericLiteralExpression);
                                     {
-                                        N(SyntaxKind.NumericLiteralExpression);
-                                        {
-                                            N(SyntaxKind.NumericLiteralToken, "0");
-                                        }
+                                        N(SyntaxKind.NumericLiteralToken, "0");
                                     }
-                                    N(SyntaxKind.CloseBracketToken);
                                 }
+                                N(SyntaxKind.CloseBracketToken);
                             }
                             N(SyntaxKind.DotToken);
                             N(SyntaxKind.IdentifierName);

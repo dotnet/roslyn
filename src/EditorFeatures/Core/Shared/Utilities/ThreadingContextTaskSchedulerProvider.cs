@@ -9,54 +9,44 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+
+[ExportWorkspaceService(typeof(ITaskSchedulerProvider), ServiceLayer.Editor), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ThreadingContextTaskSchedulerProvider(IThreadingContext threadingContext) : ITaskSchedulerProvider
 {
-    [ExportWorkspaceService(typeof(ITaskSchedulerProvider), ServiceLayer.Editor), Shared]
-    internal sealed class ThreadingContextTaskSchedulerProvider : ITaskSchedulerProvider
-    {
-        public TaskScheduler CurrentContextScheduler { get; }
+    public TaskScheduler CurrentContextScheduler { get; } = threadingContext.HasMainThread
+            ? new JoinableTaskFactoryTaskScheduler(threadingContext.JoinableTaskFactory)
+            : TaskScheduler.Default;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ThreadingContextTaskSchedulerProvider(IThreadingContext threadingContext)
+    private sealed class JoinableTaskFactoryTaskScheduler(JoinableTaskFactory joinableTaskFactory) : TaskScheduler
+    {
+        private readonly JoinableTaskFactory _joinableTaskFactory = joinableTaskFactory;
+
+        public override int MaximumConcurrencyLevel => 1;
+
+        protected override IEnumerable<Task> GetScheduledTasks()
+            => [];
+
+        protected override void QueueTask(Task task)
         {
-            CurrentContextScheduler = threadingContext.HasMainThread
-                ? new JoinableTaskFactoryTaskScheduler(threadingContext.JoinableTaskFactory)
-                : TaskScheduler.Default;
+            _joinableTaskFactory.RunAsync(async () =>
+            {
+                await _joinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
+                TryExecuteTask(task);
+            });
         }
 
-        private sealed class JoinableTaskFactoryTaskScheduler : TaskScheduler
+        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
-            private readonly JoinableTaskFactory _joinableTaskFactory;
-
-            public JoinableTaskFactoryTaskScheduler(JoinableTaskFactory joinableTaskFactory)
-                => _joinableTaskFactory = joinableTaskFactory;
-
-            public override int MaximumConcurrencyLevel => 1;
-
-            protected override IEnumerable<Task> GetScheduledTasks()
-                => SpecializedCollections.EmptyEnumerable<Task>();
-
-            protected override void QueueTask(Task task)
+            if (_joinableTaskFactory.Context.IsOnMainThread)
             {
-                _joinableTaskFactory.RunAsync(async () =>
-                {
-                    await _joinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
-                    TryExecuteTask(task);
-                });
+                return TryExecuteTask(task);
             }
 
-            protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
-            {
-                if (_joinableTaskFactory.Context.IsOnMainThread)
-                {
-                    return TryExecuteTask(task);
-                }
-
-                return false;
-            }
+            return false;
         }
     }
 }

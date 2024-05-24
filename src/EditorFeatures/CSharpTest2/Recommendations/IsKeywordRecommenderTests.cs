@@ -23,24 +23,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -75,8 +81,10 @@ $$");
         public async Task TestNotAfterVoid()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    void $$");
+                """
+                class C {
+                    void $$
+                """);
         }
 
         [Fact]
@@ -97,8 +105,10 @@ $$");
         public async Task TestNotInJoin()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from a in b
-          join x $$"));
+                """
+                var q = from a in b
+                          join x $$
+                """));
         }
 
         [Fact]
@@ -141,21 +151,27 @@ $$");
         public async Task TestNotBeforeFirstStringHole()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var x = ""\{0}$$\{1}\{2}"""));
+                """
+                var x = "\{0}$$\{1}\{2}"
+                """));
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         public async Task TestNotBetweenStringHoles()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var x = ""\{0}\{1}$$\{2}"""));
+                """
+                var x = "\{0}\{1}$$\{2}"
+                """));
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         public async Task TestNotAfterStringHoles()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var x = ""\{0}\{1}\{2}$$"""));
+                """
+                var x = "\{0}\{1}\{2}$$"
+                """));
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
@@ -168,11 +184,12 @@ $$");
         [Fact]
         public async Task TestAfterExpression_InMethodWithArrowBody()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-    bool M() => this $$
-}");
+            await VerifyKeywordAsync("""
+                class C
+                {
+                    bool M() => this $$
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1736")]
@@ -186,159 +203,167 @@ class C
         public async Task TestNotAfterAsync()
         {
             await VerifyAbsenceAsync(
-@"
-using System;
+                """
+                using System;
 
-class C
-{
-    void Goo()
-    {
-        Bar(async $$
-    }
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(async $$
+                    }
 
-    void Bar(Func<int, string> f)
-    {
-    }
-}");
+                    void Bar(Func<int, string> f)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterMethodReference()
         {
             await VerifyAbsenceAsync(
-@"
-using System;
+                """
+                using System;
 
-class C {
-    void M() {
-        var v = Console.WriteLine $$");
+                class C {
+                    void M() {
+                        var v = Console.WriteLine $$
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterAnonymousMethod()
         {
             await VerifyAbsenceAsync(
-@"
-using System;
+                """
+                using System;
 
-class C {
-    void M() {
-        Action a = delegate { } $$");
+                class C {
+                    void M() {
+                        Action a = delegate { } $$
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterLambda1()
         {
             await VerifyAbsenceAsync(
-@"
-using System;
+                """
+                using System;
 
-class C {
-    void M() {
-        Action b = (() => 0) $$");
+                class C {
+                    void M() {
+                        Action b = (() => 0) $$
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
         public async Task TestNotAfterLambda2()
         {
             await VerifyAbsenceAsync(
-@"
-using System;
+                """
+                using System;
 
-class C {
-    void M() {
-        Action b = () => {} $$");
+                class C {
+                    void M() {
+                        Action b = () => {} $$
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
         public async Task TestMissingAfterNumericLiteral()
         {
             await VerifyAbsenceAsync(
-@"
-class C
-{
-    void M()
-    {
-        var x = 1$$
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var x = 1$$
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
         public async Task TestMissingAfterNumericLiteralAndDot()
         {
             await VerifyAbsenceAsync(
-@"
-class C
-{
-    void M()
-    {
-        var x = 1.$$
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var x = 1.$$
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
         public async Task TestMissingAfterNumericLiteralDotAndSpace()
         {
             await VerifyAbsenceAsync(
-@"
-class C
-{
-    void M()
-    {
-        var x = 1. $$
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var x = 1. $$
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31367")]
         public async Task TestMissingInCaseClause1()
         {
             await VerifyAbsenceAsync(
-@"
-class A
-{
+                """
+                class A
+                {
 
-}
+                }
 
-class C
-{
-    void M(object o)
-    {
-        switch (o)
-        {
-            case A $$
-        }
-    }
-}
-");
+                class C
+                {
+                    void M(object o)
+                    {
+                        switch (o)
+                        {
+                            case A $$
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31367")]
         public async Task TestMissingInCaseClause2()
         {
             await VerifyAbsenceAsync(
-@"
-namespace N
-{
-    class A
-    {
+                """
+                namespace N
+                {
+                    class A
+                    {
 
-    }
-}
+                    }
+                }
 
-class C
-{
-    void M(object o)
-    {
-        switch (o)
-        {
-            case N.A $$
-        }
-    }
-}
-");
+                class C
+                {
+                    void M(object o)
+                    {
+                        switch (o)
+                        {
+                            case N.A $$
+                        }
+                    }
+                }
+                """);
         }
     }
 }

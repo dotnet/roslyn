@@ -877,7 +877,7 @@ End Class
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub TestVBAssignments_DontThrowWhenLeftHandSideDoesntBind()
+        Public Sub TestVBAssignments_DoNotThrowWhenLeftHandSideDoesntBind()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">

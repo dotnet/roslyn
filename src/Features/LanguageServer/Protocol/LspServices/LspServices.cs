@@ -13,7 +13,7 @@ using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal class LspServices : ILspServices
+internal sealed class LspServices : ILspServices
 {
     private readonly ImmutableDictionary<Type, Lazy<ILspService, LspServiceMetadataView>> _lazyMefLspServices;
 
@@ -49,28 +49,18 @@ internal class LspServices : ILspServices
         _lazyMefLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.Type, lazyService => lazyService);
 
         // Bit cheaky, but lets make an this ILspService available on the base services to make constructors that take an ILspServices instance possible.
-        _baseServices = baseServices.Add(typeof(ILspServices), ImmutableArray.Create<Func<ILspServices, object>>((_) => this));
+        _baseServices = baseServices.Add(typeof(ILspServices), [(_) => this]);
     }
 
     public T GetRequiredService<T>() where T : notnull
     {
-        T? service;
-
-        // Check the base services first
-        service = GetBaseServices<T>().SingleOrDefault();
-        service ??= GetService<T>();
-
+        var service = GetService<T>();
         Contract.ThrowIfNull(service, $"Missing required LSP service {typeof(T).FullName}");
         return service;
     }
 
     public T? GetService<T>()
-    {
-        var type = typeof(T);
-        var service = (T?)TryGetService(type);
-
-        return service;
-    }
+        => (T?)TryGetService(typeof(T));
 
     public IEnumerable<T> GetRequiredServices<T>()
     {
@@ -83,6 +73,17 @@ internal class LspServices : ILspServices
     public object? TryGetService(Type type)
     {
         object? lspService;
+
+        // Check the base services first
+        if (_baseServices.TryGetValue(type, out var baseServices))
+        {
+            lspService = baseServices.Select(creatorFunc => creatorFunc(this)).SingleOrDefault();
+            if (lspService is not null)
+            {
+                return lspService;
+            }
+        }
+
         if (_lazyMefLspServices.TryGetValue(type, out var lazyService))
         {
             // If we are creating a stateful LSP service for the first time, we need to check
@@ -106,7 +107,8 @@ internal class LspServices : ILspServices
         return lspService;
     }
 
-    public ImmutableArray<Type> GetRegisteredServices() => _lazyMefLspServices.Keys.ToImmutableArray();
+    public ImmutableArray<Type> GetRegisteredServices()
+        => _lazyMefLspServices.Keys.ToImmutableArray();
 
     public bool SupportsGetRegisteredServices()
     {
@@ -114,14 +116,9 @@ internal class LspServices : ILspServices
     }
 
     private IEnumerable<T> GetBaseServices<T>()
-    {
-        if (_baseServices.TryGetValue(typeof(T), out var baseServices))
-        {
-            return baseServices.Select(creatorFunc => (T)creatorFunc(this)).ToImmutableArray();
-        }
-
-        return ImmutableArray<T>.Empty;
-    }
+        => _baseServices.TryGetValue(typeof(T), out var baseServices)
+            ? baseServices.Select(creatorFunc => (T)creatorFunc(this)).ToImmutableArray()
+            : (IEnumerable<T>)[];
 
     private IEnumerable<T> GetMefServices<T>()
     {
@@ -156,7 +153,7 @@ internal class LspServices : ILspServices
         ImmutableArray<IDisposable> disposableServices;
         lock (_gate)
         {
-            disposableServices = _servicesToDispose.ToImmutableArray();
+            disposableServices = [.. _servicesToDispose];
             _servicesToDispose.Clear();
         }
 

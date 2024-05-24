@@ -3,10 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Linq
+Imports System.Text.Json
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Newtonsoft.Json
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             ' - Roslyn custom token type ('x' in 'int x' uses a Roslyn custom token type).
             ' - Token in last line with no trailing newline (ensure sufficient range was passed to LSP generator).
 
-            Using semanticTokensWorkspace = TestWorkspace.CreateWorkspace(
+            Using semanticTokensWorkspace = EditorTestWorkspace.CreateWorkspace(
                 <Workspace>
                     <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
                         <Document Name="A.cs" FilePath="Z:\A.cs">
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                 Dim document = semanticTokensWorkspace.CurrentSolution.Projects.Single().Documents.Single()
 
                 Dim tokens = lsif.GetSemanticTokens(document)
-                Dim serializedTokens = JsonConvert.SerializeObject(tokens)
+                Dim serializedTokens = JsonSerializer.Serialize(tokens)
 
                 Assert.Equal(expectedTokens, serializedTokens)
             End Using

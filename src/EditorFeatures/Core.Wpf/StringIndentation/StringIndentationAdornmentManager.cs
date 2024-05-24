@@ -39,13 +39,22 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
 
             foreach (var changedSpan in changedSpanCollection)
             {
+                // Don't do any work for a raw string if it doesn't at least intersect the view span. If it does
+                // intersect the view, then we'll want to draw whichever is in view.
                 if (!viewLines.IntersectsBufferSpan(changedSpan))
                     continue;
 
                 var tagSpans = TagAggregator.GetTags(changedSpan);
                 foreach (var tagMappingSpan in tagSpans)
                 {
-                    if (!ShouldDrawTag(changedSpan, tagMappingSpan, out _))
+                    // Intentionally not calling TryGetViewLine like other adornment managers do.  That helper ensures
+                    // that the end point of the tag maps to a line that is in view.  However, for raw-string
+                    // indentation adornments it's fine for that point to be offscreen, and we still want to draw the
+                    // indentation line in that case.
+                    if (!TryGetMappedPoint(changedSpan, tagMappingSpan, out _))
+                        continue;
+
+                    if (!ShouldDrawTag(tagMappingSpan))
                         continue;
 
                     if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
@@ -57,8 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                     if (VisibleBlock.CreateVisibleBlock(span, orderedHoleSpans, TextView) is not VisibleBlock block)
                         continue;
 
-                    var tag = tagMappingSpan.Tag;
-                    var brush = tag.GetBrush(TextView);
+                    var brush = tagMappingSpan.Tag.GetBrush(TextView);
 
                     foreach (var (start, end) in block.YSegments)
                     {

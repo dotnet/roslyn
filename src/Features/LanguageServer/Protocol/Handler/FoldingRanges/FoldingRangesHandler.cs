@@ -13,7 +13,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -35,14 +36,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
 
-        public async Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document is null)
-                return null;
+                return SpecializedTasks.Null<FoldingRange[]>();
 
-            var options = _globalOptions.GetBlockStructureOptions(document.Project);
-            return await GetFoldingRangesAsync(document, options, cancellationToken).ConfigureAwait(false);
+            return SpecializedTasks.AsNullable(GetFoldingRangesAsync(_globalOptions, document, cancellationToken));
+        }
+
+        internal static Task<FoldingRange[]> GetFoldingRangesAsync(
+            IGlobalOptionService globalOptions,
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            var options = globalOptions.GetBlockStructureOptions(document.Project) with
+            {
+                // Need to set the block structure guide options to true since the concept does not exist in vscode
+                // but we still want to categorize them as the correct BlockType.
+                ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = true,
+                ShowBlockStructureGuidesForDeclarationLevelConstructs = true,
+                ShowBlockStructureGuidesForCodeLevelConstructs = true
+            };
+
+            return GetFoldingRangesAsync(document, options, cancellationToken);
         }
 
         /// <summary>
@@ -56,9 +73,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var blockStructureService = document.GetRequiredLanguageService<BlockStructureService>();
             var blockStructure = await blockStructureService.GetBlockStructureAsync(document, options, cancellationToken).ConfigureAwait(false);
             if (blockStructure == null)
-                return Array.Empty<FoldingRange>();
+                return [];
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return GetFoldingRanges(blockStructure, text);
         }
 
@@ -66,7 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             if (blockStructure.Spans.IsEmpty)
             {
-                return Array.Empty<FoldingRange>();
+                return [];
             }
 
             using var _ = ArrayBuilder<FoldingRange>.GetInstance(out var foldingRanges);

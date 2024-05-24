@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 builder.Append(", ");
                 builder.Append(Quote(result.EditableValue));
             }
-            builder.Append(")");
+            builder.Append(')');
             return pooledBuilder.ToStringAndFree();
         }
 
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 builder.Append(", ");
                 builder.Append(FormatEnumValue(result.Flags));
             }
-            builder.Append(")");
+            builder.Append(')');
             return pooledBuilder.ToStringAndFree();
         }
 
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 builder.Append(", ");
                 builder.Append(FormatEnumValue(result.Flags));
             }
-            builder.Append(")");
+            builder.Append(')');
             return pooledBuilder.ToStringAndFree();
         }
 

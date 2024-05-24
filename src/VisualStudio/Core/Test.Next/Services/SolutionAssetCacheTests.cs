@@ -5,16 +5,12 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Remote.Testing;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -68,7 +64,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var workspace = new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
             var solution = workspace.CurrentSolution;
-            var checksums = await solution.State.GetStateChecksumsAsync(CancellationToken.None);
+            var checksums = await solution.CompilationState.GetStateChecksumsAsync(CancellationToken.None);
 
             // Ensure the lazy has computed its value.
             var storage = new SolutionAssetCache(

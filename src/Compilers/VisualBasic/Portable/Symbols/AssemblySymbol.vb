@@ -238,15 +238,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ''' <summary>
-        ''' Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
-        ''' This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
-        ''' </summary>
-        Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
-            Get
-                Return Nothing
-            End Get
-        End Property
+        Public MustOverride ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+
+        Public MustOverride ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
 
         ''' <summary>
         ''' Lookup a top level type referenced from metadata, names should be
@@ -316,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="type"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Friend MustOverride Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
+        Friend MustOverride Function GetDeclaredSpecialType(type As ExtendedSpecialType) As NamedTypeSymbol
 
         ''' <summary>
         ''' Register declaration of predefined CorLib type in this Assembly.
@@ -351,6 +345,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Me.RuntimeSupportsUnmanagedSignatureCallingConvention
                 Case RuntimeCapability.VirtualStaticsInInterfaces
                     Return Me.RuntimeSupportsVirtualStaticsInInterfaces
+                Case RuntimeCapability.InlineArrayTypes
+                    Return Me.RuntimeSupportsInlineArrayTypes
+                Case RuntimeCapability.ByRefLikeGenerics
+                    Return Me.RuntimeSupportsByRefLikeGenerics
             End Select
 
             Return False
@@ -406,8 +404,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property RuntimeSupportsInlineArrayTypes As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsInlineArrayTypes
+                Return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor) IsNot Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property RuntimeSupportsByRefLikeGenerics As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsByRefLikeGenerics
+                ' CorLibrary should never be null, but that invariant Is broken in some cases for MissingAssemblySymbol.
+                ' Tracked by https://github.com/dotnet/roslyn/issues/61262
+                Return CorLibrary IsNot Nothing AndAlso
+                       RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics)
+            End Get
+        End Property
+
         Private Function RuntimeSupportsFeature(feature As SpecialMember) As Boolean
-            Debug.Assert(SpecialMembers.GetDescriptor(feature).DeclaringTypeId = SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+            Debug.Assert(SpecialMembers.GetDescriptor(feature).DeclaringSpecialType = SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
 
             Dim runtimeFeature = GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
             Return runtimeFeature.IsClassType() AndAlso runtimeFeature.IsMetadataAbstract AndAlso runtimeFeature.IsMetadataSealed AndAlso
@@ -441,9 +456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' the string might be null or an invalid guid representation. False, 
         ''' if there is no GuidAttribute with string argument.
         ''' </summary>
-        Friend Overridable Function GetGuidString(ByRef guidString As String) As Boolean
-            Return GetGuidStringDefaultImplementation(guidString)
-        End Function
+        Friend MustOverride Function GetGuidString(ByRef guidString As String) As Boolean
 
         Public MustOverride ReadOnly Property TypeNames As ICollection(Of String) Implements IAssemblySymbol.TypeNames
 
@@ -458,6 +471,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <remarks></remarks>
         Friend MustOverride Function GetInternalsVisibleToPublicKeys(simpleName As String) As IEnumerable(Of ImmutableArray(Of Byte))
 
+        Friend MustOverride Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+
         Friend MustOverride Function AreInternalsVisibleToThisAssembly(other As AssemblySymbol) As Boolean
 
         ''' <summary>
@@ -466,9 +481,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="type"></param>
         ''' <returns>The symbol for the pre-defined type or Nothing if the type is not defined in the core library</returns>
         ''' <remarks></remarks>
-        Friend Function GetSpecialType(type As SpecialType) As NamedTypeSymbol
-            If type <= SpecialType.None OrElse type > SpecialType.Count Then
-                Throw New ArgumentOutOfRangeException(NameOf(type), $"Unexpected SpecialType: '{CType(type, Integer)}'.")
+        Friend Function GetSpecialType(type As ExtendedSpecialType) As NamedTypeSymbol
+            If CInt(type) <= SpecialType.None OrElse CInt(type) >= InternalSpecialType.NextAvailable Then
+                Throw New ArgumentOutOfRangeException(NameOf(type), $"Unexpected SpecialType: '{CInt(type)}'.")
             End If
 
             Return CorLibrary.GetDeclaredSpecialType(type)
@@ -783,6 +798,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitAssembly(Me)
+        End Function
+
+        Private Function IAssemblySymbolInternal_GetInternalsVisibleToPublicKeys(simpleName As String) As IEnumerable(Of ImmutableArray(Of Byte)) Implements IAssemblySymbolInternal.GetInternalsVisibleToPublicKeys
+            Return GetInternalsVisibleToPublicKeys(simpleName)
+        End Function
+
+        Private Function IAssemblySymbolInternal_GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String) Implements IAssemblySymbolInternal.GetInternalsVisibleToAssemblyNames
+            Return GetInternalsVisibleToAssemblyNames()
+        End Function
+
+        Private Function IAssemblySymbolInternal_AreInternalsVisibleToThisAssembly(other As IAssemblySymbolInternal) As Boolean Implements IAssemblySymbolInternal.AreInternalsVisibleToThisAssembly
+            Return AreInternalsVisibleToThisAssembly(DirectCast(other, AssemblySymbol))
         End Function
 
 #End Region

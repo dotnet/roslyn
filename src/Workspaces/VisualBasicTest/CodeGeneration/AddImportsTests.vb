@@ -107,7 +107,7 @@ End NameSpace"
                 Dim reduced = Await Simplifier.ReduceAsync(imported, simplifierOptions, CancellationToken.None)
                 Dim formatted = Await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None)
                 Dim actualText = (Await formatted.GetTextAsync()).ToString()
-                Assert.Equal(simplifiedText, actualText)
+                AssertEx.EqualOrDiff(simplifiedText, actualText)
             End If
 
             If performCheck Then
@@ -163,7 +163,7 @@ End Class", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestDontAddSystemImportFirst(useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestDoNotAddSystemImportFirst(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports N
 
@@ -272,7 +272,8 @@ End Class",
 Class C
     Public F As System.Int32
 End Class",
-"Class C
+"
+Class C
     Public F As Integer
 End Class", useSymbolAnnotations:=False)
         End Function
@@ -362,7 +363,8 @@ Class C
     Private F As N.C
 End Class
 ",
-"Namespace N
+"
+Namespace N
     Class C
     End Class
 End Namespace
@@ -399,7 +401,7 @@ End Class", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestDontAddImportWithExisitingImportDifferentCase(useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestDoNotAddImportWithExisitingImportDifferentCase(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports system.collections.generic
 

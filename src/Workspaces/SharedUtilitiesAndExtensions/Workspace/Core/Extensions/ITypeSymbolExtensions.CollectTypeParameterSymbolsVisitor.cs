@@ -7,93 +7,84 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal partial class ITypeSymbolExtensions
 {
-    internal partial class ITypeSymbolExtensions
+    private class CollectTypeParameterSymbolsVisitor(
+         IList<ITypeParameterSymbol> typeParameters,
+        bool onlyMethodTypeParameters) : SymbolVisitor
     {
-        private class CollectTypeParameterSymbolsVisitor : SymbolVisitor
+        private readonly HashSet<ISymbol> _visited = [];
+
+        public override void DefaultVisit(ISymbol node)
+            => throw new NotImplementedException();
+
+        public override void VisitDynamicType(IDynamicTypeSymbol symbol)
         {
-            private readonly HashSet<ISymbol> _visited = new();
-            private readonly bool _onlyMethodTypeParameters;
-            private readonly IList<ITypeParameterSymbol> _typeParameters;
+        }
 
-            public CollectTypeParameterSymbolsVisitor(
-                 IList<ITypeParameterSymbol> typeParameters,
-                bool onlyMethodTypeParameters)
+        public override void VisitArrayType(IArrayTypeSymbol symbol)
+        {
+            if (!_visited.Add(symbol))
             {
-                _onlyMethodTypeParameters = onlyMethodTypeParameters;
-                _typeParameters = typeParameters;
+                return;
             }
 
-            public override void DefaultVisit(ISymbol node)
-                => throw new NotImplementedException();
+            symbol.ElementType.Accept(this);
+        }
 
-            public override void VisitDynamicType(IDynamicTypeSymbol symbol)
+        public override void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+        {
+            if (!_visited.Add(symbol))
             {
+                return;
             }
 
-            public override void VisitArrayType(IArrayTypeSymbol symbol)
+            foreach (var parameter in symbol.Signature.Parameters)
             {
-                if (!_visited.Add(symbol))
+                parameter.Type.Accept(this);
+            }
+
+            symbol.Signature.ReturnType.Accept(this);
+        }
+
+        public override void VisitNamedType(INamedTypeSymbol symbol)
+        {
+            if (_visited.Add(symbol))
+            {
+                foreach (var child in symbol.GetAllTypeArguments())
                 {
-                    return;
+                    child.Accept(this);
                 }
+            }
+        }
 
-                symbol.ElementType.Accept(this);
+        public override void VisitPointerType(IPointerTypeSymbol symbol)
+        {
+            if (!_visited.Add(symbol))
+            {
+                return;
             }
 
-            public override void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            symbol.PointedAtType.Accept(this);
+        }
+
+        public override void VisitTypeParameter(ITypeParameterSymbol symbol)
+        {
+            if (_visited.Add(symbol))
             {
-                if (!_visited.Add(symbol))
+                if (symbol.TypeParameterKind == TypeParameterKind.Method || !onlyMethodTypeParameters)
                 {
-                    return;
-                }
-
-                foreach (var parameter in symbol.Signature.Parameters)
-                {
-                    parameter.Type.Accept(this);
-                }
-
-                symbol.Signature.ReturnType.Accept(this);
-            }
-
-            public override void VisitNamedType(INamedTypeSymbol symbol)
-            {
-                if (_visited.Add(symbol))
-                {
-                    foreach (var child in symbol.GetAllTypeArguments())
+                    if (!typeParameters.Contains(symbol))
                     {
-                        child.Accept(this);
+                        typeParameters.Add(symbol);
                     }
                 }
-            }
 
-            public override void VisitPointerType(IPointerTypeSymbol symbol)
-            {
-                if (!_visited.Add(symbol))
+                foreach (var constraint in symbol.ConstraintTypes)
                 {
-                    return;
-                }
-
-                symbol.PointedAtType.Accept(this);
-            }
-
-            public override void VisitTypeParameter(ITypeParameterSymbol symbol)
-            {
-                if (_visited.Add(symbol))
-                {
-                    if (symbol.TypeParameterKind == TypeParameterKind.Method || !_onlyMethodTypeParameters)
-                    {
-                        if (!_typeParameters.Contains(symbol))
-                        {
-                            _typeParameters.Add(symbol);
-                        }
-                    }
-
-                    foreach (var constraint in symbol.ConstraintTypes)
-                    {
-                        constraint.Accept(this);
-                    }
+                    constraint.Accept(this);
                 }
             }
         }

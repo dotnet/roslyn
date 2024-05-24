@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.IO;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -291,6 +292,26 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\B\C", @"C:\A\B\C\D"));
         }
 
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void IsSameDirectoryOrChildOfSpecifyingCaseSensitivity_Windows()
+        {
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\a\B\C", @"C:\A\B", StringComparison.OrdinalIgnoreCase));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\b\C", @"C:\A\B", StringComparison.OrdinalIgnoreCase));
+
+            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\a\B\C", @"C:\A\B", StringComparison.Ordinal));
+            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\b\C", @"C:\A\B", StringComparison.Ordinal));
+        }
+
+        [ConditionalFact(typeof(UnixLikeOnly))]
+        public void IsSameDirectoryOrChildOfSpecifyingCaseSensitivity_Unix()
+        {
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"/a/B/C", @"/A/B", StringComparison.OrdinalIgnoreCase));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"/A/b/C", @"/A/B", StringComparison.OrdinalIgnoreCase));
+
+            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"/a/B/C", @"/A/B", StringComparison.Ordinal));
+            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"/A/b/C", @"/A/B", StringComparison.Ordinal));
+        }
+
         [Fact]
         public void IsValidFilePath()
         {
@@ -398,6 +419,45 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             var expected = "";
             var result = PathUtilities.GetRelativePath(@"/A/B/", @"/A/B");
             Assert.Equal(expected, result);
+        }
+
+        [Theory]
+        [InlineData(@"//a/b/c", @"//a/b/c")]
+        [InlineData(@"/a\b/c/", @"/a/b/c/")]
+        [InlineData(@"\a\b/c/", @"/a/b/c/")]
+        [InlineData(@"C:\\a", @"C:/a")]
+        [InlineData(@"C:\a\b\c\", @"C:/a/b/c/")]
+        [InlineData(@"/\a", @"//a")]
+        [InlineData(@"a\\\b", @"a/b")]
+        [InlineData(@"\\\a\b\c", @"///a/b/c")]
+        [InlineData(@"\\\\a\b\c", @"///a/b/c")]
+        public void CollapseWithForwardSlash(string input, string output)
+        {
+            AssertEx.Equal(output, PathUtilities.CollapseWithForwardSlash(input.AsSpan()));
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(@"//a/b/c", @"//a/b/c")]
+        [InlineData(@"/a\b/c/", @"/a\b/c/")]
+        [InlineData(@"C:B", @"C:B")]
+        [InlineData(@"c:b", @"c:b")]
+        [InlineData(@"c:\b", @"C:\b")]
+        [InlineData(@"c:/b", @"C:/b")]
+        public void NormalizeDriveLetter_Windows(string input, string output)
+        {
+            AssertEx.Equal(output, PathUtilities.NormalizeDriveLetter(input));
+        }
+
+        [ConditionalTheory(typeof(UnixLikeOnly))]
+        [InlineData(@"//a/b/c")]
+        [InlineData(@"/a\b/c/")]
+        [InlineData(@"C:B")]
+        [InlineData(@"c:b")]
+        [InlineData(@"c:\b")]
+        [InlineData(@"c:/b")]
+        public void NormalizeDriveLetter_UnixLike(string input)
+        {
+            AssertEx.Equal(input, PathUtilities.NormalizeDriveLetter(input));
         }
     }
 }

@@ -550,6 +550,29 @@ End Class
         End Function
 
         <WpfFact>
+        Public Async Function InvokeWithOpenAngleSeeCommitSeeWithEqualsQuotes() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Class C
+    ''' <summary>
+    ''' <see $$=""
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+            ]]></Document>)
+
+                state.SendTypeChars("l")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="langword")
+                state.SendReturn()
+
+                ' ''' <see langword="$$"
+                Await state.AssertLineTextAroundCaret("    ''' <see langword=""", """")
+            End Using
+        End Function
+
+        <WpfFact>
         Public Async Function InvokeWithOpenAngleCommitSeeOnCloseAngle() As Task
 
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -614,12 +637,12 @@ End Class
 
         <WpfFact>
         Public Function InvokeWithTrueKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("True")
+            Return InvokeWithKeywordCommitSeeLangword("True", unique:=False)
         End Function
 
         <WpfFact>
         Public Function InvokeWithFalseKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("False")
+            Return InvokeWithKeywordCommitSeeLangword("False", unique:=False)
         End Function
 
         <WpfFact>
@@ -721,8 +744,7 @@ End Class
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623219")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746919")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746919")>
         Public Async Function CommitParam() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -1187,8 +1209,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
         Public Async Function AllowTypingSpace() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[

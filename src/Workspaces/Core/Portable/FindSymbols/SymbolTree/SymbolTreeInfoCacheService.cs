@@ -26,8 +26,8 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
 
         private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
 
-        private readonly ConcurrentDictionary<ProjectId, (VersionStamp semanticVersion, SymbolTreeInfo info)> _projectIdToInfo = new();
-        private readonly ConcurrentDictionary<PortableExecutableReference, MetadataInfo> _peReferenceToInfo = new();
+        private readonly ConcurrentDictionary<ProjectId, (VersionStamp semanticVersion, SymbolTreeInfo info)> _projectIdToInfo = [];
+        private readonly ConcurrentDictionary<PortableExecutableReference, MetadataInfo> _peReferenceToInfo = [];
 
         private readonly CancellationTokenSource _tokenSource = new();
 
@@ -201,7 +201,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
                 Contract.ThrowIfNull(info);
                 Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum must match our checksum.");
 
-                metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
+                metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? []);
                 _peReferenceToInfo[reference] = metadataInfo;
             }
 
@@ -236,21 +236,14 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
         public TestAccessor GetTestAccessor()
             => new(this);
 
-        public struct TestAccessor
+        public struct TestAccessor(SymbolTreeInfoCacheService service)
         {
-            private readonly SymbolTreeInfoCacheService _services;
-
-            public TestAccessor(SymbolTreeInfoCacheService service)
-            {
-                _services = service;
-            }
-
             public readonly Task AnalyzeSolutionAsync()
             {
-                foreach (var projectId in _services._workspace.CurrentSolution.ProjectIds)
-                    _services._workQueue.AddWork(projectId);
+                foreach (var projectId in service._workspace.CurrentSolution.ProjectIds)
+                    service._workQueue.AddWork(projectId);
 
-                return _services._workQueue.WaitUntilCurrentBatchCompletesAsync();
+                return service._workQueue.WaitUntilCurrentBatchCompletesAsync();
             }
         }
     }

@@ -6,76 +6,74 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
+
+[Export(typeof(IEnumSettingViewModelFactory)), Shared]
+internal class OperatorPlacementWhenWrappingViewModelFactory : IEnumSettingViewModelFactory
 {
-    [Export(typeof(IEnumSettingViewModelFactory)), Shared]
-    internal class OperatorPlacementWhenWrappingViewModelFactory : IEnumSettingViewModelFactory
+    private readonly OptionKey2 _key;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public OperatorPlacementWhenWrappingViewModelFactory()
     {
-        private readonly OptionKey2 _key;
+        _key = new OptionKey2(CodeStyleOptions2.OperatorPlacementWhenWrapping);
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public OperatorPlacementWhenWrappingViewModelFactory()
+    public IEnumSettingViewModel CreateViewModel(Setting setting)
+    {
+        return new OperatorPlacementWhenWrappingViewModel(setting);
+    }
+
+    public bool IsSupported(OptionKey2 key) => _key == key;
+
+    private class OperatorPlacementWhenWrappingViewModel : EnumSettingViewModel<OperatorPlacementWhenWrappingPreference>
+    {
+        private readonly Setting _setting;
+
+        public OperatorPlacementWhenWrappingViewModel(Setting setting)
         {
-            _key = new OptionKey2(CodeStyleOptions2.OperatorPlacementWhenWrapping);
+            _setting = setting;
         }
 
-        public IEnumSettingViewModel CreateViewModel(Setting setting)
+        protected override void ChangePropertyTo(OperatorPlacementWhenWrappingPreference newValue)
         {
-            return new OperatorPlacementWhenWrappingViewModel(setting);
+            switch (newValue)
+            {
+                case OperatorPlacementWhenWrappingPreference.BeginningOfLine:
+                    _setting.SetValue(OperatorPlacementWhenWrappingPreference.BeginningOfLine);
+                    break;
+                case OperatorPlacementWhenWrappingPreference.EndOfLine:
+                    _setting.SetValue(OperatorPlacementWhenWrappingPreference.EndOfLine);
+                    break;
+                default:
+                    break;
+            }
         }
 
-        public bool IsSupported(OptionKey2 key) => _key == key;
-
-        private class OperatorPlacementWhenWrappingViewModel : EnumSettingViewModel<OperatorPlacementWhenWrappingPreference>
+        protected override OperatorPlacementWhenWrappingPreference GetCurrentValue()
         {
-            private readonly Setting _setting;
-
-            public OperatorPlacementWhenWrappingViewModel(Setting setting)
+            return _setting.GetValue() switch
             {
-                _setting = setting;
-            }
+                OperatorPlacementWhenWrappingPreference.BeginningOfLine => OperatorPlacementWhenWrappingPreference.BeginningOfLine,
+                _ => OperatorPlacementWhenWrappingPreference.EndOfLine,
+            };
+        }
 
-            protected override void ChangePropertyTo(OperatorPlacementWhenWrappingPreference newValue)
+        protected override IReadOnlyDictionary<string, OperatorPlacementWhenWrappingPreference> GetValuesAndDescriptions()
+        {
+            return EnumerateOptions().ToDictionary(x => x.description, x => x.value);
+
+            static IEnumerable<(string description, OperatorPlacementWhenWrappingPreference value)> EnumerateOptions()
             {
-                switch (newValue)
-                {
-                    case OperatorPlacementWhenWrappingPreference.BeginningOfLine:
-                        _setting.SetValue(OperatorPlacementWhenWrappingPreference.BeginningOfLine);
-                        break;
-                    case OperatorPlacementWhenWrappingPreference.EndOfLine:
-                        _setting.SetValue(OperatorPlacementWhenWrappingPreference.EndOfLine);
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            protected override OperatorPlacementWhenWrappingPreference GetCurrentValue()
-            {
-                return _setting.GetValue() switch
-                {
-                    OperatorPlacementWhenWrappingPreference.BeginningOfLine => OperatorPlacementWhenWrappingPreference.BeginningOfLine,
-                    _ => OperatorPlacementWhenWrappingPreference.EndOfLine,
-                };
-            }
-
-            protected override IReadOnlyDictionary<string, OperatorPlacementWhenWrappingPreference> GetValuesAndDescriptions()
-            {
-                return EnumerateOptions().ToDictionary(x => x.description, x => x.value);
-
-                static IEnumerable<(string description, OperatorPlacementWhenWrappingPreference value)> EnumerateOptions()
-                {
-                    yield return (ServicesVSResources.Beginning_of_line, OperatorPlacementWhenWrappingPreference.BeginningOfLine);
-                    yield return (ServicesVSResources.End_of_line, OperatorPlacementWhenWrappingPreference.EndOfLine);
-                }
+                yield return (ServicesVSResources.Beginning_of_line, OperatorPlacementWhenWrappingPreference.BeginningOfLine);
+                yield return (ServicesVSResources.End_of_line, OperatorPlacementWhenWrappingPreference.EndOfLine);
             }
         }
     }

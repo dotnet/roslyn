@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool isExpressionBodied = !hasAccessorList && GetArrowExpression(syntax) != null;
 
-            binder = binder.WithUnsafeRegionIfNecessary(modifiersTokenList);
+            binder = binder.SetOrClearUnsafeRegionIfNecessary(modifiersTokenList);
             TypeSymbol? explicitInterfaceType;
             string? aliasQualifierOpt;
             string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifier, name, diagnostics, out explicitInterfaceType, out aliasQualifierOpt);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
 
             if (syntax is PropertyDeclarationSyntax { Initializer: { } initializer })
-                MessageID.IDS_FeatureAutoPropertyInitializer.CheckFeatureAvailability(diagnostics, syntax, initializer.EqualsToken.GetLocation());
+                MessageID.IDS_FeatureAutoPropertyInitializer.CheckFeatureAvailability(diagnostics, initializer.EqualsToken);
         }
 
         private TypeSyntax GetTypeSyntax(SyntaxNode syntax) => ((BasePropertyDeclarationSyntax)syntax).Type;
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var binderFactory = compilation.GetBinderFactory(syntaxTree);
             var binder = binderFactory.GetBinder(syntax, syntax, this);
             SyntaxTokenList modifiers = GetModifierTokensSyntax(syntax);
-            binder = binder.WithUnsafeRegionIfNecessary(modifiers);
+            binder = binder.SetOrClearUnsafeRegionIfNecessary(modifiers);
             return binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
         }
 
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (SetMethod is object && param.Name == ParameterSymbol.ValueParameterName)
                 {
-                    diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, param.Locations.FirstOrDefault() ?? Location, param.Name);
+                    diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, param.TryGetFirstLocation() ?? Location, param.Name);
                 }
             }
 

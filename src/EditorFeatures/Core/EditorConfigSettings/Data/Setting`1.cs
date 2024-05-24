@@ -8,23 +8,17 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
-internal sealed class Setting<TOptionValue> : Setting
+internal sealed class Setting<TOptionValue>(
+    OptionKey2 optionKey,
+    string description,
+    OptionUpdater updater,
+    SettingLocation location,
+    TOptionValue initialValue) : Setting(optionKey, description, updater, location)
 {
     /// <summary>
     /// Stores the latest value of the option.
     /// </summary>
-    private TOptionValue _value;
-
-    public Setting(
-        OptionKey2 optionKey,
-        string description,
-        OptionUpdater updater,
-        SettingLocation location,
-        TOptionValue initialValue)
-        : base(optionKey, description, updater, location)
-    {
-        _value = initialValue;
-    }
+    private TOptionValue _value = initialValue;
 
     public override Type Type
         => typeof(TOptionValue);
