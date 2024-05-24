@@ -20,6 +20,7 @@ using GetCachedDiagnosticsAsyncDelegateType = Func<Document, string, Cancellatio
 using IsAvailableAsyncDelegateType = Func<CancellationToken, Task<bool>>;
 using StartRefinementSessionAsyncDelegateType = Func<Document, Document, Diagnostic?, CancellationToken, Task>;
 using GetOnTheFlyDocsAsyncDelegateType = Func<string, ImmutableArray<string>, string, CancellationToken, Task<string>>;
+using IsAnyExclusionAsyncDelegateType = Func<CancellationToken, Task<bool>>;
 
 internal sealed partial class CSharpCopilotCodeAnalysisService
 {
@@ -35,6 +36,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
         private const string GetCachedDiagnosticsAsyncMethodName = "GetCachedDiagnosticsAsync";
         private const string StartRefinementSessionAsyncMethodName = "StartRefinementSessionAsync";
         private const string GetOnTheFlyDocsAsyncMethodName = "GetOnTheFlyDocsAsync";
+        private const string IsAnyExclusionAsyncMethodName = "IsAnyExclusionAsync";
 
         // Create and cache closed delegate to ensure we use a singleton object and with better performance.
         private readonly Type? _analyzerType;
@@ -45,6 +47,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
         private readonly Lazy<GetCachedDiagnosticsAsyncDelegateType?> _lazyGetCachedDiagnosticsAsyncDelegate;
         private readonly Lazy<StartRefinementSessionAsyncDelegateType?> _lazyStartRefinementSessionAsyncDelegate;
         private readonly Lazy<GetOnTheFlyDocsAsyncDelegateType?> _lazyGetOnTheFlyDocsAsyncDelegate;
+        private readonly Lazy<IsAnyExclusionAsyncDelegateType?> _lazyIsAnyExclusionAsyncDelegate;
 
         public ReflectionWrapper(IServiceProvider serviceProvider, IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer)
         {
@@ -73,6 +76,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
             _lazyGetCachedDiagnosticsAsyncDelegate = new(CreateGetCachedDiagnosticsAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
             _lazyStartRefinementSessionAsyncDelegate = new(CreateStartRefinementSessionAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
             _lazyGetOnTheFlyDocsAsyncDelegate = new(CreateGetOnTheFlyDocsAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
+            _lazyIsAnyExclusionAsyncDelegate = new(CreateIsAnyExclusionAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
         }
 
         private T? CreateDelegate<T>(string methodName, Type[] types) where T : Delegate
@@ -110,6 +114,9 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
 
         private GetOnTheFlyDocsAsyncDelegateType? CreateGetOnTheFlyDocsAsyncDelegate()
             => CreateDelegate<GetOnTheFlyDocsAsyncDelegateType>(GetOnTheFlyDocsAsyncMethodName, [typeof(string), typeof(ImmutableArray<string>), typeof(string), typeof(CancellationToken)]);
+
+        private IsAnyExclusionAsyncDelegateType? CreateIsAnyExclusionAsyncDelegate()
+            => CreateDelegate<IsAnyExclusionAsyncDelegateType>(IsAnyExclusionAsyncMethodName, [typeof(CancellationToken)]);
 
         public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         {
@@ -157,6 +164,14 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
                 return string.Empty;
 
             return await _lazyGetOnTheFlyDocsAsyncDelegate.Value(symbolSignature, declarationCode, language, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<bool> IsAnyExclusionAsync(CancellationToken cancellationToken)
+        {
+            if (_lazyIsAnyExclusionAsyncDelegate.Value is null)
+                return false;
+
+            return await _lazyIsAnyExclusionAsyncDelegate.Value(cancellationToken).ConfigureAwait(false);
         }
     }
 }
