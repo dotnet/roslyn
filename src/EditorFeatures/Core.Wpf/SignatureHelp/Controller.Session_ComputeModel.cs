@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         var options = Controller.GlobalOptions.GetSignatureHelpOptions(document.Project.Language);
 
                         // first try to query the providers that can trigger on the specified character
-                        var (provider, items) = await Controller.SignatureHelpService.GetSignatureHelpAsync(
+                        var (provider, items) = await SignatureHelpService.GetSignatureHelpAsync(
                             providers,
                             document,
                             caretPosition,

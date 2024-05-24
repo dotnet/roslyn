@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     internal sealed class SignatureHelpControllerProvider(
         IGlobalOptionService globalOptions,
         IThreadingContext threadingContext,
-        ISignatureHelpService signatureHelpService,
         [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
         [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters,
         IAsyncCompletionBroker completionBroker,
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         private readonly IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> _signatureHelpPresenter = ExtensionOrderer.Order(signatureHelpPresenters).Select(lazy => lazy.Value).FirstOrDefault();
         private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.SignatureHelp);
         private readonly IAsyncCompletionBroker _completionBroker = completionBroker;
-        private readonly ISignatureHelpService _signatureHelpService = signatureHelpService;
         private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders = ExtensionOrderer.Order(signatureHelpProviders);
 
         public Controller? GetController(ITextView textView, ITextBuffer subjectBuffer)
@@ -73,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     _signatureHelpPresenter,
                     _listener,
                     new DocumentProvider(_threadingContext),
-                    _signatureHelpService,
                     _signatureHelpProviders,
                     _completionBroker));
         }

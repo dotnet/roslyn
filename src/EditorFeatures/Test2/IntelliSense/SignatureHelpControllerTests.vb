@@ -292,7 +292,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 documentProvider.Setup(Function(p) p.GetDocument(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(document)
             End If
 
-            Dim signatureHelpService = workspace.GetService(Of ISignatureHelpService)
             If provider Is Nothing Then
                 items = If(items, CreateItems(1))
                 provider = New MockSignatureHelpProvider(items)
@@ -315,7 +314,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 presenter.Object,
                 asyncListener,
                 documentProvider.Object,
-                signatureHelpService,
                 {provider},
                 mockCompletionBroker.Object)
 

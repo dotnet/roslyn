@@ -21,17 +21,17 @@ namespace Microsoft.CodeAnalysis.SignatureHelp;
 /// </summary>
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-[Export(typeof(ISignatureHelpService)), Shared]
+[Export(typeof(SignatureHelpService)), Shared]
 internal sealed class SignatureHelpService([ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
-    : ISignatureHelpService
 {
     private readonly ConcurrentDictionary<string, ImmutableArray<ISignatureHelpProvider>> _providersByLanguage = [];
     private readonly IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders = allProviders;
 
     private ImmutableArray<ISignatureHelpProvider> GetProviders(string language)
     {
-        return _providersByLanguage.GetOrAdd(language, language
-            => _allProviders.Where(p => p.Metadata.Language == language)
+        return _providersByLanguage.GetOrAdd(language, language =>
+            _allProviders
+                .Where(p => p.Metadata.Language == language)
                 .SelectAsArray(p => p.Value));
     }
 
@@ -59,7 +59,7 @@ internal sealed class SignatureHelpService([ImportMany] IEnumerable<Lazy<ISignat
     /// Gets the <see cref="ISignatureHelpProvider"/> and <see cref="SignatureHelpItems"/> associated with
     /// the position in the document.
     /// </summary>
-    public async Task<(ISignatureHelpProvider? provider, SignatureHelpItems? bestItems)> GetSignatureHelpAsync(
+    public static async Task<(ISignatureHelpProvider? provider, SignatureHelpItems? bestItems)> GetSignatureHelpAsync(
         ImmutableArray<ISignatureHelpProvider> providers,
         Document document,
         int position,

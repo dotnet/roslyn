@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [Method(LSP.Methods.TextDocumentSignatureHelpName)]
     internal class SignatureHelpHandler : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
     {
-        private readonly ISignatureHelpService _signatureHelpService;
+        private readonly SignatureHelpService _signatureHelpService;
         private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SignatureHelpHandler(
-            ISignatureHelpService signatureHelpService,
+            SignatureHelpService signatureHelpService,
             IGlobalOptionService globalOptions)
         {
             _signatureHelpService = signatureHelpService;
