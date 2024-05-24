@@ -180,7 +180,7 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
         var lastSourceText = lastTextSnapshot.AsText();
         var currentSourceText = snapshotSpan.Snapshot.AsText();
 
-        var textChangeRanges = lastSourceText.GetChangeRanges(currentSourceText);
+        var textChangeRanges = currentSourceText.GetChangeRanges(lastSourceText);
         var collapsedRange = TextChangeRange.Collapse(textChangeRanges);
 
         var changedSpan = new TextSpan(collapsedRange.Span.Start, collapsedRange.NewLength);
