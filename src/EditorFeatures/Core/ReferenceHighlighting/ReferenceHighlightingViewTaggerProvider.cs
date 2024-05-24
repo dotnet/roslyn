@@ -77,33 +77,10 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
             TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer));
     }
 
-<<<<<<< HEAD
-        // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
-        // highlights if the caret stays within an existing tag.
-        protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
-        protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
-
-        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(ReferenceHighlightingOptionsStorage.ReferenceHighlighting);
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public ReferenceHighlightingViewTaggerProvider(
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(
-                  threadingContext,
-                  globalOptions,
-                  visibilityTracker,
-                  listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting),
-                  TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
-=======
     protected override SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
     {
         // With no selection we just use the caret position as expected
         if (textViewOpt.Selection.IsEmpty)
->>>>>>> upstream/main
         {
             return textViewOpt.Caret.Position.Point.GetPoint(b => IsSupportedContentType(b.ContentType), PositionAffinity.Successor);
         }
