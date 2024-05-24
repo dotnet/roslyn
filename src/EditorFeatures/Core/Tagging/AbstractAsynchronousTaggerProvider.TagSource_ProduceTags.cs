@@ -213,7 +213,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 try
                 {
                     return await RecomputeTagsAsync(
-                        highPriority, frozenPartialSemantics, blockingJTFCall: false, linkedTokenSource.Token).ConfigureAwait(false);
+                        highPriority, frozenPartialSemantics, calledFromJtfRun: false, linkedTokenSource.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException ex) when (ExceptionUtilities.IsCurrentOperationBeingCancelled(ex, linkedTokenSource.Token))
                 {
@@ -225,7 +225,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // Normal request to either compute frozen partial tags, or compute normal tags in a tagger that does
                 // *not* support frozen partial tagging.
                 return await RecomputeTagsAsync(
-                    highPriority, frozenPartialSemantics, blockingJTFCall: false, cancellationToken).ConfigureAwait(false);
+                    highPriority, frozenPartialSemantics, calledFromJtfRun: false, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -243,11 +243,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// <param name="highPriority">If this tagging request should be processed as quickly as possible with no extra
         /// delays added for it.
         /// </param>
-        /// <param name="blockingJTFCall">If this is called in a blocking fashion from inside a JTF.Run call.</param>
+        /// <param name="calledFromJtfRun">If this method is being called from within a JTF.Run call.  This is used to
+        /// ensure we don't do unnecessary switches to the threadpool while JTF is waiting on us.</param>
         private async Task<VoidResult> RecomputeTagsAsync(
             bool highPriority,
             bool frozenPartialSemantics,
-            bool blockingJTFCall,
+            bool calledFromJtfRun,
             CancellationToken cancellationToken)
         {
             // Note: this method is called in some blocking scenarios.  Specifically, when the outlining manager blocks
@@ -309,7 +310,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // Explicitly switch to a threadpool thread to do the expensive tagging work on a BG thread.  But not if
                 // we're in an explicit JTF.Run call as that would just add unnecessary blocking waiting for the
                 // threadpool to do this work.
-                if (!blockingJTFCall)
+                if (!calledFromJtfRun)
                     await TaskScheduler.Default;
 
                 if (cancellationToken.IsCancellationRequested)
@@ -658,7 +659,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             {
                 // Compute this as a high priority work item to have the lease amount of blocking as possible.
                 _dataSource.ThreadingContext.JoinableTaskFactory.Run(() =>
-                    this.RecomputeTagsAsync(highPriority: true, _dataSource.SupportsFrozenPartialSemantics, blockingJTFCall: true, _disposalTokenSource.Token));
+                    this.RecomputeTagsAsync(highPriority: true, _dataSource.SupportsFrozenPartialSemantics, calledFromJtfRun: true, _disposalTokenSource.Token));
             }
 
             _firstTagsRequest = false;
