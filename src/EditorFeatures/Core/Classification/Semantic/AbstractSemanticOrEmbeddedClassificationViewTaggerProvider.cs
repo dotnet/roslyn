@@ -39,9 +39,6 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
     private readonly IGlobalOptionService _globalOptions;
     private readonly ClassificationType _type;
 
-    // We want to track text changes so that we can try to only reclassify a method body if
-    // all edits were contained within one.
-    protected sealed override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
     protected sealed override ImmutableArray<IOption2> Options { get; } = [SemanticColorizerOptionsStorage.SemanticColorizer];
 
     protected AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(

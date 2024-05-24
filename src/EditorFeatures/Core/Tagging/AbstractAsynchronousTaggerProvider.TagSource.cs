@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -89,7 +91,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// <summary>
         /// The last tag trees that we computed per buffer.
         /// </summary>
-        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_mayChangeFromAnyThread = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
+        private BufferToTagTree _cachedTagTrees_mayChangeFromAnyThread = BufferToTagTree.Empty;
 
         #endregion
 
@@ -233,8 +235,11 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 _eventSource.Changed += OnEventSourceChanged;
 
-                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
+                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags) ||
+                    _dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits))
+                {
                     _subjectBuffer.Changed += OnSubjectBufferChanged;
+                }
 
                 if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
                 {
@@ -278,8 +283,11 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     _textView.Caret.PositionChanged -= OnCaretPositionChanged;
                 }
 
-                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
+                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags) ||
+                    _dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits))
+                {
                     _subjectBuffer.Changed -= OnSubjectBufferChanged;
+                }
 
                 _eventSource.Changed -= OnEventSourceChanged;
 
