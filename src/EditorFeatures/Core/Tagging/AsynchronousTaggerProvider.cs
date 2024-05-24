@@ -16,13 +16,13 @@ internal abstract class AsynchronousTaggerProvider<TTag>(
     IThreadingContext threadingContext,
     IGlobalOptionService globalOptions,
     ITextBufferVisibilityTracker? visibilityTracker,
-    IAsynchronousOperationListener asyncListener,
-    TaggerMainThreadManager mainThreadManager) : AbstractAsynchronousTaggerProvider<TTag>(
+    IAsynchronousOperationListenerProvider asyncListenerProvider,
+    string featureName) : AbstractAsynchronousTaggerProvider<TTag>(
         threadingContext,
         globalOptions,
         visibilityTracker,
-        asyncListener,
-        mainThreadManager), ITaggerProvider
+        asyncListenerProvider,
+        featureName), ITaggerProvider
     where TTag : ITag
 {
     public EfficientTagger<TTag>? CreateTagger(ITextBuffer subjectBuffer)

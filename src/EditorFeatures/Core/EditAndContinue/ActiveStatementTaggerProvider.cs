@@ -42,8 +42,8 @@ internal partial class ActiveStatementTaggerProvider(
         threadingContext,
         globalOptions,
         visibilityTracker,
-        listenerProvider.GetListener(FeatureAttribute.Classification),
-        TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
+        listenerProvider,
+        FeatureAttribute.Classification)
 {
     // We want to track text changes so that we can try to only reclassify a method body if
     // all edits were contained within one.

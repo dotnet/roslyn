@@ -44,8 +44,8 @@ internal partial class InlineHintsDataTaggerProvider(
         threadingContext,
         globalOptions,
         visibilityTracker,
-        listenerProvider.GetListener(FeatureAttribute.InlineHints),
-        TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
+        listenerProvider,
+        FeatureAttribute.InlineHints)
 {
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
     private readonly IInlineHintKeyProcessor _inlineHintKeyProcessor = inlineHintKeyProcessor;

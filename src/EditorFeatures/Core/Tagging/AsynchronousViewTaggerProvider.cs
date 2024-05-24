@@ -22,13 +22,13 @@ internal abstract class AsynchronousViewTaggerProvider<TTag>(
     IThreadingContext threadingContext,
     IGlobalOptionService globalOptions,
     ITextBufferVisibilityTracker? visibilityTracker,
-    IAsynchronousOperationListener asyncListener,
-    TaggerMainThreadManager mainThreadManager) : AbstractAsynchronousTaggerProvider<TTag>(
+    IAsynchronousOperationListenerProvider asyncListenerProvider,
+    string featureName) : AbstractAsynchronousTaggerProvider<TTag>(
         threadingContext,
         globalOptions,
         visibilityTracker,
-        asyncListener,
-        mainThreadManager), IViewTaggerProvider
+        asyncListenerProvider,
+        featureName), IViewTaggerProvider
     where TTag : ITag
 {
 #pragma warning disable CS8765 // Nullability of type of 'textView' doesn't match overridden member (derivations of this type will never receive null in this call)

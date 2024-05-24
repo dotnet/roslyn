@@ -44,8 +44,8 @@ internal sealed partial class StringIndentationTaggerProvider(
         threadingContext,
         globalOptions,
         visibilityTracker,
-        listenerProvider.GetListener(FeatureAttribute.StringIndentation),
-        TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
+        listenerProvider,
+        FeatureAttribute.StringIndentation)
 {
     private readonly IEditorFormatMap _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
 

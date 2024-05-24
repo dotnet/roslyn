@@ -33,35 +33,28 @@ namespace Microsoft.CodeAnalysis.Classification;
 /// in the editor.  We use a view tagger so that we can only classify what's in view, and not
 /// the whole file.
 /// </summary>
-internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvider : AsynchronousViewportTaggerProvider<IClassificationTag>
+internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(
+    IThreadingContext threadingContext,
+    ClassificationTypeMap typeMap,
+    IGlobalOptionService globalOptions,
+    ITextBufferVisibilityTracker? visibilityTracker,
+    IAsynchronousOperationListenerProvider listenerProvider,
+    ClassificationType type)
+    : AsynchronousViewportTaggerProvider<IClassificationTag>(
+        threadingContext,
+        globalOptions,
+        visibilityTracker,
+        listenerProvider,
+        FeatureAttribute.Classification)
 {
-    private readonly ClassificationTypeMap _typeMap;
-    private readonly IGlobalOptionService _globalOptions;
-    private readonly ClassificationType _type;
+    private readonly ClassificationTypeMap _typeMap = typeMap;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
+    private readonly ClassificationType _type = type;
 
     // We want to track text changes so that we can try to only reclassify a method body if
     // all edits were contained within one.
     protected sealed override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
     protected sealed override ImmutableArray<IOption2> Options { get; } = [SemanticColorizerOptionsStorage.SemanticColorizer];
-
-    protected AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(
-        IThreadingContext threadingContext,
-        ClassificationTypeMap typeMap,
-        IGlobalOptionService globalOptions,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        ClassificationType type)
-        : base(
-            threadingContext,
-            globalOptions,
-            visibilityTracker,
-            listenerProvider.GetListener(FeatureAttribute.Classification),
-            TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
-    {
-        _typeMap = typeMap;
-        _globalOptions = globalOptions;
-        _type = type;
-    }
 
     protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 

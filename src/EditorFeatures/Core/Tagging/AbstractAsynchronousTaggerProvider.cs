@@ -138,15 +138,15 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
         IThreadingContext threadingContext,
         IGlobalOptionService globalOptions,
         ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListener asyncListener,
-        TaggerMainThreadManager mainThreadManager)
+        IAsynchronousOperationListenerProvider asyncListenerProvider,
+        string featureName)
     {
         ThreadingContext = threadingContext;
         GlobalOptions = globalOptions;
-        AsyncListener = asyncListener;
+        AsyncListener = asyncListenerProvider.GetListener(featureName);
 
         _visibilityTracker = visibilityTracker;
-        _mainThreadManager = mainThreadManager;
+        _mainThreadManager = TaggerMainThreadManager.GetManager(threadingContext, asyncListenerProvider);
 
 #if DEBUG
         StackTrace = new StackTrace().ToString();

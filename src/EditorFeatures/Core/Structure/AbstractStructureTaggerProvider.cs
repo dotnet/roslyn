@@ -39,32 +39,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 /// persist them to the SUO file to persist this data across sessions.
 /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete
-internal abstract partial class AbstractStructureTaggerProvider : AsynchronousTaggerProvider<IContainerStructureTag>
+internal abstract partial class AbstractStructureTaggerProvider(
+    IThreadingContext threadingContext,
+    EditorOptionsService editorOptionsService,
+    IProjectionBufferFactoryService projectionBufferFactoryService,
+    ITextBufferVisibilityTracker? visibilityTracker,
+    IAsynchronousOperationListenerProvider listenerProvider)
+    : AsynchronousTaggerProvider<IContainerStructureTag>(
+        threadingContext,
+        editorOptionsService.GlobalOptions,
+        visibilityTracker,
+        listenerProvider,
+        FeatureAttribute.Outlining)
 {
     private const string RegionDirective = "#region";
     private const string UsingDirective = "using";
     private const string ExternDeclaration = "extern";
     private const string ImportsStatement = "Imports";
 
-    protected readonly EditorOptionsService EditorOptionsService;
-    protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
-
-    protected AbstractStructureTaggerProvider(
-        IThreadingContext threadingContext,
-        EditorOptionsService editorOptionsService,
-        IProjectionBufferFactoryService projectionBufferFactoryService,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListenerProvider listenerProvider)
-        : base(
-            threadingContext,
-            editorOptionsService.GlobalOptions,
-            visibilityTracker,
-            listenerProvider.GetListener(FeatureAttribute.Outlining),
-            TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
-    {
-        EditorOptionsService = editorOptionsService;
-        ProjectionBufferFactoryService = projectionBufferFactoryService;
-    }
+    protected readonly EditorOptionsService EditorOptionsService = editorOptionsService;
+    protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService = projectionBufferFactoryService;
 
     protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
 

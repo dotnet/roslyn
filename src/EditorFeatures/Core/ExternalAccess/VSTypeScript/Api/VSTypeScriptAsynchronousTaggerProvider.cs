@@ -23,8 +23,8 @@ internal abstract class VSTypeScriptAsynchronousTaggerProvider<TTag> : Asynchron
             threadingContext,
             globalOptions.Service,
             visibilityTracker: null,
-            asyncListenerProvider.GetListener(FeatureAttribute.Classification),
-            TaggerMainThreadManager.GetManager(threadingContext, asyncListenerProvider))
+            asyncListenerProvider,
+            FeatureAttribute.Classification)
     {
     }
 
@@ -37,8 +37,8 @@ internal abstract class VSTypeScriptAsynchronousTaggerProvider<TTag> : Asynchron
             threadingContext,
             globalOptions.Service,
             visibilityTracker,
-            asyncListenerProvider.GetListener(FeatureAttribute.Classification),
-            TaggerMainThreadManager.GetManager(threadingContext, asyncListenerProvider))
+            asyncListenerProvider,
+            FeatureAttribute.Classification)
     {
     }
 }

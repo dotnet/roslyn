@@ -45,8 +45,8 @@ internal sealed class InheritanceMarginTaggerProvider(
         threadingContext,
         globalOptions,
         visibilityTracker,
-        listenerProvider.GetListener(FeatureAttribute.InheritanceMargin),
-        TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
+        listenerProvider,
+        FeatureAttribute.InheritanceMargin)
 {
     protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
 

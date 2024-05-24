@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                   threadingContext,
                   globalOptions,
                   visibilityTracker,
-                  listenerProvider.GetListener(FeatureAttribute.LineSeparators),
-                  TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
+                  listenerProvider,
+                  FeatureAttribute.LineSeparators)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;

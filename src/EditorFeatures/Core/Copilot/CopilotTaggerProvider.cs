@@ -48,8 +48,8 @@ internal sealed class CopilotTaggerProvider(
         threadingContext,
         globalOptionService,
         visibilityTracker,
-        listenerProvider.GetListener(FeatureAttribute.CopilotSuggestions),
-        TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
+        listenerProvider,
+        FeatureAttribute.CopilotSuggestions)
 {
     protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdleWithLongDelay;
 

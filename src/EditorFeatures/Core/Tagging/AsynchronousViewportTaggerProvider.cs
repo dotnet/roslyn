@@ -50,13 +50,13 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
         IThreadingContext threadingContext,
         IGlobalOptionService globalOptions,
         ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListener asyncListener,
-        TaggerMainThreadManager mainThreadManager,
+        IAsynchronousOperationListenerProvider asyncListenerProvider,
+        string featureName,
         int extraLinesAroundViewportToTag = 100)
     {
         ThreadingContext = threadingContext;
         GlobalOptions = globalOptions;
-        AsyncListener = asyncListener;
+        AsyncListener = asyncListenerProvider.GetListener(featureName);
         _extraLinesAroundViewportToTag = extraLinesAroundViewportToTag;
 
         using var providers = TemporaryArray<SingleViewportTaggerProvider>.Empty;
@@ -76,7 +76,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
         return;
 
         SingleViewportTaggerProvider CreateSingleViewportTaggerProvider(ViewPortToTag viewPortToTag)
-            => new(this, viewPortToTag, threadingContext, globalOptions, visibilityTracker, asyncListener, mainThreadManager);
+            => new(this, viewPortToTag, threadingContext, globalOptions, visibilityTracker, asyncListenerProvider, featureName);
     }
 
     // Functionality for subclasses to control how this diagnostic tagging operates.  All the individual

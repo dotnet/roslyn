@@ -47,8 +47,8 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
         threadingContext,
         globalOptions,
         visibilityTracker,
-        listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting),
-        TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
+        listenerProvider,
+        FeatureAttribute.ReferenceHighlighting)
 {
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 

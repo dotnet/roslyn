@@ -40,8 +40,8 @@ internal sealed class BracePairsTaggerProvider(
         threadingContext,
         globalOptionService,
         visibilityTracker,
-        listenerProvider.GetListener(FeatureAttribute.BracePairs),
-        TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
+        listenerProvider,
+        FeatureAttribute.BracePairs)
 {
     protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 

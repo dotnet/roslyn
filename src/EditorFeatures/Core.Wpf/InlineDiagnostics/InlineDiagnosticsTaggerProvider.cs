@@ -40,8 +40,8 @@ internal sealed class InlineDiagnosticsTaggerProvider(
         analyzerService,
         globalOptions,
         visibilityTracker,
-        listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles),
-        TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
+        listenerProvider,
+        FeatureAttribute.ErrorSquiggles)
 {
     private readonly IEditorFormatMap _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
     private readonly IClassificationFormatMapService _classificationFormatMapService = classificationFormatMapService;
