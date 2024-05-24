@@ -68,12 +68,12 @@ public class ChecksumTests
         void AssertEqual(Checksum desiredResult, Span<Checksum> toValidate)
         {
             var checksumsImmutableArray = toValidate.ToImmutableArray();
-            Assert.Equal(desiredResult, Checksum.CreateNew(checksumsImmutableArray));
+            Assert.Equal(desiredResult, Checksum.Create(checksumsImmutableArray));
 
             var checksumsArrayBuilder = ArrayBuilder<Checksum>.GetInstance();
             checksumsArrayBuilder.AddRange(checksumsImmutableArray);
 
-            Assert.Equal(desiredResult, Checksum.CreateNew(checksumsArrayBuilder));
+            Assert.Equal(desiredResult, Checksum.Create(checksumsArrayBuilder));
         }
     }
 
