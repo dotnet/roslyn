@@ -68,42 +68,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         {
             _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
             UpdateTagsForTextChange(e);
-            AccumulateTextChanges(e);
-        }
-
-        private void AccumulateTextChanges(TextContentChangedEventArgs contentChanged)
-        {
-            _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-            var contentChanges = contentChanged.Changes;
-            var count = contentChanges.Count;
-
-            switch (count)
-            {
-                case 0:
-                    return;
-
-                case 1:
-                    // PERF: Optimize for the simple case of typing on a line.
-                    {
-                        var c = contentChanges[0];
-                        var textChangeRange = new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength);
-                        this.AccumulatedTextChanges = this.AccumulatedTextChanges == null
-                            ? textChangeRange
-                            : this.AccumulatedTextChanges.Accumulate([textChangeRange]);
-                    }
-
-                    break;
-
-                default:
-                    {
-                        using var _ = ArrayBuilder<TextChangeRange>.GetInstance(count, out var textChangeRanges);
-                        foreach (var c in contentChanges)
-                            textChangeRanges.Add(new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength));
-
-                        this.AccumulatedTextChanges = this.AccumulatedTextChanges.Accumulate(textChangeRanges);
-                        break;
-                    }
-            }
         }
 
         private void UpdateTagsForTextChange(TextContentChangedEventArgs e)
@@ -279,9 +243,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 var spansToTag = GetSpansAndDocumentsToTag();
                 var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
                 var oldTagTrees = this.CachedTagTrees;
-                var oldState = this.State;
+                var oldState = _state_accessOnlyFromEventChangeQueueCallback;
 
-                var textChangeRange = this.AccumulatedTextChanges;
                 var subjectBufferVersion = _subjectBuffer.CurrentSnapshot.Version.VersionNumber;
 
                 await TaskScheduler.Default;
@@ -298,7 +261,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 // Create a context to store pass the information along and collect the results.
                 var context = new TaggerContext<TTag>(
-                    oldState, frozenPartialSemantics, spansToTag, caretPosition, textChangeRange, oldTagTrees);
+                    oldState, frozenPartialSemantics, spansToTag, caretPosition, oldTagTrees);
                 await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
 
                 if (cancellationToken.IsCancellationRequested)
@@ -308,27 +271,15 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 var newTagTrees = ComputeNewTagTrees(oldTagTrees, context);
                 var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
 
-                // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
-                await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
-                if (cancellationToken.IsCancellationRequested)
-                    return default;
-
                 // Once we assign our state, we're uncancellable.  We must report the changed information
                 // to the editor.  The only case where it's ok not to is if the tagger itself is disposed.
                 cancellationToken = CancellationToken.None;
 
                 this.CachedTagTrees = newTagTrees;
-                this.State = context.State;
-                if (this._subjectBuffer.CurrentSnapshot.Version.VersionNumber == subjectBufferVersion)
-                {
-                    // Only clear the accumulated text changes if the subject buffer didn't change during the
-                    // tagging operation. Otherwise, it is impossible to know which changes occurred prior to the
-                    // request to tag, and which ones occurred during the tagging itself. Since
-                    // AccumulatedTextChanges is a conservative representation of the work that needs to be done, in
-                    // the event this value is not cleared the only potential impact will be slightly more work
-                    // being done during the next classification pass.
-                    this.AccumulatedTextChanges = null;
-                }
+
+                // Note: assigning to 'State' is completely safe.  It is only ever read from the _eventChangeQueue
+                // serial callbacks on the threadpool.
+                _state_accessOnlyFromEventChangeQueueCallback = context.State;
 
                 OnTagsChangedForBuffer(bufferToChanges, highPriority);
 

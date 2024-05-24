@@ -88,6 +88,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
         #endregion
 
+        #region Mutable state.  Only accessed from _eventChangeQueue
+
+        private object? _state_accessOnlyFromEventChangeQueueCallback;
+
+        #endregion
+
         #region Fields that can only be accessed from the foreground thread
 
         /// <summary>
@@ -124,9 +130,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// <summary>
         /// accumulated text changes since last tag calculation
         /// </summary>
-        private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
-        private object? _state_doNotAccessDirecty;
 
         /// <summary>
         /// Keep track of if we are processing the first <see cref="ITagger{T}.GetTags"/> request.  If our provider returns 
@@ -336,21 +340,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             return TaggerEventSources.Compose(optionChangedEventSources);
         }
 
-        private TextChangeRange? AccumulatedTextChanges
-        {
-            get
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                return _accumulatedTextChanges_doNotAccessDirectly;
-            }
-
-            set
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                _accumulatedTextChanges_doNotAccessDirectly = value;
-            }
-        }
-
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> CachedTagTrees
         {
             get
@@ -363,21 +352,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
                 _cachedTagTrees_doNotAccessDirectly = value;
-            }
-        }
-
-        private object? State
-        {
-            get
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                return _state_doNotAccessDirecty;
-            }
-
-            set
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                _state_doNotAccessDirecty = value;
             }
         }
 
