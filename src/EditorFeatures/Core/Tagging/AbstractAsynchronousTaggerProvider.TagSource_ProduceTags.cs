@@ -270,7 +270,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 oldTagTrees = this.CachedTagTrees;
                 oldState = this.State;
                 textChangeRange = this.AccumulatedTextChanges;
-                this.AccumulatedTextChanges = null;
                 subjectBufferVersion = _subjectBuffer.CurrentSnapshot.Version.VersionNumber;
             }, cancellationToken).NoThrowAwaitable();
 
