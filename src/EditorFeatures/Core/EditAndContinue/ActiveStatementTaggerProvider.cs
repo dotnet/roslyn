@@ -45,10 +45,6 @@ internal partial class ActiveStatementTaggerProvider(
         listenerProvider,
         FeatureAttribute.Classification)
 {
-    // We want to track text changes so that we can try to only reclassify a method body if
-    // all edits were contained within one.
-    protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
-
     protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
     protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)

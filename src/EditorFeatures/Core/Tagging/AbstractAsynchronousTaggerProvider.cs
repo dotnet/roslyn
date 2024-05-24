@@ -42,14 +42,9 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     private readonly TaggerMainThreadManager _mainThreadManager;
 
     /// <summary>
-    /// The behavior the tagger engine will have when text changes happen to the subject buffer
-    /// it is attached to.  Most taggers can simply use <see cref="TaggerTextChangeBehavior.None"/>.
-    /// However, advanced taggers that want to perform specialized behavior depending on what has
-    /// actually changed in the file can specify <see cref="TaggerTextChangeBehavior.TrackTextChanges"/>.
-    /// 
-    /// If this is specified the tagger engine will track text changes and pass them along as
-    /// <see cref="TaggerContext{TTag}.TextChangeRange"/> when calling 
-    /// <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/>.
+    /// The behavior the tagger engine will have when text changes happen to the subject buffer it is attached to.  Most
+    /// taggers can simply use <see cref="TaggerTextChangeBehavior.None"/>. However, advanced taggers that want to
+    /// perform specialized behavior depending on what has actually changed in the file can specify that here.
     /// </summary>
     protected virtual TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;
 

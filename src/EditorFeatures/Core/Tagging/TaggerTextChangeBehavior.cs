@@ -23,17 +23,10 @@ internal enum TaggerTextChangeBehavior
     /// The async tagger infrastructure will track text changes to the subject buffer it is 
     /// attached to.  The text changes will be provided to the <see cref="TaggerContext{TTag}"/>
     /// that is passed to <see cref="AbstractAsynchronousTaggerProvider{TTag}.ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/>.
-    /// </summary>
-    TrackTextChanges = 1 << 0,
-
-    /// <summary>
-    /// The async tagger infrastructure will track text changes to the subject buffer it is 
-    /// attached to.  The text changes will be provided to the <see cref="TaggerContext{TTag}"/>
-    /// that is passed to <see cref="AbstractAsynchronousTaggerProvider{TTag}.ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/>.
     /// 
     /// On any edit, tags that intersect the text change range will immediately removed.
     /// </summary>
-    RemoveTagsThatIntersectEdits = TrackTextChanges | (1 << 1),
+    RemoveTagsThatIntersectEdits = 1 << 1,
 
     /// <summary>
     /// The async tagger infrastructure will track text changes to the subject buffer it is 
@@ -41,5 +34,5 @@ internal enum TaggerTextChangeBehavior
     /// 
     /// On any edit all tags will we be removed.
     /// </summary>
-    RemoveAllTags = TrackTextChanges | (1 << 2),
+    RemoveAllTags = 1 << 2,
 }
