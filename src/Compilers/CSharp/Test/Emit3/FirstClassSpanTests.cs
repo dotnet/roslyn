@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Linq;
-using ICSharpCode.Decompiler.IL;
-using ILVerify;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -440,7 +440,7 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Theory, CombinatorialData]
-    public void Conversion_Array_Span_Implicit_SemanticModel(
+    public void Conversion_Array_Span_Implicit_SemanticModel_01(
         [CombinatorialValues("Span", "ReadOnlySpan")] string destination)
     {
         var source = $$"""
@@ -462,10 +462,68 @@ public class FirstClassSpanTests : CSharpTestBase
         Assert.Equal($"System.{destination}<System.Int32>", argType.ConvertedType.ToTestDisplayString());
 
         var argConv = model.GetConversion(arg);
+        Assert.Equal(ConversionKind.ImplicitSpan, argConv.Kind);
         Assert.True(argConv.IsSpan);
         Assert.True(argConv.IsImplicit);
         Assert.False(argConv.IsUserDefined);
         Assert.False(argConv.IsIdentity);
+    }
+
+    [Fact]
+    public void Conversion_Array_Span_Implicit_SemanticModel_02()
+    {
+        var source = """
+            using System;
+            class C<T, U>
+                where T : class
+                where U : class, T
+            {
+                ReadOnlySpan<T> F1(T[] x) => (ReadOnlySpan<T>)x;
+                ReadOnlySpan<U> F2(T[] x) => (ReadOnlySpan<U>)x;
+            }
+            """;
+
+        var comp = CreateCompilationWithSpan(source);
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var casts = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().ToImmutableArray();
+        Assert.Equal(2, casts.Length);
+
+        {
+            var cast = casts[0];
+            Assert.Equal("(ReadOnlySpan<T>)x", cast.ToString());
+
+            var op = (IConversionOperation)model.GetOperation(cast)!;
+            var conv = op.GetConversion();
+            Assert.Equal(ConversionKind.ImplicitSpan, conv.Kind);
+
+            model.VerifyOperationTree(cast, """
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.ReadOnlySpan<T>) (Syntax: '(ReadOnlySpan<T>)x')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand:
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
+                """);
+        }
+
+        {
+            var cast = casts[1];
+            Assert.Equal("(ReadOnlySpan<U>)x", cast.ToString());
+
+            var op = (IConversionOperation)model.GetOperation(cast)!;
+            var conv = op.GetConversion();
+            Assert.Equal(ConversionKind.ExplicitUserDefined, conv.Kind);
+
+            model.VerifyOperationTree(cast, """
+                IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.ReadOnlySpan<U> System.ReadOnlySpan<U>.op_Implicit(U[] array)) (OperationKind.Conversion, Type: System.ReadOnlySpan<U>) (Syntax: '(ReadOnlySpan<U>)x')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.ReadOnlySpan<U> System.ReadOnlySpan<U>.op_Implicit(U[] array))
+                  Operand:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: U[], IsImplicit) (Syntax: 'x')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
+                """);
+        }
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -1884,59 +1942,6 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
-    public void Conversion_Array_Span_ExtensionMethodReceiver_Implicit_Overloads_01()
-    {
-        var source = """
-            using System;
-
-            static class C
-            {
-                static void M(int[] arg) => arg.E();
-
-                static void E(this Span<int> arg) { }
-                static void E(this ReadOnlySpan<int> arg) { }
-            }
-            """;
-        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (5,33): error CS1929: 'int[]' does not contain a definition for 'E' and the best extension method overload 'C.E(Span<int>)' requires a receiver of type 'System.Span<int>'
-            //     static void M(int[] arg) => arg.E();
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "arg").WithArguments("int[]", "E", "C.E(System.Span<int>)", "System.Span<int>").WithLocation(5, 33));
-
-        var expectedDiagnostics = new[]
-        {
-            // (5,37): error CS0121: The call is ambiguous between the following methods or properties: 'C.E(Span<int>)' and 'C.E(ReadOnlySpan<int>)'
-            //     static void M(int[] arg) => arg.E();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("C.E(System.Span<int>)", "C.E(System.ReadOnlySpan<int>)").WithLocation(5, 37)
-        };
-
-        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
-    }
-
-    [Theory, MemberData(nameof(LangVersions))]
-    public void Conversion_Array_Span_ExtensionMethodReceiver_Implicit_Overloads_02(LanguageVersion langVersion)
-    {
-        var source = """
-            using System;
-
-            C.M1(default);
-            C.M2(default);
-
-            static class C
-            {
-                public static void M1(Span<int> arg) => arg.E();
-                public static void M2(ReadOnlySpan<int> arg) => arg.E();
-
-                static void E(this Span<int> arg) => Console.Write("S ");
-                static void E(this ReadOnlySpan<int> arg) => Console.Write("R ");
-            }
-            """;
-
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
-        CompileAndVerify(comp, expectedOutput: "S R").VerifyDiagnostics();
-    }
-
-    [Fact]
     public void Conversion_Array_Span_ExtensionMethodReceiver_Implicit_MissingHelper()
     {
         var source = """
@@ -2421,36 +2426,6 @@ public class FirstClassSpanTests : CSharpTestBase
         var source = """
             using System;
 
-            var a = new object[] { "a" };
-            a.M();
-
-            static class C
-            {
-                public static void M(this string[] x) => Console.Write(" s" + x[0]);
-                public static void M(this ReadOnlySpan<object> x) => Console.Write(" o" + x[0]);
-            }
-            """;
-
-        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (4,1): error CS1929: 'object[]' does not contain a definition for 'M' and the best extension method overload 'C.M(string[])' requires a receiver of type 'string[]'
-            // a.M();
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("object[]", "M", "C.M(string[])", "string[]").WithLocation(4, 1));
-
-        var expectedOutput = "oa";
-
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
-        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
-
-        comp = CreateCompilationWithSpan(source);
-        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void OverloadResolution_ReadOnlySpanVsArray_ExtensionMethodReceiver_03()
-    {
-        var source = """
-            using System;
-
             var a = new string[] { "a" };
             a.M();
 
@@ -2477,7 +2452,7 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Theory, MemberData(nameof(LangVersions))]
-    public void OverloadResolution_ReadOnlySpanVsArray_ExtensionMethodReceiver_04(LanguageVersion langVersion)
+    public void OverloadResolution_ReadOnlySpanVsArray_ExtensionMethodReceiver_03(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -2493,5 +2468,58 @@ public class FirstClassSpanTests : CSharpTestBase
             """;
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         CompileAndVerify(comp, expectedOutput: "sa").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_SpanVsReadOnlySpan_ExtensionMethodReceiver_01()
+    {
+        var source = """
+            using System;
+
+            static class C
+            {
+                static void M(int[] arg) => arg.E();
+
+                static void E(this Span<int> arg) { }
+                static void E(this ReadOnlySpan<int> arg) { }
+            }
+            """;
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (5,33): error CS1929: 'int[]' does not contain a definition for 'E' and the best extension method overload 'C.E(Span<int>)' requires a receiver of type 'System.Span<int>'
+            //     static void M(int[] arg) => arg.E();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "arg").WithArguments("int[]", "E", "C.E(System.Span<int>)", "System.Span<int>").WithLocation(5, 33));
+
+        var expectedDiagnostics = new[]
+        {
+            // (5,37): error CS0121: The call is ambiguous between the following methods or properties: 'C.E(Span<int>)' and 'C.E(ReadOnlySpan<int>)'
+            //     static void M(int[] arg) => arg.E();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("C.E(System.Span<int>)", "C.E(System.ReadOnlySpan<int>)").WithLocation(5, 37)
+        };
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_SpanVsReadOnlySpan_ExtensionMethodReceiver_02(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            C.M1(default);
+            C.M2(default);
+
+            static class C
+            {
+                public static void M1(Span<int> arg) => arg.E();
+                public static void M2(ReadOnlySpan<int> arg) => arg.E();
+
+                static void E(this Span<int> arg) => Console.Write("S ");
+                static void E(this ReadOnlySpan<int> arg) => Console.Write("R ");
+            }
+            """;
+
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "S R").VerifyDiagnostics();
     }
 }

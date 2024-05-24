@@ -635,13 +635,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            MethodSymbol method = symbol.AsMember((NamedTypeSymbol)rewrittenType);
+                            MethodSymbol method = symbol.AsMember(spanType);
 
                             rewrittenOperand = _factory.Convert(method.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
 
                             if (member == WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array)
                             {
-                                return new BoundReadOnlySpanFromArray(syntax, rewrittenOperand, method, rewrittenType) { WasCompilerGenerated = true };
+                                return new BoundReadOnlySpanFromArray(syntax, rewrittenOperand, method, spanType) { WasCompilerGenerated = true };
                             }
 
                             return _factory.Call(null, method, rewrittenOperand);
