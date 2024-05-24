@@ -290,12 +290,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // bails gracefully by checking below.
                 await _visibilityTracker.DelayWhileNonVisibleAsync(
                     _dataSource.ThreadingContext, _dataSource.AsyncListener, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(captureContext: true);
-
-                if (cancellationToken.IsCancellationRequested)
-                    return default;
             }
 
-            _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
             if (cancellationToken.IsCancellationRequested)
                 return default;
 
