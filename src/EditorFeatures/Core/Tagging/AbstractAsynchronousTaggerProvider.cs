@@ -9,22 +9,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 #endif
 using System.Diagnostics.CodeAnalysis;
-<<<<<<< HEAD
-using System.Linq;
-using System.Runtime.CompilerServices;
-=======
->>>>>>> upstream/main
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-<<<<<<< HEAD
-using Microsoft.CodeAnalysis.Elfie.Serialization;
-using Microsoft.CodeAnalysis.ErrorReporting;
-=======
->>>>>>> upstream/main
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Tagging;
@@ -48,7 +37,9 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     protected readonly IAsynchronousOperationListener AsyncListener;
     protected readonly IThreadingContext ThreadingContext;
     protected readonly IGlobalOptionService GlobalOptions;
+
     private readonly ITextBufferVisibilityTracker? _visibilityTracker;
+    private readonly TaggerMainThreadManager _mainThreadManager;
 
     /// <summary>
     /// The behavior the tagger engine will have when text changes happen to the subject buffer
@@ -124,14 +115,6 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     {
     }
 
-<<<<<<< HEAD
-        protected readonly IAsynchronousOperationListener AsyncListener;
-        protected readonly IThreadingContext ThreadingContext;
-        protected readonly IGlobalOptionService GlobalOptions;
-
-        private readonly ITextBufferVisibilityTracker? _visibilityTracker;
-        private readonly TaggerMainThreadManager _mainThreadManager;
-=======
     /// <summary>
     /// Comparer used to check if two tags are the same.  Used so that when new tags are produced, they can be
     /// appropriately 'diffed' to determine what changes to actually report in <see cref="ITagger{T}.TagsChanged"/>.
@@ -141,7 +124,6 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     /// </summary>
     protected virtual bool TagEquals(TTag tag1, TTag tag2)
         => EqualityComparer<TTag>.Default.Equals(tag1, tag2);
->>>>>>> upstream/main
 
     // Prevent accidental usage of object.Equals instead of TagEquals when comparing tags.
     [Obsolete("Did you mean to call TagEquals(TTag tag1, TTag tag2) instead", error: true)]
@@ -152,31 +134,19 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     public readonly string StackTrace;
 #endif
 
-<<<<<<< HEAD
-        protected AbstractAsynchronousTaggerProvider(
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListener asyncListener,
-            TaggerMainThreadManager mainThreadManager)
-        {
-            ThreadingContext = threadingContext;
-            GlobalOptions = globalOptions;
-            AsyncListener = asyncListener;
-            _visibilityTracker = visibilityTracker;
-            _mainThreadManager = mainThreadManager;
-=======
     protected AbstractAsynchronousTaggerProvider(
         IThreadingContext threadingContext,
         IGlobalOptionService globalOptions,
         ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListener asyncListener)
+        IAsynchronousOperationListener asyncListener,
+        TaggerMainThreadManager mainThreadManager)
     {
         ThreadingContext = threadingContext;
         GlobalOptions = globalOptions;
         AsyncListener = asyncListener;
+
         _visibilityTracker = visibilityTracker;
->>>>>>> upstream/main
+        _mainThreadManager = mainThreadManager;
 
 #if DEBUG
         StackTrace = new StackTrace().ToString();
