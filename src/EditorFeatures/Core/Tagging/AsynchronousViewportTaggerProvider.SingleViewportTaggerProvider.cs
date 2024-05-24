@@ -32,7 +32,13 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
         IThreadingContext threadingContext,
         IGlobalOptionService globalOptions,
         ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListener asyncListener) : AsynchronousViewTaggerProvider<TTag>(threadingContext, globalOptions, visibilityTracker, asyncListener)
+        IAsynchronousOperationListener asyncListener,
+        TaggerMainThreadManager mainThreadManager) : AsynchronousViewTaggerProvider<TTag>(
+            threadingContext,
+            globalOptions,
+            visibilityTracker,
+            asyncListener,
+            mainThreadManager)
     {
         private readonly AsynchronousViewportTaggerProvider<TTag> _callback = callback;
 

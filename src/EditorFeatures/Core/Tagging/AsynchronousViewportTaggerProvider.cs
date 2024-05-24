@@ -51,6 +51,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
         IGlobalOptionService globalOptions,
         ITextBufferVisibilityTracker? visibilityTracker,
         IAsynchronousOperationListener asyncListener,
+        TaggerMainThreadManager mainThreadManager,
         int extraLinesAroundViewportToTag = 100)
     {
         ThreadingContext = threadingContext;
@@ -75,7 +76,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
         return;
 
         SingleViewportTaggerProvider CreateSingleViewportTaggerProvider(ViewPortToTag viewPortToTag)
-            => new(this, viewPortToTag, threadingContext, globalOptions, visibilityTracker, asyncListener);
+            => new(this, viewPortToTag, threadingContext, globalOptions, visibilityTracker, asyncListener, mainThreadManager);
     }
 
     // Functionality for subclasses to control how this diagnostic tagging operates.  All the individual
