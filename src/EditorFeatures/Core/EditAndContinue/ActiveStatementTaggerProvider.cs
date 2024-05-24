@@ -38,7 +38,12 @@ internal partial class ActiveStatementTaggerProvider(
     IThreadingContext threadingContext,
     IGlobalOptionService globalOptions,
     [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousTaggerProvider<ITextMarkerTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
+    IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousTaggerProvider<ITextMarkerTag>(
+        threadingContext,
+        globalOptions,
+        visibilityTracker,
+        listenerProvider.GetListener(FeatureAttribute.Classification),
+        TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
 {
     // We want to track text changes so that we can try to only reclassify a method body if
     // all edits were contained within one.
@@ -50,21 +55,6 @@ internal partial class ActiveStatementTaggerProvider(
     {
         this.ThreadingContext.ThrowIfNotOnUIThread();
 
-<<<<<<< HEAD
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ActiveStatementTaggerProvider(
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(
-                  threadingContext,
-                  globalOptions,
-                  visibilityTracker,
-                  listenerProvider.GetListener(FeatureAttribute.Classification),
-                  TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
-=======
         return TaggerEventSources.Compose(
             new EventSource(subjectBuffer),
             TaggerEventSources.OnTextChanged(subjectBuffer),
@@ -80,7 +70,6 @@ internal partial class ActiveStatementTaggerProvider(
 
         var document = spanToTag.Document;
         if (document == null)
->>>>>>> upstream/main
         {
             return;
         }
