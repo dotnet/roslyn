@@ -68,24 +68,6 @@ internal sealed class HighlighterViewTaggerProvider(
     {
         var document = documentSnapshotSpan.Document;
 
-<<<<<<< HEAD
-        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(KeywordHighlightingOptionsStorage.KeywordHighlighting);
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public HighlighterViewTaggerProvider(
-            IThreadingContext threadingContext,
-            IHighlightingService highlightingService,
-            IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(
-                  threadingContext,
-                  globalOptions,
-                  visibilityTracker,
-                  listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting),
-                  TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
-=======
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/763988
         // It turns out a document might be associated with a project of wrong language, e.g. C# document in a Xaml project. 
         // Even though we couldn't repro the crash above, a fix is made in one of possibly multiple code paths that could cause 
@@ -93,7 +75,6 @@ internal sealed class HighlighterViewTaggerProvider(
         // Regardless of the effective of the fix, we want to enhance the guard against such scenario here until an audit in 
         // workspace is completed to eliminate the root cause.
         if (document?.SupportsSyntaxTree != true)
->>>>>>> upstream/main
         {
             return;
         }

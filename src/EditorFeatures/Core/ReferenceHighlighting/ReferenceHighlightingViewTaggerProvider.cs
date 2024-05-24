@@ -43,7 +43,12 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
     IThreadingContext threadingContext,
     IGlobalOptionService globalOptions,
     [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<NavigableHighlightTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting))
+    IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<NavigableHighlightTag>(
+        threadingContext,
+        globalOptions,
+        visibilityTracker,
+        listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting),
+        TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
 {
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
