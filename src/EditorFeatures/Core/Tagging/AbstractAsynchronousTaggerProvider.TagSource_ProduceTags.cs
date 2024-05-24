@@ -212,7 +212,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(lastNonFrozenComputationToken, cancellationToken);
                 try
                 {
-                    return await RecomputeTagsAsync(highPriority, frozenPartialSemantics, linkedTokenSource.Token).ConfigureAwait(false);
+                    return await RecomputeTagsAsync(
+                        highPriority, frozenPartialSemantics, blockingJTFCall: false, linkedTokenSource.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException ex) when (ExceptionUtilities.IsCurrentOperationBeingCancelled(ex, linkedTokenSource.Token))
                 {
@@ -223,7 +224,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             {
                 // Normal request to either compute frozen partial tags, or compute normal tags in a tagger that does
                 // *not* support frozen partial tagging.
-                return await RecomputeTagsAsync(highPriority, frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
+                return await RecomputeTagsAsync(
+                    highPriority, frozenPartialSemantics, blockingJTFCall: false, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -238,14 +240,22 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// In the event of a cancellation request, this method may <em>either</em> return at the next availability
         /// or throw a cancellation exception.
         /// </remarks>
-        /// <param name="highPriority">
-        /// If this tagging request should be processed as quickly as possible with no extra delays added for it.
+        /// <param name="highPriority">If this tagging request should be processed as quickly as possible with no extra
+        /// delays added for it.
         /// </param>
+        /// <param name="blockingJTFCall">If this is called in a blocking fashion from inside a JTF.Run call.</param>
         private async Task<VoidResult> RecomputeTagsAsync(
             bool highPriority,
             bool frozenPartialSemantics,
+            bool blockingJTFCall,
             CancellationToken cancellationToken)
         {
+            // Note: this method is called in some blocking scenarios.  Specifically, when the outlining manager blocks
+            // on outlining tags.  As such, we use ConfigureAwait(true) and NoThrowAwaitable(captureContext: true) to
+            // ensure we're always coming back to the calling context as much as possible.  In the blocking case, this
+            // is good, so we don't have unnecessary thread switches.  In the non-blocking threadpool case, this is also
+            // fine as CA(true) will just keep us on the threadpool.
+
             var isVisible = true;
             var spansToTag = ImmutableArray<DocumentSnapshotSpan>.Empty;
             SnapshotPoint? caretPosition = null;
@@ -271,7 +281,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 oldState = this.State;
                 textChangeRange = this.AccumulatedTextChanges;
                 subjectBufferVersion = _subjectBuffer.CurrentSnapshot.Version.VersionNumber;
-            }, cancellationToken).NoThrowAwaitable(captureContext: false);
+            }, cancellationToken).NoThrowAwaitable(captureContext: true);
 
             // Since we don't ever throw above, check and see if the await completed due to cancellation and do not
             // proceed.
@@ -279,8 +289,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 return default;
 
             // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
-            // consuming machine resources on work the user isn't likely to see.  ConfigureAwait(true) so that if
-            // we're on the UI thread that we stay on it.
+            // consuming machine resources on work the user isn't likely to see.
             //
             // Don't do this for explicit high priority requests as the caller wants the UI updated as quickly as
             // possible.
@@ -289,7 +298,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // Use NoThrow as this is a high source of cancellation exceptions.  This avoids the exception and instead
                 // bails gracefully by checking below.
                 await _visibilityTracker.DelayWhileNonVisibleAsync(
-                    _dataSource.ThreadingContext, _dataSource.AsyncListener, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(captureContext: false);
+                    _dataSource.ThreadingContext, _dataSource.AsyncListener, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(captureContext: true);
             }
 
             if (cancellationToken.IsCancellationRequested)
@@ -297,7 +306,11 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, cancellationToken))
             {
-                await TaskScheduler.Default;
+                // Explicitly switch to a threadpool thread to do the expensive tagging work on a BG thread.  But not if
+                // we're in an explicit JTF.Run call as that would just add unnecessary blocking waiting for the
+                // threadpool to do this work.
+                if (!blockingJTFCall)
+                    await TaskScheduler.Default;
 
                 if (cancellationToken.IsCancellationRequested)
                     return default;
@@ -312,7 +325,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // Create a context to store pass the information along and collect the results.
                 var context = new TaggerContext<TTag>(
                     oldState, frozenPartialSemantics, spansToTag, caretPosition, textChangeRange, oldTagTrees);
-                await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
+                await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(true);
 
                 if (cancellationToken.IsCancellationRequested)
                     return default;
@@ -358,7 +371,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     // token for this expensive work so that it can be canceled by future lightweight work.
                     if (frozenPartialSemantics)
                         this.EnqueueWork(highPriority, frozenPartialSemantics: false, _nonFrozenComputationCancellationSeries.CreateNext(default));
-                }, cancellationToken).NoThrowAwaitable(captureContext: false);
+                }, cancellationToken).NoThrowAwaitable(captureContext: true);
 
                 return default;
             }
@@ -645,7 +658,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             {
                 // Compute this as a high priority work item to have the lease amount of blocking as possible.
                 _dataSource.ThreadingContext.JoinableTaskFactory.Run(() =>
-                    this.RecomputeTagsAsync(highPriority: true, _dataSource.SupportsFrozenPartialSemantics, _disposalTokenSource.Token));
+                    this.RecomputeTagsAsync(highPriority: true, _dataSource.SupportsFrozenPartialSemantics, blockingJTFCall: true, _disposalTokenSource.Token));
             }
 
             _firstTagsRequest = false;
