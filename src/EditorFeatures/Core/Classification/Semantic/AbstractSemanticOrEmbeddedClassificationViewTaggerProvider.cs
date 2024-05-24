@@ -266,7 +266,7 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
                 // Let the context know that this was the span we actually tried to tag.
                 context.SetSpansTagged([snapshotSpan]);
 
-                // Store teh semantic version and snapshot we used to produce these tags.  We can use this in the future
+                // Store the semantic version and snapshot we used to produce these tags.  We can use this in the future
                 // to try to limit what we classify, if all edits were made within a single member.
                 context.State = (currentSemanticVersion, snapshot);
             }
