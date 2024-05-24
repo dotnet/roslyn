@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -147,6 +149,11 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
 
         if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
             !await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        if (await copilotService.IsAnyExclusionAsync(cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
