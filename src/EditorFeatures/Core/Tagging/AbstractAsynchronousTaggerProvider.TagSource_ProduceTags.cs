@@ -327,7 +327,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 if (newTagTrees is null)
                     return null;
 
-                var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
+                // Once we assign our state, we're uncancellable.  We must report the changed information to the editor.
+                // The only case where it's ok not to is if the tagger itself is disposed.  Null out our token so nothing
+                // accidentally attempts to use it.
+                cancellationToken = CancellationToken.None;
+
+                var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees);
 
                 // Note: assigning to 'State' is completely safe.  It is only ever read from the _eventChangeQueue
                 // serial callbacks on the threadpool.
@@ -489,10 +494,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(
             ImmutableArray<DocumentSnapshotSpan> spansToTag,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
-            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
-            CancellationToken cancellationToken)
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees)
         {
-            using (Logger.LogBlock(FunctionId.Tagger_TagSource_ProcessNewTags, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Tagger_TagSource_ProcessNewTags, CancellationToken.None))
             {
                 var bufferToChanges = new Dictionary<ITextBuffer, DiffResult>();
 
