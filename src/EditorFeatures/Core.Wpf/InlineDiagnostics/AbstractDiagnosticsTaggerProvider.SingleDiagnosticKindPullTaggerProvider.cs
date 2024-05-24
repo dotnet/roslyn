@@ -43,7 +43,13 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
         IDiagnosticAnalyzerService analyzerService,
         IGlobalOptionService globalOptions,
         ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListener listener) : AsynchronousTaggerProvider<TTag>(threadingContext, globalOptions, visibilityTracker, listener)
+        IAsynchronousOperationListener listener,
+        TaggerMainThreadManager mainThreadManager) : AsynchronousTaggerProvider<TTag>(
+            threadingContext,
+            globalOptions,
+            visibilityTracker,
+            listener,
+            mainThreadManager)
     {
         private readonly DiagnosticKind _diagnosticKind = diagnosticKind;
         private readonly IDiagnosticAnalyzerService _analyzerService = analyzerService;

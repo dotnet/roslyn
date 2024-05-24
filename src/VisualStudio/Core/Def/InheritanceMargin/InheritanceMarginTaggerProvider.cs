@@ -35,143 +35,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 [ContentType(ContentTypeNames.RoslynContentType)]
 [Name(nameof(InheritanceMarginTaggerProvider))]
 [TextViewRole(PredefinedTextViewRoles.Document)]
-internal sealed class InheritanceMarginTaggerProvider : AsynchronousViewportTaggerProvider<InheritanceMarginTag>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class InheritanceMarginTaggerProvider(
+    IThreadingContext threadingContext,
+    IGlobalOptionService globalOptions,
+    [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+    IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewportTaggerProvider<InheritanceMarginTag>(
+        threadingContext,
+        globalOptions,
+        visibilityTracker,
+        listenerProvider.GetListener(FeatureAttribute.InheritanceMargin),
+        TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public InheritanceMarginTaggerProvider(
-        IThreadingContext threadingContext,
-        IGlobalOptionService globalOptions,
-        [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListenerProvider listenerProvider)
-        : base(
-            threadingContext,
-            globalOptions,
-            visibilityTracker,
-            listenerProvider.GetListener(FeatureAttribute.InheritanceMargin))
-    {
-<<<<<<< HEAD
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InheritanceMarginTaggerProvider(
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(
-                threadingContext,
-                globalOptions,
-                visibilityTracker,
-                listenerProvider.GetListener(FeatureAttribute.InheritanceMargin),
-                TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
-        {
-        }
-
-        protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
-
-        protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
-        {
-            Contract.ThrowIfNull(textView);
-            // Because we use frozen-partial documents for semantic classification, we may end up with incomplete
-            // semantics (esp. during solution load).  Because of this, we also register to hear when the full
-            // compilation is available so that reclassify and bring ourselves up to date.
-            // Note: Also generate tags when InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin is changed,
-            // because we want to refresh the glyphs in indicator margin.
-            return new CompilationAvailableTaggerEventSource(
-               subjectBuffer,
-               AsyncListener,
-               TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
-               TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
-               TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-               TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InheritanceMarginOptionsStorage.ShowInheritanceMargin),
-               TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin));
-        }
-
-        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
-        {
-            this.ThreadingContext.ThrowIfNotOnUIThread();
-            Contract.ThrowIfNull(textView);
-
-            var visibleSpan = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
-            if (visibleSpan == null)
-            {
-                return base.GetSpansToTag(textView, subjectBuffer);
-            }
-
-            return SpecializedCollections.SingletonEnumerable(visibleSpan.Value);
-        }
-
-        protected override async Task ProduceTagsAsync(
-            TaggerContext<InheritanceMarginTag> context,
-            DocumentSnapshotSpan spanToTag,
-            int? caretPosition,
-            CancellationToken cancellationToken)
-        {
-            var document = spanToTag.Document;
-            if (document == null)
-                return;
-
-            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
-                return;
-
-            var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceMarginService>();
-            if (inheritanceMarginInfoService == null)
-                return;
-
-            if (GlobalOptions.GetOption(InheritanceMarginOptionsStorage.ShowInheritanceMargin, document.Project.Language) == false)
-                return;
-
-            var includeGlobalImports = GlobalOptions.GetOption(InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, document.Project.Language);
-
-            // Use FrozenSemantics Version of document to get the semantics ready, therefore we could have faster
-            // response. (Since the full load might take a long time)
-            // We also subscribe to CompilationAvailableTaggerEventSource, so this will finally reach the correct state.
-            document = document.WithFrozenPartialSemantics(cancellationToken);
-
-            var spanToSearch = spanToTag.SnapshotSpan.Span.ToTextSpan();
-            var stopwatch = SharedStopwatch.StartNew();
-            var inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
-                document,
-                spanToSearch,
-                includeGlobalImports,
-                frozenPartialSemantics: true,
-                cancellationToken).ConfigureAwait(false);
-            var elapsed = stopwatch.Elapsed;
-
-            if (inheritanceMemberItems.IsEmpty)
-                return;
-
-            InheritanceMarginLogger.LogGenerateBackgroundInheritanceInfo(elapsed);
-
-            // One line might have multiple members to show, so group them.
-            // For example:
-            // interface IBar { void Foo1(); void Foo2(); }
-            // class Bar : IBar { void Foo1() { } void Foo2() { } }
-            var lineToMembers = inheritanceMemberItems.GroupBy(item => item.LineNumber);
-
-            var snapshot = spanToTag.SnapshotSpan.Snapshot;
-
-            foreach (var (lineNumber, membersOnTheLine) in lineToMembers)
-            {
-                var membersOnTheLineArray = membersOnTheLine.ToImmutableArray();
-
-                // One line should at least have one member on it.
-                Contract.ThrowIfTrue(membersOnTheLineArray.IsEmpty);
-
-                var line = snapshot.GetLineFromLineNumber(lineNumber);
-                // We only care about the line, so just tag the start.
-                context.AddTag(new TagSpan<InheritanceMarginTag>(
-                    new SnapshotSpan(snapshot, line.Start, length: 0),
-                    new InheritanceMarginTag(lineNumber, membersOnTheLineArray)));
-            }
-        }
-
-        protected override bool TagEquals(InheritanceMarginTag tag1, InheritanceMarginTag tag2)
-            => tag1.Equals(tag2);
-=======
->>>>>>> upstream/main
-    }
-
     protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
 
     /// <summary>

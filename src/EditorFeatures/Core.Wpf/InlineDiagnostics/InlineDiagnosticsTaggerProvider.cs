@@ -9,6 +9,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -39,7 +40,8 @@ internal sealed class InlineDiagnosticsTaggerProvider(
         analyzerService,
         globalOptions,
         visibilityTracker,
-        listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
+        listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles),
+        TaggerMainThreadManager.GetManager(threadingContext, listenerProvider))
 {
     private readonly IEditorFormatMap _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
     private readonly IClassificationFormatMapService _classificationFormatMapService = classificationFormatMapService;
