@@ -205,7 +205,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// <param name="highPriority">
         /// If this tagging request should be processed as quickly as possible with no extra delays added for it.
         /// </param>
-        private async Task<VoidResult> RecomputeTagsAsync(
+        private async Task<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>> RecomputeTagsAsync(
             bool highPriority,
             bool frozenPartialSemantics,
             CancellationToken cancellationToken)
@@ -288,9 +288,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // token for this expensive work so that it can be canceled by future lightweight work.
                 if (frozenPartialSemantics)
                     this.EnqueueWork(highPriority, frozenPartialSemantics: false, _nonFrozenComputationCancellationSeries.CreateNext(default));
-            }
 
-            return default;
+                return newTagTrees;
+            }
         }
 
         private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
@@ -564,23 +564,24 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             if (_disposalTokenSource.Token.IsCancellationRequested)
                 return null;
 
-            // If this is the first time we're being asked for tags, and we're a tagger that requires the initial
-            // tags be available synchronously on this call, and the computation of tags hasn't completed yet, then
-            // force the tags to be computed now on this thread.  The singular use case for this is Outlining which
-            // needs those tags synchronously computed for things like Metadata-as-Source collapsing.
+            var tagTrees = this.CachedTagTrees;
+
+            // If this is the first time we're being asked for tags, and we're a tagger that requires the initial tags
+            // be available synchronously on this call, and the computation of tags hasn't completed yet, then force the
+            // tags to be computed now on this thread.  The singular use case for this is Outlining which needs those
+            // tags synchronously computed for things like Metadata-as-Source collapsing.
             if (_firstTagsRequest &&
                 _dataSource.ComputeInitialTagsSynchronously(buffer) &&
-                !this.CachedTagTrees.TryGetValue(buffer, out _))
+                !tagTrees.TryGetValue(buffer, out _))
             {
                 // Compute this as a high priority work item to have the lease amount of blocking as possible.
-                _dataSource.ThreadingContext.JoinableTaskFactory.Run(() =>
+                tagTrees = _dataSource.ThreadingContext.JoinableTaskFactory.Run(() =>
                     this.RecomputeTagsAsync(highPriority: true, _dataSource.SupportsFrozenPartialSemantics, _disposalTokenSource.Token));
             }
 
             _firstTagsRequest = false;
 
-            // We're on the UI thread, so it's safe to access these variables.
-            this.CachedTagTrees.TryGetValue(buffer, out var tags);
+            tagTrees.TryGetValue(buffer, out var tags);
             return tags;
         }
 
