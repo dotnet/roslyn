@@ -85,16 +85,9 @@ internal readonly partial record struct Checksum
     }
 
     public static Checksum Create(ArrayBuilder<Checksum> checksums)
-        => Create(checksums, static (checksums, writer) =>
-        {
-            foreach (var checksum in checksums)
-                checksum.WriteTo(writer);
-        });
-
-    public static Checksum CreateNew(ArrayBuilder<Checksum> checksums)
     {
-        // Max alloc 1 KB on stack (each Checksum is 16 bytes)
-        const int maxStackAllocCount = 1024 / 16;
+        // Max alloc 1 KB on stack
+        const int maxStackAllocCount = 1024 / Checksum.HashSize;
 
         var checksumsCount = checksums.Count;
         if (checksumsCount <= maxStackAllocCount)
@@ -128,21 +121,14 @@ internal readonly partial record struct Checksum
         }
     }
 
-    public static Checksum CreateNew(ImmutableArray<Checksum> checksums)
+    public static Checksum Create(ImmutableArray<Checksum> checksums)
     {
         var hashes = ImmutableCollectionsMarshal.AsArray(checksums).AsSpan();
 
         return Create(hashes);
     }
 
-    public static Checksum Create(ImmutableArray<Checksum> checksums)
-        => Create(checksums, static (checksums, writer) =>
-        {
-            foreach (var checksum in checksums)
-                checksum.WriteTo(writer);
-        });
-
-    public static Checksum CreateNew(ImmutableArray<byte> bytes)
+    public static Checksum Create(ImmutableArray<byte> bytes)
     {
         var source = ImmutableCollectionsMarshal.AsArray(bytes).AsSpan();
 
@@ -150,13 +136,6 @@ internal readonly partial record struct Checksum
         XxHash128.Hash(source, destination);
         return From(destination);
     }
-
-    public static Checksum Create(ImmutableArray<byte> bytes)
-        => Create(bytes, static (bytes, writer) =>
-        {
-            foreach (var b in bytes)
-                writer.WriteByte(b);
-        });
 
     public static Checksum Create<T>(T value, ISerializerService serializer, CancellationToken cancellationToken)
         => Create(

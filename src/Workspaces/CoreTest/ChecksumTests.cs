@@ -6,6 +6,8 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
@@ -47,6 +49,32 @@ public class ChecksumTests
         Assert.NotEqual(checksum1, checksumA);
         Assert.NotEqual(checksum2, checksumA);
         Assert.NotEqual(checksum3, checksumA);
+    }
+
+    [Fact]
+    public void VerifyChecksumCreationMethodsYieldSameResult()
+    {
+        Span<Checksum> builder = stackalloc Checksum[10];
+        for (var i = 0; i < 10; i++)
+            builder[i] = Checksum.Create("test " + i);
+
+        AssertEqual(Checksum.Create(builder[0], builder[1]), builder.Slice(0, 2));
+        AssertEqual(Checksum.Create(builder[0], builder[1], builder[2]), builder.Slice(0, 3));
+        AssertEqual(Checksum.Create(builder[0], builder[1], builder[2], builder[3]), builder.Slice(0, 4));
+
+        for (var i = 1; i < 10; i++)
+            AssertEqual(Checksum.Create(builder.Slice(0, i)), builder.Slice(0, i));
+
+        void AssertEqual(Checksum desiredResult, Span<Checksum> toValidate)
+        {
+            var checksumsImmutableArray = toValidate.ToImmutableArray();
+            Assert.Equal(desiredResult, Checksum.CreateNew(checksumsImmutableArray));
+
+            var checksumsArrayBuilder = ArrayBuilder<Checksum>.GetInstance();
+            checksumsArrayBuilder.AddRange(checksumsImmutableArray);
+
+            Assert.Equal(desiredResult, Checksum.CreateNew(checksumsArrayBuilder));
+        }
     }
 
     [Fact]
