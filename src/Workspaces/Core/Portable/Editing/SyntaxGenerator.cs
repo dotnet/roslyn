@@ -645,6 +645,7 @@ public abstract class SyntaxGenerator : ILanguageService
         string name,
         IEnumerable<string>? typeParameters = null,
         Accessibility accessibility = Accessibility.NotApplicable,
+        DeclarationModifiers modifiers = default,
         IEnumerable<SyntaxNode>? interfaceTypes = null,
         IEnumerable<SyntaxNode>? members = null)
     {
