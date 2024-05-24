@@ -27,12 +27,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
     /// tagging infrastructure. It is the coordinator between <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/>s,
     /// <see cref="ITaggerEventSource"/>s, and <see cref="ITagger{T}"/>s.</para>
     /// 
-    /// <para>The <see cref="TagSource"/> is the type that actually owns the
-    /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be  recomputed,
-    /// the tag source starts the computation and calls <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/> to build
-    /// the new list of tags. When that's done, the tags are stored in <see cref="CachedTagTrees"/>. The 
-    /// tagger, when asked for tags from the editor, then returns the tags that are stored in 
-    /// <see cref="CachedTagTrees"/></para>
+    /// <para>The <see cref="TagSource"/> is the type that actually owns the list of cached tags. When an <see
+    /// cref="ITaggerEventSource"/> says tags need to be  recomputed, the tag source starts the computation and calls
+    /// <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/> to build the new list of tags. When
+    /// that's done, the tags are stored in <see cref="_cachedTagTrees_mayChangeFromAnyThread"/>. The tagger, when asked
+    /// for tags from the editor, then returns the tags that are stored in <see
+    /// cref="_cachedTagTrees_mayChangeFromAnyThread"/></para>
     /// 
     /// <para>There is a one-to-many relationship between <see cref="TagSource"/>s
     /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
@@ -86,6 +86,11 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// </summary>
         private readonly CancellationSeries _nonFrozenComputationCancellationSeries;
 
+        /// <summary>
+        /// The last tag trees that we computed per buffer.
+        /// </summary>
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_mayChangeFromAnyThread = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
+
         #endregion
 
         #region Mutable state.  Only accessed from _eventChangeQueue
@@ -126,11 +131,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private readonly ITaggerEventSource _eventSource;
 
         #region Mutable state.  Can only be accessed from the foreground thread
-
-        /// <summary>
-        /// accumulated text changes since last tag calculation
-        /// </summary>
-        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
         /// <summary>
         /// Keep track of if we are processing the first <see cref="ITagger{T}.GetTags"/> request.  If our provider returns 
@@ -342,21 +342,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             optionChangedEventSources.Add(eventSource);
             return TaggerEventSources.Compose(optionChangedEventSources);
-        }
-
-        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> CachedTagTrees
-        {
-            get
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                return _cachedTagTrees_doNotAccessDirectly;
-            }
-
-            set
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                _cachedTagTrees_doNotAccessDirectly = value;
-            }
         }
 
         private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)
