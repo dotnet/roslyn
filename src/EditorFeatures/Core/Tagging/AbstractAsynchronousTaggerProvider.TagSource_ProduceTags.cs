@@ -226,9 +226,11 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// In the event of a cancellation request, this method may <em>either</em> return at the next availability
         /// or throw a cancellation exception.
         /// </remarks>
-        /// <param name="highPriority">
-        /// If this tagging request should be processed as quickly as possible with no extra delays added for it.
+        /// <param name="highPriority"> If this tagging request should be processed as quickly as possible with no extra
+        /// delays added for it.
         /// </param>
+        /// <param name="calledFromJtfRun">If this method is being called from within a JTF.Run call.  This is used to
+        /// ensure we don't do unnecessary switches to the threadpool while JTF is waiting on us.</param>
         private async Task<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>> RecomputeTagsAsync(
             bool highPriority,
             bool frozenPartialSemantics,
@@ -254,12 +256,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     _dataSource.ThreadingContext, _dataSource.AsyncListener, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(captureContext: true);
             }
 
-            _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-            if (cancellationToken.IsCancellationRequested)
-                return ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
-
             using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, cancellationToken))
             {
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+                if (cancellationToken.IsCancellationRequested)
+                    return ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
+
                 // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
                 // thread to do the computation. Finally, once new tags have been computed, then we update our state
                 // again on the foreground.
@@ -591,19 +593,18 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             if (_disposalTokenSource.Token.IsCancellationRequested)
                 return null;
 
-            var tagTrees = this.CachedTagTrees;
-
             // If this is the first time we're being asked for tags, and we're a tagger that requires the initial tags
             // be available synchronously on this call, and the computation of tags hasn't completed yet, then force the
             // tags to be computed now on this thread.  The singular use case for this is Outlining which needs those
             // tags synchronously computed for things like Metadata-as-Source collapsing.
+            var tagTrees = _cachedTagTrees_mayChangeFromAnyThread;
             if (_firstTagsRequest &&
                 _dataSource.ComputeInitialTagsSynchronously(buffer) &&
                 !tagTrees.TryGetValue(buffer, out _))
             {
                 // Compute this as a high priority work item to have the lease amount of blocking as possible.
                 tagTrees = _dataSource.ThreadingContext.JoinableTaskFactory.Run(() =>
-                    this.RecomputeTagsAsync(highPriority: true, _dataSource.SupportsFrozenPartialSemantics, _disposalTokenSource.Token));
+                    this.RecomputeTagsAsync(highPriority: true, _dataSource.SupportsFrozenPartialSemantics, calledFromJtfRun: true, _disposalTokenSource.Token));
             }
 
             _firstTagsRequest = false;
