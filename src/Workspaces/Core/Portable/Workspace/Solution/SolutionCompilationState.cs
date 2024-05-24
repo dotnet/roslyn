@@ -1253,7 +1253,7 @@ internal sealed partial class SolutionCompilationState
     /// name="sourceGeneratorExecutionVersions"/> must refer to projects in this solution.  Projects not mentioned in
     /// <paramref name="sourceGeneratorExecutionVersions"/> will not be touched (and they will stay in the map).
     /// </summary>
-    public SolutionCompilationState WithSourceGeneratorExecutionVersions(
+    public SolutionCompilationState UpdateSpecificSourceGeneratorExecutionVersions(
         SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions, CancellationToken cancellationToken)
     {
         var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();

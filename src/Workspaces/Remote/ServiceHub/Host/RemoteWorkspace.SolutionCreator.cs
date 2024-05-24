@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         }
 #endif
 
-                        solution = solution.WithSourceGeneratorExecutionVersions(newVersions, cancellationToken);
+                        solution = solution.UpdateSpecificSourceGeneratorExecutionVersions(newVersions, cancellationToken);
                     }
 
 #if DEBUG
