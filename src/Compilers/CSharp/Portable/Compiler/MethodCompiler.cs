@@ -1784,7 +1784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var compilation = bodyBinder.Compilation;
 
-                    if (method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet)
+                    if (method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove)
                     {
                         var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
                         if (requiredVersion > compilation.LanguageVersion)
@@ -2165,8 +2165,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static void ReportFieldOrValueContextualKeywordConflicts(MethodSymbol method, BoundNode node, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet);
-            Debug.Assert(method.AssociatedSymbol is PropertySymbol);
+            Debug.Assert(method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove);
+            Debug.Assert(method.AssociatedSymbol is PropertySymbol or EventSymbol);
 
             PooledDictionary<SyntaxNode, SyntaxToken>? valueIdentifiers = null;
 
@@ -2206,7 +2206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 break;
                             case "value":
-                                if (method.MethodKind == MethodKind.PropertySet)
+                                if (method.MethodKind is MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove)
                                 {
                                     // Record the potential "value" conflict, and report conflicts later,
                                     // after dropping any that refer to the implicit parameter.
@@ -2217,9 +2217,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     default:
-                        // If we reach here, add the unhandled identifier case to the
-                        // switch cases above (and test in FieldAndValueKeywordTests).
-                        Debug.Assert(false, $"Unhandled identifier: parent {syntax.Kind()}, token {token}");
+                        // The cases above should be the complete set of identifiers
+                        // expected in an accessor with -langversion:12 or earlier.
+                        Debug.Assert(false);
                         break;
                 }
             }
@@ -2255,7 +2255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitParameter(BoundParameter node)
             {
-                if (node.ParameterSymbol is SynthesizedPropertyAccessorValueParameterSymbol { Name: "value" })
+                if (node.ParameterSymbol is SynthesizedAccessorValueParameterSymbol { Name: "value" })
                 {
                     _valueIdentifiers.Remove(node.Syntax);
                 }

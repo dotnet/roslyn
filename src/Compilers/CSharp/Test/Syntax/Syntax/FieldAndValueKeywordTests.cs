@@ -328,10 +328,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         add { _ = C.value ?? C.@value; }
                         remove { _ = C.@value ?? C.value; }
                     }
+                    event EventHandler E3
+                    {
+                        add { _ = value ?? @value; }
+                        remove { _ = @value ?? value; }
+                    }
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics();
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (14,21): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
+                    //         add { _ = C.value ?? C.@value; }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(14, 21),
+                    // (15,36): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
+                    //         remove { _ = C.@value ?? C.value; }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(15, 36));
+            }
         }
 
         [Theory]
