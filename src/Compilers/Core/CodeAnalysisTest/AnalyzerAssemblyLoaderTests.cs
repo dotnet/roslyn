@@ -519,6 +519,7 @@ Delta: Gamma: Beta: Test B
             });
         }
 
+#if NET472
         /// <summary>
         /// Verify that MS.CA.EA.RazorCompiler will be loaded from the compiler directory not the 
         /// analyzer directory.
@@ -589,6 +590,8 @@ Delta: Gamma: Beta: Test B
                     deltaFile);
             });
         }
+
+#endif
 
         /// <summary>
         /// Similar to <see cref="AssemblyLoading_DependencyInDifferentDirectory"/> except want to validate
