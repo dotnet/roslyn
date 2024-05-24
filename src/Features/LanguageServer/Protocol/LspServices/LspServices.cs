@@ -109,7 +109,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 
     public bool TryGetService(Type type, [NotNullWhen(true)] out object? service)
     {
-        var typeName = type.AssemblyQualifiedName;
+        var typeName = type.FullName;
         Contract.ThrowIfNull(typeName);
 
         service = GetService(typeName);
@@ -119,7 +119,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
     private object? GetService(string typeName)
     {
         // We provide this ILspServices instance as a service.
-        if (typeName == typeof(ILspServices).AssemblyQualifiedName)
+        if (typeName == typeof(ILspServices).FullName)
         {
             return this;
         }
@@ -185,7 +185,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 
     private ImmutableArray<T> GetBaseServices<T>()
     {
-        var typeName = typeof(T).AssemblyQualifiedName;
+        var typeName = typeof(T).FullName;
         Contract.ThrowIfNull(typeName);
 
         return _baseServices.TryGetValue(typeName, out var baseServices)

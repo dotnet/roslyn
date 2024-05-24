@@ -124,13 +124,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             void AddBaseService(BaseService baseService)
             {
-                var assemblyQualifiedName = baseService.Type.AssemblyQualifiedName;
-                Contract.ThrowIfNull(assemblyQualifiedName);
+                var typeName = baseService.Type.FullName;
+                Contract.ThrowIfNull(typeName);
 
                 // If the service doesn't exist in the map yet, just add it.
-                if (!baseServiceMap.TryGetValue(assemblyQualifiedName, out var value))
+                if (!baseServiceMap.TryGetValue(typeName, out var value))
                 {
-                    baseServiceMap.Add(assemblyQualifiedName, baseService);
+                    baseServiceMap.Add(typeName, baseService);
                     return;
                 }
 
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                         builder.Add(existingService);
                         builder.Add(baseService);
 
-                        baseServiceMap[assemblyQualifiedName] = builder;
+                        baseServiceMap[typeName] = builder;
                         break;
 
                     // ... ImmutableArray<BaseService>.Builder. In this case, just add the new service to the builder.

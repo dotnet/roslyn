@@ -11,9 +11,21 @@ internal sealed class ExtensionTypeRefResolver(IAssemblyLoader assemblyLoader) :
 {
     protected override Type? ResolveCore(TypeRef typeRef)
     {
+        var assemblyQualifiedName = $"{typeRef.TypeName}, {typeRef.AssemblyName}";
+
         return Type.GetType(
-            typeRef.TypeName,
-            assemblyResolver: assemblyLoader.LoadAssembly,
+            assemblyQualifiedName,
+            assemblyResolver: assemblyName =>
+            {
+                if (typeRef.CodeBase is not null)
+                {
+#pragma warning disable SYSLIB0044 // Type or member is obsolete
+                    assemblyName.CodeBase = typeRef.CodeBase;
+#pragma warning restore SYSLIB0044 // Type or member is obsolete
+                }
+
+                return assemblyLoader.LoadAssembly(assemblyName);
+            },
             typeResolver: null);
     }
 }

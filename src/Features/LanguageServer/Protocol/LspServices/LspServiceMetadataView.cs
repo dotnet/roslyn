@@ -5,7 +5,7 @@
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
 
@@ -28,7 +28,9 @@ internal sealed class LspServiceMetadataView
     public LspServiceMetadataView(IDictionary<string, object> metadata)
     {
         var typeName = (string)metadata[nameof(AbstractExportLspServiceAttribute.TypeName)];
-        TypeRef = TypeRef.From(typeName);
+        var assemblyName = (string)metadata[nameof(AbstractExportLspServiceAttribute.AssemblyName)];
+        var codeBase = (string?)metadata[nameof(AbstractExportLspServiceAttribute.CodeBase)];
+        TypeRef = TypeRef.From(typeName, assemblyName, codeBase);
 
         var interfaceNames = (string[])metadata[nameof(AbstractExportLspServiceAttribute.InterfaceNames)];
         InterfaceNames = FrozenSet.ToFrozenSet(interfaceNames);
@@ -40,34 +42,47 @@ internal sealed class LspServiceMetadataView
 
         if (methodHandlerData is not null)
         {
-            Contract.ThrowIfFalse(methodHandlerData.Length % 5 == 0);
-
-            var total = methodHandlerData.Length / 5;
-
-            var handlerDetails = new MethodHandlerDetails[total];
+            using var _ = ArrayBuilder<MethodHandlerDetails>.GetInstance(out var handlerDetails);
 
             var index = 0;
-            for (var i = 0; i < total; i++)
+            while (index < methodHandlerData.Length)
             {
                 var methodName = methodHandlerData[index++];
                 var language = methodHandlerData[index++];
-                var requestTypeName = methodHandlerData[index++];
-                var responseTypeName = methodHandlerData[index++];
-                var requestContextTypeName = methodHandlerData[index++];
+                var requestTypeRef = ReadTypeRef(methodHandlerData, ref index);
+                var responseTypeRef = ReadTypeRef(methodHandlerData, ref index);
+                var requestContextTypeRef = ReadTypeRef(methodHandlerData, ref index).GetValueOrDefault();
 
-                handlerDetails[i] = new(
+                handlerDetails.Add(new(
                     methodName,
                     language,
-                    requestTypeName is not null ? TypeRef.From(requestTypeName) : null,
-                    responseTypeName is not null ? TypeRef.From(responseTypeName) : null,
-                    TypeRef.From(requestContextTypeName));
+                    requestTypeRef,
+                    responseTypeRef,
+                    requestContextTypeRef));
             }
 
-            HandlerDetails = ImmutableCollectionsMarshal.AsImmutableArray(handlerDetails);
+            HandlerDetails = handlerDetails.ToImmutableAndClear();
         }
         else
         {
             HandlerDetails = null;
+        }
+
+        static TypeRef? ReadTypeRef(string?[] methodHandlerData, ref int index)
+        {
+            var typeName = methodHandlerData[index++];
+
+            if (typeName is null)
+            {
+                return null;
+            }
+
+            var assemblyName = methodHandlerData[index++];
+            Contract.ThrowIfNull(assemblyName);
+
+            var codeBase = methodHandlerData[index++];
+
+            return TypeRef.From(typeName, assemblyName, codeBase);
         }
     }
 }

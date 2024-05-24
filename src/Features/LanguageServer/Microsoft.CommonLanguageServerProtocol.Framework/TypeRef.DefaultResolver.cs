@@ -15,7 +15,9 @@ internal readonly partial record struct TypeRef
     {
         protected override Type? ResolveCore(TypeRef typeRef)
         {
-            return LoadType(typeRef.TypeName);
+            var assemblyQualifiedName = $"{typeRef.TypeName}, {typeRef.AssemblyName}";
+
+            return LoadType(assemblyQualifiedName);
         }
 
         private static Type LoadType(string typeName)
