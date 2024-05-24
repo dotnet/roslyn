@@ -305,11 +305,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // latest tags.
                 var oldState = _state_accessOnlyFromEventChangeQueueCallback;
 
+                TaggerContext<TTag> context = null!;
                 var (oldTagTrees, newTagTrees) = await CompareAndSwapTagTreesAsync(
                     async oldTagTrees =>
                     {
                         // Create a context to store pass the information along and collect the results.
-                        var context = new TaggerContext<TTag>(
+                        context = new TaggerContext<TTag>(
                             oldState, frozenPartialSemantics, spansToTag, caretPosition, oldTagTrees);
                         await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
 
