@@ -93,8 +93,11 @@ internal readonly partial record struct Checksum
 
     public static Checksum CreateNew(ArrayBuilder<Checksum> checksums)
     {
+        // Max alloc 1 KB on stack (each Checksum is 16 bytes)
+        const int maxStackAllocCount = 1024 / 16;
+
         var checksumsCount = checksums.Count;
-        if (checksumsCount <= 100)
+        if (checksumsCount <= maxStackAllocCount)
         {
             Span<Checksum> hashes = stackalloc Checksum[checksumsCount];
             for (var i = 0; i < checksumsCount; i++)
@@ -102,8 +105,27 @@ internal readonly partial record struct Checksum
 
             return Create(hashes);
         }
+        else
+        {
+            using var pooledHash = s_incrementalHashPool.GetPooledObject();
+            Span<Checksum> checksumsSpan = stackalloc Checksum[maxStackAllocCount];
+            var checksumsIndex = 0;
 
-        return Create(checksums);
+            while (checksumsIndex < checksumsCount)
+            {
+                var count = Math.Min(maxStackAllocCount, checksumsCount - checksumsIndex);
+
+                for (var checksumsSpanIndex = 0; checksumsSpanIndex < count; checksumsIndex++)
+                    checksumsSpan[checksumsSpanIndex++] = checksums[checksumsIndex];
+
+                var hashSpan = checksumsSpan.Slice(0, count);
+                pooledHash.Object.Append(MemoryMarshal.AsBytes(hashSpan));
+            }
+
+            Span<byte> hash = stackalloc byte[XXHash128SizeBytes];
+            pooledHash.Object.GetHashAndReset(hash);
+            return From(hash);
+        }
     }
 
     public static Checksum CreateNew(ImmutableArray<Checksum> checksums)
