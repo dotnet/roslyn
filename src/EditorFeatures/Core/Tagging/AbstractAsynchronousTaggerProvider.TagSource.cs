@@ -89,7 +89,10 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private readonly CancellationSeries _nonFrozenComputationCancellationSeries;
 
         /// <summary>
-        /// The last tag trees that we computed per buffer.
+        /// The last tag trees that we computed per buffer.  Note: this can be read/written from any thread.  Because of
+        /// that, we have to use safe operations to actually read or write it.  This includes using looping "compare and
+        /// swap" algorithms to make sure that it is consistently moved forward no matter which thread is trying to
+        /// mutate it.
         /// </summary>
         private BufferToTagTree _cachedTagTrees_mayChangeFromAnyThread = BufferToTagTree.Empty;
 
