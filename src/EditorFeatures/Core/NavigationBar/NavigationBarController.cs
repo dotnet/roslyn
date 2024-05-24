@@ -145,14 +145,12 @@ internal partial class NavigationBarController : IDisposable
 
         void Pause()
         {
-            _threadingContext.ThrowIfNotOnUIThread();
             _paused = true;
             _eventSource.Pause();
         }
 
         void Resume()
         {
-            _threadingContext.ThrowIfNotOnUIThread();
             // if we're not actually paused, no need to do anything.
             if (_paused)
             {
