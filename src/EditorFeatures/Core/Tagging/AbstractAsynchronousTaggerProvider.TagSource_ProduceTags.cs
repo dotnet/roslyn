@@ -103,11 +103,15 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                         var tagsToRemove = e.Changes.SelectMany(c => treeForBuffer.GetIntersectingSpans(new SnapshotSpan(snapshot, c.NewSpan)));
                         if (tagsToRemove.Any())
                         {
-                            var allTags = treeForBuffer.GetTagSpans(snapshot).ToList();
+                            using var _ = _tagSpanSetPool.GetPooledObject(out var allTags);
+                            treeForBuffer.AddAllSpans(snapshot, allTags);
+
+                            allTags.RemoveAll(tagsToRemove);
+
                             var newTagTree = new TagSpanIntervalTree<TTag>(
                                 snapshot,
                                 this._dataSource.SpanTrackingMode,
-                                allTags.Except(tagsToRemove, comparer: this));
+                                allTags);
                             return new(oldTagTrees.SetItem(buffer, newTagTree));
                         }
                     }
