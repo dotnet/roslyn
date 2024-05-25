@@ -43,8 +43,17 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
             : localSpan.TranslateTo(textSnapshot, trackingMode);
     }
 
+    private ITagSpan<TTag> GetTranslatedITagSpan(ITagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot)
+        // Avoid reallocating in the case where we're on the same snapshot.
+        => originalTagSpan.Span.Snapshot == textSnapshot
+            ? originalTagSpan
+            : GetTranslatedTagSpan(originalTagSpan, textSnapshot, _spanTrackingMode);
+
     private static TagSpan<TTag> GetTranslatedTagSpan(ITagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
-        => new(GetTranslatedSpan(originalTagSpan, textSnapshot, trackingMode), originalTagSpan.Tag);
+        // Avoid reallocating in the case where we're on the same snapshot.
+        => originalTagSpan is TagSpan<TTag> tagSpan && tagSpan.Span.Snapshot == textSnapshot
+            ? tagSpan
+            : new(GetTranslatedSpan(originalTagSpan, textSnapshot, trackingMode), originalTagSpan.Tag);
 
     public ITextBuffer Buffer => _textBuffer;
 
@@ -84,7 +93,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
     }
 
     public IEnumerable<ITagSpan<TTag>> GetSpans(ITextSnapshot snapshot)
-        => _tree.Select(tn => GetTranslatedTagSpan(tn, snapshot, _spanTrackingMode));
+        => _tree.Select(tn => GetTranslatedITagSpan(tn, snapshot));
 
     /// <summary>
     /// Adds all the tag spans in <see langword="this"/> to <paramref name="tagSpans"/>, translating them to the given
@@ -93,12 +102,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
     public void AddAllSpans(ITextSnapshot textSnapshot, HashSet<ITagSpan<TTag>> tagSpans)
     {
         foreach (var tagSpan in _tree)
-        {
-            // Avoid reallocating in the case where we're on the same snapshot.
-            tagSpans.Add(tagSpan.Span.Snapshot == textSnapshot
-                ? tagSpan
-                : GetTranslatedTagSpan(tagSpan, textSnapshot, _spanTrackingMode));
-        }
+            tagSpans.Add(GetTranslatedITagSpan(tagSpan, textSnapshot));
     }
 
     /// <summary>
