@@ -43,7 +43,7 @@ internal abstract class AbstractClassificationService(ISyntaxClassificationServi
         return AddClassificationsAsync(document, textSpans, options, ClassificationType.EmbeddedLanguage, result, cancellationToken);
     }
 
-    private static async Task AddClassificationsAsync(
+    public async Task AddClassificationsAsync(
         Document document,
         ImmutableArray<TextSpan> textSpans,
         ClassificationOptions options,
@@ -134,21 +134,7 @@ internal abstract class AbstractClassificationService(ISyntaxClassificationServi
         return true;
     }
 
-    public static Task AddClassificationsInCurrentProcessAsync(
-        Document document,
-        ImmutableArray<TextSpan> textSpans,
-        ClassificationType type,
-        ClassificationOptions options,
-        SegmentedList<ClassifiedSpan> result,
-        CancellationToken cancellationToken)
-    {
-        if (document.GetRequiredLanguageService<IClassificationService>() is not AbstractClassificationService classificationService)
-            return Task.CompletedTask;
-
-        return classificationService.AddClassificationsInCurrentProcessWorkerAsync(document, textSpans, type, options, result, cancellationToken);
-    }
-
-    private async Task AddClassificationsInCurrentProcessWorkerAsync(
+    private async Task AddClassificationsInCurrentProcessAsync(
         Document document,
         ImmutableArray<TextSpan> textSpans,
         ClassificationType type,
