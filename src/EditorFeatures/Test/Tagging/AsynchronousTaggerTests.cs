@@ -247,7 +247,7 @@ public sealed class AsynchronousTaggerTests
 
     private sealed class TestTaggerProvider(
         IThreadingContext threadingContext,
-        Func<TaggerContext<TextMarkerTag>, DocumentSnapshotSpan, IEnumerable<ITagSpan<TextMarkerTag>>> callback,
+        Func<TaggerContext<TextMarkerTag>, DocumentSnapshotSpan, IEnumerable<TagSpan<TextMarkerTag>>> callback,
         ITaggerEventSource eventSource,
         IGlobalOptionService globalOptions,
         bool supportsFrozenPartialSemantics,

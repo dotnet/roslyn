@@ -89,7 +89,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             return [];
         }
 
-        private static IEnumerable<ITagSpan<IClassificationTag>> GetIntersectingTags(NormalizedSnapshotSpanCollection spans, TagSpanIntervalTree<IClassificationTag> cachedTags)
+        private static IEnumerable<TagSpan<IClassificationTag>> GetIntersectingTags(NormalizedSnapshotSpanCollection spans, TagSpanIntervalTree<IClassificationTag> cachedTags)
             => SegmentedListPool<TagSpan<IClassificationTag>>.ComputeList(
                 static (args, tags) => args.cachedTags.AddIntersectingTagSpans(args.spans, tags),
                 (cachedTags, spans));
@@ -125,7 +125,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             }
         }
 
-        private IEnumerable<ITagSpan<IClassificationTag>> ComputeAndCacheAllTags(
+        private IEnumerable<TagSpan<IClassificationTag>> ComputeAndCacheAllTags(
             NormalizedSnapshotSpanCollection spans,
             ITextSnapshot snapshot,
             Document document,

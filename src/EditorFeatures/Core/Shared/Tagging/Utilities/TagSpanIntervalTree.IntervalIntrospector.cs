@@ -13,12 +13,12 @@ internal partial class TagSpanIntervalTree<TTag>
     private readonly struct IntervalIntrospector(
         ITextSnapshot snapshot,
         SpanTrackingMode trackingMode)
-        : IIntervalIntrospector<ITagSpan<TTag>>
+        : IIntervalIntrospector<TagSpan<TTag>>
     {
-        public int GetStart(ITagSpan<TTag> value)
+        public int GetStart(TagSpan<TTag> value)
             => GetTranslatedSpan(value, snapshot, trackingMode).Start;
 
-        public int GetLength(ITagSpan<TTag> value)
+        public int GetLength(TagSpan<TTag> value)
             => GetTranslatedSpan(value, snapshot, trackingMode).Length;
     }
 }
