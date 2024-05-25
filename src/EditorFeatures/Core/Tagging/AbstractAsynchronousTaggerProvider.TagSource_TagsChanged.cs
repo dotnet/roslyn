@@ -21,7 +21,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
         private void OnTagsChangedForBuffer(
-            Dictionary<ITextBuffer, DiffResult> changes, bool highPriority)
+            ICollection<KeyValuePair<ITextBuffer, DiffResult>> changes, bool highPriority)
         {
             // Can be called from any thread.  Just filters out changes that aren't for our buffer and adds to the right
             // queue to actually notify interested parties.
