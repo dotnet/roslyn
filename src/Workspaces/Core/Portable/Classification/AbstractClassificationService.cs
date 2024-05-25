@@ -180,21 +180,23 @@ internal abstract class AbstractClassificationService(ISyntaxClassificationServi
         {
             throw ExceptionUtilities.UnexpectedValue(type);
         }
-    }
 
-    private (Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>>, Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>>) GetExtensionClassifiers(
-        Document document, ISyntaxClassificationService classificationService)
-    {
-        if (_getNodeClassifiers == null || _getTokenClassifiers == null)
+        return;
+
+        (Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>>, Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>>) GetExtensionClassifiers(
+            Document document, ISyntaxClassificationService classificationService)
         {
-            var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
-            var classifiers = classificationService.GetDefaultSyntaxClassifiers();
+            if (_getNodeClassifiers == null || _getTokenClassifiers == null)
+            {
+                var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
+                var classifiers = classificationService.GetDefaultSyntaxClassifiers();
 
-            _getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, static c => c.SyntaxNodeTypes);
-            _getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(classifiers, static c => c.SyntaxTokenKinds);
+                _getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, static c => c.SyntaxNodeTypes);
+                _getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(classifiers, static c => c.SyntaxTokenKinds);
+            }
+
+            return (_getNodeClassifiers, _getTokenClassifiers);
         }
-
-        return (_getNodeClassifiers, _getTokenClassifiers);
     }
 
     public async Task AddSyntacticClassificationsAsync(Document document, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
