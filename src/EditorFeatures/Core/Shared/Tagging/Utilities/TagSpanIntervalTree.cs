@@ -21,23 +21,30 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 /// tracked. That way you can query for intersecting/overlapping spans in a different snapshot
 /// than the one for the tag spans that were added.
 /// </summary>
-internal partial class TagSpanIntervalTree<TTag> where TTag : ITag
+internal sealed partial class TagSpanIntervalTree<TTag>(
+    ITextBuffer textBuffer,
+    SpanTrackingMode trackingMode,
+    IEnumerable<ITagSpan<TTag>>? values1 = null,
+    IEnumerable<ITagSpan<TTag>>? values2 = null) where TTag : ITag
 {
-    private readonly IntervalTree<TagNode> _tree;
-    private readonly ITextBuffer _textBuffer;
-    private readonly SpanTrackingMode _spanTrackingMode;
+    private readonly ITextBuffer _textBuffer = textBuffer;
+    private readonly SpanTrackingMode _spanTrackingMode = trackingMode;
+    private readonly IntervalTree<ITagSpan<TTag>> _tree = IntervalTree.Create(
+        new IntervalIntrospector(textBuffer.CurrentSnapshot, trackingMode),
+        values1, values2);
 
-    public TagSpanIntervalTree(ITextBuffer textBuffer,
-        SpanTrackingMode trackingMode,
-        IEnumerable<ITagSpan<TTag>>? values = null)
+    private static SnapshotSpan GetTranslatedSpan(
+        ITagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
     {
-        _textBuffer = textBuffer;
-        _spanTrackingMode = trackingMode;
+        var localSpan = originalTagSpan.Span;
 
-        var nodeValues = values?.Select(ts => new TagNode(ts, trackingMode));
-
-        _tree = IntervalTree.Create(new IntervalIntrospector(textBuffer.CurrentSnapshot), nodeValues);
+        return localSpan.Snapshot == textSnapshot
+            ? localSpan
+            : localSpan.TranslateTo(textSnapshot, trackingMode);
     }
+
+    private static TagSpan<TTag> GetTranslatedTagSpan(ITagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
+        => new(GetTranslatedSpan(originalTagSpan, textSnapshot, trackingMode), originalTagSpan.Tag);
 
     public ITextBuffer Buffer => _textBuffer;
 
@@ -48,7 +55,7 @@ internal partial class TagSpanIntervalTree<TTag> where TTag : ITag
         var snapshot = point.Snapshot;
         Debug.Assert(snapshot.TextBuffer == _textBuffer);
 
-        return _tree.HasIntervalThatContains(point.Position, length: 0, new IntervalIntrospector(snapshot));
+        return _tree.HasIntervalThatContains(point.Position, length: 0, new IntervalIntrospector(snapshot, _spanTrackingMode));
     }
 
     public IList<TagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
@@ -66,16 +73,49 @@ internal partial class TagSpanIntervalTree<TTag> where TTag : ITag
         var snapshot = snapshotSpan.Snapshot;
         Debug.Assert(snapshot.TextBuffer == _textBuffer);
 
-        using var intersectingIntervals = TemporaryArray<TagNode>.Empty;
+        using var intersectingIntervals = TemporaryArray<ITagSpan<TTag>>.Empty;
         _tree.FillWithIntervalsThatIntersectWith(
-            snapshotSpan.Start, snapshotSpan.Length, ref intersectingIntervals.AsRef(), new IntervalIntrospector(snapshot));
+            snapshotSpan.Start, snapshotSpan.Length,
+            ref intersectingIntervals.AsRef(),
+            new IntervalIntrospector(snapshot, _spanTrackingMode));
 
-        foreach (var tagNode in intersectingIntervals)
-            result.Add(tagNode.GetTranslatedTagSpan(snapshot));
+        foreach (var tagSpan in intersectingIntervals)
+            result.Add(GetTranslatedTagSpan(tagSpan, snapshot, _spanTrackingMode));
     }
 
     public IEnumerable<ITagSpan<TTag>> GetSpans(ITextSnapshot snapshot)
-        => _tree.Select(tn => tn.GetTranslatedTagSpan(snapshot));
+        => _tree.Select(tn => GetTranslatedTagSpan(tn, snapshot, _spanTrackingMode));
+
+    public void AddAllSpans(ITextSnapshot textSnapshot, HashSet<ITagSpan<TTag>> tagSpans)
+    {
+        foreach (var tagSpan in _tree)
+        {
+            // Avoid reallocating in the case where we're on the same snapshot.
+            tagSpans.Add(tagSpan.Span.Snapshot == textSnapshot
+                ? tagSpan
+                : GetTranslatedTagSpan(tagSpan, textSnapshot, _spanTrackingMode));
+        }
+    }
+
+    public void RemoveIntersectingTagSpans(SnapshotSpan snapshotSpan, HashSet<ITagSpan<TTag>> tagSpans)
+    {
+        using var buffer = TemporaryArray<ITagSpan<TTag>>.Empty;
+
+        var textSnapshot = snapshotSpan.Snapshot;
+        _tree.FillWithIntervalsThatIntersectWith(
+            snapshotSpan.Span.Start,
+            snapshotSpan.Span.Length,
+            ref buffer.AsRef(),
+            new IntervalIntrospector(textSnapshot, _spanTrackingMode));
+
+        foreach (var tagSpan in buffer)
+        {
+            // Avoid reallocating in the case where we're on the same snapshot.
+            tagSpans.Remove(tagSpan.Span.Snapshot == textSnapshot
+                ? tagSpan
+                : GetTranslatedTagSpan(tagSpan, textSnapshot, _spanTrackingMode));
+        }
+    }
 
     public bool IsEmpty()
         => _tree.IsEmpty();

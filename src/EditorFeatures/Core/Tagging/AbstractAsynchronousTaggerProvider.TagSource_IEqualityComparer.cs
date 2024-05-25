@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
@@ -11,8 +12,18 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag>
 {
     private partial class TagSource : IEqualityComparer<ITagSpan<TTag>>
     {
+        private readonly ObjectPool<HashSet<ITagSpan<TTag>>> _tagSpanSetPool;
+
         public bool Equals(ITagSpan<TTag>? x, ITagSpan<TTag>? y)
-            => x != null && y != null && x.Span == y.Span && _dataSource.TagEquals(x.Tag, y.Tag);
+        {
+            if (x == y)
+                return true;
+
+            if (x is null || y is null)
+                return false;
+
+            return x.Span == y.Span && _dataSource.TagEquals(x.Tag, y.Tag);
+        }
 
         /// <summary>
         /// For the purposes of hashing, just hash spans.  This will prevent most collisions.  And the rare

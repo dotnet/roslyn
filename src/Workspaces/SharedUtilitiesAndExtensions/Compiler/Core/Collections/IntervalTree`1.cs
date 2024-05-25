@@ -37,16 +37,24 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
     protected Node? root;
 
-    public static IntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T> values)
+    public static IntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values1 = null, IEnumerable<T>? values2 = null)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var result = new IntervalTree<T>();
-        foreach (var value in values)
-        {
-            result.root = Insert(result.root, new Node(value), in introspector);
-        }
+
+        AddAll(in introspector, values1);
+        AddAll(in introspector, values2);
 
         return result;
+
+        void AddAll(in TIntrospector introspector, IEnumerable<T>? values)
+        {
+            if (values != null)
+            {
+                foreach (var value in values)
+                    result.root = Insert(result.root, new Node(value), in introspector);
+            }
+        }
     }
 
     protected static bool Contains<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
