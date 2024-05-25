@@ -40,11 +40,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             {
                 // If it changed position and we're still in a tag, there's nothing more to do
                 var currentTags = TryGetTagIntervalTreeForBuffer(caret.Value.Snapshot.TextBuffer);
-                if (currentTags != null && currentTags.GetIntersectingSpans(new SnapshotSpan(caret.Value, 0)).Count > 0)
-                {
-                    // Caret is inside a tag.  No need to do anything.
+                if (currentTags != null && currentTags.HasSpanThatIntersects(caret.Value))
                     return;
-                }
             }
 
             RemoveAllTags();

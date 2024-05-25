@@ -55,6 +55,9 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
     public bool HasSpanThatContains(SnapshotPoint point)
         => _tree.HasIntervalThatContains(point.Position, length: 0, new IntervalIntrospector(point.Snapshot, _spanTrackingMode));
 
+    public bool HasSpanThatIntersects(SnapshotPoint point)
+        => _tree.HasIntervalThatIntersectsWith(point.Position, new IntervalIntrospector(point.Snapshot, _spanTrackingMode));
+
     public IReadOnlyList<TagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
         => SegmentedListPool<TagSpan<TTag>>.ComputeList(
             static (args, tags) => args.@this.AppendIntersectingSpansInSortedOrder(args.snapshotSpan, tags),
