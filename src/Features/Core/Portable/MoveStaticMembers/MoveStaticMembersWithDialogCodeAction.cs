@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -66,7 +67,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
             // we already have our destination type, but we need to find the document it is in
             // When it is an existing type, "FileName" points to a full path rather than just the name
             // There should be no two docs that have the same file path
-            var destinationDocId = _document.Project.Solution.GetDocumentIdsWithFilePath(moveOptions.FileName).Single();
+            var destinationDocId = sourceDoc.Project.Solution.GetDocumentIdsWithFilePath(moveOptions.FileName).Single();
             var fixedSolution = await RefactorAndMoveAsync(
                 moveOptions.SelectedMembers,
                 memberNodes,
@@ -77,7 +78,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
                 sourceDoc.Id,
                 destinationDocId,
                 cancellationToken).ConfigureAwait(false);
-            return new CodeActionOperation[] { new ApplyChangesOperation(fixedSolution) };
+            return [new ApplyChangesOperation(fixedSolution)];
         }
 
         // otherwise, we need to create a destination ourselves
@@ -100,10 +101,10 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
             sourceDoc.Project.Solution,
             moveOptions.NamespaceDisplay,
             moveOptions.FileName,
-            _document.Project.Id,
-            _document.Folders,
+            sourceDoc.Project.Id,
+            sourceDoc.Folders,
             newType,
-            _document,
+            sourceDoc,
             _fallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
@@ -113,7 +114,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         newType = (INamedTypeSymbol)destSemanticModel.GetRequiredDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken);
 
         // refactor references across the entire solution
-        var memberReferenceLocations = await FindMemberReferencesAsync(moveOptions.SelectedMembers, newDoc.Project.Solution, cancellationToken).ConfigureAwait(false);
+        var memberReferenceLocations = await FindMemberReferencesAsync(newDoc.Project.Solution, newDoc.Project.Id, moveOptions.SelectedMembers, cancellationToken).ConfigureAwait(false);
         var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
         var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, newDoc.Project.Solution, newType, typeArgIndices, cancellationToken).ConfigureAwait(false);
 
@@ -130,7 +131,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
         var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-        return new CodeActionOperation[] { new ApplyChangesOperation(movedSolution) };
+        return [new ApplyChangesOperation(movedSolution)];
     }
 
     /// <summary>
@@ -174,7 +175,8 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         oldSolution = newTypeDoc.WithSyntaxRoot(newTypeRoot).Project.Solution;
 
         // refactor references across the entire solution
-        var memberReferenceLocations = await FindMemberReferencesAsync(selectedMembers, oldSolution, cancellationToken).ConfigureAwait(false);
+        var memberReferenceLocations = await FindMemberReferencesAsync(
+            oldSolution, sourceDocId.ProjectId, selectedMembers, cancellationToken).ConfigureAwait(false);
         var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
         var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, oldSolution, newType, typeArgIndices, cancellationToken).ConfigureAwait(false);
 
@@ -326,11 +328,27 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
     }
 
     private static async Task<ImmutableArray<(ReferenceLocation location, bool isExtension)>> FindMemberReferencesAsync(
-        ImmutableArray<ISymbol> members,
         Solution solution,
+        ProjectId projectId,
+        ImmutableArray<ISymbol> members,
         CancellationToken cancellationToken)
     {
-        var tasks = members.Select(symbol => SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken));
+        var project = solution.GetRequiredProject(projectId);
+        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+        using var _ = ArrayBuilder<Task<IEnumerable<ReferencedSymbol>>>.GetInstance(out var tasks);
+        foreach (var member in members)
+        {
+            tasks.Add(Task.Run(async () =>
+            {
+                var symbolKey = member.GetSymbolKey(cancellationToken);
+                var resolvedMember = symbolKey.Resolve(compilation, ignoreAssemblyKey: false, cancellationToken).GetAnySymbol();
+                return resolvedMember is null
+                    ? []
+                    : await SymbolFinder.FindReferencesAsync(resolvedMember, solution, cancellationToken).ConfigureAwait(false);
+            }));
+        }
+
         var symbolRefs = await Task.WhenAll(tasks).ConfigureAwait(false);
         return symbolRefs
             .Flatten()

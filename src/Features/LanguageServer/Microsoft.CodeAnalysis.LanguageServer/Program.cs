@@ -7,8 +7,9 @@ using System.CommandLine;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
-using System.Runtime.Loader;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -16,9 +17,9 @@ using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 // Setting the title can fail if the process is run without a window, such
@@ -82,6 +83,11 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, serverConfiguration.DevKitDependencyPath, loggerFactory);
 
+    // LSP server doesn't have the pieces yet to support 'balanced' mode for source-generators.  Hardcode us to
+    // 'automatic' for now.
+    var globalOptionService = exportProvider.GetExportedValue<IGlobalOptionService>();
+    globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic);
+
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
     Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
 
@@ -120,7 +126,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
 
     // Send the named pipe connection info to the client 
-    Console.WriteLine(JsonConvert.SerializeObject(new NamedPipeInformation(clientPipeName)));
+    Console.WriteLine(JsonSerializer.Serialize(new NamedPipeInformation(clientPipeName)));
 
     // Wait for connection from client
     await pipeServer.WaitForConnectionAsync(cancellationToken);
@@ -204,6 +210,12 @@ static CliRootCommand CreateCommandLineParser()
         Required = false
     };
 
+    var razorDesignTimePathOption = new CliOption<string?>("--razorDesignTimePath")
+    {
+        Description = "Full path to the Razor design time target path (optional).",
+        Required = false
+    };
+
     var rootCommand = new CliRootCommand()
     {
         debugOption,
@@ -215,6 +227,7 @@ static CliRootCommand CreateCommandLineParser()
         extensionAssemblyPathsOption,
         devKitDependencyPathOption,
         razorSourceGeneratorOption,
+        razorDesignTimePathOption,
         extensionLogDirectoryOption
     };
     rootCommand.SetAction((parseResult, cancellationToken) =>
@@ -227,6 +240,7 @@ static CliRootCommand CreateCommandLineParser()
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
         var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
         var razorSourceGenerator = parseResult.GetValue(razorSourceGeneratorOption);
+        var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
 
         var serverConfiguration = new ServerConfiguration(
@@ -238,6 +252,7 @@ static CliRootCommand CreateCommandLineParser()
             ExtensionAssemblyPaths: extensionAssemblyPaths,
             DevKitDependencyPath: devKitDependencyPath,
             RazorSourceGenerator: razorSourceGenerator,
+            RazorDesignTimePath: razorDesignTimePath,
             ExtensionLogDirectory: extensionLogDirectory);
 
         return RunAsync(serverConfiguration, cancellationToken);

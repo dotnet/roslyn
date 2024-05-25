@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represent an action the user performs after a window/showMessageRequest request is sent.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#messageActionItem">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class MessageActionItem
     {
         /// <summary>
         /// Gets or sets the title.
         /// </summary>
-        [DataMember(Name = "title")]
+        [JsonPropertyName("title")]
         public string Title
         {
             get;

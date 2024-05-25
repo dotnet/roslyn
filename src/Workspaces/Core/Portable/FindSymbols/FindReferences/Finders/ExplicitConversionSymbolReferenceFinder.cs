@@ -59,7 +59,7 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
         }
     }
 
-    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override void FindReferencesInDocument<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -74,7 +74,6 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
                 state);
 
         FindReferencesInTokens(symbol, state, tokens, processResult, processResultData, cancellationToken);
-        return ValueTaskFactory.CompletedTask;
     }
 
     private static bool IsPotentialReference(

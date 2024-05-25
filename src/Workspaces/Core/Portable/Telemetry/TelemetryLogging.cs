@@ -6,7 +6,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Telemetry;
@@ -19,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Telemetry;
 internal static class TelemetryLogging
 {
     private static ITelemetryLogProvider? s_logProvider;
-    private static AsyncBatchingWorkQueue? s_postTelemetryQueue;
 
     public const string KeyName = "Name";
     public const string KeyValue = "Value";
@@ -28,19 +26,11 @@ internal static class TelemetryLogging
 
     public static event EventHandler<EventArgs>? Flushed;
 
-    public static void SetLogProvider(ITelemetryLogProvider logProvider, IAsynchronousOperationListener asyncListener)
+    public static void SetLogProvider(ITelemetryLogProvider logProvider)
     {
         s_logProvider = logProvider;
 
-        InterlockedOperations.Initialize(ref s_postTelemetryQueue, () =>
-            new AsyncBatchingWorkQueue(
-                TimeSpan.FromMinutes(30),
-                PostCollectedTelemetryAsync,
-                asyncListener,
-                CancellationToken.None));
-
-        // Add the initial item to the queue to ensure later processing.
-        s_postTelemetryQueue?.AddWork();
+        _ = PostCollectedTelemetryAsync(CancellationToken.None);
     }
 
     /// <summary>
@@ -134,13 +124,15 @@ internal static class TelemetryLogging
         Flushed?.Invoke(null, EventArgs.Empty);
     }
 
-    private static ValueTask PostCollectedTelemetryAsync(CancellationToken cancellationToken)
+    private static async Task PostCollectedTelemetryAsync(CancellationToken cancellationToken)
     {
+        await Task.Delay(TimeSpan.FromMinutes(30), cancellationToken).ConfigureAwait(false);
+
         Flush();
 
-        // Ensure PostCollectedTelemetryAsync will get fired again after the collection period.
-        s_postTelemetryQueue?.AddWork();
-
-        return ValueTaskFactory.CompletedTask;
+        // Create a fire and forget task to handle the next collection. This doesn't use IAsynchronousOperationListener
+        // to track this work as no-one needs to ensure this is sent, and the create a new item of work
+        // upon previous completion doesn't fit well in that model.
+        _ = PostCollectedTelemetryAsync(CancellationToken.None).ReportNonFatalErrorAsync();
     }
 }

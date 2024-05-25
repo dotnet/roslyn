@@ -4,13 +4,13 @@
 
 using System;
 using System.Composition;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Newtonsoft.Json;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -74,12 +74,8 @@ internal sealed class RazorDynamicRegistrationServiceFactory(
             // UIContext will already be active, so this method will be immediately called on the new instance.
             if (cancellationToken.IsCancellationRequested) return;
 
-            var serializer = new JsonSerializer();
-            serializer.AddVSInternalExtensionConverters();
-            var serializerSettings = new JsonSerializerSettings { Converters = serializer.Converters };
-
             // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
-            var serializedClientCapabilities = JsonConvert.SerializeObject(clientCapabilities, serializerSettings);
+            var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities, ProtocolConversions.LspJsonSerializerOptions);
             var razorCohostClientLanguageServerManager = new RazorCohostClientLanguageServerManager(clientLanguageServerManager!);
 
             var requestContext = new RazorCohostRequestContext(context);

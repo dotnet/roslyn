@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -11,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,12 +26,12 @@ internal abstract partial class AbstractGenerateEqualsAndGetHashCodeService : IG
 
     public async Task<Document> FormatDocumentAsync(Document document, SyntaxFormattingOptions options, CancellationToken cancellationToken)
     {
-        var rules = new List<AbstractFormattingRule> { new FormatLargeBinaryExpressionRule(document.GetRequiredLanguageService<ISyntaxFactsService>()) };
-        rules.AddRange(Formatter.GetDefaultFormattingRules(document));
-
+        var formatBinaryRule = new FormatLargeBinaryExpressionRule(document.GetRequiredLanguageService<ISyntaxFactsService>());
         var formattedDocument = await Formatter.FormatAsync(
             document, s_specializedFormattingAnnotation,
-            options, rules, cancellationToken).ConfigureAwait(false);
+            options,
+            [formatBinaryRule, .. Formatter.GetDefaultFormattingRules(document)],
+            cancellationToken).ConfigureAwait(false);
         return formattedDocument;
     }
 

@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents workspace capabilities.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#clientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class WorkspaceClientCapabilities
     {
         /// <summary>
         /// Gets or sets a value indicating whether apply edit is supported.
         /// </summary>
-        [DataMember(Name = "applyEdit")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("applyEdit")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool ApplyEdit
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the workspace edit setting.
         /// </summary>
-        [DataMember(Name = "workspaceEdit")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("workspaceEdit")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public WorkspaceEditSetting? WorkspaceEdit
         {
             get;
@@ -40,8 +38,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the setting which determines if did change configuration can be dynamically registered.
         /// </summary>
-        [DataMember(Name = "didChangeConfiguration")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("didChangeConfiguration")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? DidChangeConfiguration
         {
             get;
@@ -51,8 +49,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the setting which determines if did change watched files can be dynamically registered.
         /// </summary>
-        [DataMember(Name = "didChangeWatchedFiles")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("didChangeWatchedFiles")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? DidChangeWatchedFiles
         {
             get;
@@ -62,8 +60,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the setting which determines if symbols can be dynamically registered.
         /// </summary>
-        [DataMember(Name = "symbol")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("symbol")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SymbolSetting? Symbol
         {
             get;
@@ -73,8 +71,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the setting which determines if execute command can be dynamically registered.
         /// </summary>
-        [DataMember(Name = "executeCommand")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("executeCommand")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? ExecuteCommand
         {
             get;
@@ -84,8 +82,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets capabilities specific to the semantic token requests scoped to the workspace.
         /// </summary>
-        [DataMember(Name = "semanticTokens")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("semanticTokens")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SemanticTokensWorkspaceSetting? SemanticTokens
         {
             get;
@@ -95,8 +93,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets capabilities indicating what support the client has for workspace pull diagnostics.
         /// </summary>
-        [DataMember(Name = "diagnostics")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("diagnostics")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DiagnosticWorkspaceSetting? Diagnostics
         {
             get;
@@ -106,8 +104,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the capabilities if client support 'workspace/configuration' requests.
         /// </summary>
-        [DataMember(Name = "configuration")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("configuration")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool Configuration
         {
             get;
@@ -117,8 +115,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets of sets capabilities specific to the inlay hint requests scoped to the workspace.
         /// </summary>
-        [DataMember(Name = "inlayHint")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("inlayHint")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public InlayHintWorkspaceSetting? InlayHint
         {
             get;
@@ -128,8 +126,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets of sets capabilities specific to the code lens requests scoped to the workspace.
         /// </summary>
-        [DataMember(Name = "codeLens")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("codeLens")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CodeLensWorkspaceSetting? CodeLens
         {
             get;

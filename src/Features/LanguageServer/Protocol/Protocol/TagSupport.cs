@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the <see cref="TagSupport"/> capabilities.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#publishDiagnosticsClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class TagSupport
     {
         /// <summary>
         /// Gets or sets a value indicating the tags supported by the client.
         /// </summary>
-        [DataMember(Name = "valueSet")]
+        [JsonPropertyName("valueSet")]
         public DiagnosticTag[] ValueSet
         {
             get;

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -199,7 +198,7 @@ public class A { }";
             }
 
             [JsonRpcMethod(Methods.WorkspaceConfigurationName, UseSingleObjectParameterDeserialization = true)]
-            public JArray WorkspaceConfigurationName(ConfigurationParams configurationParams, CancellationToken _)
+            public List<string> WorkspaceConfigurationName(ConfigurationParams configurationParams, CancellationToken _)
             {
                 ReceivedWorkspaceConfigurationRequest = true;
                 var expectConfigurationItemsNumber = DidChangeConfigurationNotificationHandler.SupportedOptions.Sum(option => option is IPerLanguageValuedOption ? 2 : 1);
@@ -211,7 +210,7 @@ public class A { }";
                     AssertSectionPattern(item.Section);
                 }
 
-                return JArray.FromObject(MockClientSideValues);
+                return MockClientSideValues;
             }
 
             public void SetClientSideOptionValues(bool setToDefaultValue)

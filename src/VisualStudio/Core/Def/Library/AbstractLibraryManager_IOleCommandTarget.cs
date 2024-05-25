@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library;

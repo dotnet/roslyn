@@ -804,13 +804,13 @@ internal sealed partial class ContainedDocument : IContainedDocument
         venusFormattingRules.Add(baseIndentationRule);
         venusFormattingRules.Add(ContainedDocumentPreserveFormattingRule.Instance);
 
-        var formattingRules = venusFormattingRules.Concat(Formatter.GetDefaultFormattingRules(document));
-
         var services = document.Project.Solution.Services;
         var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
         var changes = formatter.GetFormattingResult(
             root, new TextSpan[] { CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan) },
-            options, formattingRules, CancellationToken.None).GetTextChanges(CancellationToken.None);
+            options,
+            [.. venusFormattingRules, .. Formatter.GetDefaultFormattingRules(document)],
+            CancellationToken.None).GetTextChanges(CancellationToken.None);
 
         visibleSpans.Add(visibleSpan);
         var newChanges = FilterTextChanges(document.GetTextSynchronously(CancellationToken.None), visibleSpans, changes.ToReadOnlyCollection()).Where(t => visibleSpan.Contains(t.Span));

@@ -114,27 +114,35 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
             }));
         }
 
-        TelemetryLogging.Log(FunctionId.LSP_FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
+        if (!_findDocumentResults.IsEmpty)
         {
-            m["server"] = _serverTypeName;
-            foreach (var kvp in _findDocumentResults)
+            TelemetryLogging.Log(FunctionId.LSP_FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
             {
-                var info = kvp.Key.ToString()!;
-                m[info] = kvp.Value.GetCount();
-            }
-        }));
+                m["server"] = _serverTypeName;
+                foreach (var kvp in _findDocumentResults)
+                {
+                    var info = kvp.Key.ToString()!;
+                    m[info] = kvp.Value.GetCount();
+                }
+            }));
+        }
 
-        TelemetryLogging.Log(FunctionId.LSP_UsedForkedSolution, KeyValueLogMessage.Create(LogType.Trace, m =>
+        if (!_usedForkedSolutionCounter.IsEmpty)
         {
-            m["server"] = _serverTypeName;
-            foreach (var kvp in _usedForkedSolutionCounter)
+            TelemetryLogging.Log(FunctionId.LSP_UsedForkedSolution, KeyValueLogMessage.Create(LogType.Trace, m =>
             {
-                var info = kvp.Key.ToString()!;
-                m[info] = kvp.Value.GetCount();
-            }
-        }));
+                m["server"] = _serverTypeName;
+                foreach (var kvp in _usedForkedSolutionCounter)
+                {
+                    var info = kvp.Key.ToString()!;
+                    m[info] = kvp.Value.GetCount();
+                }
+            }));
+        }
 
         _requestCounters.Clear();
+        _findDocumentResults.Clear();
+        _usedForkedSolutionCounter.Clear();
     }
 
     private class Counter

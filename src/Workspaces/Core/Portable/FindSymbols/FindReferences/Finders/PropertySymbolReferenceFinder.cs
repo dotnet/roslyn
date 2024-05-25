@@ -13,12 +13,17 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
 internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IPropertySymbol>
 {
+    public static readonly PropertySymbolReferenceFinder Instance = new();
+
+    private PropertySymbolReferenceFinder()
+    {
+    }
+
     protected override bool CanFind(IPropertySymbol symbol)
         => true;
 
@@ -119,7 +124,7 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
     private static bool IsForEachProperty(IPropertySymbol symbol)
         => symbol.Name == WellKnownMemberNames.CurrentPropertyName;
 
-    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override void FindReferencesInDocument<TData>(
         IPropertySymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -157,7 +162,6 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
 
         FindReferencesInDocumentInsideGlobalSuppressions(
             symbol, state, processResult, processResultData, cancellationToken);
-        return ValueTaskFactory.CompletedTask;
     }
 
     private static Task FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync<TData>(

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using ObjectFormatterFixtures;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -507,7 +508,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                 return i < 7;
             });
             str = s_formatter.FormatObject(obj, SingleLineOptions);
-            Assert.Equal("Enumerable.WhereEnumerableIterator<int> { 0, 1, 2, 3, 4, !<Exception> ... }", str);
+            var iteratorType = RuntimeUtilities.IsCoreClr9OrHigherRuntime
+                ? "IEnumerableWhereIterator"
+                : "WhereEnumerableIterator";
+            Assert.Equal($"Enumerable.{iteratorType}<int> {{ 0, 1, 2, 3, 4, !<Exception> ... }}", str);
         }
 
         [Fact]

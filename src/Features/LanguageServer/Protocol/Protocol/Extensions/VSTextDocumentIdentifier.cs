@@ -5,20 +5,18 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// <see cref="VSTextDocumentIdentifier"/> extends <see cref="TextDocumentIdentifier"/> providing additional properties used by Visual Studio.
     /// </summary>
-    [DataContract]
     internal class VSTextDocumentIdentifier : TextDocumentIdentifier, IEquatable<VSTextDocumentIdentifier>
     {
         /// <summary>
         /// Gets or sets the project context of the text document.
         /// </summary>
-        [DataMember(Name = "_vs_projectContext")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_projectContext")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public VSProjectContext? ProjectContext
         {
             get;

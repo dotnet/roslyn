@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 

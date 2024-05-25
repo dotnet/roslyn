@@ -4,21 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which encapsulates a text document changed event.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentContentChangeEvent">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class TextDocumentContentChangeEvent
     {
         /// <summary>
         /// Gets or sets the range of the text that was changed.
         /// </summary>
-        [DataMember(Name = "range")]
+        [JsonPropertyName("range")]
         public Range Range
         {
             get;
@@ -28,8 +26,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the length of the range that got replaced.
         /// </summary>
-        [DataMember(Name = "rangeLength")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("rangeLength")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? RangeLength
         {
             get;
@@ -39,7 +37,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the new text of the range/document.
         /// </summary>
-        [DataMember(Name = "text")]
+        [JsonPropertyName("text")]
         public string Text
         {
             get;

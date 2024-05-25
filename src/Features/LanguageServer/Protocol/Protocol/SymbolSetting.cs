@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the symbol setting for initialization.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_symbol">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SymbolSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets the <see cref="SymbolKindSetting"/> information.
         /// </summary>
-        [DataMember(Name = "symbolKind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("symbolKind")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SymbolKindSetting? SymbolKind
         {
             get;

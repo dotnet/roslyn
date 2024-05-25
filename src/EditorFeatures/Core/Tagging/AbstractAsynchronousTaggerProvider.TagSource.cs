@@ -5,11 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces;
@@ -27,12 +30,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
     /// tagging infrastructure. It is the coordinator between <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/>s,
     /// <see cref="ITaggerEventSource"/>s, and <see cref="ITagger{T}"/>s.</para>
     /// 
-    /// <para>The <see cref="TagSource"/> is the type that actually owns the
-    /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be  recomputed,
-    /// the tag source starts the computation and calls <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/> to build
-    /// the new list of tags. When that's done, the tags are stored in <see cref="CachedTagTrees"/>. The 
-    /// tagger, when asked for tags from the editor, then returns the tags that are stored in 
-    /// <see cref="CachedTagTrees"/></para>
+    /// <para>The <see cref="TagSource"/> is the type that actually owns the list of cached tags. When an <see
+    /// cref="ITaggerEventSource"/> says tags need to be  recomputed, the tag source starts the computation and calls
+    /// <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/> to build the new list of tags. When
+    /// that's done, the tags are stored in <see cref="_cachedTagTrees_mayChangeFromAnyThread"/>. The tagger, when asked
+    /// for tags from the editor, then returns the tags that are stored in <see
+    /// cref="_cachedTagTrees_mayChangeFromAnyThread"/></para>
     /// 
     /// <para>There is a one-to-many relationship between <see cref="TagSource"/>s
     /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
@@ -86,6 +89,20 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// </summary>
         private readonly CancellationSeries _nonFrozenComputationCancellationSeries;
 
+        /// <summary>
+        /// The last tag trees that we computed per buffer.  Note: this can be read/written from any thread.  Because of
+        /// that, we have to use safe operations to actually read or write it.  This includes using looping "compare and
+        /// swap" algorithms to make sure that it is consistently moved forward no matter which thread is trying to
+        /// mutate it.
+        /// </summary>
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_mayChangeFromAnyThread = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
+
+        #endregion
+
+        #region Mutable state.  Only accessed from _eventChangeQueue
+
+        private object? _state_accessOnlyFromEventChangeQueueCallback;
+
         #endregion
 
         #region Fields that can only be accessed from the foreground thread
@@ -122,13 +139,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         #region Mutable state.  Can only be accessed from the foreground thread
 
         /// <summary>
-        /// accumulated text changes since last tag calculation
-        /// </summary>
-        private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
-        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
-        private object? _state_doNotAccessDirecty;
-
-        /// <summary>
         /// Keep track of if we are processing the first <see cref="ITagger{T}.GetTags"/> request.  If our provider returns 
         /// <see langword="true"/> for <see cref="AbstractAsynchronousTaggerProvider{TTag}.ComputeInitialTagsSynchronously"/>,
         /// then we'll want to synchronously block then and only then for tags.
@@ -162,6 +172,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             _dataSource = dataSource;
             _asyncListener = asyncListener;
             _nonFrozenComputationCancellationSeries = new(_disposalTokenSource.Token);
+            _tagSpanSetPool = new ObjectPool<HashSet<ITagSpan<TTag>>>(() => new HashSet<ITagSpan<TTag>>(this), trimOnFree: false);
 
             _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
 
@@ -202,9 +213,13 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // Create the tagger-specific events that will cause the tagger to refresh.
             _eventSource = CreateEventSource();
 
-            // any time visibility changes, resume tagging on all taggers.  Any non-visible taggers will pause
-            // themselves immediately afterwards.
-            _onVisibilityChanged = () => ResumeIfVisible();
+            // Any time visibility changes try to pause us if we're not visible, or resume us if we are.
+            _onVisibilityChanged = () =>
+            {
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+                PauseIfNotVisible();
+                ResumeIfVisible();
+            };
 
             // Now hook up this tagger to all interesting events.
             Connect();
@@ -225,8 +240,11 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 _eventSource.Changed += OnEventSourceChanged;
 
-                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
+                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags) ||
+                    _dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits))
+                {
                     _subjectBuffer.Changed += OnSubjectBufferChanged;
+                }
 
                 if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
                 {
@@ -270,8 +288,11 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     _textView.Caret.PositionChanged -= OnCaretPositionChanged;
                 }
 
-                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
+                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags) ||
+                    _dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits))
+                {
                     _subjectBuffer.Changed -= OnSubjectBufferChanged;
+                }
 
                 _eventSource.Changed -= OnEventSourceChanged;
 
@@ -334,51 +355,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             optionChangedEventSources.Add(eventSource);
             return TaggerEventSources.Compose(optionChangedEventSources);
-        }
-
-        private TextChangeRange? AccumulatedTextChanges
-        {
-            get
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                return _accumulatedTextChanges_doNotAccessDirectly;
-            }
-
-            set
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                _accumulatedTextChanges_doNotAccessDirectly = value;
-            }
-        }
-
-        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> CachedTagTrees
-        {
-            get
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                return _cachedTagTrees_doNotAccessDirectly;
-            }
-
-            set
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                _cachedTagTrees_doNotAccessDirectly = value;
-            }
-        }
-
-        private object? State
-        {
-            get
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                return _state_doNotAccessDirecty;
-            }
-
-            set
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-                _state_doNotAccessDirecty = value;
-            }
         }
 
         private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)

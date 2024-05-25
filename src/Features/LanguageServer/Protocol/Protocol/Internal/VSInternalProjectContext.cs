@@ -5,20 +5,18 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class for a project context.
     /// </summary>
-    [DataContract]
     internal class VSInternalProjectContext : VSProjectContext, IEquatable<VSInternalProjectContext>
     {
         /// <summary>
         /// Gets or sets the string context kind of the project context.
         /// </summary>
-        [DataMember(Name = "_vs_vsKind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_vsKind")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalKindAndModifier? VSKind
         {
             get;

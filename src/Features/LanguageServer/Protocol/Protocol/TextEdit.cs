@@ -4,20 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents a text edit to a document.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textEdit">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class TextEdit
     {
         /// <summary>
         /// Gets or sets the value which indicates the range of the text edit.
         /// </summary>
-        [DataMember(Name = "range", IsRequired = true)]
+        [JsonPropertyName("range")]
+        [JsonRequired]
         public Range Range
         {
             get;
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value of the new text.
         /// </summary>
-        [DataMember(Name = "newText")]
+        [JsonPropertyName("newText")]
         public string NewText
         {
             get;

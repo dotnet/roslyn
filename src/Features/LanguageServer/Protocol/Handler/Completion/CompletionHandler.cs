@@ -73,8 +73,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var (list, isIncomplete, resultId) = completionListResult.Value;
 
             var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
-            return await creationService.ConvertToLspCompletionListAsync(document, position, capabilityHelper, list, isIncomplete, resultId, cancellationToken)
+            var result = await creationService.ConvertToLspCompletionListAsync(document, position, capabilityHelper, list, isIncomplete, resultId, cancellationToken)
                 .ConfigureAwait(false);
+            return result;
         }
 
         private async Task<(CompletionList CompletionList, bool IsIncomplete, long ResultId)?> GetFilteredCompletionListAsync(

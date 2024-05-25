@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -79,14 +77,8 @@ internal static partial class FixAllContextHelper
                         source: projectsToFix,
                         produceItems: static async (projectToFix, callback, args, cancellationToken) =>
                         {
-                            try
-                            {
-                                callback(await args.fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false));
-                            }
-                            finally
-                            {
-                                args.progressTracker.ItemCompleted();
-                            }
+                            using var _ = args.progressTracker.ItemCompletedScope();
+                            callback(await args.fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false));
                         },
                         consumeItems: static async (results, args, cancellationToken) =>
                         {

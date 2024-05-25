@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents the initialization setting for hover.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#hoverClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class HoverSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets the <see cref="MarkupKind"/> values supported.
         /// </summary>
-        [DataMember(Name = "contentFormat")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("contentFormat")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public MarkupKind[]? ContentFormat
         {
             get;

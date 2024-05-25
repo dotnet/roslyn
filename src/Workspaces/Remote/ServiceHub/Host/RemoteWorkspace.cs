@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         /// <summary>
         /// Create an appropriate <see cref="Solution"/> instance corresponding to the <paramref
-        /// name="solutionChecksum"/> passed in.  Note: this method changes no Workspace state and exists purely to
+        /// name="newSolutionChecksum"/> passed in.  Note: this method changes no Workspace state and exists purely to
         /// compute the corresponding solution.  Updating of our caches, or storing this solution as the <see
         /// cref="Workspace.CurrentSolution"/> of this <see cref="RemoteWorkspace"/> is the responsibility of any
         /// callers.
@@ -254,17 +254,17 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private async Task<Solution> ComputeDisconnectedSolutionAsync(
             AssetProvider assetProvider,
-            Checksum solutionChecksum,
+            Checksum newSolutionChecksum,
             CancellationToken cancellationToken)
         {
             try
             {
                 var solutionToUpdate = await GetOrCreateSolutionToUpdateAsync(
-                    assetProvider, solutionChecksum, cancellationToken).ConfigureAwait(false);
+                    assetProvider, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
 
                 // Now, bring that solution in line with the snapshot defined by solutionChecksum.
                 var updater = new SolutionCreator(Services.HostServices, assetProvider, solutionToUpdate);
-                return await updater.CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                return await updater.CreateSolutionAsync(newSolutionChecksum, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {

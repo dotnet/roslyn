@@ -4,21 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// A class representing inlay hints that appear next to parameters or types.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHint">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class InlayHint
     {
         /// <summary>
         /// Gets or sets the position that the inlay hint applies to.
         /// </summary>
-        [DataMember(Name = "position")]
+        [JsonPropertyName("position")]
         public Position Position
         {
             get;
@@ -28,7 +26,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the label associated with this inlay hint.
         /// </summary>
-        [DataMember(Name = "label")]
+        [JsonPropertyName("label")]
         public SumType<string, InlayHintLabelPart[]> Label
         {
             get;
@@ -38,8 +36,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the InlayHintKind associated with this inlay hint.
         /// </summary>
-        [DataMember(Name = "kind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("kind")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public InlayHintKind? Kind
         {
             get;
@@ -49,8 +47,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the TextEdits associated with this inlay hint.
         /// </summary>
-        [DataMember(Name = "textEdits")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("textEdits")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public TextEdit[]? TextEdits
         {
             get;
@@ -60,8 +58,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the tooltip of this inlay hint.
         /// </summary>
-        [DataMember(Name = "tooltip")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("tooltip")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SumType<string, MarkupContent>? ToolTip
         {
             get;
@@ -71,8 +69,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the padding before this inlay hint.
         /// </summary>
-        [DataMember(Name = "paddingLeft")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("paddingLeft")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool PaddingLeft
         {
             get;
@@ -82,8 +80,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the padding after this inlay hint.
         /// </summary>
-        [DataMember(Name = "paddingRight")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("paddingRight")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool PaddingRight
         {
             get;
@@ -93,8 +91,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the data that should be preserved between a textDocument/inlayHint request and a inlayHint/resolve request.
         /// </summary>
-        [DataMember(Name = "data")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("data")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? Data
         {
             get;

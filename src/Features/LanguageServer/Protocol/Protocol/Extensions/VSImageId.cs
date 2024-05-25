@@ -5,7 +5,7 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// <see cref="VSImageId"/> represents the unique identifier for a Visual Studio image asset.
@@ -13,13 +13,12 @@ namespace Roslyn.LanguageServer.Protocol
     /// A list of valid image ids can be retrieved from the <see href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.imaging.knownmonikers">KnownMonikers class</see>
     /// from the Visual Studio SDK.
     /// </summary>
-    [DataContract]
     internal class VSImageId : IEquatable<VSImageId>
     {
         /// <summary>
         /// Gets or sets the <see cref="Guid" /> component of the unique identifier.
         /// </summary>
-        [DataMember(Name = "_vs_guid")]
+        [JsonPropertyName("_vs_guid")]
         public Guid Guid
         {
             get;
@@ -29,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the integer component of the unique identifier.
         /// </summary>
-        [DataMember(Name = "_vs_id")]
+        [JsonPropertyName("_vs_id")]
         public int Id
         {
             get;

@@ -4,18 +4,18 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing a diagnostic pull request result for all documents.
     /// </summary>
-    [DataContract]
     internal class VSInternalWorkspaceDiagnosticReport : VSInternalDiagnosticReport
     {
         /// <summary>
         /// Gets or sets the document for which diagnostics is returned.
         /// </summary>
-        [DataMember(Name = "_vs_textDocument", IsRequired = true)]
+        [JsonPropertyName("_vs_textDocument")]
+        [JsonRequired]
         public TextDocumentIdentifier? TextDocument { get; set; }
     }
 }

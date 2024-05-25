@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
@@ -23,11 +22,11 @@ internal sealed class TelemetryLogProvider : ITelemetryLogProvider
         _visualStudioTelemetryLogManager = new VisualStudioTelemetryLogManager(session, telemetryLogger);
     }
 
-    public static TelemetryLogProvider Create(TelemetrySession session, ILogger telemetryLogger, IAsynchronousOperationListener asyncListener)
+    public static TelemetryLogProvider Create(TelemetrySession session, ILogger telemetryLogger)
     {
         var logProvider = new TelemetryLogProvider(session, telemetryLogger);
 
-        TelemetryLogging.SetLogProvider(logProvider, asyncListener);
+        TelemetryLogging.SetLogProvider(logProvider);
 
         return logProvider;
     }

@@ -2,25 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+namespace Microsoft.CodeAnalysis.MSBuild;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Logging
+internal sealed class MSBuildDiagnosticLogItem(
+    DiagnosticLogItemKind kind,
+    string projectFilePath,
+    string message,
+    string fileName,
+    int lineNumber,
+    int columnNumber)
+    : DiagnosticLogItem(kind, message, projectFilePath)
 {
-    internal class MSBuildDiagnosticLogItem : DiagnosticLogItem
-    {
-        public string FileName { get; }
-        public int LineNumber { get; }
-        public int ColumnNumber { get; }
+    public string FileName { get; } = fileName;
+    public int LineNumber { get; } = lineNumber;
+    public int ColumnNumber { get; } = columnNumber;
 
-        public MSBuildDiagnosticLogItem(WorkspaceDiagnosticKind kind, string projectFilePath, string message, string fileName, int lineNumber, int columnNumber)
-            : base(kind, message, projectFilePath)
-        {
-            FileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
-            LineNumber = lineNumber;
-            ColumnNumber = columnNumber;
-        }
-
-        public override string ToString()
-            => $"{FileName}: ({LineNumber}, {ColumnNumber}): {Message}";
-    }
+    public override string ToString()
+        => $"{FileName}: ({LineNumber}, {ColumnNumber}): {Message}";
 }

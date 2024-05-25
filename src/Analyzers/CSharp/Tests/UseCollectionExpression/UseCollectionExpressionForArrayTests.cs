@@ -5310,78 +5310,6 @@ public class UseCollectionExpressionForArrayTests
                 {
                     public void Test(dynamic obj)
                     {
-                        Test1(obj, new int?[] { 3 });
-                    }
-
-                    private void Test1(dynamic obj, params int?[][] args)
-                    {
-                    }
-                }
-                """,
-            LanguageVersion = LanguageVersion.Preview,
-        }.RunAsync();
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72640")]
-    public async Task TestDynamic7()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode =
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq.Expressions;
-
-                class C
-                {
-                    public void Test(dynamic obj)
-                    {
-                        Test1(obj, [|[|new|] int?[]|] { 3 });
-                    }
-
-                    private void Test1(dynamic obj, int?[] args)
-                    {
-                    }
-                }
-                """,
-            FixedCode =
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq.Expressions;
-
-                class C
-                {
-                    public void Test(dynamic obj)
-                    {
-                        Test1(obj, [3]);
-                    }
-
-                    private void Test1(dynamic obj, int?[] args)
-                    {
-                    }
-                }
-                """,
-            LanguageVersion = LanguageVersion.Preview,
-        }.RunAsync();
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72640")]
-    public async Task TestDynamic6_CSharp12()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode =
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq.Expressions;
-
-                class C
-                {
-                    public void Test(dynamic obj)
-                    {
                         Test1(obj, [|[|new|] int?[]|] { 3 });
                     }
 
@@ -5395,7 +5323,7 @@ public class UseCollectionExpressionForArrayTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72640")]
-    public async Task TestDynamic7_CSharp12()
+    public async Task TestDynamic7()
     {
         await new VerifyCS.Test
         {

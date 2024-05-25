@@ -5,15 +5,13 @@
 namespace Roslyn.LanguageServer.Protocol;
 
 using System;
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing the document diagnostic request parameters
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentDiagnosticParams">Language Server Protocol specification</see> for additional information.
 /// </summary>
-[DataContract]
 internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultParams<SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>>
 {
     /// <summary>
@@ -23,8 +21,8 @@ internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultPar
     /// Note that the first literal send needs to be either the <see cref="RelatedUnchangedDocumentDiagnosticReport"/> or <see cref="RelatedUnchangedDocumentDiagnosticReport"/>
     /// followed by n <see cref="DocumentDiagnosticReportPartialResult"/> literals.
     /// </remarks>
-    [DataMember(Name = Methods.PartialResultTokenName, IsRequired = false)]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName(Methods.PartialResultTokenName)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IProgress<SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>>? PartialResultToken
     {
         get;
@@ -34,7 +32,7 @@ internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultPar
     /// <summary>
     /// Gets or sets the <see cref="TextDocumentIdentifier"/> to provide diagnostics for.
     /// </summary>
-    [DataMember(Name = "textDocument")]
+    [JsonPropertyName("textDocument")]
     public TextDocumentIdentifier TextDocument
     {
         get;
@@ -44,8 +42,8 @@ internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultPar
     /// <summary>
     /// Gets or sets the identifier for which the client is requesting diagnostics for.
     /// </summary>
-    [DataMember(Name = "identifier")]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("identifier")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Identifier
     {
         get;
@@ -55,8 +53,8 @@ internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultPar
     /// <summary>
     /// Gets or sets the result id of a previous diagnostics response if provided.
     /// </summary>
-    [DataMember(Name = "previousResultId")]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("previousResultId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? PreviousResultId
     {
         get;

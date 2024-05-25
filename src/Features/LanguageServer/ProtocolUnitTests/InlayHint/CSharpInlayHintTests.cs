@@ -2,22 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InlineHints;
 using Roslyn.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 using Microsoft.CodeAnalysis.Text;
-using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
+using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint
 {
@@ -134,7 +131,7 @@ class A
 
             var actualInlayHints = await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
             var firstInlayHint = actualInlayHints.First();
-            var data = JsonConvert.DeserializeObject<InlayHintResolveData>(firstInlayHint.Data!.ToString());
+            var data = JsonSerializer.Deserialize<InlayHintResolveData>(firstInlayHint.Data!.ToString(), ProtocolConversions.LspJsonSerializerOptions);
             AssertEx.NotNull(data);
             var firstResultId = data.ResultId;
 

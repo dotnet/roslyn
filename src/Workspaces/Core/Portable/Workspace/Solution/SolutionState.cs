@@ -988,24 +988,6 @@ internal sealed partial class SolutionState
         return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(textAndVersion, mode));
     }
 
-    /// <summary>
-    /// Creates a new solution instance with the document specified updated to have a syntax tree
-    /// rooted by the specified syntax node.
-    /// </summary>
-    public StateChange WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
-    {
-        var oldDocument = GetRequiredDocumentState(documentId);
-        if (oldDocument.TryGetSyntaxTree(out var oldTree) &&
-            oldTree.TryGetRoot(out var oldRoot) &&
-            oldRoot == root)
-        {
-            var oldProject = GetRequiredProjectState(documentId.ProjectId);
-            return new(this, oldProject, oldProject);
-        }
-
-        return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
-    }
-
     /// <param name="forceEvenIfTreesWouldDiffer">Whether or not the specified document is forced to have the same text and
     /// green-tree-root from <paramref name="documentState"/>.  If <see langword="true"/>, then they will share
     /// these values.  If <see langword="false"/>, then they will only be shared when safe to do so (for example,

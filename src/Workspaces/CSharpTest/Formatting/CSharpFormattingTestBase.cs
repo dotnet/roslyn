@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Formatting;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {

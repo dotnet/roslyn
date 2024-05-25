@@ -1,3 +1,5 @@
+const Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.Constants.DiagnosticSourceProviderName = "HotReloadDiagnostics" -> string!
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.Constants
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadRequestContext
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadRequestContext.ClientCapabilities.get -> Roslyn.LanguageServer.Protocol.ClientCapabilities!
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadRequestContext.HotReloadRequestContext(Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext context) -> void
