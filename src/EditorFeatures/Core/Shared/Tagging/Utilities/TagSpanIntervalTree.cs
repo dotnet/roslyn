@@ -24,17 +24,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 internal sealed partial class TagSpanIntervalTree<TTag>(
     ITextBuffer textBuffer,
     SpanTrackingMode trackingMode,
-    IEnumerable<ITagSpan<TTag>>? values1 = null,
-    IEnumerable<ITagSpan<TTag>>? values2 = null) where TTag : ITag
+    IEnumerable<TagSpan<TTag>>? values1 = null,
+    IEnumerable<TagSpan<TTag>>? values2 = null) where TTag : ITag
 {
     private readonly ITextBuffer _textBuffer = textBuffer;
     private readonly SpanTrackingMode _spanTrackingMode = trackingMode;
-    private readonly IntervalTree<ITagSpan<TTag>> _tree = IntervalTree.Create(
+    private readonly IntervalTree<TagSpan<TTag>> _tree = IntervalTree.Create(
         new IntervalIntrospector(textBuffer.CurrentSnapshot, trackingMode),
         values1, values2);
 
     private static SnapshotSpan GetTranslatedSpan(
-        ITagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
+        TagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
     {
         var localSpan = originalTagSpan.Span;
 
@@ -43,13 +43,13 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
             : localSpan.TranslateTo(textSnapshot, trackingMode);
     }
 
-    private ITagSpan<TTag> GetTranslatedITagSpan(ITagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot)
+    private TagSpan<TTag> GetTranslatedITagSpan(TagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot)
         // Avoid reallocating in the case where we're on the same snapshot.
         => originalTagSpan.Span.Snapshot == textSnapshot
             ? originalTagSpan
             : GetTranslatedTagSpan(originalTagSpan, textSnapshot, _spanTrackingMode);
 
-    private static TagSpan<TTag> GetTranslatedTagSpan(ITagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
+    private static TagSpan<TTag> GetTranslatedTagSpan(TagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
         // Avoid reallocating in the case where we're on the same snapshot.
         => originalTagSpan is TagSpan<TTag> tagSpan && tagSpan.Span.Snapshot == textSnapshot
             ? tagSpan
@@ -67,7 +67,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
         return _tree.HasIntervalThatContains(point.Position, length: 0, new IntervalIntrospector(snapshot, _spanTrackingMode));
     }
 
-    public IList<TagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
+    public IReadOnlyList<TagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
         => SegmentedListPool<TagSpan<TTag>>.ComputeList(
             static (args, tags) => args.@this.AppendIntersectingSpansInSortedOrder(args.snapshotSpan, tags),
             (@this: this, snapshotSpan));
@@ -82,7 +82,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
         var snapshot = snapshotSpan.Snapshot;
         Debug.Assert(snapshot.TextBuffer == _textBuffer);
 
-        using var intersectingIntervals = TemporaryArray<ITagSpan<TTag>>.Empty;
+        using var intersectingIntervals = TemporaryArray<TagSpan<TTag>>.Empty;
         _tree.FillWithIntervalsThatIntersectWith(
             snapshotSpan.Start, snapshotSpan.Length,
             ref intersectingIntervals.AsRef(),
@@ -92,14 +92,14 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
             result.Add(GetTranslatedTagSpan(tagSpan, snapshot, _spanTrackingMode));
     }
 
-    public IEnumerable<ITagSpan<TTag>> GetSpans(ITextSnapshot snapshot)
+    public IEnumerable<TagSpan<TTag>> GetSpans(ITextSnapshot snapshot)
         => _tree.Select(tn => GetTranslatedITagSpan(tn, snapshot));
 
     /// <summary>
     /// Adds all the tag spans in <see langword="this"/> to <paramref name="tagSpans"/>, translating them to the given
     /// location <paramref name="textSnapshot"/> based on <see cref="_spanTrackingMode"/>.
     /// </summary>
-    public void AddAllSpans(ITextSnapshot textSnapshot, HashSet<ITagSpan<TTag>> tagSpans)
+    public void AddAllSpans(ITextSnapshot textSnapshot, HashSet<TagSpan<TTag>> tagSpans)
     {
         foreach (var tagSpan in _tree)
             tagSpans.Add(GetTranslatedITagSpan(tagSpan, textSnapshot));
@@ -110,9 +110,9 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
     /// the spans in <paramref name="snapshotSpansToRemove"/>.
     /// </summary>
     public void RemoveIntersectingTagSpans(
-        ArrayBuilder<SnapshotSpan> snapshotSpansToRemove, HashSet<ITagSpan<TTag>> tagSpans)
+        ArrayBuilder<SnapshotSpan> snapshotSpansToRemove, HashSet<TagSpan<TTag>> tagSpans)
     {
-        using var buffer = TemporaryArray<ITagSpan<TTag>>.Empty;
+        using var buffer = TemporaryArray<TagSpan<TTag>>.Empty;
 
         foreach (var snapshotSpan in snapshotSpansToRemove)
         {
@@ -202,7 +202,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
         if (!enumerator.MoveNext())
             return;
 
-        using var _2 = PooledHashSet<ITagSpan<TTag>>.GetInstance(out var hashSet);
+        using var _2 = PooledHashSet<TagSpan<TTag>>.GetInstance(out var hashSet);
 
         var requestIndex = 0;
         while (true)

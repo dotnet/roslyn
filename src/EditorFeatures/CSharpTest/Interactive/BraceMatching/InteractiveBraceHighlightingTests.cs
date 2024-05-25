@@ -30,7 +30,7 @@ public class InteractiveBraceHighlightingTests
     private static IEnumerable<T> Enumerable<T>(params T[] array)
         => array;
 
-    private static async Task<IEnumerable<ITagSpan<BraceHighlightTag>>> ProduceTagsAsync(
+    private static async Task<IEnumerable<TagSpan<BraceHighlightTag>>> ProduceTagsAsync(
         EditorTestWorkspace workspace,
         ITextBuffer buffer,
         int position)

@@ -17,7 +17,7 @@ internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
     where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
     where TTag : class, ITag
 {
-    internal static Task<ImmutableArray<ITagSpan<TTag>>> GetTagSpansAsync(
+    internal static Task<ImmutableArray<TagSpan<TTag>>> GetTagSpansAsync(
         EditorTestWorkspace workspace,
         IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>>? analyzerMap = null)
     {
