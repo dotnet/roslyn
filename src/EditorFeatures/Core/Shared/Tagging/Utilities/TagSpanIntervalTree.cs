@@ -128,9 +128,6 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
         }
     }
 
-    public bool IsEmpty()
-        => _tree.IsEmpty();
-
     public void AddIntersectingTagSpans(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<TagSpan<TTag>> tags)
     {
         AddIntersectingTagSpansWorker(requestedSpans, tags);
