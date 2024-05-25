@@ -95,6 +95,14 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
             tagSpans.Add(GetTranslatedTagSpan(tagSpan, textSnapshot));
     }
 
+    /// <inheritdoc cref="AddAllSpans(ITextSnapshot, HashSet{TagSpan{TTag}})"/>
+    /// <remarks>Spans will be added in sorted order</remarks>
+    public void AddAllSpans(ITextSnapshot textSnapshot, ArrayBuilder<TagSpan<TTag>> tagSpans)
+    {
+        foreach (var tagSpan in _tree)
+            tagSpans.Add(GetTranslatedTagSpan(tagSpan, textSnapshot));
+    }
+
     /// <summary>
     /// Removes from <paramref name="tagSpans"/> all the tags spans in <see langword="this"/> that intersect with any of
     /// the spans in <paramref name="snapshotSpansToRemove"/>.

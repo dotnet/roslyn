@@ -543,13 +543,17 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             TagSpanIntervalTree<TTag> latestTree,
             TagSpanIntervalTree<TTag> previousTree)
         {
-            var latestSpans = latestTree.GetSpans(snapshot);
-            var previousSpans = previousTree.GetSpans(snapshot);
+            using var _1 = ArrayBuilder<TagSpan<TTag>>.GetInstance(out var latestSpans);
+            using var _2 = ArrayBuilder<TagSpan<TTag>>.GetInstance(out var previousSpans);
 
-            using var _1 = ArrayBuilder<SnapshotSpan>.GetInstance(out var added);
-            using var _2 = ArrayBuilder<SnapshotSpan>.GetInstance(out var removed);
-            using var latestEnumerator = latestSpans.GetEnumerator();
-            using var previousEnumerator = previousSpans.GetEnumerator();
+            using var _3 = ArrayBuilder<SnapshotSpan>.GetInstance(out var added);
+            using var _4 = ArrayBuilder<SnapshotSpan>.GetInstance(out var removed);
+
+            latestTree.AddAllSpans(snapshot, latestSpans);
+            previousTree.AddAllSpans(snapshot, previousSpans);
+
+            var latestEnumerator = latestSpans.GetEnumerator();
+            var previousEnumerator = previousSpans.GetEnumerator();
 
             var latest = NextOrNull(latestEnumerator);
             var previous = NextOrNull(previousEnumerator);
@@ -608,7 +612,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             return new DiffResult(new(added), new(removed));
 
-            static TagSpan<TTag>? NextOrNull(IEnumerator<TagSpan<TTag>> enumerator)
+            static TagSpan<TTag>? NextOrNull(ArrayBuilder<TagSpan<TTag>>.Enumerator enumerator)
                 => enumerator.MoveNext() ? enumerator.Current : null;
         }
 
