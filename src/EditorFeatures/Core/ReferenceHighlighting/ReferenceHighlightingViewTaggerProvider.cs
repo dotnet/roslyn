@@ -88,11 +88,7 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
 
     protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
     {
-        // Note: this may return no snapshot spans.  We have to be resilient to that
-        // when processing the TaggerContext<>.SpansToTag below.
-        return textViewOpt.BufferGraph.GetTextBuffers(b => IsSupportedContentType(b.ContentType))
-                          .Select(b => b.CurrentSnapshot.GetFullSpan())
-                          .ToList();
+        return [subjectBuffer.CurrentSnapshot.GetFullSpan()];
     }
 
     protected override Task ProduceTagsAsync(
