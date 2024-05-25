@@ -162,86 +162,87 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
         // Special case the case where there is only one requested span.  In that case, we don't
         // need to allocate any intermediate collections
         if (requestedSpans.Count == 1)
-            AppendIntersectingSpansInSortedOrder(requestedSpans[0], tags);
-        else if (requestedSpans.Count < MaxNumberOfRequestedSpans)
-            AddTagsForSmallNumberOfSpans(requestedSpans, tags);
-        else
-            AddTagsForLargeNumberOfSpans(requestedSpans, tags);
-    }
-
-    private void AddTagsForSmallNumberOfSpans(
-        NormalizedSnapshotSpanCollection requestedSpans,
-        SegmentedList<TagSpan<TTag>> tags)
-    {
-        foreach (var span in requestedSpans)
-            AppendIntersectingSpansInSortedOrder(span, tags);
-    }
-
-    private void AddTagsForLargeNumberOfSpans(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<TagSpan<TTag>> tags)
-    {
-        // we are asked with bunch of spans. rather than asking same question again and again, ask once with big span
-        // which will return superset of what we want. and then filter them out in O(m+n) cost. 
-        // m == number of requested spans, n = number of returned spans
-        var mergedSpan = new SnapshotSpan(requestedSpans[0].Start, requestedSpans[^1].End);
-
-        using var _1 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var tempList);
-
-        AppendIntersectingSpansInSortedOrder(mergedSpan, tempList);
-        if (tempList.Count == 0)
-            return;
-
-        // Note: both 'requstedSpans' and 'tempList' are in sorted order.
-
-        using var enumerator = tempList.GetEnumerator();
-
-        if (!enumerator.MoveNext())
-            return;
-
-        using var _2 = PooledHashSet<TagSpan<TTag>>.GetInstance(out var hashSet);
-
-        var requestIndex = 0;
-        while (true)
         {
-            var currentTag = enumerator.Current;
+            AppendIntersectingSpansInSortedOrder(requestedSpans[0], tags);
+        }
+        else if (requestedSpans.Count < MaxNumberOfRequestedSpans)
+        {
+            foreach (var span in requestedSpans)
+                AppendIntersectingSpansInSortedOrder(span, tags);
+        }
+        else
+        {
+            AddTagsForLargeNumberOfSpans(requestedSpans, tags);
+        }
 
-            var currentRequestSpan = requestedSpans[requestIndex];
-            var currentTagSpan = currentTag.Span;
+        return;
 
-            // The current tag is *before* the current span we're trying to intersect with.  Move to the next tag to
-            // see if it intersects with the current span.
-            if (currentTagSpan.End < currentRequestSpan.Start)
-            {
-                // If there are no more tags, then we're done.
-                if (!enumerator.MoveNext())
-                    return;
+        void AddTagsForLargeNumberOfSpans(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<TagSpan<TTag>> tags)
+        {
+            // we are asked with bunch of spans. rather than asking same question again and again, ask once with big span
+            // which will return superset of what we want. and then filter them out in O(m+n) cost. 
+            // m == number of requested spans, n = number of returned spans
+            var mergedSpan = new SnapshotSpan(requestedSpans[0].Start, requestedSpans[^1].End);
 
-                continue;
-            }
+            using var _1 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var tempList);
 
-            // The current tag is *after* teh current span we're trying to intersect with.  Move to the next span to
-            // see if it intersects with the current tag.
-            if (currentTagSpan.Start > currentRequestSpan.End)
-            {
-                requestIndex++;
+            AppendIntersectingSpansInSortedOrder(mergedSpan, tempList);
+            if (tempList.Count == 0)
+                return;
 
-                // If there are no more spans to intersect with, then we're done.
-                if (requestIndex >= requestedSpans.Count)
-                    return;
+            // Note: both 'requestedSpans' and 'tempList' are in sorted order.
 
-                continue;
-            }
-
-            // This tag intersects the current span we're trying to intersect with.  Ensure we only see and add a
-            // particular tag once. 
-
-            if (currentTagSpan.Length > 0 &&
-                hashSet.Add(currentTag))
-            {
-                tags.Add(currentTag);
-            }
+            using var enumerator = tempList.GetEnumerator();
 
             if (!enumerator.MoveNext())
-                break;
+                return;
+
+            using var _2 = PooledHashSet<TagSpan<TTag>>.GetInstance(out var hashSet);
+
+            var requestIndex = 0;
+            while (true)
+            {
+                var currentTag = enumerator.Current;
+
+                var currentRequestSpan = requestedSpans[requestIndex];
+                var currentTagSpan = currentTag.Span;
+
+                // The current tag is *before* the current span we're trying to intersect with.  Move to the next tag to
+                // see if it intersects with the current span.
+                if (currentTagSpan.End < currentRequestSpan.Start)
+                {
+                    // If there are no more tags, then we're done.
+                    if (!enumerator.MoveNext())
+                        return;
+
+                    continue;
+                }
+
+                // The current tag is *after* teh current span we're trying to intersect with.  Move to the next span to
+                // see if it intersects with the current tag.
+                if (currentTagSpan.Start > currentRequestSpan.End)
+                {
+                    requestIndex++;
+
+                    // If there are no more spans to intersect with, then we're done.
+                    if (requestIndex >= requestedSpans.Count)
+                        return;
+
+                    continue;
+                }
+
+                // This tag intersects the current span we're trying to intersect with.  Ensure we only see and add a
+                // particular tag once. 
+
+                if (currentTagSpan.Length > 0 &&
+                    hashSet.Add(currentTag))
+                {
+                    tags.Add(currentTag);
+                }
+
+                if (!enumerator.MoveNext())
+                    break;
+            }
         }
     }
 }
