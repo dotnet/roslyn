@@ -29,19 +29,14 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
     where TTag : ITag
 {
     private readonly SpanTrackingMode _spanTrackingMode = trackingMode;
+
     private readonly IntervalTree<TagSpan<TTag>> _tree = IntervalTree.Create(
         new IntervalIntrospector(textBuffer.CurrentSnapshot, trackingMode),
         values1, values2);
 
-    private static SnapshotSpan GetTranslatedSpan(
-        TagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
-    {
-        var localSpan = originalTagSpan.Span;
-
-        return localSpan.Snapshot == textSnapshot
-            ? localSpan
-            : localSpan.TranslateTo(textSnapshot, trackingMode);
-    }
+    private static SnapshotSpan GetTranslatedSpan(TagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
+        // SnapshotSpan no-ops if you pass it the same snapshot that it is holding onto.
+        => originalTagSpan.Span.TranslateTo(textSnapshot, trackingMode);
 
     private TagSpan<TTag> GetTranslatedTagSpan(TagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot)
         => GetTranslatedTagSpan(originalTagSpan, textSnapshot, _spanTrackingMode);
