@@ -450,9 +450,13 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             {
                 // If we have no spans to invalidate, then we can just keep the old tags and add the new tags.
                 var snapshot = newTags.First().Span.Snapshot;
-                var oldTagsToKeep = oldTagTree.GetTagSpans(snapshot);
+
+                // For efficiency, just grab the old tags, remap them to the current snapshot, and place them in the
+                // newTags buffer.  This is a safe mutation of this buffer as the caller doesn't use it after this point
+                // and instead immediately clears it.
+                oldTagTree.AddAllSpans(snapshot, newTags);
                 return new TagSpanIntervalTree<TTag>(
-                    snapshot, _dataSource.SpanTrackingMode, oldTagsToKeep, newTags);
+                    snapshot, _dataSource.SpanTrackingMode, newTags);
             }
             else
             {
