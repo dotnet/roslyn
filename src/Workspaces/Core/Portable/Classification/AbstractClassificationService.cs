@@ -146,7 +146,7 @@ internal abstract class AbstractClassificationService(ISyntaxClassificationServi
         {
             var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
 
-            GetExtensionClassifiers(document, classificationService, out var getNodeClassifiers, out var getTokenClassifiers);
+            var (getNodeClassifiers, getTokenClassifiers) = GetExtensionClassifiers(document, classificationService);
 
             await classificationService.AddSemanticClassificationsAsync(
                 document, textSpans, options, getNodeClassifiers, getTokenClassifiers, result, cancellationToken).ConfigureAwait(false);
@@ -182,23 +182,19 @@ internal abstract class AbstractClassificationService(ISyntaxClassificationServi
         }
     }
 
-    private void GetExtensionClassifiers(
-        Document document,
-        ISyntaxClassificationService classificationService,
-        out Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
-        out Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers)
+    private (Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>>, Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>>) GetExtensionClassifiers(
+        Document document, ISyntaxClassificationService classificationService)
     {
         if (_getNodeClassifiers == null || _getTokenClassifiers == null)
         {
             var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
             var classifiers = classificationService.GetDefaultSyntaxClassifiers();
 
-            _getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes);
-            _getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds);
+            _getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, static c => c.SyntaxNodeTypes);
+            _getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(classifiers, static c => c.SyntaxTokenKinds);
         }
 
-        getNodeClassifiers = _getNodeClassifiers;
-        getTokenClassifiers = _getTokenClassifiers;
+        return (_getNodeClassifiers, _getTokenClassifiers);
     }
 
     public async Task AddSyntacticClassificationsAsync(Document document, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
