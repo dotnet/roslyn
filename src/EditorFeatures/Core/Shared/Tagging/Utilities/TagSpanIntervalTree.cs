@@ -126,12 +126,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
                 new IntervalIntrospector(textSnapshot, _spanTrackingMode));
 
             foreach (var tagSpan in buffer)
-            {
-                // Avoid reallocating in the case where we're on the same snapshot.
-                tagSpans.Remove(tagSpan.Span.Snapshot == textSnapshot
-                    ? tagSpan
-                    : GetTranslatedTagSpan(tagSpan, textSnapshot, _spanTrackingMode));
-            }
+                tagSpans.Remove(GetTranslatedITagSpan(tagSpan, textSnapshot));
         }
     }
 
