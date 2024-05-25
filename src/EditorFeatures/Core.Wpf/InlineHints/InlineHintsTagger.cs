@@ -133,7 +133,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             _cache.Clear();
         }
 
-        public IEnumerable<ITagSpan<IntraTextAdornmentTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+        IEnumerable<ITagSpan<IntraTextAdornmentTag>> ITagger<IntraTextAdornmentTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+            => GetTags(spans);
+
+        public IReadOnlyList<TagSpan<IntraTextAdornmentTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
             try
             {
