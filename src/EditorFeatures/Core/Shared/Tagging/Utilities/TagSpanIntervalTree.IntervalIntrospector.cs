@@ -4,19 +4,21 @@
 
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal partial class TagSpanIntervalTree<TTag>
 {
-    private readonly struct IntervalIntrospector(ITextSnapshot snapshot) : IIntervalIntrospector<TagNode>
+    private readonly struct IntervalIntrospector(
+        ITextSnapshot snapshot,
+        SpanTrackingMode trackingMode)
+        : IIntervalIntrospector<ITagSpan<TTag>>
     {
-        public readonly ITextSnapshot Snapshot = snapshot;
+        public int GetStart(ITagSpan<TTag> value)
+            => GetTranslatedSpan(value, snapshot, trackingMode).Start;
 
-        public int GetStart(TagNode value)
-            => value.GetStart(this.Snapshot);
-
-        public int GetLength(TagNode value)
-            => value.GetLength(this.Snapshot);
+        public int GetLength(ITagSpan<TTag> value)
+            => GetTranslatedSpan(value, snapshot, trackingMode).Length;
     }
 }
