@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
@@ -15,10 +17,7 @@ internal partial class TagSpanIntervalTree<TTag>
         SpanTrackingMode trackingMode)
         : IIntervalIntrospector<TagSpan<TTag>>
     {
-        public int GetStart(TagSpan<TTag> value)
-            => GetTranslatedSpan(value, snapshot, trackingMode).Start;
-
-        public int GetLength(TagSpan<TTag> value)
-            => GetTranslatedSpan(value, snapshot, trackingMode).Length;
+        public TextSpan GetSpan(TagSpan<TTag> value)
+            => GetTranslatedSpan(value, snapshot, trackingMode).Span.ToTextSpan();
     }
 }
