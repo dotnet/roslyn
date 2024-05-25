@@ -477,6 +477,10 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 return [];
 
             using var _1 = ArrayBuilder<SnapshotSpan>.GetInstance(out var allOldTags);
+<<<<<<< Updated upstream
+=======
+            oldTagTree.GetSpans
+>>>>>>> Stashed changes
 
             return oldTagTree.GetSpans(snapshot).Except(
                 spansToInvalidate.SelectMany(oldTagTree.GetIntersectingSpans),
