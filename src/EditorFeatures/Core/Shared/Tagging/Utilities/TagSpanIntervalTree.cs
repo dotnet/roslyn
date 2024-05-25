@@ -60,11 +60,6 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
     public bool HasSpanThatIntersects(SnapshotPoint point)
         => _tree.HasIntervalThatIntersectsWith(point.Position, new IntervalIntrospector(point.Snapshot, _spanTrackingMode));
 
-    public IReadOnlyList<TagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
-        => SegmentedListPool<TagSpan<TTag>>.ComputeList(
-            static (args, tags) => args.@this.AddIntersectingTagSpans(args.snapshotSpan, tags),
-            (@this: this, snapshotSpan));
-
     /// <summary>
     /// Gets all the spans that intersect with <paramref name="snapshotSpan"/> in sorted order and adds them to
     /// <paramref name="result"/>.  Note the sorted chunk of items are appended to <paramref name="result"/>.  This
