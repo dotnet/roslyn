@@ -360,6 +360,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // serial callbacks on the threadpool.
                 _state_accessOnlyFromEventChangeQueueCallback = context.State;
 
+                OnTagsChangedForBuffer(bufferToChanges, highPriority);
+
                 // If we were computing with frozen partial semantics here, enqueue work to compute *without* frozen
                 // partial snapshots so we move to accurate results shortly. Create and pass along a new cancellation
                 // token for this expensive work so that it can be canceled by future lightweight work.
