@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 /// </summary>
 internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTrackingMode) where TTag : ITag
 {
+    // Tracking mode passed in here doesn't matter (since the tree is empty).
     public static readonly TagSpanIntervalTree<TTag> Empty = new(SpanTrackingMode.EdgeInclusive);
 
     private readonly SpanTrackingMode _spanTrackingMode = spanTrackingMode;
@@ -93,7 +94,9 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
         foreach (var tagSpan in _tree)
             spans.Add(GetTranslatedSpan(tagSpan, snapshot, _spanTrackingMode));
 
-        return new(spans);
+        return spans.Count == 0
+            ? NormalizedSnapshotSpanCollection.Empty
+            : new(spans);
     }
 
     /// <summary>
