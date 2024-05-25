@@ -204,7 +204,7 @@ internal static class SharedPoolExtensions
         var count = set.Count;
         set.Clear();
 
-        if (count > Threshold)
+        if (count > Threshold && pool.TrimOnFree)
         {
             set.TrimExcess();
         }
