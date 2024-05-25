@@ -27,7 +27,6 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
     IEnumerable<TagSpan<TTag>>? values1 = null,
     IEnumerable<TagSpan<TTag>>? values2 = null) where TTag : ITag
 {
-    private readonly ITextBuffer _textBuffer = textBuffer;
     private readonly SpanTrackingMode _spanTrackingMode = trackingMode;
     private readonly IntervalTree<TagSpan<TTag>> _tree = IntervalTree.Create(
         new IntervalIntrospector(textBuffer.CurrentSnapshot, trackingMode),
@@ -55,14 +54,11 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
             ? tagSpan
             : new(GetTranslatedSpan(originalTagSpan, textSnapshot, trackingMode), originalTagSpan.Tag);
 
-    public ITextBuffer Buffer => _textBuffer;
-
     public SpanTrackingMode SpanTrackingMode => _spanTrackingMode;
 
     public bool HasSpanThatContains(SnapshotPoint point)
     {
         var snapshot = point.Snapshot;
-        Debug.Assert(snapshot.TextBuffer == _textBuffer);
 
         return _tree.HasIntervalThatContains(point.Position, length: 0, new IntervalIntrospector(snapshot, _spanTrackingMode));
     }
@@ -80,7 +76,6 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
     private void AppendIntersectingSpansInSortedOrder(SnapshotSpan snapshotSpan, SegmentedList<TagSpan<TTag>> result)
     {
         var snapshot = snapshotSpan.Snapshot;
-        Debug.Assert(snapshot.TextBuffer == _textBuffer);
 
         using var intersectingIntervals = TemporaryArray<TagSpan<TTag>>.Empty;
         _tree.FillWithIntervalsThatIntersectWith(
