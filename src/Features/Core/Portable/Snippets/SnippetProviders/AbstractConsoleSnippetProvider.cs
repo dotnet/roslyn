@@ -26,7 +26,7 @@ internal abstract class AbstractConsoleSnippetProvider<
     where TExpressionStatementSyntax : SyntaxNode
     where TExpressionSyntax : SyntaxNode
     where TArgumentListSyntax : SyntaxNode
-    where TLambdaExpressionSyntax : SyntaxNode
+    where TLambdaExpressionSyntax : TExpressionSyntax
 {
     public sealed override string Identifier => CommonSnippetIdentifiers.ConsoleWriteLine;
 
