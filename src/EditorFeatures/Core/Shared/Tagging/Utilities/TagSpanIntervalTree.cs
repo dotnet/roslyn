@@ -21,18 +21,24 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 /// tracked. That way you can query for intersecting/overlapping spans in a different snapshot
 /// than the one for the tag spans that were added.
 /// </summary>
-internal sealed partial class TagSpanIntervalTree<TTag>(
-    ITextBuffer textBuffer,
-    SpanTrackingMode trackingMode,
-    IEnumerable<TagSpan<TTag>>? values1 = null,
-    IEnumerable<TagSpan<TTag>>? values2 = null)
-    where TTag : ITag
+internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTrackingMode) where TTag : ITag
 {
-    private readonly SpanTrackingMode _spanTrackingMode = trackingMode;
+    public static readonly TagSpanIntervalTree<TTag> Empty = new(SpanTrackingMode.EdgeInclusive);
 
-    private readonly IntervalTree<TagSpan<TTag>> _tree = IntervalTree.Create(
-        new IntervalIntrospector(textBuffer.CurrentSnapshot, trackingMode),
-        values1, values2);
+    private readonly SpanTrackingMode _spanTrackingMode = spanTrackingMode;
+    private readonly IntervalTree<TagSpan<TTag>> _tree = IntervalTree<TagSpan<TTag>>.Empty;
+
+    public TagSpanIntervalTree(
+        ITextSnapshot textSnapshot,
+        SpanTrackingMode trackingMode,
+        IEnumerable<TagSpan<TTag>>? values1 = null,
+        IEnumerable<TagSpan<TTag>>? values2 = null)
+        : this(trackingMode)
+    {
+        _tree = IntervalTree.Create(
+            new IntervalIntrospector(textSnapshot, trackingMode),
+            values1, values2);
+    }
 
     private static SnapshotSpan GetTranslatedSpan(TagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
         // SnapshotSpan no-ops if you pass it the same snapshot that it is holding onto.

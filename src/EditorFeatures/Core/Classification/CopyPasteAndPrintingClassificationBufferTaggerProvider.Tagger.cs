@@ -159,8 +159,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                     arg: default).ConfigureAwait(false);
             });
 
-            var cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, mergedTags);
-
+            var cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot, SpanTrackingMode.EdgeExclusive, mergedTags);
             lock (_gate)
             {
                 _cachedTaggedSpan = spanToTag;
