@@ -35,6 +35,7 @@ public sealed class ProjectId : IEquatable<ProjectId>, IComparable<ProjectId>
     [DataMember(Order = 0)]
     public Guid Id { get; }
 
+#if DEBUG
     /// <summary>
     /// An optional name to show <em>only</em> for debugger-display purposes.  This must not be used for any other
     /// purpose.  Importantly, it must not be part of the equality/hashing/comparable contract of this type (including
@@ -42,11 +43,14 @@ public sealed class ProjectId : IEquatable<ProjectId>, IComparable<ProjectId>
     /// </summary>
     [DataMember(Order = 1)]
     private readonly string? _debugName;
+#endif
 
     private ProjectId(Guid guid, string? debugName)
     {
         this.Id = guid;
+#if DEBUG
         _debugName = debugName;
+#endif
     }
 
     /// <summary>
@@ -66,10 +70,14 @@ public sealed class ProjectId : IEquatable<ProjectId>, IComparable<ProjectId>
         return new ProjectId(id, debugName);
     }
 
+#if DEBUG
     internal string? DebugName => _debugName;
+#else
+    internal string? DebugName => null;
+#endif
 
     private string GetDebuggerDisplay()
-        => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
+        => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, DebugName);
 
     public override string ToString()
         => GetDebuggerDisplay();
@@ -93,7 +101,9 @@ public sealed class ProjectId : IEquatable<ProjectId>, IComparable<ProjectId>
     internal void WriteTo(ObjectWriter writer)
     {
         writer.WriteGuid(Id);
+#if DEBUG
         writer.WriteString(DebugName);
+#endif
     }
 
     internal static ProjectId ReadFrom(ObjectReader reader)

@@ -72,10 +72,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     Contract.ThrowIfFalse(reader.ReadArrayHeader() == 2);
                     var id = GuidFormatter.Instance.Deserialize(ref reader, options);
+#if DEBUG
                     var debugName = reader.ReadString();
+#else
+                    string? debugName = null;
+#endif
 
                     var previousId = _previousProjectId;
-                    if (previousId is not null && previousId.Id == id && previousId.DebugName == debugName)
+                    if (previousId is not null && previousId.Id == id)
                         return previousId;
 
                     var currentId = ProjectId.CreateFromSerialized(id, debugName);
@@ -98,9 +102,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                     else
                     {
+#if DEBUG
                         writer.WriteArrayHeader(2);
                         GuidFormatter.Instance.Serialize(ref writer, value.Id, options);
                         writer.Write(value.DebugName);
+#else
+                        writer.WriteArrayHeader(1);
+                        GuidFormatter.Instance.Serialize(ref writer, value.Id, options);
+#endif
                     }
                 }
                 catch (Exception e) when (e is not MessagePackSerializationException)
