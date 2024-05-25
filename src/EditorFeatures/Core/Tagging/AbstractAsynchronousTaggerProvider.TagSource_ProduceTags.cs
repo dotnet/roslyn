@@ -109,7 +109,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                             var allTags = treeForBuffer.GetSpans(e.After).ToList();
                             var newTagTree = new TagSpanIntervalTree<TTag>(
                                 buffer,
-                                treeForBuffer.SpanTrackingMode,
+                                this._dataSource.SpanTrackingMode,
                                 allTags.Except(tagsToRemove, comparer: this));
                             return new(oldTagTrees.SetItem(buffer, newTagTree));
                         }

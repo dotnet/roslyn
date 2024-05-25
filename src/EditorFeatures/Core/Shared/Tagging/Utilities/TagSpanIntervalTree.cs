@@ -52,8 +52,6 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
             ? originalTagSpan
             : new(GetTranslatedSpan(originalTagSpan, textSnapshot, trackingMode), originalTagSpan.Tag);
 
-    public SpanTrackingMode SpanTrackingMode => _spanTrackingMode;
-
     public bool HasSpanThatContains(SnapshotPoint point)
         => _tree.HasIntervalThatContains(point.Position, length: 0, new IntervalIntrospector(point.Snapshot, _spanTrackingMode));
 
