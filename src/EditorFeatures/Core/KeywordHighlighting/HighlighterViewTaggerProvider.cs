@@ -99,10 +99,10 @@ internal sealed class HighlighterViewTaggerProvider(
         var position = caretPosition.Value;
         var snapshot = snapshotSpan.Snapshot;
 
-        // See if the user is just moving their caret around in an existing tag.  If so, we don't
-        // want to actually go recompute things.  Note: this only works for containment.  If the
-        // user moves their caret to the end of a highlighted reference, we do want to recompute
-        // as they may now be at the start of some other reference that should be highlighted instead.
+        // See if the user is just moving their caret around in an existing tag.  If so, we don't want to actually go
+        // recompute things.  Note: this only works for containment.  If the user moves their caret to the end of a
+        // highlighted reference, we do want to recompute as they may now be at the start of some other reference that
+        // should be highlighted instead.
         var onExistingTags = context.HasExistingContainingTags(new SnapshotPoint(snapshot, position));
         if (onExistingTags)
         {

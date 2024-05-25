@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -40,11 +41,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             {
                 // If it changed position and we're still in a tag, there's nothing more to do
                 var currentTags = TryGetTagIntervalTreeForBuffer(caret.Value.Snapshot.TextBuffer);
-                if (currentTags != null && currentTags.GetIntersectingSpans(new SnapshotSpan(caret.Value, 0)).Count > 0)
-                {
-                    // Caret is inside a tag.  No need to do anything.
+                if (currentTags != null && currentTags.HasSpanThatIntersects(caret.Value))
                     return;
-                }
             }
 
             RemoveAllTags();
@@ -61,7 +59,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             var oldTagTree = GetTagTree(snapshot, oldTagTrees);
 
             // everything from old tree is removed.
-            RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: new(oldTagTree.GetSpans(snapshot).Select(s => s.Span))));
+            RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: oldTagTree.GetSnapshotSpanCollection(snapshot)));
         }
 
         private void OnSubjectBufferChanged(object? _, TextContentChangedEventArgs e)
@@ -103,14 +101,21 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 {
                     if (oldTagTrees.TryGetValue(buffer, out var treeForBuffer))
                     {
-                        var tagsToRemove = e.Changes.SelectMany(c => treeForBuffer.GetIntersectingSpans(new SnapshotSpan(snapshot, c.NewSpan)));
-                        if (tagsToRemove.Any())
+                        using var _1 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var tagsToRemove);
+                        foreach (var change in e.Changes)
+                            treeForBuffer.AddIntersectingTagSpans(new SnapshotSpan(snapshot, change.NewSpan), tagsToRemove);
+
+                        if (tagsToRemove.Count > 0)
                         {
-                            var allTags = treeForBuffer.GetSpans(e.After).ToList();
+                            using var _2 = _tagSpanSetPool.GetPooledObject(out var allTags);
+                            treeForBuffer.AddAllSpans(snapshot, allTags);
+
+                            allTags.RemoveAll(tagsToRemove);
+
                             var newTagTree = new TagSpanIntervalTree<TTag>(
-                                buffer,
-                                treeForBuffer.SpanTrackingMode,
-                                allTags.Except(tagsToRemove, comparer: this));
+                                snapshot,
+                                this._dataSource.SpanTrackingMode,
+                                allTags);
                             return new(oldTagTrees.SetItem(buffer, newTagTree));
                         }
                     }
@@ -141,7 +146,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         {
             return tagTrees.TryGetValue(snapshot.TextBuffer, out var tagTree)
                 ? tagTree
-                : new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _dataSource.SpanTrackingMode);
+                : TagSpanIntervalTree<TTag>.Empty;
         }
 
         private void OnEventSourceChanged(object? _1, TaggerEventArgs _2)
@@ -415,7 +420,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             foreach (var spanToTag in context.SpansToTag)
                 buffersToTag.Add(spanToTag.SnapshotSpan.Snapshot.TextBuffer);
 
-            using var _2 = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var newTagsInBuffer);
+            using var _2 = ArrayBuilder<TagSpan<TTag>>.GetInstance(out var newTagsInBuffer);
             using var _3 = ArrayBuilder<SnapshotSpan>.GetInstance(out var spansToInvalidateInBuffer);
 
             var newTagTrees = ImmutableDictionary.CreateBuilder<ITextBuffer, TagSpanIntervalTree<TTag>>();
@@ -449,7 +454,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private TagSpanIntervalTree<TTag>? ComputeNewTagTree(
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             ITextBuffer textBuffer,
-            ArrayBuilder<ITagSpan<TTag>> newTags,
+            ArrayBuilder<TagSpan<TTag>> newTags,
             ArrayBuilder<SnapshotSpan> spansToInvalidate)
         {
             var noNewTags = newTags.IsEmpty;
@@ -463,7 +468,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     return null;
 
                 // If we don't have any old tags then we just need to return the new tags.
-                return new TagSpanIntervalTree<TTag>(textBuffer, _dataSource.SpanTrackingMode, newTags);
+                return new TagSpanIntervalTree<TTag>(newTags[0].Span.Snapshot, _dataSource.SpanTrackingMode, newTags);
             }
 
             // If we don't have any new tags, and there was nothing to invalidate, then we can 
@@ -474,35 +479,34 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             if (noSpansToInvalidate)
             {
                 // If we have no spans to invalidate, then we can just keep the old tags and add the new tags.
-                var oldTagsToKeep = oldTagTree.GetSpans(newTags.First().Span.Snapshot);
+                var snapshot = newTags.First().Span.Snapshot;
+
+                // For efficiency, just grab the old tags, remap them to the current snapshot, and place them in the
+                // newTags buffer.  This is a safe mutation of this buffer as the caller doesn't use it after this point
+                // and instead immediately clears it.
+                oldTagTree.AddAllSpans(snapshot, newTags);
                 return new TagSpanIntervalTree<TTag>(
-                    textBuffer, _dataSource.SpanTrackingMode, oldTagsToKeep, newTags);
+                    snapshot, _dataSource.SpanTrackingMode, newTags);
             }
             else
             {
                 // We do have spans to invalidate. Get the set of old tags that don't intersect with those and add the new tags.
-                using var _1 = _tagSpanSetPool.GetPooledObject(out var nonIntersectingTagSpans);
-                AddNonIntersectingTagSpans(spansToInvalidate, oldTagTree, nonIntersectingTagSpans);
+                using var _1 = _tagSpanSetPool.GetPooledObject(out var nonIntersectingOldTags);
+
+                var firstSpanToInvalidate = spansToInvalidate.First();
+                var snapshot = firstSpanToInvalidate.Snapshot;
+
+                // Performance: No need to fully realize spansToInvalidate or do any of the calculations below if the
+                // full snapshot is being invalidated.
+                if (firstSpanToInvalidate.Length != snapshot.Length)
+                {
+                    oldTagTree.AddAllSpans(snapshot, nonIntersectingOldTags);
+                    oldTagTree.RemoveIntersectingTagSpans(spansToInvalidate, nonIntersectingOldTags);
+                }
+
                 return new TagSpanIntervalTree<TTag>(
-                    textBuffer, _dataSource.SpanTrackingMode, nonIntersectingTagSpans, newTags);
+                    snapshot, _dataSource.SpanTrackingMode, nonIntersectingOldTags, newTags);
             }
-        }
-
-        private static void AddNonIntersectingTagSpans(
-            ArrayBuilder<SnapshotSpan> spansToInvalidate,
-            TagSpanIntervalTree<TTag> oldTagTree,
-            HashSet<ITagSpan<TTag>> nonIntersectingTagSpans)
-        {
-            var firstSpanToInvalidate = spansToInvalidate.First();
-            var snapshot = firstSpanToInvalidate.Snapshot;
-
-            // Performance: No need to fully realize spansToInvalidate or do any of the calculations below if the
-            //   full snapshot is being invalidated.
-            if (firstSpanToInvalidate.Length == snapshot.Length)
-                return;
-
-            oldTagTree.AddAllSpans(snapshot, nonIntersectingTagSpans);
-            oldTagTree.RemoveIntersectingTagSpans(spansToInvalidate, nonIntersectingTagSpans);
         }
 
         private bool ShouldSkipTagProduction()
@@ -543,7 +547,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     else
                     {
                         // It's a new buffer, so report all spans are changed
-                        bufferToChanges[latestBuffer] = new DiffResult(added: new(latestSpans.GetSpans(snapshot).Select(t => t.Span)), removed: null);
+                        bufferToChanges[latestBuffer] = new DiffResult(added: latestSpans.GetSnapshotSpanCollection(snapshot), removed: null);
                     }
                 }
 
@@ -552,7 +556,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     if (!newTagTrees.ContainsKey(oldBuffer))
                     {
                         // This buffer disappeared, so let's notify that the old tags are gone
-                        bufferToChanges[oldBuffer] = new DiffResult(added: null, removed: new(previousSpans.GetSpans(oldBuffer.CurrentSnapshot).Select(t => t.Span)));
+                        bufferToChanges[oldBuffer] = new DiffResult(added: null, removed: previousSpans.GetSnapshotSpanCollection(oldBuffer.CurrentSnapshot));
                     }
                 }
 
@@ -568,13 +572,17 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             TagSpanIntervalTree<TTag> latestTree,
             TagSpanIntervalTree<TTag> previousTree)
         {
-            var latestSpans = latestTree.GetSpans(snapshot);
-            var previousSpans = previousTree.GetSpans(snapshot);
+            using var _1 = ArrayBuilder<TagSpan<TTag>>.GetInstance(out var latestSpans);
+            using var _2 = ArrayBuilder<TagSpan<TTag>>.GetInstance(out var previousSpans);
 
-            using var _1 = ArrayBuilder<SnapshotSpan>.GetInstance(out var added);
-            using var _2 = ArrayBuilder<SnapshotSpan>.GetInstance(out var removed);
-            using var latestEnumerator = latestSpans.GetEnumerator();
-            using var previousEnumerator = previousSpans.GetEnumerator();
+            using var _3 = ArrayBuilder<SnapshotSpan>.GetInstance(out var added);
+            using var _4 = ArrayBuilder<SnapshotSpan>.GetInstance(out var removed);
+
+            latestTree.AddAllSpans(snapshot, latestSpans);
+            previousTree.AddAllSpans(snapshot, previousSpans);
+
+            var latestEnumerator = latestSpans.GetEnumerator();
+            var previousEnumerator = previousSpans.GetEnumerator();
 
             var latest = NextOrNull(latestEnumerator);
             var previous = NextOrNull(previousEnumerator);
@@ -633,7 +641,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             return new DiffResult(new(added), new(removed));
 
-            static ITagSpan<TTag>? NextOrNull(IEnumerator<ITagSpan<TTag>> enumerator)
+            static TagSpan<TTag>? NextOrNull(ArrayBuilder<TagSpan<TTag>>.Enumerator enumerator)
                 => enumerator.MoveNext() ? enumerator.Current : null;
         }
 

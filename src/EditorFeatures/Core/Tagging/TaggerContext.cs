@@ -19,7 +19,7 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
     private readonly ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _existingTags;
 
     internal ImmutableArray<SnapshotSpan> _spansTagged;
-    public readonly SegmentedList<ITagSpan<TTag>> TagSpans = [];
+    public readonly SegmentedList<TagSpan<TTag>> TagSpans = [];
 
     /// <summary>
     /// If the client should compute tags using frozen partial semantics.  This generally should have no effect if tags
@@ -73,7 +73,7 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
         _existingTags = existingTags;
     }
 
-    public void AddTag(ITagSpan<TTag> tag)
+    public void AddTag(TagSpan<TTag> tag)
         => TagSpans.Add(tag);
 
     public void ClearTags()

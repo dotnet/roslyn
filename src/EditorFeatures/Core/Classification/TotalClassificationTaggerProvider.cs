@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.CodeAnalysis.Workspaces;
@@ -275,10 +276,7 @@ internal sealed class TotalClassificationAggregateTagger(
 
     private readonly struct ClassificationTagSpanIntervalIntrospector : IIntervalIntrospector<TagSpan<IClassificationTag>>
     {
-        public int GetStart(TagSpan<IClassificationTag> value)
-            => value.Span.Start;
-
-        public int GetLength(TagSpan<IClassificationTag> value)
-            => value.Span.Length;
+        public TextSpan GetSpan(TagSpan<IClassificationTag> value)
+            => value.Span.Span.ToTextSpan();
     }
 }
