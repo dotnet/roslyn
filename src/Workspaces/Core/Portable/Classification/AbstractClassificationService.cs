@@ -24,6 +24,9 @@ internal abstract class AbstractClassificationService(ISyntaxClassificationServi
 {
     private readonly ISyntaxClassificationService _syntaxClassificationService = syntaxClassificationService;
 
+    private static Func<SyntaxNode, ImmutableArray<Classifiers.ISyntaxClassifier>>? s_getNodeClassifiers;
+    private static Func<SyntaxToken, ImmutableArray<Classifiers.ISyntaxClassifier>>? s_getTokenClassifiers;
+
     public abstract void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
     public abstract ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan);
 
@@ -141,20 +144,22 @@ internal abstract class AbstractClassificationService(ISyntaxClassificationServi
         if (type == ClassificationType.Semantic)
         {
             var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
-            var reassignedVariableService = document.GetRequiredLanguageService<IReassignedVariableService>();
-            var obsoleteSymbolService = document.GetRequiredLanguageService<IObsoleteSymbolService>();
 
-            var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
-            var classifiers = classificationService.GetDefaultSyntaxClassifiers();
+            if (s_getNodeClassifiers == null || s_getTokenClassifiers == null)
+            {
+                var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
+                var classifiers = classificationService.GetDefaultSyntaxClassifiers();
 
-            var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes);
-            var getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds);
+                s_getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes);
+                s_getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds);
+            }
 
             await classificationService.AddSemanticClassificationsAsync(
-                document, textSpans, options, getNodeClassifiers, getTokenClassifiers, result, cancellationToken).ConfigureAwait(false);
+                document, textSpans, options, s_getNodeClassifiers, s_getTokenClassifiers, result, cancellationToken).ConfigureAwait(false);
 
             if (options.ClassifyReassignedVariables)
             {
+                var reassignedVariableService = document.GetRequiredLanguageService<IReassignedVariableService>();
                 var reassignedVariableSpans = await reassignedVariableService.GetLocationsAsync(document, textSpans, cancellationToken).ConfigureAwait(false);
                 foreach (var span in reassignedVariableSpans)
                     result.Add(new ClassifiedSpan(span, ClassificationTypeNames.ReassignedVariable));
@@ -162,6 +167,7 @@ internal abstract class AbstractClassificationService(ISyntaxClassificationServi
 
             if (options.ClassifyObsoleteSymbols)
             {
+                var obsoleteSymbolService = document.GetRequiredLanguageService<IObsoleteSymbolService>();
                 var obsoleteSymbolSpans = await obsoleteSymbolService.GetLocationsAsync(document, textSpans, cancellationToken).ConfigureAwait(false);
                 foreach (var span in obsoleteSymbolSpans)
                     result.Add(new ClassifiedSpan(span, ClassificationTypeNames.ObsoleteSymbol));
