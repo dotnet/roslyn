@@ -37,7 +37,8 @@ internal sealed class TaggerMainThreadManager
             threadingContext.DisposalToken);
     }
 
-    private static void RunActionAndUpdateCompletionSource(
+    /// <remarks>This will not ever throw.</remarks>
+    private static void RunActionAndUpdateCompletionSource_NoThrow(
         Action action,
         TaskCompletionSource<VoidResult> taskCompletionSource)
     {
@@ -45,7 +46,6 @@ internal sealed class TaggerMainThreadManager
         {
             // Run the underlying task.
             action();
-            taskCompletionSource.TrySetResult(default);
         }
         catch (OperationCanceledException ex)
         {
@@ -54,6 +54,10 @@ internal sealed class TaggerMainThreadManager
         catch (Exception ex)
         {
             taskCompletionSource.TrySetException(ex);
+        }
+        finally
+        {
+            taskCompletionSource.TrySetResult(default);
         }
     }
 
@@ -70,10 +74,8 @@ internal sealed class TaggerMainThreadManager
         // example, for determining collapsed outlining tags on document open).
         if (_threadingContext.JoinableTaskContext.IsOnMainThread)
         {
-            RunActionAndUpdateCompletionSource(action, taskSource);
-            var task = taskSource.Task;
-            Contract.ThrowIfFalse(task.IsCompleted);
-            return task;
+            RunActionAndUpdateCompletionSource_NoThrow(action, taskSource);
+            return taskSource.Task;
         }
 
         // Ensure that if the host is closing and hte queue stops running that we transition this task to the canceled state.
@@ -119,15 +121,8 @@ internal sealed class TaggerMainThreadManager
                 continue;
             }
 
-            // Run the user action.  This is the wrapped action created in PerformWorkOnMainThreadAsync, which will
-            // not ever throw.
-            try
-            {
-                RunActionAndUpdateCompletionSource(action, taskCompletionSource);
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
-            {
-            }
+            // Run the user action, completing the task completion source as appropriate. This will not ever throw.
+            RunActionAndUpdateCompletionSource_NoThrow(action, taskCompletionSource);
         }
     }
 }
