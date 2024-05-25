@@ -86,6 +86,10 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
     public IEnumerable<ITagSpan<TTag>> GetSpans(ITextSnapshot snapshot)
         => _tree.Select(tn => GetTranslatedTagSpan(tn, snapshot, _spanTrackingMode));
 
+    /// <summary>
+    /// Adds all the tag spans in <see langword="this"/> to <paramref name="tagSpans"/>, translating them to the given
+    /// location <paramref name="textSnapshot"/> based on <see cref="_spanTrackingMode"/>.
+    /// </summary>
     public void AddAllSpans(ITextSnapshot textSnapshot, HashSet<ITagSpan<TTag>> tagSpans)
     {
         foreach (var tagSpan in _tree)
@@ -97,6 +101,10 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
         }
     }
 
+    /// <summary>
+    /// Removes from <paramref name="tagSpans"/> all the tags spans in <see langword="this"/> that intersect with any of
+    /// the spans in <paramref name="snapshotSpansToRemove"/>.
+    /// </summary>
     public void RemoveIntersectingTagSpans(
         ArrayBuilder<SnapshotSpan> snapshotSpansToRemove, HashSet<ITagSpan<TTag>> tagSpans)
     {
