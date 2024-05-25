@@ -480,9 +480,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 return;
 
             oldTagTree.AddAllSpans(snapshot, nonIntersectingTagSpans);
-
-            foreach (var spanToInvalidate in spansToInvalidate)
-                oldTagTree.RemoveIntersectingTagSpans(spanToInvalidate, nonIntersectingTagSpans);
+            oldTagTree.RemoveIntersectingTagSpans(spansToInvalidate, nonIntersectingTagSpans);
         }
 
         private bool ShouldSkipTagProduction()

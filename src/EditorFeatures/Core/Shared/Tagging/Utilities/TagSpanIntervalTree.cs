@@ -97,23 +97,29 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
         }
     }
 
-    public void RemoveIntersectingTagSpans(SnapshotSpan snapshotSpan, HashSet<ITagSpan<TTag>> tagSpans)
+    public void RemoveIntersectingTagSpans(
+        ArrayBuilder<SnapshotSpan> snapshotSpansToRemove, HashSet<ITagSpan<TTag>> tagSpans)
     {
         using var buffer = TemporaryArray<ITagSpan<TTag>>.Empty;
 
-        var textSnapshot = snapshotSpan.Snapshot;
-        _tree.FillWithIntervalsThatIntersectWith(
-            snapshotSpan.Span.Start,
-            snapshotSpan.Span.Length,
-            ref buffer.AsRef(),
-            new IntervalIntrospector(textSnapshot, _spanTrackingMode));
-
-        foreach (var tagSpan in buffer)
+        foreach (var snapshotSpan in snapshotSpansToRemove)
         {
-            // Avoid reallocating in the case where we're on the same snapshot.
-            tagSpans.Remove(tagSpan.Span.Snapshot == textSnapshot
-                ? tagSpan
-                : GetTranslatedTagSpan(tagSpan, textSnapshot, _spanTrackingMode));
+            buffer.Clear();
+
+            var textSnapshot = snapshotSpan.Snapshot;
+            _tree.FillWithIntervalsThatIntersectWith(
+                snapshotSpan.Span.Start,
+                snapshotSpan.Span.Length,
+                ref buffer.AsRef(),
+                new IntervalIntrospector(textSnapshot, _spanTrackingMode));
+
+            foreach (var tagSpan in buffer)
+            {
+                // Avoid reallocating in the case where we're on the same snapshot.
+                tagSpans.Remove(tagSpan.Span.Snapshot == textSnapshot
+                    ? tagSpan
+                    : GetTranslatedTagSpan(tagSpan, textSnapshot, _spanTrackingMode));
+            }
         }
     }
 
