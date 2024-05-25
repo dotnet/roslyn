@@ -61,7 +61,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             /// </summary>
             event EventHandler<SnapshotSpanEventArgs> ITagger<IClassificationTag>.TagsChanged { add { } remove { } }
 
-            public IEnumerable<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+            IEnumerable<ITagSpan<IClassificationTag>> ITagger<IClassificationTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+                => GetTags(spans);
+
+            public IEnumerable<TagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
                 if (!_buffer.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.StaticClassificationSpansKey, out ImmutableArray<ClassifiedSpan> classifiedSpans))
                 {

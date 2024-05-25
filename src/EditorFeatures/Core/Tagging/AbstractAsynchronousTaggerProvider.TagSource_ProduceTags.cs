@@ -411,52 +411,56 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ComputeNewTagTrees(ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, TaggerContext<TTag> context)
         {
-            // Ignore any tag spans reported for any buffers we weren't interested in.
+            using var _1 = PooledHashSet<ITextBuffer>.GetInstance(out var buffersToTag);
+            foreach (var spanToTag in context.SpansToTag)
+                buffersToTag.Add(spanToTag.SnapshotSpan.Snapshot.TextBuffer);
 
-            var spansToTag = context.SpansToTag;
-            var buffersToTag = spansToTag.Select(dss => dss.SnapshotSpan.Snapshot.TextBuffer).ToSet();
-            var newTagsByBuffer =
-                context.TagSpans.Where(ts => buffersToTag.Contains(ts.Span.Snapshot.TextBuffer))
-                                .ToLookup(t => t.Span.Snapshot.TextBuffer);
-            var spansTagged = context._spansTagged;
+            using var _2 = ArrayBuilder<TagSpan<TTag>>.GetInstance(out var newTagsInBuffer);
+            using var _3 = ArrayBuilder<SnapshotSpan>.GetInstance(out var spansToInvalidateInBuffer);
 
-            var spansToInvalidateByBuffer = spansTagged.ToLookup(
-                keySelector: span => span.Snapshot.TextBuffer,
-                elementSelector: span => span);
-
-            // Walk through each relevant buffer and decide what the interval tree should be
-            // for that buffer.  In general this will work by keeping around old tags that
-            // weren't in the range that was re-tagged, and merging them with the new tags
-            // produced for the range that was re-tagged.
-            var newTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
+            var newTagTrees = ImmutableDictionary.CreateBuilder<ITextBuffer, TagSpanIntervalTree<TTag>>();
             foreach (var buffer in buffersToTag)
             {
-                var newTagTree = ComputeNewTagTree(oldTagTrees, buffer, newTagsByBuffer[buffer], spansToInvalidateByBuffer[buffer]);
+                newTagsInBuffer.Clear();
+                spansToInvalidateInBuffer.Clear();
+
+                // Ignore any tag spans reported for any buffers we weren't interested in.
+
+                foreach (var tagSpan in context.TagSpans)
+                {
+                    if (tagSpan.Span.Snapshot.TextBuffer == buffer)
+                        newTagsInBuffer.Add(tagSpan);
+                }
+
+                foreach (var span in context._spansTagged)
+                {
+                    if (span.Snapshot.TextBuffer == buffer)
+                        spansToInvalidateInBuffer.Add(span);
+                }
+
+                var newTagTree = ComputeNewTagTree(oldTagTrees, buffer, newTagsInBuffer, spansToInvalidateInBuffer);
                 if (newTagTree != null)
-                    newTagTrees = newTagTrees.Add(buffer, newTagTree);
+                    newTagTrees.Add(buffer, newTagTree);
             }
 
-            return newTagTrees;
+            return newTagTrees.ToImmutable();
         }
 
         private TagSpanIntervalTree<TTag>? ComputeNewTagTree(
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             ITextBuffer textBuffer,
-            IEnumerable<ITagSpan<TTag>> newTags,
-            IEnumerable<SnapshotSpan> spansToInvalidate)
+            ArrayBuilder<TagSpan<TTag>> newTags,
+            ArrayBuilder<SnapshotSpan> spansToInvalidate)
         {
-            var noNewTags = newTags.IsEmpty();
-            var noSpansToInvalidate = spansToInvalidate.IsEmpty();
+            var noNewTags = newTags.IsEmpty;
+            var noSpansToInvalidate = spansToInvalidate.IsEmpty;
             oldTagTrees.TryGetValue(textBuffer, out var oldTagTree);
 
             if (oldTagTree == null)
             {
+                // If we have no new tags, and no old tags either.  No need to store anything for this buffer.
                 if (noNewTags)
-                {
-                    // We have no new tags, and no old tags either.  No need to store anything
-                    // for this buffer.
                     return null;
-                }
 
                 // If we don't have any old tags then we just need to return the new tags.
                 return new TagSpanIntervalTree<TTag>(textBuffer, _dataSource.SpanTrackingMode, newTags);
@@ -465,23 +469,29 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // If we don't have any new tags, and there was nothing to invalidate, then we can 
             // keep whatever old tags we have without doing any additional work.
             if (noNewTags && noSpansToInvalidate)
-            {
                 return oldTagTree;
+
+            if (noSpansToInvalidate)
+            {
+                // If we have no spans to invalidate, then we can just keep the old tags and add the new tags.
+                var oldTagsToKeep = oldTagTree.GetSpans(newTags.First().Span.Snapshot);
+                return new TagSpanIntervalTree<TTag>(
+                    textBuffer, _dataSource.SpanTrackingMode, oldTagsToKeep, newTags);
             }
-
-            // We either have some new tags, or we have some tags to invalidate.
-            // First, determine which of the old tags we want to keep around.
-            var snapshot = noNewTags ? spansToInvalidate.First().Snapshot : newTags.First().Span.Snapshot;
-            var oldTagsToKeep = noSpansToInvalidate
-                ? oldTagTree.GetSpans(snapshot)
-                : GetNonIntersectingTagSpans(spansToInvalidate, oldTagTree);
-
-            // Then union those with the new tags to produce the final tag tree.
-            var finalTags = oldTagsToKeep.Concat(newTags);
-            return new TagSpanIntervalTree<TTag>(textBuffer, _dataSource.SpanTrackingMode, finalTags);
+            else
+            {
+                // We do have spans to invalidate. Get the set of old tags that don't intersect with those and add the new tags.
+                using var _1 = _tagSpanSetPool.GetPooledObject(out var nonIntersectingTagSpans);
+                AddNonIntersectingTagSpans(spansToInvalidate, oldTagTree, nonIntersectingTagSpans);
+                return new TagSpanIntervalTree<TTag>(
+                    textBuffer, _dataSource.SpanTrackingMode, nonIntersectingTagSpans, newTags);
+            }
         }
 
-        private IEnumerable<ITagSpan<TTag>> GetNonIntersectingTagSpans(IEnumerable<SnapshotSpan> spansToInvalidate, TagSpanIntervalTree<TTag> oldTagTree)
+        private static void AddNonIntersectingTagSpans(
+            ArrayBuilder<SnapshotSpan> spansToInvalidate,
+            TagSpanIntervalTree<TTag> oldTagTree,
+            HashSet<TagSpan<TTag>> nonIntersectingTagSpans)
         {
             var firstSpanToInvalidate = spansToInvalidate.First();
             var snapshot = firstSpanToInvalidate.Snapshot;
@@ -489,11 +499,10 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // Performance: No need to fully realize spansToInvalidate or do any of the calculations below if the
             //   full snapshot is being invalidated.
             if (firstSpanToInvalidate.Length == snapshot.Length)
-                return [];
+                return;
 
-            return oldTagTree.GetSpans(snapshot).Except(
-                spansToInvalidate.SelectMany(oldTagTree.GetIntersectingSpans),
-                comparer: this);
+            oldTagTree.AddAllSpans(snapshot, nonIntersectingTagSpans);
+            oldTagTree.RemoveIntersectingTagSpans(spansToInvalidate, nonIntersectingTagSpans);
         }
 
         private bool ShouldSkipTagProduction()
@@ -624,7 +633,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             return new DiffResult(new(added), new(removed));
 
-            static ITagSpan<TTag>? NextOrNull(IEnumerator<ITagSpan<TTag>> enumerator)
+            static TagSpan<TTag>? NextOrNull(IEnumerator<TagSpan<TTag>> enumerator)
                 => enumerator.MoveNext() ? enumerator.Current : null;
         }
 

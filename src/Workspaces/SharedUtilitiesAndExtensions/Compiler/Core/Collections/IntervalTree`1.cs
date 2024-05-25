@@ -37,16 +37,24 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
     protected Node? root;
 
-    public static IntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T> values)
+    public static IntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values1 = null, IEnumerable<T>? values2 = null)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var result = new IntervalTree<T>();
-        foreach (var value in values)
-        {
-            result.root = Insert(result.root, new Node(value), in introspector);
-        }
+
+        AddAll(in introspector, values1);
+        AddAll(in introspector, values2);
 
         return result;
+
+        void AddAll(in TIntrospector introspector, IEnumerable<T>? values)
+        {
+            if (values != null)
+            {
+                foreach (var value in values)
+                    result.root = Insert(result.root, new Node(value), in introspector);
+            }
+        }
     }
 
     protected static bool Contains<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
@@ -55,8 +63,9 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         var otherStart = start;
         var otherEnd = start + length;
 
-        var thisStart = introspector.GetStart(value);
-        var thisEnd = thisStart + introspector.GetLength(value);
+        var thisSpan = introspector.GetSpan(value);
+        var thisStart = thisSpan.Start;
+        var thisEnd = thisSpan.End;
 
         // TODO(cyrusn): This doesn't actually seem to match what TextSpan.Contains does.  It doesn't specialize empty
         // length in any way.  Preserving this behavior for now, but we should consider changing this.
@@ -74,8 +83,9 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         var otherStart = start;
         var otherEnd = start + length;
 
-        var thisStart = introspector.GetStart(value);
-        var thisEnd = thisStart + introspector.GetLength(value);
+        var thisSpan = introspector.GetSpan(value);
+        var thisStart = thisSpan.Start;
+        var thisEnd = thisSpan.End;
 
         return otherStart <= thisEnd && otherEnd >= thisStart;
     }
@@ -86,8 +96,9 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         var otherStart = start;
         var otherEnd = start + length;
 
-        var thisStart = introspector.GetStart(value);
-        var thisEnd = thisStart + introspector.GetLength(value);
+        var thisSpan = introspector.GetSpan(value);
+        var thisStart = thisSpan.Start;
+        var thisEnd = thisSpan.End;
 
         // TODO(cyrusn): This doesn't actually seem to match what TextSpan.OverlapsWith does.  It doesn't specialize empty
         // length in any way.  Preserving this behavior for now, but we should consider changing this.
@@ -243,7 +254,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     {
         // right children's starts will never be to the left of the parent's start so we should consider right
         // subtree only if root's start overlaps with interval's End, 
-        if (introspector.GetStart(currentNode.Value) <= end)
+        if (introspector.GetSpan(currentNode.Value).Start <= end)
         {
             right = currentNode.Right;
             if (right != null && GetEnd(right.MaxEndNode.Value, in introspector) >= start)
@@ -274,7 +285,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     protected static Node Insert<TIntrospector>(Node? root, Node newNode, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        var newNodeStart = introspector.GetStart(newNode.Value);
+        var newNodeStart = introspector.GetSpan(newNode.Value).Start;
         return Insert(root, newNode, newNodeStart, in introspector);
     }
 
@@ -288,7 +299,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
         Node? newLeft, newRight;
 
-        if (newNodeStart < introspector.GetStart(root.Value))
+        if (newNodeStart < introspector.GetSpan(root.Value).Start)
         {
             newLeft = Insert(root.Left, newNode, newNodeStart, in introspector);
             newRight = root.Right;
@@ -375,7 +386,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
     protected static int GetEnd<TIntrospector>(T value, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
-        => introspector.GetStart(value) + introspector.GetLength(value);
+        => introspector.GetSpan(value).End;
 
     protected static int MaxEndValue<TIntrospector>(Node? node, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>

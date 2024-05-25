@@ -78,17 +78,10 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
     protected virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
         => diagnosticData.DataLocation is not null ? [diagnosticData.DataLocation] : [];
 
-    public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
+    ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
     {
-        using var taggers = TemporaryArray<EfficientTagger<TTag>>.Empty;
-        foreach (var taggerProvider in _diagnosticsTaggerProviders)
-        {
-            var innerTagger = taggerProvider.CreateTagger(buffer);
-            if (innerTagger != null)
-                taggers.Add(innerTagger);
-        }
+        var tagger = CreateTagger<T>(buffer);
 
-        var tagger = new SimpleAggregateTagger<TTag>(taggers.ToImmutableAndClear());
         if (tagger is not ITagger<T> genericTagger)
         {
             tagger.Dispose();
@@ -98,7 +91,20 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
         return genericTagger;
     }
 
-    protected ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
+    public SimpleAggregateTagger<TTag> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+    {
+        using var taggers = TemporaryArray<EfficientTagger<TTag>>.Empty;
+        foreach (var taggerProvider in _diagnosticsTaggerProviders)
+        {
+            var innerTagger = taggerProvider.CreateTagger(buffer);
+            if (innerTagger != null)
+                taggers.Add(innerTagger);
+        }
+
+        return new SimpleAggregateTagger<TTag>(taggers.ToImmutableAndClear());
+    }
+
+    protected TagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
     {
         var errorTag = CreateTag(workspace, data);
         if (errorTag == null)

@@ -152,7 +152,7 @@ internal static class SharedPoolExtensions
         var count = set.Count;
         set.Clear();
 
-        if (count > Threshold)
+        if (count > Threshold && pool.TrimOnFree)
         {
             set.TrimExcess();
         }
@@ -194,22 +194,18 @@ internal static class SharedPoolExtensions
         pool.Free(set);
     }
 
-    public static void ClearAndFree<T>(this ObjectPool<Stack<T>> pool, Stack<T> set)
+    public static void ClearAndFree<T>(this ObjectPool<Stack<T>> pool, Stack<T> stack)
     {
-        if (set == null)
-        {
+        if (stack == null)
             return;
-        }
 
-        var count = set.Count;
-        set.Clear();
+        var count = stack.Count;
+        stack.Clear();
 
-        if (count > Threshold)
-        {
-            set.TrimExcess();
-        }
+        if (count > Threshold && pool.TrimOnFree)
+            stack.TrimExcess();
 
-        pool.Free(set);
+        pool.Free(stack);
     }
 
     public static void ClearAndFree<T>(this ObjectPool<ConcurrentStack<T>> pool, ConcurrentStack<T> stack)
