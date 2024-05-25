@@ -7,6 +7,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.EditorUtilities;
@@ -30,7 +31,7 @@ public class TagSpanIntervalTreeTests
     {
         var (tree, buffer) = CreateTree(string.Empty);
 
-        Assert.Empty(tree.GetTagSpans(buffer.CurrentSnapshot));
+        Assert.Empty(tree.GetIntersectingSpans(buffer.CurrentSnapshot.GetFullSpan()));
     }
 
     [Fact]
@@ -38,7 +39,7 @@ public class TagSpanIntervalTreeTests
     {
         var (tree, buffer) = CreateTree("Hello, World", new Span(0, 5));
 
-        Assert.Equal(new Span(0, 5), tree.GetTagSpans(buffer.CurrentSnapshot).Single().Span);
+        Assert.Equal(new Span(0, 5), tree.GetIntersectingSpans(buffer.CurrentSnapshot.GetFullSpan()).Single().Span);
     }
 
     [Fact]
