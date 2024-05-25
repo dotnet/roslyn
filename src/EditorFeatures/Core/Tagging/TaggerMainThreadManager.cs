@@ -22,7 +22,7 @@ internal sealed class TaggerMainThreadManager
         => s_table.GetValue(threadingContext, _ => new TaggerMainThreadManager(threadingContext, listenerProvider));
 
     private readonly IThreadingContext _threadingContext;
-    private readonly AsyncBatchingWorkQueue<(Action action, CancellationToken cancellationToken, TaskCompletionSource<bool> taskCompletionSource)> _workQueue;
+    private readonly AsyncBatchingWorkQueue<(Action action, CancellationToken cancellationToken, TaskCompletionSource<VoidResult> taskCompletionSource)> _workQueue;
 
     private TaggerMainThreadManager(
         IThreadingContext threadingContext,
@@ -30,7 +30,7 @@ internal sealed class TaggerMainThreadManager
     {
         _threadingContext = threadingContext;
 
-        _workQueue = new AsyncBatchingWorkQueue<(Action action, CancellationToken cancellationToken, TaskCompletionSource<bool> taskCompletionSource)>(
+        _workQueue = new AsyncBatchingWorkQueue<(Action action, CancellationToken cancellationToken, TaskCompletionSource<VoidResult> taskCompletionSource)>(
             DelayTimeSpan.NearImmediate,
             ProcessWorkItemsAsync,
             listenerProvider.GetListener(FeatureAttribute.Tagger),
@@ -39,13 +39,13 @@ internal sealed class TaggerMainThreadManager
 
     private static void RunActionAndUpdateCompletionSource(
         Action action,
-        TaskCompletionSource<bool> taskCompletionSource)
+        TaskCompletionSource<VoidResult> taskCompletionSource)
     {
         try
         {
             // Run the underlying task.
             action();
-            taskCompletionSource.TrySetResult(true);
+            taskCompletionSource.TrySetResult(default);
         }
         catch (OperationCanceledException ex)
         {
@@ -63,7 +63,7 @@ internal sealed class TaggerMainThreadManager
     /// </summary>
     public Task PerformWorkOnMainThreadAsync(Action action, CancellationToken cancellationToken)
     {
-        var taskSource = new TaskCompletionSource<bool>();
+        var taskSource = new TaskCompletionSource<VoidResult>();
 
         // If we're already on the main thread, just run the action directly without any delay.  This is important
         // for cases where the tagger is performing a blocking call to get tags synchronously on the UI thread (for
@@ -77,7 +77,7 @@ internal sealed class TaggerMainThreadManager
         }
 
         // Ensure that if the host is closing and hte queue stops running that we transition this task to the canceled state.
-        var registration = _threadingContext.DisposalToken.Register(static taskSourceObj => ((TaskCompletionSource<bool>)taskSourceObj!).TrySetCanceled(), taskSource);
+        var registration = _threadingContext.DisposalToken.Register(static taskSourceObj => ((TaskCompletionSource<VoidResult>)taskSourceObj!).TrySetCanceled(), taskSource);
 
         _workQueue.AddWork((action, cancellationToken, taskSource));
 
@@ -86,10 +86,10 @@ internal sealed class TaggerMainThreadManager
     }
 
     private async ValueTask ProcessWorkItemsAsync(
-        ImmutableSegmentedList<(Action action, CancellationToken cancellationToken, TaskCompletionSource<bool> taskCompletionSource)> list,
+        ImmutableSegmentedList<(Action action, CancellationToken cancellationToken, TaskCompletionSource<VoidResult> taskCompletionSource)> list,
         CancellationToken queueCancellationToken)
     {
-        var nonCanceledActions = ImmutableSegmentedList.CreateBuilder<(Action action, CancellationToken cancellationToken, TaskCompletionSource<bool> taskCompletionSource)>();
+        var nonCanceledActions = ImmutableSegmentedList.CreateBuilder<(Action action, CancellationToken cancellationToken, TaskCompletionSource<VoidResult> taskCompletionSource)>();
         foreach (var (action, cancellationToken, taskCompletionSource) in list)
         {
             if (cancellationToken.IsCancellationRequested)
