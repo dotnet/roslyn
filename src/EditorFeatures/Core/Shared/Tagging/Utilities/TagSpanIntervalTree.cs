@@ -140,33 +140,6 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
 
     public void AddIntersectingTagSpans(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<TagSpan<TTag>> tags)
     {
-        AddIntersectingTagSpansWorker(requestedSpans, tags);
-        DebugVerifyTags(requestedSpans, tags);
-    }
-
-    [Conditional("DEBUG")]
-    private static void DebugVerifyTags(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<TagSpan<TTag>> tags)
-    {
-        if (tags == null)
-        {
-            return;
-        }
-
-        foreach (var tag in tags)
-        {
-            var span = tag.Span;
-
-            if (!requestedSpans.Any(s => s.IntersectsWith(span)))
-            {
-                Contract.Fail(tag + " doesn't intersects with any requested span");
-            }
-        }
-    }
-
-    private void AddIntersectingTagSpansWorker(
-        NormalizedSnapshotSpanCollection requestedSpans,
-        SegmentedList<TagSpan<TTag>> tags)
-    {
         const int MaxNumberOfRequestedSpans = 100;
 
         // Special case the case where there is only one requested span.  In that case, we don't
@@ -185,6 +158,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
             AddTagsForLargeNumberOfSpans(requestedSpans, tags);
         }
 
+        DebugVerifyTags(requestedSpans, tags);
         return;
 
         void AddTagsForLargeNumberOfSpans(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<TagSpan<TTag>> tags)
@@ -252,6 +226,25 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
 
                 if (!enumerator.MoveNext())
                     break;
+            }
+        }
+    }
+
+    [Conditional("DEBUG")]
+    private static void DebugVerifyTags(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<TagSpan<TTag>> tags)
+    {
+        if (tags == null)
+        {
+            return;
+        }
+
+        foreach (var tag in tags)
+        {
+            var span = tag.Span;
+
+            if (!requestedSpans.Any(s => s.IntersectsWith(span)))
+            {
+                Contract.Fail(tag + " doesn't intersects with any requested span");
             }
         }
     }
