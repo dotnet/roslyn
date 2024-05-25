@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
@@ -54,10 +55,11 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         var otherStart = start;
         var otherEnd = start + length;
 
-        var thisEnd = GetEnd(value, in introspector);
         var thisStart = introspector.GetStart(value);
+        var thisEnd = thisStart + introspector.GetLength(value);
 
-        // make sure "Contains" test to be same as what TextSpan does
+        // TODO(cyrusn): This doesn't actually seem to match what TextSpan.Contains does.  It doesn't specialize empty
+        // length in any way.  Preserving this behavior for now, but we should consider changing this.
         if (length == 0)
         {
             return thisStart <= otherStart && otherEnd < thisEnd;
@@ -72,8 +74,8 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         var otherStart = start;
         var otherEnd = start + length;
 
-        var thisEnd = GetEnd(value, in introspector);
         var thisStart = introspector.GetStart(value);
+        var thisEnd = thisStart + introspector.GetLength(value);
 
         return otherStart <= thisEnd && otherEnd >= thisStart;
     }
@@ -84,13 +86,13 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         var otherStart = start;
         var otherEnd = start + length;
 
-        var thisEnd = GetEnd(value, in introspector);
         var thisStart = introspector.GetStart(value);
+        var thisEnd = thisStart + introspector.GetLength(value);
 
+        // TODO(cyrusn): This doesn't actually seem to match what TextSpan.OverlapsWith does.  It doesn't specialize empty
+        // length in any way.  Preserving this behavior for now, but we should consider changing this.
         if (length == 0)
-        {
             return thisStart < otherStart && otherStart < thisEnd;
-        }
 
         var overlapStart = Math.Max(thisStart, otherStart);
         var overlapEnd = Math.Min(thisEnd, otherEnd);
