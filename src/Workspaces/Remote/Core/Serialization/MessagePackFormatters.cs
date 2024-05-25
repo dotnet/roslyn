@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var id = GuidFormatter.Instance.Deserialize(ref reader, options);
                     var debugName = reader.ReadString();
 #else
+                    // No need to read as an array if only deserializing the id
                     var id = GuidFormatter.Instance.Deserialize(ref reader, options);
                     string? debugName = null;
 #endif
