@@ -109,7 +109,11 @@ public sealed class ProjectId : IEquatable<ProjectId>, IComparable<ProjectId>
     internal static ProjectId ReadFrom(ObjectReader reader)
     {
         var guid = reader.ReadGuid();
+#if DEBUG
         var debugName = reader.ReadString();
+#else
+        string? debugName = null;
+#endif
 
         return CreateFromSerialized(guid, debugName);
     }
