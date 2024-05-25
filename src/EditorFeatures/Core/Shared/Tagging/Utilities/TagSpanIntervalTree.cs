@@ -24,13 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 internal sealed partial class TagSpanIntervalTree<TTag>(
     ITextBuffer textBuffer,
     SpanTrackingMode trackingMode,
-    IEnumerable<ITagSpan<TTag>>? values = null) where TTag : ITag
+    IEnumerable<ITagSpan<TTag>>? values1 = null,
+    IEnumerable<ITagSpan<TTag>>? values2 = null) where TTag : ITag
 {
     private readonly ITextBuffer _textBuffer = textBuffer;
     private readonly SpanTrackingMode _spanTrackingMode = trackingMode;
     private readonly IntervalTree<ITagSpan<TTag>> _tree = IntervalTree.Create(
         new IntervalIntrospector(textBuffer.CurrentSnapshot, trackingMode),
-        values);
+        values1, values2);
 
     private static SnapshotSpan GetTranslatedSpan(
         ITagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
@@ -84,6 +85,37 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
 
     public IEnumerable<ITagSpan<TTag>> GetSpans(ITextSnapshot snapshot)
         => _tree.Select(tn => GetTranslatedTagSpan(tn, snapshot, _spanTrackingMode));
+
+    public void AddAllSpans(ITextSnapshot textSnapshot, HashSet<ITagSpan<TTag>> tagSpans)
+    {
+        foreach (var tagSpan in _tree)
+        {
+            // Avoid reallocating in the case where we're on the same snapshot.
+            tagSpans.Add(tagSpan.Span.Snapshot == textSnapshot
+                ? tagSpan
+                : GetTranslatedTagSpan(tagSpan, textSnapshot, _spanTrackingMode));
+        }
+    }
+
+    public void RemoveIntersectingTagSpans(SnapshotSpan snapshotSpan, HashSet<ITagSpan<TTag>> tagSpans)
+    {
+        using var buffer = TemporaryArray<ITagSpan<TTag>>.Empty;
+
+        var textSnapshot = snapshotSpan.Snapshot;
+        _tree.FillWithIntervalsThatIntersectWith(
+            snapshotSpan.Span.Start,
+            snapshotSpan.Span.Length,
+            ref buffer.AsRef(),
+            new IntervalIntrospector(textSnapshot, _spanTrackingMode));
+
+        foreach (var tagSpan in buffer)
+        {
+            // Avoid reallocating in the case where we're on the same snapshot.
+            tagSpans.Remove(tagSpan.Span.Snapshot == textSnapshot
+                ? tagSpan
+                : GetTranslatedTagSpan(tagSpan, textSnapshot, _spanTrackingMode));
+        }
+    }
 
     public bool IsEmpty()
         => _tree.IsEmpty();

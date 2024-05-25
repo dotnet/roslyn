@@ -453,20 +453,23 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             {
                 // If we have no spans to invalidate, then we can just keep the old tags and add the new tags.
                 var oldTagsToKeep = oldTagTree.GetSpans(newTags.First().Span.Snapshot);
-                var finalTags = oldTagsToKeep.Concat(newTags);
-                return new TagSpanIntervalTree<TTag>(textBuffer, _dataSource.SpanTrackingMode, finalTags);
+                return new TagSpanIntervalTree<TTag>(
+                    textBuffer, _dataSource.SpanTrackingMode, oldTagsToKeep, newTags);
             }
             else
             {
                 // We do have spans to invalidate. Get the set of old tags that don't intersect with those and add the new tags.
-                var oldTagsToKeep = GetNonIntersectingTagSpans(spansToInvalidate, oldTagTree);
-                var finalTags = oldTagsToKeep.Concat(newTags);
-                return new TagSpanIntervalTree<TTag>(textBuffer, _dataSource.SpanTrackingMode, finalTags);
+                using var _1 = _tagSpanSetPool.GetPooledObject(out var nonIntersectingTagSpans);
+                AddNonIntersectingTagSpans(spansToInvalidate, oldTagTree, nonIntersectingTagSpans);
+                return new TagSpanIntervalTree<TTag>(
+                    textBuffer, _dataSource.SpanTrackingMode, nonIntersectingTagSpans, newTags);
             }
         }
 
-        private IEnumerable<ITagSpan<TTag>> GetNonIntersectingTagSpans(
-            ArrayBuilder<SnapshotSpan> spansToInvalidate, TagSpanIntervalTree<TTag> oldTagTree)
+        private static void AddNonIntersectingTagSpans(
+            ArrayBuilder<SnapshotSpan> spansToInvalidate,
+            TagSpanIntervalTree<TTag> oldTagTree,
+            HashSet<ITagSpan<TTag>> nonIntersectingTagSpans)
         {
             var firstSpanToInvalidate = spansToInvalidate.First();
             var snapshot = firstSpanToInvalidate.Snapshot;
@@ -474,17 +477,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // Performance: No need to fully realize spansToInvalidate or do any of the calculations below if the
             //   full snapshot is being invalidated.
             if (firstSpanToInvalidate.Length == snapshot.Length)
-                return [];
+                return;
 
-            using var _1 = ArrayBuilder<SnapshotSpan>.GetInstance(out var allOldTags);
-<<<<<<< Updated upstream
-=======
-            oldTagTree.GetSpans
->>>>>>> Stashed changes
+            oldTagTree.AddAllSpans(snapshot, nonIntersectingTagSpans);
 
-            return oldTagTree.GetSpans(snapshot).Except(
-                spansToInvalidate.SelectMany(oldTagTree.GetIntersectingSpans),
-                comparer: this);
+            foreach (var spanToInvalidate in spansToInvalidate)
+                oldTagTree.RemoveIntersectingTagSpans(spanToInvalidate, nonIntersectingTagSpans);
         }
 
         private bool ShouldSkipTagProduction()
