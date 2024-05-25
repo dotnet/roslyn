@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
@@ -10,41 +9,29 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal partial class TagSpanIntervalTree<TTag>
 {
-    private class TagNode(ITagSpan<TTag> ts, SpanTrackingMode trackingMode)
+    private readonly struct TagNode(ITagSpan<TTag> tagSpan, SpanTrackingMode trackingMode)
     {
-        public readonly TTag Tag = ts.Tag;
-        public readonly ITrackingSpan Span = ts.Span.CreateTrackingSpan(trackingMode);
-        private SnapshotSpan _snapshotSpan = ts.Span;
+        private readonly ITagSpan<TTag> _originalTagSpan = tagSpan;
+        private readonly SpanTrackingMode _trackingMode = trackingMode;
 
-        private SnapshotSpan GetSnapshotSpan(ITextSnapshot textSnapshot)
+        public TTag Tag => _originalTagSpan.Tag;
+
+        public TagSpan<TTag> GetTranslatedTagSpan(ITextSnapshot textSnapshot)
+            => new(GetTranslatedSpan(textSnapshot), Tag);
+
+        public SnapshotSpan GetTranslatedSpan(ITextSnapshot textSnapshot)
         {
-            var localSpan = _snapshotSpan;
-            if (localSpan.Snapshot == textSnapshot)
-            {
-                return localSpan;
-            }
-            else if (localSpan.Snapshot != null)
-            {
-                _snapshotSpan = default;
-            }
+            var localSpan = _originalTagSpan.Span;
 
-            return default;
-        }
-
-        internal int GetStart(ITextSnapshot textSnapshot)
-        {
-            var localSpan = this.GetSnapshotSpan(textSnapshot);
             return localSpan.Snapshot == textSnapshot
-                ? localSpan.Start
-                : this.Span.GetStartPoint(textSnapshot);
+                ? localSpan
+                : localSpan.TranslateTo(textSnapshot, _trackingMode);
         }
 
-        internal int GetLength(ITextSnapshot textSnapshot)
-        {
-            var localSpan = this.GetSnapshotSpan(textSnapshot);
-            return localSpan.Snapshot == textSnapshot
-                ? localSpan.Length
-                : this.Span.GetSpan(textSnapshot).Length;
-        }
+        public int GetStart(ITextSnapshot textSnapshot)
+            => GetTranslatedSpan(textSnapshot).Start;
+
+        public int GetLength(ITextSnapshot textSnapshot)
+            => GetTranslatedSpan(textSnapshot).Length;
     }
 }
