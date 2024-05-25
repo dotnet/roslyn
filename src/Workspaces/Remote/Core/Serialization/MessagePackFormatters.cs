@@ -70,11 +70,12 @@ namespace Microsoft.CodeAnalysis.Remote
                         return null;
                     }
 
+#if DEBUG
                     Contract.ThrowIfFalse(reader.ReadArrayHeader() == 2);
                     var id = GuidFormatter.Instance.Deserialize(ref reader, options);
-#if DEBUG
                     var debugName = reader.ReadString();
 #else
+                    var id = GuidFormatter.Instance.Deserialize(ref reader, options);
                     string? debugName = null;
 #endif
 
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         GuidFormatter.Instance.Serialize(ref writer, value.Id, options);
                         writer.Write(value.DebugName);
 #else
-                        writer.WriteArrayHeader(1);
+                        // No need to write as an array if only serializing the id
                         GuidFormatter.Instance.Serialize(ref writer, value.Id, options);
 #endif
                     }
