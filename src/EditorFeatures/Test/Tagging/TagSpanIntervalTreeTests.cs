@@ -30,7 +30,7 @@ public class TagSpanIntervalTreeTests
     {
         var (tree, buffer) = CreateTree(string.Empty);
 
-        Assert.Empty(tree.GetSpans(buffer.CurrentSnapshot));
+        Assert.Empty(tree.GetTagSpans(buffer.CurrentSnapshot));
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public class TagSpanIntervalTreeTests
     {
         var (tree, buffer) = CreateTree("Hello, World", new Span(0, 5));
 
-        Assert.Equal(new Span(0, 5), tree.GetSpans(buffer.CurrentSnapshot).Single().Span);
+        Assert.Equal(new Span(0, 5), tree.GetTagSpans(buffer.CurrentSnapshot).Single().Span);
     }
 
     [Fact]

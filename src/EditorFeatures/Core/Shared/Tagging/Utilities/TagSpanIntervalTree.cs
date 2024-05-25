@@ -77,8 +77,18 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
             result.Add(GetTranslatedTagSpan(tagSpan, snapshot, _spanTrackingMode));
     }
 
-    public IEnumerable<TagSpan<TTag>> GetSpans(ITextSnapshot snapshot)
+    public IEnumerable<TagSpan<TTag>> GetTagSpans(ITextSnapshot snapshot)
         => _tree.Select(tn => GetTranslatedTagSpan(tn, snapshot));
+
+    public NormalizedSnapshotSpanCollection GetSnapshotSpanCollection(ITextSnapshot snapshot)
+    {
+        using var _ = ArrayBuilder<SnapshotSpan>.GetInstance(out var spans);
+
+        foreach (var tagSpan in _tree)
+            spans.Add(GetTranslatedSpan(tagSpan, snapshot, _spanTrackingMode));
+
+        return new(spans);
+    }
 
     /// <summary>
     /// Adds all the tag spans in <see langword="this"/> to <paramref name="tagSpans"/>, translating them to the given

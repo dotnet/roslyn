@@ -58,7 +58,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             var oldTagTree = GetTagTree(snapshot, oldTagTrees);
 
             // everything from old tree is removed.
-            RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: new(oldTagTree.GetSpans(snapshot).Select(s => s.Span))));
+            RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: oldTagTree.GetSnapshotSpanCollection(snapshot)));
         }
 
         private void OnSubjectBufferChanged(object? _, TextContentChangedEventArgs e)
@@ -103,7 +103,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                         var tagsToRemove = e.Changes.SelectMany(c => treeForBuffer.GetIntersectingSpans(new SnapshotSpan(snapshot, c.NewSpan)));
                         if (tagsToRemove.Any())
                         {
-                            var allTags = treeForBuffer.GetSpans(e.After).ToList();
+                            var allTags = treeForBuffer.GetTagSpans(e.After).ToList();
                             var newTagTree = new TagSpanIntervalTree<TTag>(
                                 buffer,
                                 this._dataSource.SpanTrackingMode,
@@ -449,7 +449,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             if (noSpansToInvalidate)
             {
                 // If we have no spans to invalidate, then we can just keep the old tags and add the new tags.
-                var oldTagsToKeep = oldTagTree.GetSpans(newTags.First().Span.Snapshot);
+                var oldTagsToKeep = oldTagTree.GetTagSpans(newTags.First().Span.Snapshot);
                 return new TagSpanIntervalTree<TTag>(
                     textBuffer, _dataSource.SpanTrackingMode, oldTagsToKeep, newTags);
             }
@@ -518,7 +518,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     else
                     {
                         // It's a new buffer, so report all spans are changed
-                        bufferToChanges[latestBuffer] = new DiffResult(added: new(latestSpans.GetSpans(snapshot).Select(t => t.Span)), removed: null);
+                        bufferToChanges[latestBuffer] = new DiffResult(added: new(latestSpans.GetTagSpans(snapshot).Select(t => t.Span)), removed: null);
                     }
                 }
 
@@ -527,7 +527,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     if (!newTagTrees.ContainsKey(oldBuffer))
                     {
                         // This buffer disappeared, so let's notify that the old tags are gone
-                        bufferToChanges[oldBuffer] = new DiffResult(added: null, removed: new(previousSpans.GetSpans(oldBuffer.CurrentSnapshot).Select(t => t.Span)));
+                        bufferToChanges[oldBuffer] = new DiffResult(added: null, removed: new(previousSpans.GetTagSpans(oldBuffer.CurrentSnapshot).Select(t => t.Span)));
                     }
                 }
 
