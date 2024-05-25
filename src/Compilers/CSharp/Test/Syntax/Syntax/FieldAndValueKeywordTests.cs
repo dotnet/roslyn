@@ -1024,6 +1024,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
+        public void IdentifierToken_AttributeTargetSpecifierSyntax(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            string source = $$"""
+                #pragma warning disable 657
+                using System;
+                class A : Attribute
+                {
+                }
+                class C
+                {
+                    [field: A] object P1 { get; set; }
+                    object P2 { [field: A] get; set; }
+                    object P3 { [@field: A] get; set; }
+                    [field: A] event EventHandler E1 { add { } remove { } }
+                    event EventHandler E2 { [field: A] add { } remove { } }
+                    event EventHandler E3 { [@field: A] add { } remove { } }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void Lambda_01(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
@@ -1254,6 +1279,167 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (14,21): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
                 //             void G1(object value) { }
                 Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "object value").WithArguments("value", "preview").WithLocation(14, 21));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Attribute_01(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
+        {
+            string identifier = escapeIdentifier ? "@field" : "field";
+            string source = $$"""
+                using System;
+                class A : Attribute
+                {
+                    public A(string s) { }
+                }
+                class C
+                {
+                    const int field = 0;
+                    [A(nameof({{identifier}}))]
+                    object P
+                    {
+                        [A(nameof({{identifier}}))] get { return null; }
+                        [A(nameof({{identifier}}))] set { }
+                    }
+                    [A(nameof({{identifier}}))]
+                    event EventHandler E
+                    {
+                        [A(nameof({{identifier}}))] add { }
+                        [A(nameof({{identifier}}))] remove { }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp12 || escapeIdentifier)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (12,19): info CS9248: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
+                    //         [A(nameof(field))] get { return null; }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(12, 19),
+                    // (13,19): info CS9248: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
+                    //         [A(nameof(field))] set { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 19));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Attribute_02(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
+        {
+            string identifier = escapeIdentifier ? "@value" : "value";
+            string source = $$"""
+                using System;
+                class A : Attribute
+                {
+                    public A(string s) { }
+                }
+                class C
+                {
+                    const int value = 0;
+                    [A(nameof({{identifier}}))]
+                    object P
+                    {
+                        [A(nameof({{identifier}}))] get { return null; }
+                        [A(nameof({{identifier}}))] set { }
+                    }
+                    [A(nameof({{identifier}}))]
+                    event EventHandler E
+                    {
+                        [A(nameof({{identifier}}))] add { }
+                        [A(nameof({{identifier}}))] remove { }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp12 || escapeIdentifier)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,19): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
+                    //         [A(nameof(value))] set { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(13, 19),
+                    // (18,19): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
+                    //         [A(nameof(value))] add { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(18, 19),
+                    // (19,19): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
+                    //         [A(nameof(value))] remove { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(19, 19));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Attribute_LocalFunction(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
+        {
+            string fieldIdentifier = escapeIdentifier ? "@field" : "field";
+            string valueIdentifier = escapeIdentifier ? "@value" : "value";
+            string source = $$"""
+                #pragma warning disable 649, 8321
+                using System;
+                class A : Attribute
+                {
+                    public A(string s) { }
+                }
+                class C
+                {
+                    object P1
+                    {
+                        get
+                        {
+                            [A(nameof({{fieldIdentifier}}))] void F1(int {{fieldIdentifier}}) { }
+                            return null;
+                        }
+                    }
+                    object P2
+                    {
+                        set
+                        {
+                            [A(nameof({{valueIdentifier}}))] void F2(int {{valueIdentifier}}) { }
+                        }
+                    }
+                    object P3
+                    {
+                        set
+                        {
+                            [A(nameof({{valueIdentifier}}))] void F3() { }
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp12 || escapeIdentifier)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,23): info CS9248: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
+                    //             [A(nameof(field))] void F1(int field) { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 23),
+                    // (13,40): info CS9248: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
+                    //             [A(nameof(field))] void F1(int field) { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "int field").WithArguments("field", "preview").WithLocation(13, 40),
+                    // (21,23): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
+                    //             [A(nameof(value))] void F2(int value) { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(21, 23),
+                    // (21,40): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
+                    //             [A(nameof(value))] void F2(int value) { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "int value").WithArguments("value", "preview").WithLocation(21, 40),
+                    // (28,23): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
+                    //             [A(nameof(value))] void F3() { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(28, 23));
+            }
         }
     }
 }

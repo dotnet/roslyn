@@ -2196,6 +2196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CatchDeclarationSyntax catchDeclaration when catchDeclaration.Identifier == token:
                     case TypeParameterSyntax typeParameter when typeParameter.Identifier == token:
                     case ParameterSyntax parameter when parameter.Identifier == token:
+                    case AttributeTargetSpecifierSyntax targetSpecifier when targetSpecifier.Identifier == token:
                         switch (token.Text)
                         {
                             case "field":
