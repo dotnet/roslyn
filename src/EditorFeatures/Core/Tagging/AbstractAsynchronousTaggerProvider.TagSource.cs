@@ -172,7 +172,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             _dataSource = dataSource;
             _asyncListener = asyncListener;
             _nonFrozenComputationCancellationSeries = new(_disposalTokenSource.Token);
-            _tagSpanSetPool = new ObjectPool<HashSet<ITagSpan<TTag>>>(() => new HashSet<ITagSpan<TTag>>(this), trimOnFree: false);
+            _tagSpanSetPool = new ObjectPool<HashSet<TagSpan<TTag>>>(() => new HashSet<TagSpan<TTag>>(this), trimOnFree: false);
 
             _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
 

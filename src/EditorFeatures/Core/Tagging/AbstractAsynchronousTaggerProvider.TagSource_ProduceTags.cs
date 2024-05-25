@@ -393,7 +393,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             foreach (var spanToTag in context.SpansToTag)
                 buffersToTag.Add(spanToTag.SnapshotSpan.Snapshot.TextBuffer);
 
-            using var _2 = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var newTagsInBuffer);
+            using var _2 = ArrayBuilder<TagSpan<TTag>>.GetInstance(out var newTagsInBuffer);
             using var _3 = ArrayBuilder<SnapshotSpan>.GetInstance(out var spansToInvalidateInBuffer);
 
             var newTagTrees = ImmutableDictionary.CreateBuilder<ITextBuffer, TagSpanIntervalTree<TTag>>();
@@ -427,7 +427,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private TagSpanIntervalTree<TTag>? ComputeNewTagTree(
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             ITextBuffer textBuffer,
-            ArrayBuilder<ITagSpan<TTag>> newTags,
+            ArrayBuilder<TagSpan<TTag>> newTags,
             ArrayBuilder<SnapshotSpan> spansToInvalidate)
         {
             var noNewTags = newTags.IsEmpty;
@@ -469,7 +469,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private static void AddNonIntersectingTagSpans(
             ArrayBuilder<SnapshotSpan> spansToInvalidate,
             TagSpanIntervalTree<TTag> oldTagTree,
-            HashSet<ITagSpan<TTag>> nonIntersectingTagSpans)
+            HashSet<TagSpan<TTag>> nonIntersectingTagSpans)
         {
             var firstSpanToInvalidate = spansToInvalidate.First();
             var snapshot = firstSpanToInvalidate.Snapshot;
@@ -611,7 +611,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             return new DiffResult(new(added), new(removed));
 
-            static ITagSpan<TTag>? NextOrNull(IEnumerator<ITagSpan<TTag>> enumerator)
+            static TagSpan<TTag>? NextOrNull(IEnumerator<TagSpan<TTag>> enumerator)
                 => enumerator.MoveNext() ? enumerator.Current : null;
         }
 
