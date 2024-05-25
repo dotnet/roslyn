@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -100,10 +101,13 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 {
                     if (oldTagTrees.TryGetValue(buffer, out var treeForBuffer))
                     {
-                        var tagsToRemove = e.Changes.SelectMany(c => treeForBuffer.GetIntersectingSpans(new SnapshotSpan(snapshot, c.NewSpan)));
-                        if (tagsToRemove.Any())
+                        using var _1 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var tagsToRemove);
+                        foreach (var change in e.Changes)
+                            treeForBuffer.AddIntersectingTagSpans(new SnapshotSpan(snapshot, change.NewSpan), tagsToRemove);
+
+                        if (tagsToRemove.Count > 0)
                         {
-                            using var _ = _tagSpanSetPool.GetPooledObject(out var allTags);
+                            using var _2 = _tagSpanSetPool.GetPooledObject(out var allTags);
                             treeForBuffer.AddAllSpans(snapshot, allTags);
 
                             allTags.RemoveAll(tagsToRemove);

@@ -62,7 +62,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
 
     public IReadOnlyList<TagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
         => SegmentedListPool<TagSpan<TTag>>.ComputeList(
-            static (args, tags) => args.@this.AppendIntersectingSpansInSortedOrder(args.snapshotSpan, tags),
+            static (args, tags) => args.@this.AddIntersectingTagSpans(args.snapshotSpan, tags),
             (@this: this, snapshotSpan));
 
     /// <summary>
@@ -70,7 +70,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
     /// <paramref name="result"/>.  Note the sorted chunk of items are appended to <paramref name="result"/>.  This
     /// means that <paramref name="result"/> may not be sorted if there were already items in them.
     /// </summary>
-    private void AppendIntersectingSpansInSortedOrder(SnapshotSpan snapshotSpan, SegmentedList<TagSpan<TTag>> result)
+    public void AddIntersectingTagSpans(SnapshotSpan snapshotSpan, SegmentedList<TagSpan<TTag>> result)
     {
         var snapshot = snapshotSpan.Snapshot;
 
@@ -174,12 +174,12 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
         // need to allocate any intermediate collections
         if (requestedSpans.Count == 1)
         {
-            AppendIntersectingSpansInSortedOrder(requestedSpans[0], tags);
+            AddIntersectingTagSpans(requestedSpans[0], tags);
         }
         else if (requestedSpans.Count < MaxNumberOfRequestedSpans)
         {
             foreach (var span in requestedSpans)
-                AppendIntersectingSpansInSortedOrder(span, tags);
+                AddIntersectingTagSpans(span, tags);
         }
         else
         {
@@ -197,7 +197,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
 
             using var _1 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var tempList);
 
-            AppendIntersectingSpansInSortedOrder(mergedSpan, tempList);
+            AddIntersectingTagSpans(mergedSpan, tempList);
             if (tempList.Count == 0)
                 return;
 
