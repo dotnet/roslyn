@@ -24,13 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 internal sealed partial class TagSpanIntervalTree<TTag>(
     ITextBuffer textBuffer,
     SpanTrackingMode trackingMode,
-    IEnumerable<ITagSpan<TTag>>? values = null) where TTag : ITag
+    IEnumerable<ITagSpan<TTag>>? values1 = null,
+    IEnumerable<ITagSpan<TTag>>? values2 = null) where TTag : ITag
 {
     private readonly ITextBuffer _textBuffer = textBuffer;
     private readonly SpanTrackingMode _spanTrackingMode = trackingMode;
     private readonly IntervalTree<ITagSpan<TTag>> _tree = IntervalTree.Create(
         new IntervalIntrospector(textBuffer.CurrentSnapshot, trackingMode),
-        values);
+        values1, values2);
 
     private static SnapshotSpan GetTranslatedSpan(
         ITagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
@@ -42,8 +43,17 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
             : localSpan.TranslateTo(textSnapshot, trackingMode);
     }
 
+    private ITagSpan<TTag> GetTranslatedITagSpan(ITagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot)
+        // Avoid reallocating in the case where we're on the same snapshot.
+        => originalTagSpan.Span.Snapshot == textSnapshot
+            ? originalTagSpan
+            : GetTranslatedTagSpan(originalTagSpan, textSnapshot, _spanTrackingMode);
+
     private static TagSpan<TTag> GetTranslatedTagSpan(ITagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
-        => new(GetTranslatedSpan(originalTagSpan, textSnapshot, trackingMode), originalTagSpan.Tag);
+        // Avoid reallocating in the case where we're on the same snapshot.
+        => originalTagSpan is TagSpan<TTag> tagSpan && tagSpan.Span.Snapshot == textSnapshot
+            ? tagSpan
+            : new(GetTranslatedSpan(originalTagSpan, textSnapshot, trackingMode), originalTagSpan.Tag);
 
     public ITextBuffer Buffer => _textBuffer;
 
@@ -83,7 +93,42 @@ internal sealed partial class TagSpanIntervalTree<TTag>(
     }
 
     public IEnumerable<ITagSpan<TTag>> GetSpans(ITextSnapshot snapshot)
-        => _tree.Select(tn => GetTranslatedTagSpan(tn, snapshot, _spanTrackingMode));
+        => _tree.Select(tn => GetTranslatedITagSpan(tn, snapshot));
+
+    /// <summary>
+    /// Adds all the tag spans in <see langword="this"/> to <paramref name="tagSpans"/>, translating them to the given
+    /// location <paramref name="textSnapshot"/> based on <see cref="_spanTrackingMode"/>.
+    /// </summary>
+    public void AddAllSpans(ITextSnapshot textSnapshot, HashSet<ITagSpan<TTag>> tagSpans)
+    {
+        foreach (var tagSpan in _tree)
+            tagSpans.Add(GetTranslatedITagSpan(tagSpan, textSnapshot));
+    }
+
+    /// <summary>
+    /// Removes from <paramref name="tagSpans"/> all the tags spans in <see langword="this"/> that intersect with any of
+    /// the spans in <paramref name="snapshotSpansToRemove"/>.
+    /// </summary>
+    public void RemoveIntersectingTagSpans(
+        ArrayBuilder<SnapshotSpan> snapshotSpansToRemove, HashSet<ITagSpan<TTag>> tagSpans)
+    {
+        using var buffer = TemporaryArray<ITagSpan<TTag>>.Empty;
+
+        foreach (var snapshotSpan in snapshotSpansToRemove)
+        {
+            buffer.Clear();
+
+            var textSnapshot = snapshotSpan.Snapshot;
+            _tree.FillWithIntervalsThatIntersectWith(
+                snapshotSpan.Span.Start,
+                snapshotSpan.Span.Length,
+                ref buffer.AsRef(),
+                new IntervalIntrospector(textSnapshot, _spanTrackingMode));
+
+            foreach (var tagSpan in buffer)
+                tagSpans.Remove(GetTranslatedITagSpan(tagSpan, textSnapshot));
+        }
+    }
 
     public bool IsEmpty()
         => _tree.IsEmpty();
