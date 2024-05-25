@@ -469,7 +469,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             else
             {
                 // We do have spans to invalidate. Get the set of old tags that don't intersect with those and add the new tags.
-                using var _1 = _tagSpanSetPool.GetPooledObject(out var nonIntersectingTagSpans);
+                using var _1 = _tagSpanSetPool.GetPooledObject(out var nonIntersectingOldTags);
 
                 var firstSpanToInvalidate = spansToInvalidate.First();
                 var snapshot = firstSpanToInvalidate.Snapshot;
@@ -478,12 +478,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // full snapshot is being invalidated.
                 if (firstSpanToInvalidate.Length != snapshot.Length)
                 {
-                    oldTagTree.AddAllSpans(snapshot, nonIntersectingTagSpans);
-                    oldTagTree.RemoveIntersectingTagSpans(spansToInvalidate, nonIntersectingTagSpans);
+                    oldTagTree.AddAllSpans(snapshot, nonIntersectingOldTags);
+                    oldTagTree.RemoveIntersectingTagSpans(spansToInvalidate, nonIntersectingOldTags);
                 }
 
                 return new TagSpanIntervalTree<TTag>(
-                    snapshot, _dataSource.SpanTrackingMode, nonIntersectingTagSpans, newTags);
+                    snapshot, _dataSource.SpanTrackingMode, nonIntersectingOldTags, newTags);
             }
         }
 
