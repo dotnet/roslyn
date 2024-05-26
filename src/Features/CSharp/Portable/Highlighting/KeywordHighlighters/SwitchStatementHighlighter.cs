@@ -29,7 +29,8 @@ internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<
             or SyntaxKind.DefaultKeyword
             or SyntaxKind.SemicolonToken
             or SyntaxKind.BreakKeyword
-            or SyntaxKind.GotoKeyword);
+            or SyntaxKind.GotoKeyword
+            or SyntaxKind.ColonToken);
 
     protected override void AddHighlights(
         SwitchStatementSyntax switchStatement, List<TextSpan> spans, CancellationToken cancellationToken)
