@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
@@ -287,7 +288,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
                 // thread to do the computation. Finally, once new tags have been computed, then we update our state
                 // again on the foreground.
-                var spansToTag = GetSpansAndDocumentsToTag();
+                var snapshotSpansToTag = GetSnapshotSpansToTag(frozenPartialSemantics, cancellationToken);
                 var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
 
                 // If we're being called from within a blocking JTF.Run call, we don't want to switch to the background
@@ -298,12 +299,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 if (cancellationToken.IsCancellationRequested)
                     return null;
 
-                if (frozenPartialSemantics)
-                {
-                    spansToTag = spansToTag.SelectAsArray(ds => new DocumentSnapshotSpan(
-                        ds.Document?.WithFrozenPartialSemantics(cancellationToken),
-                        ds.SnapshotSpan));
-                }
+                // Now that we're on the threadpool, figure out what documents we need to tag corresponding to those
+                // SnapshotSpan the underlying data source asked us to tag.
+                var spansToTag = GetDocumentSnapshotSpansToTag(snapshotSpansToTag, frozenPartialSemantics, cancellationToken);
 
                 // Now spin, trying to compute the updated tags.  We only need to do this as the tag state is also
                 // allowed to change on the UI thread (for example, taggers can say they want tags to be immediately
@@ -348,32 +346,52 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 return newTagTrees;
             }
+
+            static ImmutableArray<DocumentSnapshotSpan> GetDocumentSnapshotSpansToTag(
+                ImmutableArray<SnapshotSpan> snapshotSpansToTag,
+                bool frozenPartialSemantics,
+                CancellationToken cancellationToken)
+            {
+                // We only ever have a tiny number of snapshots we're classifying.  So it's easier and faster to just store
+                // the mapping from it to a particular document in an on-stack array.
+                //
+                // document can be null if the buffer the given span is part of is not part of our workspace.
+                using var snapshotToDocument = TemporaryArray<(ITextSnapshot snapshot, Document? document)>.Empty;
+
+                var result = new FixedSizeArrayBuilder<DocumentSnapshotSpan>(snapshotSpansToTag.Length);
+
+                foreach (var spanToTag in snapshotSpansToTag)
+                {
+                    var snapshot = spanToTag.Snapshot;
+                    var document = snapshotToDocument.FirstOrDefault(
+                        static (t, snapshot) => t.snapshot == snapshot, snapshot).document;
+
+                    if (document is null)
+                    {
+                        CheckSnapshot(snapshot);
+
+                        document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                        if (frozenPartialSemantics)
+                            document = document?.WithFrozenPartialSemantics(cancellationToken);
+
+                        snapshotToDocument.Add((snapshot, document));
+                    }
+
+                    result.Add(new DocumentSnapshotSpan(document, spanToTag));
+                }
+
+                return result.MoveToImmutable();
+            }
         }
 
-        private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
+        private ImmutableArray<SnapshotSpan> GetSnapshotSpansToTag(
+            bool frozenPartialSemantics, CancellationToken cancellationToken)
         {
             _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
-            // TODO: Update to tag spans from all related documents.
-
-            using var _ = PooledDictionary<ITextSnapshot, Document?>.GetInstance(out var snapshotToDocumentMap);
-            var spansToTag = _dataSource.GetSpansToTag(_textView, _subjectBuffer);
-
-            var spansAndDocumentsToTag = spansToTag.SelectAsArray(span =>
-            {
-                if (!snapshotToDocumentMap.TryGetValue(span.Snapshot, out var document))
-                {
-                    CheckSnapshot(span.Snapshot);
-
-                    document = span.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    snapshotToDocumentMap[span.Snapshot] = document;
-                }
-
-                // document can be null if the buffer the given span is part of is not part of our workspace.
-                return new DocumentSnapshotSpan(document, span);
-            });
-
-            return spansAndDocumentsToTag;
+            using var spansToTag = TemporaryArray<SnapshotSpan>.Empty;
+            _dataSource.AddSpansToTag(_textView, _subjectBuffer, ref spansToTag.AsRef());
+            return spansToTag.ToImmutableAndClear();
         }
 
         [Conditional("DEBUG")]
@@ -483,21 +501,24 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             oldTagTree.RemoveIntersectingTagSpans(spansToInvalidate, nonIntersectingTagSpans);
         }
 
-        private bool ShouldSkipTagProduction()
-        {
-            if (_dataSource.Options.OfType<Option2<bool>>().Any(option => !_dataSource.GlobalOptions.GetOption(option)))
-                return true;
-
-            var languageName = _subjectBuffer.GetLanguageName();
-            return _dataSource.Options.OfType<PerLanguageOption2<bool>>().Any(option => languageName == null || !_dataSource.GlobalOptions.GetOption(option, languageName));
-        }
-
-        private Task ProduceTagsAsync(TaggerContext<TTag> context, CancellationToken cancellationToken)
+        private async ValueTask ProduceTagsAsync(TaggerContext<TTag> context, CancellationToken cancellationToken)
         {
             // If the feature is disabled, then just produce no tags.
-            return ShouldSkipTagProduction()
-                ? Task.CompletedTask
-                : _dataSource.ProduceTagsAsync(context, cancellationToken);
+            if (_dataSource.Options.OfType<Option2<bool>>().Any(option => !_dataSource.GlobalOptions.GetOption(option)))
+                return;
+
+            var languageName = _subjectBuffer.GetLanguageName();
+            if (_dataSource.Options.OfType<PerLanguageOption2<bool>>().Any(
+                    option => languageName == null || !_dataSource.GlobalOptions.GetOption(option, languageName)))
+            {
+                return;
+            }
+
+            // If we have no spans to tag, there's no point in continuing.
+            if (context.SpansToTag.IsEmpty)
+                return;
+
+            await _dataSource.ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
         }
 
         private Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(

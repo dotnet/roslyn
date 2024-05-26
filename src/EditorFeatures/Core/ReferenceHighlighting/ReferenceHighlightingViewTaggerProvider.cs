@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ReferenceHighlighting;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -86,13 +87,12 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
         return textViewOpt.BufferGraph.MapDownToFirstMatch(textViewOpt.Selection.Start.Position, PointTrackingMode.Positive, b => IsSupportedContentType(b.ContentType), PositionAffinity.Successor);
     }
 
-    protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
+    protected override void AddSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
         // Note: this may return no snapshot spans.  We have to be resilient to that
         // when processing the TaggerContext<>.SpansToTag below.
-        return textViewOpt.BufferGraph.GetTextBuffers(b => IsSupportedContentType(b.ContentType))
-                          .Select(b => b.CurrentSnapshot.GetFullSpan())
-                          .ToList();
+        foreach (var buffer in textViewOpt.BufferGraph.GetTextBuffers(b => IsSupportedContentType(b.ContentType)))
+            result.Add(buffer.CurrentSnapshot.GetFullSpan());
     }
 
     protected override Task ProduceTagsAsync(
