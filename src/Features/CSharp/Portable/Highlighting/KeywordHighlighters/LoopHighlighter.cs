@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
@@ -20,6 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class LoopHighlighter() : AbstractKeywordHighlighter(findInsideTrivia: false)
 {
+    protected override bool ContainsHighlightableToken(ref TemporaryArray<SyntaxToken> tokens)
+        => tokens.Any(static t => t.Kind()
+            is SyntaxKind.DoKeyword
+            or SyntaxKind.ForKeyword
+            or SyntaxKind.ForEachKeyword
+            or SyntaxKind.WhileKeyword
+            or SyntaxKind.BreakKeyword
+            or SyntaxKind.ContinueKeyword
+            or SyntaxKind.SemicolonToken);
+
     protected override bool IsHighlightableNode(SyntaxNode node)
         => node.IsContinuableConstruct();
 

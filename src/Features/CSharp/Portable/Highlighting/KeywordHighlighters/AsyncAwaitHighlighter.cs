@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -29,7 +27,7 @@ internal class AsyncAwaitHighlighter() : AbstractKeywordHighlighter(findInsideTr
         = SharedPools.Default<Stack<SyntaxNode>>();
 
     protected override bool ContainsHighlightableToken(ref TemporaryArray<SyntaxToken> tokens)
-        => tokens.Any(t => t.Kind() is SyntaxKind.AwaitKeyword or SyntaxKind.AsyncKeyword);
+        => tokens.Any(static t => t.Kind() is SyntaxKind.AwaitKeyword or SyntaxKind.AsyncKeyword);
 
     protected override bool IsHighlightableNode(SyntaxNode node)
         => node.IsReturnableConstructOrTopLevelCompilationUnit();
@@ -45,9 +43,8 @@ internal class AsyncAwaitHighlighter() : AbstractKeywordHighlighter(findInsideTr
 
     private static IEnumerable<SyntaxNode> WalkChildren(SyntaxNode node)
     {
-        using var pooledObject = s_stackPool.GetPooledObject();
+        using var _ = s_stackPool.GetPooledObject(out var stack);
 
-        var stack = pooledObject.Object;
         stack.Push(node);
 
         while (stack.TryPop(out var current))
@@ -58,16 +55,12 @@ internal class AsyncAwaitHighlighter() : AbstractKeywordHighlighter(findInsideTr
             // order, which is nicer when debugging and understanding the results produced.
             foreach (var child in current.ChildNodesAndTokens().Reverse())
             {
-                if (child.IsNode)
+                if (child.AsNode(out var childNode))
                 {
-                    var childNode = child.AsNode();
-
                     // Only process children if they're not the start of another construct
                     // that async/await would be related to.
                     if (!childNode.IsReturnableConstruct())
-                    {
                         stack.Push(childNode);
-                    }
                 }
             }
         }
