@@ -158,8 +158,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         if (root is null)
             return false;
 
-        using var pooledObject = s_nodePool.GetPooledObject();
-        var candidates = pooledObject.Object;
+        using var _ = s_nodePool.GetPooledObject(out var candidates);
 
         var end = start + length;
 
@@ -202,8 +201,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         if (root == null)
             return 0;
 
-        using var pooledObject = s_stackPool.GetPooledObject();
-        var candidates = pooledObject.Object;
+        using var _ = s_stackPool.GetPooledObject(out var candidates);
 
         var matches = 0;
         var end = start + length;
