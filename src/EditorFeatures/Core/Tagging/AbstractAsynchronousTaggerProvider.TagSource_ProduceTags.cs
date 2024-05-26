@@ -503,15 +503,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             }
         }
 
-        private bool ShouldSkipTagProduction()
-        {
-            if (_dataSource.Options.OfType<Option2<bool>>().Any(option => !_dataSource.GlobalOptions.GetOption(option)))
-                return true;
-
-            var languageName = _subjectBuffer.GetLanguageName();
-            return _dataSource.Options.OfType<PerLanguageOption2<bool>>().Any(option => languageName == null || !_dataSource.GlobalOptions.GetOption(option, languageName));
-        }
-
         private async ValueTask ProduceTagsAsync(TaggerContext<TTag> context, CancellationToken cancellationToken)
         {
             // If the feature is disabled, then just produce no tags.
