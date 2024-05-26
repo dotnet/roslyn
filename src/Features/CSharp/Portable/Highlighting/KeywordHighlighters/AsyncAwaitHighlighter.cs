@@ -14,22 +14,22 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 
 [ExportHighlighter(LanguageNames.CSharp), Shared]
-internal class AsyncAwaitHighlighter : AbstractKeywordHighlighter
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class AsyncAwaitHighlighter() : AbstractKeywordHighlighter(findInsideTrivia: false)
 {
     private static readonly ObjectPool<Stack<SyntaxNode>> s_stackPool
         = SharedPools.Default<Stack<SyntaxNode>>();
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public AsyncAwaitHighlighter()
-    {
-    }
+    protected override bool ContainsHighlightableToken(ref TemporaryArray<SyntaxToken> tokens)
+        => tokens.Any(t => t.Kind() is SyntaxKind.AwaitKeyword or SyntaxKind.AsyncKeyword);
 
     protected override bool IsHighlightableNode(SyntaxNode node)
         => node.IsReturnableConstructOrTopLevelCompilationUnit();
