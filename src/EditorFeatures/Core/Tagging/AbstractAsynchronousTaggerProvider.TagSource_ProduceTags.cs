@@ -509,20 +509,23 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
         private async ValueTask ProduceTagsAsync(TaggerContext<TTag> context, CancellationToken cancellationToken)
         {
-            // If the feature is disabled, then just produce no tags.
-            if (_dataSource.Options.OfType<Option2<bool>>().Any(option => !_dataSource.GlobalOptions.GetOption(option)))
-                return;
-
-            var languageName = _subjectBuffer.GetLanguageName();
-            if (_dataSource.Options.OfType<PerLanguageOption2<bool>>().Any(
-                    option => languageName == null || !_dataSource.GlobalOptions.GetOption(option, languageName)))
-            {
-                return;
-            }
-
             // If we have no spans to tag, there's no point in continuing.
             if (context.SpansToTag.IsEmpty)
                 return;
+
+            // If the feature is disabled, then just produce no tags.
+            var languageName = _subjectBuffer.GetLanguageName();
+            foreach (var option in _dataSource.Options)
+            {
+                if (option is Option2<bool> option2 && !_dataSource.GlobalOptions.GetOption(option2))
+                    return;
+
+                if (option is PerLanguageOption2<bool> perLanguageOption &&
+                    (languageName == null || !_dataSource.GlobalOptions.GetOption(perLanguageOption, languageName)))
+                {
+                    return;
+                }
+            }
 
             await _dataSource.ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
         }
