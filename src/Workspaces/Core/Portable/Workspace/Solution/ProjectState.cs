@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host;
@@ -430,6 +431,9 @@ internal partial class ProjectState
 
         public override NamingStylePreferences GetNamingStylePreferences()
             => NamingStylePreferences.Empty;
+
+        public override CodeGenerationOptions GetCodeGenerationOptions(LanguageServices languageServices, CodeGenerationOptions? fallbackOptions)
+            => CodeGenerationOptions.CommonDefaults;
     }
 
     private sealed class ProjectSyntaxTreeOptionsProvider(AsyncLazy<AnalyzerConfigOptionsCache> lazyAnalyzerConfigSet) : SyntaxTreeOptionsProvider
