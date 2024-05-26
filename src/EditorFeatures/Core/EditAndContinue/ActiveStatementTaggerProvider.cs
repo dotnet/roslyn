@@ -55,7 +55,7 @@ internal partial class ActiveStatementTaggerProvider(
     protected override async Task ProduceTagsAsync(
         TaggerContext<ITextMarkerTag> context, CancellationToken cancellationToken)
     {
-        Debug.Assert(context.SpansToTag.Count == 1);
+        Contract.ThrowIfTrue(context.SpansToTag.Count != 1);
 
         var spanToTag = context.SpansToTag.First();
 
