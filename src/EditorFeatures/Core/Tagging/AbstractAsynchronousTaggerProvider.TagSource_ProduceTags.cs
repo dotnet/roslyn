@@ -322,7 +322,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                             oldState, frozenPartialSemantics, spansToTag, caretPosition, oldTagTrees);
                         await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
 
-                        return ComputeNewTagTrees(oldTagTrees, context);
+                        return ComputeNewTagTrees(oldTagTrees, context, snapshotSpansToTag);
                     }, cancellationToken).ConfigureAwait(continueOnCapturedContext: calledFromJtfRun);
 
                 // We may get back null if we were canceled.  Immediately bail out in that case.
@@ -408,7 +408,10 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             }
         }
 
-        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ComputeNewTagTrees(ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, TaggerContext<TTag> context)
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ComputeNewTagTrees(
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
+            TaggerContext<TTag> context,
+            OneOrMany<SnapshotSpan> spansToTag)
         {
             using var _1 = PooledHashSet<ITextBuffer>.GetInstance(out var buffersToTag);
             foreach (var spanToTag in context.SpansToTag)
@@ -431,7 +434,10 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                         newTagsInBuffer.Add(tagSpan);
                 }
 
-                foreach (var span in context._spansTagged)
+                // Invalidate all the spans that were actually tagged.  If the context doesn't have any recorded spans
+                // that were tagged, then assume we tagged everything we were asked to tag.
+                var spansTagged = context._spansTagged ?? spansToTag;
+                foreach (var span in spansTagged)
                 {
                     if (span.Snapshot.TextBuffer == buffer)
                         spansToInvalidateInBuffer.Add(span);

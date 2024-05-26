@@ -19,7 +19,7 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
 {
     private readonly ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _existingTags;
 
-    internal OneOrMany<SnapshotSpan> _spansTagged;
+    internal OneOrMany<SnapshotSpan>? _spansTagged;
     public readonly SegmentedList<TagSpan<TTag>> TagSpans = [];
 
     /// <summary>
@@ -70,7 +70,6 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
         this.SpansToTag = spansToTag;
         this.CaretPosition = caretPosition;
 
-        _spansTagged = spansToTag.Select(static ds => ds.SnapshotSpan);
         _existingTags = existingTags;
     }
 
