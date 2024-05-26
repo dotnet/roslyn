@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
