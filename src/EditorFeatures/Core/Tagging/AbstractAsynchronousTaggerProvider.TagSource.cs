@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Options;
@@ -50,6 +51,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// Internal for testing purposes.
         /// </summary>
         private const int CoalesceDifferenceCount = 10;
+
+        private static readonly ObjectPool<SegmentedList<TagSpan<TTag>>> s_tagSpanListPool = new(() => new(), trimOnFree: false);
+        private readonly ObjectPool<HashSet<TagSpan<TTag>>> _tagSpanSetPool;
 
         #region Fields that can be accessed from either thread
 

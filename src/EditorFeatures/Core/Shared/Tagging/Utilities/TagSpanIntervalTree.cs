@@ -85,6 +85,9 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
     /// </summary>
     public NormalizedSnapshotSpanCollection GetSnapshotSpanCollection(ITextSnapshot snapshot)
     {
+        if (this == Empty)
+            return NormalizedSnapshotSpanCollection.Empty;
+
         using var _ = ArrayBuilder<SnapshotSpan>.GetInstance(out var spans);
 
         foreach (var tagSpan in _tree)
@@ -107,7 +110,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
 
     /// <inheritdoc cref="AddAllSpans(ITextSnapshot, HashSet{TagSpan{TTag}})"/>
     /// <remarks>Spans will be added in sorted order</remarks>
-    public void AddAllSpans(ITextSnapshot textSnapshot, ArrayBuilder<TagSpan<TTag>> tagSpans)
+    public void AddAllSpans(ITextSnapshot textSnapshot, SegmentedList<TagSpan<TTag>> tagSpans)
     {
         foreach (var tagSpan in _tree)
             tagSpans.Add(GetTranslatedTagSpan(tagSpan, textSnapshot));

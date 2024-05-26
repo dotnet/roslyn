@@ -56,7 +56,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 ref _cachedTagTrees_mayChangeFromAnyThread, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty);
 
             var snapshot = _subjectBuffer.CurrentSnapshot;
-            var oldTagTree = GetTagTree(snapshot, oldTagTrees);
+            var oldTagTree = oldTagTrees.TryGetValue(snapshot.TextBuffer, out var tagTree)
+                ? tagTree
+                : TagSpanIntervalTree<TTag>.Empty;
 
             // everything from old tree is removed.
             RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: oldTagTree.GetSnapshotSpanCollection(snapshot)));
@@ -94,20 +96,24 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             var snapshot = e.After;
             var buffer = snapshot.TextBuffer;
 
+            using var _1 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var tagsToRemove);
+            using var _2 = _tagSpanSetPool.GetPooledObject(out var allTags);
+
             // Everything we're passing in here is synchronous.  So we can assert that this must complete synchronously
             // as well.
             var (oldTagTrees, newTagTrees) = CompareAndSwapTagTreesAsync(
                 oldTagTrees =>
                 {
+                    tagsToRemove.Clear();
+                    allTags.Clear();
+
                     if (oldTagTrees.TryGetValue(buffer, out var treeForBuffer))
                     {
-                        using var _1 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var tagsToRemove);
                         foreach (var change in e.Changes)
                             treeForBuffer.AddIntersectingTagSpans(new SnapshotSpan(snapshot, change.NewSpan), tagsToRemove);
 
                         if (tagsToRemove.Count > 0)
                         {
-                            using var _2 = _tagSpanSetPool.GetPooledObject(out var allTags);
                             treeForBuffer.AddAllSpans(snapshot, allTags);
 
                             allTags.RemoveAll(tagsToRemove);
@@ -140,13 +146,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             var difference = ComputeDifference(snapshot, newTagTrees[buffer], oldTagTrees[buffer]);
 
             RaiseTagsChanged(buffer, difference);
-        }
-
-        private TagSpanIntervalTree<TTag> GetTagTree(ITextSnapshot snapshot, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> tagTrees)
-        {
-            return tagTrees.TryGetValue(snapshot.TextBuffer, out var tagTree)
-                ? tagTree
-                : TagSpanIntervalTree<TTag>.Empty;
         }
 
         private void OnEventSourceChanged(object? _1, TaggerEventArgs _2)
@@ -420,7 +419,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             foreach (var spanToTag in context.SpansToTag)
                 buffersToTag.Add(spanToTag.SnapshotSpan.Snapshot.TextBuffer);
 
-            using var _2 = ArrayBuilder<TagSpan<TTag>>.GetInstance(out var newTagsInBuffer);
+            using var _2 = s_tagSpanListPool.GetPooledObject(out var newTagsInBuffer);
             using var _3 = ArrayBuilder<SnapshotSpan>.GetInstance(out var spansToInvalidateInBuffer);
 
             var newTagTrees = ImmutableDictionary.CreateBuilder<ITextBuffer, TagSpanIntervalTree<TTag>>();
@@ -454,10 +453,10 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private TagSpanIntervalTree<TTag>? ComputeNewTagTree(
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             ITextBuffer textBuffer,
-            ArrayBuilder<TagSpan<TTag>> newTags,
+            SegmentedList<TagSpan<TTag>> newTags,
             ArrayBuilder<SnapshotSpan> spansToInvalidate)
         {
-            var noNewTags = newTags.IsEmpty;
+            var noNewTags = newTags.Count == 0;
             var noSpansToInvalidate = spansToInvalidate.IsEmpty;
             oldTagTrees.TryGetValue(textBuffer, out var oldTagTree);
 
@@ -572,8 +571,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             TagSpanIntervalTree<TTag> latestTree,
             TagSpanIntervalTree<TTag> previousTree)
         {
-            using var _1 = ArrayBuilder<TagSpan<TTag>>.GetInstance(out var latestSpans);
-            using var _2 = ArrayBuilder<TagSpan<TTag>>.GetInstance(out var previousSpans);
+            using var _1 = s_tagSpanListPool.GetPooledObject(out var latestSpans);
+            using var _2 = s_tagSpanListPool.GetPooledObject(out var previousSpans);
 
             using var _3 = ArrayBuilder<SnapshotSpan>.GetInstance(out var added);
             using var _4 = ArrayBuilder<SnapshotSpan>.GetInstance(out var removed);
@@ -641,7 +640,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             return new DiffResult(new(added), new(removed));
 
-            static TagSpan<TTag>? NextOrNull(ref ArrayBuilder<TagSpan<TTag>>.Enumerator enumerator)
+            static TagSpan<TTag>? NextOrNull(ref SegmentedList<TagSpan<TTag>>.Enumerator enumerator)
                 => enumerator.MoveNext() ? enumerator.Current : null;
         }
 
