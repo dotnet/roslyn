@@ -24,8 +24,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 {
     public static readonly IntervalTree<T> Empty = new();
 
-    private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool
-        = SharedPools.Default<Stack<(Node node, bool firstTime)>>();
+    private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool = new(() => new(), trimOnFree: false);
 
     /// <summary>
     /// Keep around a fair number of these as we often use them in parallel algorithms.
