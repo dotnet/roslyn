@@ -43,9 +43,23 @@ internal static class SharedPoolExtensions
     public static PooledObject<SegmentedList<TItem>> GetPooledObject<TItem>(this ObjectPool<SegmentedList<TItem>> pool)
         => PooledObject<SegmentedList<TItem>>.Create(pool);
 
+    public static PooledObject<Stack<TItem>> GetPooledObject<TItem>(this ObjectPool<Stack<TItem>> pool, out Stack<TItem> stack)
+    {
+        var pooledObject = PooledObject<Stack<TItem>>.Create(pool);
+        stack = pooledObject.Object;
+        return pooledObject;
+    }
+
     public static PooledObject<List<TItem>> GetPooledObject<TItem>(this ObjectPool<List<TItem>> pool, out List<TItem> list)
     {
         var pooledObject = PooledObject<List<TItem>>.Create(pool);
+        list = pooledObject.Object;
+        return pooledObject;
+    }
+
+    public static PooledObject<SegmentedList<TItem>> GetPooledObject<TItem>(this ObjectPool<SegmentedList<TItem>> pool, out SegmentedList<TItem> list)
+    {
+        var pooledObject = PooledObject<SegmentedList<TItem>>.Create(pool);
         list = pooledObject.Object;
         return pooledObject;
     }

@@ -119,11 +119,8 @@ internal static class SyntacticChangeRangeComputer
             if (oldRoot.IsIncrementallyIdenticalTo(newRoot))
                 return null;
 
-            using var leftOldStack = s_enumeratorPool.GetPooledObject();
-            using var leftNewStack = s_enumeratorPool.GetPooledObject();
-
-            var oldStack = leftOldStack.Object;
-            var newStack = leftNewStack.Object;
+            using var _1 = s_enumeratorPool.GetPooledObject(out var oldStack);
+            using var _2 = s_enumeratorPool.GetPooledObject(out var newStack);
 
             oldStack.Push(oldRoot.ChildNodesAndTokens().GetEnumerator());
             newStack.Push(newRoot.ChildNodesAndTokens().GetEnumerator());

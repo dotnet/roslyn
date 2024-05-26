@@ -10,7 +10,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
@@ -24,8 +23,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 {
     public static readonly IntervalTree<T> Empty = new();
 
-    private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool
-        = SharedPools.Default<Stack<(Node node, bool firstTime)>>();
+    private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool = new(() => new(), trimOnFree: false);
 
     /// <summary>
     /// Keep around a fair number of these as we often use them in parallel algorithms.
@@ -158,8 +156,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         if (root is null)
             return false;
 
-        using var pooledObject = s_nodePool.GetPooledObject();
-        var candidates = pooledObject.Object;
+        using var _ = s_nodePool.GetPooledObject(out var candidates);
 
         var end = start + length;
 
@@ -202,8 +199,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         if (root == null)
             return 0;
 
-        using var pooledObject = s_stackPool.GetPooledObject();
-        var candidates = pooledObject.Object;
+        using var _ = s_stackPool.GetPooledObject(out var candidates);
 
         var matches = 0;
         var end = start + length;
@@ -352,26 +348,27 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
     public IEnumerator<T> GetEnumerator()
     {
-        if (root == null)
-        {
-            yield break;
-        }
+        return this == Empty || root == null ? SpecializedCollections.EmptyEnumerator<T>() : GetEnumeratorWorker();
 
-        using var _ = ArrayBuilder<(Node? node, bool firstTime)>.GetInstance(out var candidates);
-        candidates.Push((root, firstTime: true));
-        while (candidates.TryPop(out var tuple))
+        IEnumerator<T> GetEnumeratorWorker()
         {
-            var (currentNode, firstTime) = tuple;
-            if (currentNode != null)
+            Contract.ThrowIfNull(root);
+            using var _ = ArrayBuilder<(Node node, bool firstTime)>.GetInstance(out var candidates);
+            candidates.Push((root, firstTime: true));
+            while (candidates.TryPop(out var tuple))
             {
+                var (currentNode, firstTime) = tuple;
                 if (firstTime)
                 {
-                    // First time seeing this node.  Mark that we've been seen and recurse
-                    // down the left side.  The next time we see this node we'll yield it
-                    // out.
-                    candidates.Push((currentNode.Right, firstTime: true));
+                    // First time seeing this node.  Mark that we've been seen and recurse down the left side.  The
+                    // next time we see this node we'll yield it out.
+                    if (currentNode.Right != null)
+                        candidates.Push((currentNode.Right, firstTime: true));
+
                     candidates.Push((currentNode, firstTime: false));
-                    candidates.Push((currentNode.Left, firstTime: true));
+
+                    if (currentNode.Left != null)
+                        candidates.Push((currentNode.Left, firstTime: true));
                 }
                 else
                 {
