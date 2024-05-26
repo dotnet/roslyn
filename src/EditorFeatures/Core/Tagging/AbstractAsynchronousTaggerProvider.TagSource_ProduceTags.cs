@@ -562,8 +562,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             var latestEnumerator = latestSpans.GetEnumerator();
             var previousEnumerator = previousSpans.GetEnumerator();
 
-            var latest = NextOrNull(latestEnumerator);
-            var previous = NextOrNull(previousEnumerator);
+            var latest = NextOrNull(ref latestEnumerator);
+            var previous = NextOrNull(ref previousEnumerator);
 
             while (latest != null && previous != null)
             {
@@ -573,12 +573,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 if (latestSpan.Start < previousSpan.Start)
                 {
                     added.Add(latestSpan);
-                    latest = NextOrNull(latestEnumerator);
+                    latest = NextOrNull(ref latestEnumerator);
                 }
                 else if (previousSpan.Start < latestSpan.Start)
                 {
                     removed.Add(previousSpan);
-                    previous = NextOrNull(previousEnumerator);
+                    previous = NextOrNull(ref previousEnumerator);
                 }
                 else
                 {
@@ -587,20 +587,20 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     if (previousSpan.End > latestSpan.End)
                     {
                         removed.Add(previousSpan);
-                        latest = NextOrNull(latestEnumerator);
+                        latest = NextOrNull(ref latestEnumerator);
                     }
                     else if (latestSpan.End > previousSpan.End)
                     {
                         added.Add(latestSpan);
-                        previous = NextOrNull(previousEnumerator);
+                        previous = NextOrNull(ref previousEnumerator);
                     }
                     else
                     {
                         if (!_dataSource.TagEquals(latest.Tag, previous.Tag))
                             added.Add(latestSpan);
 
-                        latest = NextOrNull(latestEnumerator);
-                        previous = NextOrNull(previousEnumerator);
+                        latest = NextOrNull(ref latestEnumerator);
+                        previous = NextOrNull(ref previousEnumerator);
                     }
                 }
             }
@@ -608,18 +608,18 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             while (latest != null)
             {
                 added.Add(latest.Span);
-                latest = NextOrNull(latestEnumerator);
+                latest = NextOrNull(ref latestEnumerator);
             }
 
             while (previous != null)
             {
                 removed.Add(previous.Span);
-                previous = NextOrNull(previousEnumerator);
+                previous = NextOrNull(ref previousEnumerator);
             }
 
             return new DiffResult(new(added), new(removed));
 
-            static TagSpan<TTag>? NextOrNull(ArrayBuilder<TagSpan<TTag>>.Enumerator enumerator)
+            static TagSpan<TTag>? NextOrNull(ref ArrayBuilder<TagSpan<TTag>>.Enumerator enumerator)
                 => enumerator.MoveNext() ? enumerator.Current : null;
         }
 
