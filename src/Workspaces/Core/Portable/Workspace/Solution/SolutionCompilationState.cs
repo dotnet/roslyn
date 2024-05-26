@@ -708,32 +708,10 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithDocumentFilePath(documentId, filePath), documentId);
     }
 
-    /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, SourceText, PreservationMode)"/>
-    public SolutionCompilationState WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode)
-    {
-        // before allocating an array below, do a fast check if the text has actually changed. this shows up in
-        // allocation traces and is worthwhile to avoid for the common case where we're continually being asked to
-        // update the same doc to the same text (for example, when GetOpenDocumentInCurrentContextWithChanges) is
-        // called.
-        //
-        // The use of GetRequiredState mirrors what happens in WithDocumentTexts
-        var documentState = this.SolutionState
-            .GetRequiredProjectState(documentId.ProjectId).DocumentStates
-            .GetRequiredState(documentId);
-        if (SourceTextIsUnchanged(documentState, text))
-            return this;
-
-        return WithDocumentTexts([(documentId, text, mode)]);
-    }
-
-    internal SolutionCompilationState WithDocumentTexts(
-        ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
-    {
-        return WithDocumentContents(
+    internal SolutionCompilationState WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
+        => WithDocumentContents(
             texts, SourceTextIsUnchanged,
             static (documentState, text, mode) => documentState.UpdateText(text, mode));
-
-    }
 
     private static bool SourceTextIsUnchanged(DocumentState oldDocument, SourceText text)
         => oldDocument.TryGetText(out var oldText) && text == oldText;
@@ -1685,7 +1663,16 @@ internal sealed partial class SolutionCompilationState
 
             var documentState = this.SolutionState.GetProjectState(documentId.ProjectId)?.DocumentStates.GetState(documentId);
             if (documentState != null)
-                result = result.WithDocumentText(documentId, text, mode);
+            {
+                // before allocating an array below (and calling into a function that does a fair amount of linq work),
+                // do a fast check if the text has actually changed. this shows up in allocation traces and is
+                // worthwhile to avoid for the common case where we're continually being asked to update the same doc to
+                // the same text (for example, when GetOpenDocumentInCurrentContextWithChanges) is called.
+                //
+                // The use of GetRequiredState mirrors what happens in WithDocumentTexts
+                if (!SourceTextIsUnchanged(documentState, text))
+                    result = result.WithDocumentTexts([(documentId, text, mode)]);
+            }
         }
 
         return result;
