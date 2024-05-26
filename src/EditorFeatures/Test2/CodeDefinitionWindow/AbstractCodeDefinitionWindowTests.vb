@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
-
     Public MustInherit Class AbstractCodeDefinitionWindowTests
         Public Shared ReadOnly TestComposition As TestComposition =
             EditorTestCompositions.EditorFeatures _
