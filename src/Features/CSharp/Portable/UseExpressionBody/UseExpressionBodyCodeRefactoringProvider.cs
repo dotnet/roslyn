@@ -28,18 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseExpressionBody), Shared]
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.ExtractClass)]
-internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
 {
     private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
     private static readonly BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string> s_equivalenceKeyMap
         = CreateEquivalanceKeyMap(UseExpressionBodyHelper.Helpers);
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public UseExpressionBodyCodeRefactoringProvider()
-    {
-    }
 
     private static BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string> CreateEquivalanceKeyMap(
         ImmutableArray<UseExpressionBodyHelper> helpers)
@@ -80,13 +76,17 @@ internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeR
         }
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
 
+        // Defer creating the options as they can be expensive to compute.
+        var options = (CSharpCodeGenerationOptions?)null;
         foreach (var helper in _helpers)
         {
             var declaration = TryGetDeclaration(helper, text, node, position);
             if (declaration == null)
                 continue;
+
+            options ??= (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(
+                context.Options, cancellationToken).ConfigureAwait(false);
 
             var succeeded = TryComputeRefactoring(context, root, declaration, options, helper, cancellationToken);
             if (succeeded)
