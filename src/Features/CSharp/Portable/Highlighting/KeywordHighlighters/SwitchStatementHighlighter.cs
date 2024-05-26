@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
@@ -67,7 +68,7 @@ internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<
             // but if the label is missing, we do highlight 'goto' assuming it's more likely that
             // the user is in the middle of typing 'goto case' or 'goto default'.
             if (gotoStatement.Kind() is SyntaxKind.GotoCaseStatement or SyntaxKind.GotoDefaultStatement ||
-                gotoStatement.Expression.IsMissing)
+                gotoStatement is { Expression.IsMissing: true })
             {
                 var start = gotoStatement.GotoKeyword.SpanStart;
                 var end = !gotoStatement.CaseOrDefaultKeyword.IsKind(SyntaxKind.None)
@@ -82,10 +83,9 @@ internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<
         {
             foreach (var childNodeOrToken in node.ChildNodesAndTokens())
             {
-                if (childNodeOrToken.IsToken)
+                if (!childNodeOrToken.AsNode(out var child))
                     continue;
 
-                var child = childNodeOrToken.AsNode();
                 var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
                 var highlightGotosForChild = highlightGotos && !child.IsKind(SyntaxKind.SwitchStatement);
 
