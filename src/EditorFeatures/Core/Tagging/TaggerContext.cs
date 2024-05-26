@@ -19,7 +19,7 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
 {
     private readonly ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _existingTags;
 
-    internal OneOrMany<SnapshotSpan>? _spansTagged;
+    internal OneOrMany<SnapshotSpan> _spansTagged;
     public readonly SegmentedList<TagSpan<TTag>> TagSpans = [];
 
     /// <summary>
@@ -53,6 +53,7 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
               state: null,
               frozenPartialSemantics,
               OneOrMany.Create(new DocumentSnapshotSpan(document, snapshot.GetFullSpan())),
+              OneOrMany.Create(snapshot.GetFullSpan()),
               caretPosition,
               existingTags: null)
     {
@@ -62,6 +63,7 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
         object state,
         bool frozenPartialSemantics,
         OneOrMany<DocumentSnapshotSpan> spansToTag,
+        OneOrMany<SnapshotSpan> spansTagged,
         SnapshotPoint? caretPosition,
         ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> existingTags)
     {
@@ -70,6 +72,7 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
         this.SpansToTag = spansToTag;
         this.CaretPosition = caretPosition;
 
+        _spansTagged = spansTagged;
         _existingTags = existingTags;
     }
 
