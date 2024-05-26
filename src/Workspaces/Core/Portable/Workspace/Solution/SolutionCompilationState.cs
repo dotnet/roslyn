@@ -710,18 +710,33 @@ internal sealed partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, SourceText, PreservationMode)"/>
     public SolutionCompilationState WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode)
-        => WithDocumentTexts([(documentId, text, mode)]);
+    {
+        // before allocating an array below, do a fast check if the text has actually changed. this shows up in
+        // allocation traces and is worthwhile to avoid for the common case where we're continually being asked to
+        // update the same doc to the same text (for example, when GetOpenDocumentInCurrentContextWithChanges) is
+        // called.
+        //
+        // The use of GetRequiredState mirrors what happens in WithDocumentTexts
+        var documentState = this.SolutionState
+            .GetRequiredProjectState(documentId.ProjectId).DocumentStates
+            .GetRequiredState(documentId);
+        if (SourceTextIsUnchanged(documentState, text))
+            return this;
+
+        return WithDocumentTexts([(documentId, text, mode)]);
+    }
 
     internal SolutionCompilationState WithDocumentTexts(
         ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
     {
         return WithDocumentContents(
-            texts, IsUnchanged,
+            texts, SourceTextIsUnchanged,
             static (documentState, text, mode) => documentState.UpdateText(text, mode));
 
-        static bool IsUnchanged(DocumentState oldDocument, SourceText text)
-            => oldDocument.TryGetText(out var oldText) && text == oldText;
     }
+
+    private static bool SourceTextIsUnchanged(DocumentState oldDocument, SourceText text)
+        => oldDocument.TryGetText(out var oldText) && text == oldText;
 
     private SolutionCompilationState WithDocumentContents<TContent>(
         ImmutableArray<(DocumentId documentId, TContent content, PreservationMode mode)> texts,
