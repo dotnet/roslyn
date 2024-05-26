@@ -19,6 +19,12 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
 {
     private readonly ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _existingTags;
 
+    /// <summary>
+    /// The spans we actually tagged.  Initially set to the spans the tagger originally asked to tag.  However, if the
+    /// tagger tags a smaller span than the one it was asked to tag, this will be updated to reflect the actual spans
+    /// tagged.  For example, classification may initially say it wants to tag everything in the view, but then may
+    /// decide to only tag the containing method if it sees that all edits were contained within that method.
+    /// </summary>
     internal OneOrMany<SnapshotSpan> _spansTagged;
     public readonly SegmentedList<TagSpan<TTag>> TagSpans = [];
 
