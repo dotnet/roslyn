@@ -142,7 +142,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             RaiseTagsChanged(buffer, difference);
         }
 
-        private TagSpanIntervalTree<TTag> GetTagTree(ITextSnapshot snapshot, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> tagTrees)
+        private static TagSpanIntervalTree<TTag> GetTagTree(ITextSnapshot snapshot, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> tagTrees)
         {
             return tagTrees.TryGetValue(snapshot.TextBuffer, out var tagTree)
                 ? tagTree
