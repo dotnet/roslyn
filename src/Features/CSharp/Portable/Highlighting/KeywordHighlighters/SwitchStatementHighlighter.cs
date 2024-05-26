@@ -13,18 +13,24 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 
 [ExportHighlighter(LanguageNames.CSharp), Shared]
-internal class SwitchStatementHighlighter : AbstractKeywordHighlighter<SwitchStatementSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<SwitchStatementSyntax>(findInsideTrivia: false)
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SwitchStatementHighlighter()
-    {
-    }
+    protected override bool ContainsHighlightableToken(ref TemporaryArray<SyntaxToken> tokens)
+        => tokens.Any(static t => t.Kind()
+            is SyntaxKind.SwitchKeyword
+            or SyntaxKind.CaseKeyword
+            or SyntaxKind.DefaultKeyword
+            or SyntaxKind.SemicolonToken
+            or SyntaxKind.BreakKeyword
+            or SyntaxKind.GotoKeyword);
 
     protected override void AddHighlights(
         SwitchStatementSyntax switchStatement, List<TextSpan> spans, CancellationToken cancellationToken)
