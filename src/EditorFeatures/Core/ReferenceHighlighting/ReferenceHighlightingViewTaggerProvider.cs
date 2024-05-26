@@ -145,8 +145,6 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
         HighlightingOptions options,
         CancellationToken cancellationToken)
     {
-        var solution = document.Project.Solution;
-
         using (Logger.LogBlock(FunctionId.Tagger_ReferenceHighlighting_TagProducer_ProduceTags, cancellationToken))
         {
             if (document != null)
@@ -160,15 +158,17 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
 
                     // We only want to search inside documents that correspond to the snapshots
                     // we're looking at
-                    var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
+                    var documentsToSearchBuilder = ImmutableHashSet.CreateBuilder<Document>();
+                    foreach (var snapshotSpan in context.SpansToTag)
+                        documentsToSearchBuilder.AddIfNotNull(snapshotSpan.Document);
+
+                    var documentsToSearch = documentsToSearchBuilder.ToImmutable();
                     var documentHighlightsList = await service.GetDocumentHighlightsAsync(
                         document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
                     if (documentHighlightsList != null)
                     {
                         foreach (var documentHighlights in documentHighlightsList)
-                        {
                             AddTagSpans(context, documentHighlights, cancellationToken);
-                        }
                     }
                 }
             }

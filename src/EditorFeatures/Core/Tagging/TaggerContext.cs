@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
@@ -18,7 +19,7 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
 {
     private readonly ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _existingTags;
 
-    internal ImmutableArray<SnapshotSpan> _spansTagged;
+    internal OneOrMany<SnapshotSpan> _spansTagged;
     public readonly SegmentedList<TagSpan<TTag>> TagSpans = [];
 
     /// <summary>
@@ -29,7 +30,7 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
     /// </summary>
     public bool FrozenPartialSemantics { get; }
 
-    public ImmutableArray<DocumentSnapshotSpan> SpansToTag { get; }
+    public OneOrMany<DocumentSnapshotSpan> SpansToTag { get; }
     public SnapshotPoint? CaretPosition { get; }
 
     /// <summary>
@@ -51,7 +52,7 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
         : this(
               state: null,
               frozenPartialSemantics,
-              [new DocumentSnapshotSpan(document, snapshot.GetFullSpan())],
+              OneOrMany.Create(new DocumentSnapshotSpan(document, snapshot.GetFullSpan())),
               caretPosition,
               existingTags: null)
     {
@@ -60,7 +61,7 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
     internal TaggerContext(
         object state,
         bool frozenPartialSemantics,
-        ImmutableArray<DocumentSnapshotSpan> spansToTag,
+        OneOrMany<DocumentSnapshotSpan> spansToTag,
         SnapshotPoint? caretPosition,
         ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> existingTags)
     {
@@ -69,7 +70,7 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
         this.SpansToTag = spansToTag;
         this.CaretPosition = caretPosition;
 
-        _spansTagged = spansToTag.SelectAsArray(ds => ds.SnapshotSpan);
+        _spansTagged = spansToTag.Select(static ds => ds.SnapshotSpan);
         _existingTags = existingTags;
     }
 
@@ -86,7 +87,7 @@ internal sealed class TaggerContext<TTag> where TTag : ITag
     /// newly produced tags.
     /// </summary>
     public void SetSpansTagged(ImmutableArray<SnapshotSpan> spansTagged)
-        => _spansTagged = spansTagged;
+        => _spansTagged = OneOrMany.Create(spansTagged);
 
     public bool HasExistingContainingTags(SnapshotPoint point)
         => _existingTags != null &&

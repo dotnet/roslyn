@@ -351,17 +351,17 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 return newTagTrees;
             }
 
-            ImmutableArray<SnapshotSpan> GetSnapshotSpansToTag()
+            OneOrMany<SnapshotSpan> GetSnapshotSpansToTag()
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                 using var spansToTag = TemporaryArray<SnapshotSpan>.Empty;
                 _dataSource.AddSpansToTag(_textView, _subjectBuffer, ref spansToTag.AsRef());
-                return spansToTag.ToImmutableAndClear();
+                return spansToTag.ToOneOrManyAndClear();
             }
 
-            static ImmutableArray<DocumentSnapshotSpan> GetDocumentSnapshotSpansToTag(
-                ImmutableArray<SnapshotSpan> snapshotSpansToTag,
+            static OneOrMany<DocumentSnapshotSpan> GetDocumentSnapshotSpansToTag(
+                OneOrMany<SnapshotSpan> snapshotSpansToTag,
                 bool frozenPartialSemantics,
                 CancellationToken cancellationToken)
             {
@@ -371,7 +371,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // document can be null if the buffer the given span is part of is not part of our workspace.
                 using var snapshotToDocument = TemporaryArray<(ITextSnapshot snapshot, Document? document)>.Empty;
 
-                var result = new FixedSizeArrayBuilder<DocumentSnapshotSpan>(snapshotSpansToTag.Length);
+                using var result = TemporaryArray<DocumentSnapshotSpan>.Empty;
 
                 foreach (var spanToTag in snapshotSpansToTag)
                 {
@@ -393,7 +393,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     result.Add(new DocumentSnapshotSpan(document, spanToTag));
                 }
 
-                return result.MoveToImmutable();
+                return result.ToOneOrManyAndClear();
             }
         }
 
@@ -524,7 +524,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         }
 
         private Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(
-            ImmutableArray<DocumentSnapshotSpan> spansToTag,
+            OneOrMany<DocumentSnapshotSpan> spansToTag,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees)
         {
@@ -534,7 +534,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 foreach (var (latestBuffer, latestSpans) in newTagTrees)
                 {
-                    var snapshot = spansToTag.First(s => s.SnapshotSpan.Snapshot.TextBuffer == latestBuffer).SnapshotSpan.Snapshot;
+                    var snapshot = GetSpanForBuffer(spansToTag, latestBuffer).SnapshotSpan.Snapshot;
 
                     if (oldTagTrees.TryGetValue(latestBuffer, out var previousSpans))
                     {
@@ -558,6 +558,19 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 }
 
                 return bufferToChanges;
+            }
+
+            static DocumentSnapshotSpan GetSpanForBuffer(
+                OneOrMany<DocumentSnapshotSpan> spansToTag,
+                ITextBuffer latestBuffer)
+            {
+                foreach (var span in spansToTag)
+                {
+                    if (span.SnapshotSpan.Snapshot.TextBuffer == latestBuffer)
+                        return span;
+                }
+
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
