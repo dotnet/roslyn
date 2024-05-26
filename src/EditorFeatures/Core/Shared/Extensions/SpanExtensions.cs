@@ -18,6 +18,7 @@ internal static class SpanExtensions
     /// </summary>
     /// <param name="span"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TextSpan ToTextSpan(this Span span)
         => Unsafe.As<Span, TextSpan>(ref span);
 
