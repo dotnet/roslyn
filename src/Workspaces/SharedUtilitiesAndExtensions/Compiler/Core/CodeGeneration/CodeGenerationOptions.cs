@@ -104,8 +104,6 @@ internal interface CodeAndImportGenerationOptionsProvider :
 internal static class CodeGenerationOptionsProviders
 {
 #if !CODE_STYLE
-    private static readonly ConditionalWeakTable<StructuredAnalyzerConfigOptions, CodeGenerationOptions> s_configOptionsToGenerationOptions = new();
-
     public static CodeGenerationOptions GetCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, CodeGenerationOptions? fallbackOptions)
         => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options, fallbackOptions);
 
@@ -126,20 +124,7 @@ internal static class CodeGenerationOptionsProviders
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-        if (s_configOptionsToGenerationOptions.TryGetValue(configOptions, out var generationOptions))
-            return generationOptions;
-
-        // Extract into a separate method to avoid async lambda allocation
-        return GetCodeGenerationOptions(document, fallbackOptions, configOptions);
-
-        static CodeGenerationOptions GetCodeGenerationOptions(
-            Document document, CodeGenerationOptions? fallbackOptions, StructuredAnalyzerConfigOptions configOptions)
-        {
-            return s_configOptionsToGenerationOptions.GetValue(
-                configOptions,
-                configOptions => configOptions.GetCodeGenerationOptions(document.Project.Services, fallbackOptions));
-        }
+        return configOptions.GetCodeGenerationOptions(document.Project.Services, fallbackOptions);
     }
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
