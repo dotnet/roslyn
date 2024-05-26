@@ -397,7 +397,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             foreach (var spanToTag in context.SpansToTag)
                 buffersToTag.Add(spanToTag.SnapshotSpan.Snapshot.TextBuffer);
 
-            using var _2 = ArrayBuilder<TagSpan<TTag>>.GetInstance(out var newTagsInBuffer);
+            using var _2 = s_tagSpanListPool.GetPooledObject(out var newTagsInBuffer);
             using var _3 = ArrayBuilder<SnapshotSpan>.GetInstance(out var spansToInvalidateInBuffer);
 
             var newTagTrees = ImmutableDictionary.CreateBuilder<ITextBuffer, TagSpanIntervalTree<TTag>>();
@@ -431,10 +431,10 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private TagSpanIntervalTree<TTag>? ComputeNewTagTree(
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             ITextBuffer textBuffer,
-            ArrayBuilder<TagSpan<TTag>> newTags,
+            SegmentedList<TagSpan<TTag>> newTags,
             ArrayBuilder<SnapshotSpan> spansToInvalidate)
         {
-            var noNewTags = newTags.IsEmpty;
+            var noNewTags = newTags.Count == 0;
             var noSpansToInvalidate = spansToInvalidate.IsEmpty;
             oldTagTrees.TryGetValue(textBuffer, out var oldTagTree);
 
@@ -549,8 +549,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             TagSpanIntervalTree<TTag> latestTree,
             TagSpanIntervalTree<TTag> previousTree)
         {
-            using var _1 = ArrayBuilder<TagSpan<TTag>>.GetInstance(out var latestSpans);
-            using var _2 = ArrayBuilder<TagSpan<TTag>>.GetInstance(out var previousSpans);
+            using var _1 = s_tagSpanListPool.GetPooledObject(out var latestSpans);
+            using var _2 = s_tagSpanListPool.GetPooledObject(out var previousSpans);
 
             using var _3 = ArrayBuilder<SnapshotSpan>.GetInstance(out var added);
             using var _4 = ArrayBuilder<SnapshotSpan>.GetInstance(out var removed);
@@ -618,7 +618,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             return new DiffResult(new(added), new(removed));
 
-            static TagSpan<TTag>? NextOrNull(ref ArrayBuilder<TagSpan<TTag>>.Enumerator enumerator)
+            static TagSpan<TTag>? NextOrNull(ref SegmentedList<TagSpan<TTag>>.Enumerator enumerator)
                 => enumerator.MoveNext() ? enumerator.Current : null;
         }
 
