@@ -351,33 +351,31 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
     public IEnumerator<T> GetEnumerator()
     {
-        return this == Empty ? SpecializedCollections.EmptyEnumerator<T>() : GetEnumeratorWorker();
+        return this == Empty || root == null ? SpecializedCollections.EmptyEnumerator<T>() : GetEnumeratorWorker();
 
         IEnumerator<T> GetEnumeratorWorker()
         {
-            if (root == null)
-                yield break;
-
-            using var _ = ArrayBuilder<(Node? node, bool firstTime)>.GetInstance(out var candidates);
+            Contract.ThrowIfNull(root);
+            using var _ = ArrayBuilder<(Node node, bool firstTime)>.GetInstance(out var candidates);
             candidates.Push((root, firstTime: true));
             while (candidates.TryPop(out var tuple))
             {
                 var (currentNode, firstTime) = tuple;
-                if (currentNode != null)
+                if (firstTime)
                 {
-                    if (firstTime)
-                    {
-                        // First time seeing this node.  Mark that we've been seen and recurse
-                        // down the left side.  The next time we see this node we'll yield it
-                        // out.
+                    // First time seeing this node.  Mark that we've been seen and recurse down the left side.  The
+                    // next time we see this node we'll yield it out.
+                    if (currentNode.Right != null)
                         candidates.Push((currentNode.Right, firstTime: true));
-                        candidates.Push((currentNode, firstTime: false));
+
+                    candidates.Push((currentNode, firstTime: false));
+
+                    if (currentNode.Left != null)
                         candidates.Push((currentNode.Left, firstTime: true));
-                    }
-                    else
-                    {
-                        yield return currentNode.Value;
-                    }
+                }
+                else
+                {
+                    yield return currentNode.Value;
                 }
             }
         }
