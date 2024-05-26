@@ -85,6 +85,9 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
     /// </summary>
     public NormalizedSnapshotSpanCollection GetSnapshotSpanCollection(ITextSnapshot snapshot)
     {
+        if (this == Empty)
+            return NormalizedSnapshotSpanCollection.Empty;
+
         using var _ = ArrayBuilder<SnapshotSpan>.GetInstance(out var spans);
 
         foreach (var tagSpan in _tree)

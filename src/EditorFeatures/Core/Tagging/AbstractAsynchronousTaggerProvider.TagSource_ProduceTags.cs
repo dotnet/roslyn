@@ -56,7 +56,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 ref _cachedTagTrees_mayChangeFromAnyThread, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty);
 
             var snapshot = _subjectBuffer.CurrentSnapshot;
-            var oldTagTree = GetTagTree(snapshot, oldTagTrees);
+            var oldTagTree = oldTagTrees.TryGetValue(snapshot.TextBuffer, out var tagTree)
+                ? tagTree
+                : TagSpanIntervalTree<TTag>.Empty;
 
             // everything from old tree is removed.
             RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: oldTagTree.GetSnapshotSpanCollection(snapshot)));
@@ -140,13 +142,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             var difference = ComputeDifference(snapshot, newTagTrees[buffer], oldTagTrees[buffer]);
 
             RaiseTagsChanged(buffer, difference);
-        }
-
-        private static TagSpanIntervalTree<TTag> GetTagTree(ITextSnapshot snapshot, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> tagTrees)
-        {
-            return tagTrees.TryGetValue(snapshot.TextBuffer, out var tagTree)
-                ? tagTree
-                : TagSpanIntervalTree<TTag>.Empty;
         }
 
         private void OnEventSourceChanged(object? _1, TaggerEventArgs _2)
