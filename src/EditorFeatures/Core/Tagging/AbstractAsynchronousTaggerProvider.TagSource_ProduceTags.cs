@@ -292,7 +292,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
                 // thread to do the computation. Finally, once new tags have been computed, then we update our state
                 // again on the foreground.
-                var snapshotSpansToTag = GetSnapshotSpansToTag(frozenPartialSemantics, cancellationToken);
+                var snapshotSpansToTag = GetSnapshotSpansToTag();
                 var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
 
                 // If we're being called from within a blocking JTF.Run call, we don't want to switch to the background
@@ -351,6 +351,15 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 return newTagTrees;
             }
 
+            ImmutableArray<SnapshotSpan> GetSnapshotSpansToTag()
+            {
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+
+                using var spansToTag = TemporaryArray<SnapshotSpan>.Empty;
+                _dataSource.AddSpansToTag(_textView, _subjectBuffer, ref spansToTag.AsRef());
+                return spansToTag.ToImmutableAndClear();
+            }
+
             static ImmutableArray<DocumentSnapshotSpan> GetDocumentSnapshotSpansToTag(
                 ImmutableArray<SnapshotSpan> snapshotSpansToTag,
                 bool frozenPartialSemantics,
@@ -386,16 +395,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 return result.MoveToImmutable();
             }
-        }
-
-        private ImmutableArray<SnapshotSpan> GetSnapshotSpansToTag(
-            bool frozenPartialSemantics, CancellationToken cancellationToken)
-        {
-            _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-
-            using var spansToTag = TemporaryArray<SnapshotSpan>.Empty;
-            _dataSource.AddSpansToTag(_textView, _subjectBuffer, ref spansToTag.AsRef());
-            return spansToTag.ToImmutableAndClear();
         }
 
         [Conditional("DEBUG")]
