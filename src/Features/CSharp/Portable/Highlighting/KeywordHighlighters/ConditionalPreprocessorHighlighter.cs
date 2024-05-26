@@ -17,12 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 [ExportHighlighter(LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ConditionalPreprocessorHighlighter : AbstractKeywordHighlighter<DirectiveTriviaSyntax>
+internal sealed class ConditionalPreprocessorHighlighter() : AbstractKeywordHighlighter<DirectiveTriviaSyntax>
 {
-    public ConditionalPreprocessorHighlighter()
-    {
-    }
-
     protected override void AddHighlights(
         DirectiveTriviaSyntax directive, List<TextSpan> highlights, CancellationToken cancellationToken)
     {
