@@ -96,20 +96,24 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             var snapshot = e.After;
             var buffer = snapshot.TextBuffer;
 
+            using var _1 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var tagsToRemove);
+            using var _2 = _tagSpanSetPool.GetPooledObject(out var allTags);
+
             // Everything we're passing in here is synchronous.  So we can assert that this must complete synchronously
             // as well.
             var (oldTagTrees, newTagTrees) = CompareAndSwapTagTreesAsync(
                 oldTagTrees =>
                 {
+                    tagsToRemove.Clear();
+                    allTags.Clear();
+
                     if (oldTagTrees.TryGetValue(buffer, out var treeForBuffer))
                     {
-                        using var _1 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var tagsToRemove);
                         foreach (var change in e.Changes)
                             treeForBuffer.AddIntersectingTagSpans(new SnapshotSpan(snapshot, change.NewSpan), tagsToRemove);
 
                         if (tagsToRemove.Count > 0)
                         {
-                            using var _2 = _tagSpanSetPool.GetPooledObject(out var allTags);
                             treeForBuffer.AddAllSpans(snapshot, allTags);
 
                             allTags.RemoveAll(tagsToRemove);
