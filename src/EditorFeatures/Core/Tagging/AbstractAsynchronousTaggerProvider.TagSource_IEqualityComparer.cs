@@ -12,8 +12,6 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag>
 {
     private partial class TagSource : IEqualityComparer<TagSpan<TTag>>
     {
-        private readonly ObjectPool<HashSet<TagSpan<TTag>>> _tagSpanSetPool;
-
         public bool Equals(TagSpan<TTag>? x, TagSpan<TTag>? y)
         {
             if (x == y)
