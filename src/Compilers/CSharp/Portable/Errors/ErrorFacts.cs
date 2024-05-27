@@ -2472,7 +2472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (IsWarning(code))
+            if (IsWarning(code) || IsInfo(code) || IsHidden(code))
             {
                 return false;
             }

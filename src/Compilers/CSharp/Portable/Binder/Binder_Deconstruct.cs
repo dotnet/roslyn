@@ -904,6 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Use the binder that owns the scope for the local because this (the current) binder
                 // might own nested scope.
                 var hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+                ReportFieldOrValueContextualKeywordConflicts(designation, designation.Identifier.Text, symbol: null, diagnostics);
 
                 if (declTypeWithAnnotations.HasType)
                 {

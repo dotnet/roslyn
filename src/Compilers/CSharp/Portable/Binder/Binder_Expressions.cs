@@ -1595,6 +1595,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Note, this call can clear and reuse lookupResult and members
                 reportPrimaryConstructorParameterShadowing(node, symbol ?? members[0], name, invoked, lookupResult, members, diagnostics);
                 members.Free();
+
+                ReportFieldOrValueContextualKeywordConflicts(node, node.Identifier.Text, symbol, diagnostics);
             }
             else
             {
@@ -1730,6 +1732,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+#nullable enable
+        internal void ReportFieldOrValueContextualKeywordConflicts(SyntaxNode syntax, string name, Symbol? symbol, BindingDiagnosticBag diagnostics)
+        {
+            switch (name)
+            {
+                case "field" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } }:
+                    break;
+                case "value" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove }:
+                    if (symbol is SynthesizedAccessorValueParameterSymbol { Name: "value" })
+                    {
+                        return;
+                    }
+                    break;
+                default:
+                    return;
+            }
+
+            var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
+            if (Compilation.LanguageVersion < requiredVersion)
+            {
+                diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
+            }
+        }
+#nullable disable
 
         private void LookupIdentifier(LookupResult lookupResult, SimpleNameSyntax node, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -3089,6 +3116,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVar;
             var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
             TypeSyntax typeSyntax = declarationExpression.Type;
+
+            ReportFieldOrValueContextualKeywordConflicts(designation, designation.Identifier.Text, symbol: null, diagnostics);
 
             // Is this a local?
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
@@ -7523,6 +7552,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(boundLeft != null);
 
             boundLeft = MakeMemberAccessValue(boundLeft, diagnostics);
+
+            ReportFieldOrValueContextualKeywordConflicts(right, right.Identifier.Text, symbol: null, diagnostics);
 
             TypeSymbol leftType = boundLeft.Type;
 

@@ -507,6 +507,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteInfo);
             result.Free();
 
+            ReportFieldOrValueContextualKeywordConflicts(node, node.Identifier.Text, symbol: null, diagnostics);
+
             var body = BindStatement(node.Statement, diagnostics);
             return new BoundLabeledStatement(node, symbol, body, hasError);
         }
@@ -558,6 +560,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureLocalFunctions.CheckFeatureAvailability(diagnostics, node.Identifier);
+
+            ReportFieldOrValueContextualKeywordConflicts(node, node.Identifier.Text, symbol: null, diagnostics);
 
             // already defined symbol in containing block
             var localSymbol = this.LookupLocalFunction(node.Identifier);
@@ -1005,6 +1009,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // might own nested scope.
             bool nameConflict = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
             bool hasErrors = false;
+
+            ReportFieldOrValueContextualKeywordConflicts(declarator, declarator.Identifier.Text, symbol: null, diagnostics);
 
             if (localSymbol.RefKind != RefKind.None)
             {
@@ -3158,6 +3164,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declaration = node.Declaration;
             if (declaration != null)
             {
+                ReportFieldOrValueContextualKeywordConflicts(declaration, declaration.Identifier.Text, symbol: null, diagnostics);
+
                 // Note: The type is being bound twice: here and in LocalSymbol.Type. Currently,
                 // LocalSymbol.Type ignores diagnostics so it seems cleaner to bind the type here
                 // as well. However, if LocalSymbol.Type is changed to report diagnostics, we'll

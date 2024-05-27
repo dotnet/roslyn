@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var fromClause = node.FromClause;
             var boundFromExpression = BindLeftOfPotentialColorColorMemberAccess(fromClause.Expression, diagnostics);
 
+            ReportFieldOrValueContextualKeywordConflicts(fromClause, fromClause.Identifier.Text, symbol: null, diagnostics);
+
             // If the from expression is of the type dynamic we can't infer the types for any lambdas that occur in the query.
             // Only if there are none we could bind the query but we report an error regardless since such queries are not useful.
             if (boundFromExpression.HasDynamicType())
@@ -73,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     from ... into x ...
                 // is translated into
                 //     from x in ( from ... ) ...
+                ReportFieldOrValueContextualKeywordConflicts(continuation, continuation.Identifier.Text, symbol: null, diagnostics);
                 x = PrepareQueryTranslationStateForContinuation(state, continuation, diagnostics);
                 state.fromExpression = result;
 
@@ -378,6 +381,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReduceJoin(JoinClauseSyntax join, QueryTranslationState state, BindingDiagnosticBag diagnostics)
         {
             var inExpression = BindRValueWithoutTargetType(join.InExpression, diagnostics);
+
+            ReportFieldOrValueContextualKeywordConflicts(join, join.Identifier.Text, symbol: null, diagnostics);
+            if (join.Into is { })
+            {
+                ReportFieldOrValueContextualKeywordConflicts(join.Into, join.Into.Identifier.Text, symbol: null, diagnostics);
+            }
 
             // If the from expression is of the type dynamic we can't infer the types for any lambdas that occur in the query.
             // Only if there are none we could bind the query but we report an error regardless since such queries are not useful.
@@ -748,6 +757,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Such closures shall be associated with the lambda body expression.
                 return lambdaBodyBinder.CreateLambdaBlockForQueryClause(let.Expression, construction, d);
             };
+
+            ReportFieldOrValueContextualKeywordConflicts(let, let.Identifier.Text, symbol: null, diagnostics);
 
             var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x), let.Expression, bodyFactory, diagnostics.AccumulatesDependencies);
             state.rangeVariable = state.TransparentRangeVariable(this);

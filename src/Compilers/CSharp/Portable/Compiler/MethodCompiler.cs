@@ -1782,20 +1782,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     assertBindIdentifierTargets(inMethodBinder, identifierMap, methodBody, diagnostics);
 #endif
 
-                    var compilation = bodyBinder.Compilation;
-
-                    if (method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove)
-                    {
-                        var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
-                        if (requiredVersion > compilation.LanguageVersion)
-                        {
-                            ReportFieldOrValueContextualKeywordConflicts(method, methodBody, diagnostics);
-                        }
-                    }
-
                     BoundNode methodBodyForSemanticModel = methodBody;
                     NullableWalker.SnapshotManager? snapshotManager = null;
                     ImmutableDictionary<Symbol, Symbol>? remappedSymbols = null;
+                    var compilation = bodyBinder.Compilation;
 
                     nullableInitialState = getInitializerState(methodBody);
 
@@ -2157,112 +2147,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 #endif
-        }
-
-        /// <summary>
-        /// Report a diagnostic for any 'field' or 'value' identifier in the bound tree where the
-        /// meaning will change when the identifier is considered a contextual keyword.
-        /// </summary>
-        private static void ReportFieldOrValueContextualKeywordConflicts(MethodSymbol method, BoundNode node, BindingDiagnosticBag diagnostics)
-        {
-            Debug.Assert(method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove);
-            Debug.Assert(method.AssociatedSymbol is PropertySymbol or EventSymbol);
-
-            PooledDictionary<SyntaxNode, SyntaxToken>? valueIdentifiers = null;
-
-            foreach (var token in node.Syntax.DescendantTokens())
-            {
-                Debug.Assert(token.Parent is { });
-                if (token.Kind() != SyntaxKind.IdentifierToken)
-                {
-                    continue;
-                }
-                var syntax = token.Parent;
-                switch (syntax)
-                {
-                    case IdentifierNameSyntax identifierName when identifierName.Identifier == token:
-                    case GenericNameSyntax genericName when genericName.Identifier == token:
-                    case TupleElementSyntax tupleElement when tupleElement.Identifier == token:
-                    case FromClauseSyntax fromClause when fromClause.Identifier == token:
-                    case LetClauseSyntax letClause when letClause.Identifier == token:
-                    case JoinClauseSyntax joinClause when joinClause.Identifier == token:
-                    case JoinIntoClauseSyntax joinIntoClause when joinIntoClause.Identifier == token:
-                    case QueryContinuationSyntax queryContinuation when queryContinuation.Identifier == token:
-                    case LocalFunctionStatementSyntax localFunctionStatement when localFunctionStatement.Identifier == token:
-                    case VariableDeclaratorSyntax variableDeclarator when variableDeclarator.Identifier == token:
-                    case SingleVariableDesignationSyntax singleVariable when singleVariable.Identifier == token:
-                    case LabeledStatementSyntax labeledStatement when labeledStatement.Identifier == token:
-                    case ForEachStatementSyntax forEachStatement when forEachStatement.Identifier == token:
-                    case CatchDeclarationSyntax catchDeclaration when catchDeclaration.Identifier == token:
-                    case TypeParameterSyntax typeParameter when typeParameter.Identifier == token:
-                    case ParameterSyntax parameter when parameter.Identifier == token:
-                    case AttributeTargetSpecifierSyntax targetSpecifier when targetSpecifier.Identifier == token:
-                        switch (token.Text)
-                        {
-                            case "field":
-                                if (method.AssociatedSymbol is PropertySymbol { IsIndexer: false })
-                                {
-                                    // Report "field" conflict with keyword.
-                                    reportConflict(syntax, token, diagnostics);
-                                }
-                                break;
-                            case "value":
-                                if (method.MethodKind is MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove)
-                                {
-                                    // Record the potential "value" conflict, and report conflicts later,
-                                    // after dropping any that refer to the implicit parameter.
-                                    valueIdentifiers ??= PooledDictionary<SyntaxNode, SyntaxToken>.GetInstance();
-                                    valueIdentifiers.Add(syntax, token);
-                                }
-                                break;
-                        }
-                        break;
-                    default:
-                        // The cases above should be the complete set of identifiers
-                        // expected in an accessor with -langversion:12 or earlier.
-                        Debug.Assert(false);
-                        break;
-                }
-            }
-
-            if (valueIdentifiers is { })
-            {
-                // Remove references to the implicit "value" parameter.
-                var checker = new ValueIdentifierChecker(valueIdentifiers);
-                checker.Visit(node);
-                // Report "value" conflicts.
-                foreach (var pair in valueIdentifiers)
-                {
-                    reportConflict(pair.Key, pair.Value, diagnostics);
-                }
-                valueIdentifiers.Free();
-            }
-
-            static void reportConflict(SyntaxNode syntax, SyntaxToken identifierToken, BindingDiagnosticBag diagnostics)
-            {
-                var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
-                diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, identifierToken.Text, requiredVersion.ToDisplayString());
-            }
-        }
-
-        private sealed class ValueIdentifierChecker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
-        {
-            private readonly Dictionary<SyntaxNode, SyntaxToken> _valueIdentifiers;
-
-            public ValueIdentifierChecker(Dictionary<SyntaxNode, SyntaxToken> valueIdentifiers)
-            {
-                _valueIdentifiers = valueIdentifiers;
-            }
-
-            public override BoundNode? VisitParameter(BoundParameter node)
-            {
-                if (node.ParameterSymbol is SynthesizedAccessorValueParameterSymbol { Name: "value" })
-                {
-                    _valueIdentifiers.Remove(node.Syntax);
-                }
-
-                return base.VisitParameter(node);
-            }
         }
 
 #if DEBUG

@@ -704,6 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasExplicitNames = true;
                     CheckTupleMemberName(name, i, nameToken, diagnostics, uniqueFieldNames);
                     locations.Add(nameToken.GetLocation());
+                    ReportFieldOrValueContextualKeywordConflicts(argumentSyntax, nameToken.Text, symbol: null, diagnostics);
                 }
                 else
                 {
@@ -924,7 +925,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             result.Free();
-            return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(AreNullableAnnotationsEnabled(node.Identifier), bindingResult);
+
+            var namespaceOrTypeOrAlias = NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(AreNullableAnnotationsEnabled(node.Identifier), bindingResult);
+            ReportFieldOrValueContextualKeywordConflicts(node, node.Identifier.Text, namespaceOrTypeOrAlias.Symbol, diagnostics);
+
+            return namespaceOrTypeOrAlias;
 
             bool dynamicAllowed()
             {
@@ -1252,6 +1257,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     basesBeingResolved,
                     diagnostics);
             }
+
+            ReportFieldOrValueContextualKeywordConflicts(node, node.Identifier.Text, symbol: null, diagnostics);
 
             return TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(node.TypeArgumentList.GreaterThanToken), resultType);
         }

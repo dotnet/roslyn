@@ -762,7 +762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void IdentifierToken_ForEachStatementSyntax(
+        public void IdentifierToken_ForEachStatementSyntax_01(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
@@ -800,6 +800,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (6,36): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                     //     object P4 { set { foreach (var @value in new int[0]) { } } }
                     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(6, 36));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void IdentifierToken_ForEachStatementSyntax_02(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            string source = """
+                class C
+                {
+                    object P1 { set { foreach (var (field, @value) in new (int, int)[0]) { } } }
+                    object P2 { set { foreach (var (@field, value) in new (int, int)[0]) { } } }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,44): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //     object P1 { set { foreach (var (field, @value) in new (int, int)[0]) { } } }
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(3, 44),
+                    // (4,45): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //     object P2 { set { foreach (var (@field, value) in new (int, int)[0]) { } } }
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(4, 45));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,37): info CS9248: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
+                    //     object P1 { set { foreach (var (field, @value) in new (int, int)[0]) { } } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 37),
+                    // (3,44): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //     object P1 { set { foreach (var (field, @value) in new (int, int)[0]) { } } }
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(3, 44),
+                    // (4,45): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //     object P2 { set { foreach (var (@field, value) in new (int, int)[0]) { } } }
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(4, 45),
+                    // (4,45): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
+                    //     object P2 { set { foreach (var (@field, value) in new (int, int)[0]) { } } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(4, 45));
             }
         }
 
@@ -1076,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Lambda_Parameter()
+        public void Lambda_Parameter_01()
         {
             string source = """
                 #pragma warning disable 649
@@ -1109,6 +1150,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (17,17): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
                 //             a = value => { };
                 Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(17, 17));
+        }
+
+        [Fact]
+        public void Lambda_Parameter_02()
+        {
+            string source = """
+                #pragma warning disable 649
+                using System;
+                class C
+                {
+                    object P
+                    {
+                        set
+                        {
+                            Action<object, object> a;
+                            a = (field, @value) => { };
+                            a = (@field, value) => { };
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyEmitDiagnostics(
+                // (10,18): info CS9248: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
+                //             a = (field, @value) => { };
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 18),
+                // (11,26): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
+                //             a = (@field, value) => { };
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(11, 26));
         }
 
         [Fact]
@@ -1207,20 +1277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12 || escapeIdentifier)
-            {
-                comp.VerifyEmitDiagnostics();
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (12,19): info CS9248: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
-                    //         [A(nameof(field))] get { return null; }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(12, 19),
-                    // (13,19): info CS9248: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
-                    //         [A(nameof(field))] set { }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 19));
-            }
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]
@@ -1253,23 +1310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12 || escapeIdentifier)
-            {
-                comp.VerifyEmitDiagnostics();
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (13,19): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
-                    //         [A(nameof(value))] set { }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(13, 19),
-                    // (18,19): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
-                    //         [A(nameof(value))] add { }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(18, 19),
-                    // (19,19): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
-                    //         [A(nameof(value))] remove { }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(19, 19));
-            }
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]
@@ -1361,10 +1402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(21, 23),
                     // (21,40): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
                     //             [A(nameof(value))] void F2(int value) { }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "int value").WithArguments("value", "preview").WithLocation(21, 40),
-                    // (28,23): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
-                    //             [A(nameof(value))] void F3() { }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(28, 23));
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "int value").WithArguments("value", "preview").WithLocation(21, 40));
             }
         }
     }

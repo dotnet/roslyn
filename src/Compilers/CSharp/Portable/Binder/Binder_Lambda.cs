@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // x => ...
                     hasSignature = true;
                     var simple = (SimpleLambdaExpressionSyntax)syntax;
+                    ReportFieldOrValueContextualKeywordConflicts(simple.Parameter, simple.Parameter.Identifier.Text, symbol: null, diagnostics);
                     namesBuilder.Add(simple.Parameter.Identifier.ValueText);
                     break;
                 case SyntaxKind.ParenthesizedLambdaExpression:
@@ -303,14 +304,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (refKind, returnType);
         }
 
-        private static void CheckParenthesizedLambdaParameters(
+        private void CheckParenthesizedLambdaParameters(
             SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, BindingDiagnosticBag diagnostics)
         {
             if (parameterSyntaxList.Count > 0)
             {
                 var hasTypes = parameterSyntaxList[0].Type != null;
 
-                checkForImplicitDefault(hasTypes, parameterSyntaxList[0], diagnostics);
+                checkParameter(hasTypes, parameterSyntaxList[0], diagnostics);
 
                 for (int i = 1, n = parameterSyntaxList.Count; i < n; i++)
                 {
@@ -328,17 +329,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 parameter.Type?.GetLocation() ?? parameter.Identifier.GetLocation());
                         }
 
-                        checkForImplicitDefault(thisParameterHasType, parameter, diagnostics);
+                        checkParameter(thisParameterHasType, parameter, diagnostics);
                     }
                 }
             }
 
-            static void checkForImplicitDefault(bool hasType, ParameterSyntax param, BindingDiagnosticBag diagnostics)
+            void checkParameter(bool hasType, ParameterSyntax param, BindingDiagnosticBag diagnostics)
             {
+                var text = param.Identifier.Text;
+                ReportFieldOrValueContextualKeywordConflicts(param, text, symbol: null, diagnostics);
+
                 if (!hasType && param.Default != null)
                 {
                     diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedDefaultParameter,
-                        param.Identifier.GetLocation(), param.Identifier.Text);
+                        param.Identifier.GetLocation(), text);
                 }
             }
         }
