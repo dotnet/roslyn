@@ -1651,7 +1651,7 @@ internal sealed partial class SolutionCompilationState
     /// </summary>
     public SolutionCompilationState WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode)
     {
-        var result = this;
+        using var _ = ArrayBuilder<(DocumentId, SourceText, PreservationMode)>.GetInstance(out var changedDocuments);
 
         foreach (var documentId in documentIds)
         {
@@ -1671,11 +1671,14 @@ internal sealed partial class SolutionCompilationState
                 //
                 // The use of GetRequiredState mirrors what happens in WithDocumentTexts
                 if (!SourceTextIsUnchanged(documentState, text))
-                    result = result.WithDocumentTexts([(documentId, text, mode)]);
+                    changedDocuments.Add((documentId, text, mode));
             }
         }
 
-        return result;
+        if (changedDocuments.Count == 0)
+            return this;
+
+        return this.WithDocumentTexts(changedDocuments.ToImmutableAndClear());
     }
 
     internal TestAccessor GetTestAccessor()
