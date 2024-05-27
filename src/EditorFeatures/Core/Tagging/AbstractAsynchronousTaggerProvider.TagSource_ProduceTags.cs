@@ -566,7 +566,10 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 foreach (var (latestBuffer, latestSpans) in newTagTrees)
                 {
-                    var snapshot = GetSpanForBuffer(spansToTag, latestBuffer).SnapshotSpan.Snapshot;
+                    var snapshot = spansToTag.FirstOrDefault(
+                        static (span, latestBuffer) => span.SnapshotSpan.Snapshot.TextBuffer == latestBuffer,
+                        latestBuffer).SnapshotSpan.Snapshot;
+                    Contract.ThrowIfNull(snapshot);
 
                     if (oldTagTrees.TryGetValue(latestBuffer, out var previousSpans))
                     {
@@ -590,19 +593,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 }
 
                 return bufferToChanges;
-            }
-
-            static DocumentSnapshotSpan GetSpanForBuffer(
-                OneOrMany<DocumentSnapshotSpan> spansToTag,
-                ITextBuffer latestBuffer)
-            {
-                foreach (var span in spansToTag)
-                {
-                    if (span.SnapshotSpan.Snapshot.TextBuffer == latestBuffer)
-                        return span;
-                }
-
-                throw ExceptionUtilities.Unreachable();
             }
         }
 
