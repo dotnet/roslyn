@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+using System;
+
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
@@ -104,7 +106,8 @@ internal interface CodeAndImportGenerationOptionsProvider :
 internal static class CodeGenerationOptionsProviders
 {
 #if !CODE_STYLE
-    private static readonly ConditionalWeakTable<StructuredAnalyzerConfigOptions, CodeGenerationOptions> s_configOptionsToGenerationOptions = new();
+    private static readonly ConditionalWeakTable<StructuredAnalyzerConfigOptions, CodeGenerationOptions> s_csharpConfigOptionsToGenerationOptions = new();
+    private static readonly ConditionalWeakTable<StructuredAnalyzerConfigOptions, CodeGenerationOptions> s_vbConfigOptionsToGenerationOptions = new();
 
     public static CodeGenerationOptions GetCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, CodeGenerationOptions? fallbackOptions)
         => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options, fallbackOptions);
@@ -127,18 +130,26 @@ internal static class CodeGenerationOptionsProviders
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-        if (s_configOptionsToGenerationOptions.TryGetValue(configOptions, out var generationOptions))
+        var map = document.Project.Language switch
+        {
+            LanguageNames.CSharp => s_csharpConfigOptionsToGenerationOptions,
+            LanguageNames.VisualBasic => s_vbConfigOptionsToGenerationOptions,
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
+
+        if (map.TryGetValue(configOptions, out var generationOptions))
             return generationOptions;
 
         // Extract into a separate method to avoid async lambda allocation
-        return GetCodeGenerationOptions(document, fallbackOptions, configOptions);
+        return GetCodeGenerationOptions(document, fallbackOptions, configOptions, map);
 
         static CodeGenerationOptions GetCodeGenerationOptions(
-            Document document, CodeGenerationOptions? fallbackOptions, StructuredAnalyzerConfigOptions configOptions)
+            Document document,
+            CodeGenerationOptions? fallbackOptions,
+            StructuredAnalyzerConfigOptions configOptions,
+            ConditionalWeakTable<StructuredAnalyzerConfigOptions, CodeGenerationOptions> map)
         {
-            return s_configOptionsToGenerationOptions.GetValue(
-                configOptions,
-                configOptions => configOptions.GetCodeGenerationOptions(document.Project.Services, fallbackOptions));
+            return map.GetValue(configOptions, configOptions => configOptions.GetCodeGenerationOptions(document.Project.Services, fallbackOptions));
         }
     }
 
