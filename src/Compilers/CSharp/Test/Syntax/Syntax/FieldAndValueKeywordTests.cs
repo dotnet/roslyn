@@ -136,110 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void Keyword_01(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues("field", "value")] string identifier,
-            bool escapeIdentifier)
-        {
-            string source = $$"""
-                namespace A.{{identifier}}.B
-                {
-                    class C { }
-                }
-                class D
-                {
-                    object P { set { _ = new A.{{(escapeIdentifier ? "@" : "") + identifier}}.B.C(); } }
-                }
-                """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (escapeIdentifier || languageVersion > LanguageVersion.CSharp12)
-            {
-                comp.VerifyEmitDiagnostics();
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (7,32): info CS9248: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
-                    //     object P { set { _ = new A.field.B.C(); } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, identifier).WithArguments(identifier, "preview").WithLocation(7, 32));
-            }
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void Keyword_02(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
-            [CombinatorialValues("field", "value")] string identifier,
-            bool escapeIdentifier)
-        {
-            string source = $$"""
-                #pragma warning disable 649
-                class C
-                {
-                    static object {{identifier}};
-                    static object P1 { set { _ = C.{{(escapeIdentifier ? "@" : "") + identifier}}; } }
-                    object P2 { init { _ = C.{{(escapeIdentifier ? "@" : "") + identifier}}; } }
-                }
-                """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.Net70);
-            if (escapeIdentifier || languageVersion > LanguageVersion.CSharp12)
-            {
-                comp.VerifyEmitDiagnostics();
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (5,36): info CS9248: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
-                    //     static object P1 { set { _ = C.field; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, identifier).WithArguments(identifier, "preview").WithLocation(5, 36),
-                    // (6,30): info CS9248: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
-                    //     object P2 { init { _ = C.field; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, identifier).WithArguments(identifier, "preview").WithLocation(6, 30));
-            }
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void Keyword_03(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
-        {
-            string source = """
-                #pragma warning disable 649
-                class C
-                {
-                    object field;
-                    object value;
-                    object P
-                    {
-                        set
-                        {
-                            _ = nameof(field);
-                            _ = nameof(@field);
-                            _ = nameof(this.value);
-                            _ = nameof(this.@value);
-                        }
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12)
-            {
-                comp.VerifyEmitDiagnostics();
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (10,24): info CS9248: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
-                    //             _ = nameof(field);
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 24),
-                    // (12,29): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
-                    //             _ = nameof(this.value);
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(12, 29));
-            }
-        }
-
         [Fact]
         public void Parameter_01()
         {
@@ -1374,6 +1270,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     //         [A(nameof(value))] remove { }
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(19, 19));
             }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Attribute_03(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
+        {
+            string identifier = escapeIdentifier ? "@value" : "value";
+            string source = $$"""
+                using System;
+                class A : Attribute
+                {
+                    public A(string s) { }
+                }
+                class C
+                {
+                    const int value = 0;
+                    object P
+                    {
+                        [param: A(nameof({{identifier}}))] set { }
+                    }
+                    event EventHandler E
+                    {
+                        [param: A(nameof({{identifier}}))] add { }
+                        [param: A(nameof({{identifier}}))] remove { }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]
