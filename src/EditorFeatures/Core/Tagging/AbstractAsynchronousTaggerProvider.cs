@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Tagging;
 using Microsoft.CodeAnalysis.Text;
@@ -219,10 +220,11 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     /// and will asynchronously call into <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/> at some point in
     /// the future to produce tags for these spans.
     /// </summary>
-    protected virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
+    protected virtual void AddSpansToTag(
+        ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
         // For a standard tagger, the spans to tag is the span of the entire snapshot.
-        return [subjectBuffer.CurrentSnapshot.GetFullSpan()];
+        result.Add(subjectBuffer.CurrentSnapshot.GetFullSpan());
     }
 
     /// <summary>

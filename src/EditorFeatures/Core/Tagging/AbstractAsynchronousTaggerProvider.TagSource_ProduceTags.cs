@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.CodeAnalysis.Workspaces;
@@ -270,7 +271,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // fine as CA(true) will just keep us on the threadpool.
 
             var isVisible = true;
-            var spansToTag = ImmutableArray<DocumentSnapshotSpan>.Empty;
+            var snapshotSpansToTag = OneOrMany<SnapshotSpan>.Empty;
             SnapshotPoint? caretPosition = null;
 
             // Enqueue work to a queue that will all tagger main thread work together in the near future. This let's
@@ -288,7 +289,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // Grab the visibility state of the view while we're already on the UI thread.  This saves an
                 // unnecessary switch below.
                 isVisible = _visibilityTracker is null || _visibilityTracker.IsVisible(_subjectBuffer);
-                spansToTag = GetSpansAndDocumentsToTag();
+                snapshotSpansToTag = GetSnapshotSpansToTag();
                 caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
             }, cancellationToken).NoThrowAwaitable(captureContext: true);
 
@@ -315,21 +316,21 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 if (cancellationToken.IsCancellationRequested)
                     return null;
 
-                // Explicitly switch to a threadpool thread to do the expensive tagging work on a BG thread.  But not if
-                // we're in an explicit JTF.Run call as that would just add unnecessary blocking waiting for the
-                // threadpool to do this work.
+                // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
+                // thread to do the computation. Finally, once new tags have been computed, then we update our state
+                // again on the foreground.
+
+                // If we're being called from within a blocking JTF.Run call, we don't want to switch to the background
+                // if we can avoid it.
                 if (!calledFromJtfRun)
                     await TaskScheduler.Default;
 
                 if (cancellationToken.IsCancellationRequested)
                     return null;
 
-                if (frozenPartialSemantics)
-                {
-                    spansToTag = spansToTag.SelectAsArray(ds => new DocumentSnapshotSpan(
-                        ds.Document?.WithFrozenPartialSemantics(cancellationToken),
-                        ds.SnapshotSpan));
-                }
+                // Now that we're on the threadpool, figure out what documents we need to tag corresponding to those
+                // SnapshotSpan the underlying data source asked us to tag.
+                var spansToTag = GetDocumentSnapshotSpansToTag(snapshotSpansToTag, frozenPartialSemantics, cancellationToken);
 
                 // Now spin, trying to compute the updated tags.  We only need to do this as the tag state is also
                 // allowed to change on the UI thread (for example, taggers can say they want tags to be immediately
@@ -343,11 +344,11 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     {
                         // Create a context to store pass the information along and collect the results.
                         context = new TaggerContext<TTag>(
-                            oldState, frozenPartialSemantics, spansToTag, caretPosition, oldTagTrees);
+                            oldState, frozenPartialSemantics, spansToTag, snapshotSpansToTag, caretPosition, oldTagTrees);
                         await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
 
                         return ComputeNewTagTrees(oldTagTrees, context);
-                    }, cancellationToken).ConfigureAwait(continueOnCapturedContext: calledFromJtfRun);
+                    }, cancellationToken).ConfigureAwait(continueOnCapturedContext: true);
 
                 // We may get back null if we were canceled.  Immediately bail out in that case.
                 if (newTagTrees is null)
@@ -374,32 +375,51 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 return newTagTrees;
             }
-        }
 
-        private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
-        {
-            _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-
-            // TODO: Update to tag spans from all related documents.
-
-            using var _ = PooledDictionary<ITextSnapshot, Document?>.GetInstance(out var snapshotToDocumentMap);
-            var spansToTag = _dataSource.GetSpansToTag(_textView, _subjectBuffer);
-
-            var spansAndDocumentsToTag = spansToTag.SelectAsArray(span =>
+            OneOrMany<SnapshotSpan> GetSnapshotSpansToTag()
             {
-                if (!snapshotToDocumentMap.TryGetValue(span.Snapshot, out var document))
-                {
-                    CheckSnapshot(span.Snapshot);
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
-                    document = span.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    snapshotToDocumentMap[span.Snapshot] = document;
+                using var spansToTag = TemporaryArray<SnapshotSpan>.Empty;
+                _dataSource.AddSpansToTag(_textView, _subjectBuffer, ref spansToTag.AsRef());
+                return spansToTag.ToOneOrManyAndClear();
+            }
+
+            static OneOrMany<DocumentSnapshotSpan> GetDocumentSnapshotSpansToTag(
+                OneOrMany<SnapshotSpan> snapshotSpansToTag,
+                bool frozenPartialSemantics,
+                CancellationToken cancellationToken)
+            {
+                // We only ever have a tiny number of snapshots we're classifying.  So it's easier and faster to just store
+                // the mapping from it to a particular document in an on-stack array.
+                //
+                // document can be null if the buffer the given span is part of is not part of our workspace.
+                using var snapshotToDocument = TemporaryArray<(ITextSnapshot snapshot, Document? document)>.Empty;
+
+                using var result = TemporaryArray<DocumentSnapshotSpan>.Empty;
+
+                foreach (var spanToTag in snapshotSpansToTag)
+                {
+                    var snapshot = spanToTag.Snapshot;
+                    var document = snapshotToDocument.FirstOrDefault(
+                        static (t, snapshot) => t.snapshot == snapshot, snapshot).document;
+
+                    if (document is null)
+                    {
+                        CheckSnapshot(snapshot);
+
+                        document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                        if (frozenPartialSemantics)
+                            document = document?.WithFrozenPartialSemantics(cancellationToken);
+
+                        snapshotToDocument.Add((snapshot, document));
+                    }
+
+                    result.Add(new DocumentSnapshotSpan(document, spanToTag));
                 }
 
-                // document can be null if the buffer the given span is part of is not part of our workspace.
-                return new DocumentSnapshotSpan(document, span);
-            });
-
-            return spansAndDocumentsToTag;
+                return result.ToOneOrManyAndClear();
+            }
         }
 
         [Conditional("DEBUG")]
@@ -413,7 +433,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             }
         }
 
-        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ComputeNewTagTrees(ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, TaggerContext<TTag> context)
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ComputeNewTagTrees(
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
+            TaggerContext<TTag> context)
         {
             using var _1 = PooledHashSet<ITextBuffer>.GetInstance(out var buffersToTag);
             foreach (var spanToTag in context.SpansToTag)
@@ -436,6 +458,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                         newTagsInBuffer.Add(tagSpan);
                 }
 
+                // Invalidate all the spans that were actually tagged.  If the context doesn't have any recorded spans
+                // that were tagged, then assume we tagged everything we were asked to tag.
                 foreach (var span in context._spansTagged)
                 {
                     if (span.Snapshot.TextBuffer == buffer)
@@ -508,25 +532,31 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             }
         }
 
-        private bool ShouldSkipTagProduction()
+        private async ValueTask ProduceTagsAsync(TaggerContext<TTag> context, CancellationToken cancellationToken)
         {
-            if (_dataSource.Options.OfType<Option2<bool>>().Any(option => !_dataSource.GlobalOptions.GetOption(option)))
-                return true;
+            // If we have no spans to tag, there's no point in continuing.
+            if (context.SpansToTag.IsEmpty)
+                return;
 
-            var languageName = _subjectBuffer.GetLanguageName();
-            return _dataSource.Options.OfType<PerLanguageOption2<bool>>().Any(option => languageName == null || !_dataSource.GlobalOptions.GetOption(option, languageName));
-        }
-
-        private Task ProduceTagsAsync(TaggerContext<TTag> context, CancellationToken cancellationToken)
-        {
             // If the feature is disabled, then just produce no tags.
-            return ShouldSkipTagProduction()
-                ? Task.CompletedTask
-                : _dataSource.ProduceTagsAsync(context, cancellationToken);
+            var languageName = _subjectBuffer.GetLanguageName();
+            foreach (var option in _dataSource.Options)
+            {
+                if (option is Option2<bool> option2 && !_dataSource.GlobalOptions.GetOption(option2))
+                    return;
+
+                if (option is PerLanguageOption2<bool> perLanguageOption &&
+                    (languageName == null || !_dataSource.GlobalOptions.GetOption(perLanguageOption, languageName)))
+                {
+                    return;
+                }
+            }
+
+            await _dataSource.ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
         }
 
         private Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(
-            ImmutableArray<DocumentSnapshotSpan> spansToTag,
+            OneOrMany<DocumentSnapshotSpan> spansToTag,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees)
         {
@@ -536,7 +566,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 foreach (var (latestBuffer, latestSpans) in newTagTrees)
                 {
-                    var snapshot = spansToTag.First(s => s.SnapshotSpan.Snapshot.TextBuffer == latestBuffer).SnapshotSpan.Snapshot;
+                    var snapshot = GetSpanForBuffer(spansToTag, latestBuffer).SnapshotSpan.Snapshot;
 
                     if (oldTagTrees.TryGetValue(latestBuffer, out var previousSpans))
                     {
@@ -560,6 +590,19 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 }
 
                 return bufferToChanges;
+            }
+
+            static DocumentSnapshotSpan GetSpanForBuffer(
+                OneOrMany<DocumentSnapshotSpan> spansToTag,
+                ITextBuffer latestBuffer)
+            {
+                foreach (var span in spansToTag)
+                {
+                    if (span.SnapshotSpan.Snapshot.TextBuffer == latestBuffer)
+                        return span;
+                }
+
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

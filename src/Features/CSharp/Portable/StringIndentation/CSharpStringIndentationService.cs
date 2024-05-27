@@ -37,8 +37,10 @@ internal sealed class CSharpStringIndentationService() : IStringIndentationServi
 
         while (nodeStack.TryPop(out var node))
         {
-            if (node is InterpolatedStringExpressionSyntax interpolatedString &&
-                interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
+            if (node is InterpolatedStringExpressionSyntax
+                {
+                    StringStartToken.RawKind: (int)SyntaxKind.InterpolatedMultiLineRawStringStartToken
+                } interpolatedString)
             {
                 ProcessInterpolatedStringExpression(text, interpolatedString, ref result.AsRef(), cancellationToken);
             }
@@ -48,7 +50,11 @@ internal sealed class CSharpStringIndentationService() : IStringIndentationServi
                 // Don't bother recursing into nodes that don't hit the requested span, they can never contribute
                 // regions of interest.
 
-                if (!child.FullSpan.IntersectsWith(textSpan))
+                var childSpan = child.FullSpan;
+                if (childSpan.Start > textSpan.End)
+                    break;
+
+                if (childSpan.End < textSpan.Start)
                     continue;
 
                 if (child.AsNode(out var childNode))

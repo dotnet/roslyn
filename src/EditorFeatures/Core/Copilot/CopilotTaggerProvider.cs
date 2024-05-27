@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
@@ -63,13 +64,14 @@ internal sealed class CopilotTaggerProvider(
             TaggerEventSources.OnTextChanged(subjectBuffer));
     }
 
-    protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
+    protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
         this.ThreadingContext.ThrowIfNotOnUIThread();
         Contract.ThrowIfNull(textView);
 
         // We only care about the cases where we have caret.
-        return textView.GetCaretPoint(subjectBuffer) is { } caret ? [new SnapshotSpan(caret, 0)] : [];
+        if (textView.GetCaretPoint(subjectBuffer) is { } caret)
+            result.Add(new SnapshotSpan(caret, 0));
     }
 
     protected override async Task ProduceTagsAsync(TaggerContext<ITextMarkerTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
