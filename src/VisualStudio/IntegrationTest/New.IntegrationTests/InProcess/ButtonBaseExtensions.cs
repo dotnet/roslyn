@@ -12,74 +12,73 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+
+public static class ButtonBaseExtensions
 {
-    public static class ButtonBaseExtensions
+    private static readonly MethodInfo s_executeCoreMethod;
+
+    static ButtonBaseExtensions()
     {
-        private static readonly MethodInfo s_executeCoreMethod;
+        var methodInfo = typeof(RoutedCommand).GetMethod("ExecuteCore", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(object), typeof(IInputElement), typeof(bool) }, null);
+        s_executeCoreMethod = methodInfo;
+        //s_executeCore = (Action<RoutedCommand, object, IInputElement, bool>)Delegate.CreateDelegate(typeof(Action<RoutedCommand, object, IInputElement, bool>), firstArgument: null, methodInfo);
+    }
 
-        static ButtonBaseExtensions()
+    public static async Task<bool> SimulateClickAsync(this ButtonBase button, JoinableTaskFactory joinableTaskFactory)
+    {
+        await joinableTaskFactory.SwitchToMainThreadAsync();
+
+        if (!button.IsEnabled || !button.IsVisible)
         {
-            var methodInfo = typeof(RoutedCommand).GetMethod("ExecuteCore", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(object), typeof(IInputElement), typeof(bool) }, null);
-            s_executeCoreMethod = methodInfo;
-            //s_executeCore = (Action<RoutedCommand, object, IInputElement, bool>)Delegate.CreateDelegate(typeof(Action<RoutedCommand, object, IInputElement, bool>), firstArgument: null, methodInfo);
+            return false;
         }
 
-        public static async Task<bool> SimulateClickAsync(this ButtonBase button, JoinableTaskFactory joinableTaskFactory)
+        if (button is RadioButton radioButton)
         {
-            await joinableTaskFactory.SwitchToMainThreadAsync();
-
-            if (!button.IsEnabled || !button.IsVisible)
-            {
-                return false;
-            }
-
-            if (button is RadioButton radioButton)
-            {
-                ISelectionItemProvider peer = new RadioButtonAutomationPeer(radioButton);
-                peer.Select();
-            }
-            else if (button is Button button2)
-            {
-                IInvokeProvider peer = new ButtonAutomationPeer(button2);
-                peer.Invoke();
-            }
-            else
-            {
-                button.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
-                ExecuteCommandSource(button, true);
-            }
-
-            // Wait for changes to propagate
-            await Task.Yield();
-
-            return true;
+            ISelectionItemProvider peer = new RadioButtonAutomationPeer(radioButton);
+            peer.Select();
+        }
+        else if (button is Button button2)
+        {
+            IInvokeProvider peer = new ButtonAutomationPeer(button2);
+            peer.Invoke();
+        }
+        else
+        {
+            button.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            ExecuteCommandSource(button, true);
         }
 
-        private static void ExecuteCommandSource(ICommandSource commandSource, bool userInitiated)
+        // Wait for changes to propagate
+        await Task.Yield();
+
+        return true;
+    }
+
+    private static void ExecuteCommandSource(ICommandSource commandSource, bool userInitiated)
+    {
+        var command = commandSource.Command;
+        if (command is null)
         {
-            var command = commandSource.Command;
-            if (command is null)
-            {
-                return;
-            }
+            return;
+        }
 
-            var commandParameter = commandSource.CommandParameter;
-            var commandTarget = commandSource.CommandTarget;
-            if (command is RoutedCommand routedCommand)
-            {
-                commandTarget ??= commandSource as IInputElement;
+        var commandParameter = commandSource.CommandParameter;
+        var commandTarget = commandSource.CommandTarget;
+        if (command is RoutedCommand routedCommand)
+        {
+            commandTarget ??= commandSource as IInputElement;
 
-                if (routedCommand.CanExecute(commandParameter, commandTarget))
-                {
-                    s_executeCoreMethod.Invoke(routedCommand, new[] { commandParameter, commandTarget, userInitiated });
-                    //s_executeCore(routedCommand, commandParameter, commandTarget, userInitiated);
-                }
-            }
-            else if (command.CanExecute(commandParameter))
+            if (routedCommand.CanExecute(commandParameter, commandTarget))
             {
-                command.Execute(commandParameter);
+                s_executeCoreMethod.Invoke(routedCommand, new[] { commandParameter, commandTarget, userInitiated });
+                //s_executeCore(routedCommand, commandParameter, commandTarget, userInitiated);
             }
+        }
+        else if (command.CanExecute(commandParameter))
+        {
+            command.Execute(commandParameter);
         }
     }
 }

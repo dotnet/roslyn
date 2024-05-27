@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification;
 
@@ -139,7 +138,7 @@ internal static partial class ClassifierHelper
         // be gaps in what it produces. Fill in those gaps so we have *all* parts of the span classified properly.
         using var _2 = Classifier.GetPooledList(out var filledInSpans);
         FillInClassifiedSpanGaps(widenedSpan.Start, mergedSpans, filledInSpans);
-        return filledInSpans.ToImmutableArray();
+        return [.. filledInSpans];
     }
 
     private static readonly Comparison<ClassifiedSpan> s_spanComparison = static (s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start;

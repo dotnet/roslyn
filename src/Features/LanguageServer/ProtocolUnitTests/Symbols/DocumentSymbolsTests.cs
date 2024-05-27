@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -181,7 +180,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             {
                 var children = parent.Children.ToList();
                 children.Add(documentSymbol);
-                parent.Children = children.ToArray();
+                parent.Children = [.. children];
             }
 
             return documentSymbol;

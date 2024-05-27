@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the options for a create file operation.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#createFileOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class CreateFileOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether the creation should overwrite the file if it already exists. (Overwrite wins over ignoreIfExists).
         /// </summary>
-        [DataMember(Name = "overwrite")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("overwrite")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool Overwrite
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the action should be ignored if the file already exists.
         /// </summary>
-        [DataMember(Name = "ignoreIfExists")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("ignoreIfExists")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool IgnoreIfExists
         {
             get;

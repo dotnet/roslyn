@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         private IProjectionBuffer CreateBuffer()
         {
             return _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
-                _editorOptionsService.Factory.GlobalOptions, _contentType, _spans.ToArray());
+                _editorOptionsService.Factory.GlobalOptions, _contentType, [.. _spans]);
         }
     }
 }

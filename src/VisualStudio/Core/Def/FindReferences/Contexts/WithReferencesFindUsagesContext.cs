@@ -82,7 +82,7 @@ internal partial class StreamingFindUsagesPresenter
                 {
                     // We only include declaration entries in the entries we show when 
                     // not grouping by definition.
-                    EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.AddRange(entries);
+                    AddRange(EntriesWhenNotGroupingByDefinition, entries);
                     CurrentVersionNumber++;
                     changed = true;
                 }
@@ -99,8 +99,13 @@ internal partial class StreamingFindUsagesPresenter
         {
             lock (Gate)
             {
-                return EntriesWhenNotGroupingByDefinition.Any(
-                    e => e.DefinitionBucket.DefinitionItem == definition);
+                foreach (var entry in EntriesWhenNotGroupingByDefinition)
+                {
+                    if (entry.DefinitionBucket.DefinitionItem == definition)
+                        return true;
+                }
+
+                return false;
             }
         }
 
@@ -152,10 +157,10 @@ internal partial class StreamingFindUsagesPresenter
                 {
                     // Once we can make the new entry, add it to the appropriate list.
                     if (addToEntriesWhenGroupingByDefinition)
-                        EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.Add(entry);
+                        EntriesWhenGroupingByDefinition.Add(entry);
 
                     if (addToEntriesWhenNotGroupingByDefinition)
-                        EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.Add(entry);
+                        EntriesWhenNotGroupingByDefinition.Add(entry);
                 }
 
                 CurrentVersionNumber++;

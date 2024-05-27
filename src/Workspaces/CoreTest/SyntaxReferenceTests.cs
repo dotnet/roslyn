@@ -2,34 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.Workspace)]
-    public class SyntaxReferenceTests : TestBase
+    public sealed class SyntaxReferenceTests : TestBase
     {
-        private static Workspace CreateWorkspace(Type[] additionalParts = null)
-            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
-
-        private static Workspace CreateWorkspaceWithRecoverableSyntaxTrees()
-            => CreateWorkspace(
-            [
-                typeof(TestTemporaryStorageServiceFactory)
-            ]);
+        private static Workspace CreateWorkspace()
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.GetHostServices());
 
         private static Solution AddSingleFileCSharpProject(Solution solution, string source)
         {
@@ -52,16 +43,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestCSharpReferenceToZeroWidthNode()
+        public async Task TestCSharpReferenceToZeroWidthNode()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspace();
             var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, @"
 public class C<> 
 {
 }
 ");
 
-            var tree = solution.Projects.First().Documents.First().GetSyntaxTreeAsync().Result;
+            var tree = await solution.Projects.First().Documents.First().GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
             // this is an expected TypeParameterSyntax with a missing identifier token (it is zero-length w/ an error attached to it)
             var node = tree.GetRoot().DescendantNodes().OfType<CS.Syntax.TypeParameterSyntax>().Single();
@@ -75,15 +66,15 @@ public class C<>
         }
 
         [Fact]
-        public void TestVisualBasicReferenceToZeroWidthNode()
+        public async Task TestVisualBasicReferenceToZeroWidthNode()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspace();
             var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, @"
 Public Class C(Of )
 End Class
 ");
 
-            var tree = solution.Projects.First().Documents.First().GetSyntaxTreeAsync().Result;
+            var tree = await solution.Projects.First().Documents.First().GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
             // this is an expected TypeParameterSyntax with a missing identifier token (it is zero-length w/ an error attached to it)
             var node = tree.GetRoot().DescendantNodes().OfType<VB.Syntax.TypeParameterSyntax>().Single();
@@ -97,9 +88,9 @@ End Class
         }
 
         [Fact]
-        public void TestCSharpReferenceToNodeInStructuredTrivia()
+        public async Task TestCSharpReferenceToNodeInStructuredTrivia()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspace();
             var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, @"
 #if true || true
 public class C 
@@ -107,7 +98,7 @@ public class C
 }
 #endif
 ");
-            var tree = solution.Projects.First().Documents.First().GetSyntaxTreeAsync().Result;
+            var tree = await solution.Projects.First().Documents.First().GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
             // find binary node that is part of #if directive
             var node = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<CS.Syntax.BinaryExpressionSyntax>().First();
@@ -120,9 +111,9 @@ public class C
         }
 
         [Fact]
-        public void TestVisualBasicReferenceToNodeInStructuredTrivia()
+        public async Task TestVisualBasicReferenceToNodeInStructuredTrivia()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspace();
             var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, @"
 #If True Or True Then
 Public Class C
@@ -130,7 +121,7 @@ End Class
 #End If
 ");
 
-            var tree = solution.Projects.First().Documents.First().GetSyntaxTreeAsync().Result;
+            var tree = await solution.Projects.First().Documents.First().GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
             // find binary node that is part of #if directive
             var node = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<VB.Syntax.BinaryExpressionSyntax>().First();
@@ -143,9 +134,9 @@ End Class
         }
 
         [Fact]
-        public void TestCSharpReferenceToZeroWidthNodeInStructuredTrivia()
+        public async Task TestCSharpReferenceToZeroWidthNodeInStructuredTrivia()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspace();
             var solution = AddSingleFileCSharpProject(workspace.CurrentSolution, @"
 #if true ||
 public class C 
@@ -154,7 +145,7 @@ public class C
 #endif
 ");
 
-            var tree = solution.Projects.First().Documents.First().GetSyntaxTreeAsync().Result;
+            var tree = await solution.Projects.First().Documents.First().GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
             // find binary node that is part of #if directive
             var binary = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<CS.Syntax.BinaryExpressionSyntax>().First();
@@ -173,7 +164,7 @@ public class C
         [Fact]
         public async System.Threading.Tasks.Task TestVisualBasicReferenceToZeroWidthNodeInStructuredTriviaAsync()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspace();
             var solution = AddSingleFileVisualBasicProject(workspace.CurrentSolution, @"
 #If (True Or ) Then
 Public Class C
@@ -181,7 +172,7 @@ End Class
 #End If
 ");
 
-            var tree = await solution.Projects.First().Documents.First().GetSyntaxTreeAsync();
+            var tree = await solution.Projects.First().Documents.First().GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
             // find binary node that is part of #if directive
             var binary = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<VB.Syntax.BinaryExpressionSyntax>().First();

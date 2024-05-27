@@ -5,14 +5,12 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
     using Roslyn.Text.Adornments;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Extension class for <see cref="Protocol.Location"/>.  Used to relay reference text information with colorization.
     /// </summary>
-    [DataContract]
     internal class VSInternalLocation : VSLocation
     {
         private object? textValue = null;
@@ -20,9 +18,9 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text value for a location reference. Must be of type <see cref="ImageElement"/> or <see cref="ContainerElement"/> or <see cref="ClassifiedTextElement"/> or <see cref="string"/>.
         /// </summary>
-        [DataMember(Name = "_vs_text")]
+        [JsonPropertyName("_vs_text")]
         [JsonConverter(typeof(ObjectContentConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? Text
         {
             get

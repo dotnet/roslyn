@@ -14,30 +14,30 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+public class UseExpressionBodyForLocalFunctionsRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-    public class UseExpressionBodyForLocalFunctionsRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
+        => new UseExpressionBodyCodeRefactoringProvider();
+
+    private OptionsCollection UseExpressionBody
+        => Option(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
+
+    private OptionsCollection UseExpressionBodyDisabledDiagnostic
+        => Option(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.None));
+
+    private OptionsCollection UseBlockBody
+        => Option(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+
+    private OptionsCollection UseBlockBodyDisabledDiagnostic
+        => Option(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None));
+
+    [Fact]
+    public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
-            => new UseExpressionBodyCodeRefactoringProvider();
-
-        private OptionsCollection UseExpressionBody
-            => Option(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
-
-        private OptionsCollection UseExpressionBodyDisabledDiagnostic
-            => Option(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.None));
-
-        private OptionsCollection UseBlockBody
-            => Option(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
-
-        private OptionsCollection UseBlockBodyDisabledDiagnostic
-            => Option(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None));
-
-        [Fact]
-        public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
-        {
-            await TestMissingAsync(
+        await TestMissingAsync(
 @"class C
 {
     void Goo()
@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
     }
 }", parameters: new TestParameters(options: UseExpressionBody));
-        }
+    }
 
-        [Fact]
-        public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-        {
-            await TestInRegularAndScript1Async(
+    [Fact]
+    public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
+    {
+        await TestInRegularAndScript1Async(
 @"class C
 {
     void Goo()
@@ -71,12 +71,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         void Bar() => Test();
     }
 }", parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
-        }
+    }
 
-        [Fact]
-        public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-        {
-            await TestInRegularAndScript1Async(
+    [Fact]
+    public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
+    {
+        await TestInRegularAndScript1Async(
 @"class C
 {
     void Goo()
@@ -94,12 +94,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         void Bar() => Test();
     }
 }", parameters: new TestParameters(options: UseBlockBody));
-        }
+    }
 
-        [Fact]
-        public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
-        {
-            await TestMissingAsync(
+    [Fact]
+    public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
+    {
+        await TestMissingAsync(
 @"class C
 {
     void Goo()
@@ -107,12 +107,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         void Bar() => [||]Test();
     }
 }", parameters: new TestParameters(options: UseBlockBody));
-        }
+    }
 
-        [Fact]
-        public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-        {
-            await TestInRegularAndScript1Async(
+    [Fact]
+    public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
+    {
+        await TestInRegularAndScript1Async(
 @"class C
 {
     void Goo()
@@ -130,12 +130,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
     }
 }", parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
-        }
+    }
 
-        [Fact]
-        public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-        {
-            await TestInRegularAndScript1Async(
+    [Fact]
+    public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
+    {
+        await TestInRegularAndScript1Async(
 @"class C
 {
     void Goo()
@@ -153,6 +153,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
     }
 }", parameters: new TestParameters(options: UseExpressionBody));
-        }
     }
 }

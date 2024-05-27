@@ -791,7 +791,7 @@ public class Test
 }
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                // (5,22): error CS0401: The new() constraint must be the last constraint specified
+                // (5,22): error CS0401: The new() constraint must be the last restrictive constraint specified
                 // class C<T> where T : new(), IA // CS0401 - should be T : IA, new()
                 Diagnostic(ErrorCode.ERR_NewBoundMustBeLast, "new").WithLocation(5, 22));
         }

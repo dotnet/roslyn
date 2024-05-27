@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var serializer = document.Project.Solution.Services.GetService<ISerializerService>();
 
             var text = await document.GetTextAsync().ConfigureAwait(false);
-            var source = serializer.CreateChecksum(new SerializableSourceText(text, text.GetContentHash()), CancellationToken.None);
+            var source = new SerializableSourceText(text, text.GetContentHash()).ContentChecksum;
             var metadata = serializer.CreateChecksum(new MissingMetadataReference(), CancellationToken.None);
             var analyzer = serializer.CreateChecksum(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing"), new MissingAnalyzerLoader()), CancellationToken.None);
 
@@ -611,11 +611,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var serializableSourceText = new SerializableSourceText(sourceText, sourceText.GetContentHash());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
-                using var context = new SolutionReplicationContext();
-
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(serializableSourceText, objectWriter, context, CancellationToken.None);
+                    serializer.Serialize(serializableSourceText, objectWriter, CancellationToken.None);
                 }
 
                 stream.Position = 0;
@@ -631,11 +629,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             serializableSourceText = new SerializableSourceText(sourceText, sourceText.GetContentHash());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
-                using var context = new SolutionReplicationContext();
-
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(serializableSourceText, objectWriter, context, CancellationToken.None);
+                    serializer.Serialize(serializableSourceText, objectWriter, CancellationToken.None);
                 }
 
                 stream.Position = 0;
@@ -662,11 +658,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             void VerifyOptions(CompilationOptions originalOptions)
             {
                 using var stream = SerializableBytes.CreateWritableStream();
-                using var context = new SolutionReplicationContext();
-
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(originalOptions, objectWriter, context, CancellationToken.None);
+                    serializer.Serialize(originalOptions, objectWriter, CancellationToken.None);
                 }
 
                 stream.Position = 0;
@@ -683,17 +677,17 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         private static SolutionAsset CloneAsset(ISerializerService serializer, SolutionAsset asset)
         {
             using var stream = SerializableBytes.CreateWritableStream();
-            using var context = new SolutionReplicationContext();
-
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                serializer.Serialize(asset.Value, writer, context, CancellationToken.None);
+                serializer.Serialize(asset.Value, writer, CancellationToken.None);
             }
 
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
             var recovered = serializer.Deserialize(asset.Kind, reader, CancellationToken.None);
-            var assetFromStorage = new SolutionAsset(serializer.CreateChecksum(recovered, CancellationToken.None), recovered);
+            var checksum = recovered is SerializableSourceText text ? text.ContentChecksum : serializer.CreateChecksum(recovered, CancellationToken.None);
+
+            var assetFromStorage = new SolutionAsset(checksum, recovered);
 
             Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
             return assetFromStorage;
@@ -710,7 +704,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             return new AnalyzerFileReference(original, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(original, shadow.Path)));
         }
 
-        private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
+        private class MissingAnalyzerLoader() : AnalyzerAssemblyLoader([])
         {
             protected override string PreparePathToLoad(string fullPath)
                 => throw new FileNotFoundException(fullPath);

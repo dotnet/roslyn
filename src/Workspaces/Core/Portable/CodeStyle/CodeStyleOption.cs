@@ -8,7 +8,6 @@
 
 using System;
 using System.Xml.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle;
 

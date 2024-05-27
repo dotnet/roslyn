@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable;
 
@@ -67,14 +68,21 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
         Project project, CodeActionPurpose purpose, CodeActionOptionsProvider fallbackOptions, IProgress<CodeAnalysisProgress> _, CancellationToken cancellationToken)
     {
         var solution = project.Solution;
-        foreach (var document in project.Documents)
-        {
-            if (await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
-                continue;
+        var updatedDocumentRoots = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+            source: project.Documents,
+            produceItems: static async (document, callback, fallbackOptions, cancellationToken) =>
+            {
+                if (await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
+                    return;
 
-            var updatedDocumentRoot = await EnableNullableReferenceTypesAsync(document, fallbackOptions, cancellationToken).ConfigureAwait(false);
-            solution = solution.WithDocumentSyntaxRoot(document.Id, updatedDocumentRoot);
-        }
+                var updatedDocumentRoot = await EnableNullableReferenceTypesAsync(
+                    document, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                callback((document.Id, updatedDocumentRoot));
+            },
+            args: fallbackOptions,
+            cancellationToken).ConfigureAwait(false);
+
+        solution = solution.WithDocumentSyntaxRoots(updatedDocumentRoots);
 
         if (purpose is CodeActionPurpose.Apply)
         {

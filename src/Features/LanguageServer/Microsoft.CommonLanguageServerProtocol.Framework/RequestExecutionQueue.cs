@@ -12,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -50,11 +49,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// more messages, and a new queue will need to be created.
 /// </para>
 /// </remarks>
-#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
-public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRequestContext>
-#else
 internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRequestContext>
-#endif
 {
     protected readonly ILspLogger _logger;
     protected readonly AbstractHandlerProvider _handlerProvider;
@@ -74,19 +69,6 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
     protected Task? _queueProcessingTask;
 
     public CancellationToken CancellationToken => _cancelSource.Token;
-
-    [Obsolete($"Use constructor with {nameof(AbstractHandlerProvider)} instead.", error: false)]
-    public RequestExecutionQueue(AbstractLanguageServer<TRequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
-    {
-        _languageServer = languageServer;
-        _logger = logger;
-        if (handlerProvider is AbstractHandlerProvider abstractHandlerProvider)
-        {
-            _handlerProvider = abstractHandlerProvider;
-        }
-
-        _handlerProvider = new WrappedHandlerProvider(handlerProvider);
-    }
 
     public RequestExecutionQueue(AbstractLanguageServer<TRequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
     {

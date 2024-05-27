@@ -433,7 +433,7 @@ internal sealed class DebuggingSession : IDisposable
 
         foreach (var item in items)
         {
-            builder.Add(item.Key, item.ToImmutableArray());
+            builder.Add(item.Key, [.. item]);
         }
 
         return builder.ToImmutable();
@@ -493,15 +493,15 @@ internal sealed class DebuggingSession : IDisposable
                 }
             }
 
-            if (analysis.RudeEditErrors.IsEmpty)
+            if (analysis.RudeEdits.IsEmpty)
             {
                 return [];
             }
 
-            EditSession.Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors, project.State.Attributes.TelemetryId);
+            EditSession.Telemetry.LogRudeEditDiagnostics(analysis.RudeEdits, project.State.Attributes.TelemetryId);
 
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return analysis.RudeEditErrors.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
+            return analysis.RudeEdits.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -836,7 +836,7 @@ internal sealed class DebuggingSession : IDisposable
         {
             lock (_instance._modulesPreparedForUpdateGuard)
             {
-                return _instance._modulesPreparedForUpdate.ToImmutableHashSet();
+                return [.. _instance._modulesPreparedForUpdate];
             }
         }
 

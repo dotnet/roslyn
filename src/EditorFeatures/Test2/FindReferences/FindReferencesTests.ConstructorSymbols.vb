@@ -873,6 +873,33 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
+        Public Async Function TestConstructor_ImplicitAndExplicitObjectCreation_Local(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class D
+{
+    public {|Definition:$$D|}() { }
+}
+        </Document>
+        <Document>
+class C
+{
+    void M()
+    {
+        D d = [|new|]();
+        D d2 = new [|D|]();
+        D d3 = [|new|]();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestConstructor_ImplicitObjectCreation_Local_WithArguments(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

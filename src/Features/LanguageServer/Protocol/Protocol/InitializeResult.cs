@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents the result returned by the initialize request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initializeResult">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class InitializeResult
     {
         /// <summary>
         /// Gets or sets the server capabilities.
         /// </summary>
-        [DataMember(Name = "capabilities")]
+        [JsonPropertyName("capabilities")]
         public ServerCapabilities Capabilities
         {
             get;

@@ -6,20 +6,18 @@ namespace Roslyn.LanguageServer.Protocol
 {
     using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the response of an AutoInsert response.
     /// </summary>
-    [DataContract]
     internal class VSInternalDocumentOnAutoInsertResponseItem
     {
         /// <summary>
         /// Gets or sets the insert text format of the primary text edit. <see cref="TextEditFormat"/> for supported formats.
         /// </summary>
-        [DataMember(Name = "_vs_textEditFormat")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("_vs_textEditFormat")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         [DefaultValue(InsertTextFormat.Plaintext)]
         [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1513:ClosingCurlyBracketMustBeFollowedByBlankLine", Justification = "There are no issues with this code")]
         [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1500:BracesForMultiLineStatementsShouldNotShareLine", Justification = "There are no issues with this code")]
@@ -32,8 +30,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text edit.
         /// </summary>
-        [DataMember(Name = "_vs_textEdit")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_textEdit")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public TextEdit TextEdit
         {
             get;

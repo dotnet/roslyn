@@ -12,24 +12,14 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
-public abstract class AbstractLanguageServer<TRequestContext>
-#else
 internal abstract class AbstractLanguageServer<TRequestContext>
-#endif
 {
     private readonly JsonRpc _jsonRpc;
-#pragma warning disable IDE1006 // Naming Styles - Required for API compat, TODO - https://github.com/dotnet/roslyn/issues/72251
-    protected readonly ILspLogger _logger;
-#pragma warning restore IDE1006 // Naming Styles
-
-    protected readonly JsonSerializer _jsonSerializer;
+    protected readonly ILspLogger Logger;
 
     /// <summary>
     /// These are lazy to allow implementations to define custom variables that are used by
@@ -64,12 +54,10 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
     protected AbstractLanguageServer(
         JsonRpc jsonRpc,
-        JsonSerializer jsonSerializer,
         ILspLogger logger)
     {
-        _logger = logger;
+        Logger = logger;
         _jsonRpc = jsonRpc;
-        _jsonSerializer = jsonSerializer;
 
         _jsonRpc.AddLocalRpcTarget(this);
         _jsonRpc.Disconnected += JsonRpc_Disconnected;
@@ -93,37 +81,21 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     /// <remarks>This should only be called once, and then cached.</remarks>
     protected abstract ILspServices ConstructLspServices();
 
-    [Obsolete($"Use {nameof(HandlerProvider)} property instead.", error: false)]
-    protected virtual IHandlerProvider GetHandlerProvider()
-    {
-        var lspServices = _lspServices.Value;
-        var handlerProvider = new HandlerProvider(lspServices);
-        SetupRequestDispatcher(handlerProvider);
-
-        return handlerProvider;
-    }
-
     protected virtual AbstractHandlerProvider HandlerProvider
     {
         get
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            var handlerProvider = GetHandlerProvider();
-#pragma warning restore CS0618 // Type or member is obsolete
-            if (handlerProvider is AbstractHandlerProvider abstractHandlerProvider)
-            {
-                return abstractHandlerProvider;
-            }
-
-            return new WrappedHandlerProvider(handlerProvider);
+            var lspServices = _lspServices.Value;
+            var handlerProvider = new HandlerProvider(lspServices);
+            SetupRequestDispatcher(handlerProvider);
+            return handlerProvider;
         }
     }
 
     public ILspServices GetLspServices() => _lspServices.Value;
 
-    protected virtual void SetupRequestDispatcher(IHandlerProvider handlerProvider)
+    protected virtual void SetupRequestDispatcher(AbstractHandlerProvider handlerProvider)
     {
-        var entryPointMethodInfo = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.ExecuteRequestAsync))!;
         // Get unique set of methods from the handler provider for the default language.
         foreach (var methodGroup in handlerProvider
             .GetRegisteredMethods()
@@ -148,13 +120,16 @@ internal abstract class AbstractLanguageServer<TRequestContext>
                 throw new InvalidOperationException($"Language specific handlers for {methodGroup.Key} have mis-matched number of returns:{Environment.NewLine}{string.Join(Environment.NewLine, methodGroup)}");
             }
 
-            var delegatingEntryPoint = new DelegatingEntryPoint(methodGroup.Key, this, methodGroup);
+            var delegatingEntryPoint = CreateDelegatingEntryPoint(methodGroup.Key, methodGroup);
             var methodAttribute = new JsonRpcMethodAttribute(methodGroup.Key)
             {
                 UseSingleObjectParameterDeserialization = true,
             };
 
-            _jsonRpc.AddLocalRpcMethod(entryPointMethodInfo, delegatingEntryPoint, methodAttribute);
+            // We verified above that parameters match, set flag if this request has parameters or is parameterless so we can set the entrypoint correctly.
+            var hasParameters = methodGroup.First().RequestType != null;
+            var entryPoint = delegatingEntryPoint.GetEntryPoint(hasParameters);
+            _jsonRpc.AddLocalRpcMethod(entryPoint, delegatingEntryPoint, methodAttribute);
         }
 
         static bool AllTypesMatch(IEnumerable<Type?> types)
@@ -187,7 +162,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     protected virtual IRequestExecutionQueue<TRequestContext> ConstructRequestExecutionQueue()
     {
         var handlerProvider = HandlerProvider;
-        var queue = new RequestExecutionQueue<TRequestContext>(this, _logger, handlerProvider);
+        var queue = new RequestExecutionQueue<TRequestContext>(this, Logger, handlerProvider);
 
         queue.Start();
 
@@ -199,24 +174,18 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         return _queue.Value;
     }
 
-    protected virtual string GetLanguageForRequest(string methodName, JToken? parameters)
-    {
-        _logger.LogInformation($"Using default language handler for {methodName}");
-        return LanguageServerConstants.DefaultLanguageName;
-    }
+    protected abstract DelegatingEntryPoint CreateDelegatingEntryPoint(string method, IGrouping<string, RequestHandlerMetadata> handlersForMethod);
 
-    private sealed class DelegatingEntryPoint
+    protected abstract class DelegatingEntryPoint
     {
-        private readonly string _method;
-        private readonly Lazy<FrozenDictionary<string, (MethodInfo MethodInfo, RequestHandlerMetadata Metadata)>> _languageEntryPoint;
-        private readonly AbstractLanguageServer<TRequestContext> _target;
+        protected readonly string _method;
+        protected readonly Lazy<FrozenDictionary<string, (MethodInfo MethodInfo, RequestHandlerMetadata Metadata)>> _languageEntryPoint;
 
         private static readonly MethodInfo s_queueExecuteAsyncMethod = typeof(RequestExecutionQueue<TRequestContext>).GetMethod(nameof(RequestExecutionQueue<TRequestContext>.ExecuteAsync))!;
 
-        public DelegatingEntryPoint(string method, AbstractLanguageServer<TRequestContext> target, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
+        public DelegatingEntryPoint(string method, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
         {
             _method = method;
-            _target = target;
             _languageEntryPoint = new Lazy<FrozenDictionary<string, (MethodInfo, RequestHandlerMetadata)>>(() =>
             {
                 var handlerEntryPoints = new Dictionary<string, (MethodInfo, RequestHandlerMetadata)>();
@@ -232,61 +201,40 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             });
         }
 
-        /// <summary>
-        /// StreamJsonRpc entry point for all handler methods.
-        /// The optional parameters allow StreamJsonRpc to call into the same method for any kind of request / notification (with any number of params or response).
-        /// </summary>
-        public async Task<JToken?> ExecuteRequestAsync(JToken? request = null, CancellationToken cancellationToken = default)
+        public abstract MethodInfo GetEntryPoint(bool hasParameter);
+
+        protected (MethodInfo MethodInfo, RequestHandlerMetadata Metadata) GetMethodInfo(string language)
         {
-            var queue = _target.GetRequestExecutionQueue();
-            var lspServices = _target.GetLspServices();
-
-            // Retrieve the language of the request so we know how to deserialize it.
-            var language = _target.GetLanguageForRequest(_method, request);
-
-            // Find the correct request and response types for the given request and language.
             if (!_languageEntryPoint.Value.TryGetValue(language, out var requestInfo)
                 && !_languageEntryPoint.Value.TryGetValue(LanguageServerConstants.DefaultLanguageName, out requestInfo))
             {
                 throw new InvalidOperationException($"No default or language specific handler was found for {_method} and document with language {language}");
             }
 
-            // Deserialize the request parameters (if any).
-            var requestObject = DeserializeRequest(request, requestInfo.Metadata, _target._jsonSerializer);
+            return requestInfo;
+        }
 
-            var task = requestInfo.MethodInfo.Invoke(queue, [requestObject, _method, language, lspServices, cancellationToken]) as Task
+        protected async Task<object?> InvokeAsync(
+            MethodInfo methodInfo,
+            IRequestExecutionQueue<TRequestContext> queue,
+            object? requestObject,
+            string language,
+            ILspServices lspServices,
+            CancellationToken cancellationToken)
+        {
+            var task = methodInfo.Invoke(queue, [requestObject, _method, language, lspServices, cancellationToken]) as Task
                 ?? throw new InvalidOperationException($"Queue result task cannot be null");
             await task.ConfigureAwait(false);
             var resultProperty = task.GetType().GetProperty("Result") ?? throw new InvalidOperationException("Result property on task cannot be null");
             var result = resultProperty.GetValue(task);
-            if (result is null || result == NoValue.Instance)
+            if (result == NoValue.Instance)
             {
                 return null;
             }
-
-            return JToken.FromObject(result, _target._jsonSerializer);
-        }
-
-        private static object DeserializeRequest(JToken? request, RequestHandlerMetadata metadata, JsonSerializer jsonSerializer)
-        {
-            if (request is null && metadata.RequestType is not null)
+            else
             {
-                throw new InvalidOperationException($"Handler {metadata.HandlerDescription} requires request parameters but received none");
+                return result;
             }
-
-            if (request is not null && metadata.RequestType is null)
-            {
-                throw new InvalidOperationException($"Handler {metadata.HandlerDescription} does not accept parameters, but received some.");
-            }
-
-            object requestObject = NoValue.Instance;
-            if (request is not null)
-            {
-                requestObject = request.ToObject(metadata.RequestType, jsonSerializer)
-                    ?? throw new InvalidOperationException($"Unable to deserialize {request} into {metadata.RequestType} for {metadata.HandlerDescription}");
-            }
-
-            return requestObject;
         }
     }
 
@@ -328,7 +276,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             // Immediately yield so that this does not run under the lock.
             await Task.Yield();
 
-            _logger.LogInformation(message);
+            Logger.LogInformation(message);
 
             // Allow implementations to do any additional cleanup on shutdown.
             var lifeCycleManager = GetLspServices().GetRequiredService<ILifeCycleManager>();
@@ -386,7 +334,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             }
             finally
             {
-                _logger.LogInformation("Exiting server");
+                Logger.LogInformation("Exiting server");
                 _serverExitedSource.TrySetResult(null);
             }
         }

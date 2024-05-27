@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -42,7 +43,7 @@ internal class StreamingProgressCollector(
         {
             var result = new FixedSizeArrayBuilder<ReferencedSymbol>(_symbolToLocations.Count);
             foreach (var (symbol, locations) in _symbolToLocations)
-                result.Add(new ReferencedSymbol(symbol, locations.ToImmutableArray()));
+                result.Add(new ReferencedSymbol(symbol, [.. locations]));
 
             return result.MoveToImmutable();
         }
@@ -50,9 +51,6 @@ internal class StreamingProgressCollector(
 
     public ValueTask OnStartedAsync(CancellationToken cancellationToken) => underlyingProgress.OnStartedAsync(cancellationToken);
     public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => underlyingProgress.OnCompletedAsync(cancellationToken);
-
-    public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => underlyingProgress.OnFindInDocumentCompletedAsync(document, cancellationToken);
-    public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => underlyingProgress.OnFindInDocumentStartedAsync(document, cancellationToken);
 
     public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
     {
@@ -72,13 +70,19 @@ internal class StreamingProgressCollector(
         }
     }
 
-    public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation location, CancellationToken cancellationToken)
+    public async ValueTask OnReferencesFoundAsync(
+        IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
     {
-        lock (_gate)
+        // Reading the references from the stream will cause them to be processed.  We'll make a copy here so we can
+        // defer to the underlying progress object with the same data.
+        using var _ = ArrayBuilder<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)>.GetInstance(out var copy);
+        await foreach (var tuple in references)
         {
-            _symbolToLocations[definition].Add(location);
+            copy.Add(tuple);
+            lock (_gate)
+                _symbolToLocations[tuple.symbol].Add(tuple.location);
         }
 
-        return underlyingProgress.OnReferenceFoundAsync(group, definition, location, cancellationToken);
+        await underlyingProgress.OnReferencesFoundAsync(copy.AsAsyncEnumerable(), cancellationToken).ConfigureAwait(false);
     }
 }

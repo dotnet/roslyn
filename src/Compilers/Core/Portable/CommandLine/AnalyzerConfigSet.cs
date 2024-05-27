@@ -183,8 +183,9 @@ namespace Microsoft.CodeAnalysis
 
             var sectionKey = _sectionKeyPool.Allocate();
 
-            var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
+            var normalizedPath = PathUtilities.CollapseWithForwardSlash(sourcePath.AsSpan());
             normalizedPath = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedPath);
+            normalizedPath = PathUtilities.NormalizeDriveLetter(normalizedPath);
 
             // If we have a global config, add any sections that match the full path. We can have at most one section since
             // we would have merged them earlier.
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var config = _analyzerConfigs[analyzerConfigIndex];
 
-                if (normalizedPath.StartsWith(config.NormalizedDirectory, StringComparison.Ordinal))
+                if (PathUtilities.IsSameDirectoryOrChildOf(normalizedPath, config.NormalizedDirectory, StringComparison.Ordinal))
                 {
                     // If this config is a root config, then clear earlier options since they don't apply
                     // to this source file.

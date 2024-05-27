@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Host;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename;
@@ -119,7 +117,7 @@ public static partial class Renamer
         if (document.Services.GetService<ISpanMappingService>() != null)
         {
             // Don't advertise that we can file rename generated documents that map to a different file.
-            return new RenameDocumentActionSet([], document.Id, document.Name, document.Folders.ToImmutableArray(), options);
+            return new RenameDocumentActionSet([], document.Id, document.Name, [.. document.Folders], options);
         }
 
         using var _ = ArrayBuilder<RenameDocumentAction>.GetInstance(out var actions);
@@ -143,7 +141,7 @@ public static partial class Renamer
             actions.ToImmutable(),
             document.Id,
             newDocumentName,
-            newDocumentFolders.ToImmutableArray(),
+            [.. newDocumentFolders],
             options);
     }
 

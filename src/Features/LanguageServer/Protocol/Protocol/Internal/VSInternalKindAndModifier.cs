@@ -5,19 +5,17 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class that contains the base kind and modifiers used to describe a response item.
     /// </summary>
-    [DataContract]
     internal class VSInternalKindAndModifier : IEquatable<VSInternalKindAndModifier>
     {
         /// <summary>
         /// Gets or sets the ImageIds for a certain kind.
         /// </summary>
-        [DataMember(Name = "_vs_kind")]
+        [JsonPropertyName("_vs_kind")]
         public string Kind
         {
             get;
@@ -27,8 +25,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the modifier of the kind.
         /// </summary>
-        [DataMember(Name = "_vs_modifier")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_modifier")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string[]? Modifier
         {
             get;

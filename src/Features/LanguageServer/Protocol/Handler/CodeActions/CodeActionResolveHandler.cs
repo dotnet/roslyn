@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -12,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Options;
-using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -52,11 +52,12 @@ internal class CodeActionResolveHandler : ILspServiceDocumentRequestHandler<LSP.
     public bool RequiresLSPSolution => true;
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CodeAction request)
-        => ((JToken)request.Data!).ToObject<CodeActionResolveData>()!.TextDocument;
+        => GetCodeActionResolveData(request).TextDocument;
 
     public async Task<LSP.CodeAction> HandleRequestAsync(LSP.CodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
     {
-        var data = ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
+        Contract.ThrowIfNull(codeAction.Data);
+        var data = GetCodeActionResolveData(codeAction);
         Assumes.Present(data);
 
         // Fix All Code Action does not need further resolution since it already has the command callback
@@ -96,5 +97,12 @@ internal class CodeActionResolveHandler : ILspServiceDocumentRequestHandler<LSP.
 
         codeAction.Edit = edit;
         return codeAction;
+    }
+
+    private static CodeActionResolveData GetCodeActionResolveData(LSP.CodeAction request)
+    {
+        var resolveData = JsonSerializer.Deserialize<CodeActionResolveData>((JsonElement)request.Data!, ProtocolConversions.LspJsonSerializerOptions);
+        Contract.ThrowIfNull(resolveData, "Missing data for code action resolve request");
+        return resolveData;
     }
 }

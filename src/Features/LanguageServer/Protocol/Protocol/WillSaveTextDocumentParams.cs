@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the parameters sent for the textDocument/willSave request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#willSaveTextDocumentParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class WillSaveTextDocumentParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the <see cref="TextDocumentIdentifier"/> representing the document to be saved.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
         {
             get;
@@ -27,7 +26,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the reason that the text document was saved.
         /// </summary>
-        [DataMember(Name = "reason")]
+        [JsonPropertyName("reason")]
         public TextDocumentSaveReason Reason
         {
             get;

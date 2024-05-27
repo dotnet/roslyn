@@ -5,22 +5,20 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System.ComponentModel;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents configuration values indicating how text documents should be synced.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentSyncOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class TextDocumentSyncOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether open and close notifications are sent to the server.
         /// </summary>
-        [DataMember(Name = "openClose")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("openClose")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool OpenClose
         {
             get;
@@ -30,8 +28,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value indicating how text documents are synced with the server.
         /// </summary>
-        [DataMember(Name = "change")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("change")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [DefaultValue(TextDocumentSyncKind.None)]
         public TextDocumentSyncKind? Change
         {
@@ -42,8 +40,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether 'will save' notifications are sent to the server.
         /// </summary>
-        [DataMember(Name = "willSave")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("willSave")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WillSave
         {
             get;
@@ -53,8 +51,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether 'will save until' notifications are sent to the server.
         /// </summary>
-        [DataMember(Name = "willSaveWaitUntil")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("willSaveWaitUntil")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WillSaveWaitUntil
         {
             get;
@@ -64,8 +62,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether save notifications are sent to the server.
         /// </summary>
-        [DataMember(Name = "save")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("save")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SumType<bool, SaveOptions>? Save
         {
             get;

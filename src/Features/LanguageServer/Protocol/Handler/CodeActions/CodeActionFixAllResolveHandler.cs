@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -11,7 +12,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -35,12 +35,13 @@ internal sealed class CodeActionFixAllResolveHandler(
     public bool RequiresLSPSolution => true;
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(RoslynFixAllCodeAction request)
-        => ((JToken)request.Data!).ToObject<CodeActionResolveData>()!.TextDocument;
+        => GetCodeActionResolveData(request).TextDocument;
 
     public async Task<RoslynFixAllCodeAction> HandleRequestAsync(RoslynFixAllCodeAction request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.GetRequiredDocument();
-        var data = ((JToken)request.Data!).ToObject<CodeActionResolveData>();
+        Contract.ThrowIfNull(request.Data);
+        var data = GetCodeActionResolveData(request);
         Assumes.Present(data);
 
         var options = _globalOptions.GetCodeActionOptionsProvider();
@@ -64,5 +65,13 @@ internal sealed class CodeActionFixAllResolveHandler(
 
         request.Edit = edit;
         return request;
+    }
+
+    private static CodeActionResolveData GetCodeActionResolveData(RoslynFixAllCodeAction request)
+    {
+        var resolveData = JsonSerializer.Deserialize<CodeActionResolveData>((JsonElement)request.Data!, ProtocolConversions.LspJsonSerializerOptions);
+        Contract.ThrowIfNull(resolveData, "Missing data for fix all code action resolve request");
+        return resolveData;
+
     }
 }

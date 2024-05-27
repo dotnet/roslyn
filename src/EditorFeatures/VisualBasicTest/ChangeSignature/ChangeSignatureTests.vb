@@ -10,8 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
         Public Async Function TestNotInLeadingWhitespace() As Task
             Dim markup = "
 class C
@@ -24,8 +23,7 @@ end class
             Await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction:=False)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
         Public Async Function TestNotInLeadingTrivia1() As Task
             Dim markup = "
 class C
@@ -38,8 +36,7 @@ end class
             Await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction:=False)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
         Public Async Function TestNotInLeadingTrivia2() As Task
             Dim markup = "
 class C
@@ -52,8 +49,7 @@ end class
             Await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction:=False)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
         Public Async Function TestNotInLeadingAttributes1() As Task
             Dim markup = "
 class C
@@ -66,8 +62,7 @@ end class
             Await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction:=False)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")>
         Public Async Function TestNotInLeadingAttributes2() As Task
             Dim markup = "
 class C

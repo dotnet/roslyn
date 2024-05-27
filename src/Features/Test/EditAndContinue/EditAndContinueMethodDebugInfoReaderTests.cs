@@ -6,7 +6,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -110,7 +109,7 @@ class C
             Assert.False(reader.TryGetDocumentChecksum("/A/C.cs", out _, out _));
 
             Assert.True(reader.TryGetDocumentChecksum("/a/c.cs", out var actualChecksum, out var actualAlgorithm));
-            Assert.Equal("21-C8-B2-D7-A3-6B-49-C7-57-DF-67-B8-1F-75-DF-6A-64-FD-59-22", BitConverter.ToString(actualChecksum.ToArray()));
+            Assert.Equal("21-C8-B2-D7-A3-6B-49-C7-57-DF-67-B8-1F-75-DF-6A-64-FD-59-22", BitConverter.ToString([.. actualChecksum]));
             Assert.Equal(new Guid("ff1816ec-aa5e-4d10-87f7-6f4963833460"), actualAlgorithm);
         }
     }

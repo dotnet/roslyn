@@ -8,9 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -52,7 +50,7 @@ internal abstract partial class AbstractCaseCorrectionService : ICaseCorrectionS
 
             using (Logger.LogBlock(FunctionId.CaseCorrection_AddReplacements, cancellationToken))
             {
-                AddReplacements(semanticModel, root, normalizedSpanCollection.ToImmutableArray(), replacements, cancellationToken);
+                AddReplacements(semanticModel, root, [.. normalizedSpanCollection], replacements, cancellationToken);
             }
 
             using (Logger.LogBlock(FunctionId.CaseCorrection_ReplaceTokens, cancellationToken))

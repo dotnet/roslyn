@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -132,7 +131,11 @@ internal sealed class SolutionCompilationStateChecksums
                 onAssetFound(this.Checksum, this, arg);
 
             if (assetPath.IncludeSolutionSourceGeneratorExecutionVersionMap && searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap))
-                onAssetFound(this.SourceGeneratorExecutionVersionMap, compilationState.SourceGeneratorExecutionVersionMap, arg);
+            {
+                // Only send over the part of the execution map corresponding to the project cone.
+                var filteredExecutionMap = compilationState.GetFilteredSourceGenerationExecutionMap(projectCone);
+                onAssetFound(this.SourceGeneratorExecutionVersionMap, filteredExecutionMap, arg);
+            }
 
             if (compilationState.FrozenSourceGeneratedDocumentStates != null)
             {
@@ -486,6 +489,20 @@ internal sealed class ProjectStateChecksums(
             await ChecksumCollection.FindAsync(assetPath, state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
         }
     }
+
+    public override string ToString()
+        => $"""
+            ProjectStateChecksums({ProjectId})
+                Info={Info}
+                CompilationOptions={CompilationOptions}
+                ParseOptions={ParseOptions}
+                ProjectReferences={ProjectReferences.Checksum}
+                MetadataReferences={MetadataReferences.Checksum}
+                AnalyzerReferences={AnalyzerReferences.Checksum}
+                Documents={Documents.Checksum}
+                AdditionalDocuments={AdditionalDocuments.Checksum}
+                AnalyzerConfigDocuments={AnalyzerConfigDocuments.Checksum}
+            """;
 }
 
 internal sealed class DocumentStateChecksums(
@@ -526,6 +543,9 @@ internal sealed class DocumentStateChecksums(
             onAssetFound(Text, text, arg);
         }
     }
+
+    public override string ToString()
+        => $"DocumentStateChecksums({DocumentId})";
 }
 
 /// <summary>

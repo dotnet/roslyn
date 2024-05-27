@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using CodeFixGroupKey = System.Tuple<Microsoft.CodeAnalysis.Diagnostics.DiagnosticData, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority?>;
@@ -38,20 +39,19 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             TextSpan selection,
             ICodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
-            Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
             var originalSolution = document.Project.Solution;
 
-            // Intentionally switch to a threadpool thread to compute fixes.  We do not want to accidentally
-            // run any of this on the UI thread and potentially allow any code to take a dependency on that.
-            var fixes = await Task.Run(() => codeFixService.GetFixesAsync(
+            // Intentionally switch to a threadpool thread to compute fixes.  We do not want to accidentally run any of
+            // this on the UI thread and potentially allow any code to take a dependency on that.
+            await TaskScheduler.Default;
+            var fixes = await codeFixService.GetFixesAsync(
                 document,
                 selection,
                 priorityProvider,
                 fallbackOptions,
-                addOperationScope,
-                cancellationToken), cancellationToken).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
 
             var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 sets.Add(new UnifiedSuggestedActionSet(
                     originalSolution,
                     category,
-                    group.ToImmutableArray(),
+                    [.. group],
                     title: null,
                     priority,
                     applicableToSpan: groupKey.Item1.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
@@ -439,18 +439,15 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             TextSpan selection,
             CodeActionRequestPriority? priority,
             CodeActionOptionsProvider options,
-            Func<string, IDisposable?> addOperationScope,
             bool filterOutsideSelection,
             CancellationToken cancellationToken)
         {
-            // It may seem strange that we kick off a task, but then immediately 'Wait' on
-            // it. However, it's deliberate.  We want to make sure that the code runs on
-            // the background so that no one takes an accidentally dependency on running on
-            // the UI thread.
-            var refactorings = await Task.Run(
-                () => codeRefactoringService.GetRefactoringsAsync(
-                    document, selection, priority, options, addOperationScope,
-                    cancellationToken), cancellationToken).ConfigureAwait(false);
+            // Intentionally switch to a threadpool thread to compute fixes.  We do not want to accidentally run any of
+            // this on the UI thread and potentially allow any code to take a dependency on that.
+            await TaskScheduler.Default;
+            var refactorings = await codeRefactoringService.GetRefactoringsAsync(
+                document, selection, priority, options,
+                cancellationToken).ConfigureAwait(false);
 
             var filteredRefactorings = FilterOnAnyThread(refactorings, selection, filterOutsideSelection);
 
@@ -711,9 +708,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         private static ImmutableArray<UnifiedSuggestedActionSet> OrderActionSets(
             ImmutableArray<UnifiedSuggestedActionSet> actionSets, TextSpan? selectionOpt)
         {
-            return actionSets.OrderByDescending(s => s.Priority)
-                             .ThenBy(s => s, new UnifiedSuggestedActionSetComparer(selectionOpt))
-                             .ToImmutableArray();
+            return [.. actionSets.OrderByDescending(s => s.Priority).ThenBy(s => s, new UnifiedSuggestedActionSetComparer(selectionOpt))];
         }
 
         private static UnifiedSuggestedActionSet WithPriority(

@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents initialization settings for workspace edit.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspaceEditClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class WorkspaceEditSetting
     {
         /// <summary>
         /// Gets or sets a value indicating whether document changes event is supported.
         /// </summary>
-        [DataMember(Name = "documentChanges")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("documentChanges")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool DocumentChanges
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// GEts or sets the resource operations the client supports.
         /// </summary>
-        [DataMember(Name = "resourceOperations")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("resourceOperations")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ResourceOperationKind[]? ResourceOperations
         {
             get;

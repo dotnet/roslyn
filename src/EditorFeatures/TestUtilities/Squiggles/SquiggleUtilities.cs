@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
         internal static TestComposition WpfCompositionWithSolutionCrawler = EditorTestCompositions.EditorFeaturesWpf
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
-        internal static async Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(
+        internal static async Task<ImmutableArray<TagSpan<TTag>>> GetTagSpansAsync<TProvider, TTag>(
             EditorTestWorkspace workspace,
             IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
             where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
@@ -38,19 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
             var firstDocument = workspace.Documents.First();
             var textBuffer = firstDocument.GetTextBuffer();
-            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(textBuffer);
+            using var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(textBuffer);
 
-            using var disposable = tagger as IDisposable;
             await wrapper.WaitForTags();
-
-            var service = (DiagnosticAnalyzerService)workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
-            var analyzerDiagnostics = await service.GetDiagnosticsAsync(workspace.CurrentSolution,
-                projectId: null, documentId: null, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
 
             var snapshot = textBuffer.CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
 
-            return (analyzerDiagnostics, spans);
+            return spans;
         }
     }
 }

@@ -5,21 +5,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal sealed class RoslynLanguageServer : AbstractLanguageServer<RequestContext>, IOnInitialized
+    internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<RequestContext>, IOnInitialized
     {
         private readonly AbstractLspServiceProvider _lspServiceProvider;
         private readonly ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> _baseServices;
@@ -28,13 +27,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public RoslynLanguageServer(
             AbstractLspServiceProvider lspServiceProvider,
             JsonRpc jsonRpc,
-            JsonSerializer serializer,
+            JsonSerializerOptions serializerOptions,
             ICapabilitiesProvider capabilitiesProvider,
             AbstractLspLogger logger,
             HostServices hostServices,
             ImmutableArray<string> supportedLanguages,
             WellKnownLspServerKinds serverKind)
-            : base(jsonRpc, serializer, logger)
+            : base(jsonRpc, serializerOptions, logger)
         {
             _lspServiceProvider = lspServiceProvider;
             _serverKind = serverKind;
@@ -46,6 +45,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             Initialize();
         }
 
+        public static SystemTextJsonFormatter CreateJsonMessageFormatter()
+        {
+            var messageFormatter = new SystemTextJsonFormatter();
+            messageFormatter.JsonSerializerOptions.AddLspSerializerOptions();
+            return messageFormatter;
+        }
+
         protected override ILspServices ConstructLspServices()
         {
             return _lspServiceProvider.CreateServices(_serverKind, _baseServices);
@@ -54,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
         {
             var provider = GetLspServices().GetRequiredService<IRequestExecutionQueueProvider<RequestContext>>();
-            return provider.CreateRequestExecutionQueue(this, _logger, HandlerProvider);
+            return provider.CreateRequestExecutionQueue(this, Logger, HandlerProvider);
         }
 
         private ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> GetBaseServices(
@@ -111,11 +117,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return Task.CompletedTask;
         }
 
-        protected override string GetLanguageForRequest(string methodName, JToken? parameters)
+        protected override string GetLanguageForRequest(string methodName, JsonElement? parameters)
         {
             if (parameters == null)
             {
-                _logger.LogInformation("No request parameters given, using default language handler");
+                Logger.LogInformation("No request parameters given, using default language handler");
                 return LanguageServerConstants.DefaultLanguageName;
             }
 
@@ -132,15 +138,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // { "textDocument": { "uri": "<uri>" ... } ... }
             //
             // We can easily identify the URI for the request by looking for this structure
-            var textDocumentToken = parameters["textDocument"] ?? parameters["_vs_textDocument"];
-            if (textDocumentToken is not null)
+            if (parameters.Value.TryGetProperty("textDocument", out var textDocumentToken) ||
+                parameters.Value.TryGetProperty("_vs_textDocument", out textDocumentToken))
             {
-                var uriToken = textDocumentToken["uri"];
-                Contract.ThrowIfNull(uriToken, "textDocument does not have a uri property");
-                var uri = uriToken.ToObject<Uri>(_jsonSerializer);
+                var uriToken = textDocumentToken.GetProperty("uri");
+                var uri = JsonSerializer.Deserialize<Uri>(uriToken, ProtocolConversions.LspJsonSerializerOptions);
                 Contract.ThrowIfNull(uri, "Failed to deserialize uri property");
                 var language = lspWorkspaceManager.GetLanguageForUri(uri);
-                _logger.LogInformation($"Using {language} from request text document");
+                Logger.LogInformation($"Using {language} from request text document");
                 return language;
             }
 
@@ -148,22 +153,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // { "data": { "TextDocument": { "uri": "<uri>" ... } ... } ... }
             //
             // We can deserialize the data object using our unified DocumentResolveData.
-            var dataToken = parameters["data"];
-            if (dataToken is not null)
+            //var dataToken = parameters["data"];
+            if (parameters.Value.TryGetProperty("data", out var dataToken))
             {
-                var data = dataToken.ToObject<DocumentResolveData>(_jsonSerializer);
+                var data = JsonSerializer.Deserialize<DocumentResolveData>(dataToken, ProtocolConversions.LspJsonSerializerOptions);
                 Contract.ThrowIfNull(data, "Failed to document resolve data object");
                 var language = lspWorkspaceManager.GetLanguageForUri(data.TextDocument.Uri);
-                _logger.LogInformation($"Using {language} from data text document");
+                Logger.LogInformation($"Using {language} from data text document");
                 return language;
             }
 
             // This request is not for a textDocument and is not a resolve request.
-            _logger.LogInformation("Request did not contain a textDocument, using default language handler");
+            Logger.LogInformation("Request did not contain a textDocument, using default language handler");
             return LanguageServerConstants.DefaultLanguageName;
 
             static bool ShouldUseDefaultLanguage(string methodName)
-                => methodName switch
+            {
+                return methodName switch
                 {
                     Methods.InitializeName => true,
                     Methods.InitializedName => true,
@@ -175,6 +181,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     Methods.ExitName => true,
                     _ => false,
                 };
+            }
         }
     }
 }

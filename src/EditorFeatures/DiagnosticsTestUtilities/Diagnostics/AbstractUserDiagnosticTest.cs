@@ -19,9 +19,7 @@ using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -100,26 +98,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal override Task<CodeRefactoring> GetCodeRefactoringAsync(EditorTestWorkspace workspace, TestParameters parameters)
             => throw new NotImplementedException("No refactoring provided in diagnostic test");
 
-        protected static void AddAnalyzerToWorkspace(Workspace workspace, DiagnosticAnalyzer analyzer, TestParameters parameters)
+        protected static void AddAnalyzerToWorkspace(Workspace workspace, DiagnosticAnalyzer analyzer)
         {
-            AnalyzerReference[] analyzeReferences;
+            AnalyzerReference[] analyzerReferences;
             if (analyzer != null)
             {
-                Contract.ThrowIfTrue(parameters.testHost == TestHost.OutOfProcess, $"Out-of-proc testing is not supported since {analyzer} can't be serialized.");
-
-                analyzeReferences = new[] { new AnalyzerImageReference(ImmutableArray.Create(analyzer)) };
+                var analyzerImageReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
+                analyzerReferences = [analyzerImageReference];
             }
             else
             {
                 // create a serializable analyzer reference:
-                analyzeReferences = new[]
-                {
+                analyzerReferences = [
                     new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp).GetType().Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
-                    new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic).GetType().Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
-                };
+                    new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic).GetType().Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)];
             }
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(analyzeReferences));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(analyzerReferences));
         }
 
         protected static Document GetDocumentAndSelectSpan(EditorTestWorkspace workspace, out TextSpan span)

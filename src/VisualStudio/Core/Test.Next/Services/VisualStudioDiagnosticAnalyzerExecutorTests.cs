@@ -10,9 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -21,9 +18,6 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
@@ -96,36 +90,34 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     End Sub
 End Class";
 
-            using (var workspace = CreateWorkspace(LanguageNames.VisualBasic, code))
+            using var workspace = CreateWorkspace(LanguageNames.VisualBasic, code);
+            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetLanguageServices(LanguageNames.VisualBasic));
+
+            ideAnalyzerOptions = ideAnalyzerOptions with
             {
-                var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetLanguageServices(LanguageNames.VisualBasic));
-
-                ideAnalyzerOptions = ideAnalyzerOptions with
+                CodeStyleOptions = new VisualBasicIdeCodeStyleOptions()
                 {
-                    CodeStyleOptions = new VisualBasicIdeCodeStyleOptions()
-                    {
-                        PreferNullPropagation = new CodeStyleOption2<bool>(false, NotificationOption2.Silent)
-                    }
-                };
+                    PreferNullPropagation = new CodeStyleOption2<bool>(false, NotificationOption2.Silent)
+                }
+            };
 
-                var analyzerType = typeof(VisualBasicUseNullPropagationDiagnosticAnalyzer);
-                var analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideAnalyzerOptions);
+            var analyzerType = typeof(VisualBasicUseNullPropagationDiagnosticAnalyzer);
+            var analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideAnalyzerOptions);
 
-                Assert.True(analyzerResult.IsEmpty);
+            Assert.True(analyzerResult.IsEmpty);
 
-                ideAnalyzerOptions = ideAnalyzerOptions with
+            ideAnalyzerOptions = ideAnalyzerOptions with
+            {
+                CodeStyleOptions = new VisualBasicIdeCodeStyleOptions()
                 {
-                    CodeStyleOptions = new VisualBasicIdeCodeStyleOptions()
-                    {
-                        PreferNullPropagation = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
-                    }
-                };
+                    PreferNullPropagation = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
+                }
+            };
 
-                analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideAnalyzerOptions);
+            analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideAnalyzerOptions);
 
-                var diagnostics = analyzerResult.GetDocumentDiagnostics(analyzerResult.DocumentIds.First(), AnalysisKind.Semantic);
-                Assert.Equal(IDEDiagnosticIds.UseNullPropagationDiagnosticId, diagnostics[0].Id);
-            }
+            var diagnostics = analyzerResult.GetDocumentDiagnostics(analyzerResult.DocumentIds.First(), AnalysisKind.Semantic);
+            Assert.Equal(IDEDiagnosticIds.UseNullPropagationDiagnosticId, diagnostics[0].Id);
         }
 
         [Fact]
@@ -192,11 +184,7 @@ End Class";
                 analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                 new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideAnalyzerOptions));
 
-            // no result for open file only analyzer unless forced
-            var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: false, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
-            Assert.Empty(result.AnalysisResult);
-
-            result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: true, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
+            var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
             var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
 
             // check result
@@ -234,7 +222,7 @@ End Class";
             var compilationWithAnalyzers = (await project.GetCompilationAsync())
                 .WithAnalyzers(analyzers, new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideAnalyzerOptions));
 
-            var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: false,
+            var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
 
             var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
@@ -258,8 +246,8 @@ End Class";
                     analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                     new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideOptions));
 
-            var result = await executor.AnalyzeProjectAsync(project, analyzerDriver, forceExecuteAllAnalyzers: true, logPerformanceInfo: false,
-                getTelemetryInfo: false, cancellationToken);
+            var result = await executor.AnalyzeProjectAsync(
+                project, analyzerDriver, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken);
 
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];
         }

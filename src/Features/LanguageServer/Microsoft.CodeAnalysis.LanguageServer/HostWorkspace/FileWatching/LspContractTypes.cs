@@ -2,45 +2,40 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Roslyn.LanguageServer.Protocol;
 
-[DataContract]
 internal class DidChangeWatchedFilesRegistrationOptions
 {
-    [DataMember(Name = "watchers")]
+    [JsonPropertyName("watchers")]
     public required FileSystemWatcher[] Watchers { get; set; }
 }
 
-[DataContract]
 internal class FileSystemWatcher
 {
-    [DataMember(Name = "globPattern")]
+    [JsonPropertyName("globPattern")]
     public required RelativePattern GlobPattern { get; set; }
 
-    [DataMember(Name = "kind")]
+    [JsonPropertyName("kind")]
     public WatchKind? Kind { get; set; }
 }
 
-[DataContract]
 internal class RelativePattern
 {
-    [DataMember(Name = "baseUri")]
+    [JsonPropertyName("baseUri")]
     [JsonConverter(typeof(DocumentUriConverter))]
     public required Uri BaseUri { get; set; }
 
-    [DataMember(Name = "pattern")]
+    [JsonPropertyName("pattern")]
     public required string Pattern { get; set; }
 }
 
 // The LSP specification has a spelling error in the protocol, but Microsoft.VisualStudio.LanguageServer.Protocol
 // didn't carry that error along. This corrects that.
-[DataContract]
 internal class UnregistrationParamsWithMisspelling
 {
-    [DataMember(Name = "unregisterations")]
+    [JsonPropertyName("unregisterations")]
     public required Unregistration[] Unregistrations { get; set; }
 }
 

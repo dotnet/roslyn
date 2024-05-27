@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using static Microsoft.CodeAnalysis.SyntaxNodeExtensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 

@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Organizing.Organizers;
 

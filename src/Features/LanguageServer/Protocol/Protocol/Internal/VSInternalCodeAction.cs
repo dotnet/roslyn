@@ -5,20 +5,18 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class used to extend <see cref="CodeAction" /> to add the data field for codeAction/_ms_resolve support.
     /// </summary>
-    [DataContract]
     internal class VSInternalCodeAction : CodeAction
     {
         /// <summary>
         /// Gets or sets the group this CodeAction belongs to.
         /// </summary>
-        [DataMember(Name = "_vs_group")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_group")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Group
         {
             get;
@@ -28,8 +26,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the priority level of the code action.
         /// </summary>
-        [DataMember(Name = "_vs_priority")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_priority")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalPriorityLevel? Priority
         {
             get;
@@ -39,8 +37,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range of the span this action is applicable to.
         /// </summary>
-        [DataMember(Name = "_vs_applicableRange")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_applicableRange")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Range? ApplicableRange
         {
             get;
@@ -50,8 +48,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the children of this action.
         /// </summary>
-        [DataMember(Name = "_vs_children")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_children")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalCodeAction[]? Children
         {
             get;
@@ -61,8 +59,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the telemetry id of this action.
         /// </summary>
-        [DataMember(Name = "_vs_telemetryId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_telemetryId")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Guid? TelemetryId
         {
             get;

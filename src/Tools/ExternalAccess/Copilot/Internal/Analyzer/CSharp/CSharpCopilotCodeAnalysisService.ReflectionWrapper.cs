@@ -19,6 +19,7 @@ using GetAvailablePromptTitlesAsyncDelegateType = Func<Document, CancellationTok
 using GetCachedDiagnosticsAsyncDelegateType = Func<Document, string, CancellationToken, Task<ImmutableArray<Diagnostic>>>;
 using IsAvailableAsyncDelegateType = Func<CancellationToken, Task<bool>>;
 using StartRefinementSessionAsyncDelegateType = Func<Document, Document, Diagnostic?, CancellationToken, Task>;
+using GetOnTheFlyDocsAsyncDelegateType = Func<string, ImmutableArray<string>, string, CancellationToken, Task<string>>;
 
 internal sealed partial class CSharpCopilotCodeAnalysisService
 {
@@ -33,6 +34,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
         private const string AnalyzeDocumentAsyncMethodName = "AnalyzeDocumentAsync";
         private const string GetCachedDiagnosticsAsyncMethodName = "GetCachedDiagnosticsAsync";
         private const string StartRefinementSessionAsyncMethodName = "StartRefinementSessionAsync";
+        private const string GetOnTheFlyDocsAsyncMethodName = "GetOnTheFlyDocsAsync";
 
         // Create and cache closed delegate to ensure we use a singleton object and with better performance.
         private readonly Type? _analyzerType;
@@ -42,6 +44,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
         private readonly Lazy<AnalyzeDocumentAsyncDelegateType?> _lazyAnalyzeDocumentAsyncDelegate;
         private readonly Lazy<GetCachedDiagnosticsAsyncDelegateType?> _lazyGetCachedDiagnosticsAsyncDelegate;
         private readonly Lazy<StartRefinementSessionAsyncDelegateType?> _lazyStartRefinementSessionAsyncDelegate;
+        private readonly Lazy<GetOnTheFlyDocsAsyncDelegateType?> _lazyGetOnTheFlyDocsAsyncDelegate;
 
         public ReflectionWrapper(IServiceProvider serviceProvider, IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer)
         {
@@ -69,6 +72,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
             _lazyAnalyzeDocumentAsyncDelegate = new(CreateAnalyzeDocumentAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
             _lazyGetCachedDiagnosticsAsyncDelegate = new(CreateGetCachedDiagnosticsAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
             _lazyStartRefinementSessionAsyncDelegate = new(CreateStartRefinementSessionAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
+            _lazyGetOnTheFlyDocsAsyncDelegate = new(CreateGetOnTheFlyDocsAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
         }
 
         private T? CreateDelegate<T>(string methodName, Type[] types) where T : Delegate
@@ -103,6 +107,9 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
 
         private StartRefinementSessionAsyncDelegateType? CreateStartRefinementSessionAsyncDelegate()
             => CreateDelegate<StartRefinementSessionAsyncDelegateType>(StartRefinementSessionAsyncMethodName, [typeof(Document), typeof(Document), typeof(Diagnostic), typeof(CancellationToken)]);
+
+        private GetOnTheFlyDocsAsyncDelegateType? CreateGetOnTheFlyDocsAsyncDelegate()
+            => CreateDelegate<GetOnTheFlyDocsAsyncDelegateType>(GetOnTheFlyDocsAsyncMethodName, [typeof(string), typeof(ImmutableArray<string>), typeof(string), typeof(CancellationToken)]);
 
         public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         {
@@ -142,6 +149,14 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
                 return Task.CompletedTask;
 
             return _lazyStartRefinementSessionAsyncDelegate.Value(oldDocument, newDocument, primaryDiagnostic, cancellationToken);
+        }
+
+        public async Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken)
+        {
+            if (_lazyGetOnTheFlyDocsAsyncDelegate.Value is null)
+                return string.Empty;
+
+            return await _lazyGetOnTheFlyDocsAsyncDelegate.Value(symbolSignature, declarationCode, language, cancellationToken).ConfigureAwait(false);
         }
     }
 }

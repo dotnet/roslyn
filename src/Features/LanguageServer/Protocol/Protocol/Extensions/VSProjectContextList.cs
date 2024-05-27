@@ -4,19 +4,18 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// <see cref="VSProjectContextList" /> represents the response to the
     /// 'textDocument/_vs_getProjectContexts' request.
     /// </summary>
-    [DataContract]
     internal class VSProjectContextList
     {
         /// <summary>
         /// Gets or sets the document contexts associated with a text document.
         /// </summary>
-        [DataMember(Name = "_vs_projectContexts")]
+        [JsonPropertyName("_vs_projectContexts")]
         public VSProjectContext[] ProjectContexts
         {
             get;
@@ -26,7 +25,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the index of the default entry of the <see cref="VSProjectContext" /> array.
         /// </summary>
-        [DataMember(Name = "_vs_defaultIndex")]
+        [JsonPropertyName("_vs_defaultIndex")]
         public int DefaultIndex
         {
             get;

@@ -26,27 +26,18 @@ internal partial class FormattingContext
         public int OriginalColumn { get; } = originalColumn;
     }
 
-    private readonly struct FormattingContextIntervalIntrospector
-        : IIntervalIntrospector<AnchorData>,
+    private readonly struct FormattingContextIntervalIntrospector :
+        IIntervalIntrospector<AnchorData>,
         IIntervalIntrospector<IndentationData>,
         IIntervalIntrospector<RelativeIndentationData>
     {
-        int IIntervalIntrospector<AnchorData>.GetStart(AnchorData value)
-            => value.TextSpan.Start;
+        TextSpan IIntervalIntrospector<AnchorData>.GetSpan(AnchorData value)
+            => value.TextSpan;
 
-        int IIntervalIntrospector<AnchorData>.GetLength(AnchorData value)
-            => value.TextSpan.Length;
+        TextSpan IIntervalIntrospector<IndentationData>.GetSpan(IndentationData value)
+            => value.TextSpan;
 
-        int IIntervalIntrospector<IndentationData>.GetStart(IndentationData value)
-            => value.TextSpan.Start;
-
-        int IIntervalIntrospector<IndentationData>.GetLength(IndentationData value)
-            => value.TextSpan.Length;
-
-        int IIntervalIntrospector<RelativeIndentationData>.GetStart(RelativeIndentationData value)
-            => value.InseparableRegionSpan.Start;
-
-        int IIntervalIntrospector<RelativeIndentationData>.GetLength(RelativeIndentationData value)
-            => value.InseparableRegionSpan.Length;
+        TextSpan IIntervalIntrospector<RelativeIndentationData>.GetSpan(RelativeIndentationData value)
+            => value.InseparableRegionSpan;
     }
 }

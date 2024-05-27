@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var comp = CSharpCompilation.Create(
                 assemblyName,
                 sources,
-                references: NetStandard20.All,
+                references: NetStandard20.References.All,
                 options: options);
 
             var file = directory.CreateFile($"{assemblyName}.dll");
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var directory = Temp.CreateDirectory();
             var assemblyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(directory.CreateDirectory("shadow").Path);
 
-            var key = NetStandard20.netstandard.GetAssemblyIdentity().PublicKey;
+            var key = NetStandard20.References.netstandard.GetAssemblyIdentity().PublicKey;
             var mvidAlpha1 = CreateNetStandardDll(directory.CreateDirectory("mvid1"), "MvidAlpha", "1.0.0.0", key, "class C { }");
             var mvidAlpha2 = CreateNetStandardDll(directory.CreateDirectory("mvid2"), "MvidAlpha", "1.0.0.0", key, "class D { }");
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var directory = Temp.CreateDirectory();
             var assemblyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(directory.CreateDirectory("shadow").Path);
 
-            var key = NetStandard20.netstandard.GetAssemblyIdentity().PublicKey;
+            var key = NetStandard20.References.netstandard.GetAssemblyIdentity().PublicKey;
             var mvidAlpha1 = CreateNetStandardDll(directory, "MvidAlpha", "1.0.0.0", key, "class C { }");
 
             var result = AnalyzerConsistencyChecker.Check(
@@ -154,8 +154,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 directory.Path,
                 ImmutableArray.Create(new CommandLineAnalyzerReference(mvidAlpha2.Path)),
                 assemblyLoader,
-                Logger);
+                Logger,
+                out List<string>? errorMessages);
             Assert.False(result);
+            Assert.NotNull(errorMessages);
+
+            // Both the original and failed paths need to appear in the message, not the shadow copy 
+            // paths
+            var errorMessage = errorMessages!.Single();
+            Assert.Contains(mvidAlpha1.Path, errorMessage);
+            Assert.Contains(mvidAlpha2.Path, errorMessage);
         }
 
         /// <summary>
@@ -168,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void LoadingLibraryFromCompiler()
         {
             var directory = Temp.CreateDirectory();
-            _ = CreateNetStandardDll(directory, "System.Memory", "2.0.0.0", NetStandard20.netstandard.GetAssemblyIdentity().PublicKey);
+            _ = CreateNetStandardDll(directory, "System.Memory", "2.0.0.0", NetStandard20.References.netstandard.GetAssemblyIdentity().PublicKey);
 
             // This test must use the DefaultAnalyzerAssemblyLoader as we want assembly binding redirects
             // to take affect here.
@@ -226,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void LoadingSimpleLibrary()
         {
             var directory = Temp.CreateDirectory();
-            var key = NetStandard20.netstandard.GetAssemblyIdentity().PublicKey;
+            var key = NetStandard20.References.netstandard.GetAssemblyIdentity().PublicKey;
             var compFile = CreateNetStandardDll(directory, "netstandardRef", "1.0.0.0", key);
 
             var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference(compFile.Path));
@@ -242,5 +250,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void AddDependencyLocation(string fullPath) { }
         public bool IsHostAssembly(Assembly assembly) => false;
         public Assembly LoadFromPath(string fullPath) => throw new Exception();
+        public string? GetOriginalDependencyLocation(AssemblyName assembly) => throw new Exception();
     }
 }

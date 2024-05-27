@@ -388,8 +388,21 @@ stages:
       - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog 
         displayName: Restore
 
-      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog
+      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true
         displayName: Build
+
+      - task: PowerShell@2
+        displayName: Publish Symbols Dry-Run
+        inputs:
+          filePath: eng\common\sdk-task.ps1
+          arguments: -task PublishToSymbolServers /p:DryRun="true" -restore -msbuildEngine dotnet
+            /p:DotNetSymbolServerTokenMsdl=DryRunPTA
+            /p:DotNetSymbolServerTokenSymWeb=DryRunPTA
+            /p:PDBArtifactsDirectory='$(Build.ArtifactStagingDirectory)/PDBArtifacts/'
+            /p:BlobBasePath='$(Build.SourcesDirectory)/artifacts/tmp/Release/SymbolPackages/'
+            /p:SymbolPublishingExclusionsFile='$(Build.SourcesDirectory)/eng/SymbolPublishingExclusionsFile.txt'
+            /p:Configuration=Release
+            /p:PublishToMSDL=false
 
       - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.sln
         displayName: Validate Build Artifacts

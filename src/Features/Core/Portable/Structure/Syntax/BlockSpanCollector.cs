@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Structure;
 
@@ -47,9 +48,9 @@ internal sealed class BlockSpanCollector
         SyntaxToken previousToken = default;
         foreach (var nodeOrToken in root.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true))
         {
-            if (nodeOrToken.IsNode)
+            if (nodeOrToken.AsNode(out var childNode))
             {
-                GetBlockSpans(previousToken, nodeOrToken.AsNode()!, ref spans);
+                GetBlockSpans(previousToken, childNode, ref spans);
             }
             else
             {

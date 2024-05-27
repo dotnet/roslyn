@@ -43,7 +43,7 @@ internal class CSharpStructuredTriviaFormatEngine : AbstractFormatEngine
     internal override IHeaderFacts HeaderFacts => CSharpHeaderFacts.Instance;
 
     protected override AbstractTriviaDataFactory CreateTriviaFactory()
-        => new TriviaDataFactory(this.TreeData, this.Options);
+        => new TriviaDataFactory(this.TreeData, this.Options.LineFormatting);
 
     protected override FormattingContext CreateFormattingContext(TokenStream tokenStream, CancellationToken cancellationToken)
         => new(this, tokenStream);

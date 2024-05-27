@@ -19,7 +19,7 @@ internal sealed partial class SearchGraphQuery(
     public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
     {
         var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
-        var callback = new ProgressionNavigateToSearchCallback(context, graphBuilder);
+        var callback = new ProgressionNavigateToSearchCallback(solution, context, graphBuilder);
 
         // We have a specialized host for progression vs normal nav-to.  Progression itself will tell the client if
         // the project is fully loaded or not.  But after that point, the client will be considered fully loaded and

@@ -258,6 +258,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? Visit(BoundNode? node)
         {
 #if DEBUG
+            TrackVisit(node);
+#endif
+            return base.Visit(node);
+        }
+
+#if DEBUG
+        protected override void BeforeVisitingSkippedBoundBinaryOperatorChildren(BoundBinaryOperator node)
+        {
+            TrackVisit(node);
+        }
+
+        protected override void BeforeVisitingSkippedBoundCallChildren(BoundCall node)
+        {
+            TrackVisit(node);
+        }
+
+        private void TrackVisit(BoundNode? node)
+        {
             if (node is BoundValuePlaceholderBase placeholder)
             {
                 Debug.Assert(ContainsPlaceholderScope(placeholder));
@@ -267,14 +285,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_visited is { } && _visited.Count <= MaxTrackVisited)
                 {
                     bool added = _visited.Add(expr);
-                    Debug.Assert(added);
+                    Debug.Assert(added, $"Expression {expr} `{expr.Syntax}` visited more than once.");
                 }
             }
-#endif
-            return base.Visit(node);
         }
 
-#if DEBUG
         private void AssertVisited(BoundExpression expr)
         {
             if (expr is BoundValuePlaceholderBase placeholder)
@@ -283,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (_visited is { } && _visited.Count <= MaxTrackVisited)
             {
-                Debug.Assert(_visited.Contains(expr));
+                Debug.Assert(_visited.Contains(expr), $"Expected {expr} `{expr.Syntax}` to be visited.");
             }
         }
 #endif
@@ -486,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(localSymbol.RefKind == RefKind.None ||
                         refEscapeScope >= GetRefEscape(initializer, _localScopeDepth));
 
-                    if (node.DeclaredTypeOpt?.Type.IsRefLikeType == true)
+                    if (node.DeclaredTypeOpt?.Type.IsRefLikeOrAllowsRefLikeType() == true)
                     {
                         ValidateEscape(initializer, valEscapeScope, isByRef: false, _diagnostics);
                     }
@@ -563,7 +578,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static uint getDeclarationValEscape(BoundTypeExpression typeExpression, uint valEscape)
             {
-                return typeExpression.Type.IsRefLikeType ? valEscape : CallingMethodScope;
+                // https://github.com/dotnet/roslyn/issues/73551:
+                // We do not have a test that demonstrates the statement below makes a difference
+                // for ref like types. If 'CallingMethodScope' is always returned, not a single test fails.
+                return typeExpression.Type.IsRefLikeOrAllowsRefLikeType() ? valEscape : CallingMethodScope;
             }
         }
 
@@ -588,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return symbol is null
                     ? valEscape
-                    : symbol.GetTypeOrReturnType().IsRefLikeType() ? valEscape : CallingMethodScope;
+                    : symbol.GetTypeOrReturnType().IsRefLikeOrAllowsRefLikeType() ? valEscape : CallingMethodScope;
             }
         }
 
@@ -601,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (member is null) return valEscape;
                 valEscape = getMemberValEscape(member.Receiver, valEscape);
-                return member.Type.IsRefLikeType ? valEscape : CallingMethodScope;
+                return member.Type.IsRefLikeOrAllowsRefLikeType() ? valEscape : CallingMethodScope;
             }
         }
 
@@ -659,13 +677,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _localScopeDepth,
                     _diagnostics);
             }
-
-#if DEBUG
-            if (_visited is { } && _visited.Count <= MaxTrackVisited)
-            {
-                _visited.Add(node);
-            }
-#endif
         }
 
         private void GetInterpolatedStringPlaceholders(

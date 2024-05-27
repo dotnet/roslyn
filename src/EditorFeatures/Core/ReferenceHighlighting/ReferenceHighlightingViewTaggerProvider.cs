@@ -13,7 +13,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -123,10 +122,10 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
             return Task.CompletedTask;
         }
 
-        // See if the user is just moving their caret around in an existing tag.  If so, we don't
-        // want to actually go recompute things.  Note: this only works for containment.  If the
-        // user moves their caret to the end of a highlighted reference, we do want to recompute
-        // as they may now be at the start of some other reference that should be highlighted instead.
+        // See if the user is just moving their caret around in an existing tag.  If so, we don't want to actually go
+        // recompute things.  Note: this only works for containment.  If the user moves their caret to the end of a
+        // highlighted reference, we do want to recompute as they may now be at the start of some other reference that
+        // should be highlighted instead.
         var onExistingTags = context.HasExistingContainingTags(caretPosition);
         if (onExistingTags)
         {

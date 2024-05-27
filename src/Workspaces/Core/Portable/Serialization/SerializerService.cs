@@ -6,16 +6,19 @@ using System;
 using System.Collections.Concurrent;
 using System.Composition;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
+#if NETCOREAPP
+[SupportedOSPlatform("windows")]
+#endif
 internal partial class SerializerService : ISerializerService
 {
     [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Default), Shared]
@@ -36,7 +39,7 @@ internal partial class SerializerService : ISerializerService
 
     private readonly SolutionServices _workspaceServices;
 
-    private readonly ITemporaryStorageServiceInternal _storageService;
+    private readonly TemporaryStorageService _storageService;
     private readonly ITextFactoryService _textService;
     private readonly IDocumentationProviderService? _documentationService;
     private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
@@ -48,7 +51,9 @@ internal partial class SerializerService : ISerializerService
     {
         _workspaceServices = workspaceServices;
 
-        _storageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
+        // Serialization is only involved when we have a remote process.  Which is only in VS. So the type of the
+        // storage service here is well known.
+        _storageService = (TemporaryStorageService)workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
         _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
         _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
         _documentationService = workspaceServices.GetService<IDocumentationProviderService>();
@@ -75,7 +80,7 @@ internal partial class SerializerService : ISerializerService
                 case WellKnownSynchronizationKind.ParseOptions:
                 case WellKnownSynchronizationKind.ProjectReference:
                 case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
-                    return Checksum.Create(value, this);
+                    return Checksum.Create(value, this, cancellationToken);
 
                 case WellKnownSynchronizationKind.MetadataReference:
                     return CreateChecksum((MetadataReference)value, cancellationToken);
@@ -84,7 +89,7 @@ internal partial class SerializerService : ISerializerService
                     return CreateChecksum((AnalyzerReference)value, cancellationToken);
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
-                    return Checksum.Create(((SerializableSourceText)value).ContentHash);
+                    throw new InvalidOperationException("Clients can already get a checksum directly from a SerializableSourceText");
 
                 default:
                     // object that is not part of solution is not supported since we don't know what inputs are required to
@@ -94,7 +99,7 @@ internal partial class SerializerService : ISerializerService
         }
     }
 
-    public void Serialize(object value, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+    public void Serialize(object value, ObjectWriter writer, CancellationToken cancellationToken)
     {
         var kind = value.GetWellKnownSynchronizationKind();
 
@@ -134,7 +139,7 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.MetadataReference:
-                    SerializeMetadataReference((MetadataReference)value, writer, context, cancellationToken);
+                    SerializeMetadataReference((MetadataReference)value, writer, cancellationToken);
                     return;
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
@@ -142,7 +147,7 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
-                    SerializeSourceText((SerializableSourceText)value, writer, context, cancellationToken);
+                    SerializeSourceText((SerializableSourceText)value, writer, cancellationToken);
                     return;
 
                 case WellKnownSynchronizationKind.SolutionCompilationState:

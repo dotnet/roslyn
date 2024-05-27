@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents the parameter sent with workspace/didChangeConfiguration requests.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didChangeConfigurationParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class DidChangeConfigurationParams
     {
         /// <summary>
         /// Gets or sets the settings that are applicable to the language server.
         /// </summary>
-        [DataMember(Name = "settings")]
+        [JsonPropertyName("settings")]
         public object Settings
         {
             get;

@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -17,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// </summary>
 internal partial class SerializerService
 {
-    private static void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+    private static void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, CancellationToken cancellationToken)
     {
-        text.Serialize(writer, context, cancellationToken);
+        text.Serialize(writer, cancellationToken);
     }
 
     private void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
@@ -86,10 +84,10 @@ internal partial class SerializerService
         return new ProjectReference(projectId, aliases.ToImmutableArrayOrEmpty(), embedInteropTypes);
     }
 
-    private void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+    private void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        WriteMetadataReferenceTo(reference, writer, context, cancellationToken);
+        WriteMetadataReferenceTo(reference, writer, cancellationToken);
     }
 
     private MetadataReference DeserializeMetadataReference(ObjectReader reader, CancellationToken cancellationToken)

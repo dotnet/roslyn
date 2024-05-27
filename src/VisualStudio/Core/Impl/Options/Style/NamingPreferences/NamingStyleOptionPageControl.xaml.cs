@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
 using Microsoft.VisualStudio.PlatformUI;
@@ -72,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         private void ManageSpecificationsButton_Click(object sender, RoutedEventArgs e)
         {
-            var viewModel = new ManageSymbolSpecificationsDialogViewModel(_viewModel.Specifications, _viewModel.CodeStyleItems.ToList(), _languageName, _notificationService);
+            var viewModel = new ManageSymbolSpecificationsDialogViewModel(_viewModel.Specifications, [.. _viewModel.CodeStyleItems], _languageName, _notificationService);
             var dialog = new ManageNamingStylesInfoDialog(viewModel);
             if (dialog.ShowModal().Value == true)
             {
@@ -82,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         private void ManageStylesButton_Click(object sender, RoutedEventArgs e)
         {
-            var viewModel = new ManageNamingStylesDialogViewModel(_viewModel.NamingStyles, _viewModel.CodeStyleItems.ToList(), _notificationService);
+            var viewModel = new ManageNamingStylesDialogViewModel(_viewModel.NamingStyles, [.. _viewModel.CodeStyleItems], _notificationService);
             var dialog = new ManageNamingStylesInfoDialog(viewModel);
             if (dialog.ShowModal().Value == true)
             {

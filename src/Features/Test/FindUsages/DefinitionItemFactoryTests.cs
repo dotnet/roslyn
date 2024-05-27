@@ -60,9 +60,16 @@ public class DefinitionItemFactoryTests
     }
 
     private static void VerifyProperties(IEnumerable<(string key, string value)> expected, IReadOnlyDictionary<string, string> actual, string? propertyName, IReadOnlyDictionary<string, string> expressionMap)
-        => AssertEx.SetEqual(
+        => VerifyProperties(
             expected,
             actual.Select(item => (key: item.Key, value: item.Value)).OrderBy(item => item.key),
+            propertyName,
+            expressionMap);
+
+    private static void VerifyProperties(IEnumerable<(string key, string value)> expected, IEnumerable<(string key, string value)> actual, string? propertyName, IReadOnlyDictionary<string, string> expressionMap)
+        => AssertEx.SetEqual(
+            expected,
+            actual.OrderBy(item => item.key),
             itemSeparator: "," + Environment.NewLine,
             itemInspector: item => $"({Inspect(item.key)}, {InspectValueAsExpression(item.value, expressionMap)})",
             message: PropertyMessage(propertyName));

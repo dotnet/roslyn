@@ -71,5 +71,5 @@ internal readonly struct InheritanceMarginItem(
         => targetItems.IsEmpty ? null : new(lineNumber, topLevelDisplayText, displayTexts, glyph, Order(targetItems));
 
     public static ImmutableArray<InheritanceTargetItem> Order(ImmutableArray<InheritanceTargetItem> targetItems)
-        => targetItems.OrderBy(t => t.DisplayName).ThenByDescending(t => t.LanguageGlyph).ThenBy(t => t.ProjectName ?? "").ToImmutableArray();
+        => [.. targetItems.OrderBy(t => t.DisplayName).ThenByDescending(t => t.LanguageGlyph).ThenBy(t => t.ProjectName ?? "")];
 }

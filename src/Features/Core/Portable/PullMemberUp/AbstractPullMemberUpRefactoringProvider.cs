@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 
@@ -104,7 +103,7 @@ internal abstract partial class AbstractPullMemberUpRefactoringProvider : CodeRe
     {
         var allDestinations = selectedMembers.All(m => m.IsKind(SymbolKind.Field))
             ? containingType.GetBaseTypes().ToImmutableArray()
-            : containingType.AllInterfaces.Concat(containingType.GetBaseTypes()).ToImmutableArray();
+            : [.. containingType.AllInterfaces, .. containingType.GetBaseTypes()];
 
         return allDestinations.WhereAsArray(destination => MemberAndDestinationValidator.IsDestinationValid(solution, destination, cancellationToken));
     }

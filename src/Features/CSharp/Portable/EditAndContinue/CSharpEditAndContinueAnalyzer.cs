@@ -12,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -921,7 +920,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
         RoslynDebug.Assert(oldTokens != null);
         RoslynDebug.Assert(newTokens != null);
 
-        return DeclareSameIdentifiers(oldTokens.ToArray(), newTokens.ToArray());
+        return DeclareSameIdentifiers([.. oldTokens], [.. newTokens]);
     }
 
     protected override bool AreEquivalentImpl(SyntaxToken oldToken, SyntaxToken newToken)

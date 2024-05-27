@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -23,11 +23,13 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
     private static INamedTypeSymbol? GetUnderlyingNamedType(ITypeSymbol symbol)
         => UnderlyingNamedTypeVisitor.Instance.Visit(symbol);
 
-    protected sealed override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected sealed override async Task DetermineDocumentsToSearchAsync<TData>(
         IMethodSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
@@ -43,25 +45,25 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
 
         var underlyingNamedType = GetUnderlyingNamedType(symbol.ReturnType);
         Contract.ThrowIfNull(underlyingNamedType);
-        var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
-        var documentsWithType = await FindDocumentsAsync(project, documents, underlyingNamedType.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
 
-        using var _ = ArrayBuilder<Document>.GetInstance(out var result);
+        using var _ = PooledHashSet<Document>.GetInstance(out var result);
+        await FindDocumentsAsync(project, documents, StandardCallbacks<Document>.AddToHashSet, result, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
+        await FindDocumentsAsync(project, documents, underlyingNamedType.SpecialType.ToPredefinedType(), StandardCallbacks<Document>.AddToHashSet, result, cancellationToken).ConfigureAwait(false);
 
         // Ignore any documents that don't also have an explicit cast in them.
-        foreach (var document in documentsWithName.Concat(documentsWithType).Distinct())
+        foreach (var document in result)
         {
             var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
             if (index.ContainsConversion)
-                result.Add(document);
+                processResult(document, processResultData);
         }
-
-        return result.ToImmutableAndClear();
     }
 
-    protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected sealed override void FindReferencesInDocument<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
@@ -71,7 +73,7 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
                 static (token, state) => IsPotentialReference(state.SyntaxFacts, token),
                 state);
 
-        return FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken);
+        FindReferencesInTokens(symbol, state, tokens, processResult, processResultData, cancellationToken);
     }
 
     private static bool IsPotentialReference(

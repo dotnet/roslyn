@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void RequestDiagnosticRefresh()
             => _diagnosticsRefresher?.RequestWorkspaceRefresh();
 
-        public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
+        public async Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
             TextDocument document,
             TextSpan range,
             Func<string, bool>? shouldIncludeDiagnostic,
@@ -81,27 +81,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzer = CreateIncrementalAnalyzer(document.Project.Solution.Workspace);
 
             // always make sure that analyzer is called on background thread.
-            return Task.Run(async () =>
-            {
-                priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
+            await TaskScheduler.Default;
+            priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
 
-                using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
-                var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
-                    document, range, diagnostics, shouldIncludeDiagnostic,
-                    includeSuppressedDiagnostics, true, priorityProvider, blockForData: false,
-                    addOperationScope: null, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
-                return (diagnostics.ToImmutable(), upToDate);
-            }, cancellationToken);
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
+            var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
+                document, range, diagnostics, shouldIncludeDiagnostic,
+                includeSuppressedDiagnostics, true, priorityProvider, blockForData: false,
+                diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
+            return (diagnostics.ToImmutable(), upToDate);
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
+        public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
             TextDocument document,
             TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeCompilerDiagnostics,
             bool includeSuppressedDiagnostics,
             ICodeActionRequestPriorityProvider priorityProvider,
-            Func<string, IDisposable?>? addOperationScope,
             DiagnosticKind diagnosticKinds,
             bool isExplicit,
             CancellationToken cancellationToken)
@@ -110,21 +107,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
 
             // always make sure that analyzer is called on background thread.
-            return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(
+            await TaskScheduler.Default;
+            return await analyzer.GetDiagnosticsForSpanAsync(
                 document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
-                priorityProvider, blockForData: true, addOperationScope, diagnosticKinds, isExplicit, cancellationToken), cancellationToken);
+                priorityProvider, blockForData: true, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
         {
             var analyzer = CreateIncrementalAnalyzer(workspace);
             return analyzer.GetCachedDiagnosticsAsync(workspace.CurrentSolution, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
-        }
-
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-        {
-            var analyzer = CreateIncrementalAnalyzer(solution.Workspace);
-            return analyzer.GetDiagnosticsAsync(solution, projectId, documentId, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
         }
 
         public async Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
@@ -134,10 +126,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-            Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+            Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocuments, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
         {
             var analyzer = CreateIncrementalAnalyzer(solution.Workspace);
-            return analyzer.GetDiagnosticsForIdsAsync(solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
+            return analyzer.GetDiagnosticsForIdsAsync(solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, getDocuments, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(

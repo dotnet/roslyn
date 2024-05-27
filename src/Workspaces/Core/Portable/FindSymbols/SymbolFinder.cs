@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -118,8 +119,12 @@ public static partial class SymbolFinder
     /// Finds the definition symbol declared in source code for a corresponding reference symbol. 
     /// Returns null if no such symbol can be found in the specified solution.
     /// </summary>
-    public static Task<ISymbol?> FindSourceDefinitionAsync(
-        ISymbol? symbol, Solution solution, CancellationToken cancellationToken = default)
+    public static Task<ISymbol?> FindSourceDefinitionAsync(ISymbol? symbol, Solution solution, CancellationToken cancellationToken = default)
+        => Task.FromResult(FindSourceDefinition(symbol, solution, cancellationToken));
+
+    /// <inheritdoc cref="FindSourceDefinitionAsync"/>
+    internal static ISymbol? FindSourceDefinition(
+        ISymbol? symbol, Solution solution, CancellationToken cancellationToken)
     {
         if (symbol != null)
         {
@@ -135,14 +140,14 @@ public static partial class SymbolFinder
                 case SymbolKind.Property:
                 case SymbolKind.TypeParameter:
                 case SymbolKind.Namespace:
-                    return FindSourceDefinitionWorkerAsync(symbol, solution, cancellationToken);
+                    return FindSourceDefinitionWorker(symbol, solution, cancellationToken);
             }
         }
 
-        return SpecializedTasks.Null<ISymbol>();
+        return null;
     }
 
-    private static async Task<ISymbol?> FindSourceDefinitionWorkerAsync(
+    private static ISymbol? FindSourceDefinitionWorker(
         ISymbol symbol,
         Solution solution,
         CancellationToken cancellationToken)
@@ -153,9 +158,7 @@ public static partial class SymbolFinder
             // If our symbol doesn't have a containing assembly, there's nothing better we can do to map this
             // symbol somewhere else. The common case for this is a merged INamespaceSymbol that spans assemblies.
             if (symbol.ContainingAssembly == null)
-            {
                 return symbol;
-            }
 
             // Just because it's a source symbol doesn't mean we have the final symbol we actually want. In retargeting cases,
             // the retargeted symbol is from "source" but isn't equal to the actual source definition in the other project. Thus,
@@ -166,12 +169,10 @@ public static partial class SymbolFinder
                 // If our symbol is actually a "regular" source symbol, then we know the compilation is holding the symbol alive
                 // and thus TryGetCompilation is sufficient. For another example of this pattern, see Solution.GetProject(IAssemblySymbol)
                 // which we happen to call below.
-                if (sourceProject.TryGetCompilation(out var compilation))
+                if (sourceProject.TryGetCompilation(out var compilation) &&
+                    symbol.ContainingAssembly.Equals(compilation.Assembly))
                 {
-                    if (symbol.ContainingAssembly.Equals(compilation.Assembly))
-                    {
-                        return symbol;
-                    }
+                    return symbol;
                 }
             }
         }
@@ -182,28 +183,22 @@ public static partial class SymbolFinder
         }
 
         var project = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
-        if (project != null && project.SupportsCompilation)
+
+        // Note: if the assembly came from a particular project, then we should be able to get the compilation without
+        // building it.  That's because once we create the compilation, we'll hold onto it for the lifetime of the
+        // project, to avoid unnecessary recomputation.
+        if (project?.TryGetCompilation(out var projectCompilation) is true)
         {
             var symbolId = symbol.GetSymbolKey(cancellationToken);
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var result = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
+            var result = symbolId.Resolve(projectCompilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
 
-            if (result.Symbol != null && InSource(result.Symbol))
-            {
-                return result.Symbol;
-            }
-            else
-            {
-                return result.CandidateSymbols.FirstOrDefault(InSource);
-            }
+            return InSource(result.Symbol) ? result.Symbol : result.CandidateSymbols.FirstOrDefault(InSource);
         }
 
         return null;
-    }
 
-    private static bool InSource(ISymbol symbol)
-    {
-        return symbol.Locations.Any(static loc => loc.IsInSource);
+        static bool InSource([NotNullWhen(true)] ISymbol? symbol)
+           => symbol != null && symbol.Locations.Any(static loc => loc.IsInSource);
     }
 
     /// <summary>
@@ -308,6 +303,6 @@ public static partial class SymbolFinder
             }
         }
 
-        return linkedSymbols.ToImmutableArray();
+        return [.. linkedSymbols];
     }
 }

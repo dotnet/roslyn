@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -120,20 +120,20 @@ internal static class ProjectDependencyHelper
         }
     }
 
-    internal static async Task RestoreProjectsAsync(ImmutableHashSet<string> projectPaths, CancellationToken cancellationToken)
+    internal static async Task RestoreProjectsAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
     {
         if (projectPaths.IsEmpty)
-        {
             return;
-        }
 
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
+
         var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
-        var unresolvedParams = new UnresolvedDependenciesParams(projectPaths.ToArray());
+
+        // Ensure we only pass unique paths back to be restored.
+        var unresolvedParams = new UnresolvedDependenciesParams([.. projectPaths.Distinct()]);
         await languageServerManager.SendRequestAsync(ProjectNeedsRestoreName, unresolvedParams, cancellationToken);
     }
 
-    [DataContract]
     private record UnresolvedDependenciesParams(
-        [property: DataMember(Name = "projectFilePaths")] string[] ProjectFilePaths);
+        [property: JsonPropertyName("projectFilePaths")] string[] ProjectFilePaths);
 }

@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
@@ -17,9 +14,9 @@ internal static class IntervalTree
         return Create(in introspector, (IEnumerable<T>)values);
     }
 
-    public static IntervalTree<T> Create<T, TIntrospector>(in TIntrospector introspector, IEnumerable<T> values = null)
+    public static IntervalTree<T> Create<T, TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values1 = null, IEnumerable<T>? values2 = null)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        return IntervalTree<T>.Create(in introspector, values ?? []);
+        return IntervalTree<T>.Create(in introspector, values1, values2);
     }
 }
