@@ -13,8 +13,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
-using System;
-
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
