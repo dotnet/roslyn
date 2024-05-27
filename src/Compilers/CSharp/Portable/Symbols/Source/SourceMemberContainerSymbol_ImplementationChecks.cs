@@ -114,7 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var forwardingMethods = ArrayBuilder<SynthesizedExplicitImplementationForwardingMethod>.GetInstance();
             var methodImpls = ArrayBuilder<(MethodSymbol Body, MethodSymbol Implemented)>.GetInstance();
 
-            // NOTE: We can't iterator over this collection directly, since it is not ordered.  Instead we
+            // A source symbol can have the same interface specified multiple times with different nullability annotations.
+            // This set is used to ensure only distinct interface method implementations are synthesized.
+            var implementedMethods = new HashSet<MethodSymbol>(SymbolEqualityComparer.IgnoringNullable);
+
+            // NOTE: We can't iterate over this collection directly, since it is not ordered.  Instead we
             // iterate over AllInterfaces and filter out the interfaces that are not in this set.  This is
             // preferable to doing the DFS ourselves because both AllInterfaces and
             // InterfacesAndTheirBaseInterfaces are cached and used in multiple places.
@@ -197,7 +201,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (synthesizedImplementation.MethodImpl is { } methodImpl)
                     {
                         Debug.Assert(methodImpl is { Body: not null, Implemented: not null });
-                        methodImpls.Add(methodImpl);
+                        if (implementedMethods.Add(methodImpl.Implemented))
+                        {
+                            methodImpls.Add(methodImpl);
+                        }
                     }
 
                     if (wasImplementingMemberFound && interfaceMemberKind == SymbolKind.Event)
