@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NET7_0_OR_GREATER
+#if NET
 
 using System;
 using System.Collections.Generic;
@@ -93,7 +93,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         public IReadOnlySet<Project> ProjectsToRestart { get; } = projectsToRestart;
 
         /// <summary>
-        /// Projects with hcanges that need to be rebuilt in order to apply changes.
+        /// Projects with changes that need to be rebuilt in order to apply changes.
         /// </summary>
         public IReadOnlySet<Project> ProjectsToRebuild { get; } = projectsToRebuild;
     }
