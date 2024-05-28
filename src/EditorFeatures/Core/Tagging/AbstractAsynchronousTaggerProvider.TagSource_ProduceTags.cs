@@ -297,7 +297,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
 #if DEBUG
                 foreach (var snapshotSpan in snapshotSpansToTag)
-                    CheckSnapshot(snapshotSpan.Snapshot1);
+                    CheckSnapshot(snapshotSpan.Snapshot);
 #endif
 
                 // If we're being called from within a blocking JTF.Run call, we don't want to switch to the background
