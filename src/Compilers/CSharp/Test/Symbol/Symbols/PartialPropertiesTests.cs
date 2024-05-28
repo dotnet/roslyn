@@ -4488,6 +4488,7 @@ public partial class C
         [Fact]
         public void GetDeclaredSymbol_02()
         {
+            // Property contained in generic type. Check original definition and constructed symbols.
             var source = ("""
                 partial class C<T>
                 {
@@ -4529,6 +4530,77 @@ public partial class C
             Assert.Equal("System.Int32 C<System.Int32>.Prop { get; }", defOfIntSymbol.ToTestDisplayString());
             Assert.Null(defOfIntSymbol.PartialImplementationPart);
             Assert.False(defOfIntSymbol.IsPartialDefinition);
+        }
+
+        [Fact]
+        public void GetDeclaredSymbol_03()
+        {
+            // Indexer
+            var source = ("""
+                partial class C
+                {
+                    public partial int this[int i] { get; }
+                    public partial int this[int i] { get => 1; }
+                }
+                """.NormalizeLineEndings(), "Program.cs");
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+
+            var model = comp.GetSemanticModel(tree);
+            var indexers = tree.GetRoot().DescendantNodes().OfType<IndexerDeclarationSyntax>().ToArray();
+            Assert.Equal(2, indexers.Length);
+
+            var defSymbol = model.GetDeclaredSymbol(indexers[0])!;
+            Assert.Equal("System.Int32 C.this[System.Int32 i] { get; }", defSymbol.ToTestDisplayString());
+
+            var implSymbol = model.GetDeclaredSymbol(indexers[1])!;
+            Assert.Equal("System.Int32 C.this[System.Int32 i] { get; }", implSymbol.ToTestDisplayString());
+
+            Assert.NotEqual(defSymbol, implSymbol);
+            Assert.Same(implSymbol, defSymbol.PartialImplementationPart);
+            Assert.Same(defSymbol, implSymbol.PartialDefinitionPart);
+
+            Assert.True(defSymbol.IsPartialDefinition);
+            Assert.False(implSymbol.IsPartialDefinition);
+
+            // This is consistent with partial methods.
+            Assert.Equal("SourceFile(Program.cs[43..47))", defSymbol.Locations.Single().ToString());
+            Assert.Equal("SourceFile(Program.cs[88..92))", implSymbol.Locations.Single().ToString());
+        }
+
+        [Fact]
+        public void GetDeclaredSymbol_04()
+        {
+            // Indexer parameter
+            var source = ("""
+                partial class C
+                {
+                    public partial int this[int i] { get; }
+                    public partial int this[int i] { get => 1; }
+                }
+                """.NormalizeLineEndings(), "Program.cs");
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+
+            var model = comp.GetSemanticModel(tree);
+            var parameters = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+            Assert.Equal(2, parameters.Length);
+
+            var defSymbol = model.GetDeclaredSymbol(parameters[0])!;
+            Assert.Equal("System.Int32 i", defSymbol.ToTestDisplayString());
+
+            var implSymbol = model.GetDeclaredSymbol(parameters[1])!;
+            Assert.Equal("System.Int32 i", implSymbol.ToTestDisplayString());
+
+            Assert.NotEqual(defSymbol, implSymbol);
+            Assert.Same(implSymbol, ((IPropertySymbol)defSymbol.ContainingSymbol).PartialImplementationPart!.Parameters[0]);
+            Assert.Same(defSymbol, ((IPropertySymbol)implSymbol.ContainingSymbol).PartialDefinitionPart!.Parameters[0]);
+
+            // This is consistent with partial methods.
+            Assert.Equal("SourceFile(Program.cs[52..53))", defSymbol.Locations.Single().ToString());
+            Assert.Equal("SourceFile(Program.cs[97..98))", implSymbol.Locations.Single().ToString());
         }
 
         // PROTOTYPE(partial-properties): override partial property where base has modopt
