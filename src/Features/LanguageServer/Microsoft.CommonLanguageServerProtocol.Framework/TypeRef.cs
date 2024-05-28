@@ -6,15 +6,25 @@
 #nullable enable
 
 using System;
+using System.Collections.Concurrent;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <summary>
 /// Helper that avoids loading a <see cref="Type"/> by its full assembly-qualified name until needed.
 /// </summary>
-internal sealed partial record class TypeRef
+internal sealed partial class TypeRef : IEquatable<TypeRef>
 {
+    private static readonly ConcurrentDictionary<(string TypeName, string AssemblyName, string? CodeBase), TypeRef> s_cache = [];
+
     private string? _assemblyQualifiedName;
+
+    private TypeRef(string typeName, string assemblyName, string? codeBase = null)
+    {
+        TypeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
+        AssemblyName = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
+        CodeBase = codeBase;
+    }
 
     /// <summary>
     /// Returns the full name of this type.
@@ -37,22 +47,55 @@ internal sealed partial record class TypeRef
     public string AssemblyQualifiedName
         => _assemblyQualifiedName ??= $"{TypeName}, {AssemblyName}";
 
+    public override bool Equals(object? obj)
+        => Equals(obj as TypeRef);
+
+    public bool Equals(TypeRef? other)
+        => other is not null &&
+           TypeName == other.TypeName &&
+           AssemblyName == other.AssemblyName &&
+           CodeBase == other.CodeBase;
+
+    public override int GetHashCode()
+    {
+        var comparer = StringComparer.Ordinal;
+
+        var hashCode = 2037759866;
+        hashCode = hashCode * -1521134295 + comparer.GetHashCode(TypeName);
+        hashCode = hashCode * -1521134295 + comparer.GetHashCode(AssemblyName);
+
+        if (CodeBase is string codeBase)
+        {
+            hashCode = hashCode * -1521134295 + comparer.GetHashCode(codeBase);
+        }
+
+        return hashCode;
+    }
+
+    public override string ToString() => TypeName;
+
     /// <summary>
     /// Constructs a <see cref="TypeRef"/> instance.
     /// </summary>
     /// <param name="typeName">The full name of this type.</param>
     /// <param name="assemblyName">The full name of the assembly containing this type.</param>
     /// <param name="codeBase">The code base of the assembly containing this type, if any.</param>
-    /// <exception cref="ArgumentNullException"></exception>
-    public TypeRef(string typeName, string assemblyName, string? codeBase = null)
+    public static TypeRef Create(string typeName, string assemblyName, string? codeBase)
     {
-        TypeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
-        AssemblyName = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
-        CodeBase = codeBase;
+        var key = (typeName, assemblyName, codeBase);
+
+        if (s_cache.TryGetValue(key, out var result))
+        {
+            return result;
+        }
+
+        return s_cache.GetOrAdd(key, new TypeRef(typeName, assemblyName, codeBase));
     }
 
-    public override string ToString() => TypeName;
-
+    /// <summary>
+    /// Constructs a <see cref="TypeRef"/> from a <see cref="Type"/>.
+    /// </summary>
+    /// <param name="type">The <see cref="Type"/> to use.</param>
     public static TypeRef From(Type type)
     {
         if (type is null)
@@ -67,9 +110,13 @@ internal sealed partial record class TypeRef
         var codeBase = type.Assembly.CodeBase;
 #pragma warning restore SYSLIB0012 // Type or member is obsolete
 
-        return new(typeName, assemblyName, codeBase);
+        return Create(typeName, assemblyName, codeBase);
     }
 
+    /// <summary>
+    /// Constructs a <see cref="TypeRef"/> from a <see cref="Type"/> or returns <see langword="null"/>
+    /// </summary>
+    /// <param name="type">The <see cref="Type"/> to use, or <see langword="null"/>.</param>
     public static TypeRef? FromOrNull(Type? type)
         => type is not null ? From(type) : null;
 

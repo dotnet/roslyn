@@ -9,7 +9,7 @@ using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal sealed partial record class TypeRef
+internal sealed partial class TypeRef
 {
     public sealed class DefaultResolver : AbstractTypeRefResolver
     {

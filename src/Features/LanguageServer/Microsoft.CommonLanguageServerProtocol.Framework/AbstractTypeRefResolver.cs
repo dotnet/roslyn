@@ -16,13 +16,13 @@ internal abstract class AbstractTypeRefResolver
 
     public Type? Resolve(TypeRef typeRef)
     {
-        if (!_typeRefToTypeMap.TryGetValue(typeRef, out var type))
+        if (_typeRefToTypeMap.TryGetValue(typeRef, out var result))
         {
-            type = ResolveCore(typeRef);
-            _typeRefToTypeMap.TryAdd(typeRef, type);
+            return result;
         }
 
-        return type;
+        result = ResolveCore(typeRef);
+        return _typeRefToTypeMap.GetOrAdd(typeRef, result);
     }
 
     protected abstract Type? ResolveCore(TypeRef typeRef);

@@ -30,7 +30,7 @@ internal sealed class LspServiceMetadataView
         var typeName = (string)metadata[nameof(AbstractExportLspServiceAttribute.TypeName)];
         var assemblyName = (string)metadata[nameof(AbstractExportLspServiceAttribute.AssemblyName)];
         var codeBase = (string?)metadata[nameof(AbstractExportLspServiceAttribute.CodeBase)];
-        TypeRef = new(typeName, assemblyName, codeBase);
+        TypeRef = TypeRef.Create(typeName, assemblyName, codeBase);
 
         var interfaceNames = (string[])metadata[nameof(AbstractExportLspServiceAttribute.InterfaceNames)];
         InterfaceNames = FrozenSet.ToFrozenSet(interfaceNames);
@@ -83,7 +83,7 @@ internal sealed class LspServiceMetadataView
 
             var codeBase = methodHandlerData[index++];
 
-            return new(typeName, assemblyName, codeBase);
+            return TypeRef.Create(typeName, assemblyName, codeBase);
         }
     }
 }
