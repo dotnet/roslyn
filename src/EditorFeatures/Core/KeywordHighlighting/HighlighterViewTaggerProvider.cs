@@ -36,18 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 [TextViewRole(PredefinedTextViewRoles.Interactive)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class HighlighterViewTaggerProvider(
-    IThreadingContext threadingContext,
-    IHighlightingService highlightingService,
-    IGlobalOptionService globalOptions,
-    [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider)
-    : AsynchronousViewTaggerProvider<KeywordHighlightTag>(
-        threadingContext,
-        globalOptions,
-        visibilityTracker,
-        listenerProvider,
-        FeatureAttribute.KeywordHighlighting)
+internal sealed class HighlighterViewTaggerProvider(TaggerHost taggerHost, IHighlightingService highlightingService)
+    : AsynchronousViewTaggerProvider<KeywordHighlightTag>(taggerHost, FeatureAttribute.KeywordHighlighting)
 {
     private readonly IHighlightingService _highlightingService = highlightingService;
     private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new(() => []);

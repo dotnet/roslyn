@@ -40,17 +40,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete
 internal abstract partial class AbstractStructureTaggerProvider(
-    IThreadingContext threadingContext,
+    TaggerHost taggerHost,
     EditorOptionsService editorOptionsService,
-    IProjectionBufferFactoryService projectionBufferFactoryService,
-    ITextBufferVisibilityTracker? visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider)
-    : AsynchronousTaggerProvider<IContainerStructureTag>(
-        threadingContext,
-        editorOptionsService.GlobalOptions,
-        visibilityTracker,
-        listenerProvider,
-        FeatureAttribute.Outlining)
+    IProjectionBufferFactoryService projectionBufferFactoryService)
+    : AsynchronousTaggerProvider<IContainerStructureTag>(taggerHost, FeatureAttribute.Outlining)
 {
     private const string RegionDirective = "#region";
     private const string UsingDirective = "using";

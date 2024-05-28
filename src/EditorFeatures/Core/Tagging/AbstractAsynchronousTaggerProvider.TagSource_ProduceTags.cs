@@ -273,7 +273,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // us avoid hammering the dispatcher queue with lots of work that causes contention.  Additionally, use
             // a no-throw awaitable so that in the common case where we cancel before, we don't throw an exception
             // that can exacerbate cross process debugging scenarios.
-            await _dataSource._mainThreadManager.PerformWorkOnMainThreadAsync(() =>
+            await _dataSource.MainThreadManager.PerformWorkOnMainThreadAsync(() =>
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 

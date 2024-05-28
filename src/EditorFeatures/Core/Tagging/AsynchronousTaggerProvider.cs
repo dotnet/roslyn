@@ -3,26 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
-internal abstract class AsynchronousTaggerProvider<TTag>(
-    IThreadingContext threadingContext,
-    IGlobalOptionService globalOptions,
-    ITextBufferVisibilityTracker? visibilityTracker,
-    IAsynchronousOperationListenerProvider asyncListenerProvider,
-    string featureName) : AbstractAsynchronousTaggerProvider<TTag>(
-        threadingContext,
-        globalOptions,
-        visibilityTracker,
-        asyncListenerProvider,
-        featureName), ITaggerProvider
+internal abstract class AsynchronousTaggerProvider<TTag>(TaggerHost taggerHost, string featureName)
+    : AbstractAsynchronousTaggerProvider<TTag>(taggerHost, featureName), ITaggerProvider
     where TTag : ITag
 {
     public EfficientTagger<TTag>? CreateTagger(ITextBuffer subjectBuffer)

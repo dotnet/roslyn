@@ -30,18 +30,8 @@ namespace Microsoft.CodeAnalysis.BraceMatching;
 [TagType(typeof(BraceHighlightTag))]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class BraceHighlightingViewTaggerProvider(
-    IThreadingContext threadingContext,
-    IBraceMatchingService braceMatcherService,
-    IGlobalOptionService globalOptions,
-    [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider)
-    : AsynchronousViewTaggerProvider<BraceHighlightTag>(
-        threadingContext,
-        globalOptions,
-        visibilityTracker,
-        listenerProvider,
-        FeatureAttribute.BraceHighlighting)
+internal sealed class BraceHighlightingViewTaggerProvider(TaggerHost taggerHost, IBraceMatchingService braceMatcherService)
+    : AsynchronousViewTaggerProvider<BraceHighlightTag>(taggerHost, FeatureAttribute.BraceHighlighting)
 {
     private readonly IBraceMatchingService _braceMatcherService = braceMatcherService;
 

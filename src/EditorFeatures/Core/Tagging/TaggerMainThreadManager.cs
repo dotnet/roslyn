@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -16,15 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
 internal sealed class TaggerMainThreadManager
 {
-    private static readonly ConditionalWeakTable<IThreadingContext, TaggerMainThreadManager> s_table = new();
-
-    public static TaggerMainThreadManager GetManager(IThreadingContext threadingContext, IAsynchronousOperationListenerProvider listenerProvider)
-        => s_table.GetValue(threadingContext, _ => new TaggerMainThreadManager(threadingContext, listenerProvider));
-
     private readonly IThreadingContext _threadingContext;
     private readonly AsyncBatchingWorkQueue<(Action action, CancellationToken cancellationToken, TaskCompletionSource<VoidResult> taskCompletionSource)> _workQueue;
 
-    private TaggerMainThreadManager(
+    public TaggerMainThreadManager(
         IThreadingContext threadingContext,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
