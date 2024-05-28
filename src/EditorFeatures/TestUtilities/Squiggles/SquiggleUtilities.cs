@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
         internal static TestComposition WpfCompositionWithSolutionCrawler = EditorTestCompositions.EditorFeaturesWpf
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
-        internal static async Task<ImmutableArray<ITagSpan<TTag>>> GetTagSpansAsync<TProvider, TTag>(
+        internal static async Task<ImmutableArray<TagSpan<TTag>>> GetTagSpansAsync<TProvider, TTag>(
             EditorTestWorkspace workspace,
             IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
             where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
@@ -37,9 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
             var firstDocument = workspace.Documents.First();
             var textBuffer = firstDocument.GetTextBuffer();
-            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(textBuffer);
+            using var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(textBuffer);
 
-            using var disposable = tagger as IDisposable;
             await wrapper.WaitForTags();
 
             var snapshot = textBuffer.CurrentSnapshot;

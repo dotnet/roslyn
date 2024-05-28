@@ -2355,6 +2355,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         => TypesEquivalent(oldParameter.ConstraintTypes, newParameter.ConstraintTypes, exact) &&
            oldParameter.HasReferenceTypeConstraint == newParameter.HasReferenceTypeConstraint &&
            oldParameter.HasValueTypeConstraint == newParameter.HasValueTypeConstraint &&
+           oldParameter.AllowsRefLikeType == newParameter.AllowsRefLikeType &&
            oldParameter.HasConstructorConstraint == newParameter.HasConstructorConstraint &&
            oldParameter.HasNotNullConstraint == newParameter.HasNotNullConstraint &&
            oldParameter.HasUnmanagedTypeConstraint == newParameter.HasUnmanagedTypeConstraint &&

@@ -40,10 +40,6 @@ internal partial class ActiveStatementTaggerProvider(
     [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
     IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousTaggerProvider<ITextMarkerTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
 {
-    // We want to track text changes so that we can try to only reclassify a method body if
-    // all edits were contained within one.
-    protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
-
     protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
     protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
@@ -59,9 +55,9 @@ internal partial class ActiveStatementTaggerProvider(
     protected override async Task ProduceTagsAsync(
         TaggerContext<ITextMarkerTag> context, CancellationToken cancellationToken)
     {
-        Debug.Assert(context.SpansToTag.IsSingle());
+        Contract.ThrowIfTrue(context.SpansToTag.Count != 1);
 
-        var spanToTag = context.SpansToTag.Single();
+        var spanToTag = context.SpansToTag.First();
 
         var document = spanToTag.Document;
         if (document == null)
