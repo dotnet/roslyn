@@ -284,7 +284,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 // Grab the visibility state of the view while we're already on the UI thread.  This saves an
                 // unnecessary switch below.
-                var isVisible = _visibilityTracker is null || _visibilityTracker.IsVisible(_subjectBuffer);
+                var isVisible = this.IsVisible();
                 var snapshotSpansToTag = GetSnapshotSpansToTag();
                 var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
 
@@ -310,7 +310,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             {
                 // Use NoThrow as this is a high source of cancellation exceptions.  This avoids the exception and instead
                 // bails gracefully by checking below.
-                await _visibilityTracker.DelayWhileNonVisibleAsync(
+                await _dataSource.VisibilityTracker.DelayWhileNonVisibleAsync(
                     _dataSource.ThreadingContext, _dataSource.AsyncListener, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(captureContext: true);
             }
 

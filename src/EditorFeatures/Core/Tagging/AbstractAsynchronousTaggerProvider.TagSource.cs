@@ -60,11 +60,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private readonly AbstractAsynchronousTaggerProvider<TTag> _dataSource;
 
         /// <summary>
-        /// async operation notifier
-        /// </summary>
-        private readonly IAsynchronousOperationListener _asyncListener;
-
-        /// <summary>
         /// Information about what workspace the buffer we're tagging is associated with.
         /// </summary>
         private readonly WorkspaceRegistration _workspaceRegistration;
@@ -120,16 +115,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private readonly ITextBuffer _subjectBuffer;
 
         /// <summary>
-        /// Used to keep track of if this <see cref="_subjectBuffer"/> is visible or not (e.g. is in some <see
-        /// cref="ITextView"/> that has some part visible or not.  This is used so we can <see
-        /// cref="PauseIfNotVisible"/> tagging when not visible to avoid wasting machine resources. Note: we do not
-        /// examine <see cref="_textView"/> for this as that is only available for "view taggers" (taggers which
-        /// only tag portions of the view) whereas we want this for all taggers (including just buffer taggers which
-        /// tag the entire document).
-        /// </summary>
-        private readonly ITextBufferVisibilityTracker? _visibilityTracker;
-
-        /// <summary>
         /// Callback to us when the visibility of our <see cref="_subjectBuffer"/> changes.
         /// </summary>
         private readonly Action _onVisibilityChanged;
@@ -151,7 +136,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
         /// <summary>
         /// Whether or not tag generation is paused.  We pause producing tags when documents become non-visible.
-        /// See <see cref="_visibilityTracker"/>.
+        /// See <see cref="ITextBufferVisibilityTracker"/>.
         /// </summary>
         private bool _paused = false;
 
@@ -160,11 +145,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         #endregion
 
         public TagSource(
-            ITextView? textView,
-            ITextBuffer subjectBuffer,
-            ITextBufferVisibilityTracker? visibilityTracker,
             AbstractAsynchronousTaggerProvider<TTag> dataSource,
-            IAsynchronousOperationListener asyncListener)
+            ITextView? textView,
+            ITextBuffer subjectBuffer)
         {
             dataSource.ThreadingContext.ThrowIfNotOnUIThread();
             if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
@@ -172,9 +155,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             _textView = textView;
             _subjectBuffer = subjectBuffer;
-            _visibilityTracker = visibilityTracker;
             _dataSource = dataSource;
-            _asyncListener = asyncListener;
             _nonFrozenComputationCancellationSeries = new(_disposalTokenSource.Token);
             _tagSpanSetPool = new ObjectPool<HashSet<TagSpan<TTag>>>(() => new HashSet<TagSpan<TTag>>(this), trimOnFree: false);
 
@@ -186,14 +167,14 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 dataSource.EventChangeDelay.ComputeTimeDelay(),
                 ProcessEventChangeAsync,
                 EqualityComparer<TagSourceQueueItem>.Default,
-                asyncListener,
+                dataSource.AsyncListener,
                 _disposalTokenSource.Token);
 
             _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                 TaggerDelay.NearImmediate.ComputeTimeDelay(),
                 ProcessTagsChangedAsync,
                 equalityComparer: null,
-                asyncListener,
+                dataSource.AsyncListener,
                 _disposalTokenSource.Token);
 
             if (_dataSource.AddedTagNotificationDelay == TaggerDelay.NearImmediate)
@@ -208,7 +189,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     _dataSource.AddedTagNotificationDelay.ComputeTimeDelay(),
                     ProcessTagsChangedAsync,
                     equalityComparer: null,
-                    asyncListener,
+                    dataSource.AsyncListener,
                     _disposalTokenSource.Token);
             }
 
@@ -240,7 +221,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
                 // Register to hear about visibility changes so we can pause/resume this tagger.
-                _visibilityTracker?.RegisterForVisibilityChanges(subjectBuffer, _onVisibilityChanged);
+                _dataSource.VisibilityTracker?.RegisterForVisibilityChanges(subjectBuffer, _onVisibilityChanged);
 
                 _eventSource.Changed += OnEventSourceChanged;
 
@@ -300,12 +281,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 _eventSource.Changed -= OnEventSourceChanged;
 
-                _visibilityTracker?.UnregisterForVisibilityChanges(_subjectBuffer, _onVisibilityChanged);
+                _dataSource.VisibilityTracker?.UnregisterForVisibilityChanges(_subjectBuffer, _onVisibilityChanged);
             }
         }
 
         private bool IsVisible()
-            => _visibilityTracker == null || _visibilityTracker.IsVisible(_subjectBuffer);
+            => _dataSource.VisibilityTracker == null || _dataSource.VisibilityTracker.IsVisible(_subjectBuffer);
 
         private void PauseIfNotVisible()
         {
