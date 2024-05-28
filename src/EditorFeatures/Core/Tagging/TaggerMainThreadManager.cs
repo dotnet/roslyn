@@ -14,7 +14,7 @@ using TaggerUIData = (bool isVisible, Microsoft.VisualStudio.Text.SnapshotPoint?
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
-using QueueData = (Func<TaggerUIData> action, CancellationToken cancellationToken, TaskCompletionSource<TaggerUIData> taskCompletionSource);
+using QueueData = (Func<TaggerUIData> action, TaskCompletionSource<TaggerUIData> taskCompletionSource, CancellationToken cancellationToken);
 
 internal sealed class TaggerMainThreadManager
 {
@@ -37,10 +37,17 @@ internal sealed class TaggerMainThreadManager
     /// <remarks>This will not ever throw.</remarks>
     private static void RunActionAndUpdateCompletionSource_NoThrow(
         Func<TaggerUIData> action,
-        TaskCompletionSource<TaggerUIData> taskCompletionSource)
+        TaskCompletionSource<TaggerUIData> taskCompletionSource,
+        CancellationToken cancellationToken)
     {
         try
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                taskCompletionSource.TrySetCanceled(cancellationToken);
+                return;
+            }
+
             // Run the underlying task.
             taskCompletionSource.SetResult(action());
         }
@@ -55,6 +62,7 @@ internal sealed class TaggerMainThreadManager
         finally
         {
             taskCompletionSource.TrySetResult(default);
+            Contract.ThrowIfFalse(taskCompletionSource.Task.IsCompleted);
         }
     }
 
@@ -71,8 +79,7 @@ internal sealed class TaggerMainThreadManager
         // example, for determining collapsed outlining tags on document open).
         if (_threadingContext.JoinableTaskContext.IsOnMainThread)
         {
-            RunActionAndUpdateCompletionSource_NoThrow(action, taskSource);
-            Contract.ThrowIfFalse(taskSource.Task.IsCompleted);
+            RunActionAndUpdateCompletionSource_NoThrow(action, taskSource, cancellationToken);
         }
         else
         {
@@ -80,7 +87,7 @@ internal sealed class TaggerMainThreadManager
             var registration = _threadingContext.DisposalToken.Register(
                 static taskSourceObj => ((TaskCompletionSource<TaggerUIData>)taskSourceObj!).TrySetCanceled(), taskSource);
 
-            _workQueue.AddWork((action, cancellationToken, taskSource));
+            _workQueue.AddWork((action, taskSource, cancellationToken));
 
             // Ensure that when our work is done that we let go of the registered callback.
             _ = taskSource.Task.CompletesTrackingOperation(registration);
@@ -91,39 +98,26 @@ internal sealed class TaggerMainThreadManager
 
     private async ValueTask ProcessWorkItemsAsync(ImmutableSegmentedList<QueueData> list, CancellationToken queueCancellationToken)
     {
-        var nonCanceledActions = ImmutableSegmentedList.CreateBuilder<QueueData>();
-        foreach (var (action, cancellationToken, taskCompletionSource) in list)
+        var hasMainThreadWorkToDo = false;
+        foreach (var (action, taskCompletionSource, cancellationToken) in list)
         {
+            // If the work was already canceled, then just transition the task to the canceled state without running the action.
             if (cancellationToken.IsCancellationRequested)
             {
-                // If the work was already canceled, then just transition the task to the canceled state without running the action.
                 taskCompletionSource.TrySetCanceled(cancellationToken);
+                continue;
             }
-            else
-            {
-                nonCanceledActions.Add((action, cancellationToken, taskCompletionSource));
-            }
+
+            // Otherwise, we will have to go to the main thread to execute some of these.
+            hasMainThreadWorkToDo = true;
         }
 
-        // No need to do anything if all the requested work was canceled.  Just bail out without a costly switch to the UI thread.
-        if (nonCanceledActions.Count == 0)
+        if (!hasMainThreadWorkToDo)
             return;
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(queueCancellationToken);
 
-        foreach (var (action, cancellationToken, taskCompletionSource) in nonCanceledActions)
-        {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                // If the work was already canceled, then just transition the task to the canceled state without running the action.
-                taskCompletionSource.TrySetCanceled(cancellationToken);
-            }
-            else
-            {
-                RunActionAndUpdateCompletionSource_NoThrow(action, taskCompletionSource);
-            }
-
-            Contract.ThrowIfFalse(taskCompletionSource.Task.IsCompleted);
-        }
+        foreach (var (action, taskCompletionSource, cancellationToken) in list)
+            RunActionAndUpdateCompletionSource_NoThrow(action, taskCompletionSource, cancellationToken);
     }
 }
