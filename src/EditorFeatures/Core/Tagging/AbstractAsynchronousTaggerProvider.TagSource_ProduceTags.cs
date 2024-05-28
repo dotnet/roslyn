@@ -401,7 +401,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 return result.ToOneOrManyAndClear();
             }
 
-            [Conditional("DEBUG")]
+#if DEBUG
             static void CheckSnapshot(ITextSnapshot snapshot)
             {
                 var container = snapshot.TextBuffer.AsTextContainer();
@@ -411,6 +411,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     Debug.Assert(snapshot.Version.Next == null, "should be on latest snapshot");
                 }
             }
+#endif
         }
 
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ComputeNewTagTrees(
