@@ -265,15 +265,11 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // is good, so we don't have unnecessary thread switches.  In the non-blocking threadpool case, this is also
             // fine as CA(true) will just keep us on the threadpool.
 
-            var isVisible = true;
-            var spansToTag = ImmutableArray<DocumentSnapshotSpan>.Empty;
-            SnapshotPoint? caretPosition = null;
-
             // Enqueue work to a queue that will all tagger main thread work together in the near future. This let's
             // us avoid hammering the dispatcher queue with lots of work that causes contention.  Additionally, use
             // a no-throw awaitable so that in the common case where we cancel before, we don't throw an exception
             // that can exacerbate cross process debugging scenarios.
-            await _dataSource.MainThreadManager.PerformWorkOnMainThreadAsync(() =>
+            var (isVisible, spansToTag, caretPosition) = await _dataSource.MainThreadManager.PerformWorkOnMainThreadAsync(() =>
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -283,9 +279,10 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 // Grab the visibility state of the view while we're already on the UI thread.  This saves an
                 // unnecessary switch below.
-                isVisible = _visibilityTracker is null || _visibilityTracker.IsVisible(_subjectBuffer);
-                spansToTag = GetSpansAndDocumentsToTag();
-                caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
+                var isVisible = _visibilityTracker is null || _visibilityTracker.IsVisible(_subjectBuffer);
+                var spansToTag = GetSpansAndDocumentsToTag();
+                var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
+                return (isVisible, spansToTag, caretPosition);
             }, cancellationToken).NoThrowAwaitable(captureContext: true);
 
             // Since we don't ever throw above, check and see if the await completed due to cancellation and do not

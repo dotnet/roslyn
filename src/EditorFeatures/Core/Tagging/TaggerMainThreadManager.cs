@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging;
 internal sealed class TaggerMainThreadManager
 {
     private readonly IThreadingContext _threadingContext;
-    private readonly AsyncBatchingWorkQueue<(Action action, CancellationToken cancellationToken, TaskCompletionSource<VoidResult> taskCompletionSource)> _workQueue;
+    private readonly AsyncBatchingWorkQueue<(Func<object?> action, CancellationToken cancellationToken, TaskCompletionSource<object?> taskCompletionSource)> _workQueue;
 
     public TaggerMainThreadManager(
         IThreadingContext threadingContext,
@@ -23,7 +23,7 @@ internal sealed class TaggerMainThreadManager
     {
         _threadingContext = threadingContext;
 
-        _workQueue = new AsyncBatchingWorkQueue<(Action action, CancellationToken cancellationToken, TaskCompletionSource<VoidResult> taskCompletionSource)>(
+        _workQueue = new AsyncBatchingWorkQueue<(Func<object?> action, CancellationToken cancellationToken, TaskCompletionSource<object?> taskCompletionSource)>(
             DelayTimeSpan.NearImmediate,
             ProcessWorkItemsAsync,
             listenerProvider.GetListener(FeatureAttribute.Tagger),
@@ -32,13 +32,13 @@ internal sealed class TaggerMainThreadManager
 
     /// <remarks>This will not ever throw.</remarks>
     private static void RunActionAndUpdateCompletionSource_NoThrow(
-        Action action,
-        TaskCompletionSource<VoidResult> taskCompletionSource)
+        Func<object?> action,
+        TaskCompletionSource<object?> taskCompletionSource)
     {
         try
         {
             // Run the underlying task.
-            action();
+            taskCompletionSource.SetResult(action());
         }
         catch (OperationCanceledException ex)
         {
@@ -50,7 +50,7 @@ internal sealed class TaggerMainThreadManager
         }
         finally
         {
-            taskCompletionSource.TrySetResult(default);
+            taskCompletionSource.TrySetResult(null);
         }
     }
 
@@ -58,33 +58,40 @@ internal sealed class TaggerMainThreadManager
     /// Adds the provided action to a queue that will run on the UI thread in the near future (batched with other
     /// registered actions).  If the cancellation token is triggered before the action runs, it will not be run.
     /// </summary>
-    public Task PerformWorkOnMainThreadAsync(Action action, CancellationToken cancellationToken)
+    public Task<TResult> PerformWorkOnMainThreadAsync<TResult>(Func<TResult> action, CancellationToken cancellationToken)
     {
-        var taskSource = new TaskCompletionSource<VoidResult>();
+        var taskSource = new TaskCompletionSource<object?>();
+        var objectWrapper = object? () => action();
 
         // If we're already on the main thread, just run the action directly without any delay.  This is important
         // for cases where the tagger is performing a blocking call to get tags synchronously on the UI thread (for
         // example, for determining collapsed outlining tags on document open).
         if (_threadingContext.JoinableTaskContext.IsOnMainThread)
         {
-            RunActionAndUpdateCompletionSource_NoThrow(action, taskSource);
-            return taskSource.Task;
+            RunActionAndUpdateCompletionSource_NoThrow(objectWrapper, taskSource);
+        }
+        else
+        {
+            // Ensure that if the host is closing and hte queue stops running that we transition this task to the canceled state.
+            var registration = _threadingContext.DisposalToken.Register(static taskSourceObj => ((TaskCompletionSource<VoidResult>)taskSourceObj!).TrySetCanceled(), taskSource);
+
+            _workQueue.AddWork((objectWrapper, cancellationToken, taskSource));
+
+            // Ensure that when our work is done that we let go of the registered callback.
+            taskSource.Task.CompletesTrackingOperation(registration);
         }
 
-        // Ensure that if the host is closing and hte queue stops running that we transition this task to the canceled state.
-        var registration = _threadingContext.DisposalToken.Register(static taskSourceObj => ((TaskCompletionSource<VoidResult>)taskSourceObj!).TrySetCanceled(), taskSource);
+        return CastTaskResultAsync(taskSource.Task);
 
-        _workQueue.AddWork((action, cancellationToken, taskSource));
-
-        // Ensure that when our work is done that we let go of the registered callback.
-        return taskSource.Task.CompletesTrackingOperation(registration);
+        async Task<TResult> CastTaskResultAsync(Task<object?> task)
+            => ((TResult?)await task.ConfigureAwait(false))!;
     }
 
     private async ValueTask ProcessWorkItemsAsync(
-        ImmutableSegmentedList<(Action action, CancellationToken cancellationToken, TaskCompletionSource<VoidResult> taskCompletionSource)> list,
+        ImmutableSegmentedList<(Func<object?> action, CancellationToken cancellationToken, TaskCompletionSource<object?> taskCompletionSource)> list,
         CancellationToken queueCancellationToken)
     {
-        var nonCanceledActions = ImmutableSegmentedList.CreateBuilder<(Action action, CancellationToken cancellationToken, TaskCompletionSource<VoidResult> taskCompletionSource)>();
+        var nonCanceledActions = ImmutableSegmentedList.CreateBuilder<(Func<object?> action, CancellationToken cancellationToken, TaskCompletionSource<object?> taskCompletionSource)>();
         foreach (var (action, cancellationToken, taskCompletionSource) in list)
         {
             if (cancellationToken.IsCancellationRequested)
