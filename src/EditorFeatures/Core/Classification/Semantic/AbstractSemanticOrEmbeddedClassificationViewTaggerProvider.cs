@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -34,21 +33,12 @@ namespace Microsoft.CodeAnalysis.Classification;
 /// the whole file.
 /// </summary>
 internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(
-    IThreadingContext threadingContext,
+    TaggerHost taggerHost,
     ClassificationTypeMap typeMap,
-    IGlobalOptionService globalOptions,
-    ITextBufferVisibilityTracker? visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider,
     ClassificationType type)
-    : AsynchronousViewportTaggerProvider<IClassificationTag>(
-        threadingContext,
-        globalOptions,
-        visibilityTracker,
-        listenerProvider,
-        FeatureAttribute.Classification)
+    : AsynchronousViewportTaggerProvider<IClassificationTag>(taggerHost, FeatureAttribute.Classification)
 {
     private readonly ClassificationTypeMap _typeMap = typeMap;
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
     private readonly ClassificationType _type = type;
 
     protected sealed override ImmutableArray<IOption2> Options { get; } = [SemanticColorizerOptionsStorage.SemanticColorizer];
@@ -87,8 +77,8 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
             TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
             TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
             TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-            TaggerEventSources.OnGlobalOptionChanged(_globalOptions, ClassificationOptionsStorage.ClassifyReassignedVariables),
-            TaggerEventSources.OnGlobalOptionChanged(_globalOptions, ClassificationOptionsStorage.ClassifyObsoleteSymbols));
+            TaggerEventSources.OnGlobalOptionChanged(this.GlobalOptions, ClassificationOptionsStorage.ClassifyReassignedVariables),
+            TaggerEventSources.OnGlobalOptionChanged(this.GlobalOptions, ClassificationOptionsStorage.ClassifyObsoleteSymbols));
     }
 
     protected sealed override async Task ProduceTagsAsync(
@@ -112,11 +102,11 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
             return;
 
         // If the LSP semantic tokens feature flag is enabled, return nothing to prevent conflicts.
-        var isLspSemanticTokensEnabled = _globalOptions.GetOption(LspOptionsStorage.LspSemanticTokensFeatureFlag);
+        var isLspSemanticTokensEnabled = this.GlobalOptions.GetOption(LspOptionsStorage.LspSemanticTokensFeatureFlag);
         if (isLspSemanticTokensEnabled)
             return;
 
-        var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
+        var classificationOptions = this.GlobalOptions.GetClassificationOptions(document.Project.Language);
         await ProduceTagsAsync(
             context, spanToTag, classificationService, classificationOptions, cancellationToken).ConfigureAwait(false);
     }
