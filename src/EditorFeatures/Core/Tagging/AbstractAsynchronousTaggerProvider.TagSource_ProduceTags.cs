@@ -222,8 +222,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// </summary>
         private async Task<(ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees)>
             CompareAndSwapTagTreesAsync(
-            Func<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>, ValueTask<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>>> callback,
-            CancellationToken cancellationToken)
+                Func<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>, ValueTask<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>>> callback,
+                CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -233,10 +233,16 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // we stay on the UI thread if we're in a JTF blocking call.
                 var newTagTrees = await callback(oldTagTrees).ConfigureAwait(true);
 
-                // Now, try to update the cached tag trees to what we computed.  If we win, we're done.  Otherwise, some
-                // other thread was able to do this, and we need to try again.
-                if (oldTagTrees == Interlocked.CompareExchange(ref _cachedTagTrees_mayChangeFromAnyThread, newTagTrees, oldTagTrees))
-                    return (oldTagTrees, newTagTrees);
+                // If nothing changed, can immediately return.  Otherwise, try to update the cached tag trees to what we
+                // computed.  If we win, we're done.  Otherwise, some other thread was able to do this, and we need to
+                // try again.
+                if (oldTagTrees != newTagTrees &&
+                    oldTagTrees != Interlocked.CompareExchange(ref _cachedTagTrees_mayChangeFromAnyThread, newTagTrees, oldTagTrees))
+                {
+                    continue;
+                }
+
+                return (oldTagTrees, newTagTrees);
             }
 
             return default;
