@@ -105,7 +105,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         public override IEnumerable<string> SupportedLanguages => ComputeSupportedLanguages();
 
-#if !CODE_STYLE
+#if CODE_STYLE
+        internal ImmutableArray<string> SupportedLanguagesArray => ComputeSupportedLanguages();
+#else
         internal override ImmutableArray<string> SupportedLanguagesArray => ComputeSupportedLanguages();
 #endif
 
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         public override IEnumerable<TLanguageService> FindLanguageServices<TLanguageService>(MetadataFilter filter)
         {
-            foreach (var language in this.SupportedLanguages)
+            foreach (var language in SupportedLanguagesArray)
             {
 #pragma warning disable RS0030 // Do not used banned API 'GetLanguageServices', use 'GetExtendedLanguageServices' instead - allowed in this context.
                 var services = (MefLanguageServices)this.GetLanguageServices(language);
