@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeFixes.FullyQualify;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
@@ -66,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteEncapsulateFieldService), typeof(IRemoteEncapsulateFieldService.ICallback)),
             (typeof(IRemoteExtensionMethodImportCompletionService), null),
             (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
+            (typeof(IRemoteFixAllProviderService), null),
             (typeof(IRemoteFullyQualifyService), null),
             (typeof(IRemoteGlobalNotificationDeliveryService), null),
             (typeof(IRemoteInheritanceMarginService), null),

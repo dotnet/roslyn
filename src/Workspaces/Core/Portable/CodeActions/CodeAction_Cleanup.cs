@@ -44,7 +44,7 @@ public abstract partial class CodeAction
         static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken),
     ];
 
-    private static async Task<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
+    internal static async Task<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(document.SupportsSyntaxTree);
 

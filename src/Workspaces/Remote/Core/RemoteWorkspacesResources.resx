@@ -231,4 +231,7 @@
   <data name="FeatureName_SemanticSearch" xml:space="preserve">
     <value>Semantic search</value>
   </data>
+  <data name="FeatureName_FixAllProvider" xml:space="preserve">
+    <value>Fix all provider</value>
+  </data>
 </root>

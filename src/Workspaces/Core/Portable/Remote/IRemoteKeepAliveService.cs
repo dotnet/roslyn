@@ -116,4 +116,11 @@ internal sealed class RemoteKeepAliveSession : IDisposable
         var client = await RemoteHostClient.TryGetClientAsync(compilationState.Services, cancellationToken).ConfigureAwait(false);
         return new RemoteKeepAliveSession(compilationState, client);
     }
+
+    /// <inheritdoc cref="CreateAsync(Solution, CancellationToken)"/>
+    public static RemoteKeepAliveSession Create(
+        SolutionCompilationState compilationState, RemoteHostClient? client)
+    {
+        return new RemoteKeepAliveSession(compilationState, client);
+    }
 }

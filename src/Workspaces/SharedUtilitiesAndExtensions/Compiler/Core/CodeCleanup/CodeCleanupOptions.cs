@@ -110,6 +110,11 @@ internal static class CodeCleanupOptionsProviders
 
     public static CodeCleanupOptionsProvider ToCodeCleanupOptionsProvider(this OptionsProvider<CodeCleanupOptions> provider)
         => new Provider(provider);
+
+    public static ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
+        => document.GetCodeCleanupOptionsAsync(globalOptions.GetCodeCleanupOptions(document.Project.Services), cancellationToken);
+
+    public static CodeCleanupOptions GetCodeCleanupOptions(this IOptionsReader globalOptions, LanguageServices languageServices)
+        => globalOptions.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions: null, fallbackOptions: null);
 #endif
 }
-

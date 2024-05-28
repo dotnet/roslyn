@@ -72,6 +72,7 @@ public partial class FixAllContext : IFixAllContext
     public IProgress<CodeAnalysisProgress> Progress { get; }
 
     #region IFixAllContext implementation
+
     IFixAllState IFixAllContext.State => this.State;
 
     IFixAllProvider IFixAllContext.FixAllProvider => this.FixAllProvider;
@@ -87,6 +88,7 @@ public partial class FixAllContext : IFixAllContext
         Optional<string?> codeActionEquivalenceKey,
         Optional<CancellationToken> cancellationToken)
         => this.With(documentAndProject, scope, codeActionEquivalenceKey, cancellationToken);
+
     #endregion
 
     /// <summary>

@@ -67,6 +67,11 @@
         <target state="translated">尋找使用方式</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_FixAllProvider">
+        <source>Fix all provider</source>
+        <target state="new">Fix all provider</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_FullyQualify">
         <source>Fully qualify</source>
         <target state="translated">完全符合資格</target>
