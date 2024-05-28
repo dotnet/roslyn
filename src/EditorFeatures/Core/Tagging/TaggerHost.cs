@@ -21,9 +21,9 @@ internal sealed class TaggerHost(
     [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
     IAsynchronousOperationListenerProvider asyncListenerProvider)
 {
-    public IThreadingContext ThreadingContext { get; } = threadingContext;
-    public IGlobalOptionService GlobalOptions { get; } = globalOptions;
-    public ITextBufferVisibilityTracker? VisibilityTracker { get; } = visibilityTracker;
-    public IAsynchronousOperationListenerProvider AsyncListenerProvider { get; } = asyncListenerProvider;
-    public TaggerMainThreadManager TaggerMainThreadManager { get; } = new(threadingContext, asyncListenerProvider);
+    public readonly IThreadingContext ThreadingContext = threadingContext;
+    public readonly IGlobalOptionService GlobalOptions = globalOptions;
+    public readonly ITextBufferVisibilityTracker? VisibilityTracker = visibilityTracker;
+    public readonly IAsynchronousOperationListenerProvider AsyncListenerProvider = asyncListenerProvider;
+    public readonly TaggerMainThreadManager TaggerMainThreadManager = new(threadingContext, asyncListenerProvider);
 }
