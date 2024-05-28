@@ -18,7 +18,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)HandlerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Handlers\InitializedHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Handlers\InitializeHandler.cs" />
-    <Compile Include="..\Microsoft.CommonLanguageServerProtocol.Framework\MethodHandlerDetails.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IInitializeManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ILifeCycleManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ILspLogger.cs" />
@@ -32,6 +31,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ITextDocumentIdentifierHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServerConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServerEndpointAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MethodHandlerDetails.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewtonsoftLanguageServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)QueueItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RequestExecutionQueue.cs" />
