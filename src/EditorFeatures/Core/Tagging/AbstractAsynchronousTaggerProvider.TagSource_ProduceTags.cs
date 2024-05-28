@@ -102,7 +102,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             // Everything we're passing in here is synchronous.  So we can assert that this must complete synchronously
             // as well.
-            var (oldTagTrees, newTagTrees) = CompareAndSwapTagTreesAsync(
+            var (oldTagTrees, newTagTrees, _) = CompareAndSwapTagTreesAsync<VoidResult>(
                 oldTagTrees =>
                 {
                     tagsToRemove.Clear();
@@ -123,12 +123,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                                 snapshot,
                                 this._dataSource.SpanTrackingMode,
                                 allTags);
-                            return new(oldTagTrees.SetItem(buffer, newTagTree));
+                            return new((oldTagTrees.SetItem(buffer, newTagTree), result: default));
                         }
                     }
 
                     // return oldTagTrees to indicate nothing changed.
-                    return new(oldTagTrees);
+                    return new((oldTagTrees, result: default));
                 }, _disposalTokenSource.Token).VerifyCompleted();
 
             // Can happen if we were canceled.  Just bail out immediate.
@@ -220,9 +220,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// cref="_cachedTagTrees_mayChangeFromAnyThread"/> happening on another thread, then this helper returns. This
         /// helper may also returns <see langword="null"/> in the case of cancellation.
         /// </summary>
-        private async Task<(ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees)>
-            CompareAndSwapTagTreesAsync(
-                Func<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>, ValueTask<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>>> callback,
+        private async Task<(ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees, TResult)>
+            CompareAndSwapTagTreesAsync<TResult>(
+                Func<ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>, ValueTask<(ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees, TResult result)>> callback,
                 CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
@@ -231,14 +231,14 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 // Compute the new tag trees, based on what the current tag trees are.  Intentionally CA(true) here so
                 // we stay on the UI thread if we're in a JTF blocking call.
-                var newTagTrees = await callback(oldTagTrees).ConfigureAwait(true);
+                var (newTagTrees, newResult) = await callback(oldTagTrees).ConfigureAwait(true);
 
                 // Try to update the cached tag trees to what we computed.  If we win, we're done.  Otherwise, some
                 // other thread was able to do this, and we need to try again.
                 if (oldTagTrees != Interlocked.CompareExchange(ref _cachedTagTrees_mayChangeFromAnyThread, newTagTrees, oldTagTrees))
                     continue;
 
-                return (oldTagTrees, newTagTrees);
+                return (oldTagTrees, newTagTrees, newResult);
             }
 
             return default;
@@ -320,16 +320,15 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // latest tags.
                 var oldState = _state_accessOnlyFromEventChangeQueueCallback;
 
-                TaggerContext<TTag> context = null!;
-                var (oldTagTrees, newTagTrees) = await CompareAndSwapTagTreesAsync(
+                var (oldTagTrees, newTagTrees, context) = await CompareAndSwapTagTreesAsync(
                     async oldTagTrees =>
                     {
                         // Create a context to store pass the information along and collect the results.
-                        context = new TaggerContext<TTag>(
+                        var context = new TaggerContext<TTag>(
                             oldState, frozenPartialSemantics, spansToTag, snapshotSpansToTag, caretPosition, oldTagTrees);
                         await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(true);
 
-                        return ComputeNewTagTrees(oldTagTrees, context);
+                        return (ComputeNewTagTrees(oldTagTrees, context), context);
                     }, cancellationToken).ConfigureAwait(true);
 
                 // We may get back null if we were canceled.  Immediately bail out in that case.
