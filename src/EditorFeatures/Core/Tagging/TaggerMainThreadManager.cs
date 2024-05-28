@@ -104,7 +104,7 @@ internal sealed class TaggerMainThreadManager
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(queueCancellationToken);
 
-        foreach (var (action, cancellationToken, taskCompletionSource) in list)
+        foreach (var (action, cancellationToken, taskCompletionSource) in nonCanceledActions)
         {
             if (cancellationToken.IsCancellationRequested)
             {
