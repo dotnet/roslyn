@@ -75,14 +75,15 @@ internal static partial class FixAllContextHelper
 
                     allDiagnostics = await ProducerConsumer<ImmutableArray<Diagnostic>>.RunParallelAsync(
                         source: projectsToFix,
-                        produceItems: static async (projectToFix, callback, args, cancellationToken) =>
+                        produceItems: static async (projectToFix, callback, args1, cancellationToken) =>
                         {
-                            using var _ = args.progressTracker.ItemCompletedScope();
-                            callback(await args.fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false));
+                            var (fixAllContext, progressTracker) = args1;
+                            using var _ = progressTracker.ItemCompletedScope();
+                            callback(await fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false));
                         },
-                        consumeItems: static async (results, args, cancellationToken) =>
+                        consumeItems: static async (results, _1, cancellationToken) =>
                         {
-                            using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var builder);
+                            using var _2 = ArrayBuilder<Diagnostic>.GetInstance(out var builder);
 
                             await foreach (var diagnostics in results)
                                 builder.AddRange(diagnostics);
