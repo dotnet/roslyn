@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Operations;
@@ -1354,6 +1355,173 @@ public class FirstClassSpanTests : CSharpTestBase
         CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
+    [Fact]
+    public void Conversion_Array_Span_Implicit_MethodGroup_ExtensionMethodReceiver_Inferred()
+    {
+        var source = """
+            using System;
+
+            var a = new[] { 1, 2, 3 };
+            var d1 = a.M;
+            var d2 = x => a.M(x);
+            var d3 = (int x) => a.M(x);
+
+            static class C
+            {
+                public static int M(this Span<int> x, int y) => x[y];
+            }
+            """;
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (4,10): error CS8917: The delegate type could not be inferred.
+            // var d1 = a.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "a.M").WithLocation(4, 10),
+            // (5,10): error CS8917: The delegate type could not be inferred.
+            // var d2 = x => a.M(x);
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => a.M(x)").WithLocation(5, 10),
+            // (6,21): error CS1929: 'int[]' does not contain a definition for 'M' and the best extension method overload 'C.M(Span<int>, int)' requires a receiver of type 'System.Span<int>'
+            // var d3 = (int x) => a.M(x);
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("int[]", "M", "C.M(System.Span<int>, int)", "System.Span<int>").WithLocation(6, 21));
+
+        var expectedDiagnostics = new[]
+        {
+            // (4,10): error CS1113: Extension method 'C.M(Span<int>, int)' defined on value type 'Span<int>' cannot be used to create delegates
+            // var d1 = a.M;
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "a.M").WithArguments("C.M(System.Span<int>, int)", "System.Span<int>").WithLocation(4, 10),
+            // (5,10): error CS8917: The delegate type could not be inferred.
+            // var d2 = x => a.M(x);
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => a.M(x)").WithLocation(5, 10)
+        };
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        var comp = CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var aVariable = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+        var aSymbol = (ILocalSymbol)model.GetDeclaredSymbol(aVariable)!;
+        AssertEx.Equal("System.Int32[]", aSymbol.Type.ToTestDisplayString());
+        var d1Access = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>()
+            .First(s => s.Expression.ToString() == "a");
+        var lookupResult = model.LookupSymbols(d1Access.Name.SpanStart, aSymbol.Type, "M", includeReducedExtensionMethods: true);
+        AssertEx.Equal("System.Int32 System.Span<System.Int32>.M(System.Int32 y)", lookupResult.Single().ToTestDisplayString());
+    }
+
+    [Fact]
+    public void Conversion_Array_Span_Implicit_MethodGroup_ExtensionMethodReceiver_Generic()
+    {
+        var source = """
+            using System;
+
+            var a = new[] { 1, 2, 3 };
+            C.R(a.M);
+            C.R(a.M<int>);
+            C.R(x => a.M(x));
+            C.R(x => a.M<int>(x));
+
+            static class C
+            {
+                public static T M<T>(this Span<T> x, int y) => x[y];
+                public static void R(Func<int, int> f) => Console.Write(f(1));
+            }
+            """;
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (4,5): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
+            // C.R(a.M);
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a.M").WithArguments("int[]", "M").WithLocation(4, 5),
+            // (5,5): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Func<int, int>'
+            // C.R(a.M<int>);
+            Diagnostic(ErrorCode.ERR_BadArgType, "a.M<int>").WithArguments("1", "method group", "System.Func<int, int>").WithLocation(5, 5),
+            // (6,12): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
+            // C.R(x => a.M(x));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(6, 12),
+            // (7,10): error CS1929: 'int[]' does not contain a definition for 'M' and the best extension method overload 'C.M<int>(Span<int>, int)' requires a receiver of type 'System.Span<int>'
+            // C.R(x => a.M<int>(x));
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("int[]", "M", "C.M<int>(System.Span<int>, int)", "System.Span<int>").WithLocation(7, 10));
+
+        // PROTOTYPE: Some of these need type inference to work.
+        var expectedDiagnostics = new[]
+        {
+            // (4,5): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
+            // C.R(a.M);
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a.M").WithArguments("int[]", "M").WithLocation(4, 5),
+            // (5,5): error CS1113: Extension method 'C.M<int>(Span<int>, int)' defined on value type 'Span<int>' cannot be used to create delegates
+            // C.R(a.M<int>);
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "a.M<int>").WithArguments("C.M<int>(System.Span<int>, int)", "System.Span<int>").WithLocation(5, 5),
+            // (6,12): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
+            // C.R(x => a.M(x));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(6, 12)
+        };
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Conversion_Array_Span_Implicit_MethodGroup_ExtensionMethodReceiver_Generic_Inferred()
+    {
+        var source = """
+            using System;
+
+            var a = new[] { 1, 2, 3 };
+            var d1 = a.M;
+            var d2 = x => a.M(x);
+            var d3 = (int x) => a.M(x);
+            var d4 = a.M<int>;
+            var d5 = x => a.M<int>(x);
+            var d6 = (int x) => a.M<int>(x);
+
+            static class C
+            {
+                public static T M<T>(this Span<T> x, int y) => x[y];
+            }
+            """;
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (4,10): error CS8917: The delegate type could not be inferred.
+            // var d1 = a.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "a.M").WithLocation(4, 10),
+            // (5,10): error CS8917: The delegate type could not be inferred.
+            // var d2 = x => a.M(x);
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => a.M(x)").WithLocation(5, 10),
+            // (6,23): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
+            // var d3 = (int x) => a.M(x);
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(6, 23),
+            // (7,10): error CS8917: The delegate type could not be inferred.
+            // var d4 = a.M<int>;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "a.M<int>").WithLocation(7, 10),
+            // (8,10): error CS8917: The delegate type could not be inferred.
+            // var d5 = x => a.M<int>(x);
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => a.M<int>(x)").WithLocation(8, 10),
+            // (9,21): error CS1929: 'int[]' does not contain a definition for 'M' and the best extension method overload 'C.M<int>(Span<int>, int)' requires a receiver of type 'System.Span<int>'
+            // var d6 = (int x) => a.M<int>(x);
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("int[]", "M", "C.M<int>(System.Span<int>, int)", "System.Span<int>").WithLocation(9, 21));
+
+        // PROTOTYPE: Some of these need type inference to work.
+        var expectedDiagnostics = new[]
+        {
+            // (4,10): error CS8917: The delegate type could not be inferred.
+            // var d1 = a.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "a.M").WithLocation(4, 10),
+            // (5,10): error CS8917: The delegate type could not be inferred.
+            // var d2 = x => a.M(x);
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => a.M(x)").WithLocation(5, 10),
+            // (6,23): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
+            // var d3 = (int x) => a.M(x);
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(6, 23),
+            // (7,10): error CS1113: Extension method 'C.M<int>(Span<int>, int)' defined on value type 'Span<int>' cannot be used to create delegates
+            // var d4 = a.M<int>;
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "a.M<int>").WithArguments("C.M<int>(System.Span<int>, int)", "System.Span<int>").WithLocation(7, 10),
+            // (8,10): error CS8917: The delegate type could not be inferred.
+            // var d5 = x => a.M<int>(x);
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => a.M<int>(x)").WithLocation(8, 10)
+        };
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
     [Theory, MemberData(nameof(LangVersions))]
     public void Conversion_Array_Span_Implicit_MethodGroup_FunctionPointer(LanguageVersion langVersion)
     {
@@ -2050,6 +2218,23 @@ public class FirstClassSpanTests : CSharpTestBase
         var model = comp.GetSemanticModel(tree);
         var info = model.GetSymbolInfo(invocation);
         Assert.Equal("void System.Span<System.Int32>.E<System.Int32>()", info.Symbol!.ToTestDisplayString());
+
+        var methodSymbol = (IMethodSymbol)info.Symbol!;
+        var spanType = methodSymbol.ReceiverType!;
+        Assert.Equal("System.Span<System.Int32>", spanType.ToTestDisplayString());
+
+        // Reduce the extension method with Span receiver.
+        var unreducedSymbol = methodSymbol.ReducedFrom!;
+        var reduced = unreducedSymbol.ReduceExtensionMethod(spanType);
+        Assert.Equal(methodSymbol, reduced);
+
+        var arrayType = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol().Parameters.Single().Type;
+        Assert.Equal("System.Int32[]", arrayType.ToTestDisplayString());
+
+        // Reduce the extension method with array receiver.
+        // PROTOTYPE: This needs type inference to work.
+        reduced = unreducedSymbol.ReduceExtensionMethod(arrayType);
+        Assert.Null(reduced);
     }
 
     [Fact]
