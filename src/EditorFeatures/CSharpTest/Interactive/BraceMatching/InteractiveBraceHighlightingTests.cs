@@ -36,11 +36,8 @@ public class InteractiveBraceHighlightingTests
         int position)
     {
         var producer = new BraceHighlightingViewTaggerProvider(
-            workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-            workspace.GetService<IBraceMatchingService>(),
-            workspace.GetService<IGlobalOptionService>(),
-            visibilityTracker: null,
-            AsynchronousOperationListenerProvider.NullProvider);
+            workspace.GetService<TaggerHost>(),
+            workspace.GetService<IBraceMatchingService>());
 
         var context = new TaggerContext<BraceHighlightTag>(
             buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault(),

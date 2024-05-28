@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 
@@ -44,10 +45,8 @@ public class SyntacticTaggerTests
 
         var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
             new SyntacticClassificationTaggerProvider(
-                workspace.GetService<IThreadingContext>(),
-                typeMap: null,
-                workspace.GetService<IGlobalOptionService>(),
-                AsynchronousOperationListenerProvider.NullProvider),
+                workspace.GetService<TaggerHost>(),
+                typeMap: null),
             subjectBuffer,
             diffTimeout: TimeSpan.MaxValue);
 
@@ -101,10 +100,8 @@ public class SyntacticTaggerTests
 
         var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
             new SyntacticClassificationTaggerProvider(
-                workspace.GetService<IThreadingContext>(),
-                typeMap,
-                workspace.GetService<IGlobalOptionService>(),
-                AsynchronousOperationListenerProvider.NullProvider),
+                workspace.GetService<TaggerHost>(),
+                typeMap),
             subjectBuffer,
             diffTimeout: TimeSpan.MaxValue);
 
