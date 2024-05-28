@@ -11,14 +11,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 
@@ -88,8 +86,7 @@ public class SyntacticTaggerTests
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
     public async Task TestTagsChangedAfterDelete()
     {
-        var code =
-@"class Goo";
+        var code =@"class Goo";
         using var workspace = EditorTestWorkspace.CreateCSharp(code);
         var document = workspace.Documents.First();
         var subjectBuffer = document.GetTextBuffer();
