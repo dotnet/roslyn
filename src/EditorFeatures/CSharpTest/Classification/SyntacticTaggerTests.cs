@@ -86,7 +86,7 @@ public class SyntacticTaggerTests
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
     public async Task TestTagsChangedAfterDelete()
     {
-        var code =@"class Goo";
+        var code = @"class Goo";
         using var workspace = EditorTestWorkspace.CreateCSharp(code);
         var document = workspace.Documents.First();
         var subjectBuffer = document.GetTextBuffer();
