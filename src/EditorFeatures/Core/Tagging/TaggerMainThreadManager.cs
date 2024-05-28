@@ -26,11 +26,11 @@ internal sealed class TaggerMainThreadManager(
     /// Adds the provided action to a queue that will run on the UI thread in the near future (batched with other
     /// registered actions).  If the cancellation token is triggered before the action runs, it will not be run.
     /// </summary>
-    public Task<TResult> PerformWorkOnMainThreadAsync<TResult>(Func<TResult> action, CancellationToken cancellationToken)
+    public async ValueTask<TResult> PerformWorkOnMainThreadAsync<TResult>(Func<TResult> action, CancellationToken cancellationToken)
     {
         var manager = (StronglyTypedTaggerMainThreadManager<TResult>)GetManager();
 
-        return manager.PerformWorkOnMainThreadAsync(action, cancellationToken);
+        return await manager.PerformWorkOnMainThreadAsync(action, cancellationToken).ConfigureAwait(true);
 
         StronglyTypedTaggerMainThreadManager GetManager()
         {
@@ -95,7 +95,7 @@ internal sealed class TaggerMainThreadManager(
         /// Adds the provided action to a queue that will run on the UI thread in the near future (batched with other
         /// registered actions).  If the cancellation token is triggered before the action runs, it will not be run.
         /// </summary>
-        public Task<TResult> PerformWorkOnMainThreadAsync(Func<TResult> action, CancellationToken cancellationToken)
+        public async ValueTask<TResult> PerformWorkOnMainThreadAsync(Func<TResult> action, CancellationToken cancellationToken)
         {
             var taskSource = new TaskCompletionSource<TResult>();
 
@@ -105,6 +105,7 @@ internal sealed class TaggerMainThreadManager(
             if (_threadingContext.JoinableTaskContext.IsOnMainThread)
             {
                 RunActionAndUpdateCompletionSource_NoThrow(action, taskSource);
+                Contract.ThrowIfFalse(taskSource.Task.IsCompleted);
             }
             else
             {
@@ -114,10 +115,10 @@ internal sealed class TaggerMainThreadManager(
                 _workQueue.AddWork((action, cancellationToken, taskSource));
 
                 // Ensure that when our work is done that we let go of the registered callback.
-                taskSource.Task.CompletesTrackingOperation(registration);
+                _ = taskSource.Task.CompletesTrackingOperation(registration);
             }
 
-            return taskSource.Task;
+            return await taskSource.Task.ConfigureAwait(true);
         }
 
         private async ValueTask ProcessWorkItemsAsync(
@@ -156,6 +157,7 @@ internal sealed class TaggerMainThreadManager(
 
                 // Run the user action, completing the task completion source as appropriate. This will not ever throw.
                 RunActionAndUpdateCompletionSource_NoThrow(action, taskCompletionSource);
+                Contract.ThrowIfFalse(taskCompletionSource.Task.IsCompleted);
             }
         }
     }
