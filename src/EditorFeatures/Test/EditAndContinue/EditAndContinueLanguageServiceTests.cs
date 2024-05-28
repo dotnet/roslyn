@@ -109,9 +109,6 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
 
         var localService = localWorkspace.GetService<EditAndContinueLanguageService>();
 
-        var projectId = ProjectId.CreateNewId();
-        var documentId = DocumentId.CreateNewId(projectId);
-
         DocumentId documentId;
         await localWorkspace.ChangeSolutionAsync(localWorkspace.CurrentSolution
             .AddTestProject("proj", out var projectId).Solution
