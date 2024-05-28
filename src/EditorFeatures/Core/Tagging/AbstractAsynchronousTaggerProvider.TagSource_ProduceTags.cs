@@ -269,7 +269,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // us avoid hammering the dispatcher queue with lots of work that causes contention.  Additionally, use
             // a no-throw awaitable so that in the common case where we cancel before, we don't throw an exception
             // that can exacerbate cross process debugging scenarios.
-            var (isVisible, spansToTag, caretPosition) = await _dataSource.MainThreadManager.PerformWorkOnMainThreadAsync(() =>
+            var (isVisible, caretPosition, spansToTag) = await _dataSource.MainThreadManager.PerformWorkOnMainThreadAsync(() =>
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -282,7 +282,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 var isVisible = _visibilityTracker is null || _visibilityTracker.IsVisible(_subjectBuffer);
                 var spansToTag = GetSpansAndDocumentsToTag();
                 var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
-                return (isVisible, spansToTag, caretPosition);
+                return (isVisible, caretPosition, spansToTag);
             }, cancellationToken).ConfigureAwait(true);
 
             // Since we don't ever throw above, check and see if the await completed due to cancellation and do not
