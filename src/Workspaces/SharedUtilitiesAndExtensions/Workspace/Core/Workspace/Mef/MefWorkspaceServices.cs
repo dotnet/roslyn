@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 #endif
 
         public override bool IsSupported(string languageName)
-            => this.ComputeSupportedLanguages().Contains(languageName);
+            => this.SupportedLanguagesArray.Contains(languageName);
 
         public override HostLanguageServices GetLanguageServices(string languageName)
         {
