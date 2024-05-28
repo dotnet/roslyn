@@ -2164,10 +2164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return this.GetTypeParameterSymbol(typeSymbol.TypeParameters, typeParameter).GetPublicSymbol();
 
                     case MethodSymbol methodSymbol:
-                        return (this.GetTypeParameterSymbol(methodSymbol.TypeParameters, typeParameter) ??
-                            ((object)methodSymbol.PartialDefinitionPart == null
-                                ? null
-                                : this.GetTypeParameterSymbol(methodSymbol.PartialDefinitionPart.TypeParameters, typeParameter))).GetPublicSymbol();
+                        return this.GetTypeParameterSymbol(methodSymbol.TypeParameters, typeParameter);
                 }
             }
 
