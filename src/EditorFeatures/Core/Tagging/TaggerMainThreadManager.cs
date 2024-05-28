@@ -96,16 +96,16 @@ internal sealed class TaggerMainThreadManager
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                // If the work was already canceled, then just transition the task to the canceled state without
-                // running the action.
+                // If the work was already canceled, then just transition the task to the canceled state without running the action.
                 taskCompletionSource.TrySetCanceled(cancellationToken);
-                continue;
             }
-
-            nonCanceledActions.Add((action, cancellationToken, taskCompletionSource));
+            else
+            {
+                nonCanceledActions.Add((action, cancellationToken, taskCompletionSource));
+            }
         }
 
-        // No need to do anything if all the requested work was canceled.
+        // No need to do anything if all the requested work was canceled.  Just bail out without a costly switch to the UI thread.
         if (nonCanceledActions.Count == 0)
             return;
 
@@ -115,14 +115,14 @@ internal sealed class TaggerMainThreadManager
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                // If the work was already canceled, then just transition the task to the canceled state without
-                // running the action.
+                // If the work was already canceled, then just transition the task to the canceled state without running the action.
                 taskCompletionSource.TrySetCanceled(cancellationToken);
-                continue;
+            }
+            else
+            {
+                RunActionAndUpdateCompletionSource_NoThrow(action, taskCompletionSource);
             }
 
-            // Run the user action, completing the task completion source as appropriate. This will not ever throw.
-            RunActionAndUpdateCompletionSource_NoThrow(action, taskCompletionSource);
             Contract.ThrowIfFalse(taskCompletionSource.Task.IsCompleted);
         }
     }
