@@ -88,27 +88,30 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             return service != null;
         }
 
-        internal override ImmutableArray<string> SupportedLanguagesArray
+        private ImmutableArray<string> ComputeSupportedLanguages()
         {
-            get
+            var localLanguages = _languages;
+            if (localLanguages.IsDefault)
             {
-                var localLanguages = _languages;
-                if (localLanguages.IsDefault)
-                {
-                    var list = _exportProvider.GetExports<ILanguageService, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language).Concat(
-                               _exportProvider.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language))
-                               .Distinct()
-                               .ToImmutableArray();
+                var list = _exportProvider.GetExports<ILanguageService, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language).Concat(
+                           _exportProvider.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language))
+                           .Distinct()
+                           .ToImmutableArray();
 
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _languages, list, localLanguages);
-                }
-
-                return _languages;
+                ImmutableInterlocked.InterlockedCompareExchange(ref _languages, list, localLanguages);
             }
+
+            return _languages;
         }
 
+        public override IEnumerable<string> SupportedLanguages => ComputeSupportedLanguages();
+
+#if !CODE_STYLE
+        internal override ImmutableArray<string> SupportedLanguagesArray => ComputeSupportedLanguages();
+#endif
+
         public override bool IsSupported(string languageName)
-            => this.SupportedLanguagesArray.Contains(languageName);
+            => this.ComputeSupportedLanguages().Contains(languageName);
 
         public override HostLanguageServices GetLanguageServices(string languageName)
         {
