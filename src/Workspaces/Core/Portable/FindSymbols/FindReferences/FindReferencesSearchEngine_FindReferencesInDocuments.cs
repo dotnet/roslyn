@@ -117,23 +117,26 @@ internal partial class FindReferencesSearchEngine
                 ProducerConsumerOptions.SingleReaderWriterOptions,
                 static (callback, args, cancellationToken) =>
                 {
+                    var (@this, symbol, state) = args;
+
                     // We don't bother calling into the finders in parallel as there's only ever one that applies for a
                     // particular symbol kind.  All the rest bail out immediately after a quick type-check.  So there's
                     // no benefit in forking out to have only one of them end up actually doing work.
-                    foreach (var finder in args.@this._finders)
+                    foreach (var finder in @this._finders)
                     {
                         finder.FindReferencesInDocument(
-                            args.symbol, args.state,
+                            symbol, state,
                             static (finderLocation, callback) => callback(finderLocation),
-                            callback, args.@this._options, cancellationToken);
+                            callback, @this._options, cancellationToken);
                     }
 
                     return Task.CompletedTask;
                 },
                 consumeItems: static async (values, args, cancellationToken) =>
                 {
-                    await args.@this._progress.OnReferencesFoundAsync(
-                        ReadAllAsync(args.@this, values, args.symbol, cancellationToken), cancellationToken).ConfigureAwait(false);
+                    var (@this, symbol, _) = args;
+                    await @this._progress.OnReferencesFoundAsync(
+                        ReadAllAsync(@this, values, symbol, cancellationToken), cancellationToken).ConfigureAwait(false);
                 },
                 args: (@this: this, symbol, state),
                 cancellationToken).ConfigureAwait(false);

@@ -72,14 +72,16 @@ internal static class DocumentBasedFixAllProviderHelpers
                 source: fixAllContexts,
                 produceItems: static async (fixAllContext, callback, args, cancellationToken) =>
                 {
+                    var (getFixedDocumentsAsync, progressTracker) = args;
+
                     // Update our progress for each fixAllContext we process.
-                    using var _ = args.progressTracker.ItemCompletedScope();
+                    using var _ = progressTracker.ItemCompletedScope();
 
                     Contract.ThrowIfFalse(
                         fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
                     // Defer to the FixAllProvider to actually compute each fixed document.
-                    await args.getFixedDocumentsAsync(
+                    await getFixedDocumentsAsync(
                         fixAllContext,
                         async (originalDocument, newDocument) =>
                         {
@@ -91,7 +93,7 @@ internal static class DocumentBasedFixAllProviderHelpers
                             callback((newDocument.Id, (newRoot, newText)));
                         }).ConfigureAwait(false);
                 },
-                args: (getFixedDocumentsAsync, progressTracker, originalSolution),
+                args: (getFixedDocumentsAsync, progressTracker),
                 cancellationToken).ConfigureAwait(false);
 
             // Next, go and insert those all into the solution so all the docs in this particular project point
