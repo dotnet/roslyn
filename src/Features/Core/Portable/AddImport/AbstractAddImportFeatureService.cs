@@ -282,8 +282,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                     var (referenceProject, reference) = tuple;
                     var (referenceToCompilation, project, allSymbolReferences, maxResults, finder, exact, newReferences, linkedTokenSource) = args;
 
-                    var compilation = referenceToCompilation.GetOrAdd(
-                        reference, r => CreateCompilation(project, r));
+                    var compilation = referenceToCompilation.GetOrAdd(reference, r => CreateCompilation(project, r));
 
                     // Ignore netmodules.  First, they're incredibly esoteric and barely used.
                     // Second, the SymbolFinder API doesn't even support searching them. 
