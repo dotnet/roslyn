@@ -274,27 +274,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // us avoid hammering the dispatcher queue with lots of work that causes contention.  Additionally, use
             // a no-throw awaitable so that in the common case where we cancel before, we don't throw an exception
             // that can exacerbate cross process debugging scenarios.
-            var (isVisible, caretPosition, snapshotSpansToTag) = await _dataSource.MainThreadManager.PerformWorkOnMainThreadAsync(() =>
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-
-                // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
-                // thread to do the computation. Finally, once new tags have been computed, then we update our state
-                // in a threadsafe fashion in the background.
-
-                // Grab the visibility state of the view while we're already on the UI thread.  This saves an
-                // unnecessary switch below.
-                var isVisible = this.IsVisible();
-                var snapshotSpansToTag = GetSnapshotSpansToTag();
-                var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
-
-#if DEBUG
-                foreach (var snapshotSpan in snapshotSpansToTag)
-                    CheckSnapshot(snapshotSpan.Snapshot);
-#endif
-
-                return (isVisible, caretPosition, snapshotSpansToTag);
-            }, cancellationToken).ConfigureAwait(true);
+            var (isVisible, caretPosition, snapshotSpansToTag) = await _dataSource.MainThreadManager.PerformWorkOnMainThreadAsync(
+                GetTaggerUIData, cancellationToken).ConfigureAwait(true);
 
             // Since we don't ever throw above, check and see if the await completed due to cancellation and do not
             // proceed.
@@ -375,15 +356,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 return newTagTrees;
             }
 
-            OneOrMany<SnapshotSpan> GetSnapshotSpansToTag()
-            {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-
-                using var spansToTag = TemporaryArray<SnapshotSpan>.Empty;
-                _dataSource.AddSpansToTag(_textView, _subjectBuffer, ref spansToTag.AsRef());
-                return spansToTag.ToOneOrManyAndClear();
-            }
-
             static OneOrMany<DocumentSnapshotSpan> GetDocumentSnapshotSpansToTag(
                 OneOrMany<SnapshotSpan> snapshotSpansToTag,
                 bool frozenPartialSemantics,
@@ -419,6 +391,30 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 return result.ToOneOrManyAndClear();
             }
+        }
+
+        private (bool isVisible, SnapshotPoint? caretPosition, OneOrMany<SnapshotSpan> spansToTag) GetTaggerUIData()
+        {
+            _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+
+            // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
+            // thread to do the computation. Finally, once new tags have been computed, then we update our state
+            // in a threadsafe fashion in the background.
+
+            // Grab the visibility state of the view while we're already on the UI thread.  This saves an
+            // unnecessary switch below.
+            var isVisible = this.IsVisible();
+            var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
+
+            using var spansToTag = TemporaryArray<SnapshotSpan>.Empty;
+            _dataSource.AddSpansToTag(_textView, _subjectBuffer, ref spansToTag.AsRef());
+
+#if DEBUG
+            foreach (var snapshotSpan in spansToTag)
+                CheckSnapshot(snapshotSpan.Snapshot);
+#endif
+
+            return (isVisible, caretPosition, spansToTag.ToOneOrManyAndClear());
 
 #if DEBUG
             static void CheckSnapshot(ITextSnapshot snapshot)
