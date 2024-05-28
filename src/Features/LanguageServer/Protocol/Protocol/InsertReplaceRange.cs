@@ -4,18 +4,18 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents default range of InsertReplaceEdit for the entire completion list
     /// </summary>
-    [DataContract]
     internal class InsertReplaceRange
     {
         /// <summary>
         /// Gets or sets the insert range.
         /// </summary>
-        [DataMember(Name = "insert", IsRequired = true)]
+        [JsonPropertyName("insert")]
+        [JsonRequired]
         public Range Insert
         {
             get;
@@ -25,7 +25,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the replace edit range.
         /// </summary>
-        [DataMember(Name = "replace", IsRequired = true)]
+        [JsonPropertyName("replace")]
+        [JsonRequired]
         public Range Replace
         {
             get;

@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents completion capabilities.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class CompletionOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets the trigger characters.
         /// </summary>
-        [DataMember(Name = "triggerCharacters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("triggerCharacters")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string[]? TriggerCharacters
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating all the possible commit characters associated with the language server.
         /// </summary>
-        [DataMember(Name = "allCommitCharacters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("allCommitCharacters")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string[]? AllCommitCharacters
         {
             get;
@@ -40,8 +38,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether server provides completion item resolve capabilities.
         /// </summary>
-        [DataMember(Name = "resolveProvider")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("resolveProvider")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool ResolveProvider
         {
             get;
@@ -51,15 +49,15 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
-        [DataMember(Name = "workDoneProgress")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("workDoneProgress")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WorkDoneProgress { get; init; }
 
         /// <summary>
         /// Gets or sets completion item setting.
         /// </summary>
-        [DataMember(Name = "completionItem")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("completionItem")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CompletionItemOptions? CompletionItemOptions
         {
             get;

@@ -17,7 +17,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.SQLite.v2;
 
 internal sealed class SQLitePersistentStorageService(
-    SQLiteConnectionPoolService connectionPoolService,
     IPersistentStorageConfiguration configuration,
     IAsynchronousOperationListener asyncListener) : AbstractPersistentStorageService(configuration), IWorkspaceService
 {
@@ -25,13 +24,12 @@ internal sealed class SQLitePersistentStorageService(
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class ServiceFactory(
-        SQLiteConnectionPoolService connectionPoolService,
         IAsynchronousOperationListenerProvider asyncOperationListenerProvider) : IWorkspaceServiceFactory
     {
         private readonly IAsynchronousOperationListener _asyncListener = asyncOperationListenerProvider.GetListener(FeatureAttribute.PersistentStorage);
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new SQLitePersistentStorageService(connectionPoolService, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>(), _asyncListener);
+            => new SQLitePersistentStorageService(workspaceServices.GetRequiredService<IPersistentStorageConfiguration>(), _asyncListener);
     }
 
     private const string StorageExtension = "sqlite3";
@@ -61,18 +59,6 @@ internal sealed class SQLitePersistentStorageService(
         return true;
     }
 
-    private readonly IPersistentStorageFaultInjector? _faultInjector;
-
-    public SQLitePersistentStorageService(
-        SQLiteConnectionPoolService connectionPoolService,
-        IPersistentStorageConfiguration configuration,
-        IAsynchronousOperationListener asyncListener,
-        IPersistentStorageFaultInjector? faultInjector)
-        : this(connectionPoolService, configuration, asyncListener)
-    {
-        _faultInjector = faultInjector;
-    }
-
     protected override string GetDatabaseFilePath(string workingFolderPath)
     {
         Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(workingFolderPath));
@@ -80,7 +66,7 @@ internal sealed class SQLitePersistentStorageService(
     }
 
     protected override ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
-        SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
+        SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, IPersistentStorageFaultInjector? faultInjector, CancellationToken cancellationToken)
     {
         if (!TryInitializeLibraries())
         {
@@ -89,17 +75,13 @@ internal sealed class SQLitePersistentStorageService(
         }
 
         if (solutionKey.FilePath == null)
-            return new(NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure));
+            return new(NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure));
 
         return new(SQLitePersistentStorage.TryCreate(
-            connectionPoolService,
             solutionKey,
             workingFolderPath,
             databaseFilePath,
             asyncListener,
-            _faultInjector));
+            faultInjector));
     }
-
-    // Error occurred when trying to open this DB.  Try to remove it so we can create a good DB.
-    protected override bool ShouldDeleteDatabase(Exception exception) => true;
 }

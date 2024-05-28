@@ -5,10 +5,8 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Rpc;
+namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class RemoteProjectFile
 {
@@ -22,38 +20,35 @@ internal sealed class RemoteProjectFile
     }
 
     public Task<ImmutableArray<DiagnosticLogItem>> GetDiagnosticLogItemsAsync(CancellationToken cancellationToken)
-        => _client.InvokeAsync<ImmutableArray<DiagnosticLogItem>>(_remoteProjectFileTargetObject, nameof(ProjectFile.GetDiagnosticLogItems), parameters: [], cancellationToken);
-
-    public Task<string> GetDocumentExtensionAsync(SourceCodeKind sourceCodeKind, CancellationToken cancellationToken)
-        => _client.InvokeAsync<string>(_remoteProjectFileTargetObject, nameof(ProjectFile.GetDocumentExtension), parameters: [sourceCodeKind], cancellationToken);
+        => _client.InvokeAsync<ImmutableArray<DiagnosticLogItem>>(_remoteProjectFileTargetObject, nameof(IProjectFile.GetDiagnosticLogItems), parameters: [], cancellationToken);
 
     public Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken)
-        => _client.InvokeAsync<ImmutableArray<ProjectFileInfo>>(_remoteProjectFileTargetObject, nameof(ProjectFile.GetProjectFileInfosAsync), parameters: [], cancellationToken);
+        => _client.InvokeAsync<ImmutableArray<ProjectFileInfo>>(_remoteProjectFileTargetObject, nameof(IProjectFile.GetProjectFileInfosAsync), parameters: [], cancellationToken);
 
     public Task AddDocumentAsync(string filePath, string? logicalPath, CancellationToken cancellationToken)
-        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(ProjectFile.AddDocument), parameters: [filePath, logicalPath], cancellationToken);
+        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.AddDocument), parameters: [filePath, logicalPath], cancellationToken);
 
     public Task RemoveDocumentAsync(string filePath, CancellationToken cancellationToken)
-        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(ProjectFile.RemoveDocument), parameters: [filePath], cancellationToken);
+        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.RemoveDocument), parameters: [filePath], cancellationToken);
 
-    public Task AddMetadataReferenceAsync(string metadataReferenceIdentity, MetadataReferenceProperties properties, string? hintPath, CancellationToken cancellationToken)
-        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(ProjectFile.AddMetadataReference), parameters: [metadataReferenceIdentity, properties, hintPath], cancellationToken);
+    public Task AddMetadataReferenceAsync(string metadataReferenceIdentity, ImmutableArray<string> aliases, string? hintPath, CancellationToken cancellationToken)
+        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.AddMetadataReference), parameters: [metadataReferenceIdentity, aliases, hintPath], cancellationToken);
 
     public Task RemoveMetadataReferenceAsync(string shortAssemblyName, string fullAssemblyName, string filePath, CancellationToken cancellationToken)
-        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(ProjectFile.RemoveMetadataReference), parameters: [shortAssemblyName, fullAssemblyName, filePath], cancellationToken);
+        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.RemoveMetadataReference), parameters: [shortAssemblyName, fullAssemblyName, filePath], cancellationToken);
 
     public Task AddProjectReferenceAsync(string projectName, ProjectFileReference projectFileReference, CancellationToken cancellationToken)
-        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(ProjectFile.AddProjectReference), parameters: [projectName, projectFileReference], cancellationToken);
+        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.AddProjectReference), parameters: [projectName, projectFileReference], cancellationToken);
 
     public Task RemoveProjectReferenceAsync(string projectName, string projectFilePath, CancellationToken cancellationToken)
-        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(ProjectFile.RemoveProjectReference), parameters: [projectName, projectFilePath], cancellationToken);
+        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.RemoveProjectReference), parameters: [projectName, projectFilePath], cancellationToken);
 
     public Task AddAnalyzerReferenceAsync(string fullPath, CancellationToken cancellationToken)
-        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(ProjectFile.AddAnalyzerReference), parameters: [fullPath], cancellationToken);
+        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.AddAnalyzerReference), parameters: [fullPath], cancellationToken);
 
     public Task RemoveAnalyzerReferenceAsync(string fullPath, CancellationToken cancellationToken)
-        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(ProjectFile.RemoveAnalyzerReference), parameters: [fullPath], cancellationToken);
+        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.RemoveAnalyzerReference), parameters: [fullPath], cancellationToken);
 
     public Task SaveAsync(CancellationToken cancellationToken)
-        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(ProjectFile.Save), parameters: [], cancellationToken);
+        => _client.InvokeAsync(_remoteProjectFileTargetObject, nameof(IProjectFile.Save), parameters: [], cancellationToken);
 }

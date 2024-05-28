@@ -43,9 +43,23 @@ internal static class SharedPoolExtensions
     public static PooledObject<SegmentedList<TItem>> GetPooledObject<TItem>(this ObjectPool<SegmentedList<TItem>> pool)
         => PooledObject<SegmentedList<TItem>>.Create(pool);
 
+    public static PooledObject<Stack<TItem>> GetPooledObject<TItem>(this ObjectPool<Stack<TItem>> pool, out Stack<TItem> stack)
+    {
+        var pooledObject = PooledObject<Stack<TItem>>.Create(pool);
+        stack = pooledObject.Object;
+        return pooledObject;
+    }
+
     public static PooledObject<List<TItem>> GetPooledObject<TItem>(this ObjectPool<List<TItem>> pool, out List<TItem> list)
     {
         var pooledObject = PooledObject<List<TItem>>.Create(pool);
+        list = pooledObject.Object;
+        return pooledObject;
+    }
+
+    public static PooledObject<SegmentedList<TItem>> GetPooledObject<TItem>(this ObjectPool<SegmentedList<TItem>> pool, out SegmentedList<TItem> list)
+    {
+        var pooledObject = PooledObject<SegmentedList<TItem>>.Create(pool);
         list = pooledObject.Object;
         return pooledObject;
     }
@@ -152,7 +166,7 @@ internal static class SharedPoolExtensions
         var count = set.Count;
         set.Clear();
 
-        if (count > Threshold)
+        if (count > Threshold && pool.TrimOnFree)
         {
             set.TrimExcess();
         }
@@ -194,22 +208,18 @@ internal static class SharedPoolExtensions
         pool.Free(set);
     }
 
-    public static void ClearAndFree<T>(this ObjectPool<Stack<T>> pool, Stack<T> set)
+    public static void ClearAndFree<T>(this ObjectPool<Stack<T>> pool, Stack<T> stack)
     {
-        if (set == null)
-        {
+        if (stack == null)
             return;
-        }
 
-        var count = set.Count;
-        set.Clear();
+        var count = stack.Count;
+        stack.Clear();
 
-        if (count > Threshold)
-        {
-            set.TrimExcess();
-        }
+        if (count > Threshold && pool.TrimOnFree)
+            stack.TrimExcess();
 
-        pool.Free(set);
+        pool.Free(stack);
     }
 
     public static void ClearAndFree<T>(this ObjectPool<ConcurrentStack<T>> pool, ConcurrentStack<T> stack)

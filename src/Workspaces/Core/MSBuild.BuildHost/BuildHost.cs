@@ -2,37 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-extern alias workspaces;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
-using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.MSBuild.Build;
-using Microsoft.CodeAnalysis.MSBuild.Rpc;
-using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
+namespace Microsoft.CodeAnalysis.MSBuild;
 
-internal sealed class BuildHost
+internal sealed class BuildHost : IBuildHost
 {
-    private readonly ILogger _logger;
+    private readonly BuildHostLogger _logger;
     private readonly ImmutableDictionary<string, string> _globalMSBuildProperties;
     private readonly string? _binaryLogPath;
     private readonly RpcServer _server;
     private readonly object _gate = new object();
     private ProjectBuildManager? _buildManager;
 
-    public BuildHost(ILoggerFactory loggerFactory, ImmutableDictionary<string, string> globalMSBuildProperties, string? binaryLogPath, RpcServer server)
+    public BuildHost(BuildHostLogger logger, ImmutableDictionary<string, string> globalMSBuildProperties, string? binaryLogPath, RpcServer server)
     {
-        _logger = loggerFactory.CreateLogger<BuildHost>();
+        _logger = logger;
         _globalMSBuildProperties = globalMSBuildProperties;
         _binaryLogPath = binaryLogPath;
         _server = server;
@@ -106,11 +101,7 @@ internal sealed class BuildHost
         }
     }
 
-#if NET472 || NET6_0 // If we're compiling against net472 or net6.0, we get our MemberNotNull from the workspaces assembly. It has it in the net6.0 case since we're consuming the netstandard2.0 version of Workspaces.
-    [workspaces::System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(_buildManager))]
-#else // If we're compiling against net7.0 or higher, then we're getting it staright from the framework.
     [MemberNotNull(nameof(_buildManager))]
-#endif
     [MethodImpl(MethodImplOptions.NoInlining)] // Do not inline this, since this creates MSBuild types which are being loaded by the caller
     private void CreateBuildManager()
     {
@@ -177,8 +168,8 @@ internal sealed class BuildHost
 
         ProjectFileLoader projectLoader = languageName switch
         {
-            LanguageNames.CSharp => new CSharp.CSharpProjectFileLoader(),
-            LanguageNames.VisualBasic => new VisualBasic.VisualBasicProjectFileLoader(),
+            LanguageNames.CSharp => new CSharpProjectFileLoader(),
+            LanguageNames.VisualBasic => new VisualBasicProjectFileLoader(),
             _ => throw ExceptionUtilities.UnexpectedValue(languageName)
         };
 

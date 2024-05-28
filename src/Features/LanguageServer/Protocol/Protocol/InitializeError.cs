@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the error type sent when the initialize request fails.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initializeError">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class InitializeError
     {
         /// <summary>
         /// Gets or sets a value indicating whether or not to retry.
         /// </summary>
-        [DataMember(Name = "retry")]
+        [JsonPropertyName("retry")]
         public bool Retry
         {
             get;

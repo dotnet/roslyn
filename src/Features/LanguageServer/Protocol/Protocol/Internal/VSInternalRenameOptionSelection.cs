@@ -4,20 +4,18 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the user configuration (as defined in <see cref="VSInternalRenameOptionSupport"/>) for a rename request.
     /// </summary>
-    [DataContract]
     internal class VSInternalRenameOptionSelection
     {
         /// <summary>
         /// Gets or sets the name that identifies the option.
         /// </summary>
-        [DataMember(Name = "_vs_name")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("_vs_name")]
+        [JsonRequired]
         public string Name
         {
             get;
@@ -27,8 +25,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the user selected the option.
         /// </summary>
-        [DataMember(Name = "_vs_value")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("_vs_value")]
+        [JsonRequired]
         public bool Value
         {
             get;

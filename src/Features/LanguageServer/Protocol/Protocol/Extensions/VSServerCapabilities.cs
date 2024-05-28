@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// <see cref="VSServerCapabilities"/> extends <see cref="ServerCapabilities"/> allowing to provide
     /// additional capabilities supported by Visual Studio.
     /// </summary>
-    [DataContract]
     internal class VSServerCapabilities : ServerCapabilities
     {
         /// <summary>
         /// Gets or sets a value indicating whether the server supports the
         /// 'textDocument/_vs_getProjectContexts' request.
         /// </summary>
-        [DataMember(Name = "_vs_projectContextProvider")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("_vs_projectContextProvider")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool ProjectContextProvider
         {
             get;

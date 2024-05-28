@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 using Microsoft.CodeAnalysis.Text;
@@ -144,7 +143,7 @@ internal partial class SolutionCompilationState
                 foreach (var (documentIdentity, _, generationDateTime) in infos)
                 {
                     var documentId = documentIdentity.DocumentId;
-                    oldGeneratedDocuments = oldGeneratedDocuments.SetState(documentId, oldGeneratedDocuments.GetRequiredState(documentId).WithGenerationDateTime(generationDateTime));
+                    oldGeneratedDocuments = oldGeneratedDocuments.SetState(oldGeneratedDocuments.GetRequiredState(documentId).WithGenerationDateTime(generationDateTime));
                 }
 
                 // If there are no generated documents though, then just use the compilationWithoutGeneratedFiles so we

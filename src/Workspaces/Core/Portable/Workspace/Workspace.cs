@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -1466,6 +1465,7 @@ public abstract partial class Workspace : IDisposable
 
             foreach (var projectChanges in projectChangesList)
             {
+                progressTracker.Report(CodeAnalysisProgress.Description(string.Format(WorkspacesResources.Applying_changes_to_0, projectChanges.NewProject.Name)));
                 this.ApplyProjectChanges(projectChanges);
                 progressTracker.ItemCompleted();
             }

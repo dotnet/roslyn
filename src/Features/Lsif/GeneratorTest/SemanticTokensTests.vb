@@ -3,10 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Linq
+Imports System.Text.Json
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Newtonsoft.Json
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                 Dim document = semanticTokensWorkspace.CurrentSolution.Projects.Single().Documents.Single()
 
                 Dim tokens = lsif.GetSemanticTokens(document)
-                Dim serializedTokens = JsonConvert.SerializeObject(tokens)
+                Dim serializedTokens = JsonSerializer.Serialize(tokens)
 
                 Assert.Equal(expectedTokens, serializedTokens)
             End Using

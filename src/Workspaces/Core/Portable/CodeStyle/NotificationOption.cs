@@ -6,7 +6,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle;
 

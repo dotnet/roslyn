@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Security.Principal;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -14,23 +17,73 @@ internal abstract partial class AbstractTriviaDataFactory
     private const int LineBreakCacheSize = 5;
     private const int IndentationLevelCacheSize = 20;
 
+    private static readonly Dictionary<LineFormattingOptions, (Whitespace[] spaces, Whitespace[,] whitespaces)> s_optionsToWhitespace = new();
+    private static Tuple<LineFormattingOptions, (Whitespace[] spaces, Whitespace[,] whitespaces)>? s_lastOptionAndWhitespace;
+
     protected readonly TreeData TreeInfo;
-    protected readonly SyntaxFormattingOptions Options;
+    protected readonly LineFormattingOptions Options;
 
     private readonly Whitespace[] _spaces;
-    private readonly Whitespace?[,] _whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
+    private readonly Whitespace[,] _whitespaces;
 
-    protected AbstractTriviaDataFactory(TreeData treeInfo, SyntaxFormattingOptions options)
+    protected AbstractTriviaDataFactory(TreeData treeInfo, LineFormattingOptions options)
     {
         Contract.ThrowIfNull(treeInfo);
 
         TreeInfo = treeInfo;
         Options = options;
 
-        _spaces = new Whitespace[SpaceCacheSize];
-        for (var i = 0; i < SpaceCacheSize; i++)
+        (_spaces, _whitespaces) = GetSpacesAndWhitespaces(options);
+    }
+
+    private static (Whitespace[] spaces, Whitespace[,] whitespaces) GetSpacesAndWhitespaces(LineFormattingOptions options)
+    {
+        // Fast path where we'er asking for the same options as last time
+        var lastOptionAndWhitespace = s_lastOptionAndWhitespace;
+        if (lastOptionAndWhitespace?.Item1 == options)
+            return lastOptionAndWhitespace.Item2;
+
+        // Otherwise, get from the dictionary, computing if necessary.
+        var (spaces, whitespaces) = ComputeAndCacheSpacesAndWhitespaces(options);
+
+        // Cache this result for the next time.
+        s_lastOptionAndWhitespace = Tuple.Create(options, (spaces, whitespaces));
+        return (spaces, whitespaces);
+
+        static (Whitespace[] spaces, Whitespace[,] whitespaces) ComputeAndCacheSpacesAndWhitespaces(LineFormattingOptions options)
         {
-            _spaces[i] = new Whitespace(Options, space: i, elastic: false, language: treeInfo.Root.Language);
+            // First check if it's already in the cache.
+            lock (s_optionsToWhitespace)
+            {
+                if (s_optionsToWhitespace.TryGetValue(options, out var result))
+                    return result;
+            }
+
+            // If not, compute it.
+            var spaces = new Whitespace[SpaceCacheSize];
+            for (var i = 0; i < SpaceCacheSize; i++)
+                spaces[i] = new Whitespace(options, space: i, elastic: false);
+
+            var whitespaces = new Whitespace[LineBreakCacheSize, IndentationLevelCacheSize];
+            for (var lineIndex = 0; lineIndex < LineBreakCacheSize; lineIndex++)
+            {
+                for (var indentationLevel = 0; indentationLevel < IndentationLevelCacheSize; indentationLevel++)
+                {
+                    var indentation = indentationLevel * options.IndentationSize;
+                    whitespaces[lineIndex, indentationLevel] = new Whitespace(
+                        options, lineBreaks: lineIndex + 1, indentation: indentation, elastic: false);
+                }
+            }
+
+            // Attempt to store in cache.  But defer to any other thread that may have already stored it.
+            lock (s_optionsToWhitespace)
+            {
+                if (s_optionsToWhitespace.TryGetValue(options, out var result))
+                    return result;
+
+                s_optionsToWhitespace[options] = (spaces, whitespaces);
+                return (spaces, whitespaces);
+            }
         }
     }
 
@@ -41,7 +94,7 @@ internal abstract partial class AbstractTriviaDataFactory
         // if result has elastic trivia in them, never use cache
         if (elastic)
         {
-            return new Whitespace(this.Options, space, elastic: true, language: this.TreeInfo.Root.Language);
+            return new Whitespace(this.Options, space, elastic: true);
         }
 
         if (space < SpaceCacheSize)
@@ -50,7 +103,7 @@ internal abstract partial class AbstractTriviaDataFactory
         }
 
         // create a new space
-        return new Whitespace(this.Options, space, elastic: false, language: this.TreeInfo.Root.Language);
+        return new Whitespace(this.Options, space, elastic: false);
     }
 
     protected TriviaData GetWhitespaceTriviaData(int lineBreaks, int indentation, bool useTriviaAsItIs, bool elastic)
@@ -75,29 +128,13 @@ internal abstract partial class AbstractTriviaDataFactory
             if (indentationLevel < IndentationLevelCacheSize)
             {
                 var lineIndex = lineBreaks - 1;
-                EnsureWhitespaceTriviaInfo(lineIndex, indentationLevel);
                 return _whitespaces[lineIndex, indentationLevel]!;
             }
         }
 
-        return
-            useTriviaAsItIs
-                ? new Whitespace(this.Options, lineBreaks, indentation, elastic, language: this.TreeInfo.Root.Language)
-                : new ModifiedWhitespace(this.Options, lineBreaks, indentation, elastic, language: this.TreeInfo.Root.Language);
-    }
-
-    private void EnsureWhitespaceTriviaInfo(int lineIndex, int indentationLevel)
-    {
-        Contract.ThrowIfFalse(lineIndex is >= 0 and < LineBreakCacheSize);
-        Contract.ThrowIfFalse(indentationLevel >= 0 && indentationLevel < _whitespaces.Length / _whitespaces.Rank);
-
-        // set up caches
-        if (_whitespaces[lineIndex, indentationLevel] == null)
-        {
-            var indentation = indentationLevel * Options.IndentationSize;
-            var triviaInfo = new Whitespace(Options, lineBreaks: lineIndex + 1, indentation: indentation, elastic: false, language: this.TreeInfo.Root.Language);
-            Interlocked.CompareExchange(ref _whitespaces[lineIndex, indentationLevel], triviaInfo, null);
-        }
+        return useTriviaAsItIs
+            ? new Whitespace(this.Options, lineBreaks, indentation, elastic)
+            : new ModifiedWhitespace(this.Options, lineBreaks, indentation, elastic);
     }
 
     public abstract TriviaData CreateLeadingTrivia(SyntaxToken token);

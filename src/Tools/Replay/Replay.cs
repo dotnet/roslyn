@@ -56,7 +56,7 @@ static ReplayOptions ParseOptions(string[] args)
 
     if (string.IsNullOrEmpty(outputDirectory))
     {
-        outputDirectory = Path.Combine(Environment.CurrentDirectory, "output");
+        outputDirectory = Path.Combine(Path.GetTempPath(), "replay");
     }
 
     return new ReplayOptions(

@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool IsValidUnscopedRefAttributeTarget()
         {
-            return UseUpdatedEscapeRules && (RefKind != RefKind.None || (HasParamsModifier && Type.IsRefLikeType));
+            return UseUpdatedEscapeRules && (RefKind != RefKind.None || (HasParamsModifier && Type.IsRefLikeOrAllowsRefLikeType()));
         }
 
         private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(CSharpAttributeData attribute)
@@ -1521,29 +1521,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(filter == null);
             _ = this.GetAttributes();
             _ = this.ExplicitDefaultConstantValue;
-            ValidateParams();
+            DoMiscValidation();
             state.SpinWaitComplete(CompletionPart.ComplexParameterSymbolAll, cancellationToken);
         }
 
 #nullable enable
 
-        private void ValidateParams()
+        private void DoMiscValidation()
         {
-            if (state.NotePartComplete(CompletionPart.StartParamsValidation))
+            if (state.NotePartComplete(CompletionPart.StartMiscValidation))
             {
+                var diagnostics = BindingDiagnosticBag.GetInstance();
+
                 if (IsParams && ParameterSyntax?.Modifiers.Any(SyntaxKind.ParamsKeyword) == true)
                 {
-                    var diagnostics = BindingDiagnosticBag.GetInstance();
                     validateParamsType(diagnostics);
-                    AddDeclarationDiagnostics(diagnostics);
-                    diagnostics.Free();
                 }
 
-                bool completedOnThisThread = state.NotePartComplete(CompletionPart.EndParamsValidation);
+                if (DeclaredScope == ScopedKind.ScopedValue && !Type.IsErrorOrRefLikeOrAllowsRefLikeType())
+                {
+                    Debug.Assert(ParameterSyntax is not null);
+                    diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, ParameterSyntax);
+                }
+
+                AddDeclarationDiagnostics(diagnostics);
+                diagnostics.Free();
+
+                bool completedOnThisThread = state.NotePartComplete(CompletionPart.EndMiscValidation);
                 Debug.Assert(completedOnThisThread);
             }
 
-            state.SpinWaitComplete(CompletionPart.EndParamsValidation, default(CancellationToken));
+            state.SpinWaitComplete(CompletionPart.EndMiscValidation, default(CancellationToken));
 
             void validateParamsType(BindingDiagnosticBag diagnostics)
             {

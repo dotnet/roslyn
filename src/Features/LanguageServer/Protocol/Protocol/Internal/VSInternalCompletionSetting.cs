@@ -4,20 +4,18 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents initialization setting for VS completion.
     /// </summary>
-    [DataContract]
     internal class VSInternalCompletionSetting : CompletionSetting
     {
         /// <summary>
         /// Gets or sets completion list setting.
         /// </summary>
-        [DataMember(Name = "_vs_completionList")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_completionList")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalCompletionListSetting? CompletionList
         {
             get;

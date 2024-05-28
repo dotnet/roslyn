@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Options for the full document semantic tokens classification provider.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SemanticTokensFullOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether the server supports deltas for full documents.
         /// </summary>
-        [DataMember(Name = "delta")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("delta")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool Delta
         {
             get;

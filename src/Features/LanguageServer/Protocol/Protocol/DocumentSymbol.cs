@@ -4,8 +4,7 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Represents programming constructs like variables, classes, interfaces etc. that appear in a document. Document symbols can be
@@ -14,13 +13,13 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentSymbol">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class DocumentSymbol
     {
         /// <summary>
         /// Gets or sets the name of this symbol.
         /// </summary>
-        [DataMember(IsRequired = true, Name = "name")]
+        [JsonPropertyName("name")]
+        [JsonRequired]
         public string Name
         {
             get;
@@ -30,8 +29,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets more detail for this symbol, e.g the signature of a function.
         /// </summary>
-        [DataMember(Name = "detail")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("detail")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Detail
         {
             get;
@@ -41,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="SymbolKind" /> of this symbol.
         /// </summary>
-        [DataMember(Name = "kind")]
+        [JsonPropertyName("kind")]
         public SymbolKind Kind
         {
             get;
@@ -51,8 +50,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether this symbol is deprecated.
         /// </summary>
-        [DataMember(Name = "deprecated")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("deprecated")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool Deprecated
         {
             get;
@@ -64,7 +63,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// like comments.This information is typically used to determine if the clients cursor is
         /// inside the symbol to reveal in the symbol in the UI.
         /// </summary>
-        [DataMember(IsRequired = true, Name = "range")]
+        [JsonPropertyName("range")]
+        [JsonRequired]
         public Range Range
         {
             get;
@@ -75,7 +75,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the range that should be selected and revealed when this symbol is being picked, e.g the name of a function.
         /// Must be contained by the `range`.
         /// </summary>
-        [DataMember(IsRequired = true, Name = "selectionRange")]
+        [JsonPropertyName("selectionRange")]
+        [JsonRequired]
         public Range SelectionRange
         {
             get;
@@ -85,8 +86,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the children of this symbol, e.g. properties of a class.
         /// </summary>
-        [DataMember(Name = "children")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("children")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DocumentSymbol[]? Children
         {
             get;

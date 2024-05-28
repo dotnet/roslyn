@@ -17,24 +17,20 @@ using LSP = Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 [ExportWorkspaceService(typeof(ILspReferencesResultCreationService), ServiceLayer.Editor), Shared]
-internal sealed class EditorLspReferencesResultCreationService : ILspReferencesResultCreationService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class EditorLspReferencesResultCreationService() : ILspReferencesResultCreationService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EditorLspReferencesResultCreationService()
-    {
-    }
-
-    public SumType<VSInternalReferenceItem, Roslyn.LanguageServer.Protocol.Location>? CreateReference(
+    public SumType<VSInternalReferenceItem, LSP.Location>? CreateReference(
         int definitionId,
         int id,
         ClassifiedTextElement text,
         DocumentSpan? documentSpan,
-        ImmutableDictionary<string, string> properties,
+        ImmutableArray<(string key, string value)> properties,
         ClassifiedTextElement? definitionText,
         Glyph definitionGlyph,
         SymbolUsageInfo? symbolUsageInfo,
-        Roslyn.LanguageServer.Protocol.Location? location)
+        LSP.Location? location)
     {
         // TO-DO: The Origin property should be added once Rich-Nav is completed.
         // https://github.com/dotnet/roslyn/issues/42847
@@ -61,11 +57,13 @@ internal sealed class EditorLspReferencesResultCreationService : ILspReferencesR
             result.ProjectName = documentSpan.Value.Document.Project.Name;
         }
 
-        if (properties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember))
-            result.ContainingMember = referenceContainingMember;
-
-        if (properties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType))
-            result.ContainingType = referenceContainingType;
+        foreach (var (key, value) in properties)
+        {
+            if (key == AbstractReferenceFinder.ContainingMemberInfoPropertyName)
+                result.ContainingMember = value;
+            else if (key == AbstractReferenceFinder.ContainingTypeInfoPropertyName)
+                result.ContainingType = value;
+        }
 
         return result;
     }

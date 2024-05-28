@@ -30,10 +30,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)ITextDocumentIdentifierHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServerConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServerEndpointAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewtonsoftLanguageServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)QueueItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RequestExecutionQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RequestHandlerMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RequestShutdownEventArgs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SystemTextJsonLanguageServer.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
   </ItemGroup>
 </Project>

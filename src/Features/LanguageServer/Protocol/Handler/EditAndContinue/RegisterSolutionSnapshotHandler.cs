@@ -4,7 +4,7 @@
 
 using System;
 using System.Composition;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -13,8 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.EditAndContinue;
 
-[DataContract]
-internal readonly record struct LspSolutionSnapshotId([property: DataMember(Name = "id")] int Id);
+internal readonly record struct LspSolutionSnapshotId([property: JsonPropertyName("id")] int Id);
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(RegisterSolutionSnapshotHandler)), Shared]
 [Method("workspace/_vs_registerSolutionSnapshot")]

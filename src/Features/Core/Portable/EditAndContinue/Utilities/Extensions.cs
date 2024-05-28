@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -187,4 +185,10 @@ internal static partial class Extensions
 
     public static ISymbol PartialAsImplementation(this ISymbol symbol)
         => symbol is IMethodSymbol { PartialImplementationPart: { } impl } ? impl : symbol;
+
+    /// <summary>
+    /// Returns true if any member of the type implements an interface member explicitly.
+    /// </summary>
+    public static bool HasExplicitlyImplementedInterfaceMember(this INamedTypeSymbol type)
+        => type.GetMembers().Any(static member => member.ExplicitInterfaceImplementations().Any());
 }

@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -412,6 +411,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             if (capabilities.HasVisualStudioLspCapability())
             {
                 var expandedMessage = string.IsNullOrEmpty(diagnosticData.Description) ? null : diagnosticData.Description;
+
                 diagnostic.DiagnosticType = diagnosticData.Category;
                 diagnostic.ExpandedMessage = expandedMessage;
                 diagnostic.Projects =

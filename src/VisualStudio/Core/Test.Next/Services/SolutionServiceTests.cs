@@ -56,8 +56,7 @@ public class SolutionServiceTests
         Assert.Equal(solutionChecksum, await synched.CompilationState.GetChecksumAsync(CancellationToken.None));
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestGetSolutionWithPrimaryFlag(bool updatePrimaryBranch)
     {
         var code1 = @"class Test1 { void Method() { } }";
@@ -859,6 +858,51 @@ public class SolutionServiceTests
         var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 
         var project1Checksum = await solution.CompilationState.GetChecksumAsync(project1.Id, CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task TestPartialProjectSync_SourceGeneratorExecutionVersion_1()
+    {
+        var code = @"class Test { void Method() { } }";
+
+        using var workspace = TestWorkspace.CreateCSharp(code);
+        using var remoteWorkspace = CreateRemoteWorkspace();
+
+        var solution = workspace.CurrentSolution;
+
+        var project1 = solution.Projects.Single();
+        var project2 = solution.AddProject("P2", "P2", LanguageNames.CSharp);
+
+        solution = project2.Solution;
+
+        var map = new Dictionary<Checksum, object>();
+        var assetProvider = new AssetProvider(
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+
+        // Do the initial full sync
+        await solution.AppendAssetMapAsync(map, CancellationToken.None);
+        var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
+        var fullSyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: true, CancellationToken.None);
+        Assert.Equal(2, fullSyncedSolution.Projects.Count());
+
+        // Update the source generator versions for all projects for the local workspace.
+        workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
+        await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+        solution = workspace.CurrentSolution;
+
+        // Now just sync project1's cone over.  This will validate that that we get the right checksums, even with a
+        // partial cone sync.
+        {
+            await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
+            var project1Checksum = await solution.CompilationState.GetChecksumAsync(project1.Id, CancellationToken.None);
+            var project1SyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, project1Checksum, updatePrimaryBranch: false, CancellationToken.None);
+        }
+    }
+
+    private static IAsynchronousOperationWaiter GetWorkspaceWaiter(TestWorkspace workspace)
+    {
+        var operations = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+        return operations.GetWaiter(FeatureAttribute.Workspace);
     }
 
     [Fact]

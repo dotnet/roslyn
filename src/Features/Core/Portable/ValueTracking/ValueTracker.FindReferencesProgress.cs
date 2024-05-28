@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -30,10 +30,10 @@ internal static partial class ValueTracker
         public ValueTask OnDefinitionFoundAsync(SymbolGroup symbolGroup, CancellationToken _) => new();
 
         public async ValueTask OnReferencesFoundAsync(
-            ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references,
+            IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references,
             CancellationToken cancellationToken)
         {
-            foreach (var (_, symbol, location) in references)
+            await foreach (var (_, symbol, location) in references)
                 await OnReferenceFoundAsync(symbol, location, cancellationToken).ConfigureAwait(false);
         }
 

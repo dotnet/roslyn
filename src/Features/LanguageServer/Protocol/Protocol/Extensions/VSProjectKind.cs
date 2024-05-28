@@ -4,12 +4,9 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
     /// <see cref="VSProjectKind" /> represents the various kinds of contexts.
     /// </summary>
-    [DataContract]
     internal enum VSProjectKind
     {
         /// <summary>

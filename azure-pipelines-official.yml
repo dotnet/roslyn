@@ -58,6 +58,7 @@ variables:
   - name: ArtifactServices.Drop.PAT
     value: $(dn-bot-devdiv-drop-rw-code-rw)
   - group: DotNet-Roslyn-Insertion-Variables
+  - group: AzureDevOps-Artifact-Feeds-Pats
 
   - name: BuildConfiguration
     value: release
@@ -149,6 +150,7 @@ extends:
             dropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
             dropName: $(VisualStudio.DropName)
             accessToken: $(_DevDivDropAccessToken)
+            dropRetentionDays: 90
 
           # Publish insertion packages to CoreXT store.
           - output: nuget

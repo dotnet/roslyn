@@ -7,10 +7,10 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
@@ -39,8 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private Project GetProject()
             => Workspace.CurrentSolution.GetProject(_projectId);
 
-        private Compilation GetCompilation()
-            => GetProject().GetCompilationAsync().Result;
+        private Task<Compilation> GetCompilationAsync()
+            => GetProject().GetCompilationAsync();
 
         private ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetFileCodeModel(object location)
         {
@@ -127,27 +127,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             => CodeElements;
 
         public EnvDTE.CodeElements CodeElements
-        {
-            get
+            => this.State.ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var compilation = GetCompilation();
+                var compilation = await GetCompilationAsync().ConfigureAwait(true);
+
+                // Need to ensure we're on the UI thread to make the ExternalCodeNamespace.  It creates UI thread bound
+                // com aggregates.
+                await this.State.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
                 var rootNamespace = ExternalCodeNamespace.Create(this.State, _projectId, compilation.GlobalNamespace);
                 return rootNamespace.Members;
-            }
-        }
+            });
 
         public EnvDTE.CodeType CodeTypeFromFullName(string name)
-        {
-            var compilation = GetCompilation();
-            var typeSymbol = CodeModelService.GetTypeSymbolFromFullName(name, compilation);
-            if (typeSymbol == null ||
-                typeSymbol.TypeKind is TypeKind.Error or TypeKind.Unknown)
+            => this.State.ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
-                return null;
-            }
+                var compilation = await GetCompilationAsync().ConfigureAwait(true);
+                var typeSymbol = CodeModelService.GetTypeSymbolFromFullName(name, compilation);
+                if (typeSymbol == null ||
+                    typeSymbol.TypeKind is TypeKind.Error or TypeKind.Unknown)
+                {
+                    return null;
+                }
 
-            return (EnvDTE.CodeType)CodeModelService.CreateCodeType(this.State, _projectId, typeSymbol);
-        }
+                // Need to ensure we're on the UI thread to make the call to CreateCodeType.  It creates  UI thread
+                // bound com aggregates.
+                await this.State.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                return (EnvDTE.CodeType)CodeModelService.CreateCodeType(this.State, _projectId, typeSymbol);
+            });
 
         public EnvDTE.CodeTypeRef CreateCodeTypeRef(object type)
             => CodeModelService.CreateCodeTypeRef(this.State, _projectId, type);
@@ -159,16 +166,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             => throw Exceptions.ThrowENotImpl();
 
         public string DotNetNameFromLanguageSpecific(string languageName)
-        {
-            var compilation = GetCompilation();
-            var typeSymbol = CodeModelService.GetTypeSymbolFromFullName(languageName, compilation);
-            if (typeSymbol == null)
+            => this.State.ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
-                throw Exceptions.ThrowEInvalidArg();
-            }
+                var compilation = await GetCompilationAsync().ConfigureAwait(true);
+                var typeSymbol = CodeModelService.GetTypeSymbolFromFullName(languageName, compilation);
+                if (typeSymbol == null)
+                    throw Exceptions.ThrowEInvalidArg();
 
-            return MetadataNameHelpers.GetMetadataName(typeSymbol);
-        }
+                return MetadataNameHelpers.GetMetadataName(typeSymbol);
+            });
 
         public EnvDTE.CodeElement ElementFromID(string id)
             => throw Exceptions.ThrowENotImpl();

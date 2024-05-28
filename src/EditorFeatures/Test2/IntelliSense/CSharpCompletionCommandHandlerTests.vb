@@ -7979,8 +7979,7 @@ namespace NS
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/67081")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/67081")>
         <InlineData("System", True)>
         <InlineData("System.Collections", True)>
         <InlineData("SystemNamespace", False)>

@@ -10,10 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
@@ -253,15 +251,10 @@ internal sealed class BatchFixAllProvider : FixAllProvider
 
     private static async Task<Solution> ApplyChangesAsync(
         Solution currentSolution,
-        ImmutableArray<(DocumentId, TextChangeMerger)> docIdsAndMerger,
+        ImmutableArray<(DocumentId documentId, TextChangeMerger merger)> docIdsAndMerger,
         CancellationToken cancellationToken)
     {
-        foreach (var (documentId, textMerger) in docIdsAndMerger)
-        {
-            var newText = await textMerger.GetFinalMergedTextAsync(cancellationToken).ConfigureAwait(false);
-            currentSolution = currentSolution.WithDocumentText(documentId, newText);
-        }
-
-        return currentSolution;
+        var docIdsAndTexts = await docIdsAndMerger.SelectAsArrayAsync(async t => (t.documentId, await t.merger.GetFinalMergedTextAsync(cancellationToken).ConfigureAwait(false))).ConfigureAwait(false);
+        return currentSolution.WithDocumentTexts(docIdsAndTexts);
     }
 }
