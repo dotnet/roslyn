@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.Serialization;
@@ -61,6 +62,13 @@ namespace Microsoft.CodeAnalysis.Remote
             /// </remarks>
             private ProjectId? _previousProjectId;
 
+            /// <summary>
+            /// Cache of previously (de)serialized ProjectID to their DebugNames. This is a quite long string that shows 
+            /// in perf traces for both serialization and deserialization. This cache allows a particular ProjectId
+            /// to only serialize or deserialize this value once.
+            /// </summary>
+            private readonly ConcurrentDictionary<Guid, string?> _debugNames = new ConcurrentDictionary<Guid, string?>();
+
             public ProjectId? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
                 try
@@ -70,9 +78,26 @@ namespace Microsoft.CodeAnalysis.Remote
                         return null;
                     }
 
-                    Contract.ThrowIfFalse(reader.ReadArrayHeader() == 2);
+                    var arrayCount = reader.ReadArrayHeader();
+                    Contract.ThrowIfFalse(arrayCount is 1 or 2);
                     var id = GuidFormatter.Instance.Deserialize(ref reader, options);
-                    var debugName = reader.ReadString();
+                    string? debugName;
+
+                    if (arrayCount == 1)
+                    {
+                        // This ProjectId has previously been deserialized. Attempt to find it's
+                        // debugName from the cache. This *should* always succeed, but if not, it's
+                        // ok to proceed with a null debugName.
+                        _debugNames.TryGetValue(id, out debugName);
+                    }
+                    else
+                    {
+                        // This is the first time this ProjectId has been deserialized, so read it's value.
+                        // The Add call *should* always succeed, but if not, it's ok to proceed with
+                        // not updating the cache.
+                        debugName = reader.ReadString();
+                        _debugNames.TryAdd(id, debugName);
+                    }
 
                     var previousId = _previousProjectId;
                     if (previousId is not null && previousId.Id == id && previousId.DebugName == debugName)
@@ -98,9 +123,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                     else
                     {
-                        writer.WriteArrayHeader(2);
+                        // Only serialize DebugName if this is the first time we've serialized this ProjectId.
+                        var serializeDebugName = _debugNames.TryAdd(value.Id, value.DebugName);
+
+                        writer.WriteArrayHeader(serializeDebugName ? 2 : 1);
                         GuidFormatter.Instance.Serialize(ref writer, value.Id, options);
-                        writer.Write(value.DebugName);
+
+                        if (serializeDebugName)
+                            writer.Write(value.DebugName);
                     }
                 }
                 catch (Exception e) when (e is not MessagePackSerializationException)
