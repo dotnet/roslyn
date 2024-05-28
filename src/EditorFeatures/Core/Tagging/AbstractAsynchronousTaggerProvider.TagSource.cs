@@ -142,9 +142,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         #endregion
 
         public TagSource(
-            AbstractAsynchronousTaggerProvider<TTag> dataSource,
             ITextView? textView,
-            ITextBuffer subjectBuffer)
+            ITextBuffer subjectBuffer,
+            AbstractAsynchronousTaggerProvider<TTag> dataSource)
         {
             dataSource.ThreadingContext.ThrowIfNotOnUIThread();
             if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)

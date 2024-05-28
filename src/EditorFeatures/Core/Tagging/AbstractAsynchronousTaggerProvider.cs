@@ -159,7 +159,7 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     {
         if (!this.TryRetrieveTagSource(textView, subjectBuffer, out var tagSource))
         {
-            tagSource = new TagSource(this, textView, subjectBuffer);
+            tagSource = new TagSource(textView, subjectBuffer, this);
             this.StoreTagSource(textView, subjectBuffer, tagSource);
         }
 
