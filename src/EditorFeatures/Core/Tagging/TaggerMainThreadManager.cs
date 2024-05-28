@@ -34,15 +34,11 @@ internal sealed class TaggerMainThreadManager(
 
         StronglyTypedTaggerMainThreadManager GetManager()
         {
-            // First try the path that doesn't allocate a lambda closure. If that fails defer to helper that will allocate.
-            return _stronglyTypedManagers.TryGetValue(typeof(TResult), out var manager)
-                ? manager
-                : GetOrCreateManager();
-        }
+            if (_stronglyTypedManagers.TryGetValue(typeof(TResult), out var manager))
+                return manager;
 
-        StronglyTypedTaggerMainThreadManager GetOrCreateManager()
-            => _stronglyTypedManagers.GetOrAdd(
-                typeof(TResult), _ => new StronglyTypedTaggerMainThreadManager<TResult>(_threadingContext, _listenerProvider));
+            return _stronglyTypedManagers.GetOrAdd(typeof(TResult), new StronglyTypedTaggerMainThreadManager<TResult>(_threadingContext, _listenerProvider));
+        }
     }
 
     private abstract class StronglyTypedTaggerMainThreadManager
