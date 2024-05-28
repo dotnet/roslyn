@@ -344,7 +344,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                         // Create a context to store pass the information along and collect the results.
                         context = new TaggerContext<TTag>(
                             oldState, frozenPartialSemantics, spansToTag, snapshotSpansToTag, caretPosition, oldTagTrees);
-                        await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
+                        await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(true);
 
                         return ComputeNewTagTrees(oldTagTrees, context);
                     }, cancellationToken).ConfigureAwait(true);
