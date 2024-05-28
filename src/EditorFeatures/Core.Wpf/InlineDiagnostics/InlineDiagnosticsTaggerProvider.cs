@@ -8,12 +8,10 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -27,20 +25,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class InlineDiagnosticsTaggerProvider(
-    IThreadingContext threadingContext,
     IDiagnosticAnalyzerService analyzerService,
-    IGlobalOptionService globalOptions,
-    [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider,
+    TaggerHost taggerHost,
     IEditorFormatMapService editorFormatMapService,
     IClassificationFormatMapService classificationFormatMapService,
     IClassificationTypeRegistryService classificationTypeRegistryService)
     : AbstractDiagnosticsTaggerProvider<InlineDiagnosticsTag>(
-        threadingContext,
         analyzerService,
-        globalOptions,
-        visibilityTracker,
-        listenerProvider,
+        taggerHost,
         FeatureAttribute.ErrorSquiggles)
 {
     private readonly IEditorFormatMap _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");

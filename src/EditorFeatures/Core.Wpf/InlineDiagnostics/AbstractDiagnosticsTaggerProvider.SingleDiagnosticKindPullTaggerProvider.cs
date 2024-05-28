@@ -38,18 +38,11 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
     /// </summary>
     private sealed class SingleDiagnosticKindPullTaggerProvider(
         AbstractDiagnosticsTaggerProvider<TTag> callback,
-        DiagnosticKind diagnosticKind,
-        IThreadingContext threadingContext,
         IDiagnosticAnalyzerService analyzerService,
-        IGlobalOptionService globalOptions,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        string featureName) : AsynchronousTaggerProvider<TTag>(
-            threadingContext,
-            globalOptions,
-            visibilityTracker,
-            listenerProvider,
-            featureName)
+        DiagnosticKind diagnosticKind,
+        TaggerHost taggerHost,
+        string featureName)
+        : AsynchronousTaggerProvider<TTag>(taggerHost, featureName)
     {
         private readonly DiagnosticKind _diagnosticKind = diagnosticKind;
         private readonly IDiagnosticAnalyzerService _analyzerService = analyzerService;

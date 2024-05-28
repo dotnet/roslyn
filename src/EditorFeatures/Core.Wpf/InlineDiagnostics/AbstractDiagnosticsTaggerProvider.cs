@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITaggerProvider
     where TTag : ITag
 {
-    protected readonly IGlobalOptionService GlobalOptions;
+    private readonly TaggerHost _taggerHost;
+    protected IGlobalOptionService GlobalOptions => _taggerHost.GlobalOptions;
 
     /// <summary>
     /// Underlying diagnostic tagger responsible for the syntax/semantic and compiler/analyzer split.  The ordering of
@@ -33,14 +34,11 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
     private readonly ImmutableArray<SingleDiagnosticKindPullTaggerProvider> _diagnosticsTaggerProviders;
 
     public AbstractDiagnosticsTaggerProvider(
-        IThreadingContext threadingContext,
         IDiagnosticAnalyzerService analyzerService,
-        IGlobalOptionService globalOptions,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListenerProvider listenerProvider,
+        TaggerHost taggerHost,
         string featureName)
     {
-        GlobalOptions = globalOptions;
+        _taggerHost = taggerHost;
 
         _diagnosticsTaggerProviders =
         [
@@ -53,7 +51,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
         return;
 
         SingleDiagnosticKindPullTaggerProvider CreateDiagnosticsTaggerProvider(DiagnosticKind diagnosticKind)
-            => new(this, diagnosticKind, threadingContext, analyzerService, globalOptions, visibilityTracker, listenerProvider, featureName);
+            => new(this, analyzerService, diagnosticKind, taggerHost, featureName);
     }
 
     // Functionality for subclasses to control how this diagnostic tagging operates.  All the individual
