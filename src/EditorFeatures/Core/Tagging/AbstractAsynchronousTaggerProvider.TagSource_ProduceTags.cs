@@ -295,6 +295,11 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 var snapshotSpansToTag = GetSnapshotSpansToTag();
                 var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
 
+#if DEBUG
+                foreach (var snapshotSpan in snapshotSpansToTag)
+                    CheckSnapshot(snapshotSpan.Snapshot1);
+#endif
+
                 // If we're being called from within a blocking JTF.Run call, we don't want to switch to the background
                 // if we can avoid it.
                 if (!calledFromJtfRun)
@@ -376,13 +381,13 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 foreach (var spanToTag in snapshotSpansToTag)
                 {
                     var snapshot = spanToTag.Snapshot;
-                    var document = snapshotToDocument.FirstOrDefault(
-                        static (t, snapshot) => t.snapshot == snapshot, snapshot).document;
+                    var (foundSnapshot, document) = snapshotToDocument.FirstOrDefault(
+                        static (t, snapshot) => t.snapshot == snapshot, snapshot);
 
-                    if (document is null)
+                    // If this is the first time looking at this snapshot, then go fetch the document (which we may or
+                    // may not have), and freeze it if necessary..
+                    if (foundSnapshot is null)
                     {
-                        CheckSnapshot(snapshot);
-
                         document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                         if (frozenPartialSemantics)
                             document = document?.WithFrozenPartialSemantics(cancellationToken);
@@ -395,16 +400,16 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 return result.ToOneOrManyAndClear();
             }
-        }
 
-        [Conditional("DEBUG")]
-        private static void CheckSnapshot(ITextSnapshot snapshot)
-        {
-            var container = snapshot.TextBuffer.AsTextContainer();
-            if (Workspace.TryGetWorkspace(container, out _))
+            [Conditional("DEBUG")]
+            static void CheckSnapshot(ITextSnapshot snapshot)
             {
-                // if the buffer is part of our workspace, it must be the latest.
-                Debug.Assert(snapshot.Version.Next == null, "should be on latest snapshot");
+                var container = snapshot.TextBuffer.AsTextContainer();
+                if (Workspace.TryGetWorkspace(container, out _))
+                {
+                    // if the buffer is part of our workspace, it must be the latest.
+                    Debug.Assert(snapshot.Version.Next == null, "should be on latest snapshot");
+                }
             }
         }
 
