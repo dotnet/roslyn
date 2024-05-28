@@ -40,11 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
             WpfTestRunner.RequireWpfFact($"{nameof(AbstractBraceHighlightingTests)}.{nameof(TestBraceHighlightingAsync)} creates asynchronous taggers");
 
             var provider = new BraceHighlightingViewTaggerProvider(
-                workspace.GetService<IThreadingContext>(),
-                GetBraceMatchingService(workspace),
-                workspace.GetService<IGlobalOptionService>(),
-                visibilityTracker: null,
-                AsynchronousOperationListenerProvider.NullProvider);
+                workspace.GetService<TaggerHost>(),
+                GetBraceMatchingService(workspace));
 
             var testDocument = workspace.Documents.First();
             var buffer = testDocument.GetTextBuffer();
