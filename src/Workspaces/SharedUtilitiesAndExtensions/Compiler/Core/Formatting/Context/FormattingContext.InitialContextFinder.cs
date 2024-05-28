@@ -4,12 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -39,7 +41,7 @@ internal partial class FormattingContext
             _rootNode = rootNode;
         }
 
-        public (List<IndentBlockOperation> indentOperations, List<SuppressOperation>? suppressOperations) Do(SyntaxToken startToken, SyntaxToken endToken)
+        public (List<IndentBlockOperation> indentOperations, ImmutableArray<SuppressOperation> suppressOperations) Do(SyntaxToken startToken, SyntaxToken endToken)
         {
             // we are formatting part of document, try to find initial context that formatting will be based on such as
             // initial indentation and etc.
@@ -53,7 +55,6 @@ internal partial class FormattingContext
                 if (initialSuppressOperations != null)
                 {
                     Debug.Assert(
-                        initialSuppressOperations.IsEmpty() ||
                         initialSuppressOperations.All(
                             o => o.TextSpan.Contains(startToken.SpanStart) ||
                                  o.TextSpan.Contains(endToken.SpanStart)));
@@ -121,71 +122,60 @@ internal partial class FormattingContext
             return operations;
         }
 
-        private List<SuppressOperation>? GetInitialSuppressOperations(SyntaxToken startToken, SyntaxToken endToken)
+        private ImmutableArray<SuppressOperation> GetInitialSuppressOperations(SyntaxToken startToken, SyntaxToken endToken)
         {
-            var noWrapList = this.GetInitialSuppressOperations(startToken, endToken, SuppressOption.NoWrapping);
-            var noSpaceList = this.GetInitialSuppressOperations(startToken, endToken, SuppressOption.NoSpacing);
+            using var _ = ArrayBuilder<SuppressOperation>.GetInstance(out var result);
 
-            var list = noWrapList.Combine(noSpaceList);
-            if (list == null)
-            {
-                return null;
-            }
+            this.AddInitialSuppressOperations(startToken, endToken, SuppressOption.NoWrapping, result);
+            this.AddInitialSuppressOperations(startToken, endToken, SuppressOption.NoSpacing, result);
 
-            list.Sort(CommonFormattingHelpers.SuppressOperationComparer);
-            return list;
+            result.Sort(CommonFormattingHelpers.SuppressOperationComparer);
+            return result.ToImmutable();
         }
 
-        private List<SuppressOperation>? GetInitialSuppressOperations(SyntaxToken startToken, SyntaxToken endToken, SuppressOption mask)
+        private void AddInitialSuppressOperations(
+            SyntaxToken startToken, SyntaxToken endToken, SuppressOption mask, ArrayBuilder<SuppressOperation> result)
         {
-            var startList = this.GetInitialSuppressOperations(startToken, mask);
-            var endList = this.GetInitialSuppressOperations(endToken, mask);
-
-            return startList.Combine(endList);
+            this.AddInitialSuppressOperations(startToken, mask, result);
+            this.AddInitialSuppressOperations(endToken, mask, result);
         }
 
-        private List<SuppressOperation>? GetInitialSuppressOperations(SyntaxToken token, SuppressOption mask)
+        private void AddInitialSuppressOperations(SyntaxToken token, SuppressOption mask, ArrayBuilder<SuppressOperation> result)
         {
             var startNode = token.Parent;
             var startPosition = token.SpanStart;
 
             // starting from given token, move up to root until the first meaningful
             // operation has found
-            var list = new List<SuppressOperation>();
+            using var _ = ArrayBuilder<SuppressOperation>.GetInstance(out var buffer);
 
             var currentIndentationNode = startNode;
-            Predicate<SuppressOperation> predicate = Predicate;
             while (currentIndentationNode != null)
             {
-                _formattingRules.AddSuppressOperations(list, currentIndentationNode);
+                _formattingRules.AddSuppressOperations(buffer, currentIndentationNode);
 
-                list.RemoveAll(predicate);
-                if (list.Count > 0)
+                buffer.RemoveAll(Predicate, (startPosition, _tokenStream, mask));
+                if (buffer.Count > 0)
                 {
-                    return list;
+                    result.AddRange(buffer);
+                    return;
                 }
 
                 currentIndentationNode = currentIndentationNode.Parent;
             }
 
-            return null;
+            return;
 
-            bool Predicate(SuppressOperation operation)
+            static bool Predicate(SuppressOperation operation, (int startPosition, TokenStream tokenStream, SuppressOption mask) tuple)
             {
-                if (!operation.TextSpan.Contains(startPosition))
-                {
+                if (!operation.TextSpan.Contains(tuple.startPosition))
                     return true;
-                }
 
-                if (operation.ContainsElasticTrivia(_tokenStream) && !operation.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
-                {
+                if (operation.ContainsElasticTrivia(tuple.tokenStream) && !operation.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
                     return true;
-                }
 
-                if (!operation.Option.IsMaskOn(mask))
-                {
+                if (!operation.Option.IsMaskOn(tuple.mask))
                     return true;
-                }
 
                 return false;
             }

@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Text
                 return SourceText.From(string.Empty, encoding, checksumAlgorithm);
             }
 
-            var maxCharRemainingGuess = encoding.GetMaxCharCountOrThrowIfHuge(stream);
+            var maxCharRemainingGuess = GetMaxCharCountOrThrowIfHuge(encoding, stream);
             Debug.Assert(longLength > 0 && longLength <= int.MaxValue); // GetMaxCharCountOrThrowIfHuge should have thrown.
             int length = (int)longLength;
 

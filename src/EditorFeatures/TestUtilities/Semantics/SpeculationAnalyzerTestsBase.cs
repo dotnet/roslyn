@@ -52,10 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Semantics
 
         private void CheckCompilation(Compilation compilation)
         {
-            using (var temporaryStream = new MemoryStream())
-            {
-                Assert.True(CompilationSucceeded(compilation, temporaryStream));
-            }
+            using var temporaryStream = new MemoryStream();
+            Assert.True(CompilationSucceeded(compilation, temporaryStream));
         }
 
         protected abstract SyntaxTree Parse(string text);

@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the signature information initialization setting.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SignatureInformationSetting
     {
         /// <summary>
         /// Gets or sets the set of documentation formats the client supports.
         /// </summary>
-        [DataMember(Name = "documentationFormat")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("documentationFormat")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public MarkupKind[]? DocumentationFormat
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the parameter information the client supports.
         /// </summary>
-        [DataMember(Name = "parameterInformation")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("parameterInformation")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ParameterInformationSetting? ParameterInformation
         {
             get;

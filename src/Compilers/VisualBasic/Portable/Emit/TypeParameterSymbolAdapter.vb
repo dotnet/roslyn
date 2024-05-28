@@ -233,6 +233,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IGenericParameterAllowByRefLike As Boolean Implements IGenericParameter.AllowsRefLikeType
+            Get
+                Return AdaptedTypeParameterSymbol.AllowsRefLikeType
+            End Get
+        End Property
+
         Private ReadOnly Property IGenericParameterMustHaveDefaultConstructor As Boolean Implements IGenericParameter.MustHaveDefaultConstructor
             Get
                 '  add constructor constraint for value type constrained 

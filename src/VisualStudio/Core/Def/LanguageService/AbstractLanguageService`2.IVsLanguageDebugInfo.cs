@@ -20,7 +20,7 @@ internal partial class AbstractLanguageService<TPackage, TLanguageService> : IVs
     {
         try
         {
-            return LanguageDebugInfo.GetLanguageID(pBuffer, iLine, iCol, out pguidLanguageID);
+            return _languageDebugInfo.GetLanguageID(pBuffer, iLine, iCol, out pguidLanguageID);
         }
         catch (Exception e) when (FatalError.ReportAndPropagate(e))
         {
@@ -32,7 +32,7 @@ internal partial class AbstractLanguageService<TPackage, TLanguageService> : IVs
     {
         try
         {
-            return LanguageDebugInfo.GetLocationOfName(pszName, out pbstrMkDoc, out pspanLocation);
+            return _languageDebugInfo.GetLocationOfName(pszName, out pbstrMkDoc, out pspanLocation);
         }
         catch (Exception e) when (FatalError.ReportAndPropagate(e))
         {
@@ -44,7 +44,7 @@ internal partial class AbstractLanguageService<TPackage, TLanguageService> : IVs
     {
         try
         {
-            return LanguageDebugInfo.GetNameOfLocation(pBuffer, iLine, iCol, out pbstrName, out piLineOffset);
+            return _languageDebugInfo.GetNameOfLocation(pBuffer, iLine, iCol, out pbstrName, out piLineOffset);
         }
         catch (Exception e) when (FatalError.ReportAndPropagate(e))
         {
@@ -56,7 +56,7 @@ internal partial class AbstractLanguageService<TPackage, TLanguageService> : IVs
     {
         try
         {
-            return LanguageDebugInfo.GetProximityExpressions(pBuffer, iLine, iCol, cLines, out ppEnum);
+            return _languageDebugInfo.GetProximityExpressions(pBuffer, iLine, iCol, cLines, out ppEnum);
         }
         catch (Exception e) when (FatalError.ReportAndPropagate(e))
         {
@@ -68,7 +68,7 @@ internal partial class AbstractLanguageService<TPackage, TLanguageService> : IVs
     {
         try
         {
-            return LanguageDebugInfo.IsMappedLocation(pBuffer, iLine, iCol);
+            return _languageDebugInfo.IsMappedLocation(pBuffer, iLine, iCol);
         }
         catch (Exception e) when (FatalError.ReportAndPropagate(e))
         {
@@ -80,7 +80,7 @@ internal partial class AbstractLanguageService<TPackage, TLanguageService> : IVs
     {
         try
         {
-            return LanguageDebugInfo.ResolveName(pszName, dwFlags, out ppNames);
+            return _languageDebugInfo.ResolveName(pszName, dwFlags, out ppNames);
         }
         catch (Exception e) when (FatalError.ReportAndPropagate(e))
         {
@@ -92,7 +92,7 @@ internal partial class AbstractLanguageService<TPackage, TLanguageService> : IVs
     {
         try
         {
-            return LanguageDebugInfo.ValidateBreakpointLocation(pBuffer, iLine, iCol, pCodeSpan);
+            return _languageDebugInfo.ValidateBreakpointLocation(pBuffer, iLine, iCol, pCodeSpan);
         }
         catch (Exception e) when (FatalError.ReportAndPropagate(e))
         {

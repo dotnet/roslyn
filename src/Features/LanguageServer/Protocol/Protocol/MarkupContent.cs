@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing text and an associated format that should be rendered.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#markupContentInnerDefinition">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class MarkupContent
     {
         /// <summary>
         /// Gets or sets the <see cref="MarkupKind"/> representing the text's format.
         /// </summary>
-        [DataMember(Name = "kind")]
+        [JsonPropertyName("kind")]
         public MarkupKind Kind
         {
             get;
@@ -27,7 +26,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text that should be rendered.
         /// </summary>
-        [DataMember(Name = "value")]
+        [JsonPropertyName("value")]
         public string Value
         {
             get;

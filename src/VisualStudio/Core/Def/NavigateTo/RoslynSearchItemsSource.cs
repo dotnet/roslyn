@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Search.Data;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
@@ -46,7 +46,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 var cancellationTriggeredTask = Task.Delay(-1, cancellationToken);
 
                 // Now, kick off the actual search work concurrently with the waiting task.
-                var searchTask = Task.Run(() => PerformSearchWorkerAsync(searchQuery, searchCallback, cancellationToken), cancellationToken);
+                var searchTask = PerformSearchWorkerAsync(searchQuery, searchCallback, cancellationToken);
 
                 // Now wait for either task to complete.  This allows us to bail out of the call into us once the
                 // cancellation token is signaled, even if search work is still happening.  This is desirable as the
@@ -65,6 +65,9 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             ISearchCallback searchCallback,
             CancellationToken cancellationToken)
         {
+            // Ensure we yield immediately so our caller can proceed with other work.
+            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+
             var searchValue = searchQuery.QueryString.Trim();
             if (string.IsNullOrWhiteSpace(searchValue))
                 return;

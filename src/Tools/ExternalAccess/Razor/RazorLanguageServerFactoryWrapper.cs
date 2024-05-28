@@ -5,11 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.Composition;
-using Newtonsoft.Json;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             _languageServerFactory = languageServerFactory;
         }
 
-        internal override IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, JsonSerializer jsonSerializer, IRazorTestCapabilitiesProvider razorCapabilitiesProvider, HostServices hostServices)
+        internal override IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, JsonSerializerOptions options, IRazorTestCapabilitiesProvider razorCapabilitiesProvider, HostServices hostServices)
         {
-            var capabilitiesProvider = new RazorCapabilitiesProvider(razorCapabilitiesProvider);
-            var languageServer = _languageServerFactory.Create(jsonRpc, jsonSerializer, capabilitiesProvider, WellKnownLspServerKinds.RazorLspServer, NoOpLspLogger.Instance, hostServices);
+            var capabilitiesProvider = new RazorCapabilitiesProvider(razorCapabilitiesProvider, options);
+            var languageServer = _languageServerFactory.Create(jsonRpc, options, capabilitiesProvider, WellKnownLspServerKinds.RazorLspServer, NoOpLspLogger.Instance, hostServices);
 
             return new RazorLanguageServerTargetWrapper(languageServer);
         }
@@ -65,27 +65,29 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 .WithDocumentServiceProvider(documentServiceProvider);
         }
 
-        internal override void AddJsonConverters(JsonSerializer jsonSerializer)
+        internal override void AddJsonConverters(JsonSerializerOptions options)
         {
-            VSInternalExtensionUtilities.AddVSInternalExtensionConverters(jsonSerializer);
+            ProtocolConversions.AddLspSerializerOptions(options);
         }
 
         private class RazorCapabilitiesProvider : ICapabilitiesProvider
         {
             private readonly IRazorTestCapabilitiesProvider _razorTestCapabilitiesProvider;
+            private readonly JsonSerializerOptions _options;
 
-            public RazorCapabilitiesProvider(IRazorTestCapabilitiesProvider razorTestCapabilitiesProvider)
+            public RazorCapabilitiesProvider(IRazorTestCapabilitiesProvider razorTestCapabilitiesProvider, JsonSerializerOptions options)
             {
                 _razorTestCapabilitiesProvider = razorTestCapabilitiesProvider;
+                _options = options;
             }
 
             public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
             {
                 // To avoid exposing types from MS.VS.LanguageServer.Protocol types we serialize and deserialize the capabilities
                 // so we can just pass string around. This is obviously not great for perf, but it is only used in Razor tests.
-                var clientCapabilitiesJson = JsonConvert.SerializeObject(clientCapabilities);
+                var clientCapabilitiesJson = JsonSerializer.Serialize(clientCapabilities, _options);
                 var serverCapabilitiesJson = _razorTestCapabilitiesProvider.GetServerCapabilitiesJson(clientCapabilitiesJson);
-                var serverCapabilities = JsonConvert.DeserializeObject<VSInternalServerCapabilities>(serverCapabilitiesJson);
+                var serverCapabilities = JsonSerializer.Deserialize<VSInternalServerCapabilities>(serverCapabilitiesJson, _options);
 
                 if (serverCapabilities is null)
                 {

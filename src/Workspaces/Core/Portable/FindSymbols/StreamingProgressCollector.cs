@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -69,15 +70,19 @@ internal class StreamingProgressCollector(
         }
     }
 
-    public ValueTask OnReferencesFoundAsync(
-        ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
+    public async ValueTask OnReferencesFoundAsync(
+        IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
     {
-        lock (_gate)
+        // Reading the references from the stream will cause them to be processed.  We'll make a copy here so we can
+        // defer to the underlying progress object with the same data.
+        using var _ = ArrayBuilder<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)>.GetInstance(out var copy);
+        await foreach (var tuple in references)
         {
-            foreach (var (_, definition, location) in references)
-                _symbolToLocations[definition].Add(location);
+            copy.Add(tuple);
+            lock (_gate)
+                _symbolToLocations[tuple.symbol].Add(tuple.location);
         }
 
-        return underlyingProgress.OnReferencesFoundAsync(references, cancellationToken);
+        await underlyingProgress.OnReferencesFoundAsync(copy.AsAsyncEnumerable(), cancellationToken).ConfigureAwait(false);
     }
 }

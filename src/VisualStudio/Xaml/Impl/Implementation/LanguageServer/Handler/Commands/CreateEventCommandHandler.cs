@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Commands;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
-using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 

@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 
-[DataContract]
 internal class ProjectDebugConfiguration
 {
     public ProjectDebugConfiguration(string projectPath, string outputPath, string projectName, bool targetsDotnetCore, bool isExe, string? solutionPath)
@@ -20,21 +18,21 @@ internal class ProjectDebugConfiguration
         SolutionPath = solutionPath;
     }
 
-    [JsonProperty(PropertyName = "projectPath")]
+    [JsonPropertyName("projectPath")]
     public string ProjectPath { get; }
 
-    [JsonProperty(PropertyName = "outputPath")]
+    [JsonPropertyName("outputPath")]
     public string OutputPath { get; }
 
-    [JsonProperty(PropertyName = "projectName")]
+    [JsonPropertyName("projectName")]
     public string ProjectName { get; }
 
-    [JsonProperty(PropertyName = "targetsDotnetCore")]
+    [JsonPropertyName("targetsDotnetCore")]
     public bool TargetsDotnetCore { get; }
 
-    [JsonProperty(PropertyName = "isExe")]
+    [JsonPropertyName("isExe")]
     public bool IsExe { get; }
 
-    [JsonProperty(PropertyName = "solutionPath")]
+    [JsonPropertyName("solutionPath")]
     public string? SolutionPath { get; }
 }

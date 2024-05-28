@@ -10,11 +10,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
-internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespaceSymbol>
+internal sealed class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespaceSymbol>
 {
     protected override bool CanFind(INamespaceSymbol symbol)
         => true;
@@ -51,7 +50,7 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
         await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    protected override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected override void FindReferencesInDocument<TData>(
         INamespaceSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -94,8 +93,6 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
             FindReferencesInDocumentInsideGlobalSuppressions(
                 symbol, state, processResult, processResultData, cancellationToken);
         }
-
-        return ValueTaskFactory.CompletedTask;
     }
 
     /// <summary>

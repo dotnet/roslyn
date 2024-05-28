@@ -4,34 +4,32 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing range of characters for completion continuation.
     /// </summary>
-    [DataContract]
     internal class VSInternalContinueCharacterRange
     {
         /// <summary>
         /// Gets the type value.
         /// </summary>
-        [DataMember(Name = "_vs_type")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("_vs_type")]
+        [JsonRequired]
         public const string Type = "charRange";
 
         /// <summary>
         /// Gets or sets the first completion character of the range.
         /// </summary>
-        [DataMember(Name = "_vs_start")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("_vs_start")]
+        [JsonRequired]
         public string Start { get; set; }
 
         /// <summary>
         /// Gets or sets the last completion character of the range.
         /// </summary>
-        [DataMember(Name = "_vs_end")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("_vs_end")]
+        [JsonRequired]
         public string End { get; set; }
     }
 }

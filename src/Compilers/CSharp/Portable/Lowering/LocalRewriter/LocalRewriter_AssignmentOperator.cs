@@ -81,49 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            var result = MakeStaticAssignmentOperator(node.Syntax, loweredLeft, loweredRight, node.IsRef, used);
-
-            result = ConvertResultOfAssignmentToDynamicIfNecessary(node, left, result, used);
-
-            Debug.Assert(used || result.Type?.IsVoidType() == true ||
-                        (left switch { BoundIndexerAccess indexer => indexer.Indexer, BoundPropertyAccess property => property.PropertySymbol, _ => null }) is not PropertySymbol prop ||
-                        prop.GetOwnOrInheritedSetMethod() is null);
-
-            Debug.Assert(result.Type?.IsVoidType() == true || TypeSymbol.Equals(result.Type, node.Type, TypeCompareKind.AllIgnoreOptions));
-
-            return result;
-        }
-
-        private static bool ShouldConvertResultOfAssignmentToDynamic(TypeSymbol? assignmentResultType, BoundExpression target)
-        {
-            if (assignmentResultType?.IsDynamic() == true && target is BoundIndexerAccess { Type.TypeKind: not TypeKind.Dynamic } indexerAccess)
-            {
-                Debug.Assert(!indexerAccess.Indexer.Type.IsDynamic());
-                Debug.Assert(!indexerAccess.Indexer.ReturnsByRef);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        internal static bool ShouldConvertResultOfAssignmentToDynamic(BoundExpression assignment, BoundExpression target)
-        {
-            Debug.Assert(assignment is BoundAssignmentOperator or BoundIncrementOperator or BoundCompoundAssignmentOperator or BoundNullCoalescingAssignmentOperator);
-            return ShouldConvertResultOfAssignmentToDynamic(assignment.Type, target);
-        }
-
-        private BoundExpression ConvertResultOfAssignmentToDynamicIfNecessary(BoundExpression originalAssignment, BoundExpression originalTarget, BoundExpression result, bool used)
-        {
-            Debug.Assert(originalAssignment.Type is not null);
-            if (used && ShouldConvertResultOfAssignmentToDynamic(originalAssignment, originalTarget))
-            {
-                Debug.Assert(result.Type is not null);
-                Debug.Assert(!result.Type.IsDynamic());
-                result = _factory.Convert(originalAssignment.Type, result);
-            }
-
-            return result;
+            return MakeStaticAssignmentOperator(node.Syntax, loweredLeft, loweredRight, node.IsRef, used);
         }
 
         /// <summary>

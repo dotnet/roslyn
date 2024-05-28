@@ -52,7 +52,8 @@ public abstract class AbstractLanguageServerHostTests
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
             LanguageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, logger);
 
-            _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, new JsonMessageFormatter()))
+            var messageFormatter = LanguageServerHost.CreateJsonMessageFormatter();
+            _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, messageFormatter))
             {
                 AllowModificationWhileListening = true,
                 ExceptionStrategy = ExceptionProcessing.ISerializable,

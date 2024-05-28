@@ -13,13 +13,15 @@
     <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.VisualBasic.CodeStyle/*" />
     <UsagePattern IdentityGlob="Microsoft.Net.Compilers.Toolset/*" />
 
-    <!-- Roslyn's source-build CI builds both NetPrevious and NetCurrent. This 7.0 ref pack shows up as
+    <!-- Roslyn's source-build CI builds both NetPrevious and NetCurrent. This 7.0 / 8.0 ref pack shows up as
          prebuilt only for the repo CI build but not full source-build. -->
     <UsagePattern IdentityGlob="Microsoft.AspNetCore.App.Ref/7.0*" />
+    <UsagePattern IdentityGlob="Microsoft.AspNetCore.App.Ref/8.0*" />
 
-    <!-- Roslyn's source-build CI builds both NetPrevious and NetCurrent. This 7.0 ref pack shows up as
+    <!-- Roslyn's source-build CI builds both NetPrevious and NetCurrent. This 7.0 / 8.0 ref pack shows up as
          prebuilt only for the repo CI build but not full source-build. -->
     <UsagePattern IdentityGlob="Microsoft.NETCore.App.Ref/7.0*" />
+    <UsagePattern IdentityGlob="Microsoft.NETCore.App.Ref/8.0*" />
 
      <!-- This is upgraded to latest version in full source-build and can be baselined for repo build -->
     <UsagePattern IdentityGlob="Microsoft.Extensions.Configuration*/8.0*" />

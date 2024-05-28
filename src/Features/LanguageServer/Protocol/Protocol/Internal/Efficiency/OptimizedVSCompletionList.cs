@@ -4,13 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// A subclass of the VS LSP protocol extension <see cref="VSInternalCompletionList"/> that has a fast serialization path.
     /// </summary>
-    [DataContract]
     [JsonConverter(typeof(OptimizedVSCompletionListJsonConverter))]
     internal sealed class OptimizedVSCompletionList : VSInternalCompletionList
     {

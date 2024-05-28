@@ -5,15 +5,13 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing find reference parameter for find reference request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#referenceParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class ReferenceParams : TextDocumentPositionParams, IPartialResultParams<object>
     {
         // Using IPartialResultParams<object> instead of IPartialResultParams<Location[]> to
@@ -22,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the reference context.
         /// </summary>
-        [DataMember(Name = "context")]
+        [JsonPropertyName("context")]
         public ReferenceContext Context
         {
             get;
@@ -32,8 +30,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value of the PartialResultToken instance.
         /// </summary>
-        [DataMember(Name = Methods.PartialResultTokenName, IsRequired = false)]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName(Methods.PartialResultTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<object>? PartialResultToken
         {
             get;

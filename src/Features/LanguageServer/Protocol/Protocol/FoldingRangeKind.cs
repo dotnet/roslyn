@@ -5,15 +5,13 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System.ComponentModel;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Value representing various code action kinds.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#foldingRangeKind">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     [JsonConverter(typeof(StringEnumConverter<FoldingRangeKind>))]
     [TypeConverter(typeof(StringEnumConverter<FoldingRangeKind>.TypeConverter))]
     internal readonly record struct FoldingRangeKind(string Value) : IStringEnum

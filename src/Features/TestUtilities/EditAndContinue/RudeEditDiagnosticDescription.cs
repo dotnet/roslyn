@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     internal readonly struct RudeEditDiagnosticDescription : IEquatable<RudeEditDiagnosticDescription>
     {
-        private readonly RudeEditKind _rudeEditKind;
+        public readonly RudeEditKind RudeEditKind;
         private readonly string? _firstLine;
         private readonly string? _squiggle;
         private readonly string[] _arguments;
 
         internal RudeEditDiagnosticDescription(RudeEditKind rudeEditKind, string? squiggle, string[] arguments, string? firstLine)
         {
-            _rudeEditKind = rudeEditKind;
+            RudeEditKind = rudeEditKind;
             _squiggle = squiggle;
             _firstLine = firstLine;
             _arguments = arguments ?? [];
@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public string? FirstLine => _firstLine;
 
         public RudeEditDiagnosticDescription WithFirstLine(string value)
-            => new(_rudeEditKind, _squiggle, _arguments, value.Trim());
+            => new(RudeEditKind, _squiggle, _arguments, value.Trim());
 
         public bool Equals(RudeEditDiagnosticDescription other)
         {
-            return _rudeEditKind == other._rudeEditKind
+            return RudeEditKind == other.RudeEditKind
                 && _squiggle == other._squiggle
                 && (_firstLine == other._firstLine || _firstLine == null || other._firstLine == null)
                 && _arguments.SequenceEqual(other._arguments, object.Equals);
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             return
                 Hash.Combine(_squiggle,
-                Hash.CombineValues(_arguments, (int)_rudeEditKind));
+                Hash.CombineValues(_arguments, (int)RudeEditKind));
         }
 
         public override string ToString()
@@ -52,18 +52,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public string ToString(Func<string, string?>? tryGetResource)
         {
-            var arguments =
-                new[] { (_squiggle != null) ? "\"" + _squiggle.Replace("\r\n", "\\r\\n") + "\"" : "null" }
-                .Concat(_arguments.Select(a => tryGetResource?.Invoke(a) is { } ? $"GetResource(\"{a}\")" : $"\"{a}\""));
+            var formattedSquiggle = _squiggle is null
+                ? "null"
+                : _squiggle.IndexOfAny(['\r', '\n']) >= 0
+                ? $"\"\"\"{Environment.NewLine}{_squiggle}{Environment.NewLine}\"\"\""
+                : $"\"{_squiggle}\"";
 
+            string[] arguments = [formattedSquiggle, .. _arguments.Select(a => tryGetResource?.Invoke(a) is { } ? $"GetResource(\"{a}\")" : $"\"{a}\"")];
             var withLine = (_firstLine != null) ? $".WithFirstLine(\"{_firstLine}\")" : null;
 
-            return $"Diagnostic(RudeEditKind.{_rudeEditKind}, {string.Join(", ", arguments)}){withLine}";
+            return $"Diagnostic(RudeEditKind.{RudeEditKind}, {string.Join(", ", arguments)}){withLine}";
         }
 
         internal void VerifyMessageFormat()
         {
-            var descriptior = EditAndContinueDiagnosticDescriptors.GetDescriptor(_rudeEditKind);
+            var descriptior = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind);
             var format = descriptior.MessageFormat.ToString();
             try
             {
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
             catch (FormatException)
             {
-                Assert.True(false, $"Message format string was not supplied enough arguments.\nRudeEditKind: {_rudeEditKind}\nArguments supplied: {_arguments.Length}\nFormat string: {format}");
+                Assert.True(false, $"Message format string was not supplied enough arguments.\nRudeEditKind: {RudeEditKind}\nArguments supplied: {_arguments.Length}\nFormat string: {format}");
             }
         }
     }

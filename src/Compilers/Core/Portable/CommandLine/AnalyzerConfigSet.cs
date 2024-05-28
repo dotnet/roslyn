@@ -183,8 +183,9 @@ namespace Microsoft.CodeAnalysis
 
             var sectionKey = _sectionKeyPool.Allocate();
 
-            var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
+            var normalizedPath = PathUtilities.CollapseWithForwardSlash(sourcePath.AsSpan());
             normalizedPath = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedPath);
+            normalizedPath = PathUtilities.NormalizeDriveLetter(normalizedPath);
 
             // If we have a global config, add any sections that match the full path. We can have at most one section since
             // we would have merged them earlier.

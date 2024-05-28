@@ -70,10 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
                                                                     TypeWithAnnotations.Create(ContainingType, annotation),
-                                                                    ordinal: 0, RefKind.None, ScopedKind.None, "left", Locations),
+                                                                    ordinal: 0, RefKind.None, "left", Locations),
                                     new SourceSimpleParameterSymbol(owner: this,
                                                                     TypeWithAnnotations.Create(ContainingType, annotation),
-                                                                    ordinal: 1, RefKind.None, ScopedKind.None, "right", Locations)));
+                                                                    ordinal: 1, RefKind.None, "right", Locations)));
         }
 
         protected override int GetParameterCountFromSyntax() => 2;

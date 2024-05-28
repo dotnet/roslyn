@@ -20,8 +20,8 @@ internal class TextChangeMerger
 {
     private readonly struct IntervalIntrospector : IIntervalIntrospector<TextChange>
     {
-        int IIntervalIntrospector<TextChange>.GetStart(TextChange value) => value.Span.Start;
-        int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
+        public TextSpan GetSpan(TextChange value)
+            => value.Span;
     }
 
     private readonly Document _oldDocument;

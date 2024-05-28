@@ -18,25 +18,22 @@ internal partial class StreamingFindUsagesPresenter
     /// <summary>
     /// Entry created for a definition with a single source location.
     /// </summary>
-    private class DefinitionItemEntry(
+    private sealed class DefinitionItemEntry(
         AbstractTableDataSourceFindUsagesContext context,
         RoslynDefinitionBucket definitionBucket,
-        string projectName,
         Guid projectGuid,
+        string projectName,
         SourceText lineText,
         MappedSpanResult mappedSpanResult,
         DocumentSpan documentSpan,
         IThreadingContext threadingContext)
-        : AbstractDocumentSpanEntry(context, definitionBucket, projectGuid, lineText, mappedSpanResult, threadingContext)
+        : AbstractDocumentSpanEntry(context, definitionBucket, projectGuid, projectName, lineText, mappedSpanResult, threadingContext)
     {
         protected override Document Document
             => documentSpan.Document;
 
         protected override TextSpan NavigateToTargetSpan
             => documentSpan.SourceSpan;
-
-        protected override string GetProjectName()
-            => projectName;
 
         protected override IList<Inline> CreateLineTextInlines()
             => DefinitionBucket.DefinitionItem.DisplayParts.ToInlines(Presenter.ClassificationFormatMap, Presenter.TypeMap);

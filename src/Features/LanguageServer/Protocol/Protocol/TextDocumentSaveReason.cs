@@ -4,15 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
-
     /// <summary>
     /// Enum representing the reason a document was saved.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentSaveReason">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal enum TextDocumentSaveReason
     {
         /// <summary>

@@ -4,21 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the general registration information for registering for a capability.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#registration">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class Registration
     {
         /// <summary>
         /// Gets or sets the id used to register the request. This can be used to deregister later.
         /// </summary>
-        [DataMember(Name = "id")]
+        [JsonPropertyName("id")]
         public string Id
         {
             get;
@@ -28,7 +26,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the method / capability to register for.
         /// </summary>
-        [DataMember(Name = "method")]
+        [JsonPropertyName("method")]
         public string Method
         {
             get;
@@ -38,8 +36,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the options necessary for registration.
         /// </summary>
-        [DataMember(Name = "registerOptions")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("registerOptions")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? RegisterOptions
         {
             get;

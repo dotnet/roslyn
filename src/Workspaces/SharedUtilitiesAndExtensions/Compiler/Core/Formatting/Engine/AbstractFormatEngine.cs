@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
@@ -45,19 +46,42 @@ internal abstract partial class AbstractFormatEngine
     internal readonly SyntaxFormattingOptions Options;
     internal readonly TreeData TreeData;
 
+    /// <summary>
+    /// It is very common to be formatting lots of documents at teh same time, with the same set of formatting rules and
+    /// options. To help with that, cache the last set of ChainedFormattingRules that was produced, as it is not a cheap
+    /// type to create.
+    /// </summary>
+    /// <remarks>
+    /// Stored as a <see cref="Tuple{T1, T2, T3}"/> instead of a <see cref="ValueTuple{T1, T2, T3}"/> so we don't have
+    /// to worry about torn write concerns.
+    /// </remarks>
+    private static Tuple<ImmutableArray<AbstractFormattingRule>, SyntaxFormattingOptions, ChainedFormattingRules>? s_lastRulesAndOptions;
+
     public AbstractFormatEngine(
         TreeData treeData,
         SyntaxFormattingOptions options,
-        IEnumerable<AbstractFormattingRule> formattingRules,
+        ImmutableArray<AbstractFormattingRule> formattingRules,
         SyntaxToken startToken,
         SyntaxToken endToken)
         : this(
               treeData,
               options,
-              new ChainedFormattingRules(formattingRules, options),
+              GetChainedFormattingRules(formattingRules, options),
               startToken,
               endToken)
     {
+    }
+
+    private static ChainedFormattingRules GetChainedFormattingRules(ImmutableArray<AbstractFormattingRule> formattingRules, SyntaxFormattingOptions options)
+    {
+        var lastRulesAndOptions = s_lastRulesAndOptions;
+        if (formattingRules != lastRulesAndOptions?.Item1 || options != s_lastRulesAndOptions?.Item2)
+        {
+            lastRulesAndOptions = Tuple.Create(formattingRules, options, new ChainedFormattingRules(formattingRules, options));
+            s_lastRulesAndOptions = lastRulesAndOptions;
+        }
+
+        return lastRulesAndOptions.Item3;
     }
 
     internal AbstractFormatEngine(
@@ -133,10 +157,10 @@ internal abstract partial class AbstractFormatEngine
 
         var nodeOperations = new NodeOperations();
 
-        var indentBlockOperation = new List<IndentBlockOperation>();
-        var suppressOperation = new List<SuppressOperation>();
-        var alignmentOperation = new List<AlignTokensOperation>();
-        var anchorIndentationOperations = new List<AnchorIndentationOperation>();
+        var indentBlockOperationScratch = new List<IndentBlockOperation>();
+        var alignmentOperationScratch = new List<AlignTokensOperation>();
+        var anchorIndentationOperationsScratch = new List<AnchorIndentationOperation>();
+        using var _ = ArrayBuilder<SuppressOperation>.GetInstance(out var suppressOperationScratch);
 
         // Cache delegates out here to avoid allocation overhead.
 
@@ -150,19 +174,33 @@ internal abstract partial class AbstractFormatEngine
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            AddOperations(nodeOperations.IndentBlockOperation, indentBlockOperation, node, addIndentBlockOperations);
-            AddOperations(nodeOperations.SuppressOperation, suppressOperation, node, addSuppressOperation);
-            AddOperations(nodeOperations.AlignmentOperation, alignmentOperation, node, addAlignTokensOperations);
-            AddOperations(nodeOperations.AnchorIndentationOperations, anchorIndentationOperations, node, addAnchorIndentationOperations);
+            AddOperations(nodeOperations.IndentBlockOperation, indentBlockOperationScratch, node, addIndentBlockOperations);
+            AddOperations(nodeOperations.SuppressOperation, suppressOperationScratch, node, addSuppressOperation);
+            AddOperations(nodeOperations.AlignmentOperation, alignmentOperationScratch, node, addAlignTokensOperations);
+            AddOperations(nodeOperations.AnchorIndentationOperations, anchorIndentationOperationsScratch, node, addAnchorIndentationOperations);
         }
 
         // make sure we order align operation from left to right
-        alignmentOperation.Sort(static (o1, o2) => o1.BaseToken.Span.CompareTo(o2.BaseToken.Span));
+        nodeOperations.AlignmentOperation.Sort(static (o1, o2) => o1.BaseToken.Span.CompareTo(o2.BaseToken.Span));
 
         return nodeOperations;
     }
 
     private static void AddOperations<T>(SegmentedList<T> operations, List<T> scratch, SyntaxNode node, Action<List<T>, SyntaxNode> addOperations)
+    {
+        Debug.Assert(scratch.Count == 0);
+
+        addOperations(scratch, node);
+        foreach (var operation in scratch)
+        {
+            if (operation is not null)
+                operations.Add(operation);
+        }
+
+        scratch.Clear();
+    }
+
+    private static void AddOperations<T>(SegmentedList<T> operations, ArrayBuilder<T> scratch, SyntaxNode node, Action<ArrayBuilder<T>, SyntaxNode> addOperations)
     {
         Debug.Assert(scratch.Count == 0);
 

@@ -4,21 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the response of an LinkedEditingRanges response.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#linkedEditingRanges">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class LinkedEditingRanges
     {
         /// <summary>
         /// Gets or sets the ranges for the type rename.
         /// </summary>
-        [DataMember(Name = "ranges")]
+        [JsonPropertyName("ranges")]
         public Range[] Ranges
         {
             get;
@@ -28,8 +26,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the word pattern for the type rename.
         /// </summary>
-        [DataMember(Name = "wordPattern")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("wordPattern")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? WordPattern
         {
             get;

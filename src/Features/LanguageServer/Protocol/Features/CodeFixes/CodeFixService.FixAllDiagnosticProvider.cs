@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 bool shouldIncludeDiagnostic(string id) => _diagnosticIds == null || _diagnosticIds.Contains(id);
                 var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(document, fixAllSpan, shouldIncludeDiagnostic,
                     includeCompilerDiagnostics: true, _includeSuppressedDiagnostics, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
-                    addOperationScope: null, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
+                    DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
                 return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
             }

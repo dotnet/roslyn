@@ -9,11 +9,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections;
 
 internal readonly struct TextSpanIntervalIntrospector : IIntervalIntrospector<TextSpan>
 {
-    public int GetStart(TextSpan value)
-        => value.Start;
-
-    public int GetLength(TextSpan value)
-        => value.Length;
+    public TextSpan GetSpan(TextSpan value)
+        => value;
 }
 
 internal sealed class TextSpanIntervalTree(IEnumerable<TextSpan>? values)

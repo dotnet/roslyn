@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Test.Utilities;
 using Xunit;
 

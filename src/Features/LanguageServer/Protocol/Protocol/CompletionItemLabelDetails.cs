@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using Newtonsoft.Json;
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Additional details for a completion item label.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItemLabelDetails">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class CompletionItemLabelDetails
     {
         /// <summary>
         /// Gets or sets an optional string which is rendered less prominently directly after label, without any spacing.
         /// </summary>
-        [DataMember(Name = "detail")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("detail")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Detail
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets an optional string which is rendered less prominently after detail.
         /// </summary>
-        [DataMember(Name = "description")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("description")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Description
         {
             get;

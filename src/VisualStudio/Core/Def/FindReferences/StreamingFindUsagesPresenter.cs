@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition.Hosting;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -267,7 +266,7 @@ internal sealed partial class StreamingFindUsagesPresenter : IStreamingFindUsage
         tableControl.SetColumnStates(newColumns);
     }
 
-    private static (Guid, string projectName, string? projectFlavor) GetGuidAndProjectInfo(Document document)
+    private static (Guid, string projectName) GetGuidAndProjectName(Document document)
     {
         // The FAR system needs to know the guid for the project that a def/reference is 
         // from (to support features like filtering).  Normally that would mean we could
@@ -277,12 +276,12 @@ internal sealed partial class StreamingFindUsagesPresenter : IStreamingFindUsage
         // certain features (like filtering) may not work in that context.
         var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
 
-        var (projectName, projectFlavor) = document.Project.State.NameAndFlavor;
+        var (projectName, _) = document.Project.State.NameAndFlavor;
         projectName ??= document.Project.Name;
 
         var guid = vsWorkspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
 
-        return (guid, projectName, projectFlavor);
+        return (guid, projectName);
     }
 
     private void RemoveExistingInfoBar()

@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the signature of something callable. This class is returned from the textDocument/signatureHelp request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelp">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SignatureHelp
     {
         /// <summary>
         /// Gets or sets an array of signatures associated with the callable item.
         /// </summary>
-        [DataMember(Name = "signatures")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("signatures")]
+        [JsonRequired]
         public SignatureInformation[] Signatures
         {
             get;
@@ -29,8 +27,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the active signature. If the value is omitted or falls outside the range of Signatures it defaults to zero.
         /// </summary>
-        [DataMember(Name = "activeSignature")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("activeSignature")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? ActiveSignature
         {
             get;
@@ -40,8 +38,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the active parameter. If the value is omitted or falls outside the range of Signatures[ActiveSignature].Parameters it defaults to zero.
         /// </summary>
-        [DataMember(Name = "activeParameter")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("activeParameter")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? ActiveParameter
         {
             get;

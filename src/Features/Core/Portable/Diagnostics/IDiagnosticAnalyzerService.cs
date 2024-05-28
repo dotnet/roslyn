@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -107,7 +106,7 @@ internal interface IDiagnosticAnalyzerService
     /// This API will only force complete analyzers that support span based analysis, i.e. compiler analyzer and
     /// <see cref="IBuiltInAnalyzer"/>s that support <see cref="DiagnosticAnalyzerCategory.SemanticSpanAnalysis"/>.
     /// For the rest of the analyzers, it will only return diagnostics if the analyzer has already been executed.
-    /// Use <see cref="GetDiagnosticsForSpanAsync(TextDocument, TextSpan?, Func{string, bool}?, bool, bool, ICodeActionRequestPriorityProvider, Func{string, IDisposable?}?, DiagnosticKind, bool, CancellationToken)"/>
+    /// Use <see cref="GetDiagnosticsForSpanAsync(TextDocument, TextSpan?, Func{string, bool}?, bool, bool, ICodeActionRequestPriorityProvider, DiagnosticKind, bool, CancellationToken)"/>
     /// if you want to force complete all analyzers and get up-to-date diagnostics for all analyzers for the given span.
     /// </summary>
     Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
@@ -131,7 +130,6 @@ internal interface IDiagnosticAnalyzerService
         bool includeCompilerDiagnostics,
         bool includeSuppressedDiagnostics,
         ICodeActionRequestPriorityProvider priorityProvider,
-        Func<string, IDisposable?>? addOperationScope,
         DiagnosticKind diagnosticKind,
         bool isExplicit,
         CancellationToken cancellationToken);
@@ -161,7 +159,7 @@ internal static class IDiagnosticAnalyzerServiceExtensions
         => service.GetDiagnosticsForSpanAsync(document, range,
             diagnosticId: null, includeSuppressedDiagnostics,
             priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
-            addOperationScope: null, diagnosticKind, isExplicit: false, cancellationToken);
+            diagnosticKind, isExplicit: false, cancellationToken);
 
     /// <summary>
     /// Return up to date diagnostics for the given <paramref name="range"/> and parameters for the given <paramref name="document"/>.
@@ -175,7 +173,6 @@ internal static class IDiagnosticAnalyzerServiceExtensions
         TextDocument document, TextSpan? range, string? diagnosticId,
         bool includeSuppressedDiagnostics,
         ICodeActionRequestPriorityProvider priorityProvider,
-        Func<string, IDisposable?>? addOperationScope,
         DiagnosticKind diagnosticKind,
         bool isExplicit,
         CancellationToken cancellationToken)
@@ -183,7 +180,7 @@ internal static class IDiagnosticAnalyzerServiceExtensions
         Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
         return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
             includeCompilerDiagnostics: true, includeSuppressedDiagnostics, priorityProvider,
-            addOperationScope, diagnosticKind, isExplicit, cancellationToken);
+            diagnosticKind, isExplicit, cancellationToken);
     }
 
     public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(

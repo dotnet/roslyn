@@ -4,22 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol;
 
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing a diagnostic report with a full set of problems.
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fullDocumentDiagnosticReport">Language Server Protocol specification</see> for additional information.
 /// </summary>
-[DataContract]
 [Kind(DocumentDiagnosticReportKind.Full)]
 internal class FullDocumentDiagnosticReport
 {
     /// <summary>
     /// Gets the kind of this report.
     /// </summary>
-    [DataMember(Name = "kind")]
+    [JsonPropertyName("kind")]
 #pragma warning disable CA1822 // Mark members as static
     public string Kind => DocumentDiagnosticReportKind.Full;
 #pragma warning restore CA1822 // Mark members as static
@@ -27,8 +25,8 @@ internal class FullDocumentDiagnosticReport
     /// <summary>
     /// Gets or sets the optional result id.
     /// </summary>
-    [DataMember(Name = "resultId")]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("resultId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ResultId
     {
         get;
@@ -38,7 +36,7 @@ internal class FullDocumentDiagnosticReport
     /// <summary>
     /// Gets or sets the diagnostics in this report.
     /// </summary>
-    [DataMember(Name = "items")]
+    [JsonPropertyName("items")]
     public Diagnostic[] Items
     {
         get;

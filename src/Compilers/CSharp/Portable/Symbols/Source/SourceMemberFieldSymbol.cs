@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax?.Location ?? this.GetFirstLocation(), type);
             }
-            else if (type.IsRefLikeType && (this.IsStatic || !containingType.IsRefLikeType))
+            else if (type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !containingType.IsRefLikeType))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax?.Location ?? this.GetFirstLocation(), type);
             }
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!containingType.IsRefLikeType)
                             diagnostics.Add(ErrorCode.ERR_RefFieldInNonRefStruct, ErrorLocation);
 
-                        if (type.Type?.IsRefLikeType == true)
+                        if (type.Type.IsRefLikeOrAllowsRefLikeType())
                             diagnostics.Add(ErrorCode.ERR_RefFieldCannotReferToRefStruct, typeSyntax.SkipScoped(out _).Location);
                     }
                 }

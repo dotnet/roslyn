@@ -2025,22 +2025,22 @@ ref struct S
         if (expression.Contains('+'))
         {
             comp.VerifyDiagnostics(
-            // (6,13): error CS0306: The type 'int*' may not be used as a type argument
+            // 0.cs(6,13): error CS0306: The type 'int*' may not be used as a type argument
             //     _ = $"""{i}""" + $"""{s}""";
             Diagnostic(ErrorCode.ERR_BadTypeArgument, "{i}").WithArguments("int*").WithLocation(6, 13),
-            // (6,26): error CS0306: The type 'S' may not be used as a type argument
+            // 0.cs(6,26): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'DefaultInterpolatedStringHandler.AppendFormatted<T>(T, int, string)'
             //     _ = $"""{i}""" + $"""{s}""";
-            Diagnostic(ErrorCode.ERR_BadTypeArgument, "{s}").WithArguments("S").WithLocation(6, 26));
+            Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "{s}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<T>(T, int, string)", "T", "S").WithLocation(6, 26));
         }
         else
         {
             comp.VerifyDiagnostics(
-            // (6,13): error CS0306: The type 'int*' may not be used as a type argument
+            // 0.cs(6,13): error CS0306: The type 'int*' may not be used as a type argument
             //     _ = $"""{i}{s}""";
             Diagnostic(ErrorCode.ERR_BadTypeArgument, "{i}").WithArguments("int*").WithLocation(6, 13),
-            // (6,16): error CS0306: The type 'S' may not be used as a type argument
+            // 0.cs(6,16): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'DefaultInterpolatedStringHandler.AppendFormatted<T>(T, int, string)'
             //     _ = $"""{i}{s}""";
-            Diagnostic(ErrorCode.ERR_BadTypeArgument, "{s}").WithArguments("S").WithLocation(6, 16));
+            Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "{s}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<T>(T, int, string)", "T", "S").WithLocation(6, 16));
         }
     }
 
@@ -2506,9 +2506,10 @@ ref struct S
 
         var comp = CreateCompilation(new[] { source, interpolatedStringBuilder }, targetFramework: TargetFramework.NetCoreApp);
         comp.VerifyDiagnostics(
-            // (5,21): error CS0306: The type 'S' may not be used as a type argument
-            // Console.WriteLine($"{s}");
-            Diagnostic(ErrorCode.ERR_BadTypeArgument, "{s}").WithArguments("S").WithLocation(5, 23));
+            // 0.cs(5,23): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'DefaultInterpolatedStringHandler.AppendFormatted<T>(T)'
+            // Console.WriteLine($"""{s}""");
+            Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "{s}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<T>(T)", "T", "S").WithLocation(5, 23)
+            );
     }
 
     [Theory]
@@ -6752,7 +6753,7 @@ o in M
         verifier.VerifyDiagnostics(modifier == "ref readonly"
             ? new[]
             {
-                // 0.cs(8,5): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+                // 0.cs(8,5): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
                 // C.M(i, ref s, out o, $"""literal""");
                 Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "i").WithArguments("1").WithLocation(8, 5)
             }
@@ -12638,9 +12639,14 @@ CustomHandler c = " + expression + ";";
 
         var comp = CreateCompilationWithCSharp(new[] { code, handler });
 
-        // Note: We don't give any errors when mixing dynamic and ref structs today. If that ever changes, we should get an
-        // error here. This will crash at runtime because of this.
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyDiagnostics(
+            // 0.cs(4,19): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomHandler'.
+            // CustomHandler c = $"""{h1}""" + $"""{h2}""";
+            Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomHandler").WithLocation(4, 19),
+            // 0.cs(4,19): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomHandler'.
+            // CustomHandler c = $"""{h1}""" + $"""{h2}""";
+            Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomHandler").WithLocation(4, 19)
+            );
     }
 
     [Theory]

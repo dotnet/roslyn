@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
-internal class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IEventSymbol>
+internal sealed class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IEventSymbol>
 {
     protected override bool CanFind(IEventSymbol symbol)
         => true;
@@ -49,7 +49,7 @@ internal class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbo
         await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override void FindReferencesInDocument<TData>(
         IEventSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -58,6 +58,5 @@ internal class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbo
         CancellationToken cancellationToken)
     {
         FindReferencesInDocumentUsingSymbolName(symbol, state, processResult, processResultData, cancellationToken);
-        return ValueTaskFactory.CompletedTask;
     }
 }

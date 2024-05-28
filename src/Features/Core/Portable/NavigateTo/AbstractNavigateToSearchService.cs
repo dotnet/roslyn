@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
@@ -33,12 +32,12 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
 
     public bool CanFilter => true;
 
-    private static Func<ImmutableArray<RoslynNavigateToItem>, Task> GetOnItemsFoundCallback(
-        Solution solution, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, CancellationToken cancellationToken)
+    private static Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> GetOnItemsFoundCallback(
+        Solution solution, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound)
     {
-        return async items =>
+        return async (items, _, cancellationToken) =>
         {
-            using var _ = ArrayBuilder<INavigateToSearchResult>.GetInstance(items.Length, out var results);
+            using var _1 = ArrayBuilder<INavigateToSearchResult>.GetInstance(items.Length, out var results);
 
             foreach (var item in items)
             {
@@ -81,22 +80,4 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         foreach (var item in normalItems)
             yield return item;
     }
-
-    /// <summary>
-    /// Main utility for searching across items in a solution.  The actual code to search the item should be provided in
-    /// <paramref name="callback"/>.  Each item in <paramref name="items"/> will be processed using
-    /// <code>Parallel.ForEachAsync</code>, allowing for parallel processing of the items, with a preference towards
-    /// earlier items.
-    /// </summary>
-    private static Task PerformParallelSearchAsync<T>(
-        IEnumerable<T> items,
-        Func<T, Action<RoslynNavigateToItem>, ValueTask> callback,
-        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
-        CancellationToken cancellationToken)
-        => ProducerConsumer<RoslynNavigateToItem>.RunAsync(
-            ProducerConsumerOptions.SingleReaderOptions,
-            produceItems: static (onItemFound, args) => RoslynParallel.ForEachAsync(args.items, args.cancellationToken, (item, cancellationToken) => args.callback(item, onItemFound)),
-            consumeItems: static (items, args) => args.onItemsFound(items),
-            args: (items, callback, onItemsFound, cancellationToken),
-            cancellationToken);
 }

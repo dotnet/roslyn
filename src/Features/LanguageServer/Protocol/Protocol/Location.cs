@@ -6,21 +6,19 @@ namespace Roslyn.LanguageServer.Protocol
 {
     using System;
     using System.Collections.Generic;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing a location in a document.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#location">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class Location : IEquatable<Location>
     {
         /// <summary>
         /// Gets or sets the URI for the document the location belongs to.
         /// </summary>
-        [DataMember(Name = "uri")]
+        [JsonPropertyName("uri")]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri Uri
         {
@@ -31,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range of the location in the document.
         /// </summary>
-        [DataMember(Name = "range")]
+        [JsonPropertyName("range")]
         public Range Range
         {
             get;

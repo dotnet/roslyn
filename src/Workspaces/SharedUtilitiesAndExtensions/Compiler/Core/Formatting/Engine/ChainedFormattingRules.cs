@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
@@ -32,7 +33,7 @@ internal class ChainedFormattingRules
     {
         Contract.ThrowIfNull(formattingRules);
 
-        _formattingRules = formattingRules.Select(rule => rule.WithOptions(options)).ToImmutableArray();
+        _formattingRules = formattingRules.SelectAsArray(rule => rule.WithOptions(options));
         _options = options;
 
         _addSuppressOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddSuppressOperations));
@@ -43,7 +44,7 @@ internal class ChainedFormattingRules
         _getAdjustSpacesOperationRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.GetAdjustSpacesOperation));
     }
 
-    public void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode currentNode)
+    public void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode currentNode)
     {
         var action = new NextSuppressOperationAction(_addSuppressOperationsRules, index: 0, currentNode, list);
         action.Invoke();
@@ -81,25 +82,21 @@ internal class ChainedFormattingRules
 
     private static ImmutableArray<AbstractFormattingRule> FilterToRulesImplementingMethod(ImmutableArray<AbstractFormattingRule> rules, string name)
     {
-        return rules.Where(rule =>
+        return rules.WhereAsArray(rule =>
         {
             var type = GetTypeImplementingMethod(rule, name);
             if (type == typeof(AbstractFormattingRule))
-            {
                 return false;
-            }
 
             if (type == typeof(CompatAbstractFormattingRule))
             {
                 type = GetTypeImplementingMethod(rule, name + "Slow");
                 if (type == typeof(CompatAbstractFormattingRule))
-                {
                     return false;
-                }
             }
 
             return true;
-        }).ToImmutableArray();
+        });
     }
 
     private static Type? GetTypeImplementingMethod(object obj, string name)

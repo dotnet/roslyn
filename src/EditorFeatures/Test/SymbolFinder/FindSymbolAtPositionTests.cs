@@ -4,30 +4,29 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-{
-    [UseExportProvider]
-    public class FindSymbolAtPositionTests
-    {
-        private static Task<ISymbol> FindSymbolAtPositionAsync(TestWorkspace workspace)
-        {
-            var position = workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition!.Value;
-            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.Single().Id);
-            return SymbolFinder.FindSymbolAtPositionAsync(document, position);
-        }
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
-        [Fact]
-        public async Task PositionOnLeadingTrivia()
-        {
-            using var workspace = TestWorkspace.CreateCSharp(
-                @"using System;
+[UseExportProvider]
+public class FindSymbolAtPositionTests
+{
+    private static Task<ISymbol> FindSymbolAtPositionAsync(TestWorkspace workspace)
+    {
+        var position = workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition!.Value;
+        var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.Single().Id);
+        return SymbolFinder.FindSymbolAtPositionAsync(document, position);
+    }
+
+    [Fact]
+    public async Task PositionOnLeadingTrivia()
+    {
+        using var workspace = TestWorkspace.CreateCSharp(
+            @"using System;
                 class Program
                 {
                     static void Main()
@@ -37,15 +36,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                         #pragma warning restore 612
                     }
                 }");
-            var symbol = await FindSymbolAtPositionAsync(workspace);
-            Assert.Null(symbol);
-        }
+        var symbol = await FindSymbolAtPositionAsync(workspace);
+        Assert.Null(symbol);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53269")]
-        public async Task PositionInCaseLabel()
-        {
-            using var workspace = TestWorkspace.CreateCSharp(
-                @"using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53269")]
+    public async Task PositionInCaseLabel()
+    {
+        using var workspace = TestWorkspace.CreateCSharp(
+            @"using System;
                 enum E { A, B }
                 class Program
                 {
@@ -59,8 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                     }
                 }");
 
-            var fieldSymbol = Assert.IsAssignableFrom<IFieldSymbol>(await FindSymbolAtPositionAsync(workspace));
-            Assert.Equal(TypeKind.Enum, fieldSymbol.ContainingType.TypeKind);
-        }
+        var fieldSymbol = Assert.IsAssignableFrom<IFieldSymbol>(await FindSymbolAtPositionAsync(workspace));
+        Assert.Equal(TypeKind.Enum, fieldSymbol.ContainingType.TypeKind);
     }
 }

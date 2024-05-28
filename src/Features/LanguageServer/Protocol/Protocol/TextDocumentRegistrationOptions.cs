@@ -4,22 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the registration options for many different text document functions.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentRegistrationOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class TextDocumentRegistrationOptions : ITextDocumentRegistrationOptions
     {
         /// <summary>
         /// Gets or sets the document filters for this registration option.
         /// </summary>
-        [DataMember(Name = "documentSelector")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        [JsonPropertyName("documentSelector")]
         public DocumentFilter[]? DocumentSelector
         {
             get;

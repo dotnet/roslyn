@@ -12,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Formatting;
@@ -288,12 +287,9 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         var formattedText = await formattedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var solution = formattedDocument.Project.Solution;
 
-        foreach (var documentId in formattedDocument.GetLinkedDocumentIds())
-        {
-            solution = solution.WithDocumentText(documentId, formattedText);
-        }
-
-        return solution;
+        var finalSolution = solution.WithDocumentTexts(
+            formattedDocument.GetLinkedDocumentIds().SelectAsArray(id => (id, formattedText)));
+        return finalSolution;
     }
 
     private static string GetNewSymbolName(ISymbol symbol, string targetNamespace)
