@@ -48,7 +48,6 @@ internal sealed class TaggerMainThreadManager
                 return;
             }
 
-            // Run the underlying task.
             taskCompletionSource.SetResult(action());
         }
         catch (OperationCanceledException ex)
