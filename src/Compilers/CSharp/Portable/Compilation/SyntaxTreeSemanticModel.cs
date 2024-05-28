@@ -2038,8 +2038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return
-                GetParameterSymbol(method.Parameters, parameter, cancellationToken) ??
-                ((object)method.PartialDefinitionPart == null ? null : GetParameterSymbol(method.PartialDefinitionPart.Parameters, parameter, cancellationToken));
+                GetParameterSymbol(method.Parameters, parameter, cancellationToken);
         }
 
         private ParameterSymbol GetIndexerParameterSymbol(
