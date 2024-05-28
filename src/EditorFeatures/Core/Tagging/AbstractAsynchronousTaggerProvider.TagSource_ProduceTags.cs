@@ -343,7 +343,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                         await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(true);
 
                         return ComputeNewTagTrees(oldTagTrees, context);
-                    }, cancellationToken).ConfigureAwait(continueOnCapturedContext: true);
+                    }, cancellationToken).ConfigureAwait(true);
 
                 // We may get back null if we were canceled.  Immediately bail out in that case.
                 if (newTagTrees is null)
