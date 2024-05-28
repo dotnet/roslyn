@@ -77,7 +77,8 @@ internal sealed class TaggerMainThreadManager
         else
         {
             // Ensure that if the host is closing and hte queue stops running that we transition this task to the canceled state.
-            var registration = _threadingContext.DisposalToken.Register(static taskSourceObj => ((TaskCompletionSource<VoidResult>)taskSourceObj!).TrySetCanceled(), taskSource);
+            var registration = _threadingContext.DisposalToken.Register(
+                static taskSourceObj => ((TaskCompletionSource<TaggerUIData>)taskSourceObj!).TrySetCanceled(), taskSource);
 
             _workQueue.AddWork((action, cancellationToken, taskSource));
 
