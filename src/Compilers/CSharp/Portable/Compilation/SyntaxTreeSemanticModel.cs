@@ -2129,11 +2129,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given a type parameter declaration (field or method), get the corresponding symbol
+        /// Given a type parameter declaration (on a type or method), get the corresponding symbol
         /// </summary>
-        /// <param name="typeParameter"></param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns></returns>
         public override ITypeParameterSymbol GetDeclaredSymbol(TypeParameterSyntax typeParameter, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (typeParameter == null)
