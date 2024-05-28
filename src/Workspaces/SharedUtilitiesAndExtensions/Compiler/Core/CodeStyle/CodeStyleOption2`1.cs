@@ -17,10 +17,6 @@ internal interface ICodeStyleOption
     NotificationOption2 Notification { get; }
     ICodeStyleOption WithValue(object value);
     ICodeStyleOption WithNotification(NotificationOption2 notification);
-#if !CODE_STYLE
-    ICodeStyleOption AsInternalCodeStyleOption();
-    ICodeStyleOption AsPublicCodeStyleOption();
-#endif
 }
 
 internal interface ICodeStyleOption2 : ICodeStyleOption
@@ -96,13 +92,6 @@ internal sealed partial class CodeStyleOption2<T>(T value, NotificationOption2 n
     object? ICodeStyleOption.Value => this.Value;
     ICodeStyleOption ICodeStyleOption.WithValue(object value) => WithValue((T)value);
     ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption2<T>(Value, notification);
-
-#pragma warning disable RS0030 // Do not used banned APIs: CodeStyleOption<T>
-#if !CODE_STYLE
-    ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => new CodeStyleOption<T>(this);
-    ICodeStyleOption ICodeStyleOption.AsInternalCodeStyleOption() => this;
-#endif
-#pragma warning restore
 
     public CodeStyleOption2<T> WithValue(T value)
     {
