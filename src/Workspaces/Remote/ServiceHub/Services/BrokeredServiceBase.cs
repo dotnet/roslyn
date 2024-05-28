@@ -98,9 +98,8 @@ namespace Microsoft.CodeAnalysis.Remote
             return result;
         }
 
-        protected ValueTask<T> RunServiceAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)
+        protected static ValueTask<T> RunServiceAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)
         {
-            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
             return RunServiceImplAsync(implementation, cancellationToken);
         }
 
@@ -123,9 +122,8 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        protected ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
+        protected static ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
         {
-            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
             return RunServiceImplAsync(implementation, cancellationToken);
         }
 
