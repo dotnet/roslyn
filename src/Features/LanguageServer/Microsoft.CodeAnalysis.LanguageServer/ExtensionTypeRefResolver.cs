@@ -11,10 +11,8 @@ internal sealed class ExtensionTypeRefResolver(IAssemblyLoader assemblyLoader) :
 {
     protected override Type? ResolveCore(TypeRef typeRef)
     {
-        var assemblyQualifiedName = $"{typeRef.TypeName}, {typeRef.AssemblyName}";
-
         return Type.GetType(
-            assemblyQualifiedName,
+            typeRef.AssemblyQualifiedName,
             assemblyResolver: assemblyName =>
             {
                 if (typeRef.CodeBase is not null)

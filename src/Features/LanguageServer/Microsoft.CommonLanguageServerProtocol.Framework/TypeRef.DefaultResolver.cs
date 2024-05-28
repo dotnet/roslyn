@@ -20,11 +20,7 @@ internal sealed partial record class TypeRef
         }
 
         protected override Type? ResolveCore(TypeRef typeRef)
-        {
-            var assemblyQualifiedName = $"{typeRef.TypeName}, {typeRef.AssemblyName}";
-
-            return LoadType(assemblyQualifiedName);
-        }
+            => LoadType(typeRef.AssemblyQualifiedName);
 
         private static Type LoadType(string typeName)
             => Type.GetType(typeName)
