@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Nerdbank.Streams;
 using Roslyn.LanguageServer.Protocol;
@@ -47,9 +46,9 @@ public abstract class AbstractLanguageServerHostTests
         internal LanguageServerHost LanguageServerHost { get; }
         public ExportProvider ExportProvider { get; }
 
-        private TestLspServer(ExportProvider exportProvider, ILogger logger, IAssemblyLoader assemblyLoader)
+        private TestLspServer(ExportProvider exportProvider, TestOutputLogger logger, IAssemblyLoader assemblyLoader)
         {
-            var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader);
+            var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader, logger.Factory);
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
             LanguageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, logger, typeRefResolver);

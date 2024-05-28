@@ -40,7 +40,8 @@ internal class CustomExportAssemblyLoader(ExtensionAssemblyManager extensionAsse
 
     private Assembly LoadAssembly(AssemblyName assemblyName, string? codeBasePath)
     {
-        _logger.LogTrace($"Loading assembly {assemblyName}");
+        _logger.LogTrace("Loading assembly {assemblyName}", assemblyName);
+
         // First attempt to load the assembly from the default context.
         Exception loadException;
         try

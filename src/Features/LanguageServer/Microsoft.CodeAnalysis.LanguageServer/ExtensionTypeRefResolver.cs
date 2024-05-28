@@ -3,15 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal sealed class ExtensionTypeRefResolver(IAssemblyLoader assemblyLoader) : AbstractTypeRefResolver
+internal sealed class ExtensionTypeRefResolver(IAssemblyLoader assemblyLoader, ILoggerFactory loggerFactory) : AbstractTypeRefResolver
 {
+    private readonly ILogger _logger = loggerFactory.CreateLogger<ExtensionTypeRefResolver>();
+
     protected override Type? ResolveCore(TypeRef typeRef)
     {
-        return Type.GetType(
+        _logger.LogTrace("Resolving type, {typeRef}", typeRef);
+
+        var result = Type.GetType(
             typeRef.AssemblyQualifiedName,
             assemblyResolver: assemblyName =>
             {
@@ -25,5 +30,9 @@ internal sealed class ExtensionTypeRefResolver(IAssemblyLoader assemblyLoader) :
                 return assemblyLoader.LoadAssembly(assemblyName);
             },
             typeResolver: null);
+
+        _logger.LogCritical("Could not resolve {typeRef}", typeRef);
+
+        return result;
     }
 }

@@ -81,7 +81,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     logger.LogTrace($".NET Runtime Version: {RuntimeInformation.FrameworkDescription}");
     var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
     var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
-    var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader);
+    var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader, loggerFactory);
 
     using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, loggerFactory);
 

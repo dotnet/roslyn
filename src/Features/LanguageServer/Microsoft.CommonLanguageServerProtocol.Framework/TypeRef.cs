@@ -80,7 +80,7 @@ internal sealed partial class TypeRef : IEquatable<TypeRef>
     /// <param name="typeName">The full name of this type.</param>
     /// <param name="assemblyName">The full name of the assembly containing this type.</param>
     /// <param name="codeBase">The code base of the assembly containing this type, if any.</param>
-    public static TypeRef Create(string typeName, string assemblyName, string? codeBase)
+    public static TypeRef From(string typeName, string assemblyName, string? codeBase)
     {
         var key = (typeName, assemblyName, codeBase);
 
@@ -110,7 +110,7 @@ internal sealed partial class TypeRef : IEquatable<TypeRef>
         var codeBase = type.Assembly.CodeBase;
 #pragma warning restore SYSLIB0012 // Type or member is obsolete
 
-        return Create(typeName, assemblyName, codeBase);
+        return From(typeName, assemblyName, codeBase);
     }
 
     /// <summary>
