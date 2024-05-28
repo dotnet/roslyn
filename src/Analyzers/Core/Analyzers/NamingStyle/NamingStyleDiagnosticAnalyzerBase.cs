@@ -69,8 +69,7 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
                 symbolContext.Symbol,
                 sourceTree,
                 symbolContext.Options,
-                idToCachedResult,
-                symbolContext.CancellationToken);
+                idToCachedResult);
 
             if (diagnostic != null)
             {
@@ -97,8 +96,7 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
                 symbol,
                 sourceTree,
                 syntaxContext.Options,
-                idToCachedResult,
-                syntaxContext.CancellationToken);
+                idToCachedResult);
 
             if (diagnostic != null)
             {
@@ -115,8 +113,7 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
         ISymbol symbol,
         SyntaxTree sourceTree,
         AnalyzerOptions options,
-        ConcurrentDictionary<Guid, ConcurrentDictionary<string, string?>> idToCachedResult,
-        CancellationToken cancellationToken)
+        ConcurrentDictionary<Guid, ConcurrentDictionary<string, string?>> idToCachedResult)
     {
         if (string.IsNullOrEmpty(symbol.Name))
         {
