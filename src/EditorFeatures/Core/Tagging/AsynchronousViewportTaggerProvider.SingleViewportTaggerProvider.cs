@@ -27,19 +27,11 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
     /// cadence to tag them at.
     /// </summary>
     private sealed class SingleViewportTaggerProvider(
+        TaggerHost taggerHost,
         AsynchronousViewportTaggerProvider<TTag> callback,
         ViewPortToTag viewPortToTag,
-        IThreadingContext threadingContext,
-        IGlobalOptionService globalOptions,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListenerProvider asyncListenerProvider,
         string featureName)
-        : AsynchronousViewTaggerProvider<TTag>(
-            threadingContext,
-            globalOptions,
-            visibilityTracker,
-            asyncListenerProvider,
-            featureName)
+        : AsynchronousViewTaggerProvider<TTag>(taggerHost, featureName)
     {
         private readonly AsynchronousViewportTaggerProvider<TTag> _callback = callback;
 
