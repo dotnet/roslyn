@@ -356,6 +356,30 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 return newTagTrees;
             }
 
+            (bool isVisible, SnapshotPoint? caretPosition, OneOrMany<SnapshotSpan> spansToTag) GetTaggerUIData()
+            {
+                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+
+                // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
+                // thread to do the computation. Finally, once new tags have been computed, then we update our state
+                // in a threadsafe fashion in the background.
+
+                // Grab the visibility state of the view while we're already on the UI thread.  This saves an
+                // unnecessary switch below.
+                var isVisible = this.IsVisible();
+                var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
+
+                using var spansToTag = TemporaryArray<SnapshotSpan>.Empty;
+                _dataSource.AddSpansToTag(_textView, _subjectBuffer, ref spansToTag.AsRef());
+
+#if DEBUG
+                foreach (var snapshotSpan in spansToTag)
+                    CheckSnapshot(snapshotSpan.Snapshot);
+#endif
+
+                return (isVisible, caretPosition, spansToTag.ToOneOrManyAndClear());
+            }
+
             static OneOrMany<DocumentSnapshotSpan> GetDocumentSnapshotSpansToTag(
                 OneOrMany<SnapshotSpan> snapshotSpansToTag,
                 bool frozenPartialSemantics,
@@ -391,30 +415,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 return result.ToOneOrManyAndClear();
             }
-        }
-
-        private (bool isVisible, SnapshotPoint? caretPosition, OneOrMany<SnapshotSpan> spansToTag) GetTaggerUIData()
-        {
-            _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
-
-            // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
-            // thread to do the computation. Finally, once new tags have been computed, then we update our state
-            // in a threadsafe fashion in the background.
-
-            // Grab the visibility state of the view while we're already on the UI thread.  This saves an
-            // unnecessary switch below.
-            var isVisible = this.IsVisible();
-            var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
-
-            using var spansToTag = TemporaryArray<SnapshotSpan>.Empty;
-            _dataSource.AddSpansToTag(_textView, _subjectBuffer, ref spansToTag.AsRef());
-
-#if DEBUG
-            foreach (var snapshotSpan in spansToTag)
-                CheckSnapshot(snapshotSpan.Snapshot);
-#endif
-
-            return (isVisible, caretPosition, spansToTag.ToOneOrManyAndClear());
 
 #if DEBUG
             static void CheckSnapshot(ITextSnapshot snapshot)
