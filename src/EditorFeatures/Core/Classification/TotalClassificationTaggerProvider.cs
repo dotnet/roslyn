@@ -32,16 +32,11 @@ namespace Microsoft.CodeAnalysis.Classification;
 [Microsoft.VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class TotalClassificationTaggerProvider(
-    IThreadingContext threadingContext,
-    ClassificationTypeMap typeMap,
-    IGlobalOptionService globalOptions,
-    [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider) : IViewTaggerProvider
+internal sealed class TotalClassificationTaggerProvider(TaggerHost taggerHost, ClassificationTypeMap typeMap) : IViewTaggerProvider
 {
-    private readonly SyntacticClassificationTaggerProvider _syntacticTaggerProvider = new(threadingContext, typeMap, globalOptions, listenerProvider);
-    private readonly SemanticClassificationViewTaggerProvider _semanticTaggerProvider = new(threadingContext, typeMap, globalOptions, visibilityTracker, listenerProvider);
-    private readonly EmbeddedLanguageClassificationViewTaggerProvider _embeddedTaggerProvider = new(threadingContext, typeMap, globalOptions, visibilityTracker, listenerProvider);
+    private readonly SyntacticClassificationTaggerProvider _syntacticTaggerProvider = new(taggerHost, typeMap);
+    private readonly SemanticClassificationViewTaggerProvider _semanticTaggerProvider = new(taggerHost, typeMap);
+    private readonly EmbeddedLanguageClassificationViewTaggerProvider _embeddedTaggerProvider = new(taggerHost, typeMap);
 
     ITagger<T>? IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
     {
