@@ -123,6 +123,7 @@ steps:
       artifactName: BuildLogs_SourceBuild_${{ parameters.platform.name }}_Attempt$(System.JobAttempt)
       continueOnError: true
       condition: succeededOrFailed()
+      sbomEnabled: false  # we don't need SBOM for logs
 
 # Manually inject component detection so that we can ignore the source build upstream cache, which contains
 # a nupkg cache of input packages (a local feed).
