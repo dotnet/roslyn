@@ -77,29 +77,29 @@ internal abstract class NewtonsoftLanguageServer<TRequestContext>(
 
         private object DeserializeRequest(JToken? request, RequestHandlerMetadata metadata, JsonSerializer jsonSerializer)
         {
-            if (request is null && metadata.RequestTypeRef is not null)
+            var requestTypeRef = metadata.RequestTypeRef;
+
+            if (request is null)
             {
-                throw new InvalidOperationException($"Handler {metadata.HandlerDescription} requires request parameters but received none");
+                if (requestTypeRef is not null)
+                {
+                    throw new InvalidOperationException($"Handler {metadata.HandlerDescription} requires request parameters but received none");
+                }
+
+                return NoValue.Instance;
             }
 
-            if (request is not null && metadata.RequestTypeRef is null)
+            // request is not null
+            if (requestTypeRef is null)
             {
                 throw new InvalidOperationException($"Handler {metadata.HandlerDescription} does not accept parameters, but received some.");
             }
 
-            object requestObject = NoValue.Instance;
-            if (request is not null)
-            {
-                var requestTypeRef = metadata.RequestTypeRef.GetValueOrDefault();
+            var requestType = _typeRefResolver.Resolve(requestTypeRef)
+                ?? throw new InvalidOperationException($"Could not resolve type: '{requestTypeRef}'");
 
-                var requestType = _typeRefResolver.Resolve(requestTypeRef)
-                    ?? throw new InvalidOperationException($"Could not resolve type: '{requestTypeRef}'");
-
-                requestObject = request.ToObject(requestType, jsonSerializer)
-                    ?? throw new InvalidOperationException($"Unable to deserialize {request} into {requestTypeRef} for {metadata.HandlerDescription}");
-            }
-
-            return requestObject;
+            return request.ToObject(requestType, jsonSerializer)
+                ?? throw new InvalidOperationException($"Unable to deserialize {request} into {requestTypeRef} for {metadata.HandlerDescription}");
         }
     }
 }

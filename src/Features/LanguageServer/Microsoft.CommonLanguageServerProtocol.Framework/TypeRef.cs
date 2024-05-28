@@ -6,19 +6,18 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <summary>
 /// Helper that avoids loading a <see cref="Type"/> by its full assembly-qualified name until needed.
 /// </summary>
-internal readonly partial record struct TypeRef
+internal sealed partial record class TypeRef
 {
-    public static AbstractTypeRefResolver DefaultResolver { get; } = new DefaultResolverImpl();
+    private string? _assemblyQualifiedName;
 
     /// <summary>
-    /// Returns the fully-qualified name of this type.
+    /// Returns the full name of this type.
     /// </summary>
     public string TypeName { get; }
 
@@ -32,48 +31,47 @@ internal readonly partial record struct TypeRef
     /// </summary>
     public string? CodeBase { get; }
 
-    public bool IsDefault => this == default;
+    /// <summary>
+    /// Returns the assembly-qualified name of this type.
+    /// </summary>
+    public string AssemblyQualifiedName
+        => _assemblyQualifiedName ??= $"{TypeName}, {AssemblyName}";
 
-    private TypeRef(string typeName, string assemblyName, string? codeBase)
+    /// <summary>
+    /// Constructs a <see cref="TypeRef"/> instance.
+    /// </summary>
+    /// <param name="typeName">The full name of this type.</param>
+    /// <param name="assemblyName">The full name of the assembly containing this type.</param>
+    /// <param name="codeBase">The code base of the assembly containing this type, if any.</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public TypeRef(string typeName, string assemblyName, string? codeBase = null)
     {
         TypeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
         AssemblyName = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
         CodeBase = codeBase;
     }
 
-    public bool Equals(TypeRef other)
-    {
-        return TypeName == other.TypeName
-            && AssemblyName == other.AssemblyName
-            && CodeBase == other.CodeBase;
-    }
+    public override string ToString() => TypeName;
 
-    public override int GetHashCode()
+    public static TypeRef From(Type type)
     {
-        var hashCode = -201320956;
-        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(TypeName);
-        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(AssemblyName);
-
-        if (CodeBase is string codeBase)
+        if (type is null)
         {
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(codeBase);
+            throw new ArgumentNullException(nameof(type));
         }
 
-        return hashCode;
+        var typeName = type.FullName ?? throw new ArgumentException($"{nameof(type)} has null {nameof(type.FullName)} property.", nameof(type));
+        var assemblyName = type.Assembly.FullName ?? throw new ArgumentException($"{nameof(type)} has null {nameof(type.Assembly)}.{nameof(type.Assembly.FullName)} property.", nameof(type));
+
+#pragma warning disable SYSLIB0012 // Type or member is obsolete
+        var codeBase = type.Assembly.CodeBase;
+#pragma warning restore SYSLIB0012 // Type or member is obsolete
+
+        return new(typeName, assemblyName, codeBase);
     }
 
-    public override string ToString()
-        => IsDefault ? "<DEFAULT>" : TypeName;
-
-    public static TypeRef From(string typeName, string assemblyName, string? codeBase)
-        => new(typeName, assemblyName, codeBase);
-
-    public static TypeRef From(Type type) => new(
-        type.FullName!,
-        type.Assembly.FullName!,
-#pragma warning disable SYSLIB0012 // Type or member is obsolete
-        type.Assembly.CodeBase);
-#pragma warning restore SYSLIB0012 // Type or member is obsolete
+    public static TypeRef? FromOrNull(Type? type)
+        => type is not null ? From(type) : null;
 
     public static TypeRef Of<T>() => From(typeof(T));
 }

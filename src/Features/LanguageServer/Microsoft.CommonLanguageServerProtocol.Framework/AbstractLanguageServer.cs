@@ -60,7 +60,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     {
         Logger = logger;
         _jsonRpc = jsonRpc;
-        TypeRefResolver = typeRefResolver ?? TypeRef.DefaultResolver;
+        TypeRefResolver = typeRefResolver ?? TypeRef.DefaultResolver.Instance;
 
         _jsonRpc.AddLocalRpcTarget(this);
         _jsonRpc.Disconnected += JsonRpc_Disconnected;
@@ -196,8 +196,14 @@ internal abstract class AbstractLanguageServer<TRequestContext>
                 var handlerEntryPoints = new Dictionary<string, (MethodInfo, RequestHandlerMetadata)>();
                 foreach (var metadata in handlersForMethod)
                 {
-                    var requestType = _typeRefResolver.Resolve(metadata.RequestTypeRef.GetValueOrDefault()) ?? NoValue.Instance.GetType();
-                    var responseType = _typeRefResolver.Resolve(metadata.ResponseTypeRef.GetValueOrDefault()) ?? NoValue.Instance.GetType();
+                    var noValueType = NoValue.Instance.GetType();
+
+                    var requestType = metadata.RequestTypeRef is TypeRef requestTypeRef
+                        ? _typeRefResolver.Resolve(requestTypeRef) ?? noValueType
+                        : noValueType;
+                    var responseType = metadata.ResponseTypeRef is TypeRef responseTypeRef
+                        ? _typeRefResolver.Resolve(responseTypeRef) ?? noValueType
+                        : noValueType;
                     var methodInfo = s_queueExecuteAsyncMethod.MakeGenericMethod(requestType, responseType);
                     handlerEntryPoints[metadata.Language] = (methodInfo, metadata);
                 }

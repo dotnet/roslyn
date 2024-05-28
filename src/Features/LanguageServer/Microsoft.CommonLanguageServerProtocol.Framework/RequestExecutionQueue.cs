@@ -305,8 +305,8 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
     protected virtual IMethodHandler GetHandlerForRequest(IQueueItem<TRequestContext> work)
         => _handlerProvider.GetMethodHandler(
             work.MethodName,
-            work.RequestType is { } requestType ? TypeRef.From(requestType) : null,
-            work.ResponseType is { } responseType ? TypeRef.From(responseType) : null,
+            TypeRef.FromOrNull(work.RequestType),
+            TypeRef.FromOrNull(work.ResponseType),
             work.Language);
 
     /// <summary>

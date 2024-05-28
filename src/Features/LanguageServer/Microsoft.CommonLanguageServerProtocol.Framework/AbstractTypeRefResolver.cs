@@ -16,11 +16,6 @@ internal abstract class AbstractTypeRefResolver
 
     public Type? Resolve(TypeRef typeRef)
     {
-        if (typeRef.IsDefault)
-        {
-            return null;
-        }
-
         if (!_typeRefToTypeMap.TryGetValue(typeRef, out var type))
         {
             type = ResolveCore(typeRef);

@@ -30,7 +30,7 @@ internal sealed class LspServiceMetadataView
         var typeName = (string)metadata[nameof(AbstractExportLspServiceAttribute.TypeName)];
         var assemblyName = (string)metadata[nameof(AbstractExportLspServiceAttribute.AssemblyName)];
         var codeBase = (string?)metadata[nameof(AbstractExportLspServiceAttribute.CodeBase)];
-        TypeRef = TypeRef.From(typeName, assemblyName, codeBase);
+        TypeRef = new(typeName, assemblyName, codeBase);
 
         var interfaceNames = (string[])metadata[nameof(AbstractExportLspServiceAttribute.InterfaceNames)];
         InterfaceNames = FrozenSet.ToFrozenSet(interfaceNames);
@@ -51,7 +51,8 @@ internal sealed class LspServiceMetadataView
                 var language = methodHandlerData[index++];
                 var requestTypeRef = ReadTypeRef(methodHandlerData, ref index);
                 var responseTypeRef = ReadTypeRef(methodHandlerData, ref index);
-                var requestContextTypeRef = ReadTypeRef(methodHandlerData, ref index).GetValueOrDefault();
+                var requestContextTypeRef = ReadTypeRef(methodHandlerData, ref index);
+                Contract.ThrowIfNull(requestContextTypeRef);
 
                 handlerDetails.Add(new(
                     methodName,
@@ -82,7 +83,7 @@ internal sealed class LspServiceMetadataView
 
             var codeBase = methodHandlerData[index++];
 
-            return TypeRef.From(typeName, assemblyName, codeBase);
+            return new(typeName, assemblyName, codeBase);
         }
     }
 }

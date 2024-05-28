@@ -9,10 +9,16 @@ using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal readonly partial record struct TypeRef
+internal sealed partial record class TypeRef
 {
-    private sealed class DefaultResolverImpl : AbstractTypeRefResolver
+    public sealed class DefaultResolver : AbstractTypeRefResolver
     {
+        public static readonly DefaultResolver Instance = new();
+
+        private DefaultResolver()
+        {
+        }
+
         protected override Type? ResolveCore(TypeRef typeRef)
         {
             var assemblyQualifiedName = $"{typeRef.TypeName}, {typeRef.AssemblyName}";

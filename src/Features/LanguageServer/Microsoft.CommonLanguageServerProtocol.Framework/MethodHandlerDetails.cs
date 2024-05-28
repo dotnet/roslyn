@@ -42,8 +42,8 @@ internal sealed record MethodHandlerDetails(
                 builder.Add(new(
                     method,
                     language,
-                    requestType is not null ? TypeRef.From(requestType) : null,
-                    responseType is not null ? TypeRef.From(responseType) : null,
+                    TypeRef.FromOrNull(requestType),
+                    TypeRef.FromOrNull(responseType),
                     TypeRef.From(requestContextType)));
             }
         }
