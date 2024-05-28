@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExtensionTypeRefResolver(IAssemblyLoader assemblyLoader, ILoggerFactory loggerFactory) : AbstractTypeRefResolver
 {
-    private readonly ILogger _logger = loggerFactory.CreateLogger<ExtensionTypeRefResolver>();
+    private readonly ILogger _logger = loggerFactory.CreateLogger(nameof(ExtensionTypeRefResolver));
 
     protected override Type? ResolveCore(TypeRef typeRef)
     {
