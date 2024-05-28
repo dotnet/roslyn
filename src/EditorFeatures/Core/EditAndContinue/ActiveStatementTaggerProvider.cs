@@ -49,9 +49,9 @@ internal partial class ActiveStatementTaggerProvider(TaggerHost taggerHost)
     protected override async Task ProduceTagsAsync(
         TaggerContext<ITextMarkerTag> context, CancellationToken cancellationToken)
     {
-        Debug.Assert(context.SpansToTag.IsSingle());
+        Contract.ThrowIfTrue(context.SpansToTag.Count != 1);
 
-        var spanToTag = context.SpansToTag.Single();
+        var spanToTag = context.SpansToTag.First();
 
         var document = spanToTag.Document;
         if (document == null)

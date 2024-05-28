@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -72,7 +72,7 @@ internal partial class InlineHintsDataTaggerProvider(
             TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForImplicitObjectCreation));
     }
 
-    protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
+    protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
         this.ThreadingContext.ThrowIfNotOnUIThread();
         Contract.ThrowIfNull(textView);
@@ -83,10 +83,11 @@ internal partial class InlineHintsDataTaggerProvider(
         if (visibleSpanOpt == null)
         {
             // Couldn't find anything visible, just fall back to tagging all hint locations
-            return base.GetSpansToTag(textView, subjectBuffer);
+            base.AddSpansToTag(textView, subjectBuffer, ref result);
+            return;
         }
 
-        return [visibleSpanOpt.Value];
+        result.Add(visibleSpanOpt.Value);
     }
 
     protected override async Task ProduceTagsAsync(

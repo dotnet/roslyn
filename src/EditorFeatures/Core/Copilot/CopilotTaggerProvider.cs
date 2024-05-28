@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -22,13 +22,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Copilot;
 
 /// <summary>
-/// A dummy tagger provider to trigger background Copilot code analysis after waiting
-/// for user being idle, no documents edits and sufficient delay.
-/// This tagger provider does not produce any tags, but is a convenient way to trigger
-/// this background analysis with these guardrails to ensure the analysis is executed
-/// very sparingly.
-/// TODO: We should throttle the number of background analysis queries that are triggered
-/// with an appropriately chosen throttle counter.
+/// A dummy tagger provider to trigger background Copilot code analysis after waiting for user being idle, no documents
+/// edits and sufficient delay. This tagger provider does not produce any tags, but is a convenient way to trigger this
+/// background analysis with these guardrails to ensure the analysis is executed very sparingly. TODO: We should
+/// throttle the number of background analysis queries that are triggered with an appropriately chosen throttle counter.
 /// </summary>
 [Export(typeof(IViewTaggerProvider))]
 [VisualStudio.Utilities.Name(nameof(CopilotTaggerProvider))]
@@ -51,13 +48,14 @@ internal sealed class CopilotTaggerProvider(TaggerHost taggerHost)
             TaggerEventSources.OnTextChanged(subjectBuffer));
     }
 
-    protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
+    protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
         this.ThreadingContext.ThrowIfNotOnUIThread();
         Contract.ThrowIfNull(textView);
 
         // We only care about the cases where we have caret.
-        return textView.GetCaretPoint(subjectBuffer) is { } caret ? [new SnapshotSpan(caret, 0)] : [];
+        if (textView.GetCaretPoint(subjectBuffer) is { } caret)
+            result.Add(new SnapshotSpan(caret, 0));
     }
 
     protected override async Task ProduceTagsAsync(TaggerContext<ITextMarkerTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
