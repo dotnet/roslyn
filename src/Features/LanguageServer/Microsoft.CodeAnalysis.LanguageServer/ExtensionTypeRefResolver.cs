@@ -31,7 +31,10 @@ internal sealed class ExtensionTypeRefResolver(IAssemblyLoader assemblyLoader, I
             },
             typeResolver: null);
 
-        _logger.LogCritical("Could not resolve {typeRef}", typeRef);
+        if (result is null)
+        {
+            _logger.LogCritical("Could not resolve {typeRef}", typeRef);
+        }
 
         return result;
     }
