@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var parameter in this.Syntax.ParameterList.Parameters)
             {
-                WithTypeParametersBinder.ReportFieldOrValueContextualKeywordConflicts(parameter, parameter.Identifier.Text, symbol: null, diagnostics);
+                WithTypeParametersBinder.ReportFieldOrValueContextualKeywordConflictIfAny(parameter, parameter.Identifier.Text, diagnostics);
             }
 
             // Note: we don't need to warn on annotations used in #nullable disable context for local functions, as this is handled in binding already
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
-                _binder.ReportFieldOrValueContextualKeywordConflicts(parameter, identifier.Text, symbol: null, diagnostics);
+                _binder.ReportFieldOrValueContextualKeywordConflictIfAny(parameter, identifier.Text, diagnostics);
 
                 var tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
                 if ((object?)tpEnclosing != null)

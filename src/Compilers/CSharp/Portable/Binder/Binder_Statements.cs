@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteInfo);
             result.Free();
 
-            ReportFieldOrValueContextualKeywordConflicts(node, node.Identifier.Text, symbol: null, diagnostics);
+            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier.Text, diagnostics);
 
             var body = BindStatement(node.Statement, diagnostics);
             return new BoundLabeledStatement(node, symbol, body, hasError);
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MessageID.IDS_FeatureLocalFunctions.CheckFeatureAvailability(diagnostics, node.Identifier);
 
-            ReportFieldOrValueContextualKeywordConflicts(node, node.Identifier.Text, symbol: null, diagnostics);
+            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier.Text, diagnostics);
 
             // already defined symbol in containing block
             var localSymbol = this.LookupLocalFunction(node.Identifier);
@@ -1010,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool nameConflict = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
             bool hasErrors = false;
 
-            ReportFieldOrValueContextualKeywordConflicts(declarator, declarator.Identifier.Text, symbol: null, diagnostics);
+            ReportFieldOrValueContextualKeywordConflictIfAny(declarator, declarator.Identifier.Text, diagnostics);
 
             if (localSymbol.RefKind != RefKind.None)
             {
@@ -3164,7 +3164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declaration = node.Declaration;
             if (declaration != null)
             {
-                ReportFieldOrValueContextualKeywordConflicts(declaration, declaration.Identifier.Text, symbol: null, diagnostics);
+                ReportFieldOrValueContextualKeywordConflictIfAny(declaration, declaration.Identifier.Text, diagnostics);
 
                 // Note: The type is being bound twice: here and in LocalSymbol.Type. Currently,
                 // LocalSymbol.Type ignores diagnostics so it seems cleaner to bind the type here

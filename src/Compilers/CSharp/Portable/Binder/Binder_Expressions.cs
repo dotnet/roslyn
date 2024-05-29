@@ -1596,7 +1596,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportPrimaryConstructorParameterShadowing(node, symbol ?? members[0], name, invoked, lookupResult, members, diagnostics);
                 members.Free();
 
-                ReportFieldOrValueContextualKeywordConflicts(node, node.Identifier.Text, symbol, diagnostics);
+                string text = node.Identifier.Text;
+                if (text != "value" ||
+                    symbol is not SynthesizedAccessorValueParameterSymbol { Name: "value" })
+                {
+                    ReportFieldOrValueContextualKeywordConflictIfAny(node, text, diagnostics);
+                }
             }
             else
             {
@@ -1734,17 +1739,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal void ReportFieldOrValueContextualKeywordConflicts(SyntaxNode syntax, string name, Symbol? symbol, BindingDiagnosticBag diagnostics)
+        internal void ReportFieldOrValueContextualKeywordConflictIfAny(SyntaxNode syntax, string name, BindingDiagnosticBag diagnostics)
         {
             switch (name)
             {
                 case "field" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } }:
                     break;
                 case "value" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove }:
-                    if (symbol is SynthesizedAccessorValueParameterSymbol { Name: "value" })
-                    {
-                        return;
-                    }
                     break;
                 default:
                     return;
@@ -3117,7 +3118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
             TypeSyntax typeSyntax = declarationExpression.Type;
 
-            ReportFieldOrValueContextualKeywordConflicts(designation, designation.Identifier.Text, symbol: null, diagnostics);
+            ReportFieldOrValueContextualKeywordConflictIfAny(designation, designation.Identifier.Text, diagnostics);
 
             // Is this a local?
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
@@ -7553,7 +7554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             boundLeft = MakeMemberAccessValue(boundLeft, diagnostics);
 
-            ReportFieldOrValueContextualKeywordConflicts(right, right.Identifier.Text, symbol: null, diagnostics);
+            ReportFieldOrValueContextualKeywordConflictIfAny(right, right.Identifier.Text, diagnostics);
 
             TypeSymbol leftType = boundLeft.Type;
 

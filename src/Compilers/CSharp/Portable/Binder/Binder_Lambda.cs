@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // x => ...
                     hasSignature = true;
                     var simple = (SimpleLambdaExpressionSyntax)syntax;
-                    ReportFieldOrValueContextualKeywordConflicts(simple.Parameter, simple.Parameter.Identifier.Text, symbol: null, diagnostics);
+                    ReportFieldOrValueContextualKeywordConflictIfAny(simple.Parameter, simple.Parameter.Identifier.Text, diagnostics);
                     namesBuilder.Add(simple.Parameter.Identifier.ValueText);
                     break;
                 case SyntaxKind.ParenthesizedLambdaExpression:
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             void checkParameter(bool hasType, ParameterSyntax param, BindingDiagnosticBag diagnostics)
             {
                 var text = param.Identifier.Text;
-                ReportFieldOrValueContextualKeywordConflicts(param, text, symbol: null, diagnostics);
+                ReportFieldOrValueContextualKeywordConflictIfAny(param, text, diagnostics);
 
                 if (!hasType && param.Default != null)
                 {

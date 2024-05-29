@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasExplicitNames = true;
                     CheckTupleMemberName(name, i, nameToken, diagnostics, uniqueFieldNames);
                     locations.Add(nameToken.GetLocation());
-                    ReportFieldOrValueContextualKeywordConflicts(argumentSyntax, nameToken.Text, symbol: null, diagnostics);
+                    ReportFieldOrValueContextualKeywordConflictIfAny(argumentSyntax, nameToken.Text, diagnostics);
                 }
                 else
                 {
@@ -872,6 +872,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = LookupResult.GetInstance();
             LookupOptions options = GetSimpleNameLookupOptions(node, node.Identifier.IsVerbatimIdentifier());
 
+            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier.Text, diagnostics);
+
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
@@ -925,11 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             result.Free();
-
-            var namespaceOrTypeOrAlias = NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(AreNullableAnnotationsEnabled(node.Identifier), bindingResult);
-            ReportFieldOrValueContextualKeywordConflicts(node, node.Identifier.Text, namespaceOrTypeOrAlias.Symbol, diagnostics);
-
-            return namespaceOrTypeOrAlias;
+            return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(AreNullableAnnotationsEnabled(node.Identifier), bindingResult);
 
             bool dynamicAllowed()
             {
@@ -1258,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics);
             }
 
-            ReportFieldOrValueContextualKeywordConflicts(node, node.Identifier.Text, symbol: null, diagnostics);
+            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier.Text, diagnostics);
 
             return TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(node.TypeArgumentList.GreaterThanToken), resultType);
         }
