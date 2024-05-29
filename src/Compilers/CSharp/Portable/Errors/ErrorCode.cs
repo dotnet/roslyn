@@ -2310,18 +2310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptsLocationDataInvalidPosition = 9235,
         INF_TooManyBoundLambdas = 9236,
 
-        // PROTOTYPE(partial-properties): pack
-        ERR_PartialPropertyMissingImplementation = 9300,
-        ERR_PartialPropertyMissingDefinition = 9301,
-        ERR_PartialPropertyDuplicateDefinition = 9302,
-        ERR_PartialPropertyDuplicateImplementation = 9303,
-        ERR_PartialPropertyMissingAccessor = 9304,
-        ERR_PartialPropertyUnexpectedAccessor = 9305,
-        ERR_PartialPropertyInitMismatch = 9306,
-        ERR_PartialPropertyTypeDifference = 9307,
-        WRN_PartialPropertySignatureDifference = 9308,
-        ERR_PartialPropertyRequiredDifference = 9309,
-
         #endregion
 
         WRN_BadYieldInLock = 9237,
@@ -2336,6 +2324,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember = 9245,
         ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike = 9246,
         ERR_BadAllowByRefLikeEnumerator = 9247,
+
+        ERR_PartialPropertyMissingImplementation = 9248,
+        ERR_PartialPropertyMissingDefinition = 9249,
+        ERR_PartialPropertyDuplicateDefinition = 9250,
+        ERR_PartialPropertyDuplicateImplementation = 9251,
+        ERR_PartialPropertyMissingAccessor = 9252,
+        ERR_PartialPropertyUnexpectedAccessor = 9253,
+        ERR_PartialPropertyInitMismatch = 9254,
+        ERR_PartialPropertyTypeDifference = 9255,
+        WRN_PartialPropertySignatureDifference = 9256,
+        ERR_PartialPropertyRequiredDifference = 9257,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
