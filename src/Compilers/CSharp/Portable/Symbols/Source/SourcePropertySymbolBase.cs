@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!isExpressionBodied || !isAutoProperty);
             Debug.Assert(!isExpressionBodied || !hasInitializer);
-            Debug.Assert(!isExpressionBodied || accessorsHaveImplementation); // PROTOTYPE(partial-properties): further adjust asserts?
+            Debug.Assert(!isExpressionBodied || accessorsHaveImplementation);
             Debug.Assert((modifiers & DeclarationModifiers.Required) == 0 || this is SourcePropertySymbol);
 
             _syntaxRef = syntax.GetReference();

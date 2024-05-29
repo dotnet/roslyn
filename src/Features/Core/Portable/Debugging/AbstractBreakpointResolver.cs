@@ -227,6 +227,7 @@ internal abstract partial class AbstractBreakpointResolver
         return namespaces.GetAllTypes(cancellationToken);
     }
 
+    // https://github.com/dotnet/roslyn/issues/73772: also do this for properties?
     private static IMethodSymbol GetPartialImplementationPartOrNull(ISymbol symbol)
         => (symbol.Kind == SymbolKind.Method) ? ((IMethodSymbol)symbol).PartialImplementationPart : null;
 

@@ -656,13 +656,7 @@ namespace Roslyn.Test.Utilities
                 }
                 else
                 {
-                    itemInspector = static obj => obj switch
-                    {
-                        null => "<null>",
-                        // PROTOTYPE(partial-properties): this is adding unwanted quotes to VerifyIL baselines
-                        string s => $@"""{s}""",
-                        _ => obj.ToString()
-                    };
+                    itemInspector = new Func<T, string>(obj => (obj != null) ? obj.ToString() : "<null>");
                 }
             }
 

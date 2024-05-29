@@ -4602,7 +4602,5 @@ public partial class C
             Assert.Equal("SourceFile(Program.cs[52..53))", defSymbol.Locations.Single().ToString());
             Assert.Equal("SourceFile(Program.cs[97..98))", implSymbol.Locations.Single().ToString());
         }
-
-        // PROTOTYPE(partial-properties): override partial property where base has modopt
     }
 }

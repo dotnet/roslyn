@@ -322,6 +322,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                         // Symbol key will happily resolve to a definition part that has no implementation, so we validate that
                         // differently
+                        // https://github.com/dotnet/roslyn/issues/73772: what about deletion of partial property?
                         if (expectedOldSymbol is IMethodSymbol { IsPartialDefinition: true } &&
                             symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol is IMethodSymbol resolvedMethod)
                         {

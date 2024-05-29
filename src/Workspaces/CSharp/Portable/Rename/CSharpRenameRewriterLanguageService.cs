@@ -826,6 +826,7 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
 
                 // If this is a parameter symbol for a partial method definition, be sure we visited 
                 // the implementation part's body.
+                // https://github.com/dotnet/roslyn/issues/73772: also do this for properties
                 if (renamedSymbol is IParameterSymbol renamedParameterSymbol &&
                     renamedSymbol.ContainingSymbol is IMethodSymbol methodSymbol &&
                     methodSymbol.PartialImplementationPart != null)

@@ -73,6 +73,7 @@ internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
                         continue;
                     }
 
+                    // https://github.com/dotnet/roslyn/issues/73772: also do this for properties?
                     var method = member as IMethodSymbol;
                     if (method != null && method.PartialImplementationPart != null)
                     {

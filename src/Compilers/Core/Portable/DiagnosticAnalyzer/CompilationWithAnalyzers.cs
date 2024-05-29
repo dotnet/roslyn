@@ -1118,6 +1118,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
+                    // https://github.com/dotnet/roslyn/issues/73772: should we also check IPropertySymbol?
+                    // there is no interface IPropertySymbolInternal
+                    // where are tests for this?
+
                     return false;
                 }
             }
