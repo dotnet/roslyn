@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration;
 
 internal class CodeGenerationSymbolMappingFactory : SymbolMappingFactory
 {
-    public static readonly CodeGenerationSymbolMappingFactory Instance = new();
-
     private static readonly FrozenDictionary<Type, Type> s_interfaceMapping = FrozenDictionary.ToFrozenDictionary(
         [
             (typeof(ICodeGenerationArrayTypeSymbol), typeof(IArrayTypeSymbol)),
@@ -37,6 +35,8 @@ internal class CodeGenerationSymbolMappingFactory : SymbolMappingFactory
         ],
         pair => pair.Item1,
         pair => pair.Item2);
+
+    public static readonly CodeGenerationSymbolMappingFactory Instance = new();
 
     private CodeGenerationSymbolMappingFactory()
         : base(s_interfaceMapping)
@@ -62,15 +62,15 @@ internal class CodeGenerationSymbolMappingFactory : SymbolMappingFactory
         ImmutableArray<ITypeSymbol> typeArguments)
     {
         throw new NotImplementedException();
-        var implementationType = GetOrCreateImplementationType(typeof(CodeGenerationConstructedMethodSymbol));
-        var constructor = (Func<CodeGenerationAbstractMethodSymbol, ImmutableArray<ITypeSymbol>, CodeGenerationConstructedMethodSymbol>)GetOrCreateConstructor(
-            implementationType,
-            [
-                typeof(CodeGenerationAbstractMethodSymbol),
-                typeof(ImmutableArray<ITypeSymbol>),
-            ]);
+        ////var implementationType = GetOrCreateImplementationType(typeof(CodeGenerationConstructedMethodSymbol));
+        ////var constructor = (Func<CodeGenerationAbstractMethodSymbol, ImmutableArray<ITypeSymbol>, CodeGenerationConstructedMethodSymbol>)GetOrCreateConstructor(
+        ////    implementationType,
+        ////    [
+        ////        typeof(CodeGenerationAbstractMethodSymbol),
+        ////        typeof(ImmutableArray<ITypeSymbol>),
+        ////    ]);
 
-        return (IMethodSymbol)constructor(constructedFrom, typeArguments);
+        ////return (IMethodSymbol)constructor(constructedFrom, typeArguments);
     }
 
     public static INamedTypeSymbol CreateConstructedNamedTypeSymbol(

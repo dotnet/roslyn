@@ -137,7 +137,8 @@ internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interf
             // Implement each new interface
             foreach (var (codeGenerationInterface, compilerInterface) in interfaceMappings)
             {
-                var mappedMethods = new HashSet<MethodInfo>();
+                var mappedCompilerMethods = new HashSet<MethodInfo>();
+                var mappedCodeGenerationMethods = new HashSet<MethodInfo>();
 
                 // Properties
                 foreach (var declaredProperty in compilerInterface.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public))
@@ -147,7 +148,7 @@ internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interf
 
                     // If the same property already exists on codeGenerationInterface, just mark the implementation of
                     // that property as the implementation of the compilerInterface property.
-                    if (declaredProperty.CanRead && FindImplementation(baseType, declaredProperty.GetMethod!, out var baseMethod))
+                    if (declaredProperty.CanRead && FindImplementation(baseType, declaredProperty.GetMethod!, out var codeGenerationMethod, out var baseMethod))
                     {
                         if (baseMethod.IsPublic && baseMethod.Name == declaredProperty.GetMethod!.Name)
                         {
@@ -171,7 +172,8 @@ internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interf
                             typeBuilder.DefineMethodOverride(method, declaredProperty.GetMethod!);
                         }
 
-                        mappedMethods.Add(declaredProperty.GetMethod!);
+                        mappedCompilerMethods.Add(declaredProperty.GetMethod!);
+                        mappedCodeGenerationMethods.Add(codeGenerationMethod);
                     }
                     else if (declaredProperty.CanRead)
                     {
@@ -190,10 +192,10 @@ internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interf
                         propertyBuilder.SetGetMethod(method);
                         typeBuilder.DefineMethodOverride(method, declaredProperty.GetMethod!);
 
-                        mappedMethods.Add(declaredProperty.GetMethod!);
+                        mappedCompilerMethods.Add(declaredProperty.GetMethod!);
                     }
 
-                    if (declaredProperty.CanWrite && FindImplementation(baseType, declaredProperty.SetMethod!, out baseMethod))
+                    if (declaredProperty.CanWrite && FindImplementation(baseType, declaredProperty.SetMethod!, out codeGenerationMethod, out baseMethod))
                     {
                         if (baseMethod.IsPublic && baseMethod.Name == declaredProperty.SetMethod!.Name)
                         {
@@ -217,7 +219,8 @@ internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interf
                             typeBuilder.DefineMethodOverride(method, declaredProperty.SetMethod!);
                         }
 
-                        mappedMethods.Add(declaredProperty.SetMethod!);
+                        mappedCompilerMethods.Add(declaredProperty.SetMethod!);
+                        mappedCodeGenerationMethods.Add(codeGenerationMethod);
                     }
                     else if (declaredProperty.CanWrite)
                     {
@@ -238,14 +241,14 @@ internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interf
                         propertyBuilder.SetSetMethod(method);
                         typeBuilder.DefineMethodOverride(method, declaredProperty.SetMethod!);
 
-                        mappedMethods.Add(declaredProperty.SetMethod!);
+                        mappedCompilerMethods.Add(declaredProperty.SetMethod!);
                     }
                 }
 
                 // Methods
                 foreach (var declaredMethod in compilerInterface.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public))
                 {
-                    if (!mappedMethods.Add(declaredMethod))
+                    if (!mappedCompilerMethods.Add(declaredMethod))
                     {
                         // This method was already mapped as part of a property.
                         continue;
@@ -253,7 +256,7 @@ internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interf
 
                     // If the same method already exists on codeGenerationInterface, just mark the implementation of
                     // that method as the implementation of the compilerInterface method.
-                    if (FindImplementation(baseType, declaredMethod, out var baseMethod))
+                    if (FindImplementation(baseType, declaredMethod, out var codeGenerationMethod, out var baseMethod))
                     {
                         if (baseMethod.IsPublic && baseMethod.Name == declaredMethod.Name)
                         {
@@ -270,11 +273,24 @@ internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interf
                                 declaredMethod.ReturnType,
                                 parameterTypes);
 
+                            GenericTypeParameterBuilder[] genericTypeParameters;
+                            if (declaredMethod.IsGenericMethod)
+                            {
+                                method.DefineGenericParameters(Array.ConvertAll(declaredMethod.GetGenericMethodDefinition().GetGenericArguments(), static argument => argument.Name));
+                            }
+                            else
+                            {
+                                genericTypeParameters = [];
+                            }
+
                             var ilGenerator = method.GetILGenerator();
                             GenerateReturnFromInvokingBaseMember(ilGenerator, baseMethod, parameterTypes);
 
                             typeBuilder.DefineMethodOverride(method, declaredMethod);
                         }
+
+                        mappedCompilerMethods.Add(declaredMethod);
+                        mappedCodeGenerationMethods.Add(codeGenerationMethod);
                     }
                     else
                     {
@@ -286,6 +302,16 @@ internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interf
                             CallingConventions.Standard,
                             declaredMethod.ReturnType,
                             parameterTypes);
+
+                        GenericTypeParameterBuilder[] genericTypeParameters;
+                        if (declaredMethod.IsGenericMethod)
+                        {
+                            method.DefineGenericParameters(Array.ConvertAll(declaredMethod.GetGenericMethodDefinition().GetGenericArguments(), static argument => argument.Name));
+                        }
+                        else
+                        {
+                            genericTypeParameters = [];
+                        }
 
                         var ilGenerator = method.GetILGenerator();
                         if (declaredMethod.ReturnType != typeof(void))
@@ -300,6 +326,22 @@ internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interf
                         }
 
                         typeBuilder.DefineMethodOverride(method, declaredMethod);
+
+                        mappedCompilerMethods.Add(declaredMethod);
+                    }
+                }
+
+                // The code generation interface should not declare any members which have no mapping to the code style
+                // interface. Note that this check may be altered in the future to support light-up scenarios.
+                if (codeGenerationInterface is null)
+                {
+                    Contract.ThrowIfFalse(mappedCodeGenerationMethods.Count == 0);
+                }
+                else
+                {
+                    foreach (var declaredCodeGenerationMethod in codeGenerationInterface.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public))
+                    {
+                        Contract.ThrowIfFalse(mappedCodeGenerationMethods.Contains(declaredCodeGenerationMethod), $"Expected to map code generation method '{declaredCodeGenerationMethod}'");
                     }
                 }
             }
@@ -433,24 +475,42 @@ internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interf
         }
     }
 
-    private bool FindImplementation(Type type, MethodInfo method, [NotNullWhen(true)] out MethodInfo? baseMethod)
+    private bool FindImplementation(Type type, MethodInfo method, [NotNullWhen(true)] out MethodInfo? codeGenerationMethod, [NotNullWhen(true)] out MethodInfo? baseMethod)
     {
         var originalInterface = method.DeclaringType;
         var codeStyleInterface = _interfaceMapping.FirstOrDefault(pair => pair.Value == originalInterface).Key;
         if (codeStyleInterface is null)
         {
+            codeGenerationMethod = null;
             baseMethod = null;
             return false;
         }
 
         var methodParameters = method.GetParameters();
+        var genericArguments = method.IsGenericMethod ? method.GetGenericArguments() : [];
         foreach (var codeStyleMethod in codeStyleInterface.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
         {
             if (codeStyleMethod.Name != method.Name)
                 continue;
 
-            if (codeStyleMethod.ReturnType != method.ReturnType)
+            if (!IsEquivalentTypeForMapping(method.ReturnType, codeStyleMethod.ReturnType))
                 continue;
+
+            if (method.IsGenericMethod)
+            {
+                if (!codeStyleMethod.IsGenericMethod)
+                    continue;
+
+                var codeStyleGenericArguments = codeStyleMethod.GetGenericArguments();
+                if (codeStyleGenericArguments.Length != genericArguments.Length)
+                    continue;
+
+                for (var i = 0; i < codeStyleGenericArguments.Length; i++)
+                {
+                    if (!IsEquivalentTypeForMapping(genericArguments[i], codeStyleGenericArguments[i]))
+                        continue;
+                }
+            }
 
             var codeStyleParameters = codeStyleMethod.GetParameters();
             if (codeStyleParameters.Length != methodParameters.Length)
@@ -458,7 +518,7 @@ internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interf
 
             for (var i = 0; i < codeStyleParameters.Length; i++)
             {
-                if (codeStyleParameters[i].ParameterType != methodParameters[i].ParameterType)
+                if (!IsEquivalentTypeForMapping(methodParameters[i].ParameterType, codeStyleParameters[i].ParameterType))
                     continue;
             }
 
@@ -468,14 +528,29 @@ internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interf
             {
                 if (mapping.InterfaceMethods[i] == codeStyleMethod)
                 {
+                    codeGenerationMethod = codeStyleMethod;
                     baseMethod = mapping.TargetMethods[i];
                     return true;
                 }
             }
         }
 
+        codeGenerationMethod = null;
         baseMethod = null;
         return false;
+    }
+
+    private static bool IsEquivalentTypeForMapping(Type compilerType, Type codeStyleType)
+    {
+        if (compilerType.IsGenericParameter)
+        {
+            if (!codeStyleType.IsGenericParameter)
+                return false;
+
+            return compilerType.GenericParameterPosition == codeStyleType.GenericParameterPosition;
+        }
+
+        return compilerType == codeStyleType;
     }
 
     private static ModuleBuilder CreateModuleBuilder(Assembly baseTypeAssembly)
