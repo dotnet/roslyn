@@ -7,11 +7,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -29,10 +26,8 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
     private sealed class SingleViewportTaggerProvider(
         AsynchronousViewportTaggerProvider<TTag> callback,
         ViewPortToTag viewPortToTag,
-        IThreadingContext threadingContext,
-        IGlobalOptionService globalOptions,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListener asyncListener) : AsynchronousViewTaggerProvider<TTag>(threadingContext, globalOptions, visibilityTracker, asyncListener)
+        string featureName)
+        : AsynchronousViewTaggerProvider<TTag>(callback._taggerHost, featureName)
     {
         private readonly AsynchronousViewportTaggerProvider<TTag> _callback = callback;
 

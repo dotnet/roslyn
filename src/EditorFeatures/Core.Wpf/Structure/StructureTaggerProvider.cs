@@ -8,10 +8,9 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
@@ -25,25 +24,15 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
     [Export(typeof(AbstractStructureTaggerProvider))]
     [TagType(typeof(IStructureTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal class StructureTaggerProvider :
-        AbstractStructureTaggerProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class StructureTaggerProvider(
+        TaggerHost taggerHost,
+        EditorOptionsService editorOptionsService,
+        IProjectionBufferFactoryService projectionBufferFactoryService,
+        ITextEditorFactoryService textEditorFactoryService) : AbstractStructureTaggerProvider(taggerHost, editorOptionsService, projectionBufferFactoryService)
     {
-        private readonly ITextEditorFactoryService _textEditorFactoryService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public StructureTaggerProvider(
-            IThreadingContext threadingContext,
-            EditorOptionsService editorOptionsService,
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            ITextEditorFactoryService textEditorFactoryService,
-            IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, editorOptionsService, projectionBufferFactoryService, visibilityTracker, listenerProvider)
-        {
-            _textEditorFactoryService = textEditorFactoryService;
-        }
+        private readonly ITextEditorFactoryService _textEditorFactoryService = textEditorFactoryService;
 
         internal override object? GetCollapsedHintForm(StructureTag structureTag)
         {

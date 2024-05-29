@@ -19,16 +19,26 @@ internal abstract class VSTypeScriptAsynchronousTaggerProvider<TTag> : Asynchron
         IThreadingContext threadingContext,
         IAsynchronousOperationListenerProvider asyncListenerProvider,
         VSTypeScriptGlobalOptions globalOptions)
-        : base(threadingContext, globalOptions.Service, visibilityTracker: null, asyncListenerProvider.GetListener(FeatureAttribute.Classification))
+        : this(
+            threadingContext,
+            globalOptions,
+            visibilityTracker: null,
+            asyncListenerProvider)
     {
     }
 
+    [Obsolete("Use constructor that takes a single TaggerHost")]
     protected VSTypeScriptAsynchronousTaggerProvider(
         IThreadingContext threadingContext,
         VSTypeScriptGlobalOptions globalOptions,
         ITextBufferVisibilityTracker? visibilityTracker,
         IAsynchronousOperationListenerProvider asyncListenerProvider)
-        : base(threadingContext, globalOptions.Service, visibilityTracker, asyncListenerProvider.GetListener(FeatureAttribute.Classification))
+        : base(new TaggerHost(threadingContext, globalOptions.Service, visibilityTracker, asyncListenerProvider), FeatureAttribute.Classification)
+    {
+    }
+
+    protected VSTypeScriptAsynchronousTaggerProvider(TaggerHost taggerHost)
+        : base(taggerHost, FeatureAttribute.Classification)
     {
     }
 }
