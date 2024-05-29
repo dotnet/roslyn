@@ -193,15 +193,13 @@ public class FirstClassSpanTests : CSharpTestBase
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
         CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
 
-        var expectedDiagnostics = new[]
-        {
-            // (5,5): error CS0121: The call is ambiguous between the following methods or properties: 'E.M<T>(Span<T>, T)' and 'E.M<T>(IEnumerable<T>, T)'
-            // arr.M('/');
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.M<T>(System.Span<T>, T)", "E.M<T>(System.Collections.Generic.IEnumerable<T>, T)").WithLocation(5, 5)
-        };
+        var expectedOutput = "1";
 
-        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -261,11 +259,13 @@ public class FirstClassSpanTests : CSharpTestBase
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
         CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
 
+        // PROTOTYPE: Can we avoid this break?
+
         var expectedDiagnostics = new[]
         {
-            // (5,5): error CS0121: The call is ambiguous between the following methods or properties: 'E.M<T>(Span<T>, T)' and 'E.M<T>(IEnumerable<T>, T)'
+            // (5,5): error CS1113: Extension method 'E.M<int>(Span<int>, int)' defined on value type 'Span<int>' cannot be used to create delegates
             // E.R(arr.M);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "arr.M").WithArguments("E.M<T>(System.Span<T>, T)", "E.M<T>(System.Collections.Generic.IEnumerable<T>, T)").WithLocation(5, 5)
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "arr.M").WithArguments("E.M<int>(System.Span<int>, int)", "System.Span<int>").WithLocation(5, 5)
         };
 
         CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -2308,6 +2308,87 @@ public class FirstClassSpanTests : CSharpTestBase
         verifier.VerifyIL("C.M", expectedIl);
     }
 
+    [Fact]
+    public void OverloadResolution_SpanVsIEnumerable()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            var a = new int[0];
+            C.M(a);
+
+            static class C
+            {
+                public static void M(Span<int> x) => Console.Write(1);
+                public static void M(IEnumerable<int> x) => Console.Write(2);
+            }
+            """;
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (5,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Span<int>)' and 'C.M(IEnumerable<int>)'
+            // C.M(a);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Span<int>)", "C.M(System.Collections.Generic.IEnumerable<int>)").WithLocation(5, 3));
+
+        var expectedOutput = "1";
+
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_SpanVsIEnumerable_CollectionExpression(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            C.M([]);
+
+            static class C
+            {
+                public static void M(Span<int> x) => Console.Write(1);
+                public static void M(IEnumerable<int> x) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_SpanVsIEnumerable_Ctor()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            var a = new int[0];
+            var c = new C(a);
+
+            class C
+            {
+                public C(Span<int> x) => Console.Write(1);
+                public C(IEnumerable<int> x) => Console.Write(2);
+            }
+            """;
+
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (5,13): error CS0121: The call is ambiguous between the following methods or properties: 'C.C(Span<int>)' and 'C.C(IEnumerable<int>)'
+            // var c = new C(a);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "C").WithArguments("C.C(System.Span<int>)", "C.C(System.Collections.Generic.IEnumerable<int>)").WithLocation(5, 13));
+
+        var expectedOutput = "1";
+
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
     [Theory, MemberData(nameof(LangVersions))]
     public void OverloadResolution_ReadOnlySpanVsArray_01(LanguageVersion langVersion)
     {
@@ -2439,17 +2520,13 @@ public class FirstClassSpanTests : CSharpTestBase
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
         CompileAndVerify(comp, expectedOutput: "oa").VerifyDiagnostics();
 
-        // PROTOTYPE: This break should go away with betterness rule.
+        var expectedOutput = "sa";
 
-        var expectedDiagnostics = new[]
-        {
-            // (4,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(object[])' and 'C.M(ReadOnlySpan<string>)'
-            // a.M();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(object[])", "C.M(System.ReadOnlySpan<string>)").WithLocation(4, 3)
-        };
+        comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
     [Fact]
