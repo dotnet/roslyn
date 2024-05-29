@@ -697,6 +697,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     object P2 { get { F(out var @field); return null; } }
                     object P3 { set { F(out var value); } }
                     object P4 { set { F(out var @value); } }
+                    object P5 { set { F(out value); } }
+                    object P6 { set { F(out @value); } }
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -982,6 +984,57 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Deconstruction(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            string source = """
+                class C
+                {
+                    void Deconstruct(out object x, out object y) => throw null;
+                    static object P1
+                    {
+                        set
+                        {
+                            object @field;
+                            object @value;
+                            (field, @value) = new C();
+                            (@field, value) = new C();
+                        }
+                    }
+                    static object P2
+                    {
+                        set
+                        {
+                            (value, @value) = new C();
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (9,20): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //             object @value;
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(9, 20));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (9,20): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //             object @value;
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(9, 20),
+                    // (10,14): info CS9248: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
+                    //             (field, @value) = new C();
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 14),
+                    // (11,22): info CS9248: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
+                    //             (@field, value) = new C();
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(11, 22));
+            }
         }
 
         [Theory]

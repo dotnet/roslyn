@@ -1744,17 +1744,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (name)
             {
                 case "field" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } }:
-                    break;
                 case "value" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove }:
+                    {
+                        var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
+                        if (Compilation.LanguageVersion < requiredVersion)
+                        {
+                            diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
+                        }
+                    }
                     break;
-                default:
-                    return;
-            }
-
-            var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
-            if (Compilation.LanguageVersion < requiredVersion)
-            {
-                diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
             }
         }
 #nullable disable
