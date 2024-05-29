@@ -130,6 +130,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             new ExternalErrorDiagnosticUpdateSource(
                 this,
                 exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
+                exportProvider.GetExportedValue<IGlobalOptionService>(),
                 exportProvider.GetExportedValue<IGlobalOperationNotificationService>(),
                 exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
                 _threadingContext),

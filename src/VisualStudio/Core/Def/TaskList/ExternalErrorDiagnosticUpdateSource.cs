@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -37,6 +38,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 {
     private readonly Workspace _workspace;
     private readonly IDiagnosticAnalyzerService _diagnosticService;
+    private readonly IGlobalOptionService _globalOptions;
     private readonly IBuildOnlyDiagnosticsService _buildOnlyDiagnosticsService;
     private readonly IGlobalOperationNotificationService _notificationService;
 
@@ -62,10 +64,11 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     public ExternalErrorDiagnosticUpdateSource(
         VisualStudioWorkspace workspace,
         IDiagnosticAnalyzerService diagnosticService,
+        IGlobalOptionService globalOptions,
         IGlobalOperationNotificationService notificationService,
         IAsynchronousOperationListenerProvider listenerProvider,
         IThreadingContext threadingContext)
-        : this(workspace, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.ErrorList), threadingContext.DisposalToken)
+        : this(workspace, diagnosticService, globalOptions, notificationService, listenerProvider.GetListener(FeatureAttribute.ErrorList), threadingContext.DisposalToken)
     {
     }
 
@@ -75,6 +78,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     internal ExternalErrorDiagnosticUpdateSource(
         Workspace workspace,
         IDiagnosticAnalyzerService diagnosticService,
+        IGlobalOptionService globalOptions,
         IGlobalOperationNotificationService notificationService,
         IAsynchronousOperationListener listener,
         CancellationToken disposalToken)
@@ -91,6 +95,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
         _diagnosticService = diagnosticService;
+        _globalOptions = globalOptions;
         _buildOnlyDiagnosticsService = _workspace.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
 
         _notificationService = notificationService;
@@ -810,7 +815,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
         private ImmutableHashSet<string> GetOrCreateSupportedLiveDiagnostics(Project project)
         {
-            var fullSolutionAnalysis = _owner._diagnosticService.GlobalOptions.IsFullSolutionAnalysisEnabled(project.Language);
+            var fullSolutionAnalysis = _owner._globalOptions.IsFullSolutionAnalysisEnabled(project.Language);
             if (!project.SupportsCompilation || fullSolutionAnalysis)
             {
                 // Defer to _allDiagnosticIdMap so we avoid placing FSA diagnostics in _liveDiagnosticIdMap
