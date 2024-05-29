@@ -71,18 +71,14 @@ internal class StreamingProgressCollector(
     }
 
     public async ValueTask OnReferencesFoundAsync(
-        IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
+        ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
     {
-        // Reading the references from the stream will cause them to be processed.  We'll make a copy here so we can
-        // defer to the underlying progress object with the same data.
-        using var _ = ArrayBuilder<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)>.GetInstance(out var copy);
-        await foreach (var tuple in references)
+        lock (_gate)
         {
-            copy.Add(tuple);
-            lock (_gate)
+            foreach (var tuple in references)
                 _symbolToLocations[tuple.symbol].Add(tuple.location);
         }
 
-        await underlyingProgress.OnReferencesFoundAsync(copy.AsAsyncEnumerable(), cancellationToken).ConfigureAwait(false);
+        await underlyingProgress.OnReferencesFoundAsync(references, cancellationToken).ConfigureAwait(false);
     }
 }
