@@ -335,18 +335,9 @@ internal partial class ProjectState
             }
 
             var filePath = GetEffectiveFilePath(documentState);
-            if (filePath == null)
-            {
-                return StructuredAnalyzerConfigOptions.Empty;
-            }
-
-            var legacyDocumentOptionsProvider = services.GetService<ILegacyDocumentOptionsProvider>();
-            if (legacyDocumentOptionsProvider != null)
-            {
-                return StructuredAnalyzerConfigOptions.Create(legacyDocumentOptionsProvider.GetOptions(projectState.Id, filePath));
-            }
-
-            return GetOptionsForSourcePath(cache, filePath);
+            return filePath == null
+                ? StructuredAnalyzerConfigOptions.Empty
+                : GetOptionsForSourcePath(cache, filePath);
         }
 
         public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
@@ -494,7 +485,7 @@ internal partial class ProjectState
     {
         private readonly ConcurrentDictionary<string, AnalyzerConfigData> _sourcePathToResult = [];
         private readonly Func<string, AnalyzerConfigData> _computeFunction = path => new AnalyzerConfigData(configSet.GetOptionsForSourcePath(path));
-        private readonly Lazy<AnalyzerConfigData> _global = new Lazy<AnalyzerConfigData>(() => new AnalyzerConfigData(configSet.GlobalConfigOptions));
+        private readonly Lazy<AnalyzerConfigData> _global = new(() => new AnalyzerConfigData(configSet.GlobalConfigOptions));
 
         public AnalyzerConfigData GlobalConfigOptions
             => _global.Value;

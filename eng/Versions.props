@@ -8,7 +8,7 @@
     <MajorVersion>4</MajorVersion>
     <MinorVersion>11</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>2</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>3</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".

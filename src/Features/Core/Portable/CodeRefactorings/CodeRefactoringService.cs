@@ -121,6 +121,8 @@ internal sealed class CodeRefactoringService(
                 source: orderedProviders,
                 produceItems: static async (provider, callback, args, cancellationToken) =>
                 {
+                    var (@this, document, state, options) = args;
+
                     // Run all providers in parallel to get the set of refactorings for this document.
                     // Log an individual telemetry event for slow code refactoring computations to
                     // allow targeted trace notifications for further investigation. 500 ms seemed like
@@ -133,14 +135,14 @@ internal sealed class CodeRefactoringService(
                     var logMessage = KeyValueLogMessage.Create(m =>
                     {
                         m[TelemetryLogging.KeyName] = providerName;
-                        m[TelemetryLogging.KeyLanguageName] = args.document.Project.Language;
+                        m[TelemetryLogging.KeyLanguageName] = document.Project.Language;
                     });
 
                     using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                     using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
                     {
-                        var refactoring = await args.@this.GetRefactoringFromProviderAsync(
-                            args.document, args.state, provider, args.options, cancellationToken).ConfigureAwait(false);
+                        var refactoring = await @this.GetRefactoringFromProviderAsync(
+                            document, state, provider, options, cancellationToken).ConfigureAwait(false);
                         if (refactoring != null)
                             callback((provider, refactoring));
                     }

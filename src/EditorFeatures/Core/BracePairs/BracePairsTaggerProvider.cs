@@ -9,16 +9,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -32,14 +29,8 @@ namespace Microsoft.CodeAnalysis.BracePairs;
 [TagType(typeof(IBracePairTag))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class BracePairsTaggerProvider(
-    IThreadingContext threadingContext,
-    IGlobalOptionService globalOptionService,
-    [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewportTaggerProvider<IBracePairTag>(threadingContext,
-          globalOptionService,
-          visibilityTracker,
-          listenerProvider.GetListener(FeatureAttribute.BracePairs))
+internal sealed class BracePairsTaggerProvider(TaggerHost taggerHost)
+    : AsynchronousViewportTaggerProvider<IBracePairTag>(taggerHost, FeatureAttribute.BracePairs)
 {
     protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
