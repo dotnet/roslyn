@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -3057,11 +3058,8 @@ Keyword("async"));
         var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
 
         var provider = new TotalClassificationTaggerProvider(
-            workspace.GetService<IThreadingContext>(),
-            workspace.GetService<ClassificationTypeMap>(),
-            globalOptions,
-            visibilityTracker: null,
-            listenerProvider);
+            workspace.GetService<TaggerHost>(),
+            workspace.GetService<ClassificationTypeMap>());
 
         var buffer = document.GetTextBuffer();
         using var tagger = provider.CreateTagger(document.GetTextView(), buffer);

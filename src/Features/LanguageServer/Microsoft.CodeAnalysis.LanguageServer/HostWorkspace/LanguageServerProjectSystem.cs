@@ -171,8 +171,9 @@ internal sealed class LanguageServerProjectSystem
                 source: projectPathsToLoadOrReload,
                 produceItems: static async (projectToLoad, callback, args, cancellationToken) =>
                 {
-                    var projectNeedsRestore = await args.@this.LoadOrReloadProjectAsync(
-                        projectToLoad, args.toastErrorReporter, args.buildHostProcessManager, cancellationToken);
+                    var (@this, toastErrorReporter, buildHostProcessManager) = args;
+                    var projectNeedsRestore = await @this.LoadOrReloadProjectAsync(
+                        projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
 
                     if (projectNeedsRestore)
                         callback(projectToLoad.Path);

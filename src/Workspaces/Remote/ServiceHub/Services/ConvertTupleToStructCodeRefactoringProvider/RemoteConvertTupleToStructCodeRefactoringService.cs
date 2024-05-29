@@ -84,9 +84,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 source: changes,
                 produceItems: static async (docId, callback, args, cancellationToken) =>
                 {
-                    var document = args.newSolution.GetRequiredDocument(docId);
+                    var (newSolution, fallbackOptions) = args;
+                    var document = newSolution.GetRequiredDocument(docId);
 
-                    var options = await document.GetCodeCleanupOptionsAsync(args.fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
                     var cleaned = await CodeAction.CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
 
                     var cleanedRoot = await cleaned.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

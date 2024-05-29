@@ -38,6 +38,14 @@ public class C<T>
     where T : allows ref struct
 {
 }
+
+public class D
+{
+    static public void M<T>() where T : allows ref struct
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+}
 "
 
             Dim csCompilation = CreateCSharpCompilation(csSource,
@@ -53,7 +61,15 @@ End Class
 
 Public Class Test
     Shared Sub Main()
-        Dim b = New B(Of Integer)()
+        Dim c1 = New C(Of Integer)()
+        Dim c2 = New C(Of Test)()
+
+        Dim b1 = New B(Of Integer)()
+        Dim b2 = New B(Of Test)()
+
+        D.M(Of Integer)()
+        D.M(Of Test)()
+
         System.Console.Write("Done")
     End Sub
 End Class
@@ -81,7 +97,10 @@ End Class
             CompileAndVerify(
                 comp1,
                 verify:=If(ExecutionConditionUtil.IsMonoOrCoreClr, Verification.Passes, Verification.Skipped),
-                expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "Done", Nothing)).VerifyDiagnostics()
+                expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
+"System.Int32
+Test
+Done", Nothing)).VerifyDiagnostics()
         End Sub
 
         <Fact>
