@@ -47,14 +47,13 @@ internal abstract partial class StructuredAnalyzerConfigOptions
 #if !CODE_STYLE
         public override CodeGenerationOptions GetCodeGenerationOptions(LanguageServices languageServices, CodeGenerationOptions? fallbackOptions)
         {
-            ref var options =
-                ref languageServices.Language == LanguageNames.CSharp ? ref _csharpCodeGenerationOptions :
-                ref languageServices.Language == LanguageNames.VisualBasic ? ref _visualBasicCodeGenerationOptions : ref Unsafe.NullRef<CodeGenerationOptions?>();
+            if (languageServices.Language == LanguageNames.CSharp)
+                return _csharpCodeGenerationOptions ??= ((IOptionsReader)this).GetCodeGenerationOptions(languageServices, fallbackOptions);
 
-            Contract.ThrowIfNull(options);
+            if (languageServices.Language == LanguageNames.VisualBasic)
+                return _visualBasicCodeGenerationOptions ??= ((IOptionsReader)this).GetCodeGenerationOptions(languageServices, fallbackOptions);
 
-            options ??= ((IOptionsReader)this).GetCodeGenerationOptions(languageServices, fallbackOptions);
-            return options;
+            throw ExceptionUtilities.Unreachable();
         }
 #endif
     }
