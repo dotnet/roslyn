@@ -356,9 +356,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.CodeLens", "src\VisualStudio\CodeLens\Microsoft.VisualStudio.LanguageServices.CodeLens.csproj", "{5E6E9184-DEC5-4EC5-B0A4-77CFDC8CDEBE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Protocol", "src\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj", "{686BF57E-A6FF-467B-AAB3-44DE916A9772}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Protocol", "src\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj", "{686BF57E-A6FF-467B-AAB3-44DE916A9772}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests", "src\Features\LanguageServer\ProtocolUnitTests\Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests.csproj", "{1DDE89EE-5819-441F-A060-2FF4A986F372}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests", "src\LanguageServer\ProtocolUnitTests\Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests.csproj", "{1DDE89EE-5819-441F-A060-2FF4A986F372}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Debugger", "src\Tools\ExternalAccess\Debugger\Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj", "{655A5B07-39B8-48CD-8590-8AC0C2B708D8}"
 EndProject
@@ -491,19 +491,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenerateRulesMissingDocumen
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests", "src\Compilers\CSharp\Test\EndToEnd\Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests.csproj", "{C247414A-8946-4BAB-BE1F-C82B90C63EF6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework.Package", "src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Package.csproj", "{D2589BCE-4F2E-4113-B7E7-37392C0C5492}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework.Package", "src\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Package.csproj", "{D2589BCE-4F2E-4113-B7E7-37392C0C5492}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework.Example", "src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework.Example\Microsoft.CommonLanguageServerProtocol.Framework.Example.csproj", "{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework.Example", "src\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework.Example\Microsoft.CommonLanguageServerProtocol.Framework.Example.csproj", "{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework.UnitTests", "src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework.UnitTests\Microsoft.CommonLanguageServerProtocol.Framework.UnitTests.csproj", "{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework.UnitTests", "src\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework.UnitTests\Microsoft.CommonLanguageServerProtocol.Framework.UnitTests.csproj", "{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.TestAnalyzerReference", "src\Workspaces\TestAnalyzerReference\Microsoft.CodeAnalysis.TestAnalyzerReference.csproj", "{8A29449D-411E-49E4-B99E-E8428076BB21}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestDiscoveryWorker", "src\Tools\TestDiscoveryWorker\TestDiscoveryWorker.csproj", "{8BC50AFF-1EBF-4E9A-AEBB-04F387AA800F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer", "src\Features\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj", "{2A3C94F7-5B5E-4CDC-B645-672815E61DEB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer", "src\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj", "{2A3C94F7-5B5E-4CDC-B645-672815E61DEB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.UnitTests", "src\Features\LanguageServer\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Microsoft.CodeAnalysis.LanguageServer.UnitTests.csproj", "{9A90AA02-4275-40ED-B1F1-731AF17E675C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.UnitTests", "src\LanguageServer\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Microsoft.CodeAnalysis.LanguageServer.UnitTests.csproj", "{9A90AA02-4275-40ED-B1F1-731AF17E675C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Framework.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\Framework\Microsoft.Net.Compilers.Toolset.Framework.Package.csproj", "{521ADC3E-CC15-414B-9356-D87C5BCF3A24}"
 EndProject
@@ -545,7 +545,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Replay", "src\Tools\Replay\Replay.csproj", "{DB96C25F-39A9-4A6A-92BC-D1E42717308F}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CommonLanguageServerProtocol.Framework.Shared", "src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Shared.shproj", "{64EADED3-4B5D-4431-BBE5-A4ABA1C38C00}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CommonLanguageServerProtocol.Framework.Shared", "src\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Shared.shproj", "{64EADED3-4B5D-4431-BBE5-A4ABA1C38C00}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Emit3.UnitTests", "src\Compilers\CSharp\Test\Emit3\Microsoft.CodeAnalysis.CSharp.Emit3.UnitTests.csproj", "{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350}"
 EndProject
@@ -1676,8 +1676,8 @@ Global
 		src\Analyzers\Core\CodeFixes\CodeFixes.projitems*{5ff1e493-69cc-4d0b-83f2-039f469a04e1}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\WorkspaceExtensions.projitems*{5ff1e493-69cc-4d0b-83f2-039f469a04e1}*SharedItemsImports = 5
 		src\ExpressionEvaluator\CSharp\Source\ResultProvider\CSharpResultProvider.projitems*{60db272a-21c9-4e8d-9803-ff4e132392c8}*SharedItemsImports = 5
-		src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Shared.projitems*{64eaded3-4b5d-4431-bbe5-a4aba1c38c00}*SharedItemsImports = 13
-		src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Shared.projitems*{686bf57e-a6ff-467b-aab3-44de916a9772}*SharedItemsImports = 5
+		src\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Shared.projitems*{64eaded3-4b5d-4431-bbe5-a4aba1c38c00}*SharedItemsImports = 13
+		src\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Shared.projitems*{686bf57e-a6ff-467b-aab3-44de916a9772}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\CSharp\CSharpCompilerExtensions.projitems*{699fea05-aea7-403d-827e-53cf4e826955}*SharedItemsImports = 13
 		src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\BasicResultProvider.projitems*{76242a2d-2600-49dd-8c15-fea07ecb1843}*SharedItemsImports = 5
 		src\Analyzers\Core\Analyzers\Analyzers.projitems*{76e96966-4780-4040-8197-bde2879516f4}*SharedItemsImports = 13
@@ -1706,7 +1706,7 @@ Global
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{c1930979-c824-496b-a630-70f5369a636f}*SharedItemsImports = 13
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\VisualBasic\VisualBasicCompilerExtensions.projitems*{cec0dce7-8d52-45c3-9295-fc7b16bd2451}*SharedItemsImports = 13
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{d0bc9be7-24f6-40ca-8dc6-fcb93bd44b34}*SharedItemsImports = 13
-		src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework.Shared\Microsoft.CommonLanguageServerProtocol.Framework.Shared.projitems*{d2589bce-4f2e-4113-b7e7-37392c0c5492}*SharedItemsImports = 5
+		src\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework.Shared\Microsoft.CommonLanguageServerProtocol.Framework.Shared.projitems*{d2589bce-4f2e-4113-b7e7-37392c0c5492}*SharedItemsImports = 5
 		src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{d73adf7d-2c1c-42ae-b2ab-edc9497e4b71}*SharedItemsImports = 13
 		src\Compilers\Server\VBCSCompiler\VBCSCompilerCommandLine.projitems*{d8ef0777-9d65-4849-a7d6-ac81e58e2317}*SharedItemsImports = 13
 		src\Analyzers\CSharp\CodeFixes\CSharpCodeFixes.projitems*{da973826-c985-4128-9948-0b445e638bdb}*SharedItemsImports = 13
