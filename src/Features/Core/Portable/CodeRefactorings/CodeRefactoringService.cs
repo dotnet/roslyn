@@ -136,7 +136,7 @@ internal sealed class CodeRefactoringService(
                     return true;
                 }
 
-                return true;
+                return false;
             },
             args: (this, document, state, options, linkedTokenSource),
             // intentionally using the outer token here.  The linked token is only used to cancel the inner operations.
