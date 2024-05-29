@@ -4072,7 +4072,7 @@ public partial class UsePrimaryConstructorTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73695")]
     public async Task TestAttributeOnEmptyConstructor()
     {
         await new VerifyCS.Test
