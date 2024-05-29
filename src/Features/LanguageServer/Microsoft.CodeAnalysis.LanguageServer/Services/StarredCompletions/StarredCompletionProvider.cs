@@ -3,11 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.LanguageService;
 

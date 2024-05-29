@@ -4,6 +4,7 @@
 
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -80,9 +81,9 @@ internal partial struct SymbolKey
 
             foreach (var child in syntaxNode.ChildNodesAndTokens())
             {
-                if (child.IsNode)
+                if (child.AsNode(out var childNode))
                 {
-                    var result = Resolve(semanticModel, child.AsNode()!, name, target, cancellationToken);
+                    var result = Resolve(semanticModel, childNode, name, target, cancellationToken);
                     if (result.HasValue)
                     {
                         return result;

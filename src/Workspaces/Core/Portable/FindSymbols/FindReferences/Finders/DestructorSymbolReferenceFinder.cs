@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -29,7 +28,7 @@ internal sealed class DestructorSymbolReferenceFinder : AbstractReferenceFinder<
         return Task.CompletedTask;
     }
 
-    protected override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected override void FindReferencesInDocument<TData>(
         IMethodSymbol methodSymbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -37,6 +36,5 @@ internal sealed class DestructorSymbolReferenceFinder : AbstractReferenceFinder<
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        return ValueTaskFactory.CompletedTask;
     }
 }

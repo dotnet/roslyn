@@ -50,4 +50,5 @@ internal record class ServerConfiguration(
     IEnumerable<string> ExtensionAssemblyPaths,
     string? DevKitDependencyPath,
     string? RazorSourceGenerator,
+    string? RazorDesignTimePath,
     string ExtensionLogDirectory);

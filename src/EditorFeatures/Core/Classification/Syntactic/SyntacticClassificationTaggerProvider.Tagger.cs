@@ -24,7 +24,7 @@ internal partial class SyntacticClassificationTaggerProvider
 
         public override void AddTags(
             NormalizedSnapshotSpanCollection spans,
-            SegmentedList<ITagSpan<IClassificationTag>> tags)
+            SegmentedList<TagSpan<IClassificationTag>> tags)
         {
             var tagComputer = _tagComputer ?? throw new ObjectDisposedException(GetType().FullName);
             tagComputer.AddTags(spans, tags);

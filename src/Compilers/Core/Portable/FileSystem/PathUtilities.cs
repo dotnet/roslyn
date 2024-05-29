@@ -735,6 +735,16 @@ namespace Roslyn.Utilities
             return filePath;
         }
 
+        public static string NormalizeDriveLetter(string filePath)
+        {
+            if (!IsUnixLikePlatform && IsDriveRootedAbsolutePath(filePath))
+            {
+                filePath = char.ToUpper(filePath[0]) + filePath.Substring(1);
+            }
+
+            return filePath;
+        }
+
         /// <summary>
         /// Unfortunately, we cannot depend on Path.GetInvalidPathChars() or Path.GetInvalidFileNameChars()
         /// From MSDN: The array returned from this method is not guaranteed to contain the complete set of characters

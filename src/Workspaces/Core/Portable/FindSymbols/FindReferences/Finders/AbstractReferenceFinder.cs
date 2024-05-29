@@ -33,7 +33,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     public abstract Task DetermineDocumentsToSearchAsync<TData>(
         ISymbol symbol, HashSet<string>? globalAliases, Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-    public abstract ValueTask FindReferencesInDocumentAsync<TData>(
+    public abstract void FindReferencesInDocument<TData>(
         ISymbol symbol, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
     private static (bool matched, CandidateReason reason) SymbolsMatch(
@@ -745,85 +745,50 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         return false;
     }
 
-    internal static ImmutableDictionary<string, string> GetAdditionalFindUsagesProperties(
+    internal static ImmutableArray<(string key, string value)> GetAdditionalFindUsagesProperties(
         SyntaxNode node, FindReferencesDocumentState state)
     {
-        var additionalProperties = ImmutableDictionary.CreateBuilder<string, string>();
+        using var additionalProperties = TemporaryArray<(string key, string value)>.Empty;
 
         var syntaxFacts = state.SyntaxFacts;
         var semanticModel = state.SemanticModel;
 
-        if (TryGetAdditionalProperty(
-                syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart),
-                ContainingTypeInfoPropertyName,
-                semanticModel,
-                out var containingTypeProperty))
+        TryAddAdditionalProperty(
+            syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart),
+            ContainingTypeInfoPropertyName);
+
+        TryAddAdditionalProperty(
+            syntaxFacts.GetContainingMemberDeclaration(node, node.SpanStart),
+            ContainingMemberInfoPropertyName);
+
+        return additionalProperties.ToImmutableAndClear();
+
+        void TryAddAdditionalProperty(SyntaxNode? node, string key)
         {
-            additionalProperties.Add(containingTypeProperty);
-        }
-
-        if (TryGetAdditionalProperty(
-                syntaxFacts.GetContainingMemberDeclaration(node, node.SpanStart),
-                ContainingMemberInfoPropertyName,
-                semanticModel,
-                out var containingMemberProperty))
-        {
-            additionalProperties.Add(containingMemberProperty);
-        }
-
-        return additionalProperties.ToImmutable();
-    }
-
-    internal static ImmutableDictionary<string, string> GetAdditionalFindUsagesProperties(ISymbol definition)
-    {
-        var additionalProperties = ImmutableDictionary.CreateBuilder<string, string>();
-
-        var containingType = definition.ContainingType;
-        if (containingType != null &&
-            TryGetAdditionalProperty(ContainingTypeInfoPropertyName, containingType, out var containingTypeProperty))
-        {
-            additionalProperties.Add(containingTypeProperty);
-        }
-
-        var containingSymbol = definition.ContainingSymbol;
-
-        // Containing member should only include fields, properties, methods, or events.  Since ContainingSymbol can return other types, use the return value of GetMemberType to restrict to members only.)
-        if (containingSymbol != null &&
-            containingSymbol.GetMemberType() != null &&
-            TryGetAdditionalProperty(ContainingMemberInfoPropertyName, containingSymbol, out var containingMemberProperty))
-        {
-            additionalProperties.Add(containingMemberProperty);
-        }
-
-        return additionalProperties.ToImmutable();
-    }
-
-    private static bool TryGetAdditionalProperty(SyntaxNode? node, string name, SemanticModel semanticModel, out KeyValuePair<string, string> additionalProperty)
-    {
-        if (node != null)
-        {
-            var symbol = semanticModel.GetDeclaredSymbol(node);
-            if (symbol != null &&
-                TryGetAdditionalProperty(name, symbol, out additionalProperty))
+            if (node != null)
             {
-                return true;
+                var symbol = semanticModel.GetDeclaredSymbol(node);
+                if (symbol != null)
+                    additionalProperties.Add((key, symbol.Name));
             }
         }
-
-        additionalProperty = default;
-        return false;
     }
 
-    private static bool TryGetAdditionalProperty(string propertyName, ISymbol symbol, out KeyValuePair<string, string> additionalProperty)
+    internal static ImmutableArray<(string key, string value)> GetAdditionalFindUsagesProperties(ISymbol definition)
     {
-        if (symbol == null)
-        {
-            additionalProperty = default;
-            return false;
-        }
+        using var additionalProperties = TemporaryArray<(string key, string value)>.Empty;
 
-        additionalProperty = KeyValuePairUtil.Create(propertyName, symbol.Name);
-        return true;
+        var containingType = definition.ContainingType;
+        if (containingType != null)
+            additionalProperties.Add((ContainingTypeInfoPropertyName, containingType.Name));
+
+        // Containing member should only include fields, properties, methods, or events.  Since ContainingSymbol can
+        // return other types, use the return value of GetMemberType to restrict to members only.)
+        var containingSymbol = definition.ContainingSymbol;
+        if (containingSymbol != null && containingSymbol.GetMemberType() != null)
+            additionalProperties.Add((ContainingMemberInfoPropertyName, containingSymbol.Name));
+
+        return additionalProperties.ToImmutableAndClear();
     }
 }
 
@@ -837,7 +802,7 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
         Action<Document, TData> processResult, TData processResultData,
         FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-    protected abstract ValueTask FindReferencesInDocumentAsync<TData>(
+    protected abstract void FindReferencesInDocument<TData>(
         TSymbol symbol, FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult, TData processResultData,
         FindReferencesSearchOptions options, CancellationToken cancellationToken);
@@ -867,12 +832,11 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
         return Task.CompletedTask;
     }
 
-    public sealed override ValueTask FindReferencesInDocumentAsync<TData>(
+    public sealed override void FindReferencesInDocument<TData>(
         ISymbol symbol, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken)
     {
-        return symbol is TSymbol typedSymbol && CanFind(typedSymbol)
-            ? FindReferencesInDocumentAsync(typedSymbol, state, processResult, processResultData, options, cancellationToken)
-            : ValueTaskFactory.CompletedTask;
+        if (symbol is TSymbol typedSymbol && CanFind(typedSymbol))
+            FindReferencesInDocument(typedSymbol, state, processResult, processResultData, options, cancellationToken);
     }
 
     public sealed override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(

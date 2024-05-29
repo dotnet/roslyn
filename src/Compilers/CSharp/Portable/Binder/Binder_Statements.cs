@@ -1107,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declTypeOpt.Type, localDiagnostics, typeSyntax);
 
-            if (localSymbol.Scope == ScopedKind.ScopedValue && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
+            if (localSymbol.Scope == ScopedKind.ScopedValue && !declTypeOpt.Type.IsErrorOrRefLikeOrAllowsRefLikeType())
             {
                 localDiagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
             }
@@ -1581,7 +1581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         leftEscape = GetValEscape(op1, _localScopeDepth);
                         rightEscape = GetValEscape(op2, _localScopeDepth);
 
-                        Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType);
+                        Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeOrAllowsRefLikeType());
 
                         // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here,
                         // we don't check for equality. The case where the safe-to-escape of e2 is narrower than
@@ -1600,7 +1600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (!hasErrors && op1.Type.IsRefLikeType)
+                if (!hasErrors && op1.Type.IsRefLikeOrAllowsRefLikeType())
                 {
                     var leftEscape = GetValEscape(op1, _localScopeDepth);
                     ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);

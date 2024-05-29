@@ -230,6 +230,114 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
     }
 
     [Fact]
+    public void Await_RefLocal_Across_Unsafe_01()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(int x)
+                {
+                    unsafe
+                    {
+                        ref int y = ref x;
+                        await Task.Yield();
+                        System.Console.Write(y);
+                    }
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (8,21): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             ref int y = ref x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 21),
+            // (9,13): error CS4004: Cannot await in an unsafe context
+            //             await Task.Yield();
+            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 13));
+
+        var expectedDiagnostics = new[]
+        {
+            // (9,13): error CS4004: Cannot await in an unsafe context
+            //             await Task.Yield();
+            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 13)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Await_RefLocal_Across_Unsafe_02()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            unsafe class C
+            {
+                async Task M(int x)
+                {
+                    ref int y = ref x;
+                    await Task.Yield();
+                    System.Console.Write(y);
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (6,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         ref int y = ref x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 17),
+            // (7,9): error CS4004: Cannot await in an unsafe context
+            //         await Task.Yield();
+            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(7, 9));
+
+        var expectedDiagnostics = new[]
+        {
+            // (7,9): error CS4004: Cannot await in an unsafe context
+            //         await Task.Yield();
+            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(7, 9)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Await_RefLocal_Across_Unsafe_03()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(int x)
+                {
+                    ref int y = ref x;
+                    await Task.Yield();
+                    unsafe
+                    {
+                        System.Console.Write(y);
+                    }
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (6,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         ref int y = ref x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 17));
+
+        var expectedDiagnostics = new[]
+        {
+            // (10,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+            //             System.Console.Write(y);
+            Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(10, 34)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
     public void Await_RefLocal_Across_Reassign()
     {
         var source = """
@@ -288,6 +396,39 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             // (9,23): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
             //         Console.Write(y.ToString());
             Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(9, 23));
+    }
+
+    [Fact]
+    public void Await_RefStruct_Across_Unsafe()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(int x)
+                {
+                    Span<int> y = new(ref x);
+                    await Task.Yield();
+                    unsafe { Console.Write(y.ToString()); }
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+            // (7,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         Span<int> y = new(ref x);
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Span<int>").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 9));
+
+        var expectedDiagnostics = new[]
+        {
+            // (9,32): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+            //         unsafe { Console.Write(y.ToString()); }
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(9, 32)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -411,6 +552,41 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             // (8,30): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
             //         System.Console.Write(y);
             Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(8, 30));
+    }
+
+    [Fact]
+    public void YieldReturn_RefLocal_Across_Unsafe()
+    {
+        var source = """
+            using System.Collections.Generic;
+            class C
+            {
+                IEnumerable<int> M(int x)
+                {
+                    ref int y = ref x;
+                    yield return 1;
+                    unsafe { System.Console.Write(y); }
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (6,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         ref int y = ref x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 17),
+            // (8,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         unsafe { System.Console.Write(y); }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 9));
+
+        var expectedDiagnostics = new[]
+        {
+            // (8,39): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+            //         unsafe { System.Console.Write(y); }
+            Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(8, 39)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -640,6 +816,39 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             // (9,23): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
             //         Console.Write(y.ToString());
             Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(9, 23));
+    }
+
+    [Fact]
+    public void YieldReturn_RefStruct_Across_Unsafe()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                IEnumerable<int> M(int x)
+                {
+                    Span<int> y = new(ref x);
+                    yield return -1;
+                    unsafe { Console.Write(y.ToString()); }
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+            // (9,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         unsafe { Console.Write(y.ToString()); }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 9));
+
+        var expectedDiagnostics = new[]
+        {
+            // (9,32): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+            //         unsafe { Console.Write(y.ToString()); }
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(9, 32)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
     [Fact]

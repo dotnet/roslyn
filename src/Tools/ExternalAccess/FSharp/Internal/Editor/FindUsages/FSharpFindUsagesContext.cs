@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsages
 {
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsage
 
         public Task OnReferenceFoundAsync(FSharp.FindUsages.FSharpSourceReferenceItem reference)
         {
-            return _context.OnReferenceFoundAsync(reference.RoslynSourceReferenceItem, _cancellationToken).AsTask();
+            return _context.OnReferencesFoundAsync(IAsyncEnumerableExtensions.SingletonAsync(reference.RoslynSourceReferenceItem), _cancellationToken).AsTask();
         }
 
         public Task ReportMessageAsync(string message)

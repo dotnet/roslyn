@@ -708,20 +708,13 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithDocumentFilePath(documentId, filePath), documentId);
     }
 
-    /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, SourceText, PreservationMode)"/>
-    public SolutionCompilationState WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode)
-        => WithDocumentTexts([(documentId, text, mode)]);
-
-    internal SolutionCompilationState WithDocumentTexts(
-        ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
-    {
-        return WithDocumentContents(
-            texts, IsUnchanged,
+    internal SolutionCompilationState WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
+        => WithDocumentContents(
+            texts, SourceTextIsUnchanged,
             static (documentState, text, mode) => documentState.UpdateText(text, mode));
 
-        static bool IsUnchanged(DocumentState oldDocument, SourceText text)
-            => oldDocument.TryGetText(out var oldText) && text == oldText;
-    }
+    private static bool SourceTextIsUnchanged(DocumentState oldDocument, SourceText text)
+        => oldDocument.TryGetText(out var oldText) && text == oldText;
 
     private SolutionCompilationState WithDocumentContents<TContent>(
         ImmutableArray<(DocumentId documentId, TContent content, PreservationMode mode)> texts,
@@ -1247,7 +1240,13 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
-    public SolutionCompilationState WithSourceGeneratorExecutionVersions(
+    /// <summary>
+    /// Updates entries in our <see cref="_sourceGeneratorExecutionVersionMap"/> to the corresponding values in the
+    /// given <paramref name="sourceGeneratorExecutionVersions"/>.  Importantly, <paramref
+    /// name="sourceGeneratorExecutionVersions"/> must refer to projects in this solution.  Projects not mentioned in
+    /// <paramref name="sourceGeneratorExecutionVersions"/> will not be touched (and they will stay in the map).
+    /// </summary>
+    public SolutionCompilationState UpdateSpecificSourceGeneratorExecutionVersions(
         SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions, CancellationToken cancellationToken)
     {
         var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
@@ -1652,7 +1651,7 @@ internal sealed partial class SolutionCompilationState
     /// </summary>
     public SolutionCompilationState WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode)
     {
-        var result = this;
+        using var _ = ArrayBuilder<(DocumentId, SourceText, PreservationMode)>.GetInstance(out var changedDocuments);
 
         foreach (var documentId in documentIds)
         {
@@ -1664,10 +1663,22 @@ internal sealed partial class SolutionCompilationState
 
             var documentState = this.SolutionState.GetProjectState(documentId.ProjectId)?.DocumentStates.GetState(documentId);
             if (documentState != null)
-                result = result.WithDocumentText(documentId, text, mode);
+            {
+                // before allocating an array below (and calling into a function that does a fair amount of linq work),
+                // do a fast check if the text has actually changed. this shows up in allocation traces and is
+                // worthwhile to avoid for the common case where we're continually being asked to update the same doc to
+                // the same text (for example, when GetOpenDocumentInCurrentContextWithChanges) is called.
+                //
+                // The use of GetRequiredState mirrors what happens in WithDocumentTexts
+                if (!SourceTextIsUnchanged(documentState, text))
+                    changedDocuments.Add((documentId, text, mode));
+            }
         }
 
-        return result;
+        if (changedDocuments.Count == 0)
+            return this;
+
+        return this.WithDocumentTexts(changedDocuments.ToImmutableAndClear());
     }
 
     internal TestAccessor GetTestAccessor()

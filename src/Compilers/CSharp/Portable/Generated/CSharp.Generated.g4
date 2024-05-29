@@ -208,10 +208,23 @@ type_parameter_constraint_clause
   ;
 
 type_parameter_constraint
-  : class_or_struct_constraint
+  : allows_constraint_clause
+  | class_or_struct_constraint
   | constructor_constraint
   | default_constraint
   | type_constraint
+  ;
+
+allows_constraint_clause
+  : 'allows' allows_constraint (',' allows_constraint)*
+  ;
+
+allows_constraint
+  : ref_struct_constraint
+  ;
+
+ref_struct_constraint
+  : 'ref' 'struct'
   ;
 
 class_or_struct_constraint

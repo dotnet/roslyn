@@ -46,14 +46,14 @@ internal sealed class SourceReferenceItem
     /// Additional properties for the reference.
     /// For example, { "ContainingTypeInfo" } = { "MyClass" }
     /// </summary>
-    public ImmutableDictionary<string, string> AdditionalProperties { get; }
+    public ImmutableArray<(string key, string value)> AdditionalProperties { get; }
 
     private SourceReferenceItem(
         DefinitionItem definition,
         DocumentSpan sourceSpan,
         ClassifiedSpansAndHighlightSpan? classifiedSpans,
         SymbolUsageInfo symbolUsageInfo,
-        ImmutableDictionary<string, string> additionalProperties,
+        ImmutableArray<(string key, string value)> additionalProperties,
         bool isWrittenTo)
     {
         Definition = definition;
@@ -61,7 +61,7 @@ internal sealed class SourceReferenceItem
         ClassifiedSpans = classifiedSpans;
         SymbolUsageInfo = symbolUsageInfo;
         IsWrittenTo = isWrittenTo;
-        AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
+        AdditionalProperties = additionalProperties.NullToEmpty();
     }
 
     // Used by F#
@@ -72,11 +72,11 @@ internal sealed class SourceReferenceItem
 
     // Used by TypeScript
     internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, SymbolUsageInfo symbolUsageInfo)
-        : this(definition, sourceSpan, classifiedSpans, symbolUsageInfo, additionalProperties: ImmutableDictionary<string, string>.Empty)
+        : this(definition, sourceSpan, classifiedSpans, symbolUsageInfo, additionalProperties: [])
     {
     }
 
-    internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties)
+    internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, SymbolUsageInfo symbolUsageInfo, ImmutableArray<(string key, string value)> additionalProperties)
         : this(definition, sourceSpan, classifiedSpans, symbolUsageInfo, additionalProperties, isWrittenTo: symbolUsageInfo.IsWrittenTo())
     {
     }

@@ -1528,7 +1528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
         ERR_FieldlikeEventsInRoStruct = 8342,
-        ERR_RefStructInterfaceImpl = 8343,
+        // ERR_RefStructInterfaceImpl = 8343,
         ERR_BadSpecialByRefIterator = 8344,
         ERR_FieldAutoPropCantBeByRefLike = 8345,
         ERR_StackAllocConversionNotPossible = 8346,
@@ -2327,6 +2327,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_BadYieldInLock = 9237,
         ERR_BadYieldInUnsafe = 9238,
         ERR_AddressOfInIterator = 9239,
+
+        ERR_RuntimeDoesNotSupportByRefLikeGenerics = 9240,
+        ERR_RefStructConstraintAlreadySpecified = 9241,
+        ERR_AllowsClauseMustBeLast = 9242,
+        ERR_ClassIsCombinedWithRefStruct = 9243,
+        ERR_NotRefStructConstraintNotSatisfied = 9244,
+        ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember = 9245,
+        ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike = 9246,
+        ERR_BadAllowByRefLikeEnumerator = 9247,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

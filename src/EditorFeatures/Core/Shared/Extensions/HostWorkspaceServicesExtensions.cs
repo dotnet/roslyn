@@ -10,9 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
@@ -27,12 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         public static CodeAnalysis.Host.LanguageServices? GetProjectServices(
             this SolutionServices workspaceServices, IContentType contentType)
         {
-            foreach (var language in workspaceServices.SupportedLanguages)
+            foreach (var language in workspaceServices.SupportedLanguagesArray)
             {
                 if (LanguageMatches(language, contentType, workspaceServices))
-                {
                     return workspaceServices.GetLanguageServices(language);
-                }
             }
 
             return null;

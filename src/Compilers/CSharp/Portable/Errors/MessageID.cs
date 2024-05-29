@@ -284,9 +284,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureParamsCollections = MessageBase + 12842,
 
         IDS_FeatureRefUnsafeInIteratorAsync = MessageBase + 12843,
+<<<<<<< HEAD
 
         // PROTOTYPE(partial-properties): pack
         IDS_FeaturePartialProperties = MessageBase + 13000,
+||||||| 799727efe4c
+=======
+
+        IDS_FeatureRefStructInterfaces = MessageBase + 12844,
+>>>>>>> upstream/main
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -472,7 +478,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureLockObject:
                 case MessageID.IDS_FeatureParamsCollections:
                 case MessageID.IDS_FeatureRefUnsafeInIteratorAsync:
+<<<<<<< HEAD
                 case MessageID.IDS_FeaturePartialProperties:
+||||||| 799727efe4c
+=======
+                case MessageID.IDS_FeatureRefStructInterfaces:
+>>>>>>> upstream/main
                     return LanguageVersion.Preview;
 
                 // C# 12.0 features.
