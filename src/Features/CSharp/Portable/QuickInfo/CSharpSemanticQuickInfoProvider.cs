@@ -146,6 +146,8 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return null;
         }
 
+        // Checks to see if there have been any files excluded at the workspace level
+        // since the copilot service passes along symbol information.
         if (await copilotService.IsAnyExclusionAsync(cancellationToken).ConfigureAwait(false))
         {
             return null;
