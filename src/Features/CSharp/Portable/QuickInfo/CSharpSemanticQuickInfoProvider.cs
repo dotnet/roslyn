@@ -146,13 +146,13 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return null;
         }
 
-        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
-            !await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false))
+        if (await copilotService.IsAnyExclusionAsync(cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
 
-        if (await copilotService.IsAnyExclusionAsync(cancellationToken).ConfigureAwait(false))
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
+            !await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false))
         {
             return null;
         }
