@@ -7929,7 +7929,33 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AddressOfInIterator" xml:space="preserve">
     <value>The '&amp;' operator cannot be used on parameters or local variables in iterator methods.</value>
   </data>
-<<<<<<< HEAD
+  <data name="IDS_FeatureRefStructInterfaces" xml:space="preserve">
+    <value>ref struct interfaces</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportByRefLikeGenerics" xml:space="preserve">
+    <value>Target runtime doesn't support by-ref-like generics.</value>
+  </data>
+  <data name="ERR_RefStructConstraintAlreadySpecified" xml:space="preserve">
+    <value>'ref struct' is already specified.</value>
+  </data>
+  <data name="ERR_AllowsClauseMustBeLast" xml:space="preserve">
+    <value>The 'allows' constraint clause must be the last constraint specified</value>
+  </data>
+  <data name="ERR_ClassIsCombinedWithRefStruct" xml:space="preserve">
+    <value>Cannot allow ref structs for a type parameter known from other constraints to be a class</value>
+  </data>
+  <data name="ERR_NotRefStructConstraintNotSatisfied" xml:space="preserve">
+    <value>The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</value>
+  </data>
+  <data name="ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember" xml:space="preserve">
+    <value>'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</value>
+  </data>
+  <data name="ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike" xml:space="preserve">
+    <value>A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</value>
+  </data>
+  <data name="ERR_BadAllowByRefLikeEnumerator" xml:space="preserve">
+    <value>foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</value>
+  </data>
   <data name="ERR_PartialPropertyMissingImplementation" xml:space="preserve">
     <value>Partial property '{0}' must have an implementation part.</value>
   </data>
@@ -7964,35 +7990,3 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Both partial property declarations must be required or neither may be required</value>
   </data>
 </root>
-||||||| 799727efe4c
-</root>
-=======
-  <data name="IDS_FeatureRefStructInterfaces" xml:space="preserve">
-    <value>ref struct interfaces</value>
-  </data>
-  <data name="ERR_RuntimeDoesNotSupportByRefLikeGenerics" xml:space="preserve">
-    <value>Target runtime doesn't support by-ref-like generics.</value>
-  </data>
-  <data name="ERR_RefStructConstraintAlreadySpecified" xml:space="preserve">
-    <value>'ref struct' is already specified.</value>
-  </data>
-  <data name="ERR_AllowsClauseMustBeLast" xml:space="preserve">
-    <value>The 'allows' constraint clause must be the last constraint specified</value>
-  </data>
-  <data name="ERR_ClassIsCombinedWithRefStruct" xml:space="preserve">
-    <value>Cannot allow ref structs for a type parameter known from other constraints to be a class</value>
-  </data>
-  <data name="ERR_NotRefStructConstraintNotSatisfied" xml:space="preserve">
-    <value>The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</value>
-  </data>
-  <data name="ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember" xml:space="preserve">
-    <value>'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</value>
-  </data>
-  <data name="ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike" xml:space="preserve">
-    <value>A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</value>
-  </data>
-  <data name="ERR_BadAllowByRefLikeEnumerator" xml:space="preserve">
-    <value>foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</value>
-  </data>
-</root>
->>>>>>> upstream/main

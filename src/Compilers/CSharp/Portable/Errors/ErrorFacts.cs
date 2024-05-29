@@ -2443,8 +2443,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_BadYieldInLock
                 or ErrorCode.ERR_BadYieldInUnsafe
                 or ErrorCode.ERR_AddressOfInIterator
-<<<<<<< HEAD
-
+                or ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics
+                or ErrorCode.ERR_RefStructConstraintAlreadySpecified
+                or ErrorCode.ERR_AllowsClauseMustBeLast
+                or ErrorCode.ERR_ClassIsCombinedWithRefStruct
+                or ErrorCode.ERR_NotRefStructConstraintNotSatisfied
+                or ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember
+                or ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike
+                or ErrorCode.ERR_BadAllowByRefLikeEnumerator
                 or ErrorCode.ERR_PartialPropertyMissingImplementation
                 or ErrorCode.ERR_PartialPropertyMissingDefinition
                 or ErrorCode.ERR_PartialPropertyDuplicateDefinition
@@ -2455,17 +2461,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialPropertyTypeDifference
                 or ErrorCode.WRN_PartialPropertySignatureDifference
                 or ErrorCode.ERR_PartialPropertyRequiredDifference
-||||||| 799727efe4c
-=======
-                or ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics
-                or ErrorCode.ERR_RefStructConstraintAlreadySpecified
-                or ErrorCode.ERR_AllowsClauseMustBeLast
-                or ErrorCode.ERR_ClassIsCombinedWithRefStruct
-                or ErrorCode.ERR_NotRefStructConstraintNotSatisfied
-                or ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember
-                or ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike
-                or ErrorCode.ERR_BadAllowByRefLikeEnumerator
->>>>>>> upstream/main
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

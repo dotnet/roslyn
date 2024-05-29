@@ -79,14 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !isExtensionMethodThis &&
                 (syntax.Default == null) &&
                 (syntax.AttributeLists.Count == 0) &&
-<<<<<<< HEAD
-                !owner.IsPartialMember())
-||||||| 799727efe4c
-                !owner.IsPartialMethod())
-=======
-                !owner.IsPartialMethod() &&
+                !owner.IsPartialMember() &&
                 scope == ScopedKind.None)
->>>>>>> upstream/main
             {
                 return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, location);
             }
