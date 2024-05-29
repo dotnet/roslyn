@@ -37,21 +37,16 @@ internal abstract class AbstractDirectiveTriviaBraceMatcher<TDirectiveTriviaSynt
         }
 
         TDirectiveTriviaSyntax? matchingDirective = null;
-        if (directive
-                is TIfDirectiveTriviaSyntax
-                or TElseIfDirectiveTriviaSyntax
-                or TElseDirectiveTriviaSyntax
-                or TEndIfDirectiveTriviaSyntax)
+        if (IsConditionalDirective(directive))
         {
             // #if/#elif/#else/#endif directive cases.
             var matchingDirectives = GetMatchingConditionalDirectives(directive, cancellationToken);
             if (matchingDirectives.Length > 0)
                 matchingDirective = matchingDirectives[(matchingDirectives.IndexOf(directive) + 1) % matchingDirectives.Length];
         }
-        else if (directive
-                is TRegionDirectiveTriviaSyntax
-                or TEndRegionDirectiveTriviaSyntax)
+        else
         {
+            // #region/#endregion or other directive cases.
             matchingDirective = GetMatchingDirective(directive, cancellationToken);
         }
 
@@ -65,4 +60,10 @@ internal abstract class AbstractDirectiveTriviaBraceMatcher<TDirectiveTriviaSynt
             LeftSpan: GetSpanForTagging(directive),
             RightSpan: GetSpanForTagging(matchingDirective));
     }
+
+    private static bool IsConditionalDirective(TDirectiveTriviaSyntax directive)
+        => directive is TIfDirectiveTriviaSyntax or
+               TElseIfDirectiveTriviaSyntax or
+               TElseDirectiveTriviaSyntax or
+               TEndIfDirectiveTriviaSyntax;
 }

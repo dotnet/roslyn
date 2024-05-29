@@ -42,9 +42,8 @@ internal partial class NavigationBarController : IDisposable
     private bool _disconnected = false;
 
     /// <summary>
-    /// The last full information we have presented. If we end up wanting to present the same thing again, we can just
-    /// skip doing that as the UI will already know about this.  This is only ever read or written from <see
-    /// cref="_selectItemQueue"/>.  So we don't need to worry about any synchronization over it.
+    /// The last full information we have presented. If we end up wanting to present the same thing again, we can
+    /// just skip doing that as the UI will already know about this.
     /// </summary>
     private (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel? model, NavigationBarSelectedTypeAndMember selectedInfo) _lastPresentedInfo;
 
@@ -62,15 +61,16 @@ internal partial class NavigationBarController : IDisposable
 
     /// <summary>
     /// Queue to batch up work to do to compute the current model.  Used so we can batch up a lot of events and only
-    /// compute the model once for every batch.
+    /// compute the model once for every batch.  The <c>bool</c> type parameter isn't used, but is provided as this
+    /// type is generic.
     /// </summary>
-    private readonly AsyncBatchingWorkQueue<VoidResult, NavigationBarModel?> _computeModelQueue;
+    private readonly AsyncBatchingWorkQueue<bool, NavigationBarModel?> _computeModelQueue;
 
     /// <summary>
-    /// Queue to batch up work to do to determine the selected item.  Used so we can batch up a lot of events and only
-    /// compute the selected item once for every batch. The value passed in is the last recorded caret position.
+    /// Queue to batch up work to do to determine the selected item.  Used so we can batch up a lot of events and
+    /// only compute the selected item once for every batch.
     /// </summary>
-    private readonly AsyncBatchingWorkQueue<int> _selectItemQueue;
+    private readonly AsyncBatchingWorkQueue _selectItemQueue;
 
     /// <summary>
     /// Whether or not the navbar is paused.  We pause updates when documents become non-visible. See <see
@@ -93,15 +93,15 @@ internal partial class NavigationBarController : IDisposable
         _uiThreadOperationExecutor = uiThreadOperationExecutor;
         _asyncListener = asyncListener;
 
-        _computeModelQueue = new AsyncBatchingWorkQueue<VoidResult, NavigationBarModel?>(
+        _computeModelQueue = new AsyncBatchingWorkQueue<bool, NavigationBarModel?>(
             DelayTimeSpan.Short,
             ComputeModelAndSelectItemAsync,
-            EqualityComparer<VoidResult>.Default,
+            EqualityComparer<bool>.Default,
             asyncListener,
             _cancellationTokenSource.Token);
 
-        _selectItemQueue = new AsyncBatchingWorkQueue<int>(
-            DelayTimeSpan.Short,
+        _selectItemQueue = new AsyncBatchingWorkQueue(
+            DelayTimeSpan.NearImmediate,
             SelectItemAsync,
             asyncListener,
             _cancellationTokenSource.Token);
@@ -127,10 +127,9 @@ internal partial class NavigationBarController : IDisposable
         {
             threadingContext.ThrowIfNotOnUIThread();
 
-            if (_visibilityTracker?.IsVisible(_subjectBuffer) is false)
-                Pause();
-            else
-                Resume();
+            // any time visibility changes, resume tagging on all taggers.  Any non-visible taggers will pause
+            // themselves immediately afterwards.
+            Resume();
         };
 
         // Register to hear about visibility changes so we can pause/resume this tagger.
@@ -140,26 +139,6 @@ internal partial class NavigationBarController : IDisposable
 
         // Kick off initial work to populate the navbars
         StartModelUpdateAndSelectedItemUpdateTasks();
-
-        return;
-
-        void Pause()
-        {
-            _paused = true;
-            _eventSource.Pause();
-        }
-
-        void Resume()
-        {
-            // if we're not actually paused, no need to do anything.
-            if (_paused)
-            {
-                // Set us back to running, and kick off work to compute tags now that we're visible again.
-                _paused = false;
-                _eventSource.Resume();
-                StartModelUpdateAndSelectedItemUpdateTasks();
-            }
-        }
     }
 
     void IDisposable.Dispose()
@@ -183,6 +162,26 @@ internal partial class NavigationBarController : IDisposable
         _cancellationTokenSource.Cancel();
     }
 
+    private void Pause()
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+        _paused = true;
+        _eventSource.Pause();
+    }
+
+    private void Resume()
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+        // if we're not actually paused, no need to do anything.
+        if (_paused)
+        {
+            // Set us back to running, and kick off work to compute tags now that we're visible again.
+            _paused = false;
+            _eventSource.Resume();
+            StartModelUpdateAndSelectedItemUpdateTasks();
+        }
+    }
+
     public TestAccessor GetTestAccessor() => new TestAccessor(this);
 
     private void OnEventSourceChanged(object? sender, TaggerEventArgs e)
@@ -196,52 +195,38 @@ internal partial class NavigationBarController : IDisposable
         if (_disconnected)
             return;
 
-        _computeModelQueue.AddWork(default(VoidResult));
+        // 'true' value is unused.  this just signals to the queue that we have work to do.
+        _computeModelQueue.AddWork(true);
     }
 
     private void OnCaretMovedOrActiveViewChanged(object? sender, EventArgs e)
     {
         _threadingContext.ThrowIfNotOnUIThread();
+        StartSelectedItemUpdateTask();
+    }
 
-        var caretPoint = GetCaretPoint();
-        if (caretPoint == null)
+    private void GetProjectItems(out ImmutableArray<NavigationBarProjectItem> projectItems, out NavigationBarProjectItem? selectedProjectItem)
+    {
+        var documents = _subjectBuffer.CurrentSnapshot.GetRelatedDocumentsWithChanges();
+        if (!documents.Any())
+        {
+            projectItems = [];
+            selectedProjectItem = null;
             return;
+        }
 
-        // Cancel any in flight work.  We're on the UI thread, so we know this is the latest position of the user, and that
-        // this should supersede any other selection work items.
-        _selectItemQueue.AddWork(caretPoint.Value, cancelExistingWork: true);
-    }
-
-    private int? GetCaretPoint()
-    {
-        var currentView = _presenter.TryGetCurrentView();
-        return currentView?.GetCaretPoint(_subjectBuffer)?.Position;
-    }
-
-    private (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem) GetProjectItems()
-    {
-        var textContainer = _subjectBuffer.AsTextContainer();
-
-        var documents = textContainer.GetRelatedDocuments();
-        if (documents.IsEmpty)
-            return ([], null);
-
-        var projectItems = documents
-            .Select(d => new NavigationBarProjectItem(
+        projectItems = [.. documents.Select(d =>
+            new NavigationBarProjectItem(
                 d.Project.Name,
                 d.Project.GetGlyph(),
                 workspace: d.Project.Solution.Workspace,
                 documentId: d.Id,
-                language: d.Project.Language))
-            .OrderBy(projectItem => projectItem.Text)
-            .ToImmutableArray();
+                language: d.Project.Language)).OrderBy(projectItem => projectItem.Text)];
 
-        var document = textContainer.GetOpenDocumentInCurrentContext();
-        var selectedProjectItem = document != null
+        var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+        selectedProjectItem = document != null
             ? projectItems.FirstOrDefault(p => p.Text == document.Project.Name) ?? projectItems.First()
             : projectItems.First();
-
-        return (projectItems, selectedProjectItem);
     }
 
     private void OnItemSelected(object? sender, NavigationBarItemSelectedEventArgs e)

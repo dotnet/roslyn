@@ -825,7 +825,7 @@ internal sealed class EditSession
                 }
 
                 await PopulateChangedAndAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
-                if (changedOrAddedDocuments.IsEmpty)
+                if (changedOrAddedDocuments.IsEmpty())
                 {
                     continue;
                 }

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
@@ -11,9 +10,15 @@ internal readonly struct SuppressIntervalIntrospector :
     IIntervalIntrospector<SuppressSpacingData>,
     IIntervalIntrospector<SuppressWrappingData>
 {
-    TextSpan IIntervalIntrospector<SuppressSpacingData>.GetSpan(SuppressSpacingData value)
-        => value.TextSpan;
+    int IIntervalIntrospector<SuppressSpacingData>.GetStart(SuppressSpacingData value)
+        => value.TextSpan.Start;
 
-    TextSpan IIntervalIntrospector<SuppressWrappingData>.GetSpan(SuppressWrappingData value)
-        => value.TextSpan;
+    int IIntervalIntrospector<SuppressSpacingData>.GetLength(SuppressSpacingData value)
+        => value.TextSpan.Length;
+
+    int IIntervalIntrospector<SuppressWrappingData>.GetStart(SuppressWrappingData value)
+        => value.TextSpan.Start;
+
+    int IIntervalIntrospector<SuppressWrappingData>.GetLength(SuppressWrappingData value)
+        => value.TextSpan.Length;
 }

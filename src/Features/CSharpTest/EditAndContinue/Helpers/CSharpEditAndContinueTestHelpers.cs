@@ -12,9 +12,14 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
-internal sealed class CSharpEditAndContinueTestVerifier(Action<SyntaxNode>? faultInjector = null) : EditAndContinueTestVerifier
+internal sealed class CSharpEditAndContinueTestHelpers : EditAndContinueTestHelpers
 {
-    private readonly CSharpEditAndContinueAnalyzer _analyzer = new(faultInjector);
+    private readonly CSharpEditAndContinueAnalyzer _analyzer;
+
+    public CSharpEditAndContinueTestHelpers(Action<SyntaxNode>? faultInjector = null)
+    {
+        _analyzer = new CSharpEditAndContinueAnalyzer(faultInjector);
+    }
 
     public override AbstractEditAndContinueAnalyzer Analyzer => _analyzer;
     public override string LanguageName => LanguageNames.CSharp;

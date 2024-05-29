@@ -131,11 +131,7 @@ internal sealed class SolutionCompilationStateChecksums
                 onAssetFound(this.Checksum, this, arg);
 
             if (assetPath.IncludeSolutionSourceGeneratorExecutionVersionMap && searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap))
-            {
-                // Only send over the part of the execution map corresponding to the project cone.
-                var filteredExecutionMap = compilationState.GetFilteredSourceGenerationExecutionMap(projectCone);
-                onAssetFound(this.SourceGeneratorExecutionVersionMap, filteredExecutionMap, arg);
-            }
+                onAssetFound(this.SourceGeneratorExecutionVersionMap, compilationState.SourceGeneratorExecutionVersionMap, arg);
 
             if (compilationState.FrozenSourceGeneratedDocumentStates != null)
             {

@@ -5,19 +5,31 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BrokeredServices;
+using Microsoft.CodeAnalysis.BrokeredServices.UnitTests;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+using Microsoft.CodeAnalysis.ExternalAccess.Watch.Api;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -31,13 +43,439 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using static ActiveStatementTestHelpers;
 
 [UseExportProvider]
-public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorkspaceTestBase
+public sealed partial class EditAndContinueWorkspaceServiceTests : TestBase
 {
+    private static readonly Guid s_solutionTelemetryId = Guid.Parse("00000000-AAAA-AAAA-AAAA-000000000000");
+    private static readonly Guid s_defaultProjectTelemetryId = Guid.Parse("00000000-AAAA-AAAA-AAAA-111111111111");
+    private static readonly Regex s_timePropertiesRegex = new("[|](EmitDifferenceMilliseconds|TotalAnalysisMilliseconds)=[0-9]+");
+
+    private static readonly ActiveStatementSpanProvider s_noActiveSpans =
+        (_, _, _) => new(ImmutableArray<ActiveStatementSpan>.Empty);
+
+    private const TargetFramework DefaultTargetFramework = TargetFramework.NetStandard20;
+
+    private Func<Project, CompilationOutputs> _mockCompilationOutputsProvider;
+    private readonly List<string> _telemetryLog = [];
+    private int _telemetryId;
+
+    private readonly MockManagedEditAndContinueDebuggerService _debuggerService;
+
+    public EditAndContinueWorkspaceServiceTests()
+    {
+        _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.NewGuid());
+
+        _debuggerService = new MockManagedEditAndContinueDebuggerService()
+        {
+            LoadedModules = []
+        };
+    }
+
+    private TestWorkspace CreateWorkspace(out Solution solution, out EditAndContinueService service, Type[] additionalParts = null)
+    {
+        var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.AddParts(additionalParts), solutionTelemetryId: s_solutionTelemetryId);
+        solution = workspace.CurrentSolution;
+        service = GetEditAndContinueService(workspace);
+        return workspace;
+    }
+
+    private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out EditAndContinueLanguageService languageService, Type[] additionalParts = null)
+    {
+        var composition = EditorTestCompositions.EditorFeatures
+            .RemoveParts(typeof(MockWorkspaceEventListenerProvider))
+            .AddParts(
+                typeof(MockHostWorkspaceProvider),
+                typeof(MockManagedHotReloadService),
+                typeof(MockServiceBrokerProvider))
+            .AddParts(additionalParts);
+
+        var workspace = new TestWorkspace(composition: composition, solutionTelemetryId: s_solutionTelemetryId);
+
+        ((MockServiceBroker)workspace.GetService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
+        {
+            _ when t == typeof(Microsoft.VisualStudio.Debugger.Contracts.HotReload.IHotReloadLogger) => new MockHotReloadLogger(),
+            _ => throw ExceptionUtilities.UnexpectedValue(t)
+        };
+
+        ((MockHostWorkspaceProvider)workspace.GetService<IHostWorkspaceProvider>()).Workspace = workspace;
+
+        solution = workspace.CurrentSolution;
+        service = GetEditAndContinueService(workspace);
+        languageService = workspace.GetService<EditAndContinueLanguageService>();
+        return workspace;
+    }
+
+    private static SourceText GetAnalyzerConfigText((string key, string value)[] analyzerConfig)
+        => CreateText("[*.*]" + Environment.NewLine + string.Join(Environment.NewLine, analyzerConfig.Select(c => $"{c.key} = {c.value}")));
+
+    private static (Solution, Document) AddDefaultTestProject(
+        Solution solution,
+        string source,
+        ISourceGenerator generator = null,
+        string additionalFileText = null,
+        (string key, string value)[] analyzerConfig = null)
+    {
+        solution = AddDefaultTestProject(solution, new[] { source }, generator, additionalFileText, analyzerConfig);
+        return (solution, solution.Projects.Single().Documents.Single());
+    }
+
+    private static Project AddEmptyTestProject(Solution solution)
+    {
+        var projectId = ProjectId.CreateNewId();
+
+        return solution.
+            AddProject(ProjectInfo.Create(
+                projectId,
+                VersionStamp.Create(),
+                "proj",
+                "proj",
+                LanguageNames.CSharp,
+                parseOptions: CSharpParseOptions.Default.WithNoRefSafetyRulesAttribute())
+                .WithTelemetryId(s_defaultProjectTelemetryId)).GetProject(projectId).
+            WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
+    }
+
+    private static Solution AddDefaultTestProject(
+        Solution solution,
+        string[] sources,
+        ISourceGenerator generator = null,
+        string additionalFileText = null,
+        (string key, string value)[] analyzerConfig = null)
+    {
+        var project = AddEmptyTestProject(solution);
+        solution = project.Solution;
+
+        if (generator != null)
+        {
+            solution = solution.AddAnalyzerReference(project.Id, new TestGeneratorReference(generator));
+        }
+
+        if (additionalFileText != null)
+        {
+            solution = solution.AddAdditionalDocument(DocumentId.CreateNewId(project.Id), "additional", CreateText(additionalFileText));
+        }
+
+        if (analyzerConfig != null)
+        {
+            solution = solution.AddAnalyzerConfigDocument(
+                DocumentId.CreateNewId(project.Id),
+                name: "config",
+                GetAnalyzerConfigText(analyzerConfig),
+                filePath: Path.Combine(TempRoot.Root, "config"));
+        }
+
+        Document document = null;
+        var i = 1;
+        foreach (var source in sources)
+        {
+            var fileName = $"test{i++}.cs";
+
+            document = solution.GetProject(project.Id).
+                AddDocument(fileName, CreateText(source), filePath: Path.Combine(TempRoot.Root, fileName));
+
+            solution = document.Project.Solution;
+        }
+
+        return document.Project.Solution;
+    }
+
+    private EditAndContinueService GetEditAndContinueService(TestWorkspace workspace)
+    {
+        var service = (EditAndContinueService)workspace.GetService<IEditAndContinueService>();
+        var accessor = service.GetTestAccessor();
+        accessor.SetOutputProvider(project => _mockCompilationOutputsProvider(project));
+        return service;
+    }
+
+    private async Task<DebuggingSession> StartDebuggingSessionAsync(
+        EditAndContinueService service,
+        Solution solution,
+        CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput,
+        IPdbMatchingSourceTextProvider sourceTextProvider = null)
+    {
+        var sessionId = await service.StartDebuggingSessionAsync(
+            solution,
+            _debuggerService,
+            sourceTextProvider: sourceTextProvider ?? NullPdbMatchingSourceTextProvider.Instance,
+            captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+            captureAllMatchingDocuments: false,
+            reportDiagnostics: true,
+            CancellationToken.None);
+
+        var session = service.GetTestAccessor().GetDebuggingSession(sessionId);
+
+        if (initialState != CommittedSolution.DocumentState.None)
+        {
+            EditAndContinueTestHelpers.SetDocumentsState(session, solution, initialState);
+        }
+
+        session.GetTestAccessor().SetTelemetryLogger((id, message) => _telemetryLog.Add($"{id}: {s_timePropertiesRegex.Replace(message.GetMessage(), "")}"), () => ++_telemetryId);
+
+        return session;
+    }
+
+    private void EnterBreakState(
+        DebuggingSession session,
+        ImmutableArray<ManagedActiveStatementDebugInfo> activeStatements = default)
+    {
+        _debuggerService.GetActiveStatementsImpl = () => activeStatements.NullToEmpty();
+        session.BreakStateOrCapabilitiesChanged(inBreakState: true);
+    }
+
+    private void ExitBreakState(
+        DebuggingSession session)
+    {
+        _debuggerService.GetActiveStatementsImpl = () => ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
+        session.BreakStateOrCapabilitiesChanged(inBreakState: false);
+    }
+
+    private static void CapabilitiesChanged(DebuggingSession session)
+        => session.BreakStateOrCapabilitiesChanged(inBreakState: null);
+
+    private static void CommitSolutionUpdate(DebuggingSession session)
+        => session.CommitSolutionUpdate();
+
+    private static void EndDebuggingSession(DebuggingSession session)
+        => session.EndSession(out _);
+
+    private static async Task<(ModuleUpdates updates, ImmutableArray<DiagnosticData> diagnostics)> EmitSolutionUpdateAsync(
+        DebuggingSession session,
+        Solution solution,
+        ActiveStatementSpanProvider activeStatementSpanProvider = null)
+    {
+        var result = await session.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
+        return (result.ModuleUpdates, result.Diagnostics.ToDiagnosticData(solution));
+    }
+
+    private static IEnumerable<string> InspectDiagnostics(ImmutableArray<DiagnosticData> actual)
+        => actual.Select(d => InspectDiagnostic(d));
+
+    private static string InspectDiagnostic(DiagnosticData diagnostic)
+        => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.MappedFileSpan.Path) ? diagnostic.ProjectId.ToString() : diagnostic.DataLocation.MappedFileSpan.ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
+
+    internal static Guid ReadModuleVersionId(Stream stream)
+    {
+        using var peReader = new PEReader(stream);
+        var metadataReader = peReader.GetMetadataReader();
+        var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+        return metadataReader.GetGuid(mvidHandle);
+    }
+
+    private Guid EmitAndLoadLibraryToDebuggee(string source, string sourceFilePath = null, Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default, string assemblyName = "")
+    {
+        var moduleId = EmitLibrary(source, sourceFilePath, encoding, checksumAlgorithm, assemblyName);
+        LoadLibraryToDebuggee(moduleId);
+        return moduleId;
+    }
+
+    private void LoadLibraryToDebuggee(Guid moduleId, ManagedHotReloadAvailability availability = default)
+    {
+        _debuggerService.LoadedModules.Add(moduleId, availability);
+    }
+
+    private Guid EmitLibrary(
+        string source,
+        string sourceFilePath = null,
+        Encoding encoding = null,
+        SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
+        string assemblyName = "",
+        DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
+        ISourceGenerator generator = null,
+        string additionalFileText = null,
+        IEnumerable<(string, string)> analyzerOptions = null)
+    {
+        return EmitLibrary(new[] { (source, sourceFilePath ?? Path.Combine(TempRoot.Root, "test1.cs")) }, encoding, checksumAlgorithm, assemblyName, pdbFormat, generator, additionalFileText, analyzerOptions);
+    }
+
+    private Guid EmitLibrary(
+        (string content, string filePath)[] sources,
+        Encoding encoding = null,
+        SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
+        string assemblyName = "",
+        DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
+        ISourceGenerator generator = null,
+        string additionalFileText = null,
+        IEnumerable<(string, string)> analyzerOptions = null)
+    {
+        encoding ??= Encoding.UTF8;
+
+        var parseOptions = TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute();
+
+        var trees = sources.Select(source =>
+        {
+            var sourceText = SourceText.From(new MemoryStream(encoding.GetBytesWithPreamble(source.content)), encoding, checksumAlgorithm);
+            return SyntaxFactory.ParseSyntaxTree(sourceText, parseOptions, source.filePath);
+        });
+
+        Compilation compilation = CSharpTestBase.CreateCompilation(trees.ToArray(), options: TestOptions.DebugDll, targetFramework: DefaultTargetFramework, assemblyName: assemblyName);
+
+        if (generator != null)
+        {
+            var optionsProvider = (analyzerOptions != null) ? new EditAndContinueTestAnalyzerConfigOptionsProvider(analyzerOptions) : null;
+            var additionalTexts = (additionalFileText != null) ? new[] { new InMemoryAdditionalText("additional_file", additionalFileText) } : null;
+            var generatorDriver = CSharpGeneratorDriver.Create(new[] { generator }, additionalTexts, parseOptions, optionsProvider);
+            generatorDriver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+            generatorDiagnostics.Verify();
+            compilation = outputCompilation;
+        }
+
+        return EmitLibrary(compilation, pdbFormat);
+    }
+
+    private Guid EmitLibrary(Compilation compilation, DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
+    {
+        var (peImage, pdbImage) = compilation.EmitToArrays(new EmitOptions(debugInformationFormat: pdbFormat));
+        var symReader = SymReaderTestHelpers.OpenDummySymReader(pdbImage);
+
+        var moduleMetadata = ModuleMetadata.CreateFromImage(peImage);
+        var moduleId = moduleMetadata.GetModuleVersionId();
+
+        // associate the binaries with the project (assumes a single project)
+        _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(moduleId)
+        {
+            OpenAssemblyStreamImpl = () =>
+            {
+                var stream = new MemoryStream();
+                peImage.WriteToStream(stream);
+                stream.Position = 0;
+                return stream;
+            },
+            OpenPdbStreamImpl = () =>
+            {
+                var stream = new MemoryStream();
+                pdbImage.WriteToStream(stream);
+                stream.Position = 0;
+                return stream;
+            }
+        };
+
+        return moduleId;
+    }
+
+    private static SourceText CreateText(string source)
+        => SourceText.From(source, Encoding.UTF8, SourceHashAlgorithms.Default);
+
+    private static SourceText CreateTextFromFile(string path)
+    {
+        using var stream = File.OpenRead(path);
+        return SourceText.From(stream, Encoding.UTF8, SourceHashAlgorithms.Default);
+    }
+
+    private static TextSpan GetSpan(string str, string substr)
+        => new TextSpan(str.IndexOf(substr), substr.Length);
+
+    private static void VerifyReadersDisposed(IEnumerable<IDisposable> readers)
+    {
+        foreach (var reader in readers)
+        {
+            Assert.Throws<ObjectDisposedException>(() =>
+            {
+                if (reader is MetadataReaderProvider md)
+                {
+                    md.GetMetadataReader();
+                }
+                else
+                {
+                    ((DebugInformationReaderProvider)reader).CreateEditAndContinueMethodDebugInfoReader();
+                }
+            });
+        }
+    }
+
+    private static DocumentInfo CreateDesignTimeOnlyDocument(ProjectId projectId, string name = "design-time-only.cs", string path = "design-time-only.cs")
+    {
+        var sourceText = CreateText("class DTO {}");
+        return DocumentInfo.Create(
+            DocumentId.CreateNewId(projectId, name),
+            name: name,
+            folders: Array.Empty<string>(),
+            sourceCodeKind: SourceCodeKind.Regular,
+            loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), path)),
+            filePath: path,
+            isGenerated: false)
+            .WithDesignTimeOnly(true);
+    }
+
+    internal sealed class FailingTextLoader : TextLoader
+    {
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        {
+            Assert.True(false, $"Content of document should never be loaded");
+            throw ExceptionUtilities.Unreachable();
+        }
+    }
+
+    private static EditAndContinueLogEntry Row(int rowNumber, TableIndex table, EditAndContinueOperation operation)
+        => new(MetadataTokens.Handle(table, rowNumber), operation);
+
+    private static unsafe void VerifyEncLogMetadata(ImmutableArray<byte> delta, params EditAndContinueLogEntry[] expectedRows)
+    {
+        fixed (byte* ptr = delta.ToArray())
+        {
+            var reader = new MetadataReader(ptr, delta.Length);
+            AssertEx.Equal(expectedRows, reader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString);
+        }
+
+        static string EncLogRowToString(EditAndContinueLogEntry row)
+        {
+            TableIndex tableIndex;
+            MetadataTokens.TryGetTableIndex(row.Handle.Kind, out tableIndex);
+
+            return string.Format(
+                "Row({0}, TableIndex.{1}, EditAndContinueOperation.{2})",
+                MetadataTokens.GetRowNumber(row.Handle),
+                tableIndex,
+                row.Operation);
+        }
+    }
+
+    private static void GenerateSource(GeneratorExecutionContext context)
+    {
+        foreach (var syntaxTree in context.Compilation.SyntaxTrees)
+        {
+            var fileName = PathUtilities.GetFileName(syntaxTree.FilePath);
+
+            Generate(syntaxTree.GetText().ToString(), fileName);
+
+            if (context.AnalyzerConfigOptions.GetOptions(syntaxTree).TryGetValue("enc_generator_output", out var optionValue))
+            {
+                context.AddSource("GeneratedFromOptions_" + fileName, $"class G {{ int X => {optionValue}; }}");
+            }
+        }
+
+        foreach (var additionalFile in context.AdditionalFiles)
+        {
+            Generate(additionalFile.GetText()!.ToString(), PathUtilities.GetFileName(additionalFile.Path));
+        }
+
+        void Generate(string source, string fileName)
+        {
+            var generatedSource = GetGeneratedCodeFromMarkedSource(source);
+            if (generatedSource != null)
+            {
+                context.AddSource($"Generated_{fileName}", generatedSource);
+            }
+        }
+    }
+
+    private static string GetGeneratedCodeFromMarkedSource(string markedSource)
+    {
+        const string OpeningMarker = "/* GENERATE:";
+        const string ClosingMarker = "*/";
+
+        var index = markedSource.IndexOf(OpeningMarker);
+        if (index > 0)
+        {
+            index += OpeningMarker.Length;
+            var closing = markedSource.IndexOf(ClosingMarker, index);
+            return markedSource[index..closing].Trim();
+        }
+
+        return null;
+    }
+
     [Theory, CombinatorialData]
     public async Task StartDebuggingSession_CapturingDocuments(bool captureAllDocuments)
     {
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
         var encodingA = Encoding.BigEndianUnicode;
         var encodingB = Encoding.Unicode;
         var encodingC = Encoding.GetEncoding("SJIS");
@@ -860,11 +1298,20 @@ class C1
         }, _telemetryLog);
     }
 
+    private class TestSourceTextContainer : SourceTextContainer
+    {
+        public SourceText Text { get; set; }
+
+        public override SourceText CurrentText => Text;
+
+#pragma warning disable CS0067
+        public override event EventHandler<TextChangeEventArgs> TextChanged;
+#pragma warning restore
+    }
+
     [Fact]
     public async Task Encodings()
     {
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
         var source1 = "class C1 { void M() { System.Console.WriteLine(\"ã\"); } }";
 
         var encoding = Encoding.GetEncoding(1252);
@@ -4021,5 +4468,201 @@ class C
         Assert.Empty(await debuggingSession.GetDocumentDiagnosticsAsync(document, s_noActiveSpans, CancellationToken.None));
         Assert.Empty(await debuggingSession.GetAdjustedActiveStatementSpansAsync(document, s_noActiveSpans, CancellationToken.None));
         Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray<DocumentId>.Empty, CancellationToken.None)).IsDefault);
+    }
+
+    [Fact]
+    public async Task WatchHotReloadServiceTest()
+    {
+        // See https://github.com/dotnet/sdk/blob/main/src/BuiltInTools/dotnet-watch/HotReload/CompilationHandler.cs#L125
+
+        var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
+        var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
+        var source3 = "class C { void M<T>() { System.Console.WriteLine(2); } }";
+        var source4 = "class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }";
+
+        var dir = Temp.CreateDirectory();
+        var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1, Encoding.UTF8);
+        var moduleId = EmitLibrary(source1, sourceFileA.Path, assemblyName: "Proj");
+
+        using var workspace = CreateWorkspace(out var solution, out var encService);
+
+        var projectId = ProjectId.CreateNewId();
+        var projectP = solution.
+            AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "P", "P", LanguageNames.CSharp, parseOptions: CSharpParseOptions.Default.WithNoRefSafetyRulesAttribute())).GetProject(projectId).
+            WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
+
+        solution = projectP.Solution;
+
+        var documentIdA = DocumentId.CreateNewId(projectP.Id, debugName: "A");
+        solution = solution.AddDocument(DocumentInfo.Create(
+            id: documentIdA,
+            name: "A",
+            loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, Encoding.UTF8),
+            filePath: sourceFileA.Path));
+
+        var hotReload = new WatchHotReloadService(workspace.Services, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
+
+        await hotReload.StartSessionAsync(solution, CancellationToken.None);
+
+        var sessionId = hotReload.GetTestAccessor().SessionId;
+        var session = encService.GetTestAccessor().GetDebuggingSession(sessionId);
+        var matchingDocuments = session.LastCommittedSolution.Test_GetDocumentStates();
+        AssertEx.Equal(new[]
+        {
+            "(A, MatchesBuildOutput)"
+        }, matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
+
+        // Valid update:
+        solution = solution.WithDocumentText(documentIdA, CreateText(source2));
+
+        var result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
+        Assert.Empty(result.diagnostics);
+        Assert.Equal(1, result.updates.Length);
+        AssertEx.Equal(new[] { 0x02000002 }, result.updates[0].UpdatedTypes);
+
+        // Rude edit:
+        solution = solution.WithDocumentText(documentIdA, CreateText(source3));
+
+        result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
+        AssertEx.Equal(
+            new[] { "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method) },
+            result.diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+        Assert.Empty(result.updates);
+
+        // Syntax error (not reported in diagnostics):
+        solution = solution.WithDocumentText(documentIdA, CreateText(source4));
+
+        result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
+        Assert.Empty(result.diagnostics);
+        Assert.Empty(result.updates);
+
+        hotReload.EndSession();
+    }
+
+    [Fact]
+    public async Task UnitTestingHotReloadServiceTest()
+    {
+        var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
+        var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
+        var source3 = "class C { void M<T>() { System.Console.WriteLine(2); } }";
+        var source4 = "class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }";
+
+        var dir = Temp.CreateDirectory();
+        var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1, Encoding.UTF8);
+        var moduleId = EmitLibrary(source1, sourceFileA.Path, assemblyName: "Proj");
+
+        using var workspace = CreateWorkspace(out var solution, out var encService);
+
+        var projectP = solution.
+            AddProject("P", "P", LanguageNames.CSharp).
+            WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
+
+        solution = projectP.Solution;
+
+        var documentIdA = DocumentId.CreateNewId(projectP.Id, debugName: "A");
+        solution = solution.AddDocument(DocumentInfo.Create(
+            id: documentIdA,
+            name: "A",
+            loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, Encoding.UTF8),
+            filePath: sourceFileA.Path));
+
+        var hotReload = new UnitTestingHotReloadService(workspace.Services);
+
+        await hotReload.StartSessionAsync(solution, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"), CancellationToken.None);
+
+        var sessionId = hotReload.GetTestAccessor().SessionId;
+        var session = encService.GetTestAccessor().GetDebuggingSession(sessionId);
+        var matchingDocuments = session.LastCommittedSolution.Test_GetDocumentStates();
+        AssertEx.Equal(new[]
+        {
+            "(A, MatchesBuildOutput)"
+        }, matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
+
+        // Valid change
+        solution = solution.WithDocumentText(documentIdA, CreateText(source2));
+
+        var result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
+        Assert.Empty(result.diagnostics);
+        Assert.Equal(1, result.updates.Length);
+
+        solution = solution.WithDocumentText(documentIdA, CreateText(source3));
+
+        // Rude edit
+        result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
+        AssertEx.Equal(
+            new[] { "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method) },
+            result.diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+        Assert.Empty(result.updates);
+
+        // Syntax error is reported in the diagnostics:
+        solution = solution.WithDocumentText(documentIdA, CreateText(source4));
+
+        result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
+        Assert.Equal(1, result.diagnostics.Length);
+        Assert.Empty(result.updates);
+
+        hotReload.EndSession();
+    }
+
+    [Fact]
+    public async Task DefaultPdbMatchingSourceTextProvider()
+    {
+        var source1 = "class C1 { void M() { System.Console.WriteLine(\"a\"); } }";
+        var source2 = "class C1 { void M() { System.Console.WriteLine(\"b\"); } }";
+        var source3 = "class C1 { void M() { System.Console.WriteLine(\"c\"); } }";
+
+        var dir = Temp.CreateDirectory();
+        var sourceFile = dir.CreateFile("test.cs").WriteAllText(source1, Encoding.UTF8);
+
+        using var workspace = CreateEditorWorkspace(out var solution, out var service, out var languageService);
+        var sourceTextProvider = workspace.GetService<PdbMatchingSourceTextProvider>();
+
+        var projectId = ProjectId.CreateNewId();
+        var documentId = DocumentId.CreateNewId(projectId);
+
+        solution = solution.
+            AddProject(projectId, "test", "test", LanguageNames.CSharp).
+            WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithms.Default).
+            AddMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
+            AddDocument(DocumentInfo.Create(
+                documentId,
+                name: "test.cs",
+                loader: new WorkspaceFileTextLoader(workspace.Services.SolutionServices, sourceFile.Path, Encoding.UTF8),
+                filePath: sourceFile.Path));
+
+        Assert.True(workspace.SetCurrentSolution(_ => solution, WorkspaceChangeKind.SolutionAdded));
+        solution = workspace.CurrentSolution;
+
+        var moduleId = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
+
+        // hydrate document text and overwrite file content:
+        var document1 = await solution.GetDocument(documentId).GetTextAsync();
+        File.WriteAllText(sourceFile.Path, source2, Encoding.UTF8);
+
+        await languageService.StartSessionAsync(CancellationToken.None);
+        await languageService.EnterBreakStateAsync(CancellationToken.None);
+
+        workspace.OnDocumentOpened(documentId, new TestSourceTextContainer()
+        {
+            Text = SourceText.From(source3, Encoding.UTF8, SourceHashAlgorithm.Sha1)
+        });
+
+        await workspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        var (key, (documentState, version)) = sourceTextProvider.GetTestAccessor().GetDocumentsWithChangedLoaderByPath().Single();
+        Assert.Equal(sourceFile.Path, key);
+        Assert.Equal(solution.WorkspaceVersion, version);
+        Assert.Equal(source1, (await documentState.GetTextAsync(CancellationToken.None)).ToString());
+
+        // check committed document status:
+        var debuggingSession = service.GetTestAccessor().GetActiveDebuggingSessions().Single();
+        var (document, state) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(documentId, currentDocument: null, CancellationToken.None);
+        var text = await document.GetTextAsync();
+        Assert.Equal(CommittedSolution.DocumentState.MatchesBuildOutput, state);
+        Assert.Equal(source1, (await document.GetTextAsync(CancellationToken.None)).ToString());
+
+        await languageService.EndSessionAsync(CancellationToken.None);
     }
 }

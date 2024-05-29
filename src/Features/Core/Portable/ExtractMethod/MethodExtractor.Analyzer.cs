@@ -910,7 +910,6 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                     if (!parameter.HasConstructorConstraint &&
                         !parameter.HasReferenceTypeConstraint &&
                         !parameter.HasValueTypeConstraint &&
-                        !parameter.AllowsRefLikeType &&
                         parameter.ConstraintTypes.IsDefaultOrEmpty)
                     {
                         continue;

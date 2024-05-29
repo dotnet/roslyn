@@ -145,19 +145,17 @@ public abstract partial class CodeAction
                 source: documentIdsAndOptions,
                 produceItems: static async (documentIdAndOptions, callback, args, cancellationToken) =>
                 {
-                    var (solution, progress, cleanupDocumentAsync) = args;
-
                     // As we finish each document, update our progress.
-                    using var _ = progress.ItemCompletedScope();
+                    using var _ = args.progress.ItemCompletedScope();
 
                     var (documentId, options) = documentIdAndOptions;
 
                     // Fetch the current state of the document from this fork of the solution.
-                    var document = solution.GetRequiredDocument(documentId);
+                    var document = args.solution.GetRequiredDocument(documentId);
                     Contract.ThrowIfFalse(document.SupportsSyntaxTree, "GetDocumentIdsAndOptionsAsync should only be returning documents that support syntax");
 
                     // Now, perform the requested cleanup pass on it.
-                    var cleanedDocument = await cleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+                    var cleanedDocument = await args.cleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
                     if (cleanedDocument is null || cleanedDocument == document)
                         return;
 

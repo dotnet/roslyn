@@ -113,11 +113,9 @@ internal abstract partial class AbstractFindUsagesService
                 produceItems: static async (tuple, callback, args, cancellationToken) =>
                 {
                     var (group, _, location) = tuple;
-                    var (@this, context, classificationOptions) = args;
-
-                    var definitionItem = await @this.GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
+                    var definitionItem = await args.@this.GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
                     var sourceReferenceItem = await location.TryCreateSourceReferenceItemAsync(
-                        classificationOptions,
+                        args.classificationOptions,
                         definitionItem,
                         includeHiddenLocations: false,
                         cancellationToken).ConfigureAwait(false);

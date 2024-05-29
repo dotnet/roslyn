@@ -49,29 +49,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
             AssertJsonEquals(expected, results);
         }
 
-        [Theory, CombinatorialData]
-        public async Task TestGetNestedSignatureHelpAsync(bool mutatingLspWorkspace)
-        {
-            var markup =
-@"class Foo {
-  public Foo(int showMe) {}
-
-  public static void Do(Foo foo) {
-    Do(new Foo({|caret:|}
-  }
-}";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-            var expected = new LSP.SignatureHelp()
-            {
-                ActiveParameter = 0,
-                ActiveSignature = 0,
-                Signatures = [CreateSignatureInformation("Foo(int showMe)", "", "showMe", "")]
-            };
-
-            var results = await RunGetSignatureHelpAsync(testLspServer, testLspServer.GetLocations("caret").Single());
-            AssertJsonEquals(expected, results);
-        }
-
         private static async Task<LSP.SignatureHelp?> RunGetSignatureHelpAsync(TestLspServer testLspServer, LSP.Location caret)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>(

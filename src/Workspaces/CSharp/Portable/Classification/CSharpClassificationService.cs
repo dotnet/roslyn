@@ -13,11 +13,14 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
 [ExportLanguageService(typeof(IClassificationService), LanguageNames.CSharp), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpEditorClassificationService(
-    CSharpSyntaxClassificationService syntaxClassificationService) : AbstractClassificationService(syntaxClassificationService)
+internal class CSharpEditorClassificationService : AbstractClassificationService
 {
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpEditorClassificationService()
+    {
+    }
+
     public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         => ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken);
 

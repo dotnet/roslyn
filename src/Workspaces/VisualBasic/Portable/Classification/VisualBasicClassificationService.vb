@@ -16,8 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(syntaxClassificationService As VisualBasicSyntaxClassificationService)
-            MyBase.New(syntaxClassificationService)
+        Public Sub New()
         End Sub
 
         Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)

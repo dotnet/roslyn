@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -37,7 +38,7 @@ public class RemoteEditAndContinueServiceTests
     [Theory, CombinatorialData]
     public async Task Proxy(TestHost testHost)
     {
-        var localComposition = FeaturesTestCompositions.Features.WithTestHostParts(testHost)
+        var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost)
             .AddParts(typeof(NoCompilationLanguageService));
 
         if (testHost == TestHost.InProcess)

@@ -7,8 +7,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -26,8 +29,10 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
     private sealed class SingleViewportTaggerProvider(
         AsynchronousViewportTaggerProvider<TTag> callback,
         ViewPortToTag viewPortToTag,
-        string featureName)
-        : AsynchronousViewTaggerProvider<TTag>(callback._taggerHost, featureName)
+        IThreadingContext threadingContext,
+        IGlobalOptionService globalOptions,
+        ITextBufferVisibilityTracker? visibilityTracker,
+        IAsynchronousOperationListener asyncListener) : AsynchronousViewTaggerProvider<TTag>(threadingContext, globalOptions, visibilityTracker, asyncListener)
     {
         private readonly AsynchronousViewportTaggerProvider<TTag> _callback = callback;
 
@@ -54,7 +59,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             // looked at.
             => _viewPortToTag == ViewPortToTag.InView ? _callback.EventChangeDelay : TaggerDelay.NonFocus;
 
-        protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
+        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
         {
             this.ThreadingContext.ThrowIfNotOnUIThread();
             Contract.ThrowIfNull(textView);
@@ -66,20 +71,16 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             {
                 // couldn't figure out the visible span.  So the InView tagger will need to tag everything, and the
                 // above/below tagger should tag nothing.
-                if (_viewPortToTag == ViewPortToTag.InView)
-                    base.AddSpansToTag(textView, subjectBuffer, ref result);
-
-                return;
+                return _viewPortToTag == ViewPortToTag.InView
+                    ? base.GetSpansToTag(textView, subjectBuffer)
+                    : [];
             }
 
             var visibleSpan = visibleSpanOpt.Value;
 
             // If we're the 'InView' tagger, tag what was visible. 
             if (_viewPortToTag is ViewPortToTag.InView)
-            {
-                result.Add(visibleSpan);
-                return;
-            }
+                return [visibleSpan];
 
             // For the above/below tagger, broaden the span to to the requested portion above/below what's visible, then
             // subtract out the visible range.
@@ -88,6 +89,8 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
 
             var widenedSpan = widenedSpanOpt.Value;
             Contract.ThrowIfFalse(widenedSpan.Span.Contains(visibleSpan.Span), "The widened span must be at least as large as the visible one.");
+
+            using var result = TemporaryArray<SnapshotSpan>.Empty;
 
             if (_viewPortToTag is ViewPortToTag.Above)
             {
@@ -98,9 +101,12 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             else if (_viewPortToTag is ViewPortToTag.Below)
             {
                 var belowSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(visibleSpan.Span.End, widenedSpan.Span.End));
+
                 if (!belowSpan.IsEmpty)
                     result.Add(belowSpan);
             }
+
+            return result.ToImmutableAndClear();
         }
 
         protected override async Task ProduceTagsAsync(

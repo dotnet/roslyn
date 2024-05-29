@@ -16,6 +16,10 @@ namespace Microsoft.CodeAnalysis.Classification;
 
 internal abstract partial class AbstractSyntaxClassificationService : ISyntaxClassificationService
 {
+    protected AbstractSyntaxClassificationService()
+    {
+    }
+
     public abstract void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
     public abstract void AddSyntacticClassifications(SyntaxNode root, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
 

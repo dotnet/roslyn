@@ -37,36 +37,23 @@ internal static partial class DirectiveSyntaxExtensions
 
     internal static DirectiveTriviaSyntax? GetMatchingDirective(this DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
     {
-        if (IsConditionalDirective(directive) ||
-            IsRegionDirective(directive))
-        {
-            var directiveSyntaxMap = GetDirectiveInfo(directive, cancellationToken).DirectiveMap;
-            if (directiveSyntaxMap.TryGetValue(directive, out var result))
-                return result;
-        }
+        if (directive == null)
+            throw new ArgumentNullException(nameof(directive));
 
-        return null;
+        var directiveSyntaxMap = GetDirectiveInfo(directive, cancellationToken).DirectiveMap;
+        return directiveSyntaxMap.TryGetValue(directive, out var result)
+            ? result
+            : null;
     }
 
     public static ImmutableArray<DirectiveTriviaSyntax> GetMatchingConditionalDirectives(this DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
     {
-        if (IsConditionalDirective(directive))
-        {
-            var directiveConditionalMap = GetDirectiveInfo(directive, cancellationToken).ConditionalMap;
-            if (directiveConditionalMap.TryGetValue(directive, out var result))
-                return result;
-        }
+        if (directive == null)
+            throw new ArgumentNullException(nameof(directive));
 
-        return [];
+        var directiveConditionalMap = GetDirectiveInfo(directive, cancellationToken).ConditionalMap;
+        return directiveConditionalMap.TryGetValue(directive, out var result)
+            ? result
+            : [];
     }
-
-    private static bool IsRegionDirective(DirectiveTriviaSyntax directive)
-        => directive?.Kind() is SyntaxKind.RegionDirectiveTrivia or SyntaxKind.EndRegionDirectiveTrivia;
-
-    private static bool IsConditionalDirective(DirectiveTriviaSyntax directive)
-        => directive?.Kind()
-            is SyntaxKind.IfDirectiveTrivia
-            or SyntaxKind.ElifDirectiveTrivia
-            or SyntaxKind.ElseDirectiveTrivia
-            or SyntaxKind.EndIfDirectiveTrivia;
 }

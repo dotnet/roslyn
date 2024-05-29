@@ -21,7 +21,7 @@ using static Microsoft.CodeAnalysis.EditAndContinue.AbstractEditAndContinueAnaly
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal abstract class EditAndContinueTestVerifier
+    internal abstract class EditAndContinueTestHelpers
     {
         public const EditAndContinueCapabilities BaselineCapabilities = EditAndContinueCapabilities.Baseline;
 

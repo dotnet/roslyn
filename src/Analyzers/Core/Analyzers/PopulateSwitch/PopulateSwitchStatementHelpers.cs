@@ -134,14 +134,6 @@ internal static class PopulateSwitchStatementHelpers
                         enumValues.Remove(caseValue);
 
                         break;
-
-                    case CaseKind.Pattern:
-                        if (((IPatternCaseClauseOperation)clause).Pattern is IBinaryPatternOperation pattern)
-                        {
-                            PopulateSwitchExpressionHelpers.HandleBinaryPattern(pattern, enumValues);
-                        }
-
-                        break;
                 }
             }
         }

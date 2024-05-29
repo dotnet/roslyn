@@ -40,10 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 _tagInstance = tagInstance;
             }
 
-            IEnumerable<ITagSpan<TTag>> ITagger<TTag>.GetTags(NormalizedSnapshotSpanCollection spans)
-                => GetTags(spans);
-
-            public IEnumerable<TagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+            public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
                 if (_buffer.Properties.TryGetProperty(_key, out NormalizedSnapshotSpanCollection matchingSpans))
                 {

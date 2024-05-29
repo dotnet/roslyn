@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 
@@ -16,7 +14,10 @@ internal sealed partial class DocumentOutlineViewModel
     /// </summary>
     private readonly struct IntervalIntrospector : IIntervalIntrospector<DocumentSymbolDataViewModel>
     {
-        public TextSpan GetSpan(DocumentSymbolDataViewModel value)
-            => value.Data.RangeSpan.Span.ToTextSpan();
+        public int GetStart(DocumentSymbolDataViewModel value)
+            => value.Data.RangeSpan.Start;
+
+        public int GetLength(DocumentSymbolDataViewModel value)
+            => value.Data.RangeSpan.Length;
     }
 }

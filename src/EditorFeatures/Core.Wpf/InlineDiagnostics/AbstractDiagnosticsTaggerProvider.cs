@@ -4,9 +4,12 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
@@ -20,8 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITaggerProvider
     where TTag : ITag
 {
-    private readonly TaggerHost _taggerHost;
-    protected IGlobalOptionService GlobalOptions => _taggerHost.GlobalOptions;
+    protected readonly IGlobalOptionService GlobalOptions;
 
     /// <summary>
     /// Underlying diagnostic tagger responsible for the syntax/semantic and compiler/analyzer split.  The ordering of
@@ -31,11 +33,13 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
     private readonly ImmutableArray<SingleDiagnosticKindPullTaggerProvider> _diagnosticsTaggerProviders;
 
     public AbstractDiagnosticsTaggerProvider(
+        IThreadingContext threadingContext,
         IDiagnosticAnalyzerService analyzerService,
-        TaggerHost taggerHost,
-        string featureName)
+        IGlobalOptionService globalOptions,
+        ITextBufferVisibilityTracker? visibilityTracker,
+        IAsynchronousOperationListener listener)
     {
-        _taggerHost = taggerHost;
+        GlobalOptions = globalOptions;
 
         _diagnosticsTaggerProviders =
         [
@@ -48,7 +52,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
         return;
 
         SingleDiagnosticKindPullTaggerProvider CreateDiagnosticsTaggerProvider(DiagnosticKind diagnosticKind)
-            => new(this, analyzerService, diagnosticKind, taggerHost, featureName);
+            => new(this, diagnosticKind, threadingContext, analyzerService, globalOptions, visibilityTracker, listener);
     }
 
     // Functionality for subclasses to control how this diagnostic tagging operates.  All the individual
@@ -73,20 +77,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
     protected virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
         => diagnosticData.DataLocation is not null ? [diagnosticData.DataLocation] : [];
 
-    ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
-    {
-        var tagger = CreateTagger<T>(buffer);
-
-        if (tagger is not ITagger<T> genericTagger)
-        {
-            tagger.Dispose();
-            return null;
-        }
-
-        return genericTagger;
-    }
-
-    public SimpleAggregateTagger<TTag> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+    public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
     {
         using var taggers = TemporaryArray<EfficientTagger<TTag>>.Empty;
         foreach (var taggerProvider in _diagnosticsTaggerProviders)
@@ -96,10 +87,17 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
                 taggers.Add(innerTagger);
         }
 
-        return new SimpleAggregateTagger<TTag>(taggers.ToImmutableAndClear());
+        var tagger = new SimpleAggregateTagger<TTag>(taggers.ToImmutableAndClear());
+        if (tagger is not ITagger<T> genericTagger)
+        {
+            tagger.Dispose();
+            return null;
+        }
+
+        return genericTagger;
     }
 
-    protected TagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
+    protected ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
     {
         var errorTag = CreateTag(workspace, data);
         if (errorTag == null)

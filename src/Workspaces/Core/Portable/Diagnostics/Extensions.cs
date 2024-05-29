@@ -391,9 +391,8 @@ internal static partial class Extensions
                     source: project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken),
                     produceItems: static async (document, callback, args, cancellationToken) =>
                     {
-                        var (compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer) = args;
                         await AnalyzeDocumentAsync(
-                            compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
+                            args.compilationWithAnalyzers, args.analyzerInfoCache, args.suppressionAnalyzer,
                             document, span: null, callback, cancellationToken).ConfigureAwait(false);
                     },
                     args: (compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer),

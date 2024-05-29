@@ -10,28 +10,28 @@ namespace Microsoft.CodeAnalysis;
 
 /// <summary>
 /// Represents a 'cone' of projects that is being sync'ed between the local and remote hosts.  A project cone starts
-/// with a <see cref="RootProjectId"/>, and contains both it and all dependent projects within <see cref="ProjectIds"/>.
+/// with a <see cref="RootProjectId"/>, and contains both it and all dependent projects within <see cref="_projectIds"/>.
 /// </summary>
 internal sealed class ProjectCone : IEquatable<ProjectCone>
 {
     public readonly ProjectId RootProjectId;
-    public readonly FrozenSet<ProjectId> ProjectIds;
+    private readonly FrozenSet<ProjectId> _projectIds;
 
     public ProjectCone(ProjectId rootProjectId, FrozenSet<ProjectId> projectIds)
     {
         Contract.ThrowIfFalse(projectIds.Contains(rootProjectId));
         RootProjectId = rootProjectId;
-        ProjectIds = projectIds;
+        _projectIds = projectIds;
     }
 
     public bool Contains(ProjectId projectId)
-        => ProjectIds.Contains(projectId);
+        => _projectIds.Contains(projectId);
 
     public override bool Equals(object? obj)
         => obj is ProjectCone cone && Equals(cone);
 
     public bool Equals(ProjectCone? other)
-        => other is not null && this.RootProjectId == other.RootProjectId && this.ProjectIds.SetEquals(other.ProjectIds);
+        => other is not null && this.RootProjectId == other.RootProjectId && this._projectIds.SetEquals(other._projectIds);
 
     public override int GetHashCode()
         => throw new NotImplementedException();

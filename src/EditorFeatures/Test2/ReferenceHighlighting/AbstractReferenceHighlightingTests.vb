@@ -4,12 +4,15 @@
 
 Imports Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
+Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Remote.Testing
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Utilities
 
@@ -26,7 +29,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
-                    workspace.GetService(Of TaggerHost))
+                    workspace.GetService(Of IThreadingContext),
+                    globalOptions,
+                    visibilityTracker:=Nothing,
+                    AsynchronousOperationListenerProvider.NullProvider)
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim caretPosition = hostDocument.CursorPosition.Value

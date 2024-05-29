@@ -9,7 +9,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -27,14 +30,17 @@ public class InteractiveBraceHighlightingTests
     private static IEnumerable<T> Enumerable<T>(params T[] array)
         => array;
 
-    private static async Task<IEnumerable<TagSpan<BraceHighlightTag>>> ProduceTagsAsync(
+    private static async Task<IEnumerable<ITagSpan<BraceHighlightTag>>> ProduceTagsAsync(
         EditorTestWorkspace workspace,
         ITextBuffer buffer,
         int position)
     {
         var producer = new BraceHighlightingViewTaggerProvider(
-            workspace.GetService<TaggerHost>(),
-            workspace.GetService<IBraceMatchingService>());
+            workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+            workspace.GetService<IBraceMatchingService>(),
+            workspace.GetService<IGlobalOptionService>(),
+            visibilityTracker: null,
+            AsynchronousOperationListenerProvider.NullProvider);
 
         var context = new TaggerContext<BraceHighlightTag>(
             buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault(),

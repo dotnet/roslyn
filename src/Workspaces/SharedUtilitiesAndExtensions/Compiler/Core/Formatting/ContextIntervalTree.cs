@@ -44,9 +44,8 @@ internal class ContextIntervalTree<T, TIntrospector> : SimpleIntervalTree<T, TIn
         var otherStart = start;
         var otherEnd = start + length;
 
-        var thisSpan = Introspector.GetSpan(value);
-        var thisStart = thisSpan.Start;
-        var thisEnd = thisSpan.End;
+        var thisEnd = GetEnd(value, in Introspector);
+        var thisStart = Introspector.GetStart(value);
 
         return thisStart < otherStart && otherEnd < thisEnd;
     }
@@ -56,9 +55,8 @@ internal class ContextIntervalTree<T, TIntrospector> : SimpleIntervalTree<T, TIn
         var otherStart = start;
         var otherEnd = start + length;
 
-        var thisSpan = Introspector.GetSpan(value);
-        var thisStart = thisSpan.Start;
-        var thisEnd = thisSpan.End;
+        var thisEnd = GetEnd(value, in Introspector);
+        var thisStart = Introspector.GetStart(value);
 
         return thisStart <= otherStart && otherEnd <= thisEnd;
     }
@@ -93,7 +91,7 @@ internal class ContextIntervalTree<T, TIntrospector> : SimpleIntervalTree<T, TIn
             var currentNode = spineNodes.Peek();
 
             // only goes to right if right tree contains given span
-            if (Introspector.GetSpan(currentNode.Value).Start <= start)
+            if (Introspector.GetStart(currentNode.Value) <= start)
             {
                 var right = currentNode.Right;
                 if (right != null && end < MaxEndValue(right))
@@ -120,20 +118,11 @@ internal class ContextIntervalTree<T, TIntrospector> : SimpleIntervalTree<T, TIn
                 if (predicate(currentNode.Value, start, length))
                 {
                     // hold onto best answer
-                    if (EqualityComparer<T?>.Default.Equals(result, default))
+                    if (EqualityComparer<T?>.Default.Equals(result, default) ||
+                        (Introspector.GetStart(result!) <= Introspector.GetStart(currentNode.Value) &&
+                         Introspector.GetLength(currentNode.Value) < Introspector.GetLength(result!)))
                     {
                         result = currentNode.Value;
-                    }
-                    else
-                    {
-                        var resultSpan = Introspector.GetSpan(result!);
-                        var currentNodeSpan = Introspector.GetSpan(currentNode.Value);
-
-                        if (resultSpan.Start <= currentNodeSpan.Start &&
-                            currentNodeSpan.Length < resultSpan.Length)
-                        {
-                            result = currentNode.Value;
-                        }
                     }
                 }
 
@@ -161,7 +150,7 @@ internal class ContextIntervalTree<T, TIntrospector> : SimpleIntervalTree<T, TIn
                         // right side tree doesn't have any answer or if the right side has
                         // an answer but left side can have better answer then try left side
                         if (EqualityComparer<T?>.Default.Equals(result, default) ||
-                            Introspector.GetSpan(parentNode.Value).Start == Introspector.GetSpan(currentNode.Value).Start)
+                            Introspector.GetStart(parentNode.Value) == Introspector.GetStart(currentNode.Value))
                         {
                             // put left as new root, and break out inner loop
                             spineNodes.Push(parentNode.Left);

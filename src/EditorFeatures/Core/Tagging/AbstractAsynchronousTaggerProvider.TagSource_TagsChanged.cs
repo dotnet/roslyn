@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -23,8 +24,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private void OnTagsChangedForBuffer(
             ICollection<KeyValuePair<ITextBuffer, DiffResult>> changes, bool highPriority)
         {
-            // Can be called from any thread.  Just filters out changes that aren't for our buffer and adds to the right
-            // queue to actually notify interested parties.
+            _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
             foreach (var change in changes)
             {

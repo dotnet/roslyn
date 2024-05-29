@@ -9,8 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -60,20 +62,20 @@ public sealed class AsynchronousTaggerTests
             }
             """);
 
-        WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
+        var asyncListener = new AsynchronousOperationListener();
 
-        var asyncListenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        var asyncListener = (AsynchronousOperationListener)asyncListenerProvider.GetListener(FeatureAttribute.Tagger);
+        WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
 
         var eventSource = new TestTaggerEventSource();
         var taggerProvider = new TestTaggerProvider(
-            workspace.GetService<TaggerHost>(),
+            workspace.GetService<IThreadingContext>(),
             (_, s) => Enumerable
                 .Range(0, tagsProduced)
                 .Select(i => new TagSpan<TextMarkerTag>(new SnapshotSpan(s.SnapshotSpan.Snapshot, new Span(50 + i * 2, 1)), new TextMarkerTag($"Test{i}"))),
             eventSource,
+            workspace.GetService<IGlobalOptionService>(),
             supportsFrozenPartialSemantics: false,
-            FeatureAttribute.Tagger);
+            asyncListener);
 
         var document = workspace.Documents.First();
         var textBuffer = document.GetTextBuffer();
@@ -149,17 +151,16 @@ public sealed class AsynchronousTaggerTests
             }
             """);
 
+        var asyncListener = new AsynchronousOperationListener();
+
         WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestFrozenPartialSemantics1)} creates asynchronous taggers");
 
         var testDocument = workspace.Documents.First();
 
-        var asyncListenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        var asyncListener = (AsynchronousOperationListener)asyncListenerProvider.GetListener(FeatureAttribute.Tagger);
-
         var eventSource = new TestTaggerEventSource();
         var callbackCounter = 0;
         var taggerProvider = new TestTaggerProvider(
-            workspace.GetService<TaggerHost>(),
+            workspace.GetService<IThreadingContext>(),
             (c, s) =>
             {
                 Assert.True(callbackCounter <= 1);
@@ -180,8 +181,9 @@ public sealed class AsynchronousTaggerTests
                 return [new TagSpan<TextMarkerTag>(new SnapshotSpan(s.SnapshotSpan.Snapshot, new Span(0, 1)), new TextMarkerTag($"Test"))];
             },
             eventSource,
+            workspace.GetService<IGlobalOptionService>(),
             supportsFrozenPartialSemantics: true,
-            FeatureAttribute.Tagger);
+            asyncListener);
 
         var textBuffer = testDocument.GetTextBuffer();
         using var tagger = taggerProvider.CreateTagger(textBuffer);
@@ -205,17 +207,16 @@ public sealed class AsynchronousTaggerTests
             }
             """);
 
+        var asyncListener = new AsynchronousOperationListener();
+
         WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestFrozenPartialSemantics2)} creates asynchronous taggers");
 
         var testDocument = workspace.Documents.First();
 
-        var asyncListenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        var asyncListener = (AsynchronousOperationListener)asyncListenerProvider.GetListener(FeatureAttribute.Tagger);
-
         var eventSource = new TestTaggerEventSource();
         var callbackCounter = 0;
         var taggerProvider = new TestTaggerProvider(
-            workspace.GetService<TaggerHost>(),
+            workspace.GetService<IThreadingContext>(),
             (c, s) =>
             {
                 var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
@@ -227,8 +228,9 @@ public sealed class AsynchronousTaggerTests
                 return [new TagSpan<TextMarkerTag>(new SnapshotSpan(s.SnapshotSpan.Snapshot, new Span(0, 1)), new TextMarkerTag($"Test"))];
             },
             eventSource,
+            workspace.GetService<IGlobalOptionService>(),
             supportsFrozenPartialSemantics: false,
-            FeatureAttribute.Tagger);
+            asyncListener);
 
         var textBuffer = testDocument.GetTextBuffer();
         using var tagger = taggerProvider.CreateTagger(textBuffer);
@@ -244,12 +246,13 @@ public sealed class AsynchronousTaggerTests
     }
 
     private sealed class TestTaggerProvider(
-        TaggerHost taggerHost,
-        Func<TaggerContext<TextMarkerTag>, DocumentSnapshotSpan, IEnumerable<TagSpan<TextMarkerTag>>> callback,
+        IThreadingContext threadingContext,
+        Func<TaggerContext<TextMarkerTag>, DocumentSnapshotSpan, IEnumerable<ITagSpan<TextMarkerTag>>> callback,
         ITaggerEventSource eventSource,
+        IGlobalOptionService globalOptions,
         bool supportsFrozenPartialSemantics,
-        string featureName)
-        : AsynchronousTaggerProvider<TextMarkerTag>(taggerHost, featureName)
+        IAsynchronousOperationListener asyncListener)
+        : AsynchronousTaggerProvider<TextMarkerTag>(threadingContext, globalOptions, visibilityTracker: null, asyncListener)
     {
         protected override TaggerDelay EventChangeDelay
             => TaggerDelay.NearImmediate;

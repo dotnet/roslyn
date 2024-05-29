@@ -29,7 +29,6 @@ internal partial class AbstractSyntaxClassificationService
         private readonly ClassificationOptions _options;
 
         private static readonly ObjectPool<SegmentedList<ClassifiedSpan>> s_listPool = new(() => []);
-        private static readonly ObjectPool<Stack<SyntaxNodeOrToken>> s_stackPool = new(() => new(), trimOnFree: false);
 
         private Worker(
             SemanticModel semanticModel,
@@ -50,7 +49,7 @@ internal partial class AbstractSyntaxClassificationService
 
             // get one from pool
             _set = SharedPools.Default<SegmentedHashSet<ClassifiedSpan>>().AllocateAndClear();
-            _pendingNodes = s_stackPool.Allocate();
+            _pendingNodes = SharedPools.Default<Stack<SyntaxNodeOrToken>>().AllocateAndClear();
         }
 
         internal static void Classify(
@@ -78,8 +77,8 @@ internal partial class AbstractSyntaxClassificationService
             // threshold simply with a single classified screen.  This allows reuse of those sets without causing
             // lots of garbage.
             _set.Clear();
-            s_stackPool.ClearAndFree(_pendingNodes);
             SharedPools.Default<SegmentedHashSet<ClassifiedSpan>>().Free(_set);
+            SharedPools.Default<Stack<SyntaxNodeOrToken>>().ClearAndFree(this._pendingNodes);
         }
 
         private void AddClassification(TextSpan textSpan, string type)
@@ -101,23 +100,29 @@ internal partial class AbstractSyntaxClassificationService
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                ClassifyNodeOrToken(nodeOrToken);
-
-                foreach (var child in nodeOrToken.ChildNodesAndTokens())
+                if (nodeOrToken.FullSpan.IntersectsWith(_textSpan))
                 {
-                    // Only push children that intersect the span we're classifying.  This way we keep the stack size small.
-                    if (child.FullSpan.IntersectsWith(_textSpan))
+                    ClassifyNodeOrToken(nodeOrToken);
+
+                    foreach (var child in nodeOrToken.ChildNodesAndTokens())
+                    {
                         _pendingNodes.Push(child);
+                    }
                 }
             }
         }
 
         private void ClassifyNodeOrToken(SyntaxNodeOrToken nodeOrToken)
         {
-            if (nodeOrToken.AsNode(out var node))
+            var node = nodeOrToken.AsNode();
+            if (node != null)
+            {
                 ClassifyNode(node);
+            }
             else
+            {
                 ClassifyToken(nodeOrToken.AsToken());
+            }
         }
 
         private void ClassifyNode(SyntaxNode syntax)
@@ -144,7 +149,9 @@ internal partial class AbstractSyntaxClassificationService
         private void AddClassification(ClassifiedSpan classification)
         {
             if (classification.ClassificationType != null)
+            {
                 AddClassification(classification.TextSpan, classification.ClassificationType);
+            }
         }
 
         private void ClassifyToken(SyntaxToken syntax)
@@ -172,8 +179,10 @@ internal partial class AbstractSyntaxClassificationService
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                if (trivia.HasStructure && trivia.FullSpan.IntersectsWith(_textSpan))
+                if (trivia.HasStructure)
+                {
                     _pendingNodes.Push(trivia.GetStructure());
+                }
             }
         }
     }

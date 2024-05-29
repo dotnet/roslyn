@@ -108,7 +108,10 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
                 Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
                 Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
-                    document, hostDocument.CursorPosition.Value, CancellationToken.None)
+                    workspace,
+                    document,
+                    hostDocument.CursorPosition.Value,
+                    CancellationToken.None)
 
                 Dim expectedLocation = New CodeDefinitionWindowLocation(
                     "DisplayText",

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Tagging;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -38,21 +39,23 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
     /// </summary>
     private const int s_standardLineCountAroundViewportToTag = 10;
 
-    private readonly TaggerHost _taggerHost;
     private readonly int _extraLinesAroundViewportToTag;
     private readonly ImmutableArray<SingleViewportTaggerProvider> _viewportTaggerProviders;
 
-    protected IThreadingContext ThreadingContext => _taggerHost.ThreadingContext;
-    protected IGlobalOptionService GlobalOptions => _taggerHost.GlobalOptions;
+    protected readonly IThreadingContext ThreadingContext;
+    protected readonly IGlobalOptionService GlobalOptions;
     protected readonly IAsynchronousOperationListener AsyncListener;
 
     protected AsynchronousViewportTaggerProvider(
-        TaggerHost taggerHost,
-        string featureName,
+        IThreadingContext threadingContext,
+        IGlobalOptionService globalOptions,
+        ITextBufferVisibilityTracker? visibilityTracker,
+        IAsynchronousOperationListener asyncListener,
         int extraLinesAroundViewportToTag = 100)
     {
-        _taggerHost = taggerHost;
-        AsyncListener = _taggerHost.AsyncListenerProvider.GetListener(featureName);
+        ThreadingContext = threadingContext;
+        GlobalOptions = globalOptions;
+        AsyncListener = asyncListener;
         _extraLinesAroundViewportToTag = extraLinesAroundViewportToTag;
 
         using var providers = TemporaryArray<SingleViewportTaggerProvider>.Empty;
@@ -72,7 +75,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
         return;
 
         SingleViewportTaggerProvider CreateSingleViewportTaggerProvider(ViewPortToTag viewPortToTag)
-            => new(this, viewPortToTag, featureName);
+            => new(this, viewPortToTag, threadingContext, globalOptions, visibilityTracker, asyncListener);
     }
 
     // Functionality for subclasses to control how this diagnostic tagging operates.  All the individual

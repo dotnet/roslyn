@@ -1087,7 +1087,7 @@ class Goo
             [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Goo..ctor"), preserveLocalVariables: true)
             ],
-            capabilities: EditAndContinueTestVerifier.Net6RuntimeCapabilities);
+            capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
@@ -9860,7 +9860,7 @@ class C
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
 
-        edits.VerifySemanticDiagnostics(active, capabilities: EditAndContinueTestVerifier.Net6RuntimeCapabilities);
+        edits.VerifySemanticDiagnostics(active, capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
     }
 
     [Fact]
@@ -12333,7 +12333,7 @@ class C
 
         var edits = GetTopEdits(src1, src2);
         var active = GetActiveStatements(src1, src2);
-        var validator = new CSharpEditAndContinueTestVerifier(faultInjector: node =>
+        var validator = new CSharpEditAndContinueTestHelpers(faultInjector: node =>
         {
             if (node.Parent is MethodDeclarationSyntax methodDecl && methodDecl.Identifier.Text == "G")
             {

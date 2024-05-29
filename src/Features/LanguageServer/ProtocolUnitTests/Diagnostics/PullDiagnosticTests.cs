@@ -174,6 +174,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(), useVSDiagnostics: true);
+
         Assert.Equal("IDE0060", results.Single().Diagnostics.Single().Code);
         var vsDiagnostic = (VSDiagnostic)results.Single().Diagnostics.Single();
         Assert.Equal(vsDiagnostic.ExpandedMessage, AnalyzersResources.Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names);

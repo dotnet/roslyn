@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 
 internal abstract class HotReloadDiagnosticSourceProvider(IHotReloadDiagnosticManager diagnosticManager, bool isDocument) : IDiagnosticSourceProvider
 {
-    public string Name => Constants.DiagnosticSourceProviderName;
+    public string Name => "HotReloadDiagnostics";
     public bool IsDocument => isDocument;
 
     public bool IsEnabled(ClientCapabilities clientCapabilities) => true;

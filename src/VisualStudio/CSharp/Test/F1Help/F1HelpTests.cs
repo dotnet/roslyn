@@ -1475,19 +1475,6 @@ class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48392")]
-        public async Task TestAllowsRefStructAntiConstraint()
-        {
-            await Test_KeywordAsync(
-@"class C
-{ 
-    void M<T>()
-        where T : all[||]ows ref struct
-    {
-    }
-}", "allows");
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48392")]
         public async Task TestUsingStaticOnUsingKeyword()
         {
             await Test_KeywordAsync(

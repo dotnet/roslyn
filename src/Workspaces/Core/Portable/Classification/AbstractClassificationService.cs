@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
@@ -21,13 +20,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification;
 
-internal abstract class AbstractClassificationService(ISyntaxClassificationService syntaxClassificationService) : IClassificationService
+internal abstract class AbstractClassificationService : IClassificationService
 {
-    private readonly ISyntaxClassificationService _syntaxClassificationService = syntaxClassificationService;
-
-    private Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>>? _getNodeClassifiers;
-    private Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>>? _getTokenClassifiers;
-
     public abstract void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
     public abstract ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan);
 
@@ -43,7 +37,7 @@ internal abstract class AbstractClassificationService(ISyntaxClassificationServi
         return AddClassificationsAsync(document, textSpans, options, ClassificationType.EmbeddedLanguage, result, cancellationToken);
     }
 
-    public async Task AddClassificationsAsync(
+    private static async Task AddClassificationsAsync(
         Document document,
         ImmutableArray<TextSpan> textSpans,
         ClassificationOptions options,
@@ -134,7 +128,7 @@ internal abstract class AbstractClassificationService(ISyntaxClassificationServi
         return true;
     }
 
-    private async Task AddClassificationsInCurrentProcessAsync(
+    public static async Task AddClassificationsInCurrentProcessAsync(
         Document document,
         ImmutableArray<TextSpan> textSpans,
         ClassificationType type,
@@ -145,15 +139,20 @@ internal abstract class AbstractClassificationService(ISyntaxClassificationServi
         if (type == ClassificationType.Semantic)
         {
             var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
+            var reassignedVariableService = document.GetRequiredLanguageService<IReassignedVariableService>();
+            var obsoleteSymbolService = document.GetRequiredLanguageService<IObsoleteSymbolService>();
 
-            var (getNodeClassifiers, getTokenClassifiers) = GetExtensionClassifiers(document, classificationService);
+            var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
+            var classifiers = classificationService.GetDefaultSyntaxClassifiers();
+
+            var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes);
+            var getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds);
 
             await classificationService.AddSemanticClassificationsAsync(
                 document, textSpans, options, getNodeClassifiers, getTokenClassifiers, result, cancellationToken).ConfigureAwait(false);
 
             if (options.ClassifyReassignedVariables)
             {
-                var reassignedVariableService = document.GetRequiredLanguageService<IReassignedVariableService>();
                 var reassignedVariableSpans = await reassignedVariableService.GetLocationsAsync(document, textSpans, cancellationToken).ConfigureAwait(false);
                 foreach (var span in reassignedVariableSpans)
                     result.Add(new ClassifiedSpan(span, ClassificationTypeNames.ReassignedVariable));
@@ -161,7 +160,6 @@ internal abstract class AbstractClassificationService(ISyntaxClassificationServi
 
             if (options.ClassifyObsoleteSymbols)
             {
-                var obsoleteSymbolService = document.GetRequiredLanguageService<IObsoleteSymbolService>();
                 var obsoleteSymbolSpans = await obsoleteSymbolService.GetLocationsAsync(document, textSpans, cancellationToken).ConfigureAwait(false);
                 foreach (var span in obsoleteSymbolSpans)
                     result.Add(new ClassifiedSpan(span, ClassificationTypeNames.ObsoleteSymbol));
@@ -180,23 +178,6 @@ internal abstract class AbstractClassificationService(ISyntaxClassificationServi
         {
             throw ExceptionUtilities.UnexpectedValue(type);
         }
-
-        return;
-
-        (Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>>, Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>>) GetExtensionClassifiers(
-            Document document, ISyntaxClassificationService classificationService)
-        {
-            if (_getNodeClassifiers == null || _getTokenClassifiers == null)
-            {
-                var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
-                var classifiers = classificationService.GetDefaultSyntaxClassifiers();
-
-                _getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, static c => c.SyntaxNodeTypes);
-                _getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(classifiers, static c => c.SyntaxTokenKinds);
-            }
-
-            return (_getNodeClassifiers, _getTokenClassifiers);
-        }
     }
 
     public async Task AddSyntacticClassificationsAsync(Document document, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
@@ -211,7 +192,8 @@ internal abstract class AbstractClassificationService(ISyntaxClassificationServi
         if (root is null)
             return;
 
-        _syntaxClassificationService.AddSyntacticClassifications(root, textSpans, result, cancellationToken);
+        var classificationService = services.GetLanguageServices(root.Language).GetRequiredService<ISyntaxClassificationService>();
+        classificationService.AddSyntacticClassifications(root, textSpans, result, cancellationToken);
     }
 
     /// <summary>

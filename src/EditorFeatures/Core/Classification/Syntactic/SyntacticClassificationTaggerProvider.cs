@@ -15,19 +15,21 @@ namespace Microsoft.CodeAnalysis.Classification;
 /// <summary>
 /// Intentionally not exported.  It is consumed by the <see cref="TotalClassificationTaggerProvider"/> instead.
 /// </summary>
-internal sealed partial class SyntacticClassificationTaggerProvider(TaggerHost taggerHost, ClassificationTypeMap typeMap)
+internal sealed partial class SyntacticClassificationTaggerProvider(
+    IThreadingContext threadingContext,
+    ClassificationTypeMap typeMap,
+    IGlobalOptionService globalOptions,
+    IAsynchronousOperationListenerProvider listenerProvider)
 {
-    private readonly TaggerHost _taggerHost = taggerHost;
+    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.Classification);
+    private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly ClassificationTypeMap _typeMap = typeMap;
-
-    private readonly IAsynchronousOperationListener _listener = taggerHost.AsyncListenerProvider.GetListener(FeatureAttribute.Classification);
-    private IThreadingContext ThreadingContext => _taggerHost.ThreadingContext;
-    private IGlobalOptionService GlobalOptions => _taggerHost.GlobalOptions;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     public EfficientTagger<IClassificationTag>? CreateTagger(ITextBuffer buffer)
     {
-        ThreadingContext.ThrowIfNotOnUIThread();
-        if (!GlobalOptions.GetOption(SyntacticColorizerOptionsStorage.SyntacticColorizer))
+        _threadingContext.ThrowIfNotOnUIThread();
+        if (!_globalOptions.GetOption(SyntacticColorizerOptionsStorage.SyntacticColorizer))
             return null;
 
         // Note: creating the Tagger must not fail (or we will leak the TagComputer).

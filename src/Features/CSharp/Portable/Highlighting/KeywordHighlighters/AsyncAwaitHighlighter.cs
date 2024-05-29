@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -12,22 +14,22 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 
 [ExportHighlighter(LanguageNames.CSharp), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class AsyncAwaitHighlighter() : AbstractKeywordHighlighter(findInsideTrivia: false)
+internal class AsyncAwaitHighlighter : AbstractKeywordHighlighter
 {
     private static readonly ObjectPool<Stack<SyntaxNode>> s_stackPool
         = SharedPools.Default<Stack<SyntaxNode>>();
 
-    protected override bool ContainsHighlightableToken(ref TemporaryArray<SyntaxToken> tokens)
-        => tokens.Any(static t => t.Kind() is SyntaxKind.AwaitKeyword or SyntaxKind.AsyncKeyword);
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public AsyncAwaitHighlighter()
+    {
+    }
 
     protected override bool IsHighlightableNode(SyntaxNode node)
         => node.IsReturnableConstructOrTopLevelCompilationUnit();
@@ -43,8 +45,9 @@ internal class AsyncAwaitHighlighter() : AbstractKeywordHighlighter(findInsideTr
 
     private static IEnumerable<SyntaxNode> WalkChildren(SyntaxNode node)
     {
-        using var _ = s_stackPool.GetPooledObject(out var stack);
+        using var pooledObject = s_stackPool.GetPooledObject();
 
+        var stack = pooledObject.Object;
         stack.Push(node);
 
         while (stack.TryPop(out var current))
@@ -55,12 +58,16 @@ internal class AsyncAwaitHighlighter() : AbstractKeywordHighlighter(findInsideTr
             // order, which is nicer when debugging and understanding the results produced.
             foreach (var child in current.ChildNodesAndTokens().Reverse())
             {
-                if (child.AsNode(out var childNode))
+                if (child.IsNode)
                 {
+                    var childNode = child.AsNode();
+
                     // Only process children if they're not the start of another construct
                     // that async/await would be related to.
                     if (!childNode.IsReturnableConstruct())
+                    {
                         stack.Push(childNode);
+                    }
                 }
             }
         }

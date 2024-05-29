@@ -40,10 +40,7 @@ internal partial class PreviewUpdater
 
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
-        IEnumerable<ITagSpan<HighlightTag>> ITagger<HighlightTag>.GetTags(NormalizedSnapshotSpanCollection spans)
-            => GetTags();
-
-        public IEnumerable<TagSpan<HighlightTag>> GetTags()
+        public IEnumerable<ITagSpan<HighlightTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
             var lines = _textBuffer.CurrentSnapshot.Lines.Where(line => line.Extent.OverlapsWith(_span));
 

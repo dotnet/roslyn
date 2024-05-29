@@ -21669,7 +21669,6 @@ class B : System.Attribute {}
     [InlineData("unmanaged")]
     [InlineData("System.IDisposable")]
     [InlineData("System.Delegate")]
-    [InlineData("allows ref struct")]
     public void TypeConstraint_Insert(string newConstraint)
     {
         var src1 = "class C<S,T> { }";
@@ -21692,7 +21691,6 @@ class B : System.Attribute {}
     [InlineData("unmanaged")]
     [InlineData("System.IDisposable")]
     [InlineData("System.Delegate")]
-    [InlineData("allows ref struct")]
     public void TypeConstraint_Delete(string oldConstraint)
     {
         var src1 = "class C<S,T> where T : " + oldConstraint + " { }";

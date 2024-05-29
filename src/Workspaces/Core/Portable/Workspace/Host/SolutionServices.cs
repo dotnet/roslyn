@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host;
@@ -43,9 +42,6 @@ public sealed class SolutionServices
     /// <inheritdoc cref="HostWorkspaceServices.SupportedLanguages"/>
     public IEnumerable<string> SupportedLanguages
         => _services.SupportedLanguages;
-
-    internal ImmutableArray<string> SupportedLanguagesArray
-        => _services.SupportedLanguagesArray;
 
     /// <inheritdoc cref="HostWorkspaceServices.IsSupported"/>
     public bool IsSupported(string languageName)

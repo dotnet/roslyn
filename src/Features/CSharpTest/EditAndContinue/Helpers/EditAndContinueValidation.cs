@@ -37,7 +37,7 @@ internal static class EditAndContinueValidation
         RudeEditDiagnosticDescription[]? diagnostics = null,
         EditAndContinueCapabilities? capabilities = null)
     {
-        new CSharpEditAndContinueTestVerifier().VerifyLineEdits(
+        new CSharpEditAndContinueTestHelpers().VerifyLineEdits(
             editScript,
             lineEdits,
             semanticEdits,
@@ -129,7 +129,7 @@ internal static class EditAndContinueValidation
     {
         foreach (var targetFramework in targetFrameworks ?? [TargetFramework.NetCoreApp, TargetFramework.NetFramework])
         {
-            new CSharpEditAndContinueTestVerifier().VerifySemantics(editScripts, targetFramework, results, capabilities);
+            new CSharpEditAndContinueTestHelpers().VerifySemantics(editScripts, targetFramework, results, capabilities);
         }
     }
 }

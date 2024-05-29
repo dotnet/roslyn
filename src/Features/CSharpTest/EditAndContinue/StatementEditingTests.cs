@@ -6406,7 +6406,7 @@ class Program
             [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.Main"), preserveLocalVariables: true)
             ],
-            capabilities: EditAndContinueTestVerifier.Net6RuntimeCapabilities);
+            capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
     }
 
     [Fact]

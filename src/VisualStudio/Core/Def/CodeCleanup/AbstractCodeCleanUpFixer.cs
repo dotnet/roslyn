@@ -223,11 +223,9 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
             produceItems: static async (project, callback, args, cancellationToken) =>
             {
                 Contract.ThrowIfFalse(project.SupportsCompilation);
-
-                var (globalOptions, solution, enabledFixIds, progressTracker) = args;
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var ideOptions = globalOptions.GetCodeActionOptions(project.Services);
+                var ideOptions = args.globalOptions.GetCodeActionOptions(project.Services);
 
                 // And for each project, process all the documents in parallel.
                 await RoslynParallel.ForEachAsync(
@@ -235,12 +233,12 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
                     cancellationToken,
                     async (document, cancellationToken) =>
                     {
-                        using var _ = progressTracker.ItemCompletedScope();
+                        using var _ = args.progressTracker.ItemCompletedScope();
 
                         // FixDocumentAsync reports progress within a document, but we only want to report progress at
                         // the document granularity.  So we pass CodeAnalysisProgress.None here so that inner progress
                         // updates don't affect us.
-                        var fixedDocument = await FixDocumentAsync(document, enabledFixIds, CodeAnalysisProgress.None, ideOptions, cancellationToken).ConfigureAwait(false);
+                        var fixedDocument = await FixDocumentAsync(document, args.enabledFixIds, CodeAnalysisProgress.None, ideOptions, cancellationToken).ConfigureAwait(false);
                         if (fixedDocument == document)
                             return;
 
