@@ -189,7 +189,7 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
                 _primaryConstructorDeclaration.Identifier.GetLocation(),
                 _styleOption.Notification,
                 context.Options,
-                ImmutableArray.Create(_primaryConstructorDeclaration.GetLocation()),
+                [_primaryConstructorDeclaration.GetLocation()],
                 properties));
 
             _candidateMembersToRemove.Free();
@@ -288,7 +288,12 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
                 if (!TryFindPrimaryConstructorCandidate(namedType, out var primaryConstructor, out var primaryConstructorDeclaration))
                     return null;
 
-                if (primaryConstructor.Parameters.Length == 0)
+                // If we have no parameters and no attributes, then this is a trivial constructor.  We don't want to
+                // spam the user to convert this to a primary constructor.  What would likely be better would be to
+                // offer to remove the constructor entirely.  We do offer when there are attributes to help with cases
+                // like simple DI constructors that have no parameters, but would still be nicer with the attributes
+                // moved to the type instead.
+                if (primaryConstructor.Parameters.Length == 0 && primaryConstructorDeclaration.AttributeLists.Count == 0)
                     return null;
 
                 // protected constructor in an abstract type is fine.  It will stay protected even as a primary constructor.
