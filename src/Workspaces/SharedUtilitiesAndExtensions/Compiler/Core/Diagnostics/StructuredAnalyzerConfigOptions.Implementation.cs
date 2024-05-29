@@ -5,12 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 #if !CODE_STYLE
+using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 #endif
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -23,7 +25,8 @@ internal abstract partial class StructuredAnalyzerConfigOptions
         private readonly Lazy<NamingStylePreferences> _lazyNamingStylePreferences;
 
 #if !CODE_STYLE
-        private CodeGenerationOptions? _codeGenerationOptions;
+        private CodeGenerationOptions? _csharpCodeGenerationOptions;
+        private CodeGenerationOptions? _visualBasicCodeGenerationOptions;
 #endif
 
         public Implementation(AnalyzerConfigOptions options)
@@ -44,8 +47,14 @@ internal abstract partial class StructuredAnalyzerConfigOptions
 #if !CODE_STYLE
         public override CodeGenerationOptions GetCodeGenerationOptions(LanguageServices languageServices, CodeGenerationOptions? fallbackOptions)
         {
-            _codeGenerationOptions ??= ((IOptionsReader)this).GetCodeGenerationOptions(languageServices, fallbackOptions);
-            return _codeGenerationOptions;
+            ref var options =
+                ref languageServices.Language == LanguageNames.CSharp ? ref _csharpCodeGenerationOptions :
+                ref languageServices.Language == LanguageNames.VisualBasic ? ref _visualBasicCodeGenerationOptions : ref Unsafe.NullRef<CodeGenerationOptions?>();
+
+            Contract.ThrowIfNull(options);
+
+            options ??= ((IOptionsReader)this).GetCodeGenerationOptions(languageServices, fallbackOptions);
+            return options;
         }
 #endif
     }
