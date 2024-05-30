@@ -1596,11 +1596,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportPrimaryConstructorParameterShadowing(node, symbol ?? members[0], name, invoked, lookupResult, members, diagnostics);
                 members.Free();
 
-                string text = node.Identifier.Text;
-                if (text != "value" ||
-                    symbol is not SynthesizedAccessorValueParameterSymbol { Name: "value" })
+                if (symbol is not SynthesizedAccessorValueParameterSymbol { Name: "value" })
                 {
-                    ReportFieldOrValueContextualKeywordConflictIfAny(node, text, diagnostics);
+                    ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier.Text, diagnostics);
                 }
             }
             else
