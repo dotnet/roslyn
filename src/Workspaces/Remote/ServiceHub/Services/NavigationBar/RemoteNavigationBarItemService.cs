@@ -9,40 +9,33 @@ using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed class RemoteNavigationBarItemService(in BrokeredServiceBase.ServiceConstructionArguments arguments)
+    : BrokeredServiceBase(arguments), IRemoteNavigationBarItemService
 {
-    internal sealed class RemoteNavigationBarItemService : BrokeredServiceBase, IRemoteNavigationBarItemService
+    internal sealed class Factory : FactoryBase<IRemoteNavigationBarItemService>
     {
-        internal sealed class Factory : FactoryBase<IRemoteNavigationBarItemService>
+        protected override IRemoteNavigationBarItemService CreateService(in ServiceConstructionArguments arguments)
+            => new RemoteNavigationBarItemService(arguments);
+    }
+
+    public ValueTask<ImmutableArray<SerializableNavigationBarItem>> GetItemsAsync(
+        Checksum solutionChecksum, DocumentId documentId, bool supportsCodeGeneration, bool frozenPartialSemantics, CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(solutionChecksum, async solution =>
         {
-            protected override IRemoteNavigationBarItemService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteNavigationBarItemService(arguments);
-        }
+            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(document);
 
-        public RemoteNavigationBarItemService(in ServiceConstructionArguments arguments)
-            : base(arguments)
-        {
-        }
+            // Frozen partial semantics is not automatically passed to OOP, so enable it explicitly when desired
+            if (frozenPartialSemantics)
+                document = document.WithFrozenPartialSemantics(cancellationToken);
 
-        public ValueTask<ImmutableArray<SerializableNavigationBarItem>> GetItemsAsync(
-            Checksum solutionChecksum, DocumentId documentId, bool supportsCodeGeneration, bool forceFrozenPartialSemanticsForCrossProcessOperations, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfNull(document);
+            var navigationBarService = document.GetRequiredLanguageService<INavigationBarItemService>();
+            var result = await navigationBarService.GetItemsAsync(document, supportsCodeGeneration, frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
 
-                if (forceFrozenPartialSemanticsForCrossProcessOperations)
-                {
-                    // Frozen partial semantics is not automatically passed to OOP, so enable it explicitly when desired
-                    document = document.WithFrozenPartialSemantics(cancellationToken);
-                }
-
-                var navigationBarService = document.GetRequiredLanguageService<INavigationBarItemService>();
-                var result = await navigationBarService.GetItemsAsync(document, supportsCodeGeneration, forceFrozenPartialSemanticsForCrossProcessOperations, cancellationToken).ConfigureAwait(false);
-
-                return SerializableNavigationBarItem.Dehydrate(result);
-            }, cancellationToken);
-        }
+            return SerializableNavigationBarItem.Dehydrate(result);
+        }, cancellationToken);
     }
 }
