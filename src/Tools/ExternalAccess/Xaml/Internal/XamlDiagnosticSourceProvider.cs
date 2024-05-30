@@ -21,7 +21,7 @@ internal sealed class XamlDiagnosticSourceProvider([Import(AllowDefault = true)]
 {
     bool IDiagnosticSourceProvider.IsDocument => true;
 
-    string IDiagnosticSourceProvider.Name => "XamlDiagnostics";
+    string IDiagnosticSourceProvider.Name => Constants.DiagnosticSourceProviderName;
 
     bool IDiagnosticSourceProvider.IsEnabled(ClientCapabilities clientCapabilities) => true;
 

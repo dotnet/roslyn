@@ -70,4 +70,10 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// </para>
     /// </summary>
     Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Determines if there are any exclusions in the workspace.
+    /// </summary>
+    Task<bool> IsAnyExclusionAsync(CancellationToken cancellationToken);
+
 }

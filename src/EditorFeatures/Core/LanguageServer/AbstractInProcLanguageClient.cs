@@ -156,6 +156,7 @@ internal abstract partial class AbstractInProcLanguageClient(
             serverStream,
             ServerKind,
             _lspLoggerFactory,
+            typeRefResolver: null,
             cancellationToken).ConfigureAwait(false);
 
         return new Connection(clientStream, clientStream);
@@ -199,6 +200,7 @@ internal abstract partial class AbstractInProcLanguageClient(
         Stream outputStream,
         WellKnownLspServerKinds serverKind,
         ILspServiceLoggerFactory lspLoggerFactory,
+        AbstractTypeRefResolver? typeRefResolver,
         CancellationToken cancellationToken)
     {
         var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
@@ -219,7 +221,8 @@ internal abstract partial class AbstractInProcLanguageClient(
             languageClient,
             serverKind,
             logger,
-            hostServices);
+            hostServices,
+            typeRefResolver);
 
         jsonRpc.StartListening();
         return server;
@@ -231,7 +234,8 @@ internal abstract partial class AbstractInProcLanguageClient(
         ICapabilitiesProvider capabilitiesProvider,
         WellKnownLspServerKinds serverKind,
         AbstractLspLogger logger,
-        HostServices hostServices)
+        HostServices hostServices,
+        AbstractTypeRefResolver? typeRefResolver = null)
     {
         var server = new RoslynLanguageServer(
             LspServiceProvider,
@@ -241,7 +245,8 @@ internal abstract partial class AbstractInProcLanguageClient(
             logger,
             hostServices,
             SupportedLanguages,
-            serverKind);
+            serverKind,
+            typeRefResolver);
 
         return server;
     }

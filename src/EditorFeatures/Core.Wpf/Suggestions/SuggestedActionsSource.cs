@@ -156,6 +156,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(
                 ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
+                // This function gets called immediately after operations like scrolling.  We want to wait just a small
+                // amount to ensure that we don't immediately start consuming CPU/memory which then impedes the very
+                // action the user is trying to perform.  To accomplish this, we wait 100ms.  That's longer than normal
+                // keyboard repeat rates (usually around 30ms), but short enough that it's not noticeable to the user.
+                await Task.Delay(100, cancellationToken).NoThrowAwaitable();
+                if (cancellationToken.IsCancellationRequested)
+                    return null;
+
                 using var state = _state.TryAddReference();
                 if (state is null)
                     return null;

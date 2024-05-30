@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
         public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(Solution solution, CancellationToken cancellationToken)
         {
             var result = await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, result.Diagnostics.ToDiagnosticData(solution), result.RudeEdits, result.GetSyntaxErrorData(solution), result.ModuleUpdates.Status, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await EmitSolutionUpdateResults.GetAllDiagnosticsAsync(solution, result.Diagnostics.ToDiagnosticData(solution), result.RudeEdits, result.GetSyntaxErrorData(solution), result.ModuleUpdates.Status, cancellationToken).ConfigureAwait(false);
             return new ManagedHotReloadUpdates(result.ModuleUpdates.Updates.FromContract(), diagnostics.FromContract());
         }
     }
