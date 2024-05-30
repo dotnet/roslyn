@@ -519,6 +519,80 @@ Delta: Gamma: Beta: Test B
             });
         }
 
+#if NET472
+        /// <summary>
+        /// Verify that MS.CA.EA.RazorCompiler will be loaded from the compiler directory not the 
+        /// analyzer directory.
+        /// </summary>
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_RazorCompiler1(AnalyzerTestKind kind)
+        {
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+
+                var externalAccessRazorPath = typeof(Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.GeneratorExtensions).Assembly.Location;
+                var alternatePath = tempDir.CreateDirectory("a").CreateFile("Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll").CopyContentFrom(externalAccessRazorPath).Path;
+
+                loader.AddDependencyLocation(alternatePath);
+                Assembly assembly = loader.LoadFromPath(alternatePath);
+
+                Assert.Equal(externalAccessRazorPath, assembly.Location);
+
+                // Even though EA.RazorCompiler is loaded from the compiler directory the shadow copy loader
+                // still does a defensive copy.
+                var copyCount = loader is ShadowCopyAnalyzerAssemblyLoader
+                    ? 1
+                    : (int?)null;
+
+                VerifyDependencyAssemblies(
+                    loader,
+                    copyCount: copyCount,
+                    []);
+            });
+        }
+
+        /// <summary>
+        /// Verify that MS.CA.EA.RazorCompiler will be loaded from the compiler directory not the 
+        /// analyzer directory.
+        /// </summary>
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_RazorCompiler2(AnalyzerTestKind kind)
+        {
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+
+                var externalAccessRazorPath = typeof(Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.GeneratorExtensions).Assembly.Location;
+                var dir = tempDir.CreateDirectory("a");
+                var alternatePath = dir.CreateFile("Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll").CopyContentFrom(externalAccessRazorPath).Path;
+                var deltaFile = dir.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1).Path;
+
+                loader.AddDependencyLocation(alternatePath);
+                loader.AddDependencyLocation(deltaFile);
+                Assembly razorAssembly = loader.LoadFromPath(alternatePath);
+                _ = loader.LoadFromPath(deltaFile);
+
+                Assert.Equal(externalAccessRazorPath, razorAssembly.Location);
+
+                // Even though EA.RazorCompiler is loaded from the compiler directory the shadow copy loader
+                // still does a defensive copy.
+                var copyCount = loader is ShadowCopyAnalyzerAssemblyLoader
+                    ? 2
+                    : (int?)null;
+                VerifyDependencyAssemblies(
+                    loader,
+                    copyCount: copyCount,
+                    deltaFile);
+            });
+        }
+
+#endif
+
         /// <summary>
         /// Similar to <see cref="AssemblyLoading_DependencyInDifferentDirectory"/> except want to validate
         /// a dependency in the same directory is preferred over one in a different directory.
