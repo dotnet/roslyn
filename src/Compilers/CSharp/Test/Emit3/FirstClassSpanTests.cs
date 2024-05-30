@@ -2389,6 +2389,28 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: "aa rSystem.String[] ra ra ra").VerifyDiagnostics();
     }
 
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_04(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            var a = new object[] { "a" };
+            C.M(a);
+            C.M([a]);
+            C.M([..a, a]);
+            C.M([..a]);
+
+            static class C
+            {
+                public static void M(object[] x) => Console.Write(" a" + x[0]);
+                public static void M(ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa rSystem.Object[] ra ra").VerifyDiagnostics();
+    }
+
     [Fact]
     public void OverloadResolution_ReadOnlySpanVsArray_Params_01()
     {
@@ -2460,6 +2482,28 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: "aa rSystem.String[] ra ra ra").VerifyDiagnostics();
     }
 
+    [Fact]
+    public void OverloadResolution_ReadOnlySpanVsArray_Params_04()
+    {
+        var source = """
+            using System;
+
+            var a = new object[] { "a" };
+            C.M(a);
+            C.M([a]);
+            C.M([..a, a]);
+            C.M([..a]);
+
+            static class C
+            {
+                public static void M(params object[] x) => Console.Write(" a" + x[0]);
+                public static void M(params ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: "aa rSystem.Object[] ra ra").VerifyDiagnostics();
+    }
+
     [Theory, MemberData(nameof(LangVersions))]
     public void OverloadResolution_ReadOnlySpanVsArray_ExtensionMethodReceiver_01(LanguageVersion langVersion)
     {
@@ -2529,6 +2573,25 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: "aa").VerifyDiagnostics();
     }
 
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_ExtensionMethodReceiver_04(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            var a = new object[] { "a" };
+            a.M();
+
+            static class C
+            {
+                public static void M(this object[] x) => Console.Write(" a" + x[0]);
+                public static void M(this ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa").VerifyDiagnostics();
+    }
+
     [Fact]
     public void OverloadResolution_SpanVsReadOnlySpan_ExtensionMethodReceiver_01()
     {
@@ -2580,5 +2643,97 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         CompileAndVerify(comp, expectedOutput: "S R").VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArrayVsSpan(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            var a = new string[] { "a" };
+            C.M(a);
+            C.M([a]);
+            C.M([..a, a]);
+            C.M([..a]);
+            C.M(["a"]);
+
+            var b = new object[] { "b" };
+            C.M(b);
+            C.M([b]);
+            C.M([..b, b]);
+            C.M([..b]);
+
+            static class C
+            {
+                public static void M(object[] x) => Console.Write(" a" + x[0]);
+                public static void M(ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+                public static void M(Span<object> x) => Console.Write(" s" + x[0]);
+                public static void M(IEnumerable<object> x) => Console.Write(" e" + x.First());
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa rSystem.String[] ra ra ra ab rSystem.Object[] rb rb").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_ReadOnlySpanVsArrayVsSpan_Params()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            var a = new string[] { "a" };
+            C.M(a);
+            C.M([a]);
+            C.M([..a, a]);
+            C.M([..a]);
+            C.M(["a"]);
+
+            var b = new object[] { "b" };
+            C.M(b);
+            C.M([b]);
+            C.M([..b, b]);
+            C.M([..b]);
+
+            static class C
+            {
+                public static void M(params object[] x) => Console.Write(" a" + x[0]);
+                public static void M(params ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+                public static void M(params Span<object> x) => Console.Write(" s" + x[0]);
+                public static void M(params IEnumerable<object> x) => Console.Write(" e" + x.First());
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: "aa rSystem.String[] ra ra ra ab rSystem.Object[] rb rb").VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArrayVsSpan_ExtensionMethodReceiver(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            var a = new string[] { "a" };
+            a.M();
+
+            var b = new object[] { "b" };
+            b.M();
+
+            static class C
+            {
+                public static void M(this object[] x) => Console.Write(" a" + x[0]);
+                public static void M(this ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+                public static void M(this Span<object> x) => Console.Write(" s" + x[0]);
+                public static void M(this IEnumerable<object> x) => Console.Write(" e" + x.First());
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa ab").VerifyDiagnostics();
     }
 }
