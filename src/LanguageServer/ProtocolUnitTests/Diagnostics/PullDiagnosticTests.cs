@@ -1925,7 +1925,12 @@ class A {";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
             [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
+        // The very first request should return immediately (as we're have no prior state to tell if the sln changed).
         var resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, triggerConnectionClose: false);
+        await resultTask;
+
+        // The second request should wait for a solution change before returning.
+        resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, triggerConnectionClose: false);
 
         // Assert that the connection isn't closed and task doesn't complete even after some delay.
         await Task.Delay(TimeSpan.FromSeconds(5));
@@ -1949,7 +1954,12 @@ class A {";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
             [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
+        // The very first request should return immediately (as we're have no prior state to tell if the sln changed).
         var resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, triggerConnectionClose: false);
+        await resultTask;
+
+        // The second request should wait for a solution change before returning.
+        resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, triggerConnectionClose: false);
 
         // Assert that the connection isn't closed and task doesn't complete even after some delay.
         await Task.Delay(TimeSpan.FromSeconds(5));
@@ -1962,6 +1972,58 @@ class A {";
         // Assert the task completes after a change occurs
         var results = await resultTask;
         Assert.NotEmpty(results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestWorkspaceDiagnosticsWaitsForLspTextChangesWithMultipleSources(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    {
+        var markup1 =
+@"class A {";
+        var markup2 = "";
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+            [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+
+        var resultTaskOne = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, category: PullDiagnosticCategories.WorkspaceDocumentsAndProject, triggerConnectionClose: false);
+        var resultTaskTwo = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, category: PullDiagnosticCategories.EditAndContinue, triggerConnectionClose: false);
+        // The very first requests should return immediately (as we're have no prior state to tell if the sln changed).
+        await Task.WhenAll(resultTaskOne, resultTaskTwo);
+
+        // The second request for each source should wait for a solution change before returning.
+        resultTaskOne = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, category: PullDiagnosticCategories.WorkspaceDocumentsAndProject, triggerConnectionClose: false);
+        resultTaskTwo = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, category: PullDiagnosticCategories.EditAndContinue, triggerConnectionClose: false);
+
+        // Assert that the connection isn't closed and task doesn't complete even after some delay.
+        await Task.Delay(TimeSpan.FromSeconds(5));
+        Assert.False(resultTaskOne.IsCompleted);
+        Assert.False(resultTaskTwo.IsCompleted);
+
+        // Make an LSP document change that will trigger connection close.
+        var uri = testLspServer.GetCurrentSolution().Projects.First().Documents.First().GetURI();
+        await testLspServer.OpenDocumentAsync(uri);
+
+        // Assert that both tasks completes after a change occurs
+        var resultsOne = await resultTaskOne;
+        var resultsTwo = await resultTaskTwo;
+        Assert.NotEmpty(resultsOne);
+        Assert.Empty(resultsTwo);
+
+        // Make new requests - these requests should again wait for new changes.
+        resultTaskOne = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, category: PullDiagnosticCategories.WorkspaceDocumentsAndProject, triggerConnectionClose: false);
+        resultTaskTwo = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, category: PullDiagnosticCategories.EditAndContinue, triggerConnectionClose: false);
+
+        // Assert that the new requests correctly wait for new changes and do not complete even after some delay.
+        await Task.Delay(TimeSpan.FromSeconds(5));
+        Assert.False(resultTaskOne.IsCompleted);
+        Assert.False(resultTaskTwo.IsCompleted);
+
+        // Make an LSP document change that will trigger connection close.
+        await testLspServer.CloseDocumentAsync(uri);
+
+        // Assert that both tasks again complete after a change occurs
+        resultsOne = await resultTaskOne;
+        resultsTwo = await resultTaskTwo;
+        Assert.NotEmpty(resultsOne);
+        Assert.Empty(resultsTwo);
     }
 
     [Theory, CombinatorialData]
