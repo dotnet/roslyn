@@ -1649,6 +1649,92 @@ public partial class C
         }
 
         [Fact]
+        public void NullableDifference_Analysis()
+        {
+            // Nullable annotations from the *definition* part parameters are used when analyzing implementations.
+            // Nullable annotations from the *implementation* part are used when analyzing returns.
+            // Only the definition part is used when analyzing use sites.
+            // This is consistent with methods.
+            var source = """
+                #nullable enable
+                partial class C
+                {
+                    public partial string this[string? x] { get; set; }
+                    public partial string? this[string x] // 1
+                    {
+                        get => x.ToString();
+                        set => x.ToString();
+                    }
+                    
+                    public partial string? this[string x, bool ignored] { get; set; }
+                    public partial string this[string? x, bool ignored] // 2
+                    {
+                        get => x.ToString(); // 3
+                        set => x.ToString(); // 4
+                    }
+                
+                    public partial string this[bool ignored] { get; }
+                    public partial string? this[bool ignored] // 5
+                    {
+                        get => null;
+                    }
+                
+                    public partial string? this[int ignored] { get; }
+                    public partial string this[int ignored] // 6
+                    {
+                        get => null; // 7
+                    }
+
+                    void Usage()
+                    {
+                        this[x: null].ToString();
+                        this[x: null, ignored: false].ToString(); // 8, 9
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: verify, sourceSymbolValidator: verify);
+            verifier.VerifyDiagnostics(
+                // (5,28): warning CS9256: Partial property declarations 'string C.this[string? x]' and 'string? C.this[string x]' have signature differences.
+                //     public partial string? this[string x] // 1
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("string C.this[string? x]", "string? C.this[string x]").WithLocation(5, 28),
+                // (12,27): warning CS9256: Partial property declarations 'string? C.this[string x, bool ignored]' and 'string C.this[string? x, bool ignored]' have signature differences.
+                //     public partial string this[string? x, bool ignored] // 2
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("string? C.this[string x, bool ignored]", "string C.this[string? x, bool ignored]").WithLocation(12, 27),
+                // (14,16): warning CS8602: Dereference of a possibly null reference.
+                //         get => x.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(14, 16),
+                // (15,16): warning CS8602: Dereference of a possibly null reference.
+                //         set => x.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(15, 16),
+                // (19,28): warning CS9256: Partial property declarations 'string C.this[bool ignored]' and 'string? C.this[bool ignored]' have signature differences.
+                //     public partial string? this[bool ignored] // 5
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("string C.this[bool ignored]", "string? C.this[bool ignored]").WithLocation(19, 28),
+                // (25,27): warning CS9256: Partial property declarations 'string? C.this[int ignored]' and 'string C.this[int ignored]' have signature differences.
+                //     public partial string this[int ignored] // 6
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("string? C.this[int ignored]", "string C.this[int ignored]").WithLocation(25, 27),
+                // (27,16): warning CS8603: Possible null reference return.
+                //         get => null; // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(27, 16),
+                // (33,9): warning CS8602: Dereference of a possibly null reference.
+                //         this[x: null, ignored: false].ToString(); // 8, 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "this[x: null, ignored: false]").WithLocation(33, 9),
+                // (33,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         this[x: null, ignored: false].ToString(); // 8, 9
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(33, 17));
+
+            void verify(ModuleSymbol module)
+            {
+                var indexers = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers;
+                Assert.Equal(4, indexers.Length);
+                AssertEx.Equal("System.String C.this[System.String? x] { get; set; }", indexers[0].ToTestDisplayString());
+                AssertEx.Equal("System.String? C.this[System.String x, System.Boolean ignored] { get; set; }", indexers[1].ToTestDisplayString());
+                AssertEx.Equal("System.String C.this[System.Boolean ignored] { get; }", indexers[2].ToTestDisplayString());
+                AssertEx.Equal("System.String? C.this[System.Int32 ignored] { get; }", indexers[3].ToTestDisplayString());
+            }
+        }
+
+        [Fact]
         public void TypeDifference_03()
         {
             // tuple element name difference
@@ -3627,6 +3713,125 @@ public partial class C
             AssertEx.Equal([], property.GetAttributes().ToStrings());
         }
 
+        [Fact]
+        public void PropertyInitializer()
+        {
+            var source = """
+                partial class C
+                {
+                    public partial string P1 { get; set; } = "a";
+                    public partial string P1 { get => ""; set { } }
+
+                    public partial string P2 { get; set; }
+                    public partial string P2 { get => ""; set { } } = "b";
+
+                    public partial string P3 { get; set; } = "c";
+                    public partial string P3 { get => ""; set { } } = "d";
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                    // (3,27): error CS8050: Only auto-implemented properties can have initializers.
+                    //     public partial string P1 { get; set; } = "a";
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 27),
+                    // (7,27): error CS8050: Only auto-implemented properties can have initializers.
+                    //     public partial string P2 { get => ""; set { } } = "b";
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(7, 27),
+                    // (9,27): error CS8050: Only auto-implemented properties can have initializers.
+                    //     public partial string P3 { get; set; } = "c";
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(9, 27),
+                    // (10,27): error CS8050: Only auto-implemented properties can have initializers.
+                    //     public partial string P3 { get => ""; set { } } = "d";
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(10, 27));
+        }
+
+        [Fact]
+        public void PropertyInitializer_AndFieldTargetedAttribute()
+        {
+            // A synthesized field symbol is created when property has an initializer, even if the property is not an auto-property.
+            var source = """
+                public class Attr1 : System.Attribute { }
+                public class Attr2 : System.Attribute { }
+
+                partial class C
+                {
+                    [field: Attr1]
+                    public partial string P1 { get; set; } = "a";
+                    [field: Attr2]
+                    public partial string P1 { get => ""; set { } }
+
+                    [field: Attr1]
+                    public partial string P2 { get; set; }
+                    [field: Attr2]
+                    public partial string P2 { get => ""; set { } } = "b";
+
+                    [field: Attr1]
+                    public partial string P3 { get; set; } = "c";
+                    [field: Attr2]
+                    public partial string P3 { get => ""; set { } } = "d";
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: Attr1]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(6, 6),
+                // (7,27): error CS8050: Only auto-implemented properties can have initializers.
+                //     public partial string P1 { get; set; } = "a";
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(7, 27),
+                // (8,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: Attr2]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(8, 6),
+                // (11,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: Attr1]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(11, 6),
+                // (13,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: Attr2]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(13, 6),
+                // (14,27): error CS8050: Only auto-implemented properties can have initializers.
+                //     public partial string P2 { get => ""; set { } } = "b";
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(14, 27),
+                // (16,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: Attr1]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(16, 6),
+                // (17,27): error CS8050: Only auto-implemented properties can have initializers.
+                //     public partial string P3 { get; set; } = "c";
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(17, 27),
+                // (18,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: Attr2]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(18, 6),
+                // (19,27): error CS8050: Only auto-implemented properties can have initializers.
+                //     public partial string P3 { get => ""; set { } } = "d";
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(19, 27));
+
+            AssertEx.Equal([
+                "System.String C.<P1>k__BackingField",
+                "System.String C.P1 { get; set; }",
+                "System.String C.P1.get",
+                "void C.P1.set",
+                "System.String C.P2 { get; set; }",
+                "System.String C.P2.get",
+                "void C.P2.set",
+                "System.String C.<P2>k__BackingField",
+                "System.String C.<P3>k__BackingField",
+                "System.String C.P3 { get; set; }",
+                "System.String C.P3.get",
+                "void C.P3.set",
+                "System.String C.<P3>k__BackingField",
+                "C..ctor()"],
+                comp.GetMember<NamedTypeSymbol>("C").GetMembers().SelectAsArray(m => m.ToTestDisplayString()));
+
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P1>k__BackingField").GetAttributes());
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P2>k__BackingField").GetAttributes());
+
+            var p3Fields = comp.GetMembers("C.<P3>k__BackingField");
+            Assert.Equal(2, p3Fields.Length);
+            Assert.Empty(p3Fields[0].GetAttributes());
+            Assert.Empty(p3Fields[1].GetAttributes());
+        }
+
         [Theory]
         [InlineData("", "[UnscopedRef] ")]
         [InlineData("[UnscopedRef] ", "")]
@@ -4334,6 +4539,7 @@ public partial class C
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(17, 30));
         }
 
+        /// <remarks>See also <cref name="DocumentationCommentCompilerTests.PartialIndexer_Paramref_03"/></remarks>
         [Fact]
         public void IndexerParameterNameDifference()
         {
@@ -4353,14 +4559,17 @@ public partial class C
                 }
                 """;
 
-            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            var verifier = CompileAndVerify(source, expectedOutput: "1", symbolValidator: verify, sourceSymbolValidator: verify);
             verifier.VerifyDiagnostics(
                 // (6,24): warning CS9256: Partial property declarations 'int C.this[int p1]' and 'int C.this[int p2]' have signature differences.
                 //     public partial int this[int p2] { get => p2; set { } }
                 Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("int C.this[int p1]", "int C.this[int p2]").WithLocation(6, 24));
 
-            var indexer = ((CSharpCompilation)verifier.Compilation).GetMember<NamedTypeSymbol>("C").Indexers.Single();
-            Assert.Equal("p1", indexer.Parameters.Single().Name);
+            void verify(ModuleSymbol module)
+            {
+                var indexer = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                Assert.Equal("p1", indexer.Parameters.Single().Name);
+            }
         }
 
         [Fact]

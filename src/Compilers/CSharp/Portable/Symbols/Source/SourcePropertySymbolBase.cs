@@ -279,20 +279,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsExpressionBodied
             => (_propertyFlags & Flags.IsExpressionBodied) != 0;
 
-        private void CheckInitializer(
-            bool isAutoProperty,
-            bool isInterface,
-            bool isStatic,
-            Location location,
-            BindingDiagnosticBag diagnostics)
+        protected void CheckInitializerIfNeeded(BindingDiagnosticBag diagnostics)
         {
-            if (isInterface && !isStatic)
+            if ((_propertyFlags & Flags.HasInitializer) == 0)
             {
-                diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, location);
+                return;
             }
-            else if (!isAutoProperty)
+
+            if (ContainingType.IsInterface && !IsStatic)
             {
-                diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, location);
+                diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, Location);
+            }
+            else if (!IsAutoProperty)
+            {
+                diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, Location);
             }
         }
 
@@ -692,11 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CheckAccessibility(Location, diagnostics, isExplicitInterfaceImplementation);
             this.CheckModifiers(isExplicitInterfaceImplementation, Location, IsIndexer, diagnostics);
 
-            bool hasInitializer = (_propertyFlags & Flags.HasInitializer) != 0;
-            if (hasInitializer)
-            {
-                CheckInitializer(IsAutoProperty, ContainingType.IsInterface, IsStatic, Location, diagnostics);
-            }
+            CheckInitializerIfNeeded(diagnostics);
 
             if (RefKind != RefKind.None && IsRequired)
             {
@@ -1109,20 +1105,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // prevent infinite recursion:
             Debug.Assert(!ReferenceEquals(copyFrom, this));
 
+            // The property is responsible for completion of the backing field
+            // NB: when the **field keyword feature** is implemented, it's possible that synthesized field symbols will also be merged or shared between partial property parts.
+            // If we do that then this check should possibly be moved, and asserts adjusted accordingly.
+            _ = BackingField?.GetAttributes();
+
             bool bagCreatedOnThisThread;
             if (copyFrom is not null)
             {
                 // When partial properties get the ability to have a backing field,
                 // the implementer will have to decide how the BackingField symbol works in 'copyFrom' scenarios.
-                Debug.Assert(BackingField is null);
+                Debug.Assert(!IsAutoProperty);
 
                 var attributesBag = copyFrom.GetAttributesBag();
                 bagCreatedOnThisThread = Interlocked.CompareExchange(ref _lazyCustomAttributesBag, attributesBag, null) == null;
             }
             else
             {
-                // The property is responsible for completion of the backing field
-                _ = BackingField?.GetAttributes();
                 bagCreatedOnThisThread = LoadAndValidateAttributes(GetAttributeDeclarations(), ref _lazyCustomAttributesBag);
             }
 
