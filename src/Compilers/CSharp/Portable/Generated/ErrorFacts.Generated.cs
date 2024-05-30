@@ -341,8 +341,8 @@
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
-                case ErrorCode.WRN_PartialPropertySignatureDifference:
                 case ErrorCode.WRN_BadYieldInLock:
+                case ErrorCode.WRN_PartialPropertySignatureDifference:
                     return true;
                 default:
                     return false;
