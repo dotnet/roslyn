@@ -87,7 +87,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
             intentDataProvider.FallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
-        if (actions.IsEmpty())
+        if (actions.IsEmpty)
         {
             return [];
         }

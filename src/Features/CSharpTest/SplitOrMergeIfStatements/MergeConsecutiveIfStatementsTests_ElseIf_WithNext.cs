@@ -7,21 +7,21 @@
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatements
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatements;
+
+public sealed partial class MergeConsecutiveIfStatementsTests
 {
-    public sealed partial class MergeConsecutiveIfStatementsTests
+    [Theory]
+    [InlineData("[||]if (a)")]
+    [InlineData("i[||]f (a)")]
+    [InlineData("if[||] (a)")]
+    [InlineData("if [||](a)")]
+    [InlineData("if (a)[||]")]
+    [InlineData("[|if|] (a)")]
+    [InlineData("[|if (a)|]")]
+    public async Task MergedOnIfSpans(string ifLine)
     {
-        [Theory]
-        [InlineData("[||]if (a)")]
-        [InlineData("i[||]f (a)")]
-        [InlineData("if[||] (a)")]
-        [InlineData("if [||](a)")]
-        [InlineData("if (a)[||]")]
-        [InlineData("[|if|] (a)")]
-        [InlineData("[|if (a)|]")]
-        public async Task MergedOnIfSpans(string ifLine)
-        {
-            await TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task MergedOnIfExtendedHeaderSelection()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task MergedOnIfExtendedHeaderSelection()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -70,12 +70,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task MergedOnIfFullSelectionWithoutElseIfClause()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task MergedOnIfFullSelectionWithoutElseIfClause()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -103,12 +103,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task MergedOnIfExtendedFullSelectionWithoutElseIfClause()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task MergedOnIfExtendedFullSelectionWithoutElseIfClause()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -136,12 +136,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnIfFullSelectionWithElseIfClause()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnIfFullSelectionWithElseIfClause()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -157,12 +157,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnIfExtendedFullSelectionWithElseIfClause()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnIfExtendedFullSelectionWithElseIfClause()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -178,12 +178,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnIfFullSelectionWithElseIfElseClauses()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnIfFullSelectionWithElseIfElseClauses()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -199,12 +199,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }|]
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnIfExtendedFullSelectionWithElseIfElseClauses()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnIfExtendedFullSelectionWithElseIfElseClauses()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -220,19 +220,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 |]    }
 }");
-        }
+    }
 
-        [Theory]
-        [InlineData("if ([||]a)")]
-        [InlineData("[|i|]f (a)")]
-        [InlineData("[|if (|]a)")]
-        [InlineData("if [|(|]a)")]
-        [InlineData("if (a[|)|]")]
-        [InlineData("if ([|a|])")]
-        [InlineData("if [|(a)|]")]
-        public async Task NotMergedOnIfSpans(string ifLine)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory]
+    [InlineData("if ([||]a)")]
+    [InlineData("[|i|]f (a)")]
+    [InlineData("[|if (|]a)")]
+    [InlineData("if [|(|]a)")]
+    [InlineData("if (a[|)|]")]
+    [InlineData("if ([|a|])")]
+    [InlineData("if [|(a)|]")]
+    public async Task NotMergedOnIfSpans(string ifLine)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -245,12 +245,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnIfOverreachingSelection1()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnIfOverreachingSelection1()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -263,12 +263,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnIfOverreachingSelection2()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnIfOverreachingSelection2()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -281,12 +281,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnIfBodySelection()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnIfBodySelection()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -299,12 +299,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnIfBodyCaret1()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnIfBodyCaret1()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -317,12 +317,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnIfBodyCaret2()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnIfBodyCaret2()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -335,6 +335,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
     }
 }

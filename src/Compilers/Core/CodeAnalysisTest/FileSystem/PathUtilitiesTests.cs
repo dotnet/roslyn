@@ -435,5 +435,29 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         {
             AssertEx.Equal(output, PathUtilities.CollapseWithForwardSlash(input.AsSpan()));
         }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(@"//a/b/c", @"//a/b/c")]
+        [InlineData(@"/a\b/c/", @"/a\b/c/")]
+        [InlineData(@"C:B", @"C:B")]
+        [InlineData(@"c:b", @"c:b")]
+        [InlineData(@"c:\b", @"C:\b")]
+        [InlineData(@"c:/b", @"C:/b")]
+        public void NormalizeDriveLetter_Windows(string input, string output)
+        {
+            AssertEx.Equal(output, PathUtilities.NormalizeDriveLetter(input));
+        }
+
+        [ConditionalTheory(typeof(UnixLikeOnly))]
+        [InlineData(@"//a/b/c")]
+        [InlineData(@"/a\b/c/")]
+        [InlineData(@"C:B")]
+        [InlineData(@"c:b")]
+        [InlineData(@"c:\b")]
+        [InlineData(@"c:/b")]
+        public void NormalizeDriveLetter_UnixLike(string input)
+        {
+            AssertEx.Equal(input, PathUtilities.NormalizeDriveLetter(input));
+        }
     }
 }

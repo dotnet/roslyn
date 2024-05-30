@@ -329,13 +329,14 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
             source: relatedDocuments,
             produceItems: static async (relatedDocumentId, callback, args, cancellationToken) =>
             {
-                var relatedDocument = args.solution.GetRequiredDocument(relatedDocumentId);
-                var syntaxContext = await args.completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(
+                var (@this, solution, completionContext, options) = args;
+                var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
+                var syntaxContext = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(
                     relatedDocument, cancellationToken).ConfigureAwait(false) as TSyntaxContext;
 
                 Contract.ThrowIfNull(syntaxContext);
-                var symbols = await args.@this.TryGetSymbolsForContextAsync(
-                    args.completionContext, syntaxContext, args.options, cancellationToken).ConfigureAwait(false);
+                var symbols = await @this.TryGetSymbolsForContextAsync(
+                    completionContext, syntaxContext, options, cancellationToken).ConfigureAwait(false);
 
                 if (!symbols.IsDefault)
                     callback((relatedDocument.Id, syntaxContext, symbols));

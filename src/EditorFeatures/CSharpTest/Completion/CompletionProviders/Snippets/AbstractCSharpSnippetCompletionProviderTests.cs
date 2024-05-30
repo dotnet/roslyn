@@ -5,18 +5,17 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets;
+
+public abstract class AbstractCSharpSnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
-    public abstract class AbstractCSharpSnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
+    protected abstract string ItemToCommit { get; }
+
+    protected AbstractCSharpSnippetCompletionProviderTests()
     {
-        protected abstract string ItemToCommit { get; }
-
-        protected AbstractCSharpSnippetCompletionProviderTests()
-        {
-            ShowNewSnippetExperience = true;
-        }
-
-        internal override Type GetCompletionProviderType()
-            => typeof(CSharpSnippetCompletionProvider);
+        ShowNewSnippetExperience = true;
     }
+
+    internal override Type GetCompletionProviderType()
+        => typeof(CSharpSnippetCompletionProvider);
 }

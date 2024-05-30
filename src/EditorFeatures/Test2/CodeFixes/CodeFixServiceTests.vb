@@ -359,6 +359,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             Public Function GetOnTheFlyDocsAsync(symbolSignature As String, declarationCode As ImmutableArray(Of String), language As String, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsAsync
                 Return Task.FromResult("")
             End Function
+
+            Public Function IsAnyExclusionAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsAnyExclusionAsync
+                Return Task.FromResult(False)
+            End Function
         End Class
     End Class
 End Namespace

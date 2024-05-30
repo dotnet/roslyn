@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
-    <Export(LanguageNames.VisualBasic, GetType(IBraceCompletionService)), [Shared]>
+    <ExportBraceCompletionService(LanguageNames.VisualBasic), [Shared]>
     Friend Class CurlyBraceCompletionService
         Inherits AbstractVisualBasicBraceCompletionService
 

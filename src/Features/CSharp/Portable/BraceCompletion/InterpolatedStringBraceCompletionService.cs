@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 /// Brace completion service for double quotes marking an interpolated string. Note that the <see
 /// cref="StringLiteralBraceCompletionService"/> is used for other double quote completions.
 /// </summary>
-[Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
+[ExportBraceCompletionService(LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class InterpolatedStringBraceCompletionService() : AbstractCSharpBraceCompletionService

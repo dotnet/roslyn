@@ -8,22 +8,22 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
-namespace Roslyn.VisualStudio.IntegrationTests.CSharp
+namespace Roslyn.VisualStudio.IntegrationTests.CSharp;
+
+[Trait(Traits.Feature, Traits.Features.QuickInfo)]
+public class CSharpQuickInfo : AbstractEditorTest
 {
-    [Trait(Traits.Feature, Traits.Features.QuickInfo)]
-    public class CSharpQuickInfo : AbstractEditorTest
+    protected override string LanguageName => LanguageNames.CSharp;
+
+    public CSharpQuickInfo()
+        : base(nameof(CSharpQuickInfo))
     {
-        protected override string LanguageName => LanguageNames.CSharp;
+    }
 
-        public CSharpQuickInfo()
-            : base(nameof(CSharpQuickInfo))
-        {
-        }
-
-        [IdeFact]
-        public async Task QuickInfo_MetadataDocumentation()
-        {
-            await SetUpEditorAsync(@"
+    [IdeFact]
+    public async Task QuickInfo_MetadataDocumentation()
+    {
+        await SetUpEditorAsync(@"
 ///<summary>Hello!</summary>
 class Program
 {
@@ -31,17 +31,17 @@ class Program
     {
     }
 }", HangMitigatingCancellationToken);
-            await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
-            var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
-            Assert.Equal(
-                "class System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.",
-                quickInfo);
-        }
+        await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
+        var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
+        Assert.Equal(
+            "class System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.",
+            quickInfo);
+    }
 
-        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
-        public async Task QuickInfo_Documentation()
-        {
-            await SetUpEditorAsync(@"
+    [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+    public async Task QuickInfo_Documentation()
+    {
+        await SetUpEditorAsync(@"
 ///<summary>Hello!</summary>
 class Program$$
 {
@@ -49,15 +49,15 @@ class Program$$
     {
     }
 }", HangMitigatingCancellationToken);
-            await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
-            var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
-            Assert.Equal("class Program\r\nHello!", quickInfo);
-        }
+        await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
+        var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
+        Assert.Equal("class Program\r\nHello!", quickInfo);
+    }
 
-        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
-        public async Task International()
-        {
-            await SetUpEditorAsync(@"
+    [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+    public async Task International()
+    {
+        await SetUpEditorAsync(@"
 /// <summary>
 /// This is an XML doc comment defined in code.
 /// </summary>
@@ -68,16 +68,16 @@ class العربية123
          العربية123$$ goo;
     }
 }", HangMitigatingCancellationToken);
-            await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
-            var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
-            Assert.Equal(@"class العربية123
+        await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
+        var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
+        Assert.Equal(@"class العربية123
 This is an XML doc comment defined in code.", quickInfo);
-        }
+    }
 
-        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
-        public async Task SectionOrdering()
-        {
-            await SetUpEditorAsync(@"
+    [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+    public async Task SectionOrdering()
+    {
+        await SetUpEditorAsync(@"
 using System;
 using System.Threading.Tasks;
 
@@ -90,10 +90,9 @@ class C
             }
         }", HangMitigatingCancellationToken);
 
-            await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
-            var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
-            var expected = "(awaitable) Task<int> C.M()\r\n\r\nExceptions:\r\n  Exception";
-            Assert.Equal(expected, quickInfo);
-        }
+        await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
+        var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
+        var expected = "(awaitable) Task<int> C.M()\r\n\r\nExceptions:\r\n  Exception";
+        Assert.Equal(expected, quickInfo);
     }
 }
