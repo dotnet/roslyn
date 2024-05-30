@@ -317,6 +317,60 @@ class Derived : PropertyCustomModifierCombinations
         }
 
         /// <summary>
+        /// Test copying custom modifiers in/on partial property types.
+        /// </summary>
+        [Fact]
+        public void TestPartialPropertyOverrideCombinations()
+        {
+            var text = @"
+partial class Derived : PropertyCustomModifierCombinations
+{
+    public override partial int[] Property11 { get; set; }
+    public override partial int[] Property11 { get => []; set { } }
+
+    public override partial int[] Property10 { get; set; }
+    public override partial int[] Property10 { get => []; set { } }
+
+    public override partial int[] Property01 { get; set; }
+    public override partial int[] Property01 { get => []; set { } }
+
+    public override partial int[] Property00 { get; set; }
+    public override partial int[] Property00 { get => []; set { } }
+}
+";
+
+            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
+
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var global = comp.GlobalNamespace;
+
+            comp.VerifyDiagnostics();
+
+            var @class = global.GetMember<NamedTypeSymbol>("Derived");
+
+            for (int i = 0; i < 0x4; i++)
+            {
+                PropertySymbol property = @class.GetMember<PropertySymbol>("Property" + Convert.ToString(i, 2).PadLeft(2, '0'));
+                bool inType = (i & 0x2) != 0;
+                bool onType = (i & 0x1) != 0;
+
+                CheckPropertyCustomModifiers(property, inType, onType);
+                CheckMethodCustomModifiers(
+                    property.GetMethod,
+                    inReturnType: inType,
+                    onReturnType: onType,
+                    inParameterType: false,
+                    onParameterType: false);
+                CheckMethodCustomModifiers(
+                    property.SetMethod,
+                    inReturnType: false,
+                    onReturnType: false,
+                    inParameterType: inType,
+                    onParameterType: onType);
+            }
+        }
+
+        /// <summary>
         /// Helper method specifically for TestMethodOverrideCombinations and TestPropertyOverrideCombinations.
         /// </summary>
         /// <param name="method">Must have array return type (or void) and single array parameter (or none).</param>

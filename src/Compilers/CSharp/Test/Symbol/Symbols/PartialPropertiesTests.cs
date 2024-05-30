@@ -375,6 +375,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         }
 
         [Fact]
+        public void DuplicateDeclaration_08_Definition()
+        {
+            // multiple defining declarations where accessors are "split" across declarations
+            var source = """
+                partial class C
+                {
+                    public partial int P { get; }
+                    public partial int P { set; }
+                    public partial int P { get => 1; set { } }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS9250: A partial property may not have multiple defining declarations, and cannot be an auto-property.
+                //     public partial int P { set; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P").WithLocation(4, 24),
+                // (4,24): error CS0102: The type 'C' already contains a definition for 'P'
+                //     public partial int P { set; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(4, 24),
+                // (5,24): error CS9253: Property accessor 'C.P.set' does not implement any accessor declared on the definition part
+                //     public partial int P { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_PartialPropertyUnexpectedAccessor, "P").WithArguments("C.P.set").WithLocation(5, 24)
+                );
+
+            if (comp.GetMembers("C.P") is not [SourcePropertySymbol prop, SourcePropertySymbol duplicateProp])
+                throw ExceptionUtilities.UnexpectedValue(comp.GetMembers("C.P"));
+
+            Assert.True(prop.IsPartialDefinition);
+            Assert.Equal("System.Int32 C.P { get }", prop.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.P { get; set; }", prop.PartialImplementationPart.ToTestDisplayString());
+
+            Assert.True(duplicateProp.IsPartialDefinition);
+            Assert.Null(duplicateProp.PartialImplementationPart);
+            Assert.Equal("System.Int32 C.P { set; }", duplicateProp.ToTestDisplayString());
+        }
+
+        [Fact]
         public void DuplicateDeclaration_09()
         {
             // partial indexer and partial property Item
