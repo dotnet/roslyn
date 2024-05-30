@@ -63,7 +63,7 @@ internal partial class StateResetInProcess
         ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
         ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
         ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution);
-        ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
+        ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionManualFeatureFlag);
         ResetPerLanguageOption(globalOptions, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened);
         ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces);
         ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.TriggerInArgumentLists);

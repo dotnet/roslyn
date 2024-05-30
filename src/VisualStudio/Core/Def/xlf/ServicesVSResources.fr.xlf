@@ -152,9 +152,9 @@
         <target state="translated">Précédent</target>
         <note />
       </trans-unit>
-      <trans-unit id="Balanced_Run_generators_after_saving_or_building">
-        <source>Balanced. Run generators after saving or building</source>
-        <target state="new">Balanced. Run generators after saving or building</target>
+      <trans-unit id="Manual_Run_generators_after_saving_or_building">
+        <source>Manual. Run generators after saving or building</source>
+        <target state="new">Manual. Run generators after saving or building</target>
         <note />
       </trans-unit>
       <trans-unit id="Beginning_of_line">

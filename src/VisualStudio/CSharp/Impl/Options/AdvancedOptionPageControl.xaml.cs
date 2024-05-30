@@ -82,13 +82,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             {
                 // If the option hasn't been set by the user, then check the feature flag.  If the feature flag has set
                 // us to only run when builds complete, then we're not in automatic mode.  So we `!` the result.
-                return !optionStore.GetOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
+                return !optionStore.GetOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionManualFeatureFlag);
             });
-            BindToOption(Balanced_Run_generators_after_saving_or_building, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced, () =>
+            BindToOption(Manual_Run_generators_after_saving_or_building, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Manual, () =>
             {
                 // If the option hasn't been set by the user, then check the feature flag.  If the feature flag has set
-                // us to only run when builds complete, then we're in `Balanced_Run_generators_after_saving_or_building` mode and directly return it.
-                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
+                // us to only run when builds complete, then we're in `Manual_Run_generators_after_saving_or_building` mode and directly return it.
+                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionManualFeatureFlag);
             });
             BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, () =>
             {

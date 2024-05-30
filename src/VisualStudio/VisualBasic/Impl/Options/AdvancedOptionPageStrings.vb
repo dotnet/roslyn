@@ -399,8 +399,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Automatic_Run_generators_after_any_change As String =
             ServicesVSResources.Automatic_Run_generators_after_any_change
 
-        Public ReadOnly Property Option_Balanced_Run_generators_after_saving_or_building As String =
-            ServicesVSResources.Balanced_Run_generators_after_saving_or_building
+        Public ReadOnly Property Option_Manual_Run_generators_after_saving_or_building As String =
+            ServicesVSResources.Manual_Run_generators_after_saving_or_building
 
     End Module
 End Namespace

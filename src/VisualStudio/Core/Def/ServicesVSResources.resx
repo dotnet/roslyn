@@ -1912,8 +1912,8 @@ Additional information: {1}</value>
   <data name="Source_Generators" xml:space="preserve">
     <value>Source Generators</value>
   </data>
-  <data name="Balanced_Run_generators_after_saving_or_building" xml:space="preserve">
-    <value>Balanced. Run generators after saving or building</value>
+  <data name="Manual_Run_generators_after_saving_or_building" xml:space="preserve">
+    <value>Manual. Run generators after saving or building</value>
   </data>
   <data name="Roslyn_save_command_handler" xml:space="preserve">
     <value>Roslyn save command handler</value>

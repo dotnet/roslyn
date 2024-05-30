@@ -79,8 +79,8 @@
                                      Content="{x:Static local:AdvancedOptionPageStrings.Option_Automatic_Run_generators_after_any_change}"/>
                             
                             <RadioButton GroupName="Run_source_generators_location"
-                                     x:Name="Balanced_Run_generators_after_saving_or_building"
-                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_Balanced_Run_generators_after_saving_or_building}"/>
+                                     x:Name="Manual_Run_generators_after_saving_or_building"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_Manual_Run_generators_after_saving_or_building}"/>
                         </StackPanel>
                     </StackPanel>
 

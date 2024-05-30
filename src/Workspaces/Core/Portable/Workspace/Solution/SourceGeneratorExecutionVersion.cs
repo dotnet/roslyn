@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis;
 
 /// <summary>
 /// Represents the version of source generator execution that a project is at. Source generator results are kept around
-/// as long as this version stays the same and we are in <see cref="SourceGeneratorExecutionPreference.Balanced"/>
+/// as long as this version stays the same and we are in <see cref="SourceGeneratorExecutionPreference.Manual"/>
 /// mode. This has no effect when in <see cref="SourceGeneratorExecutionPreference.Automatic"/> mode (as we always rerun
 /// generators on any change). This should effectively be used as a monotonically increasing value.
 /// </summary>

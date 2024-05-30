@@ -18,13 +18,13 @@ internal enum SourceGeneratorExecutionPreference
     /// generally should be things like "builds" or "file saves".  Larger events (not just text changes) which indicate
     /// that it's a more reasonable time to run generators.
     /// </summary>
-    Balanced,
+    Manual,
 }
 
 internal static class SourceGeneratorExecutionPreferenceUtilities
 {
     private const string automatic = "automatic";
-    private const string balanced = "balanced";
+    private const string manual = "manual";
 
     // Default to beginning_of_line if we don't know the value.
     public static string GetEditorConfigString(SourceGeneratorExecutionPreference? value)
@@ -32,7 +32,7 @@ internal static class SourceGeneratorExecutionPreferenceUtilities
         return value switch
         {
             SourceGeneratorExecutionPreference.Automatic => automatic,
-            SourceGeneratorExecutionPreference.Balanced => balanced,
+            SourceGeneratorExecutionPreference.Manual => manual,
             null => "",
             _ => throw ExceptionUtilities.UnexpectedValue(value),
         };
@@ -44,7 +44,7 @@ internal static class SourceGeneratorExecutionPreferenceUtilities
         return optionString switch
         {
             automatic => SourceGeneratorExecutionPreference.Automatic,
-            balanced => SourceGeneratorExecutionPreference.Balanced,
+            manual => SourceGeneratorExecutionPreference.Manual,
             _ => null,
         };
     }
