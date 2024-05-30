@@ -9,8 +9,10 @@ namespace Microsoft.RoslynTools.PRFinder;
 public interface IRepositoryHost
 {
     bool ShouldSkip(Commit commit, ref bool mergePRFound);
-    bool TryParseMergeInfo(Commit commit, out string prNumber, out string comment);
-    string GetPullRequestUrl(string repoUrl, string prNumber);
-    string GetCommitUrl(string repoUrl, string commitSha);
-    string GetDiffUrl(string repoUrl, string previousSha, string currentSha);
+    Task<MergeInfo?> TryParseMergeInfoAsync(Commit commit);
+    string GetPullRequestUrl(string prNumber);
+    string GetCommitUrl(string commitSha);
+    string GetDiffUrl(string previousSha, string currentSha);
 }
+
+public record class MergeInfo(string PrNumber, string Comment);

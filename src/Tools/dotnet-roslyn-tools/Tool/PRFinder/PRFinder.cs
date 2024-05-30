@@ -23,7 +23,7 @@ internal class PRFinder
     /// <param name="repoPath">Optional path to product repo. Current directory will be used otherwise.</param>
     /// <param name="builder">Optional if the caller wants result as a string.</param>
     /// <returns></returns>
-    public static int FindPRs(
+    public static async Task<int> FindPRsAsync(
         string previousCommitSha,
         string currentCommitSha,
         string format,
@@ -90,8 +90,8 @@ internal class PRFinder
         }
 
         IRepositoryHost host = isGitHub
-            ? new Hosts.GitHub()
-            : new Hosts.Azure();
+            ? new Hosts.GitHub(repoUrl, logger)
+            : new Hosts.Azure(repoUrl);
 
         IPRLogFormatter formatter = format == DefaultFormat
             ? new Formatters.DefaultFormatter()
@@ -105,9 +105,9 @@ internal class PRFinder
                 ExcludeReachableFrom = previousCommit
             });
 
-        logger.LogDebug(formatter.FormatChangesHeader(previousCommitSha, host.GetCommitUrl(repoUrl, previousCommitSha), currentCommitSha, host.GetCommitUrl(repoUrl, currentCommitSha)));
+        logger.LogDebug(formatter.FormatChangesHeader(previousCommitSha, host.GetCommitUrl(previousCommitSha), currentCommitSha, host.GetCommitUrl(currentCommitSha)));
 
-        RecordLine(formatter.FormatDiffHeader(host.GetDiffUrl(repoUrl, previousCommitSha, currentCommitSha)), logger, builder);
+        RecordLine(formatter.FormatDiffHeader(host.GetDiffUrl(previousCommitSha, currentCommitSha)), logger, builder);
 
         var commitHeaderAdded = false;
         var mergePRHeaderAdded = false;
@@ -120,17 +120,17 @@ internal class PRFinder
                 continue;
             }
 
-            var wasMergeCommit = host.TryParseMergeInfo(commit, out var prNumber, out var comment);
+            var mergeInfo = await host.TryParseMergeInfoAsync(commit);
 
             // We will print commit comments until we find the first merge PR
-            if (!wasMergeCommit && mergePRFound)
+            if (mergeInfo is null && mergePRFound)
             {
                 continue;
             }
 
             string prLink;
 
-            if (wasMergeCommit)
+            if (mergeInfo is not null)
             {
                 if (commitHeaderAdded && !mergePRHeaderAdded)
                 {
@@ -140,7 +140,7 @@ internal class PRFinder
 
                 mergePRFound = true;
 
-                prLink = formatter.FormatPRListItem(comment, prNumber, host.GetPullRequestUrl(repoUrl, prNumber));
+                prLink = formatter.FormatPRListItem(mergeInfo.Comment, mergeInfo.PrNumber, host.GetPullRequestUrl(mergeInfo.PrNumber));
             }
             else
             {
@@ -153,7 +153,7 @@ internal class PRFinder
                 var fullSHA = commit.Sha;
                 var shortSHA = fullSHA.Substring(0, 7);
 
-                prLink = formatter.FormatCommitListItem(commit.MessageShort, shortSHA, host.GetCommitUrl(repoUrl, fullSHA));
+                prLink = formatter.FormatCommitListItem(commit.MessageShort, shortSHA, host.GetCommitUrl(fullSHA));
             }
 
             RecordLine(prLink, logger, builder);

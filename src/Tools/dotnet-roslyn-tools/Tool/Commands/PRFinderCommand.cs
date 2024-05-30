@@ -13,11 +13,12 @@ internal static class PRFinderCommand
 {
     private static readonly PrFinderCommandDefaultHandler s_prFinderCommandHandler = new();
 
-    internal static readonly string[] SupportedFormats = { PRFinder.PRFinder.DefaultFormat, PRFinder.PRFinder.OmniSharpFormat };
+    internal static readonly string[] SupportedFormats = [PRFinder.PRFinder.DefaultFormat, PRFinder.PRFinder.OmniSharpFormat];
 
-    internal static readonly Option<string> PreviousCommitShaOption = new Option<string>(new[] { "--previous", "-p" }, "SHA of the commit you want to start looking for PRs from") { IsRequired = true };
-    internal static readonly Option<string> CurrentCommitSHAOption = new Option<string>(new[] { "--current", "-c" }, "SHA of commit you want to stop looking for PRs at") { IsRequired = true };
-    internal static readonly Option<string> FormatOption = new Option<string>(new[] { "--format" }, () => PRFinder.PRFinder.DefaultFormat, "The formatting to apply to the PR list.").FromAmong(SupportedFormats);
+    internal static readonly Option<string> PreviousCommitShaOption = new(["--previous", "-p"], "SHA of the commit you want to start looking for PRs from") { IsRequired = true };
+    internal static readonly Option<string> CurrentCommitSHAOption = new(["--current", "-c"], "SHA of commit you want to stop looking for PRs at") { IsRequired = true };
+    internal static readonly Option<string> FormatOption = new Option<string>(["--format"], () => PRFinder.PRFinder.DefaultFormat, "The formatting to apply to the PR list.").FromAmong(SupportedFormats);
+    internal static readonly Option<string?> RepoPathOption = new(["--repo"], () => null, "The directory of the repository to look for PRs. If none is provided, the current directory is used");
 
     public static Symbol GetCommand()
     {
@@ -26,7 +27,8 @@ internal static class PRFinderCommand
             PreviousCommitShaOption,
             CurrentCommitSHAOption,
             FormatOption,
-            VerbosityOption
+            VerbosityOption,
+            RepoPathOption
         };
         prFinderCommand.Handler = s_prFinderCommandHandler;
         return prFinderCommand;
@@ -41,8 +43,9 @@ internal static class PRFinderCommand
             var previousCommit = context.ParseResult.GetValueForOption(PreviousCommitShaOption)!;
             var currentCommit = context.ParseResult.GetValueForOption(CurrentCommitSHAOption)!;
             var format = context.ParseResult.GetValueForOption(FormatOption)!;
+            var repoPath = context.ParseResult.GetValueForOption(RepoPathOption);
 
-            return Task.FromResult(PRFinder.PRFinder.FindPRs(previousCommit, currentCommit, format, logger));
+            return PRFinder.PRFinder.FindPRsAsync(previousCommit, currentCommit, format, logger, repoPath: repoPath);
         }
     }
 }

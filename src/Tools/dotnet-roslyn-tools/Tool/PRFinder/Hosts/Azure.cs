@@ -11,16 +11,22 @@ public class Azure : IRepositoryHost
 {
     private static readonly Regex IsAzDOReleaseFlowCommit = new Regex(@"^Merged PR \d+: Merging .* to ");
     private static readonly Regex IsAzDOMergePRCommit = new Regex(@"^Merged PR (\d+):");
+    private readonly string _repoUrl;
 
-    public string GetCommitUrl(string repoUrl, string commitSha)
-        => $"{repoUrl}/commit/{commitSha}";
+    public Azure(string repoUrl)
+    {
+        _repoUrl = repoUrl;
+    }
 
-    public string GetDiffUrl(string repoUrl, string previousSha, string currentSha)
+    public string GetCommitUrl(string commitSha)
+        => $"{_repoUrl}/commit/{commitSha}";
+
+    public string GetDiffUrl(string previousSha, string currentSha)
         // AzDO does not have a UI for comparing two commits. Instead generate the REST API call to retrieve commits between two SHAs.
-        => $"{repoUrl.Replace("_git", "_apis/git/repositories")}/commits?searchCriteria.itemVersion.version={previousSha}&searchCriteria.itemVersion.versionType=commit&searchCriteria.compareVersion.version={currentSha}&searchCriteria.compareVersion.versionType=commit";
+        => $"{_repoUrl.Replace("_git", "_apis/git/repositories")}/commits?searchCriteria.itemVersion.version={previousSha}&searchCriteria.itemVersion.versionType=commit&searchCriteria.compareVersion.version={currentSha}&searchCriteria.compareVersion.versionType=commit";
 
-    public string GetPullRequestUrl(string repoUrl, string prNumber)
-        => $"{repoUrl}/pullrequest/{prNumber}";
+    public string GetPullRequestUrl(string prNumber)
+        => $"{_repoUrl}/pullrequest/{prNumber}";
 
     public bool ShouldSkip(Commit commit, ref bool mergePRFound)
     {
@@ -48,23 +54,19 @@ public class Azure : IRepositoryHost
         return false;
     }
 
-    public bool TryParseMergeInfo(Commit commit, out string prNumber, out string comment)
+    public Task<MergeInfo?> TryParseMergeInfoAsync(Commit commit)
     {
         var match = IsAzDOMergePRCommit.Match(commit.Message);
         if (match.Success)
         {
             // Merge PR Messages are in the form "Merged PR 320820: Resolving encoding issue on test summary pane, using UTF8 now\n\nAdded a StreamWriterWrapper to resolve encoding issue"
-            comment = commit.MessageShort;
-            prNumber = match.Groups[1].Value;
-            return true;
+            return Task.FromResult<MergeInfo?>(new(match.Groups[1].Value, commit.Message));
         }
         else
         {
             // Todo: Determine if there is a format for AzDO squash merges that preserves the PR #
         }
 
-        comment = string.Empty;
-        prNumber = string.Empty;
-        return false;
+        return Task.FromResult<MergeInfo?>(null);
     }
 }
