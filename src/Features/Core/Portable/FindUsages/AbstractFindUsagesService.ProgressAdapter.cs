@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -106,7 +107,7 @@ internal abstract partial class AbstractFindUsagesService
         }
 
         public async ValueTask OnReferencesFoundAsync(
-            IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
+            ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
         {
             await ProducerConsumer<SourceReferenceItem>.RunParallelAsync(
                 source: references,
