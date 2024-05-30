@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -17,8 +16,8 @@ internal static class SignatureHelp
 {
     public static Task<LSP.SignatureHelp?> GetSignatureHelpAsync(Document document, LinePosition linePosition, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
     {
-        var globalOptions = document.Project.Solution.Services.ExportProvider.GetExports<IGlobalOptionService>().First().Value;
-        var signatureHelpService = document.Project.Solution.Services.ExportProvider.GetExports<SignatureHelpService>().First().Value;
+        var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
+        var signatureHelpService = document.Project.Solution.Services.ExportProvider.GetService<SignatureHelpService>();
 
         return SignatureHelpHandler.GetSignatureHelpAsync(globalOptions, signatureHelpService, document, linePosition, supportsVisualStudioExtensions, cancellationToken);
     }

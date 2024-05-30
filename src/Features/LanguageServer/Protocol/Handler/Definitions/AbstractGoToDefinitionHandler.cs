@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -34,16 +35,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public abstract Task<LSP.Location[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken);
 
-        protected async Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
+        protected Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
         {
             var workspace = context.Workspace;
             var document = context.Document;
             if (workspace is null || document is null)
-                return null;
+                return SpecializedTasks.Null<LSP.Location[]>();
 
             var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
 
-            return await GetDefinitionsAsync(_globalOptions, _metadataAsSourceFileService, workspace, document, typeOnly, linePosition, cancellationToken).ConfigureAwait(false);
+            return GetDefinitionsAsync(_globalOptions, _metadataAsSourceFileService, workspace, document, typeOnly, linePosition, cancellationToken);
         }
 
         internal static async Task<LSP.Location[]?> GetDefinitionsAsync(IGlobalOptionService globalOptions, IMetadataAsSourceFileService? metadataAsSourceFileService, Workspace workspace, Document document, bool typeOnly, LinePosition linePosition, CancellationToken cancellationToken)
