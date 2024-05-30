@@ -94,9 +94,9 @@ public static partial class SymbolFinder
                 var referenceLocation = await reference.RehydrateAsync(
                     solution, cancellationToken).ConfigureAwait(false);
                 rehydrated.Add((symbolGroup, symbol, referenceLocation));
-
-                await progress.OnReferencesFoundAsync(rehydrated.ToImmutableAndClear(), cancellationToken).ConfigureAwait(false);
             }
+
+            await progress.OnReferencesFoundAsync(rehydrated.ToImmutableAndClear(), cancellationToken).ConfigureAwait(false);
         }
     }
 }
