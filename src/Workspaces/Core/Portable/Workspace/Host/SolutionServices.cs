@@ -61,6 +61,9 @@ public sealed class SolutionServices
     public TLanguageService GetRequiredLanguageService<TLanguageService>(string language) where TLanguageService : ILanguageService
         => this.GetLanguageServices(language).GetRequiredService<TLanguageService>();
 
+    internal HostLanguageServices GetExtendedLanguageServices(string language)
+        => _services.GetLanguageServices(language);
+
     internal IEnumerable<T> FindLanguageServices<T>(HostWorkspaceServices.MetadataFilter filter)
         => _services.FindLanguageServices<T>(filter);
 }
