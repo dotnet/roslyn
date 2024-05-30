@@ -87,13 +87,6 @@ internal partial class NavigationBarController : IDisposable
     /// </summary>
     private bool _paused = false;
 
-    /// <param name="FrozenPartialSemantics">Indicates if we should compute with frozen partial semantics or
-    /// not.</param>
-    /// <param name="NonFrozenComputationToken">If <paramref name="FrozenPartialSemantics"/> is false, then this is a
-    /// cancellation token that can cancel the expensive work being done if new frozen-partial work is
-    /// requested.</param>
-    private readonly record struct NavigationBarQueueItem(bool FrozenPartialSemantics, CancellationToken? NonFrozenComputationToken);
-
     public NavigationBarController(
         IThreadingContext threadingContext,
         INavigationBarPresenter presenter,
@@ -111,7 +104,7 @@ internal partial class NavigationBarController : IDisposable
         _nonFrozenComputationCancellationSeries = new(threadingContext.DisposalToken);
 
         _computeModelQueue = new AsyncBatchingWorkQueue<NavigationBarQueueItem, NavigationBarModel?>(
-            DelayTimeSpan.Short,
+            DelayTimeSpan.Medium,
             ComputeModelAndSelectItemAsync,
             EqualityComparer<NavigationBarQueueItem>.Default,
             asyncListener,
