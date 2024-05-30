@@ -83,13 +83,15 @@ internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
                         memberItems.AddIfNotNull(CreateItemForMember(solution, propertySymbol, tree, cancellationToken));
                         memberItems.AddIfNotNull(CreateItemForMember(solution, propertySymbol.PartialImplementationPart, tree, cancellationToken));
                     }
+                    else if (member is IMethodSymbol or IPropertySymbol)
+                    {
+                        Debug.Assert(member is IMethodSymbol { PartialDefinitionPart: null } or IPropertySymbol { PartialDefinitionPart: null },
+                            $"NavBar expected GetMembers to return partial method/property definition parts but the implementation part was returned.");
+
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, member, tree, cancellationToken));
+                    }
                     else
                     {
-                        if (member is IMethodSymbol { PartialDefinitionPart: null } or IPropertySymbol { PartialDefinitionPart: null })
-                        {
-                            Debug.Fail($"NavBar expected GetMembers to return partial method/property definition parts but the implementation part was returned.");
-                        }
-
                         memberItems.AddIfNotNull(CreateItemForMember(solution, member, tree, cancellationToken));
                     }
                 }
