@@ -57,8 +57,7 @@ internal partial class NavigationBarController
         }
         else
         {
-            // Normal request to either compute frozen partial tags, or compute normal tags in a tagger that does
-            // *not* support frozen partial tagging.
+            // Normal request to either compute nav-bar items using frozen partial semantics.
             return await ComputeModelAndSelectItemAsync(frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
         }
     }
