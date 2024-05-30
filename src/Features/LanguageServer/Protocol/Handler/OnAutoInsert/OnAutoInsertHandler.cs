@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
@@ -26,26 +27,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(OnAutoInsertHandler)), Shared]
     [Method(LSP.VSInternalMethods.OnAutoInsertName)]
-    internal sealed class OnAutoInsertHandler : ILspServiceDocumentRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class OnAutoInsertHandler(
+        [ImportMany] IEnumerable<Lazy<IBraceCompletionService, LanguageMetadata>> braceCompletionServices,
+        IGlobalOptionService globalOptions) : ILspServiceDocumentRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
     {
-        private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
-        private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly ImmutableArray<Lazy<IBraceCompletionService, LanguageMetadata>> _braceCompletionServices = braceCompletionServices.ToImmutableArray();
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public OnAutoInsertHandler(
-            [ImportMany(LanguageNames.CSharp)] IEnumerable<IBraceCompletionService> csharpBraceCompletionServices,
-            [ImportMany(LanguageNames.VisualBasic)] IEnumerable<IBraceCompletionService> visualBasicBraceCompletionServices,
-            IGlobalOptionService globalOptions)
-        {
-            _csharpBraceCompletionServices = csharpBraceCompletionServices.ToImmutableArray();
-            _visualBasicBraceCompletionServices = visualBasicBraceCompletionServices.ToImmutableArray();
-            _globalOptions = globalOptions;
-        }
 
         public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
@@ -229,12 +221,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private async Task<(IBraceCompletionService Service, BraceCompletionContext Context)?> GetBraceCompletionContextAsync(int caretLocation, Document document, CancellationToken cancellationToken)
         {
-            var servicesForDocument = document.Project.Language switch
-            {
-                LanguageNames.CSharp => _csharpBraceCompletionServices,
-                LanguageNames.VisualBasic => _visualBasicBraceCompletionServices,
-                _ => throw new ArgumentException($"Language {document.Project.Language} is not recognized for OnAutoInsert")
-            };
+            var servicesForDocument = _braceCompletionServices.Where(s => s.Metadata.Language == document.Project.Language).SelectAsArray(s => s.Value);
 
             var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
