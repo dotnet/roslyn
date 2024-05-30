@@ -102,14 +102,6 @@ internal partial class NavigationBarController
 
         async Task<NavigationBarModel?> ComputeModelAsync()
         {
-            // When computing items just get the partial semantics workspace.  This will ensure we can get data for this
-            // file, and hopefully have enough loaded to get data for other files in the case of partial types.  In the
-            // event the other files aren't available, then partial-type information won't be correct.  That's ok though
-            // as this is just something that happens during solution load and will pass once that is over.  By using
-            // partial semantics, we can ensure we don't spend an inordinate amount of time computing and using full
-            // compilation data (like skeleton assemblies).
-            var forceFrozenPartialSemanticsForCrossProcessOperations = true;
-
             var workspace = textSnapshot.TextBuffer.GetWorkspace();
             if (workspace is null)
                 return null;
