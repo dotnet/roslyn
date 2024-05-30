@@ -149,9 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
                     args:=Me,
                     cancellationToken).ConfigureAwait(False)
 
-                For Each conflict In items
-                    conflicts.Add(conflict)
-                Next
+                conflicts.AddRange(items)
             End Function
 
             Private Sub CollectInfoFromContainer(container As SyntaxNode, nodes As ArrayBuilder(Of SyntaxNode), ByRef containsAnonymousMethods As Boolean)
