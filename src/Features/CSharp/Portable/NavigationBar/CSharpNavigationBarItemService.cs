@@ -73,15 +73,22 @@ internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
                         continue;
                     }
 
-                    var method = member as IMethodSymbol;
-                    if (method != null && method.PartialImplementationPart != null)
+                    if (member is IMethodSymbol { PartialImplementationPart: { } } methodSymbol)
                     {
-                        memberItems.AddIfNotNull(CreateItemForMember(solution, method, tree, cancellationToken));
-                        memberItems.AddIfNotNull(CreateItemForMember(solution, method.PartialImplementationPart, tree, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, methodSymbol, tree, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, methodSymbol.PartialImplementationPart, tree, cancellationToken));
+                    }
+                    else if (member is IPropertySymbol { PartialImplementationPart: { } } propertySymbol)
+                    {
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, propertySymbol, tree, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, propertySymbol.PartialImplementationPart, tree, cancellationToken));
                     }
                     else
                     {
-                        Debug.Assert(method == null || method.PartialDefinitionPart == null, "NavBar expected GetMembers to return partial method definition parts but the implementation part was returned.");
+                        if (member is IMethodSymbol { PartialDefinitionPart: null } or IPropertySymbol { PartialDefinitionPart: null })
+                        {
+                            Debug.Fail($"NavBar expected GetMembers to return partial method/property definition parts but the implementation part was returned.");
+                        }
 
                         memberItems.AddIfNotNull(CreateItemForMember(solution, member, tree, cancellationToken));
                     }
