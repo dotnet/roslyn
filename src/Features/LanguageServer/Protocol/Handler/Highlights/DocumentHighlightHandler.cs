@@ -40,24 +40,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 
-        public async Task<DocumentHighlight[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<DocumentHighlight[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
-                return null;
+                return SpecializedTasks.Null<DocumentHighlight[]>();
 
+            var position = ProtocolConversions.PositionToLinePosition(request.Position);
+            return GetHighlightsAsync(_globalOptions, _highlightingService, document, position, cancellationToken);
+        }
+
+        internal static async Task<DocumentHighlight[]?> GetHighlightsAsync(IGlobalOptionService globalOptions, IHighlightingService highlightingService, Document document, LinePosition linePosition, CancellationToken cancellationToken)
+        {
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
 
             // First check if this is a keyword that needs highlighting.
-            var keywordHighlights = await GetKeywordHighlightsAsync(document, text, position, cancellationToken).ConfigureAwait(false);
+            var keywordHighlights = await GetKeywordHighlightsAsync(highlightingService, document, text, position, cancellationToken).ConfigureAwait(false);
             if (keywordHighlights.Any())
             {
                 return [.. keywordHighlights];
             }
 
             // Not a keyword, check if it is a reference that needs highlighting.
-            var referenceHighlights = await GetReferenceHighlightsAsync(document, text, position, cancellationToken).ConfigureAwait(false);
+            var referenceHighlights = await GetReferenceHighlightsAsync(globalOptions, document, text, position, cancellationToken).ConfigureAwait(false);
             if (referenceHighlights.Any())
             {
                 return [.. referenceHighlights];
@@ -67,12 +73,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return [];
         }
 
-        private async Task<ImmutableArray<DocumentHighlight>> GetKeywordHighlightsAsync(Document document, SourceText text, int position, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<DocumentHighlight>> GetKeywordHighlightsAsync(IHighlightingService highlightingService, Document document, SourceText text, int position, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var keywordSpans = new List<TextSpan>();
-            _highlightingService.AddHighlights(root, position, keywordSpans, cancellationToken);
+            highlightingService.AddHighlights(root, position, keywordSpans, cancellationToken);
 
             return keywordSpans.SelectAsArray(highlight => new DocumentHighlight
             {
@@ -81,10 +87,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             });
         }
 
-        private async Task<ImmutableArray<DocumentHighlight>> GetReferenceHighlightsAsync(Document document, SourceText text, int position, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<DocumentHighlight>> GetReferenceHighlightsAsync(IGlobalOptionService globalOptions, Document document, SourceText text, int position, CancellationToken cancellationToken)
         {
             var documentHighlightService = document.GetRequiredLanguageService<IDocumentHighlightsService>();
-            var options = _globalOptions.GetHighlightingOptions(document.Project.Language);
+            var options = globalOptions.GetHighlightingOptions(document.Project.Language);
             var highlights = await documentHighlightService.GetDocumentHighlightsAsync(
                 document,
                 position,
