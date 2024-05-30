@@ -17,6 +17,12 @@ schedules:
 #    name: DeploymentScripts
 #    ref: refs/heads/test
 
+parameters:
+  - name: ShouldSkipOptimize
+    displayName: Skip OptProf optimization
+    type: boolean
+    default: false # Should usually be false so that optprof LKG can apply when tests fail, but may need to be set to true in a manually queued pipeline run if all drops have expired.
+
 variables:
 - template: GlobalVariables.yml
 - name: PublicRelease
@@ -37,7 +43,7 @@ stages:
       RealSign: true
       windowsPool: VSEngSS-MicroBuild2022-1ES
       EnableMacOSBuild: false
-      ShouldSkipOptimize: true
+      ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
       IsOptProf: true
       RunTests: false
 - stage: QueueVSBuild
