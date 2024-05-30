@@ -231,9 +231,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 CancellationToken cancellationToken)
             {
                 var dehydrated = references.SelectAsArray(
-                    r => (SerializableSymbolGroup.Dehydrate(_solution, r.group, cancellationToken),
-                          SerializableSymbolAndProjectId.Dehydrate(_solution, r.symbol, cancellationToken),
-                          SerializableReferenceLocation.Dehydrate(r.location, cancellationToken)));
+                    static (reference, tuple) => (
+                        SerializableSymbolGroup.Dehydrate(tuple.solution, reference.group, tuple.cancellationToken),
+                        SerializableSymbolAndProjectId.Dehydrate(tuple.solution, reference.symbol, tuple.cancellationToken),
+                        SerializableReferenceLocation.Dehydrate(reference.location, tuple.cancellationToken)),
+                    (solution: _solution, cancellationToken));
 
                 await _callback.InvokeAsync(
                     (callback, cancellationToken) => callback.OnReferencesFoundAsync(
