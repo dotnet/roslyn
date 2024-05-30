@@ -1133,16 +1133,18 @@ public class FirstClassSpanTests : CSharpTestBase
                 {
                     M1(a);
                     M2(a);
+                    M3(a);
                 }
                 void M1(params Span<string> s) { }
                 void M2(params ReadOnlySpan<string> s) { }
+                void M3(params string[] s) { }
             }
             """;
         var comp = CreateCompilationWithSpan(source);
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
-              // Code size       25 (0x19)
+              // Code size       32 (0x20)
               .maxstack  2
               IL_0000:  ldarg.0
               IL_0001:  ldarg.1
@@ -1152,7 +1154,10 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_000d:  ldarg.1
               IL_000e:  call       "System.ReadOnlySpan<string> System.ReadOnlySpan<string>.op_Implicit(string[])"
               IL_0013:  call       "void C.M2(params System.ReadOnlySpan<string>)"
-              IL_0018:  ret
+              IL_0018:  ldarg.0
+              IL_0019:  ldarg.1
+              IL_001a:  call       "void C.M3(params string[])"
+              IL_001f:  ret
             }
             """);
     }
@@ -1169,16 +1174,18 @@ public class FirstClassSpanTests : CSharpTestBase
                 {
                     M1(a);
                     M2(a);
+                    M3(a);
                 }
                 void M1(params Span<object> s) { }
                 void M2(params ReadOnlySpan<object> s) { }
+                void M3(params object[] p) { }
             }
             """;
         var comp = CreateCompilationWithSpan(source);
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
-              // Code size       29 (0x1d)
+              // Code size       38 (0x26)
               .maxstack  2
               .locals init (object[] V_0)
               IL_0000:  ldarg.0
@@ -1193,7 +1200,12 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0011:  ldloc.0
               IL_0012:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.op_Implicit(object[])"
               IL_0017:  call       "void C.M2(params System.ReadOnlySpan<object>)"
-              IL_001c:  ret
+              IL_001c:  ldarg.0
+              IL_001d:  ldarg.1
+              IL_001e:  stloc.0
+              IL_001f:  ldloc.0
+              IL_0020:  call       "void C.M3(params object[])"
+              IL_0025:  ret
             }
             """);
     }
@@ -2354,6 +2366,29 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(string[])", "C.M(System.ReadOnlySpan<object>)").WithLocation(5, 3));
     }
 
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_03(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            var a = new string[] { "a" };
+            C.M(a);
+            C.M([a]);
+            C.M([..a, a]);
+            C.M([..a]);
+            C.M(["a"]);
+
+            static class C
+            {
+                public static void M(object[] x) => Console.Write(" a" + x[0]);
+                public static void M(ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa rSystem.String[] ra ra ra").VerifyDiagnostics();
+    }
+
     [Fact]
     public void OverloadResolution_ReadOnlySpanVsArray_Params_01()
     {
@@ -2400,6 +2435,29 @@ public class FirstClassSpanTests : CSharpTestBase
             // (5,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params string[])' and 'C.M(params ReadOnlySpan<object>)'
             // C.M(["a"]);
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params string[])", "C.M(params System.ReadOnlySpan<object>)").WithLocation(5, 3));
+    }
+
+    [Fact]
+    public void OverloadResolution_ReadOnlySpanVsArray_Params_03()
+    {
+        var source = """
+            using System;
+
+            var a = new string[] { "a" };
+            C.M(a);
+            C.M([a]);
+            C.M([..a, a]);
+            C.M([..a]);
+            C.M(["a"]);
+
+            static class C
+            {
+                public static void M(params object[] x) => Console.Write(" a" + x[0]);
+                public static void M(params ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: "aa rSystem.String[] ra ra ra").VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -2450,6 +2508,25 @@ public class FirstClassSpanTests : CSharpTestBase
 
         CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_ExtensionMethodReceiver_03(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            var a = new string[] { "a" };
+            a.M();
+
+            static class C
+            {
+                public static void M(this object[] x) => Console.Write(" a" + x[0]);
+                public static void M(this ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa").VerifyDiagnostics();
     }
 
     [Fact]
