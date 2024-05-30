@@ -3732,18 +3732,18 @@ public partial class C
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                    // (3,27): error CS8050: Only auto-implemented properties can have initializers.
-                    //     public partial string P1 { get; set; } = "a";
-                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 27),
-                    // (7,27): error CS8050: Only auto-implemented properties can have initializers.
-                    //     public partial string P2 { get => ""; set { } } = "b";
-                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(7, 27),
-                    // (9,27): error CS8050: Only auto-implemented properties can have initializers.
-                    //     public partial string P3 { get; set; } = "c";
-                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(9, 27),
-                    // (10,27): error CS8050: Only auto-implemented properties can have initializers.
-                    //     public partial string P3 { get => ""; set { } } = "d";
-                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(10, 27));
+                // (3,27): error CS8050: Only auto-implemented properties can have initializers.
+                //     public partial string P1 { get; set; } = "a";
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 27),
+                // (7,27): error CS8050: Only auto-implemented properties can have initializers.
+                //     public partial string P2 { get => ""; set { } } = "b";
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(7, 27),
+                // (9,27): error CS8050: Only auto-implemented properties can have initializers.
+                //     public partial string P3 { get; set; } = "c";
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(9, 27),
+                // (10,27): error CS8050: Only auto-implemented properties can have initializers.
+                //     public partial string P3 { get => ""; set { } } = "d";
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(10, 27));
         }
 
         [Fact]
