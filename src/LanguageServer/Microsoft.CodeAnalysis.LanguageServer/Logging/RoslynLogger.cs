@@ -74,12 +74,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
                     return;
                 }
 
-                if (_telemetryReporter is not null)
+                // Copy locally, as otherwise if we report a fault during shutdown we might also null reference (and then fatally crash the process)
+                var telemetryReporter = _telemetryReporter;
+                if (telemetryReporter is not null)
                 {
                     var eventName = GetEventName(FunctionId.NonFatalWatson);
                     var description = GetDescription(exception);
                     var currentProcess = Process.GetCurrentProcess();
-                    _telemetryReporter.ReportFault(eventName, description, (int)severity, forceDump, currentProcess.Id, exception);
+                    telemetryReporter.ReportFault(eventName, description, (int)severity, forceDump, currentProcess.Id, exception);
                 }
             }
             catch (OutOfMemoryException)
