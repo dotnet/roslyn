@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -35,13 +36,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
 
-        public async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
-        {
-            var document = context.Document;
-            Contract.ThrowIfNull(document);
+        public Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
+            => GetRenameEditAsync(_optionsService, context.GetRequiredDocument(), ProtocolConversions.PositionToLinePosition(request.Position), request.NewName, cancellationToken);
 
+        internal static async Task<WorkspaceEdit?> GetRenameEditAsync(IGlobalOptionService globalOptionsService, Document document, LinePosition linePosition, string newName, CancellationToken cancellationToken)
+        {
             var oldSolution = document.Project.Solution;
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
 
             var symbolicRenameInfo = await SymbolicRenameInfo.GetRenameInfoAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
@@ -61,8 +62,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 cancellationToken).ConfigureAwait(false);
 
             var renameReplacementInfo = await renameLocationSet.ResolveConflictsAsync(
-                symbolicRenameInfo.Symbol, symbolicRenameInfo.GetFinalSymbolName(request.NewName),
-                nonConflictSymbolKeys: default, _optionsService.CreateProvider(),
+                symbolicRenameInfo.Symbol, symbolicRenameInfo.GetFinalSymbolName(newName),
+                nonConflictSymbolKeys: default, globalOptionsService.CreateProvider(),
                 cancellationToken).ConfigureAwait(false);
 
             if (!renameReplacementInfo.IsSuccessful ||
