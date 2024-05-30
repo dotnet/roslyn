@@ -18538,7 +18538,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgRef, @"$""{1}""").WithArguments("1", "ref").WithLocation(8, 29));
         }
 
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/73631")]
         [CombinatorialData]
         public void InterpolatedStringHandlerArgumentAttribute_ThisParameter_ReferenceTypeReferenceReceiver(
             [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
@@ -18620,7 +18620,7 @@ literal:literal
 """);
         }
 
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/73631")]
         [CombinatorialData]
         public void InterpolatedStringHandlerArgumentAttribute_ThisParameter_ReferenceTypeReferenceReceiver_ReverseOrder(
             [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
@@ -18702,7 +18702,7 @@ literal:literal
 """);
         }
 
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/73631")]
         [CombinatorialData]
         public void InterpolatedStringHandlerArgumentAttribute_ThisParameter_InterfaceConstrainedRefReceiver(
             [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
@@ -18815,7 +18815,7 @@ literal:literal
 """);
         }
 
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/73631")]
         [CombinatorialData]
         public void InterpolatedStringHandlerArgumentAttribute_ThisParameter_InterfaceAndClassConstrainedRefReceiver(
             [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
