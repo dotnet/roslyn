@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -22,7 +22,7 @@ internal class AbstractLspServiceProvider
         _lspServiceFactories = specificLspServiceFactories.ToImmutableArray();
     }
 
-    public LspServices CreateServices(WellKnownLspServerKinds serverKind, ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> baseServices)
+    public LspServices CreateServices(WellKnownLspServerKinds serverKind, FrozenDictionary<string, ImmutableArray<BaseService>> baseServices)
     {
         var lspServices = new LspServices(_lspServices, _lspServiceFactories, serverKind, baseServices);
 

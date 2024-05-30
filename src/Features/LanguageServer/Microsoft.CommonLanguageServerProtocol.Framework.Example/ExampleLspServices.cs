@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
@@ -21,6 +21,13 @@ internal class ExampleLspServices : ILspServices
         _serviceProvider = serviceProvider;
     }
 
+    public T? GetService<T>() where T : notnull
+    {
+        return TryGetService(typeof(T), out var service)
+            ? (T)service
+            : default;
+    }
+
     public T GetRequiredService<T>() where T : notnull
     {
         var service = _serviceProvider.GetRequiredService<T>();
@@ -28,11 +35,11 @@ internal class ExampleLspServices : ILspServices
         return service;
     }
 
-    public object? TryGetService(Type type)
+    public bool TryGetService(Type type, [NotNullWhen(true)] out object? service)
     {
-        var obj = _serviceProvider.GetService(type);
+        service = _serviceProvider.GetService(type);
 
-        return obj;
+        return service is not null;
     }
 
     public IEnumerable<TService> GetServices<TService>()
@@ -49,15 +56,5 @@ internal class ExampleLspServices : ILspServices
         var services = _serviceProvider.GetServices<T>();
 
         return services;
-    }
-
-    public ImmutableArray<Type> GetRegisteredServices()
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool SupportsGetRegisteredServices()
-    {
-        return false;
     }
 }

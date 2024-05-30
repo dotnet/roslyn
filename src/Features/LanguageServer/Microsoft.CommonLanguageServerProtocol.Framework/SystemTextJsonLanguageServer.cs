@@ -15,13 +15,16 @@ using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal abstract class SystemTextJsonLanguageServer<TRequestContext>(JsonRpc jsonRpc, JsonSerializerOptions options, ILspLogger logger) : AbstractLanguageServer<TRequestContext>(jsonRpc, logger)
+internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
+    JsonRpc jsonRpc, JsonSerializerOptions options, ILspLogger logger, AbstractTypeRefResolver? typeRefResolver = null)
+    : AbstractLanguageServer<TRequestContext>(jsonRpc, logger, typeRefResolver)
 {
     /// <summary>
     /// JsonSerializer options used by streamjsonrpc (and for serializing / deserializing the requests to streamjsonrpc).
     /// These options are specifically from the <see cref="StreamJsonRpc.SystemTextJsonFormatter"/> that added the exotic type converters.
     /// </summary>
     private readonly JsonSerializerOptions _jsonSerializerOptions = options;
+
     protected override DelegatingEntryPoint CreateDelegatingEntryPoint(string method, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
     {
         return new SystemTextJsonDelegatingEntryPoint(method, handlersForMethod, this);
@@ -36,7 +39,7 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(JsonRpc js
     private sealed class SystemTextJsonDelegatingEntryPoint(
         string method,
         IGrouping<string, RequestHandlerMetadata> handlersForMethod,
-        SystemTextJsonLanguageServer<TRequestContext> target) : DelegatingEntryPoint(method, handlersForMethod)
+        SystemTextJsonLanguageServer<TRequestContext> target) : DelegatingEntryPoint(method, target.TypeRefResolver, handlersForMethod)
     {
         private static readonly MethodInfo s_parameterlessEntryPoint = typeof(SystemTextJsonDelegatingEntryPoint).GetMethod(nameof(SystemTextJsonDelegatingEntryPoint.ExecuteRequest0Async), BindingFlags.NonPublic | BindingFlags.Instance)!;
         private static readonly MethodInfo s_entryPoint = typeof(SystemTextJsonDelegatingEntryPoint).GetMethod(nameof(SystemTextJsonDelegatingEntryPoint.ExecuteRequestAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;
@@ -82,26 +85,31 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(JsonRpc js
             return serializedResult;
         }
 
-        private static object DeserializeRequest(JsonElement? request, RequestHandlerMetadata metadata, JsonSerializerOptions options)
+        private object DeserializeRequest(JsonElement? request, RequestHandlerMetadata metadata, JsonSerializerOptions options)
         {
-            if (request is null && metadata.RequestType is not null)
+            var requestTypeRef = metadata.RequestTypeRef;
+
+            if (request is null)
             {
-                throw new InvalidOperationException($"Handler {metadata.HandlerDescription} requires request parameters but received none");
+                if (requestTypeRef is not null)
+                {
+                    throw new InvalidOperationException($"Handler {metadata.HandlerDescription} requires request parameters but received none");
+                }
+
+                return NoValue.Instance;
             }
 
-            if (request is not null && metadata.RequestType is null)
+            // request is not null
+            if (requestTypeRef is null)
             {
                 throw new InvalidOperationException($"Handler {metadata.HandlerDescription} does not accept parameters, but received some.");
             }
 
-            object requestObject = NoValue.Instance;
-            if (request is not null)
-            {
-                requestObject = JsonSerializer.Deserialize(request.Value, metadata.RequestType!, options)
-                    ?? throw new InvalidOperationException($"Unable to deserialize {request} into {metadata.RequestType} for {metadata.HandlerDescription}");
-            }
+            var requestType = _typeRefResolver.Resolve(requestTypeRef)
+                ?? throw new InvalidOperationException($"Could not resolve type: '{requestTypeRef}'");
 
-            return requestObject;
+            return JsonSerializer.Deserialize(request.Value, requestType, options)
+                ?? throw new InvalidOperationException($"Unable to deserialize {request} into {requestTypeRef} for {metadata.HandlerDescription}");
         }
     }
 }

@@ -80,8 +80,10 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     logger.LogTrace($".NET Runtime Version: {RuntimeInformation.FrameworkDescription}");
     var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
+    var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
+    var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader, loggerFactory);
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, serverConfiguration.DevKitDependencyPath, loggerFactory);
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, loggerFactory);
 
     // LSP server doesn't have the pieces yet to support 'balanced' mode for source-generators.  Hardcode us to
     // 'automatic' for now.
@@ -131,7 +133,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     // Wait for connection from client
     await pipeServer.WaitForConnectionAsync(cancellationToken);
 
-    var server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, languageServerLogger);
+    var server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, languageServerLogger, typeRefResolver);
     server.Start();
 
     logger.LogInformation("Language server initialized");

@@ -18,7 +18,7 @@ public sealed class TelemetryReporterTests : AbstractLanguageServerHostTests
 
     private async Task<ITelemetryReporter> CreateReporterAsync()
     {
-        var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(TestOutputLogger.Factory, includeDevKitComponents: true, out var _);
+        var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(TestOutputLogger.Factory, includeDevKitComponents: true, out var _, out var _);
 
         // VS Telemetry requires this environment variable to be set.
         Environment.SetEnvironmentVariable("CommonPropertyBagPath", Path.GetTempFileName());

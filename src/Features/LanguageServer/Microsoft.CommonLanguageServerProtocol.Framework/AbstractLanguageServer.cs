@@ -20,6 +20,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 {
     private readonly JsonRpc _jsonRpc;
     protected readonly ILspLogger Logger;
+    protected readonly AbstractTypeRefResolver TypeRefResolver;
 
     /// <summary>
     /// These are lazy to allow implementations to define custom variables that are used by
@@ -54,10 +55,12 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
     protected AbstractLanguageServer(
         JsonRpc jsonRpc,
-        ILspLogger logger)
+        ILspLogger logger,
+        AbstractTypeRefResolver? typeRefResolver)
     {
         Logger = logger;
         _jsonRpc = jsonRpc;
+        TypeRefResolver = typeRefResolver ?? TypeRef.DefaultResolver.Instance;
 
         _jsonRpc.AddLocalRpcTarget(this);
         _jsonRpc.Disconnected += JsonRpc_Disconnected;
@@ -86,7 +89,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         get
         {
             var lspServices = _lspServices.Value;
-            var handlerProvider = new HandlerProvider(lspServices);
+            var handlerProvider = new HandlerProvider(lspServices, TypeRefResolver);
             SetupRequestDispatcher(handlerProvider);
             return handlerProvider;
         }
@@ -108,8 +111,8 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
             // Verify that we are not mixing different numbers of request parameters and responses between different language handlers
             // e.g. it is not allowed to have a method have both a parameterless and regular parameter handler.
-            var requestTypes = methodGroup.Select(m => m.RequestType);
-            var responseTypes = methodGroup.Select(m => m.ResponseType);
+            var requestTypes = methodGroup.Select(m => m.RequestTypeRef);
+            var responseTypes = methodGroup.Select(m => m.ResponseTypeRef);
             if (!AllTypesMatch(requestTypes))
             {
                 throw new InvalidOperationException($"Language specific handlers for {methodGroup.Key} have mis-matched number of parameters:{Environment.NewLine}{string.Join(Environment.NewLine, methodGroup)}");
@@ -127,19 +130,19 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             };
 
             // We verified above that parameters match, set flag if this request has parameters or is parameterless so we can set the entrypoint correctly.
-            var hasParameters = methodGroup.First().RequestType != null;
+            var hasParameters = methodGroup.First().RequestTypeRef != null;
             var entryPoint = delegatingEntryPoint.GetEntryPoint(hasParameters);
             _jsonRpc.AddLocalRpcMethod(entryPoint, delegatingEntryPoint, methodAttribute);
         }
 
-        static bool AllTypesMatch(IEnumerable<Type?> types)
+        static bool AllTypesMatch(IEnumerable<TypeRef?> typeRefs)
         {
-            if (types.All(r => r is null))
+            if (typeRefs.All(r => r is null))
             {
                 return true;
             }
 
-            if (types.All(r => r is not null))
+            if (typeRefs.All(r => r is not null))
             {
                 return true;
             }
@@ -179,20 +182,28 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     protected abstract class DelegatingEntryPoint
     {
         protected readonly string _method;
+        protected readonly AbstractTypeRefResolver _typeRefResolver;
         protected readonly Lazy<FrozenDictionary<string, (MethodInfo MethodInfo, RequestHandlerMetadata Metadata)>> _languageEntryPoint;
 
         private static readonly MethodInfo s_queueExecuteAsyncMethod = typeof(RequestExecutionQueue<TRequestContext>).GetMethod(nameof(RequestExecutionQueue<TRequestContext>.ExecuteAsync))!;
 
-        public DelegatingEntryPoint(string method, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
+        public DelegatingEntryPoint(string method, AbstractTypeRefResolver typeRefResolver, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
         {
             _method = method;
+            _typeRefResolver = typeRefResolver;
             _languageEntryPoint = new Lazy<FrozenDictionary<string, (MethodInfo, RequestHandlerMetadata)>>(() =>
             {
                 var handlerEntryPoints = new Dictionary<string, (MethodInfo, RequestHandlerMetadata)>();
                 foreach (var metadata in handlersForMethod)
                 {
-                    var requestType = metadata.RequestType ?? NoValue.Instance.GetType();
-                    var responseType = metadata.ResponseType ?? NoValue.Instance.GetType();
+                    var noValueType = NoValue.Instance.GetType();
+
+                    var requestType = metadata.RequestTypeRef is TypeRef requestTypeRef
+                        ? _typeRefResolver.Resolve(requestTypeRef) ?? noValueType
+                        : noValueType;
+                    var responseType = metadata.ResponseTypeRef is TypeRef responseTypeRef
+                        ? _typeRefResolver.Resolve(responseTypeRef) ?? noValueType
+                        : noValueType;
                     var methodInfo = s_queueExecuteAsyncMethod.MakeGenericMethod(requestType, responseType);
                     handlerEntryPoints[metadata.Language] = (methodInfo, metadata);
                 }

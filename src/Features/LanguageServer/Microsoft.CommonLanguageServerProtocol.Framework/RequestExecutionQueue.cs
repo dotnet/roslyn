@@ -303,7 +303,11 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
     /// Choose the method handler for the given request. By default this calls the <see cref="AbstractHandlerProvider"/>.
     /// </summary>
     protected virtual IMethodHandler GetHandlerForRequest(IQueueItem<TRequestContext> work)
-        => _handlerProvider.GetMethodHandler(work.MethodName, work.RequestType, work.ResponseType, work.Language);
+        => _handlerProvider.GetMethodHandler(
+            work.MethodName,
+            TypeRef.FromOrNull(work.RequestType),
+            TypeRef.FromOrNull(work.ResponseType),
+            work.Language);
 
     /// <summary>
     /// Provides an extensibility point to log or otherwise inspect errors thrown from non-mutating requests,

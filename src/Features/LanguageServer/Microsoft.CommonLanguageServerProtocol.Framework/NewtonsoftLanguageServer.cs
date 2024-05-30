@@ -19,13 +19,11 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// <summary>
 /// Basic implementation of <see cref="AbstractLanguageServer{TRequestContext}"/> using Newtonsoft for serialization.
 /// </summary>
-internal abstract class NewtonsoftLanguageServer<TRequestContext> : AbstractLanguageServer<TRequestContext>
+internal abstract class NewtonsoftLanguageServer<TRequestContext>(
+    JsonRpc jsonRpc, JsonSerializer jsonSerializer, ILspLogger logger, AbstractTypeRefResolver? typeRefResolver = null)
+    : AbstractLanguageServer<TRequestContext>(jsonRpc, logger, typeRefResolver)
 {
-    private readonly JsonSerializer _jsonSerializer;
-    protected NewtonsoftLanguageServer(JsonRpc jsonRpc, JsonSerializer jsonSerializer, ILspLogger logger) : base(jsonRpc, logger)
-    {
-        _jsonSerializer = jsonSerializer;
-    }
+    private readonly JsonSerializer _jsonSerializer = jsonSerializer;
 
     protected override DelegatingEntryPoint CreateDelegatingEntryPoint(string method, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
     {
@@ -41,7 +39,7 @@ internal abstract class NewtonsoftLanguageServer<TRequestContext> : AbstractLang
     private class NewtonsoftDelegatingEntryPoint(
         string method,
         IGrouping<string, RequestHandlerMetadata> handlersForMethod,
-        NewtonsoftLanguageServer<TRequestContext> target) : DelegatingEntryPoint(method, handlersForMethod)
+        NewtonsoftLanguageServer<TRequestContext> target) : DelegatingEntryPoint(method, target.TypeRefResolver, handlersForMethod)
     {
         private static readonly MethodInfo s_entryPoint = typeof(NewtonsoftDelegatingEntryPoint).GetMethod(nameof(NewtonsoftDelegatingEntryPoint.ExecuteRequestAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;
 
@@ -77,26 +75,31 @@ internal abstract class NewtonsoftLanguageServer<TRequestContext> : AbstractLang
             return JToken.FromObject(result, target._jsonSerializer);
         }
 
-        private static object DeserializeRequest(JToken? request, RequestHandlerMetadata metadata, JsonSerializer jsonSerializer)
+        private object DeserializeRequest(JToken? request, RequestHandlerMetadata metadata, JsonSerializer jsonSerializer)
         {
-            if (request is null && metadata.RequestType is not null)
+            var requestTypeRef = metadata.RequestTypeRef;
+
+            if (request is null)
             {
-                throw new InvalidOperationException($"Handler {metadata.HandlerDescription} requires request parameters but received none");
+                if (requestTypeRef is not null)
+                {
+                    throw new InvalidOperationException($"Handler {metadata.HandlerDescription} requires request parameters but received none");
+                }
+
+                return NoValue.Instance;
             }
 
-            if (request is not null && metadata.RequestType is null)
+            // request is not null
+            if (requestTypeRef is null)
             {
                 throw new InvalidOperationException($"Handler {metadata.HandlerDescription} does not accept parameters, but received some.");
             }
 
-            object requestObject = NoValue.Instance;
-            if (request is not null)
-            {
-                requestObject = request.ToObject(metadata.RequestType, jsonSerializer)
-                    ?? throw new InvalidOperationException($"Unable to deserialize {request} into {metadata.RequestType} for {metadata.HandlerDescription}");
-            }
+            var requestType = _typeRefResolver.Resolve(requestTypeRef)
+                ?? throw new InvalidOperationException($"Could not resolve type: '{requestTypeRef}'");
 
-            return requestObject;
+            return request.ToObject(requestType, jsonSerializer)
+                ?? throw new InvalidOperationException($"Unable to deserialize {request} into {requestTypeRef} for {metadata.HandlerDescription}");
         }
     }
 }

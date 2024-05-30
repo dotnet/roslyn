@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -40,7 +40,8 @@ internal class CustomExportAssemblyLoader(ExtensionAssemblyManager extensionAsse
 
     private Assembly LoadAssembly(AssemblyName assemblyName, string? codeBasePath)
     {
-        _logger.LogTrace($"Loading assembly {assemblyName}");
+        _logger.LogTrace("Loading assembly {assemblyName}", assemblyName);
+
         // First attempt to load the assembly from the default context.
         Exception loadException;
         try
