@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 throw ExceptionUtilities.UnexpectedValue(comp.GetMembers("C.P"));
 
             Assert.True(prop.IsPartialDefinition);
-            Assert.Equal("System.Int32 C.P { get }", prop.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.P { get; }", prop.ToTestDisplayString());
             Assert.Equal("System.Int32 C.P { get; set; }", prop.PartialImplementationPart.ToTestDisplayString());
 
             Assert.True(duplicateProp.IsPartialDefinition);
