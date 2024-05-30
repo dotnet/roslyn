@@ -410,7 +410,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
 
             if (capabilities.HasVisualStudioLspCapability())
             {
-                // The client expects us to return null if there is no message (not an empty string).
                 var expandedMessage = string.IsNullOrEmpty(diagnosticData.Description) ? null : diagnosticData.Description;
 
                 diagnostic.DiagnosticType = diagnosticData.Category;

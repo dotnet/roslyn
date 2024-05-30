@@ -452,7 +452,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var project = this.CurrentSolution.GetRequiredProject(info.Id.ProjectId);
 
-            var extension = _applyChangesProjectFile.GetDocumentExtensionAsync(info.SourceCodeKind, CancellationToken.None).Result;
+            var extension = project.Language switch
+            {
+                LanguageNames.CSharp => ".cs",
+                LanguageNames.VisualBasic => ".vb",
+                _ => throw ExceptionUtilities.UnexpectedValue(project.Language)
+            };
+
             var fileName = Path.ChangeExtension(info.Name, extension);
 
             var relativePath = (info.Folders != null && info.Folders.Count > 0)
@@ -578,19 +584,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     // Since the location of the reference is in GAC, need to use full identity name to find it again.
                     // This typically happens when you base the reference off of a reflection assembly location.
-                    _applyChangesProjectFile.AddMetadataReferenceAsync(identity.GetDisplayName(), metadataReference.Properties, hintPath: null, CancellationToken.None).Wait();
+                    _applyChangesProjectFile.AddMetadataReferenceAsync(identity.GetDisplayName(), metadataReference.Properties.Aliases, hintPath: null, CancellationToken.None).Wait();
                 }
                 else if (IsFrameworkReferenceAssembly(peRef.FilePath))
                 {
                     // just use short name since this will be resolved by msbuild relative to the known framework reference assemblies.
                     var fileName = identity != null ? identity.Name : Path.GetFileNameWithoutExtension(peRef.FilePath);
-                    _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, metadataReference.Properties, hintPath: null, CancellationToken.None).Wait();
+                    _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, metadataReference.Properties.Aliases, hintPath: null, CancellationToken.None).Wait();
                 }
                 else // other location -- need hint to find correct assembly
                 {
                     var relativePath = PathUtilities.GetRelativePath(Path.GetDirectoryName(CurrentSolution.GetRequiredProject(projectId).FilePath)!, peRef.FilePath);
                     var fileName = Path.GetFileNameWithoutExtension(peRef.FilePath);
-                    _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, metadataReference.Properties, relativePath, CancellationToken.None).Wait();
+                    _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, metadataReference.Properties.Aliases, relativePath, CancellationToken.None).Wait();
                 }
             }
 

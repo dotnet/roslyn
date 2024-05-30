@@ -236,7 +236,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             var engine = new FindReferencesSearchEngine(
                 solution,
                 documents: null,
-                ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
+                [.. ReferenceFinders.DefaultReferenceFinders, DelegateInvokeMethodReferenceFinder.Instance],
                 streamingProgress,
                 FindReferencesSearchOptions.Default);
 
@@ -419,8 +419,9 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             source: nodesToUpdate.Keys,
             produceItems: static async (docId, callback, args, cancellationToken) =>
             {
-                var updatedDoc = args.currentSolution.GetRequiredDocument(docId).WithSyntaxRoot(args.updatedRoots[docId]);
-                var cleanupOptions = await updatedDoc.GetCodeCleanupOptionsAsync(args.context.FallbackOptions, cancellationToken).ConfigureAwait(false);
+                var (currentSolution, updatedRoots, context) = args;
+                var updatedDoc = currentSolution.GetRequiredDocument(docId).WithSyntaxRoot(updatedRoots[docId]);
+                var cleanupOptions = await updatedDoc.GetCodeCleanupOptionsAsync(context.FallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, cleanupOptions.AddImportOptions, cancellationToken).ConfigureAwait(false);
                 var reducedDoc = await Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);

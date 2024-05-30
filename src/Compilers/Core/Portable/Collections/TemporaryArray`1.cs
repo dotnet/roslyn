@@ -266,10 +266,28 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         }
 
         /// <summary>
+        /// Create an <see cref="OneOrMany{T}"/> with the elements currently held in the temporary array, and clear the
+        /// array.
+        /// </summary>
+        public OneOrMany<T> ToOneOrManyAndClear()
+        {
+            switch (this.Count)
+            {
+                case 0:
+                    return OneOrMany<T>.Empty;
+                case 1:
+                    var result = OneOrMany.Create(this[0]);
+                    this.Clear();
+                    return result;
+                default:
+                    return new(this.ToImmutableAndClear());
+            }
+        }
+
+        /// <summary>
         /// Create an <see cref="ImmutableArray{T}"/> with the elements currently held in the temporary array, and clear
         /// the array.
         /// </summary>
-        /// <returns></returns>
         public ImmutableArray<T> ToImmutableAndClear()
         {
             if (_builder is not null)

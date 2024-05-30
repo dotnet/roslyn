@@ -395,11 +395,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                 document.Project.Solution.Workspace, codeFixService, document, textSpan,
                 new DefaultCodeActionRequestPriorityProvider(),
-                fallbackOptions, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
+                fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
                 document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, priority: null, fallbackOptions,
-                addOperationScope: _ => null, filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
+                filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
 
             var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(
                 codeFixes, codeRefactorings, textSpan, currentActionCount: 0);

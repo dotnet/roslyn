@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport;
 

@@ -3,17 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Tagging;
-using Microsoft.CodeAnalysis.Editor.LineSeparators;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -22,13 +18,11 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 {
@@ -52,12 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LineSeparatorTaggerProvider(
-            IThreadingContext threadingContext,
-            IEditorFormatMapService editorFormatMapService,
-            IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.LineSeparators))
+            TaggerHost taggerHost,
+            IEditorFormatMapService editorFormatMapService)
+            : base(taggerHost, FeatureAttribute.LineSeparators)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;

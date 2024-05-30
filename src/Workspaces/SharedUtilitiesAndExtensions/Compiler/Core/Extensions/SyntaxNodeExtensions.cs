@@ -861,11 +861,8 @@ internal static partial class SyntaxNodeExtensions
             var conditionalMap = new Dictionary<TDirectiveTriviaSyntax, ImmutableArray<TDirectiveTriviaSyntax>>(
                 DirectiveSyntaxEqualityComparer.Instance);
 
-            using var pooledRegionStack = s_stackPool.GetPooledObject();
-            using var pooledIfStack = s_stackPool.GetPooledObject();
-
-            var regionStack = pooledRegionStack.Object;
-            var ifStack = pooledIfStack.Object;
+            using var _1 = s_stackPool.GetPooledObject(out var regionStack);
+            using var _2 = s_stackPool.GetPooledObject(out var ifStack);
 
             foreach (var token in root.DescendantTokens(descendIntoChildren: static node => node.ContainsDirectives))
             {

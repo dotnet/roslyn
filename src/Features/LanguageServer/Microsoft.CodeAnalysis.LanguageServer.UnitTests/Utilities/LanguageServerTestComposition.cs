@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -33,6 +31,7 @@ internal sealed class LanguageServerTestComposition
             ExtensionAssemblyPaths: [],
             DevKitDependencyPath: devKitDependencyPath,
             RazorSourceGenerator: null,
+            RazorDesignTimePath: null,
             ExtensionLogDirectory: string.Empty);
         var extensionAssemblyManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
         return ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyManager, devKitDependencyPath, loggerFactory: loggerFactory);

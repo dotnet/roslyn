@@ -680,6 +680,14 @@ namespace Roslyn.Test.Utilities
 
             var expectedString = string.Join(itemSeparator, expected.Take(10).Select(itemInspector));
             var actualString = string.Join(itemSeparator, actual.Select(itemInspector));
+            var diffString = DiffUtil.DiffReport(expected, actual, itemSeparator, comparer, itemInspector);
+
+            if (DifferOnlyInWhitespace(expectedString, actualString))
+            {
+                expectedString = VisualizeWhitespace(expectedString);
+                actualString = VisualizeWhitespace(actualString);
+                diffString = VisualizeWhitespace(diffString);
+            }
 
             var message = new StringBuilder();
 
@@ -699,7 +707,7 @@ namespace Roslyn.Test.Utilities
             message.AppendLine("Actual:");
             message.AppendLine(actualString);
             message.AppendLine("Differences:");
-            message.AppendLine(DiffUtil.DiffReport(expected, actual, itemSeparator, comparer, itemInspector));
+            message.AppendLine(diffString);
 
             if (TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out var link))
             {
@@ -707,6 +715,38 @@ namespace Roslyn.Test.Utilities
             }
 
             return message.ToString();
+        }
+
+        private static bool DifferOnlyInWhitespace(IEnumerable<char> expected, IEnumerable<char> actual)
+            => expected.Where(c => !char.IsWhiteSpace(c)).SequenceEqual(actual.Where(c => !char.IsWhiteSpace(c)));
+
+        private static string VisualizeWhitespace(string str)
+        {
+            var result = new StringBuilder(str.Length);
+
+            var i = 0;
+            while (i < str.Length)
+            {
+                var c = str[i++];
+                if (c == '\r' && i < str.Length && str[i] == '\n')
+                {
+                    result.Append("␍␊\r\n");
+                    i++;
+                }
+                else
+                {
+                    result.Append(c switch
+                    {
+                        ' ' => "·",
+                        '\t' => "→",
+                        '\r' => "␍\r",
+                        '\n' => "␊\n",
+                        _ => c,
+                    });
+                }
+            }
+
+            return result.ToString();
         }
 
         public static string GetAssertMessage<T>(

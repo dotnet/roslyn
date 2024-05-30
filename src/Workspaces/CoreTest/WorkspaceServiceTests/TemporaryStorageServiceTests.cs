@@ -98,10 +98,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 handle = service.WriteToTemporaryStorage(stream1, CancellationToken.None);
             }
 
-            using (var stream2 = handle.ReadFromTemporaryStorage(CancellationToken.None))
-            {
-                Assert.Equal(0, stream2.Length);
-            }
+            using var stream2 = handle.ReadFromTemporaryStorage(CancellationToken.None);
+            Assert.Equal(0, stream2.Length);
         }
 
         [ConditionalFact(typeof(WindowsOnly))]

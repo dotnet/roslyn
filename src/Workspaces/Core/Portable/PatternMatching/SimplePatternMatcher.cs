@@ -4,9 +4,7 @@
 
 #nullable disable
 
-using System;
 using System.Globalization;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.PatternMatching;

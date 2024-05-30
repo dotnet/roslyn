@@ -21,7 +21,6 @@ using static RegexHelpers;
 using RegexAlternatingSequenceList = EmbeddedSeparatedSyntaxNodeList<RegexKind, RegexNode, RegexSequenceNode>;
 using RegexNodeOrToken = EmbeddedSyntaxNodeOrToken<RegexKind, RegexNode>;
 using RegexToken = EmbeddedSyntaxToken<RegexKind>;
-using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
 
 /// <summary>
 /// Produces a <see cref="RegexTree"/> from a sequence of <see cref="VirtualChar"/> characters.

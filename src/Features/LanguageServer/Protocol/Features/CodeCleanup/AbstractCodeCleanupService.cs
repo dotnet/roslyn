@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 shouldIncludeDiagnostic: static diagnosticId => !(IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId)),
                 includeCompilerDiagnostics: true, includeSuppressedDiagnostics: false,
                 priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
-                addOperationScope: null, DiagnosticKind.All, isExplicit: false,
+                DiagnosticKind.All, isExplicit: false,
                 cancellationToken).ConfigureAwait(false));
 
             // ensure more than just known diagnostics were returned

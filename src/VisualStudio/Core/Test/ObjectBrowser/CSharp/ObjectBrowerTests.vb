@@ -728,12 +728,17 @@ $"    {String.Format(ServicesVSResources.Member_of_0, "UnsafeC")}")
 using System.Collections.Generic;
 class C
 {
-    T M&lt;T, U, V&gt;()
+    T M1&lt;T, U, V&gt;()
         where T : class, new()
         where U : V
         where V : List&lt;T&gt;
     {
         return null;
+    }
+
+    void M2&lt;T&gt;(T t)
+        where T : IDisposable, allows ref struct
+    {
     }
 }
 </Code>
@@ -744,12 +749,19 @@ class C
                 list = list.GetTypeList(0)
                 list = list.GetMemberList(0)
 
-                list.VerifyImmediateMemberDescriptions(
-"private T M<T, U, V>()" & vbCrLf &
+                Dim memberDescription1 =
+"private T M1<T, U, V>()" & vbCrLf &
 vbTab & "where T : class, new()" & vbCrLf &
 vbTab & "where U : V" & vbCrLf &
 vbTab & "where V : System.Collections.Generic.List<T>" & vbCrLf &
-$"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}"
+
+                Dim memberDescription2 =
+"private void M2<T>(T t)" & vbCrLf &
+vbTab & "where T : IDisposable, allows ref struct" & vbCrLf &
+$"    {String.Format(ServicesVSResources.Member_of_0, "C")}"
+
+                list.VerifyImmediateMemberDescriptions(memberDescription1, memberDescription2)
             End Using
         End Sub
 

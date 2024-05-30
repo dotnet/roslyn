@@ -1,9 +1,11 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.140.1/containers/dotnetcore
 {
-  "name": "C# (.NET 8)",
+  "name": "C# (.NET 9)",
   "build": {
     "dockerfile": "Dockerfile",
+    // Set the context to the workspace folder to allow us to copy files from it.
+    "context": ".."
   },
   "customizations": {
     "vscode": {

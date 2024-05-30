@@ -182,55 +182,47 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void WritableStream_SetLength1()
         {
-            using (var expected = new MemoryStream())
-            {
-                expected.WriteByte(1);
-                expected.SetLength(10000);
-                expected.WriteByte(2);
-                expected.SetLength(1);
-                var expectedPosition = expected.Position;
-                expected.Position = 0;
+            using var expected = new MemoryStream();
+            expected.WriteByte(1);
+            expected.SetLength(10000);
+            expected.WriteByte(2);
+            expected.SetLength(1);
+            var expectedPosition = expected.Position;
+            expected.Position = 0;
 
-                using (var stream = SerializableBytes.CreateWritableStream())
-                {
-                    stream.WriteByte(1);
-                    stream.SetLength(10000);
-                    stream.WriteByte(2);
-                    stream.SetLength(1);
+            using var stream = SerializableBytes.CreateWritableStream();
+            stream.WriteByte(1);
+            stream.SetLength(10000);
+            stream.WriteByte(2);
+            stream.SetLength(1);
 
-                    StreamEqual(expected, stream);
-                    Assert.Equal(expectedPosition, stream.Position);
-                }
-            }
+            StreamEqual(expected, stream);
+            Assert.Equal(expectedPosition, stream.Position);
         }
 
         [Fact]
         public void WritableStream_SetLength2()
         {
-            using (var expected = new MemoryStream())
-            {
-                expected.WriteByte(1);
-                expected.SetLength(10000);
-                expected.Position = 10000 - 1;
-                expected.WriteByte(2);
-                expected.SetLength(SharedPools.ByteBufferSize);
-                expected.WriteByte(3);
-                var expectedPosition = expected.Position;
-                expected.Position = 0;
+            using var expected = new MemoryStream();
+            expected.WriteByte(1);
+            expected.SetLength(10000);
+            expected.Position = 10000 - 1;
+            expected.WriteByte(2);
+            expected.SetLength(SharedPools.ByteBufferSize);
+            expected.WriteByte(3);
+            var expectedPosition = expected.Position;
+            expected.Position = 0;
 
-                using (var stream = SerializableBytes.CreateWritableStream())
-                {
-                    stream.WriteByte(1);
-                    stream.SetLength(10000);
-                    stream.Position = 10000 - 1;
-                    stream.WriteByte(2);
-                    stream.SetLength(SharedPools.ByteBufferSize);
-                    stream.WriteByte(3);
+            using var stream = SerializableBytes.CreateWritableStream();
+            stream.WriteByte(1);
+            stream.SetLength(10000);
+            stream.Position = 10000 - 1;
+            stream.WriteByte(2);
+            stream.SetLength(SharedPools.ByteBufferSize);
+            stream.WriteByte(3);
 
-                    StreamEqual(expected, stream);
-                    Assert.Equal(expectedPosition, stream.Position);
-                }
-            }
+            StreamEqual(expected, stream);
+            Assert.Equal(expectedPosition, stream.Position);
         }
 
         private static void WriteByte(Stream expected, Stream stream, int position, int value)

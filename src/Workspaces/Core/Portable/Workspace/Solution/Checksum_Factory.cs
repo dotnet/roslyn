@@ -85,25 +85,57 @@ internal readonly partial record struct Checksum
     }
 
     public static Checksum Create(ArrayBuilder<Checksum> checksums)
-        => Create(checksums, static (checksums, writer) =>
+    {
+        // Max alloc 1 KB on stack
+        const int maxStackAllocCount = 1024 / Checksum.HashSize;
+
+        var checksumsCount = checksums.Count;
+        if (checksumsCount <= maxStackAllocCount)
         {
-            foreach (var checksum in checksums)
-                checksum.WriteTo(writer);
-        });
+            Span<Checksum> hashes = stackalloc Checksum[checksumsCount];
+            for (var i = 0; i < checksumsCount; i++)
+                hashes[i] = checksums[i];
+
+            return Create(hashes);
+        }
+        else
+        {
+            using var pooledHash = s_incrementalHashPool.GetPooledObject();
+            Span<Checksum> checksumsSpan = stackalloc Checksum[maxStackAllocCount];
+            var checksumsIndex = 0;
+
+            while (checksumsIndex < checksumsCount)
+            {
+                var count = Math.Min(maxStackAllocCount, checksumsCount - checksumsIndex);
+
+                for (var checksumsSpanIndex = 0; checksumsSpanIndex < count; checksumsSpanIndex++, checksumsIndex++)
+                    checksumsSpan[checksumsSpanIndex] = checksums[checksumsIndex];
+
+                var hashSpan = checksumsSpan.Slice(0, count);
+                pooledHash.Object.Append(MemoryMarshal.AsBytes(hashSpan));
+            }
+
+            Span<byte> hash = stackalloc byte[XXHash128SizeBytes];
+            pooledHash.Object.GetHashAndReset(hash);
+            return From(hash);
+        }
+    }
 
     public static Checksum Create(ImmutableArray<Checksum> checksums)
-        => Create(checksums, static (checksums, writer) =>
-        {
-            foreach (var checksum in checksums)
-                checksum.WriteTo(writer);
-        });
+    {
+        var hashes = ImmutableCollectionsMarshal.AsArray(checksums).AsSpan();
+
+        return Create(hashes);
+    }
 
     public static Checksum Create(ImmutableArray<byte> bytes)
-        => Create(bytes, static (bytes, writer) =>
-        {
-            foreach (var b in bytes)
-                writer.WriteByte(b);
-        });
+    {
+        var source = ImmutableCollectionsMarshal.AsArray(bytes).AsSpan();
+
+        Span<byte> destination = stackalloc byte[XXHash128SizeBytes];
+        XxHash128.Hash(source, destination);
+        return From(destination);
+    }
 
     public static Checksum Create<T>(T value, ISerializerService serializer, CancellationToken cancellationToken)
         => Create(

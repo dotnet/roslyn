@@ -1844,7 +1844,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_FieldsInRoStruct
                 or ErrorCode.ERR_AutoPropsInRoStruct
                 or ErrorCode.ERR_FieldlikeEventsInRoStruct
-                or ErrorCode.ERR_RefStructInterfaceImpl
                 or ErrorCode.ERR_BadSpecialByRefIterator
                 or ErrorCode.ERR_FieldAutoPropCantBeByRefLike
                 or ErrorCode.ERR_StackAllocConversionNotPossible
@@ -2444,7 +2443,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_BadYieldInLock
                 or ErrorCode.ERR_BadYieldInUnsafe
                 or ErrorCode.ERR_AddressOfInIterator
-
+                or ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics
+                or ErrorCode.ERR_RefStructConstraintAlreadySpecified
+                or ErrorCode.ERR_AllowsClauseMustBeLast
+                or ErrorCode.ERR_ClassIsCombinedWithRefStruct
+                or ErrorCode.ERR_NotRefStructConstraintNotSatisfied
+                or ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember
+                or ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike
+                or ErrorCode.ERR_BadAllowByRefLikeEnumerator
                 or ErrorCode.ERR_PartialPropertyMissingImplementation
                 or ErrorCode.ERR_PartialPropertyMissingDefinition
                 or ErrorCode.ERR_PartialPropertyDuplicateDefinition
