@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -109,7 +110,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 if (documentUri is null || !trackedDocuments.ContainsKey(documentUri))
                 {
-                    return notificationManager.SendRequestAsync(GetWorkspaceRefreshName(), cancellationToken);
+                    try
+                    {
+                        return notificationManager.SendRequestAsync(GetWorkspaceRefreshName(), cancellationToken);
+                    }
+                    catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
+                    {
+                        // It is possible that we shutdown while these requests are running.
+                        // If so there is nothing to do - just no-op.
+                        // Requests not yet running requests will be cancelled when the LSP service is disposed during shutdown.
+                        return ValueTaskFactory.CompletedTask;
+                    }
                 }
             }
 
