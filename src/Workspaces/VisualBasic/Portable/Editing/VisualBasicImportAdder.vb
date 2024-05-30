@@ -203,16 +203,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
             End Function
 
             Private Sub ProduceConflicts(node As SimpleNameSyntax, addConflict As Action(Of INamespaceSymbol), cancellationToken As CancellationToken)
-                Dim Symbol = _model.GetSymbolInfo(node, cancellationToken).GetAnySymbol()
-                If (Symbol?.Kind = SymbolKind.NamedType) Then
-                    For Each conflictingSymbol In _importedTypesAndNamespaces.Item((Symbol.Name, node.Arity))
-                        addConflict(conflictingSymbol)
-                    Next
+                For Each conflictingSymbol In _importedTypesAndNamespaces.Item((node.Identifier.ValueText, node.Arity))
+                    addConflict(conflictingSymbol)
+                Next
 
-                    For Each conflictingSymbol In _importedMembers.Item(Symbol.Name)
-                        addConflict(conflictingSymbol)
-                    Next
-                End If
+                For Each conflictingSymbol In _importedMembers.Item(node.Identifier.ValueText)
+                    addConflict(conflictingSymbol)
+                Next
             End Sub
 
             Private Sub ProduceConflicts(node As MemberAccessExpressionSyntax, containsAnonymousMethods As Boolean, addConflict As Action(Of INamespaceSymbol), cancellationToken As CancellationToken)
