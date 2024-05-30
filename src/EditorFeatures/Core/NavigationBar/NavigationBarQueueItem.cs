@@ -4,7 +4,7 @@
 
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.NavigationBar;
+namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar;
 
 /// <param name="FrozenPartialSemantics">Indicates if we should compute with frozen partial semantics or
 /// not.</param>
