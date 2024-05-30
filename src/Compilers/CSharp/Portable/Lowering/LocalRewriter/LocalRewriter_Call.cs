@@ -686,7 +686,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         refKind = rewrittenReceiver.GetRefKind();
 
                         if (refKind == RefKind.None &&
-                            !rewrittenReceiver.Type.IsReferenceType &&
                             Binder.HasHome(rewrittenReceiver,
                                            Binder.AddressKind.Constrained,
                                            _factory.CurrentFunction,
