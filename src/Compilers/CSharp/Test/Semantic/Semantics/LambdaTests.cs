@@ -3809,9 +3809,21 @@ class BAttribute : Attribute
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (6,2): error CS0181: Attribute constructor parameter 'a' has type 'Action', which is not a valid attribute parameter type
+                // (6,11): error CS1003: Syntax error, ',' expected
                 // [A([B] () => { })]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("a", "System.Action").WithLocation(6, 2));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 11),
+                // (6,16): error CS1026: ) expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(6, 16),
+                // (6,16): error CS1003: Syntax error, ']' expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]").WithLocation(6, 16),
+                // (6,16): error CS1022: Type or namespace definition, or end-of-file expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 16),
+                // (6,17): error CS1022: Type or namespace definition, or end-of-file expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(6, 17));
         }
 
         [Fact]
