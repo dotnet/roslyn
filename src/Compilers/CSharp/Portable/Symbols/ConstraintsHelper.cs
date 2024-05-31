@@ -723,11 +723,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // metadata and be instantiated in C#.  We check to see if that's happened.
         private static bool HasDuplicateInterfaces(NamedTypeSymbol type, ConsList<TypeSymbol> basesBeingResolved)
         {
-            if (type.OriginalDefinition is SourceNamedTypeSymbol)
-            {
-                return false;
-            }
-
             // PERF: avoid instantiating all interfaces here
             //       Ex: if class implements just IEnumerable<> and IComparable<> it cannot have conflicting implementations
             var array = type.OriginalDefinition.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
