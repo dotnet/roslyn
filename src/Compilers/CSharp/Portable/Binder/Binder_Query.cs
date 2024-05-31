@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var fromClause = node.FromClause;
             var boundFromExpression = BindLeftOfPotentialColorColorMemberAccess(fromClause.Expression, diagnostics);
 
-            ReportFieldOrValueContextualKeywordConflictIfAny(fromClause, fromClause.Identifier.Text, diagnostics);
+            ReportFieldOrValueContextualKeywordConflictIfAny(fromClause, fromClause.Identifier, diagnostics);
 
             // If the from expression is of the type dynamic we can't infer the types for any lambdas that occur in the query.
             // Only if there are none we could bind the query but we report an error regardless since such queries are not useful.
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     from ... into x ...
                 // is translated into
                 //     from x in ( from ... ) ...
-                ReportFieldOrValueContextualKeywordConflictIfAny(continuation, continuation.Identifier.Text, diagnostics);
+                ReportFieldOrValueContextualKeywordConflictIfAny(continuation, continuation.Identifier, diagnostics);
                 x = PrepareQueryTranslationStateForContinuation(state, continuation, diagnostics);
                 state.fromExpression = result;
 
@@ -382,10 +382,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var inExpression = BindRValueWithoutTargetType(join.InExpression, diagnostics);
 
-            ReportFieldOrValueContextualKeywordConflictIfAny(join, join.Identifier.Text, diagnostics);
+            ReportFieldOrValueContextualKeywordConflictIfAny(join, join.Identifier, diagnostics);
             if (join.Into is { })
             {
-                ReportFieldOrValueContextualKeywordConflictIfAny(join.Into, join.Into.Identifier.Text, diagnostics);
+                ReportFieldOrValueContextualKeywordConflictIfAny(join.Into, join.Into.Identifier, diagnostics);
             }
 
             // If the from expression is of the type dynamic we can't infer the types for any lambdas that occur in the query.
@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return lambdaBodyBinder.CreateLambdaBlockForQueryClause(let.Expression, construction, d);
             };
 
-            ReportFieldOrValueContextualKeywordConflictIfAny(let, let.Identifier.Text, diagnostics);
+            ReportFieldOrValueContextualKeywordConflictIfAny(let, let.Identifier, diagnostics);
 
             var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x), let.Expression, bodyFactory, diagnostics.AccumulatesDependencies);
             state.rangeVariable = state.TransparentRangeVariable(this);

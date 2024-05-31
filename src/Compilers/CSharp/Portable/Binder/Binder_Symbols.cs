@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasExplicitNames = true;
                     CheckTupleMemberName(name, i, nameToken, diagnostics, uniqueFieldNames);
                     locations.Add(nameToken.GetLocation());
-                    ReportFieldOrValueContextualKeywordConflictIfAny(argumentSyntax, nameToken.Text, diagnostics);
+                    ReportFieldOrValueContextualKeywordConflictIfAny(argumentSyntax, nameToken, diagnostics);
                 }
                 else
                 {
@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = LookupResult.GetInstance();
             LookupOptions options = GetSimpleNameLookupOptions(node, node.Identifier.IsVerbatimIdentifier());
 
-            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier.Text, diagnostics);
+            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteInfo: ref useSiteInfo);
@@ -1256,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics);
             }
 
-            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier.Text, diagnostics);
+            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
 
             return TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(node.TypeArgumentList.GreaterThanToken), resultType);
         }

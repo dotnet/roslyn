@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_syntax is ForEachStatementSyntax forEachStatement)
             {
-                ReportFieldOrValueContextualKeywordConflictIfAny(forEachStatement, forEachStatement.Identifier.Text, diagnostics);
+                ReportFieldOrValueContextualKeywordConflictIfAny(forEachStatement, forEachStatement.Identifier, diagnostics);
             }
 
             // Use the right binder to avoid seeing iteration variable

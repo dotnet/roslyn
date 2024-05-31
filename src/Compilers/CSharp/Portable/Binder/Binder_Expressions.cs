@@ -1598,7 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (symbol is not SynthesizedAccessorValueParameterSymbol { Name: "value" })
                 {
-                    ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier.Text, diagnostics);
+                    ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
                 }
             }
             else
@@ -1737,8 +1737,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal void ReportFieldOrValueContextualKeywordConflictIfAny(SyntaxNode syntax, string name, BindingDiagnosticBag diagnostics)
+        /// <summary>
+        /// Report a diagnostic for a 'field' or 'value' identifier that the meaning will
+        /// change when the identifier is considered a contextual keyword.
+        /// </summary>
+        internal void ReportFieldOrValueContextualKeywordConflictIfAny(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
         {
+            string name = identifier.Text;
             switch (name)
             {
                 case "field" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } }:
@@ -3114,7 +3119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
             TypeSyntax typeSyntax = declarationExpression.Type;
 
-            ReportFieldOrValueContextualKeywordConflictIfAny(designation, designation.Identifier.Text, diagnostics);
+            ReportFieldOrValueContextualKeywordConflictIfAny(designation, designation.Identifier, diagnostics);
 
             // Is this a local?
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
@@ -7550,7 +7555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             boundLeft = MakeMemberAccessValue(boundLeft, diagnostics);
 
-            ReportFieldOrValueContextualKeywordConflictIfAny(right, right.Identifier.Text, diagnostics);
+            ReportFieldOrValueContextualKeywordConflictIfAny(right, right.Identifier, diagnostics);
 
             TypeSymbol leftType = boundLeft.Type;
 
