@@ -101,7 +101,7 @@ internal partial class NavigationBarController : IDisposable
         _visibilityTracker = visibilityTracker;
         _uiThreadOperationExecutor = uiThreadOperationExecutor;
         _asyncListener = asyncListener;
-        _nonFrozenComputationCancellationSeries = new(threadingContext.DisposalToken);
+        _nonFrozenComputationCancellationSeries = new(_cancellationTokenSource.Token);
 
         _computeModelQueue = new AsyncBatchingWorkQueue<NavigationBarQueueItem, NavigationBarModel?>(
             DelayTimeSpan.Medium,
