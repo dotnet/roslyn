@@ -3783,6 +3783,51 @@ public partial class C
         }
 
         [Fact]
+        public void PropertyInitializer_ContainsErrors()
+        {
+            var source = """
+                partial class C
+                {
+                    public partial string P1 { get; set; } = ERROR;
+                    public partial string P1 { get => ""; set { } }
+
+                    public partial string P2 { get; set; }
+                    public partial string P2 { get => ""; set { } } = ERROR;
+
+                    public partial string P3 { get; set; } = ERROR;
+                    public partial string P3 { get => ""; set { } } = ERROR;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,27): error CS8050: Only auto-implemented properties can have initializers.
+                //     public partial string P1 { get; set; } = ERROR;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 27),
+                // (3,46): error CS0103: The name 'ERROR' does not exist in the current context
+                //     public partial string P1 { get; set; } = ERROR;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(3, 46),
+                // (7,27): error CS8050: Only auto-implemented properties can have initializers.
+                //     public partial string P2 { get => ""; set { } } = ERROR;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(7, 27),
+                // (7,55): error CS0103: The name 'ERROR' does not exist in the current context
+                //     public partial string P2 { get => ""; set { } } = ERROR;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(7, 55),
+                // (9,27): error CS8050: Only auto-implemented properties can have initializers.
+                //     public partial string P3 { get; set; } = ERROR;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(9, 27),
+                // (9,46): error CS0103: The name 'ERROR' does not exist in the current context
+                //     public partial string P3 { get; set; } = ERROR;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(9, 46),
+                // (10,27): error CS8050: Only auto-implemented properties can have initializers.
+                //     public partial string P3 { get => ""; set { } } = ERROR;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(10, 27),
+                // (10,55): error CS0103: The name 'ERROR' does not exist in the current context
+                //     public partial string P3 { get => ""; set { } } = ERROR;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(10, 55));
+        }
+
+        [Fact]
         public void PropertyInitializer_AndFieldTargetedAttribute()
         {
             // A synthesized field symbol is created when property has an initializer, even if the property is not an auto-property.
@@ -4585,7 +4630,7 @@ public partial class C
                 partial class C
                 {
                     public partial int this[int p1] { get; set; }
-                    public partial int this[int p2] { get => p2; set { } }
+                    public partial int this[int p2] { get => p2; set => p2.ToString(); }
 
                     static void Main()
                     {
@@ -4606,6 +4651,75 @@ public partial class C
                 var indexer = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
                 Assert.Equal("p1", indexer.Parameters.Single().Name);
             }
+        }
+
+        /// <remarks>See also <cref name="DocumentationCommentCompilerTests.PartialIndexer_Paramref_03"/></remarks>
+        [Fact]
+        public void IndexerParameterNameDifference_Attributes()
+        {
+            var source = """
+                using System;
+
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                public class Attr(string s) : Attribute { } // 1 (unread parameter)
+
+                partial class C
+                {
+                    [Attr(nameof(p1))]
+                    [Attr(nameof(p2))] // 2
+                    public partial int this[int p1]
+                    {
+                        get;
+
+                        [param: Attr(nameof(p1))] // 3
+                        [param: Attr(nameof(p2))]
+                        set;
+                    }
+
+                    [Attr(nameof(p1))]
+                    [Attr(nameof(p2))] // 4
+                    public partial int this[int p2] // 5
+                    {
+                        get => p2;
+
+                        [param: Attr(nameof(p1))] // 6
+                        [param: Attr(nameof(p2))]
+                        set => p2.ToString();
+                    }
+
+                    [Attr(nameof(p1))]
+                    [Attr(nameof(p2))] // 7
+                    public partial void M(int p1);
+                    public partial void M(int p2) { } // 8
+                }
+                """;
+
+            var verifier = CreateCompilation(source);
+            verifier.VerifyDiagnostics(
+                // (4,26): warning CS9113: Parameter 's' is unread.
+                // public class Attr(string s) : Attribute { } // 1 (unread parameter)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "s").WithArguments("s").WithLocation(4, 26),
+                // (9,18): error CS0103: The name 'p2' does not exist in the current context
+                //     [Attr(nameof(p2))] // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(9, 18),
+                // (14,29): error CS0103: The name 'p1' does not exist in the current context
+                //         [param: Attr(nameof(p1))] // 3
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(14, 29),
+                // (20,18): error CS0103: The name 'p2' does not exist in the current context
+                //     [Attr(nameof(p2))] // 4
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(20, 18),
+                // (21,24): warning CS9256: Partial property declarations 'int C.this[int p1]' and 'int C.this[int p2]' have signature differences.
+                //     public partial int this[int p2] // 5
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("int C.this[int p1]", "int C.this[int p2]").WithLocation(21, 24),
+                // (25,29): error CS0103: The name 'p1' does not exist in the current context
+                //         [param: Attr(nameof(p1))] // 6
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(25, 29),
+                // (31,18): error CS0103: The name 'p2' does not exist in the current context
+                //     [Attr(nameof(p2))] // 7
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(31, 18),
+                // (33,25): warning CS8826: Partial method declarations 'void C.M(int p1)' and 'void C.M(int p2)' have signature differences.
+                //     public partial void M(int p2) { } // 8
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void C.M(int p1)", "void C.M(int p2)").WithLocation(33, 25));
         }
 
         [Fact]
