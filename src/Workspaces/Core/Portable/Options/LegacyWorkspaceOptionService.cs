@@ -44,7 +44,7 @@ internal sealed class LegacyGlobalOptionService(IGlobalOptionService globalOptio
 
     /// <summary>
     /// Sets values of options that may be stored in <see cref="Solution.Options"/> (public options).
-    /// Clears <see cref="SolutionOptionSet"/> of registered workspaces so that next time
+    /// Clears <see cref="LegacySolutionOptionSet"/> of registered workspaces so that next time
     /// <see cref="Solution.Options"/> are queried for the options new values are fetched from 
     /// <see cref="GlobalOptionService"/>.
     /// </summary>
