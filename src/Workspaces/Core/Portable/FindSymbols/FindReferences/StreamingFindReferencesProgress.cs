@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 /// Wraps an <see cref="IFindReferencesProgress"/> into an <see cref="IStreamingFindReferencesProgress"/>
 /// so it can be used from the new streaming find references APIs.
 /// </summary>
-internal class StreamingFindReferencesProgressAdapter : IStreamingFindReferencesProgress
+internal sealed class StreamingFindReferencesProgressAdapter : IStreamingFindReferencesProgress
 {
     private readonly IFindReferencesProgress _progress;
 
@@ -58,7 +59,7 @@ internal class StreamingFindReferencesProgressAdapter : IStreamingFindReferences
         foreach (var (_, symbol, location) in references)
             _progress.OnReferenceFound(symbol, location);
 
-        return default;
+        return ValueTaskFactory.CompletedTask;
     }
 
     public ValueTask OnStartedAsync(CancellationToken cancellationToken)

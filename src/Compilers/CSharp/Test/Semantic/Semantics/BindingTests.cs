@@ -2210,12 +2210,12 @@ class C<T> : System.Attribute { }";
     partial void I.M();
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
-                // (3,20): error CS0754: A partial method may not explicitly implement an interface method
+                // (3,20): error CS0754: A partial member may not explicitly implement an interface member
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(3, 20),
-                // (3,20): error CS0751: A partial method must be declared within a partial type
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "M").WithLocation(3, 20),
+                // (3,20): error CS0751: A partial member must be declared within a partial type
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(3, 20),
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(3, 20),
                 // (3,20): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     partial void I.M();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("default interface implementation", "8.0").WithLocation(3, 20),

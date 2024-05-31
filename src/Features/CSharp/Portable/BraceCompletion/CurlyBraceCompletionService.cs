@@ -8,33 +8,24 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 
-[Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-internal class CurlyBraceCompletionService : AbstractCurlyBraceOrBracketCompletionService
+[ExportBraceCompletionService(LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class CurlyBraceCompletionService() : AbstractCurlyBraceOrBracketCompletionService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CurlyBraceCompletionService()
-    {
-    }
-
     protected override char OpeningBrace => CurlyBrace.OpenCharacter;
 
     protected override char ClosingBrace => CurlyBrace.CloseCharacter;

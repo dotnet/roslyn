@@ -26,6 +26,13 @@ internal static class IAsyncEnumerableExtensions
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    internal static async IAsyncEnumerable<T> SingletonAsync<T>(T value)
+    {
+        yield return value;
+    }
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+
     public static async Task<ImmutableArray<T>> ToImmutableArrayAsync<T>(this IAsyncEnumerable<T> values, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<T>.GetInstance(out var result);

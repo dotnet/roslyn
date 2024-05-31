@@ -6,16 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -32,7 +31,7 @@ internal interface IRemoteFindUsagesService
         ValueTask ReportInformationalMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken);
         ValueTask SetSearchTitleAsync(RemoteServiceCallbackId callbackId, string title, CancellationToken cancellationToken);
         ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableDefinitionItem definition, CancellationToken cancellationToken);
-        ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSourceReferenceItem reference, CancellationToken cancellationToken);
+        ValueTask OnReferencesFoundAsync(RemoteServiceCallbackId callbackId, ImmutableArray<SerializableSourceReferenceItem> references, CancellationToken cancellationToken);
     }
 
     ValueTask FindReferencesAsync(
@@ -73,8 +72,8 @@ internal sealed class FindUsagesServerCallbackDispatcher : RemoteServiceCallback
     public ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableDefinitionItem definition, CancellationToken cancellationToken)
         => GetCallback(callbackId).OnDefinitionFoundAsync(definition, cancellationToken);
 
-    public ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSourceReferenceItem reference, CancellationToken cancellationToken)
-        => GetCallback(callbackId).OnReferenceFoundAsync(reference, cancellationToken);
+    public ValueTask OnReferencesFoundAsync(RemoteServiceCallbackId callbackId, ImmutableArray<SerializableSourceReferenceItem> references, CancellationToken cancellationToken)
+        => GetCallback(callbackId).OnReferencesFoundAsync(references, cancellationToken);
 
     public ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken)
         => GetCallback(callbackId).ReportMessageAsync(message, cancellationToken);
@@ -131,16 +130,22 @@ internal sealed class FindUsagesServerCallback(Solution solution, IFindUsagesCon
         }
     }
 
-    public async ValueTask OnReferenceFoundAsync(SerializableSourceReferenceItem reference, CancellationToken cancellationToken)
+    public async ValueTask OnReferencesFoundAsync(ImmutableArray<SerializableSourceReferenceItem> references, CancellationToken cancellationToken)
     {
         try
         {
-            var rehydrated = await reference.RehydrateAsync(_solution, GetDefinition(reference.DefinitionId), cancellationToken).ConfigureAwait(false);
-            await _context.OnReferenceFoundAsync(rehydrated, cancellationToken).ConfigureAwait(false);
+            await _context.OnReferencesFoundAsync(ConvertAsync(references, cancellationToken), cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
         {
             throw ExceptionUtilities.Unreachable();
+        }
+
+        async IAsyncEnumerable<SourceReferenceItem> ConvertAsync(
+            ImmutableArray<SerializableSourceReferenceItem> references, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            foreach (var reference in references)
+                yield return await reference.RehydrateAsync(_solution, GetDefinition(reference.DefinitionId), cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -184,7 +189,7 @@ internal readonly struct SerializableDefinitionItem(
     ImmutableArray<SerializableDocumentSpan> sourceSpans,
     ImmutableArray<AssemblyLocation> metadataLocations,
     ImmutableDictionary<string, string> properties,
-    ImmutableDictionary<string, string> displayableProperties,
+    ImmutableArray<(string key, string value)> displayableProperties,
     bool displayIfNoReferences)
 {
     [DataMember(Order = 0)]
@@ -209,7 +214,7 @@ internal readonly struct SerializableDefinitionItem(
     public readonly ImmutableDictionary<string, string> Properties = properties;
 
     [DataMember(Order = 7)]
-    public readonly ImmutableDictionary<string, string> DisplayableProperties = displayableProperties;
+    public readonly ImmutableArray<(string key, string value)> DisplayableProperties = displayableProperties;
 
     [DataMember(Order = 8)]
     public readonly bool DisplayIfNoReferences = displayIfNoReferences;
@@ -247,8 +252,6 @@ internal readonly struct SerializableDefinitionItem(
 internal readonly struct SerializableClassifiedSpansAndHighlightSpan(
     SerializableClassifiedSpans classifiedSpans, TextSpan highlightSpan)
 {
-    private static readonly ObjectPool<SegmentedList<ClassifiedSpan>> s_listPool = new(() => new());
-
     [DataMember(Order = 0)]
     public readonly SerializableClassifiedSpans ClassifiedSpans = classifiedSpans;
 
@@ -259,11 +262,7 @@ internal readonly struct SerializableClassifiedSpansAndHighlightSpan(
         => new(SerializableClassifiedSpans.Dehydrate(classifiedSpansAndHighlightSpan.ClassifiedSpans), classifiedSpansAndHighlightSpan.HighlightSpan);
 
     public ClassifiedSpansAndHighlightSpan Rehydrate()
-    {
-        using var pooledObject = s_listPool.GetPooledObject();
-        this.ClassifiedSpans.Rehydrate(pooledObject.Object);
-        return new ClassifiedSpansAndHighlightSpan(pooledObject.Object.ToImmutableArray(), this.HighlightSpan);
-    }
+        => new(this.ClassifiedSpans.Rehydrate(), this.HighlightSpan);
 }
 
 [DataContract]
@@ -272,7 +271,7 @@ internal readonly struct SerializableSourceReferenceItem(
     SerializableDocumentSpan sourceSpan,
     SerializableClassifiedSpansAndHighlightSpan classifiedSpans,
     SymbolUsageInfo symbolUsageInfo,
-    ImmutableDictionary<string, string> additionalProperties)
+    ImmutableArray<(string key, string value)> additionalProperties)
 {
     [DataMember(Order = 0)]
     public readonly int DefinitionId = definitionId;
@@ -287,7 +286,7 @@ internal readonly struct SerializableSourceReferenceItem(
     public readonly SymbolUsageInfo SymbolUsageInfo = symbolUsageInfo;
 
     [DataMember(Order = 4)]
-    public readonly ImmutableDictionary<string, string> AdditionalProperties = additionalProperties;
+    public readonly ImmutableArray<(string key, string value)> AdditionalProperties = additionalProperties;
 
     public static SerializableSourceReferenceItem Dehydrate(int definitionId, SourceReferenceItem item)
         => new(definitionId,
@@ -302,5 +301,5 @@ internal readonly struct SerializableSourceReferenceItem(
                await SourceSpan.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false),
                this.ClassifiedSpans.Rehydrate(),
                SymbolUsageInfo,
-               AdditionalProperties.ToImmutableDictionary(t => t.Key, t => t.Value));
+               AdditionalProperties);
 }

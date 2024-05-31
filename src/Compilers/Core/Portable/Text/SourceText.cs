@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Text
             if (stream.CanSeek)
             {
                 // If the resulting string would end up on the large object heap, then use LargeEncodedText.
-                if (encoding.GetMaxCharCountOrThrowIfHuge(stream) >= LargeObjectHeapLimitInChars)
+                if (GetMaxCharCountOrThrowIfHuge(encoding, stream) >= LargeObjectHeapLimitInChars)
                 {
                     return LargeText.Decode(stream, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded);
                 }
@@ -1049,7 +1049,9 @@ namespace Microsoft.CodeAnalysis.Text
                 return [0];
             }
 
-            var lineStarts = new SegmentedList<int>()
+            // Initial line capacity estimated at 64 chars / line. This value was obtained by
+            // looking at ratios in large files in the roslyn repo.
+            var lineStarts = new SegmentedList<int>(Length / 64)
             {
                 0 // there is always the first line
             };
@@ -1259,6 +1261,22 @@ namespace Microsoft.CodeAnalysis.Text
                     // do nothing
                 }
             }
+        }
+
+        /// <summary>
+        /// Get maximum char count needed to decode the entire stream.
+        /// </summary>
+        /// <exception cref="IOException">Stream is so big that max char count can't fit in <see cref="int"/>.</exception> 
+        internal static int GetMaxCharCountOrThrowIfHuge(Encoding encoding, Stream stream)
+        {
+            Debug.Assert(stream.CanSeek);
+
+            if (encoding.TryGetMaxCharCount(stream.Length, out int maxCharCount))
+            {
+                return maxCharCount;
+            }
+
+            throw new IOException(CodeAnalysisResources.StreamIsTooLong);
         }
     }
 }

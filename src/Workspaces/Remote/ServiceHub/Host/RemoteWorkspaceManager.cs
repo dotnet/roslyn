@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </list>
         /// </remarks>
         internal static readonly RemoteWorkspaceManager Default = new(
-            workspace => new SolutionAssetCache(workspace, cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(1)));
+            workspace => new SolutionAssetCache(workspace, cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1)));
 
         private readonly RemoteWorkspace _workspace;
         internal readonly SolutionAssetCache SolutionAssetCache;

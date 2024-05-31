@@ -156,20 +156,18 @@ internal partial class AbstractSyntaxIndex<TIndex>
         {
             var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
 
-            using (var stream = SerializableBytes.CreateWritableStream())
+            using var stream = SerializableBytes.CreateWritableStream();
+            using (var gzipStream = new GZipStream(stream, CompressionLevel.Optimal, leaveOpen: true))
+            using (var writer = new ObjectWriter(gzipStream, leaveOpen: true))
             {
-                using (var gzipStream = new GZipStream(stream, CompressionLevel.Optimal, leaveOpen: true))
-                using (var writer = new ObjectWriter(gzipStream, leaveOpen: true))
-                {
-                    WriteTo(writer);
-                    gzipStream.Flush();
-                }
-
-                stream.Position = 0;
-
-                var documentKey = DocumentKey.ToDocumentKey(ProjectKey.ToProjectKey(solutionKey, project), document);
-                return await storage.WriteStreamAsync(documentKey, s_persistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
+                WriteTo(writer);
+                gzipStream.Flush();
             }
+
+            stream.Position = 0;
+
+            var documentKey = DocumentKey.ToDocumentKey(ProjectKey.ToProjectKey(solutionKey, project), document);
+            return await storage.WriteStreamAsync(documentKey, s_persistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (IOUtilities.IsNormalIOException(e))
         {

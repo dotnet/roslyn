@@ -7,28 +7,20 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 
-[Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-internal class BracketBraceCompletionService : AbstractCurlyBraceOrBracketCompletionService
+[ExportBraceCompletionService(LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class BracketBraceCompletionService() : AbstractCurlyBraceOrBracketCompletionService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public BracketBraceCompletionService()
-    {
-    }
-
     protected override char OpeningBrace => Bracket.OpenCharacter;
 
     protected override char ClosingBrace => Bracket.CloseCharacter;

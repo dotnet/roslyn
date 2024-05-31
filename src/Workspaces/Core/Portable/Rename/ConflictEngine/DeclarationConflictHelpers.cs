@@ -55,6 +55,7 @@ internal static class DeclarationConflictHelpers
         {
             if (signatureToConflictingMember.TryGetValue(signature, out var conflictingSymbol))
             {
+                // https://github.com/dotnet/roslyn/issues/73772: add other partial property part as conflicting symbol
                 if (isMethod && conflictingSymbol is IMethodSymbol conflictingMethod && renamedMember is IMethodSymbol renamedMethod)
                 {
                     if (!(conflictingMethod.PartialDefinitionPart != null && Equals(conflictingMethod.PartialDefinitionPart, renamedMethod)) &&

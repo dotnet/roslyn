@@ -1558,5 +1558,32 @@ class P
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538886")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestCSharp_PartialProperty1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+namespace ConsoleApplication22
+{
+    class Program
+    {
+        public static partial int {|Definition:Prop|} { get; }
+        public static partial int {|Definition:P$$rop|} => 1;
+
+        static void Main(string[] args)
+        {
+            int temp = Program.[|Prop|];
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

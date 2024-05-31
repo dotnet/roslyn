@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
                 Dim service = document.GetLanguageService(Of INavigationBarItemService)()
                 Dim actualItems = Await service.GetItemsAsync(
-                    document, workspaceSupportsDocumentChanges:=True, forceFrozenPartialSemanticsForCrossProcessOperations:=False, snapshot.Version, Nothing)
+                    document, workspaceSupportsDocumentChanges:=True, frozenPartialSemantics:=False, snapshot.Version, Nothing)
 
                 AssertEqual(expectedItems, actualItems, document.GetLanguageService(Of ISyntaxFactsService)().IsCaseSensitive)
             End Using
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
                 Dim service = document.GetLanguageService(Of INavigationBarItemService)()
                 Dim items = Await service.GetItemsAsync(
-                    document, workspaceSupportsDocumentChanges:=True, forceFrozenPartialSemanticsForCrossProcessOperations:=False, snapshot.Version, Nothing)
+                    document, workspaceSupportsDocumentChanges:=True, frozenPartialSemantics:=False, snapshot.Version, Nothing)
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim model As New NavigationBarModel(service, items)
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim service = document.GetLanguageService(Of INavigationBarItemService)()
 
                 Dim items = Await service.GetItemsAsync(
-                    document, workspaceSupportsDocumentChanges:=True, forceFrozenPartialSemanticsForCrossProcessOperations:=False, snapshot.Version, Nothing)
+                    document, workspaceSupportsDocumentChanges:=True, frozenPartialSemantics:=False, snapshot.Version, Nothing)
 
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
                 Dim rightItem = selectRightItem(leftItem.ChildItems)
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
                 Dim service = DirectCast(sourceDocument.GetLanguageService(Of INavigationBarItemService)(), AbstractEditorNavigationBarItemService)
                 Dim items = Await service.GetItemsAsync(
-                    sourceDocument, workspaceSupportsDocumentChanges:=True, forceFrozenPartialSemanticsForCrossProcessOperations:=False, snapshot.Version, Nothing)
+                    sourceDocument, workspaceSupportsDocumentChanges:=True, frozenPartialSemantics:=False, snapshot.Version, Nothing)
 
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
                 Dim rightItem = leftItem.ChildItems.Single(Function(i) i.Text = rightItemToSelectText)

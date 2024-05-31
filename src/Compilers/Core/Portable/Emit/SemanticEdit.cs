@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
+            // https://github.com/dotnet/roslyn/issues/73772: should we also do this check for partial properties?
             if (oldSymbol is IMethodSymbol { PartialImplementationPart: not null })
             {
                 throw new ArgumentException("Partial method implementation required", nameof(oldSymbol));

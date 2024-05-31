@@ -5,26 +5,18 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Xaml;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Roslyn.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
-using Microsoft.VisualStudio.LanguageServices.Xaml.Telemetry;
 using Microsoft.VisualStudio.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {

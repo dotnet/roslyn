@@ -49,19 +49,30 @@ internal sealed class RemoveRedundantEqualityCodeFixProvider() : ForkingSyntaxEd
 
         SyntaxNode RewriteNode()
         {
+            if (syntaxFacts.IsBinaryExpression(node))
+            {
+                syntaxFacts.GetPartsOfBinaryExpression(node, out var left, out var right);
+                var rewritten =
+                    properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Right ? left :
+                    properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Left ? right : node;
+
+                if (properties.ContainsKey(RedundantEqualityConstants.Negate))
+                    rewritten = generator.Negate(generatorInternal, rewritten, semanticModel, cancellationToken);
+
+                return rewritten;
+            }
+            else if (syntaxFacts.IsIsPatternExpression(node))
+            {
+                syntaxFacts.GetPartsOfIsPatternExpression(node, out var left, out _, out var right);
+                var rewritten = left;
+                if (properties.ContainsKey(RedundantEqualityConstants.Negate))
+                    rewritten = generator.Negate(generatorInternal, rewritten, semanticModel, cancellationToken);
+
+                return rewritten;
+            }
+
             // This should happen only in error cases.
-            if (!syntaxFacts.IsBinaryExpression(node))
-                return node;
-
-            syntaxFacts.GetPartsOfBinaryExpression(node, out var left, out var right);
-            var rewritten =
-                properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Right ? left :
-                properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Left ? right : node;
-
-            if (properties.ContainsKey(RedundantEqualityConstants.Negate))
-                rewritten = generator.Negate(generatorInternal, rewritten, semanticModel, cancellationToken);
-
-            return rewritten;
+            return node;
         }
 
         static SyntaxNode WithElasticTrailingTrivia(SyntaxNode node)
