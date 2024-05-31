@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +11,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -47,6 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private ImmutableArray<PENamedTypeSymbol> _lazyFlattenedTypes;
 
+        /// <summary>
+        /// All namespace and type members in a flat array
+        /// </summary>
+        private ImmutableArray<NamespaceOrTypeSymbol> _lazyFlattenedNamespacesAndTypes;
+
         internal sealed override NamespaceExtent Extent
         {
             get
@@ -63,20 +68,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             EnsureAllMembersLoaded();
 
-            var memberTypes = GetMemberTypesPrivate();
+            var memberNamespacesAndTypes = GetMemberNamespacesAndTypesPrivate();
 
-            if (lazyNamespaces.Count == 0)
-                return StaticCast<Symbol>.From(memberTypes);
+            return StaticCast<Symbol>.From(memberNamespacesAndTypes);
+        }
 
-            var builder = ArrayBuilder<Symbol>.GetInstance(memberTypes.Length + lazyNamespaces.Count);
-
-            builder.AddRange(memberTypes);
-            foreach (var pair in lazyNamespaces)
+        private ImmutableArray<NamespaceOrTypeSymbol> GetMemberNamespacesAndTypesPrivate()
+        {
+            if (_lazyFlattenedNamespacesAndTypes.IsDefault)
             {
-                builder.Add(pair.Value);
+                if (lazyNamespaces.Count == 0)
+                {
+                    var flattenedTypes = StaticCast<NamespaceOrTypeSymbol>.From(GetMemberTypesPrivate());
+                    ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedNamespacesAndTypes, flattenedTypes);
+                }
+                else
+                {
+                    ArrayBuilder<NamespaceOrTypeSymbol> builder = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
+
+                    foreach (var kvp in lazyNamespaces)
+                    {
+                        builder.Add(kvp.Value);
+                    }
+
+                    foreach (var kvp in lazyTypes)
+                    {
+                        builder.AddRange(kvp.Value);
+                    }
+
+                    ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedNamespacesAndTypes, builder.ToImmutableAndFree());
+                }
             }
 
-            return builder.ToImmutableAndFree();
+            return _lazyFlattenedNamespacesAndTypes;
         }
 
         private ImmutableArray<NamedTypeSymbol> GetMemberTypesPrivate()
