@@ -108,8 +108,13 @@ internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interf
                 return implementationType;
             }
 
-            var interfaceMappings = baseType.GetInterfaces().Select(type => (type, IReadOnlyDictionaryExtensions.GetValueOrDefault(_interfaceMapping, type))).Where(pair => pair.Item2 is not null)!.ToImmutableArray<(Type? codeGenerationInterface, Type compilerInterface)>();
-            var allRemainingInterfacesToImplement = interfaceMappings.SelectMany(x => x.compilerInterface.GetInterfaces()).Distinct().Where(x => !interfaceMappings.Any(mapping => x == mapping.compilerInterface)).Select(x => (codeGenerationInterface: (Type?)null, compilerInterface: x));
+            var baseTypeInterfaces = baseType.GetInterfaces();
+            var interfaceMappings = baseTypeInterfaces.Select(type => (type, IReadOnlyDictionaryExtensions.GetValueOrDefault(_interfaceMapping, type))).Where(pair => pair.Item2 is not null)!.ToImmutableArray<(Type? codeGenerationInterface, Type compilerInterface)>();
+            var allRemainingInterfacesToImplement = interfaceMappings
+                .SelectMany(x => x.compilerInterface.GetInterfaces())
+                .Distinct()
+                .Where(x => !baseTypeInterfaces.Contains(x) && !interfaceMappings.Any(mapping => x == mapping.compilerInterface))
+                .Select(x => (codeGenerationInterface: (Type?)null, compilerInterface: x));
             interfaceMappings = interfaceMappings.AddRange(allRemainingInterfacesToImplement);
 
             var moduleBuilder = CreateModuleBuilder(baseType.Assembly);
