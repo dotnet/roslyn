@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the syntax list of custom attributes applied on the symbol.
         /// </summary>
-        protected abstract SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList { get; }
+        protected abstract OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations();
 
         protected abstract IAttributeTargetSymbol AttributeOwner { get; }
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return bag;
             }
 
-            if (LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
+            if (LoadAndValidateAttributes(this.GetAttributeDeclarations(), ref _lazyCustomAttributesBag))
             {
                 var completed = state.NotePartComplete(CompletionPart.Attributes);
                 Debug.Assert(completed);

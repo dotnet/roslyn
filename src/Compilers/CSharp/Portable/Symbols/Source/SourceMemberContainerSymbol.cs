@@ -3574,78 +3574,169 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             memberNames.AddRange(membersByName.Keys);
 
             //key and value will be the same object
-            var methodsBySignature = new Dictionary<MethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.PartialMethodsComparer);
+            var membersBySignature = new Dictionary<Symbol, Symbol>(MemberSignatureComparer.PartialMethodsComparer);
 
             foreach (var name in memberNames)
             {
-                methodsBySignature.Clear();
+                membersBySignature.Clear();
                 foreach (var symbol in membersByName[name])
                 {
-                    var method = symbol as SourceMemberMethodSymbol;
-                    if (method is null || !method.IsPartial)
+                    if (!symbol.IsPartialMember())
                     {
-                        continue; // only partial methods need to be merged
+                        continue;
                     }
 
-                    if (methodsBySignature.TryGetValue(method, out var prev))
+                    if (!membersBySignature.TryGetValue(symbol, out var prev))
                     {
-                        var prevPart = (SourceOrdinaryMethodSymbol)prev;
-                        var methodPart = (SourceOrdinaryMethodSymbol)method;
-
-                        if (methodPart.IsPartialImplementation &&
-                            (prevPart.IsPartialImplementation || (prevPart.OtherPartOfPartial is MethodSymbol otherImplementation && (object)otherImplementation != methodPart)))
-                        {
-                            // A partial method may not have multiple implementing declarations
-                            diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyOneActual, methodPart.GetFirstLocation());
-                        }
-                        else if (methodPart.IsPartialDefinition &&
-                                 (prevPart.IsPartialDefinition || (prevPart.OtherPartOfPartial is MethodSymbol otherDefinition && (object)otherDefinition != methodPart)))
-                        {
-                            // A partial method may not have multiple defining declarations
-                            diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyOneLatent, methodPart.GetFirstLocation());
-                        }
-                        else
-                        {
-                            if ((object)membersByName == _lazyEarlyAttributeDecodingMembersDictionary)
-                            {
-                                // Avoid mutating the cached dictionary and especially avoid doing this possibly on multiple threads in parallel.
-                                membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
-                            }
-
-                            membersByName[name] = FixPartialMember(membersByName[name], prevPart, methodPart);
-                        }
+                        membersBySignature.Add(symbol, symbol);
+                        continue;
                     }
-                    else
+
+                    switch (symbol, prev)
                     {
-                        methodsBySignature.Add(method, method);
+                        case (SourceOrdinaryMethodSymbol currentMethod, SourceOrdinaryMethodSymbol prevMethod):
+                            mergePartialMethods(ref membersByName, name, currentMethod, prevMethod, diagnostics);
+                            break;
+
+                        case (SourcePropertySymbol currentProperty, SourcePropertySymbol prevProperty):
+                            mergePartialProperties(ref membersByName, name, currentProperty, prevProperty, diagnostics);
+                            break;
+
+                        case (SourcePropertyAccessorSymbol, SourcePropertyAccessorSymbol):
+                            break; // accessor symbols and their diagnostics are handled by processing the associated property
+
+                        default:
+                            // This is an error scenario. We simply don't merge the symbols in this case and a duplicate name diagnostic is reported separately.
+                            // One way this case can be reached is if type contains both `public partial int P { get; }` and `public partial int P_get();`.
+                            Debug.Assert(symbol is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol);
+                            Debug.Assert(prev is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol);
+                            break;
                     }
                 }
 
-                foreach (SourceOrdinaryMethodSymbol method in methodsBySignature.Values)
+                foreach (var symbol in membersBySignature.Values)
                 {
-                    // partial implementations not paired with a definition
-                    if (method.IsPartialImplementation && method.OtherPartOfPartial is null)
+                    switch (symbol)
                     {
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.GetFirstLocation(), method);
-                    }
-                    else if (method is { IsPartialDefinition: true, OtherPartOfPartial: null, HasExplicitAccessModifier: true })
-                    {
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.GetFirstLocation(), method);
+                        case SourceOrdinaryMethodSymbol method:
+                            // partial implementations not paired with a definition
+                            if (method.IsPartialImplementation && method.OtherPartOfPartial is null)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.GetFirstLocation(), method);
+                            }
+                            else if (method is { IsPartialDefinition: true, OtherPartOfPartial: null, HasExplicitAccessModifier: true })
+                            {
+                                diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.GetFirstLocation(), method);
+                            }
+                            break;
+
+                        case SourcePropertySymbol property:
+                            if (property.OtherPartOfPartial is null)
+                            {
+                                diagnostics.Add(
+                                    property.IsPartialDefinition ? ErrorCode.ERR_PartialPropertyMissingImplementation : ErrorCode.ERR_PartialPropertyMissingDefinition,
+                                    property.GetFirstLocation(),
+                                    property);
+                            }
+                            break;
+
+                        case SourcePropertyAccessorSymbol:
+                            break; // diagnostics for missing partial accessors are handled in 'mergePartialProperties'.
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(symbol);
                     }
                 }
             }
 
             memberNames.Free();
+
+            void mergePartialMethods(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, ReadOnlyMemory<char> name, SourceOrdinaryMethodSymbol currentMethod, SourceOrdinaryMethodSymbol prevMethod, BindingDiagnosticBag diagnostics)
+            {
+                if (currentMethod.IsPartialImplementation &&
+                    (prevMethod.IsPartialImplementation || (prevMethod.OtherPartOfPartial is MethodSymbol otherImplementation && (object)otherImplementation != currentMethod)))
+                {
+                    // A partial method may not have multiple implementing declarations
+                    diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyOneActual, currentMethod.GetFirstLocation());
+                }
+                else if (currentMethod.IsPartialDefinition &&
+                    (prevMethod.IsPartialDefinition || (prevMethod.OtherPartOfPartial is MethodSymbol otherDefinition && (object)otherDefinition != currentMethod)))
+                {
+                    // A partial method may not have multiple defining declarations
+                    diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyOneLatent, currentMethod.GetFirstLocation());
+                }
+                else
+                {
+                    if ((object)membersByName == _lazyEarlyAttributeDecodingMembersDictionary)
+                    {
+                        // Avoid mutating the cached dictionary and especially avoid doing this possibly on multiple threads in parallel.
+                        membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
+                    }
+
+                    membersByName[name] = FixPartialMember(membersByName[name], prevMethod, currentMethod);
+                }
+            }
+
+            void mergePartialProperties(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, ReadOnlyMemory<char> name, SourcePropertySymbol currentProperty, SourcePropertySymbol prevProperty, BindingDiagnosticBag diagnostics)
+            {
+                if (currentProperty.IsPartialImplementation &&
+                    (prevProperty.IsPartialImplementation || (prevProperty.OtherPartOfPartial is SourcePropertySymbol otherImplementation && (object)otherImplementation != currentProperty)))
+                {
+                    diagnostics.Add(ErrorCode.ERR_PartialPropertyDuplicateImplementation, currentProperty.GetFirstLocation());
+                }
+                else if (currentProperty.IsPartialDefinition &&
+                    (prevProperty.IsPartialDefinition || (prevProperty.OtherPartOfPartial is SourcePropertySymbol otherDefinition && (object)otherDefinition != currentProperty)))
+                {
+                    diagnostics.Add(ErrorCode.ERR_PartialPropertyDuplicateDefinition, currentProperty.GetFirstLocation());
+                }
+                else
+                {
+                    var (currentGet, prevGet) = ((SourcePropertyAccessorSymbol?)currentProperty.GetMethod, (SourcePropertyAccessorSymbol?)prevProperty.GetMethod);
+                    if (currentGet != null || prevGet != null)
+                    {
+                        var accessorName = (currentGet ?? prevGet)!.Name.AsMemory();
+                        mergeAccessors(ref membersByName, accessorName, currentGet, prevGet);
+                    }
+
+                    var (currentSet, prevSet) = ((SourcePropertyAccessorSymbol?)currentProperty.SetMethod, (SourcePropertyAccessorSymbol?)prevProperty.SetMethod);
+                    if (currentSet != null || prevSet != null)
+                    {
+                        var accessorName = (currentSet ?? prevSet)!.Name.AsMemory();
+                        mergeAccessors(ref membersByName, accessorName, currentSet, prevSet);
+                    }
+
+                    if ((object)membersByName == _lazyEarlyAttributeDecodingMembersDictionary)
+                    {
+                        // Avoid mutating the cached dictionary and especially avoid doing this possibly on multiple threads in parallel.
+                        membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
+                    }
+
+                    membersByName[name] = FixPartialMember(membersByName[name], prevProperty, currentProperty);
+                }
+
+                void mergeAccessors(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, ReadOnlyMemory<char> name, SourcePropertyAccessorSymbol? currentAccessor, SourcePropertyAccessorSymbol? prevAccessor)
+                {
+                    Debug.Assert(currentAccessor != null || prevAccessor != null);
+                    if (currentAccessor != null && prevAccessor != null)
+                    {
+                        var implementationAccessor = currentProperty.IsPartialDefinition ? prevAccessor : currentAccessor;
+                        membersByName[name] = Remove(membersByName[name], implementationAccessor);
+                    }
+                    else
+                    {
+                        var (foundAccessor, containingProperty, otherProperty) = prevAccessor != null ? (prevAccessor, prevProperty, currentProperty) : (currentAccessor!, currentProperty, prevProperty);
+                        // When an accessor is present on definition but not on implementation, the accessor is said to be missing on the implementation.
+                        // When an accessor is present on implementation but not on definition, the accessor is said to be unexpected on the implementation.
+                        var (errorCode, propertyToBlame) = foundAccessor.IsPartialDefinition
+                            ? (ErrorCode.ERR_PartialPropertyMissingAccessor, otherProperty)
+                            : (ErrorCode.ERR_PartialPropertyUnexpectedAccessor, containingProperty);
+                        diagnostics.Add(errorCode, propertyToBlame.GetFirstLocation(), foundAccessor);
+                    }
+                }
+            }
         }
 
-        /// <summary>
-        /// Fix up a partial method by combining its defining and implementing declarations, updating the array of symbols (by name),
-        /// and returning the combined symbol.
-        /// </summary>
-        /// <param name="symbols">The symbols array containing both the latent and implementing declaration</param>
-        /// <param name="part1">One of the two declarations</param>
-        /// <param name="part2">The other declaration</param>
-        /// <returns>An updated symbols array containing only one method symbol representing the two parts</returns>
+        /// <summary>Links together the definition and implementation parts of a partial method. Returns a member list which has the implementation part removed.</summary>
         private static ImmutableArray<Symbol> FixPartialMember(ImmutableArray<Symbol> symbols, SourceOrdinaryMethodSymbol part1, SourceOrdinaryMethodSymbol part2)
         {
             SourceOrdinaryMethodSymbol definition;
@@ -3664,6 +3755,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceOrdinaryMethodSymbol.InitializePartialMethodParts(definition, implementation);
 
             // a partial method is represented in the member list by its definition part:
+            return Remove(symbols, implementation);
+        }
+
+        /// <summary>Links together the definition and implementation parts of a partial property. Returns a member list which has the implementation part removed.</summary>
+        private static ImmutableArray<Symbol> FixPartialMember(ImmutableArray<Symbol> symbols, SourcePropertySymbol part1, SourcePropertySymbol part2)
+        {
+            SourcePropertySymbol definition;
+            SourcePropertySymbol implementation;
+            if (part1.IsPartialDefinition)
+            {
+                definition = part1;
+                implementation = part2;
+            }
+            else
+            {
+                definition = part2;
+                implementation = part1;
+            }
+
+            SourcePropertySymbol.InitializePartialPropertyParts(definition, implementation);
+
+            // a partial property is represented in the member list by its definition part:
             return Remove(symbols, implementation);
         }
 

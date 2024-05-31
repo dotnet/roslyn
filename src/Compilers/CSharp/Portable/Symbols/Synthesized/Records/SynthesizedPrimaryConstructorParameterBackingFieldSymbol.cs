@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override Location ErrorLocation
             => ParameterSymbol.TryGetFirstLocation() ?? NoLocation.Singleton;
 
-        protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-            => default;
+        protected override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+            => OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
 
         public override Symbol? AssociatedSymbol
             => null;

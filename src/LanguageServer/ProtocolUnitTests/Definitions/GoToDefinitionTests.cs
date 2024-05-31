@@ -180,6 +180,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/vscode-csharp/issues/5740")]
+        public async Task TestGotoDefinitionPartialProperties(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                using System;
+
+                public partial class C
+                {
+                    partial int {|caret:|}Prop { get; set; }
+                }
+
+                public partial class C
+                {
+                    partial int {|definition:Prop|} { get => 1; set { } }
+                }
+                """;
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+        }
+
         [Theory]
         [InlineData("ValueTuple<int> valueTuple1;")]
         [InlineData("ValueTuple<int, int> valueTuple2;")]
