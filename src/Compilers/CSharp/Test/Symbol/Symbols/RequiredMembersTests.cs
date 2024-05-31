@@ -79,7 +79,7 @@ public class RequiredMembersTests : CSharpTestBase
                 var peMethod = (PEMethodSymbol)ctor;
                 var decoder = new MetadataDecoder(peModule, peMethod);
                 var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peMethod.Handle, decoder,
-                    ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false, ignoreExtensionMarker: false);
+                    ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false);
 
                 string? unsupportedCompilerFeatureToken = peModule.Module.GetFirstUnsupportedCompilerFeatureFromToken(peMethod.Handle, decoder, CompilerFeatureRequiredFeatures.None);
 

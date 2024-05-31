@@ -1196,15 +1196,13 @@ namespace Microsoft.CodeAnalysis
 
         internal const string ByRefLikeMarker = "Types with embedded references are not supported in this version of your compiler.";
         internal const string RequiredMembersMarker = "Constructors of types with required members are not supported in this version of your compiler.";
-        internal const string ExtensionMarker = "Extension types are not supported in this version of your compiler.";
 
         /// <remarks>Should be kept in sync with <see cref="IsMoreImportantObsoleteKind(ObsoleteAttributeKind, ObsoleteAttributeKind)"/></remarks>
         internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute(
             EntityHandle token,
             IAttributeNamedArgumentDecoder decoder,
             bool ignoreByRefLikeMarker,
-            bool ignoreRequiredMemberMarker,
-            bool ignoreExtensionMarker)
+            bool ignoreRequiredMemberMarker)
         {
             AttributeInfo info;
 
@@ -1223,8 +1221,6 @@ namespace Microsoft.CodeAnalysis
                     case ByRefLikeMarker when ignoreByRefLikeMarker:
                         return null;
                     case RequiredMembersMarker when ignoreRequiredMemberMarker:
-                        return null;
-                    case ExtensionMarker when ignoreExtensionMarker:
                         return null;
                 }
                 return obsoleteData;
@@ -1251,7 +1247,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Indicates whether the first attribute should be prioritized over the second one.
         /// Same order of priority as
-        ///   <see cref="TryGetDeprecatedOrExperimentalOrObsoleteAttribute(EntityHandle, IAttributeNamedArgumentDecoder, bool, bool, bool)"/>
+        ///   <see cref="TryGetDeprecatedOrExperimentalOrObsoleteAttribute(EntityHandle, IAttributeNamedArgumentDecoder, bool, bool)"/>
         /// </summary>
         internal static bool IsMoreImportantObsoleteKind(ObsoleteAttributeKind firstKind, ObsoleteAttributeKind secondKind)
         {
@@ -1386,7 +1382,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     nameof(CompilerFeatureRequiredFeatures.RefStructs) => CompilerFeatureRequiredFeatures.RefStructs,
                     nameof(CompilerFeatureRequiredFeatures.RequiredMembers) => CompilerFeatureRequiredFeatures.RequiredMembers,
-                    nameof(CompilerFeatureRequiredFeatures.ExtensionTypes) => CompilerFeatureRequiredFeatures.ExtensionTypes,
                     _ => CompilerFeatureRequiredFeatures.None,
                 };
         }

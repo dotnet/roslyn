@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 public class ExtensionTypeTests : CompilingTestBase
 {
     private static readonly string[] objectStaticSymbols = [
-        "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
-        "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+        "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+        "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
 
     private static readonly string[] objectSymbols = [
         .. objectStaticSymbols,
-        "System.String? System.Object.ToString()",
-        "System.Boolean System.Object.Equals(System.Object? obj)",
+        "System.String System.Object.ToString()",
+        "System.Boolean System.Object.Equals(System.Object obj)",
         "System.Int32 System.Object.GetHashCode()",
         "System.Type System.Object.GetType()"];
 
@@ -211,7 +211,7 @@ public class ExtensionTypeTests : CompilingTestBase
                     Diagnostic(ErrorCode.ERR_UnexpectedParameterList, "(int i)").WithLocation(1, 21));
             }
 
-            var comp = CreateCompilation(src, parseOptions: parseOptions, targetFramework: TargetFramework.Net70)
+            var comp = CreateCompilation(src, parseOptions: parseOptions)
                 .VerifyEmitDiagnostics(diagnostics.ToArray());
         }
     }
@@ -245,13 +245,12 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension R for UnderlyingClas
     public static int operator-(UnderlyingClass c, R r) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-            targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
         // PROTOTYPE need to finalize the rules for operators (conversion and others)
         // PROTOTYPE constructor and destructor
         comp.VerifyDiagnostics();
 
-        var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         verifier.VerifyIL($$"""R.{{ExtensionMarkerName(isExplicit)}}(UnderlyingClass)""", """
 {
   // Code size        1 (0x1)
@@ -263,7 +262,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension R for UnderlyingClas
         var src2 = """
 explicit extension R2 for UnderlyingClass : R { }
 """;
-        var comp2 = CreateCompilation(src2, references: new[] { AsReference(comp, useImageReference) }, targetFramework: TargetFramework.Net70);
+        var comp2 = CreateCompilation(src2, references: new[] { AsReference(comp, useImageReference) });
         comp2.VerifyDiagnostics(
             // (1,43): error CS8000: This language feature ('base extensions') is not yet implemented.
             // explicit extension R2 for UnderlyingClass : R { }
@@ -291,12 +290,7 @@ explicit extension R2 for UnderlyingClass : R { }
 
             if (!inSource)
             {
-                AssertSetStrictlyEqual(
-                    [
-                        """System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute("ExtensionTypes")""",
-                        """System.ObsoleteAttribute("Extension types are not supported in this version of your compiler.", true)""",
-                        """System.Reflection.DefaultMemberAttribute("Item")"""
-                    ],
+                AssertSetStrictlyEqual(["""System.Reflection.DefaultMemberAttribute("Item")"""],
                     GetAttributeStrings(r.GetAttributes()).ToArray());
             }
 
@@ -323,10 +317,10 @@ explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -337,34 +331,13 @@ explicit extension R for UnderlyingClass
     }
 
     [Fact]
-    public void ForClass_Net7()
-    {
-        var src = """
-class UnderlyingClass { }
-explicit extension R for UnderlyingClass { }
-""";
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
-
-        CompileAndVerify(comp, symbolValidator: validateAttributes, verify: Verification.FailsPEVerify);
-        return;
-
-        static void validateAttributes(ModuleSymbol module)
-        {
-            var r = module.GlobalNamespace.GetTypeMember("R");
-            AssertSetStrictlyEqual(["ObsoleteAttribute", "CompilerFeatureRequiredAttribute"],
-                GetAttributeNames(r.GetAttributes()).ToArray());
-        }
-    }
-
-    [Fact]
     public void ForClass_MissingValueType()
     {
         var src = """
 class C { }
 explicit extension R for C { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.MakeTypeMissing(SpecialType.System_ValueType);
         comp.VerifyDiagnostics(
             // (2,20): error CS0518: Predefined type 'System.ValueType' is not defined or imported
@@ -380,7 +353,7 @@ explicit extension R for C { }
 class C { }
 explicit extension R for C { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.MakeTypeMissing(SpecialType.System_Void);
         comp.VerifyEmitDiagnostics(
             // (2,20): error CS0518: Predefined type 'System.Void' is not defined or imported
@@ -399,10 +372,10 @@ class C<T>
     explicit extension R<U> for UnderlyingClass<T, U> { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -426,30 +399,31 @@ class C<T>
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
     }
     .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
+    .method public hidebysig static void M () cil managed
+    {
+        IL_0000: ret
+    }
 }
 """;
 
         var src = """
+object.M();
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
-            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // (1,8): error CS0117: 'object' does not contain a definition for 'M'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8),
+            // (2,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(2, 41)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -466,20 +440,19 @@ public explicit extension R2 for object : R1 { }
 class C { }
 explicit extension R for C { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute);
 
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            AssertSetStrictlyEqual(["CompilerFeatureRequiredAttribute", "ObsoleteAttribute"],
-                GetAttributeNames(r.GetAttributes()).ToArray());
+            AssertSetStrictlyEqual([], GetAttributeNames(r.GetAttributes()).ToArray());
 
-            Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName("System.Runtime.CompilerServices.IsByRefLikeAttribute"));
+            Assert.Null(module.ContainingAssembly.GetTypeByMetadataName("System.Runtime.CompilerServices.IsByRefLikeAttribute"));
         }
     }
 
@@ -490,14 +463,9 @@ explicit extension R for C { }
 class C { }
 explicit extension R for C { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute);
-
-        comp.VerifyDiagnostics(
-            // (2,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
-            // explicit extension R for C { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "R").WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(2, 20)
-            );
+        comp.VerifyDiagnostics();
     }
 
     [Fact]
@@ -507,14 +475,9 @@ explicit extension R for C { }
 class C { }
 explicit extension R for C { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.MakeTypeMissing(WellKnownType.System_ObsoleteAttribute);
-
-        comp.VerifyDiagnostics(
-            // (2,20): error CS0656: Missing compiler required member 'System.ObsoleteAttribute..ctor'
-            // explicit extension R for C { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "R").WithArguments("System.ObsoleteAttribute", ".ctor").WithLocation(2, 20)
-            );
+        comp.VerifyDiagnostics();
     }
 
     [Fact]
@@ -524,7 +487,7 @@ explicit extension R for C { }
 class C<T> { }
 explicit extension R for C<dynamic> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DynamicAttribute);
         comp.VerifyDiagnostics(
             // (2,28): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
@@ -543,7 +506,7 @@ static explicit extension R for C
     public static readonly int Field = 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
     }
 
@@ -559,7 +522,7 @@ explicit extension R for UnderlyingClass
     static void StaticMethod() { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
@@ -579,7 +542,7 @@ class ContainingType
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var r = comp.GlobalNamespace.GetTypeMember("ContainingType").GetTypeMember("R");
@@ -604,7 +567,7 @@ explicit extension R for UnderlyingClass
     public event System.Action Event; // 8, 9
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,16): error CS9313: 'R.field': cannot declare instance members with state in extension types.
             //     public int field = 0; // 1, 2
@@ -668,9 +631,9 @@ explicit extension R for UnderlyingClass
     public event System.Action Event { add { throw null; } remove { throw null; } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -707,7 +670,7 @@ explicit extension R for C
     public void R() { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,17): error CS0542: 'R': member names cannot be the same as their enclosing type
             //     public void R() { }
@@ -730,7 +693,7 @@ explicit extension R for C
     public void C() { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
@@ -750,7 +713,7 @@ explicit extension R for C
     private int M => 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,17): error CS0102: The type 'R' already contains a definition for 'M'
             //     private int M => 0;
@@ -768,7 +731,7 @@ explicit extension R<M> for C
     private int M => 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,17): error CS0102: The type 'R<M>' already contains a definition for 'M'
             //     private int M => 0;
@@ -787,7 +750,7 @@ explicit extension R for C
     public static bool operator ==(R r1, R r2) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,20): warning CS0660: 'R' defines operator == or operator != but does not override Object.Equals(object o)
             // explicit extension R for C
@@ -816,9 +779,9 @@ explicit extension R for C
 {{type}} UnderlyingType { }
 explicit extension R for UnderlyingType { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -835,9 +798,9 @@ explicit extension R for UnderlyingType { }
 delegate void UnderlyingType();
 explicit extension R for UnderlyingType { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -858,7 +821,7 @@ explicit extension R for UnderlyingClass
     public static int operator+(UnderlyingClass c1, UnderlyingClass c2) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,31): error CS0563: One of the parameters of a binary operator must be the containing type
             //     public static int operator+(UnderlyingClass c1, UnderlyingClass c2) => throw null;
@@ -892,7 +855,7 @@ static explicit extension R for UnderlyingClass
     explicit extension NestedR for UnderlyingClass { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (8,10): error CS0708: 'Method': cannot declare instance members in a static type
             //     void Method() { } // 1
@@ -960,7 +923,7 @@ explicit extension R2 for UnderlyingClass : I
     void I.M() { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (11,12): error CS0541: 'R1.M()': explicit interface declaration can only be declared in a class, record, struct or interface
             //     void I.M() { }
@@ -1036,7 +999,7 @@ partial explicit extension R for UnderlyingClass
 }
 """;
         // PROTOTYPE should warn that `new` isn't required
-        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
             // (13,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     int* MethodNotUnsafe(int* i) => i; // 1, 2, 3
@@ -1087,7 +1050,7 @@ partial explicit extension R2 for UnderlyingClass : R1
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
     }
 
@@ -1107,7 +1070,7 @@ partial explicit extension R2 for UnderlyingClass : R1
 """;
 
         // PROTOTYPE should warn about missing `new`
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
     }
 
@@ -1194,7 +1157,7 @@ explicit extension R for UnderlyingClass
     ref readonly int RefReadonlyInt => throw null;
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         // PROTOTYPE should warn that `new` isn't required
         comp.VerifyDiagnostics(
             // (12,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -1252,7 +1215,7 @@ explicit extension R1 for UnderlyingClass
     public new int Property => 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
     }
 
@@ -1269,7 +1232,7 @@ explicit extension R1 for UnderlyingClass
     public int Property => 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics();
     }
@@ -1359,7 +1322,7 @@ partial explicit extension R for UnderlyingClass
     static int this[int i] => i;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,16): error CS0106: The modifier 'static' is not valid for this item
             //     static int this[int i] => i;
@@ -1402,7 +1365,7 @@ explicit extension R for UnderlyingClass
     }
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         // PROTOTYPE should warn that `new` isn't required
         comp.VerifyDiagnostics(
             // (13,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -1468,7 +1431,7 @@ explicit extension R1 for UnderlyingClass
     public new event System.Action Event { add => throw null; remove => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
     }
 
@@ -1485,7 +1448,7 @@ explicit extension R1 for UnderlyingClass
     public event System.Action Event { add => throw null; remove => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics();
     }
@@ -1509,7 +1472,7 @@ partial explicit extension R for UnderlyingClass
     file event System.Action File { add => throw null; remove => throw null; } // 10
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE should refine message for ERR_InvalidMemberDecl
         comp.VerifyDiagnostics(
             // (4,31): error CS0106: The modifier 'async' is not valid for this item
@@ -1565,7 +1528,7 @@ public {{staticKeyword}}{{keyword}} extension R1 for C
     static void M(this int i) { } // 1
 }
 """;
-        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(text);
         comp.VerifyDiagnostics(
             // (5,17): error CS9321: Extension methods are not allowed in extension types.
             //     static void M(this int i) { } // 1
@@ -1588,7 +1551,7 @@ implicit extension E for object
     public static string M(this object o) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,14): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'E.M(object)'
             // new object().M();
@@ -1615,7 +1578,7 @@ implicit extension E for object
     public static string M(this object o) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (5,26): error CS9321: Extension methods are not allowed in extension types.
             //     public static string M(this object o) => throw null;
@@ -1641,7 +1604,7 @@ implicit extension E for object
     public static string M(this object o) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS0176: Member 'E.M(object)' cannot be accessed with an instance reference; qualify it with a type name instead
             // var x = new object().M;
@@ -1669,7 +1632,7 @@ static explicit extension R1 for UnderlyingClass
     public static void M(in this int i) { } // 1
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,24): error CS9321: Extension methods are not allowed in extension types.
             //     public static void M(in this int i) { } // 1
@@ -1690,7 +1653,7 @@ public static class E
     static void M(this R r) { } // 1
 }
 """;
-        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(text);
         comp.VerifyDiagnostics(
             // (7,24): error CS1103: The first parameter of an extension method cannot be of type 'R'
             //     static void M(this R r) { } // 1
@@ -1707,7 +1670,7 @@ explicit extension R for int
     delegate void Delegate();
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var d = comp.GlobalNamespace.GetTypeMember("R").GetTypeMember("Delegate");
@@ -1725,7 +1688,7 @@ explicit extension R for int
     struct S { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var d = comp.GlobalNamespace.GetTypeMember("R").GetTypeMember("S");
@@ -1763,7 +1726,7 @@ partial explicit extension R2 for int
 }
 """;
         // PROTOTYPE should warn that `new` isn't required
-        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
             // (11,31): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     struct NotUnsafe { void M(int* i) => throw null; } // 1
@@ -1807,7 +1770,7 @@ explicit extension R for int
     ref record struct RefRecordStruct { } // 9
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
             // (3,18): error CS0106: The modifier 'async' is not valid for this item
             //     async struct Async { } // 1
@@ -1868,7 +1831,7 @@ explicit extension R for int
 }
 """;
         // PROTOTYPE should warn that `new` isn't required
-        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
             // (11,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     class NotUnsafe { void M(int* i) => throw null; } // 1
@@ -1911,7 +1874,7 @@ explicit extension R for int
     static record StaticRecord { } // 7
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
             // (3,17): error CS0106: The modifier 'async' is not valid for this item
             //     async class Async { } // 1
@@ -2005,7 +1968,7 @@ explicit extension R for int
     static interface Static { } // 9
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
             // (3,21): error CS0106: The modifier 'async' is not valid for this item
             //     async interface Async { } // 1
@@ -2055,9 +2018,9 @@ explicit extension R for UnderlyingStruct
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -2098,9 +2061,9 @@ interface I { }
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         void validate(ModuleSymbol module)
@@ -2140,9 +2103,9 @@ enum E { }
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         void validate(ModuleSymbol module)
@@ -2181,7 +2144,7 @@ explicit extension R for object
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
@@ -2208,9 +2171,9 @@ explicit extension R<U> for C<U>
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -2249,9 +2212,9 @@ explicit extension R for (int, int)
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -2290,9 +2253,9 @@ explicit extension R for int[]
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -2339,7 +2302,7 @@ class ContainingType<TContaining>
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (7,47): error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)
             //     explicit extension R3 for UnderlyingClass<C> : BaseExtension<C>
@@ -2360,7 +2323,7 @@ explicit extension R<T1, T2> for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
@@ -2381,7 +2344,7 @@ explicit extension R<in T1, out T2> for C
     T2 M2(T2 t2) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,22): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
             // explicit extension R<in T1, out T2> for UnderlyingClass
@@ -2410,7 +2373,7 @@ interface IOut<out T>
     explicit extension R for C { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (8,24): error CS8427: Enums, classes, structures, and extensions cannot be declared in an interface that has an 'in' or 'out' type parameter.
             //     explicit extension R for C { }
@@ -2430,7 +2393,7 @@ class UnderlyingClass : I { }
 explicit extension R(int i) for UnderlyingClass { }
 """;
         // PROTOTYPE should parse but remain error
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,21): error CS9122: Unexpected parameter list.
             // explicit extension R(int i) for UnderlyingClass { }
@@ -2450,7 +2413,7 @@ static explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -2467,7 +2430,7 @@ static explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -2484,7 +2447,7 @@ explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -2522,7 +2485,7 @@ public explicit extension R3 for C : R1 { }
 public static explicit extension R4 for C : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         // PROTOTYPE: should report use-site diagnostics for R1 instead
         comp.VerifyDiagnostics(
             // (1,27): error CS9316: Extension 'R3' extends 'C' but base extension 'R1' extends 'C'.
@@ -2548,21 +2511,21 @@ public static explicit extension R4 for C : R1 { }
         var src1 = """
 public class C { }
 """;
-        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net70,
+        var comp1 = CreateCompilation(src1,
             assemblyName: "first");
         comp1.VerifyDiagnostics();
 
         var src2 = """
 public explicit extension E1 for C { }
 """;
-        var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.Net70,
+        var comp2 = CreateCompilation(src2,
             references: new[] { comp1.EmitToImageReference() });
         comp2.VerifyDiagnostics();
 
         var src1Updated = """
 public static class C { }
 """;
-        var comp1Updated = CreateCompilation(src1Updated, targetFramework: TargetFramework.Net70,
+        var comp1Updated = CreateCompilation(src1Updated,
             assemblyName: "first");
         comp1Updated.VerifyDiagnostics();
 
@@ -2570,7 +2533,7 @@ public static class C { }
 public explicit extension E2 for C : E1 { }
 """;
         // PROTOTYPE : should report use-site diagnostics for using E1
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70,
+        var comp = CreateCompilation(src,
             references: new[] { comp2.ToMetadataReference(), comp1Updated.EmitToImageReference() });
         comp.VerifyDiagnostics(
             // (1,27): error CS9316: Extension 'E2' extends 'C' but base extension 'E1' extends 'C'.
@@ -2602,7 +2565,7 @@ public {{keyword}} extension E1 for E0
 {
 }
 """;
-        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(text);
         comp.VerifyDiagnostics(
             // (3,34): error CS9305: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // public explicit extension E1 for E0
@@ -2641,7 +2604,7 @@ public class E1 { }
 public explicit extension E3 for E1 : E2 { }
 public explicit extension E4 for E0 : E2 { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70,
+        var comp = CreateCompilation(src,
             references: new[] { comp2.ToMetadataReference(), comp1Updated.EmitToImageReference() });
         // PROTOTYPE The diagnostic for using E2 should mention the faulty type
         comp.VerifyDiagnostics(
@@ -2677,7 +2640,7 @@ explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -2694,7 +2657,7 @@ file explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R@<tree 0>", r.ToTestDisplayString());
@@ -2710,7 +2673,7 @@ explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,20): error CS9312: File-local type 'UnderlyingClass' cannot be used as a underlying type of non-file-local extension 'R'.
             // explicit extension R for UnderlyingClass
@@ -2732,7 +2695,7 @@ explicit extension R for Outer.UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,20): error CS9312: File-local type 'Outer.UnderlyingClass' cannot be used as a underlying type of non-file-local extension 'R'.
             // explicit extension R for Outer.UnderlyingClass
@@ -2754,7 +2717,7 @@ file class Outer
 partial explicit extension R for Outer.UnderlyingClass { } // 1
 partial explicit extension R for Outer.UnderlyingClass { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,28): error CS9312: File-local type 'Outer.UnderlyingClass' cannot be used as a underlying type of non-file-local extension 'R'.
             // partial explicit extension R for Outer.UnderlyingClass { } // 1
@@ -2778,7 +2741,7 @@ explicit extension R1 for UnderlyingClass2 { } // 2
 explicit extension R2 for UnderlyingClass1 { } // 3, 4
 implicit extension R2 for UnderlyingClass2 { } // 5
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,20): error CS9308: Partial declarations of 'R1' must not extend different types.
             // explicit extension R1 for UnderlyingClass1 { } // 1
@@ -2843,7 +2806,7 @@ partial explicit extension RNotNull1 for CNotNull<string> { }
 
 partial explicit extension RNotNull2 for CNotNull<string?> { } // 8
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (9,28): error CS0264: Partial declarations of 'RDefault1<T>' must have the same type parameter names in the same order
             // partial explicit extension RDefault1<T> for CDefault<T> { } // 1, 2
@@ -2885,7 +2848,7 @@ explicit extension R2<T> for D<T> { }
 implicit extension R3<T> for C { } // 1
 implicit extension R4<T> for D<T> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (7,20): error CS9328: The underlying type 'C' of implicit extension 'R3<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
             // implicit extension R3<T> for C { } // 1
@@ -2906,7 +2869,7 @@ implicit extension E<T, U> for C<T>
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,19): error CS0117: 'C<int>' does not contain a definition for 'f'
             // string s = C<int>.f;
@@ -2955,7 +2918,7 @@ class Container<T, U>
 }
 """;
         // PROTOTYPE handle nullability differences on s4 and s5
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,20): error CS0117: 'C<int>' does not contain a definition for 'f'
             // string s1 = C<int>.f; // 1
@@ -3025,7 +2988,7 @@ class ContainerContainer<T>
 }
 """;
         // PROTOTYPE handle nullability differences on s4 and s5
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (16,33): error CS0117: 'C<long>' does not contain a definition for 'f'
             //             string s2 = C<long>.f; // 1
@@ -3069,7 +3032,7 @@ implicit extension E<T, U> for C
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,14): error CS0117: 'C' does not contain a definition for 'f'
             // string s = C.f;
@@ -3093,7 +3056,7 @@ implicit extension E<T, U> for C
         var src = """
 explicit extension R for { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,26): error CS1031: Type expected
             // explicit extension R for { }
@@ -3121,13 +3084,13 @@ public explicit extension R for nint { }
         var src2 = """
 explicit extension R2 for nint : R { }
 """;
-        var comp2 = CreateCompilation(src2, references: new[] { AsReference(comp, useImageReference) }, targetFramework: TargetFramework.Net70);
+        var comp2 = CreateCompilation(src2, references: new[] { AsReference(comp, useImageReference) });
         comp2.VerifyDiagnostics();
 
         var src3 = """
 explicit extension R3 for System.IntPtr : R { }
 """;
-        var comp3 = CreateCompilation(src3, references: new[] { AsReference(comp, useImageReference) }, targetFramework: TargetFramework.Net70);
+        var comp3 = CreateCompilation(src3, references: new[] { AsReference(comp, useImageReference) });
         comp3.VerifyDiagnostics();
 
         return;
@@ -3244,17 +3207,6 @@ public explicit extension R for C<dynamic> { }
 .class public sequential ansi sealed beforefieldinit R
 	extends [System.Runtime]System.ValueType
 {
-	.custom instance void [System.Runtime]System.ObsoleteAttribute::.ctor(string, bool) = (
-		01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-		65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-		72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-		73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-		70 69 6c 65 72 2e 01 00 00
-	)
-	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
-		01 00 0e 45 78 74 65 6e 73 69 6f 6e 54 79 70 65
-		73 00 00
-	)
 	// Fields
 	.field private class C`1<object> '{{WellKnownMemberNames.ExtensionFieldName}}'
 	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -3283,13 +3235,13 @@ public explicit extension R for C<dynamic> { }
         var src2 = """
 explicit extension R2 for C<dynamic> : R { }
 """;
-        var comp2 = CreateCompilation(src2, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
+        var comp2 = CreateCompilation(src2, references: new[] { comp.EmitToImageReference() });
         comp2.VerifyDiagnostics();
 
         var src3 = """
 explicit extension R3 for C<object> : R { }
 """;
-        var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
+        var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() });
         comp3.VerifyDiagnostics(
             // (1,20): error CS9316: Extension 'R3' extends 'C<object>' but base extension 'R' extends 'C<dynamic>'.
             // explicit extension R3 for C<object> : R { }
@@ -3316,10 +3268,10 @@ explicit extension R3 for C<object> : R { }
 public class C<T> { }
 public explicit extension R for C<object?> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -3327,7 +3279,7 @@ public explicit extension R for C<object?> { }
 #nullable enable
 explicit extension R2 for C<object?> : R { }
 """;
-        var comp2 = CreateCompilation(src2, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
+        var comp2 = CreateCompilation(src2, references: new[] { comp.EmitToImageReference() });
         comp2.VerifyDiagnostics();
 
         var src3 = """
@@ -3335,7 +3287,7 @@ explicit extension R2 for C<object?> : R { }
 explicit extension R3 for C<object> : R { }
 """;
         // PROTOTYPE this should at most be a nullability warning
-        var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
+        var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() });
         comp3.VerifyDiagnostics(
             // (2,20): error CS9316: Extension 'R3' extends 'C<object>' but base extension 'R' extends 'C<object?>'.
             // explicit extension R3 for C<object> : R { }
@@ -3346,7 +3298,7 @@ explicit extension R3 for C<object> : R { }
 explicit extension R3 for C<object> : R { }
 """;
         // PROTOTYPE the nullability warning should be silenced here (oblivious context)
-        var comp4 = CreateCompilation(src4, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
+        var comp4 = CreateCompilation(src4, references: new[] { comp.EmitToImageReference() });
         comp4.VerifyDiagnostics(
             // (1,20): error CS9316: Extension 'R3' extends 'C<object>' but base extension 'R' extends 'C<object?>'.
             // explicit extension R3 for C<object> : R { }
@@ -3373,10 +3325,10 @@ explicit extension R3 for C<object> : R { }
 public class C<T> { }
 public explicit extension R for C<object> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -3384,7 +3336,7 @@ public explicit extension R for C<object> { }
 #nullable enable
 explicit extension R2 for C<object> : R { }
 """;
-        var comp2 = CreateCompilation(src2, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
+        var comp2 = CreateCompilation(src2, references: new[] { comp.EmitToImageReference() });
         comp2.VerifyDiagnostics();
 
         var src3 = """
@@ -3392,7 +3344,7 @@ explicit extension R2 for C<object> : R { }
 explicit extension R3 for C<object?> : R { }
 """;
         // PROTOTYPE this should at most be a nullability warning
-        var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
+        var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() });
         comp3.VerifyDiagnostics(
             // (2,20): error CS9316: Extension 'R3' extends 'C<object?>' but base extension 'R' extends 'C<object>'.
             // explicit extension R3 for C<object?> : R { }
@@ -3403,7 +3355,7 @@ explicit extension R3 for C<object?> : R { }
 explicit extension R3 for C<object> : R { }
 """;
         // PROTOTYPE the nullability warning should be silenced here (oblivious context)
-        var comp4 = CreateCompilation(src4, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
+        var comp4 = CreateCompilation(src4, references: new[] { comp.EmitToImageReference() });
         comp4.VerifyDiagnostics(
             // (1,20): error CS9316: Extension 'R3' extends 'C<object>' but base extension 'R' extends 'C<object>'.
             // explicit extension R3 for C<object> : R { }
@@ -3428,12 +3380,12 @@ explicit extension R3 for C<object> : R { }
         var src = """
 public explicit extension R for (int a, int b) { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
 
-        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp1 = CreateCompilation(src);
         comp1.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_TupleElementNamesAttribute);
         comp1.VerifyDiagnostics(
             // (1,33): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
@@ -3446,14 +3398,14 @@ public explicit extension R for (int a, int b) { }
         var src2 = """
 explicit extension R2 for (int a, int b)  : R { }
 """;
-        var comp2 = CreateCompilation(src2, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
+        var comp2 = CreateCompilation(src2, references: new[] { comp.EmitToImageReference() });
         comp2.VerifyDiagnostics();
 
         var src3 = """
 explicit extension R3 for (int, int) : R { }
 """;
         // PROTOTYPE consider warning instead, when revisiting rules for variance of underlying types
-        var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
+        var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() });
         comp3.VerifyDiagnostics(
             // (1,20): error CS9316: Extension 'R3' extends '(int, int)' but base extension 'R' extends '(int a, int b)'.
             // explicit extension R3 for (int, int) : R { }
@@ -3463,7 +3415,7 @@ explicit extension R3 for (int, int) : R { }
         var src4 = """
 explicit extension R4 for (int a, int other) : R { }
 """;
-        var comp4 = CreateCompilation(src4, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
+        var comp4 = CreateCompilation(src4, references: new[] { comp.EmitToImageReference() });
         comp4.VerifyDiagnostics(
             // (1,20): error CS9316: Extension 'R4' extends '(int a, int other)' but base extension 'R' extends '(int a, int b)'.
             // explicit extension R4 for (int a, int other) : R { }
@@ -3490,7 +3442,7 @@ unsafe explicit extension R for int*
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,27): error CS0227: Unsafe code may only appear if compiling with /unsafe
             // unsafe explicit extension R for int*
@@ -3513,7 +3465,7 @@ explicit extension R for ref int
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,26): error CS1073: Unexpected token 'ref'
             // explicit extension R for ref int
@@ -3548,7 +3500,7 @@ implicit extension R2 for int* // 3, 4
     public void M2() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
             // (6,11): error CS1061: 'int*' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'int*' could be found (are you missing a using directive or an assembly reference?)
             //         i.M2(); // 1
@@ -3585,7 +3537,7 @@ unsafe explicit extension R for delegate*<void>
 {
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
             // (1,33): error CS9305: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // unsafe explicit extension R for delegate*<void>
@@ -3606,7 +3558,7 @@ explicit extension R for dynamic
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,26): error CS9305: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // explicit extension R for dynamic
@@ -3635,7 +3587,7 @@ explicit extension R4 for C<string?> { }
 explicit extension R5 for string { }
 explicit extension R6 for C<string> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
     }
 
@@ -3648,7 +3600,7 @@ public explicit extension R for UnderlyingStruct
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,27): error CS9309: Inconsistent accessibility: underlying type 'UnderlyingStruct' is less accessible than extension 'R'
             // public explicit extension R for UnderlyingStruct
@@ -3666,7 +3618,7 @@ public explicit extension R for UnderlyingStruct
 ref struct RS {  }
 explicit extension R for RS { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,26): error CS9305: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // explicit extension R for RS { }
@@ -3686,7 +3638,7 @@ class UnderlyingClass { }
 partial explicit extension R for UnderlyingClass { }
 partial explicit extension R { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
@@ -3702,7 +3654,7 @@ class UnderlyingClass { }
 partial explicit extension R { }
 partial explicit extension R for UnderlyingClass { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
@@ -3719,7 +3671,7 @@ class UnderlyingClass2 { }
 partial explicit extension R for UnderlyingClass { }
 partial explicit extension R for UnderlyingClass2 { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,28): error CS9308: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for UnderlyingClass { }
@@ -3740,7 +3692,7 @@ partial explicit extension R for UnderlyingClass { }
 partial explicit extension R for UnderlyingClass2 { }
 partial explicit extension R for UnderlyingClass3 { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,28): error CS9308: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for UnderlyingClass { }
@@ -3760,7 +3712,7 @@ partial explicit extension R for UnderlyingClass { }
 partial explicit extension R for ErrorType { }
 partial explicit extension R for UnderlyingClass3 { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,28): error CS9308: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for UnderlyingClass { }
@@ -3783,7 +3735,7 @@ partial explicit extension R for ErrorType { }
 partial explicit extension R for UnderlyingClass { }
 partial explicit extension R for UnderlyingClass3 { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,28): error CS9308: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for ErrorType { }
@@ -3806,7 +3758,7 @@ class C<T> { }
 partial explicit extension R for C<object> { }
 partial explicit extension R for C<object> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
@@ -3822,7 +3774,7 @@ class C<T> { }
 partial explicit extension R for C<object> { }
 partial explicit extension R for C<dynamic> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,28): error CS9308: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for C<object> { }
@@ -3843,7 +3795,7 @@ class C<T> { }
 partial explicit extension R for C<(int x, int b)> { }
 partial explicit extension R for C<(int y, int b)> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,28): error CS9308: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for C<(int x, int b)> { }
@@ -3866,7 +3818,7 @@ class C<T> { }
 partial explicit extension R for object { }
 partial explicit extension R for object? { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
@@ -3885,7 +3837,7 @@ class C<T> { }
 partial explicit extension R for C<object> { }
 partial explicit extension R for C<object?> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,28): error CS9308: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for C<object> { }
@@ -3910,7 +3862,7 @@ partial explicit extension R for C<object> { }
 #nullable enable
 partial explicit extension R for C<object?> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
@@ -3929,7 +3881,7 @@ partial explicit extension R for C<object?> { }
 #nullable disable
 partial explicit extension R for C<object> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
@@ -3959,7 +3911,7 @@ partial explicit extension R for C<
 #nullable enable
     > { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,28): error CS9308: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for C<
@@ -3980,7 +3932,7 @@ class UnderlyingClass { }
 partial explicit extension R for Error { }
 partial explicit extension R for UnderlyingClass { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,28): error CS9308: Partial declarations of 'R' must not extend different types.
             // partial explicit extension R for Error { }
@@ -4003,7 +3955,7 @@ class UnderlyingClass { }
 partial explicit extension R for UnderlyingClass { }
 partial explicit extension R for Error { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,34): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
             // partial explicit extension R for Error { }
@@ -4023,7 +3975,7 @@ partial explicit extension R for Error { }
 partial {{keyword}} extension R { }
 partial {{keyword}} extension R { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,28): error CS9314: No part of a partial extension 'R' includes an underlying type specification.
             // partial explicit extension R { }
@@ -4055,7 +4007,7 @@ partial explicit extension R5 for C : R1, R2 { }
 partial explicit extension R6 for C { }
 partial explicit extension R6 for C : R1, R2 { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var r3 = comp.GlobalNamespace.GetTypeMember("R3");
@@ -4090,7 +4042,7 @@ class C { }
 partial explicit extension R for C { }
 partial {{typeKind}} R { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,19): error CS0261: Partial declarations of 'R' must all be the same kind of type.
             // partial class     R { }
@@ -4106,7 +4058,7 @@ class C { }
 public partial explicit extension R1 for C { }
 internal partial explicit extension R1 for C { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,35): error CS0262: Partial declarations of 'R1' have conflicting accessibility modifiers
             // public partial explicit extension R1 for C { }
@@ -4125,7 +4077,7 @@ class C { }
 internal partial explicit extension R1 for C { }
 partial explicit extension R1 for C { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         Assert.Equal(Accessibility.Internal, comp.GlobalNamespace.GetTypeMember("R1").DeclaredAccessibility);
     }
@@ -4144,7 +4096,7 @@ partial explicit extension R for C
     public void M2() { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
@@ -4178,7 +4130,7 @@ partial explicit extension R4<T> for C where T : class { }
 #nullable enable
 explicit extension R5 for C : R1<string?>, R2<string?> , R3<string?>, R4<string?> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (22,20): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'R1<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
             // explicit extension R5 for C : R1<string?>, R2<string?> , R3<string?>, R4<string?> { }
@@ -4200,7 +4152,7 @@ explicit extension R for error
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,26): error CS0246: The type or namespace name 'error' could not be found (are you missing a using directive or an assembly reference?)
             // explicit extension R for error
@@ -4223,7 +4175,7 @@ explicit extension R for C<error>
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,28): error CS0246: The type or namespace name 'error' could not be found (are you missing a using directive or an assembly reference?)
             // explicit extension R for C<error>
@@ -4238,11 +4190,11 @@ explicit extension R for C<error>
     public void ForTypeWithUseSiteError()
     {
         var lib1_cs = "public class MissingBase { }";
-        var comp1 = CreateCompilation(lib1_cs, assemblyName: "missing", targetFramework: TargetFramework.Net70);
+        var comp1 = CreateCompilation(lib1_cs, assemblyName: "missing");
         comp1.VerifyDiagnostics();
 
         var lib2_cs = "public class UseSiteError : MissingBase { }";
-        var comp2 = CreateCompilation(lib2_cs, new[] { comp1.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
+        var comp2 = CreateCompilation(lib2_cs, new[] { comp1.EmitToImageReference() });
         comp2.VerifyDiagnostics();
 
         var src = """
@@ -4252,7 +4204,7 @@ explicit extension R2 for C<UseSiteError> { }
 class C1 : UseSiteError { }
 class C2 : C<UseSiteError> { }
 """;
-        var comp = CreateCompilation(src, new[] { comp2.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, new[] { comp2.EmitToImageReference() });
         comp.VerifyDiagnostics(
             // (2,27): error CS0012: The type 'MissingBase' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // explicit extension R1 for UseSiteError { }
@@ -4268,7 +4220,7 @@ class C2 : C<UseSiteError> { }
         var src = """
 explicit extension R for R { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,26): error CS9305: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // explicit extension R for R { }
@@ -4289,7 +4241,7 @@ public explicit extension One<T> for object : One<int>.Two
     public explicit extension Two for object { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,27): error CS9311: Base extension 'One<int>.Two' causes a cycle in the extension hierarchy of 'One<T>'.
             // public explicit extension One<T> for object : One<int>.Two
@@ -4308,7 +4260,7 @@ public explicit extension One<T> for object : One<int>.Two
         var src = """
 explicit extension R for R[] { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R[]", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -4320,7 +4272,7 @@ explicit extension R for R[] { }
         var src = """
 explicit extension R for (R, R) { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("(R, R)", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -4333,7 +4285,7 @@ explicit extension R for (R, R) { }
 struct S<T> { }
 explicit extension R for S<R> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("S<R>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -4350,7 +4302,7 @@ public struct S<T>
 
 explicit extension R for S<R> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("S<R>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -4364,7 +4316,7 @@ explicit extension R for S<R> { }
 class C<T> { }
 explicit extension R for C<R> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
@@ -4430,7 +4382,7 @@ public explicit extension Y for S : X { }
 """;
 
         var comp2 = CreateCompilation(src2, references: new[] { comp1.EmitToImageReference() },
-            assemblyName: "second", targetFramework: TargetFramework.Net70);
+            assemblyName: "second");
         comp2.VerifyDiagnostics();
 
         var src1Updated = """
@@ -4439,7 +4391,7 @@ public explicit extension X for S : Y { }
 """;
 
         comp1 = CreateCompilation(src1Updated, references: new[] { comp2.EmitToImageReference() },
-            assemblyName: "first", targetFramework: TargetFramework.Net70);
+            assemblyName: "first");
         comp1.VerifyDiagnostics(
             // (2,27): error CS9311: Base extension 'Y' causes a cycle in the extension hierarchy of 'X'.
             // public explicit extension X for S : Y { }
@@ -4457,7 +4409,7 @@ public explicit extension X for S : Y { }
         Assert.True(yBaseExtension.IsErrorType());
 
         var retargetingComp = CreateCompilation(src1Updated, references: new[] { comp2.ToMetadataReference() },
-            assemblyName: "first", targetFramework: TargetFramework.Net70);
+            assemblyName: "first");
         retargetingComp.VerifyDiagnostics(
             // (2,27): error CS9311: Base extension 'Y' causes a cycle in the extension hierarchy of 'X'.
             // public explicit extension X for S : Y { }
@@ -4487,7 +4439,7 @@ explicit extension R2 for object : R
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,20): error CS0146: Circular base type dependency involving 'R2.Nested' and 'R'
             // explicit extension R for R2.Nested { }
@@ -4517,7 +4469,7 @@ explicit extension R2 for object : R
         var src1 = """
 public struct R1 { }
 """;
-        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net70, assemblyName: "first");
+        var comp1 = CreateCompilation(src1, assemblyName: "first");
         comp1.VerifyDiagnostics();
 
         var src2 = """
@@ -4530,7 +4482,7 @@ public explicit extension R2 for R1 { }
         var src3 = """
 public struct R2 { }
 """;
-        var comp3 = CreateCompilation(src3, targetFramework: TargetFramework.Net70, assemblyName: "second");
+        var comp3 = CreateCompilation(src3, assemblyName: "second");
         comp1.VerifyDiagnostics();
 
         var src4 = """
@@ -4594,7 +4546,7 @@ explicit extension R2 for R2.Nested[] : R
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.True(r.IsExtension);
@@ -4619,7 +4571,7 @@ explicit extension R2 for (R2.Nested, int) : R
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("(R2.Nested, System.Int32)", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -4639,7 +4591,7 @@ explicit extension R2 for (R2.Nested, int) : R
 explicit extension E1 for object : E2 { }
 explicit extension E2 for E2 : E2 { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,20): error CS9311: Base extension 'E2' causes a cycle in the extension hierarchy of 'E2'.
             // explicit extension E2 for E2 : E2 { }
@@ -4663,7 +4615,7 @@ public explicit extension R1 for object
     public class Nested1 { }
 }
 """;
-        var comp1 = CreateCompilation(src1, assemblyName: "first", targetFramework: TargetFramework.Net70);
+        var comp1 = CreateCompilation(src1, assemblyName: "first");
         comp1.VerifyDiagnostics();
 
         var src2 = """
@@ -4673,7 +4625,7 @@ public explicit extension R2 for R1.Nested1
 }
 """;
         var comp2 = CreateCompilation(src2, references: new[] { comp1.EmitToImageReference() },
-            assemblyName: "second", targetFramework: TargetFramework.Net70);
+            assemblyName: "second");
         comp2.VerifyDiagnostics();
 
         var src1_updated = """
@@ -4683,7 +4635,7 @@ public explicit extension R1 for R2.Nested2
 }
 """;
         comp1 = CreateCompilation(src1_updated, references: new[] { comp2.EmitToImageReference() },
-            assemblyName: "first", targetFramework: TargetFramework.Net70);
+            assemblyName: "first");
         comp1.VerifyDiagnostics();
 
         var r1 = comp1.GlobalNamespace.GetTypeMember("R1");
@@ -4700,7 +4652,7 @@ public explicit extension R1 for object
     public class Nested1<T> { }
 }
 """;
-        var comp1 = CreateCompilation(src1, assemblyName: "first", targetFramework: TargetFramework.Net70);
+        var comp1 = CreateCompilation(src1, assemblyName: "first");
         comp1.VerifyDiagnostics();
 
         var src2 = """
@@ -4710,7 +4662,7 @@ public explicit extension R2 for R1.Nested1<R1>
 }
 """;
         var comp2 = CreateCompilation(src2, references: new[] { comp1.EmitToImageReference() },
-            assemblyName: "second", targetFramework: TargetFramework.Net70);
+            assemblyName: "second");
         comp2.VerifyDiagnostics();
 
         var src1_updated = """
@@ -4720,7 +4672,7 @@ public explicit extension R1 for R2.Nested2<R2>
 }
 """;
         comp1 = CreateCompilation(src1_updated, references: new[] { comp2.EmitToImageReference() },
-            assemblyName: "first", targetFramework: TargetFramework.Net70);
+            assemblyName: "first");
         comp1.VerifyDiagnostics();
     }
 
@@ -4753,7 +4705,7 @@ public explicit extension R3 for object : R1 { }
 
         // PROTOTYPE this test should be updated once we emit erase references to extensions (different metadata format)
         // PROTOTYPE expecting some use-site diagnostics (bad metadata, as underlying type cannot be an extension)
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,27): error CS9316: Extension 'R3' extends 'object' but base extension 'R1' extends 'R2'.
             // public explicit extension R3 for object : R1 { }
@@ -4800,7 +4752,7 @@ public explicit extension R4 for object : R2 { }
 """;
 
         // PROTOTYPE this test should be updated once we emit erase references to extensions (different metadata format)
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,27): error CS0268: Imported type 'R2' is invalid. It contains a circular base type dependency.
             // public explicit extension R3 for object : R1 { }
@@ -4830,7 +4782,7 @@ explicit extension X for S { }
 implicit extension X for S { }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,20): error CS9315: Partial declarations of 'X' must specify the same extension modifier ('implicit' or 'explicit').
             // explicit extension X for S { }
@@ -4849,7 +4801,7 @@ struct S { }
 partial explicit extension X for S { }
 partial implicit extension X for S { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,28): error CS9315: Partial declarations of 'X' must specify the same extension modifier ('implicit' or 'explicit').
             // partial explicit extension X for S { }
@@ -4866,7 +4818,7 @@ struct S { }
 partial implicit extension X for S { }
 partial explicit extension X for S { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,28): error CS9315: Partial declarations of 'X' must specify the same extension modifier ('implicit' or 'explicit').
             // partial implicit extension X for S { }
@@ -4884,7 +4836,7 @@ partial implicit extension X for S { }
 partial explicit extension X for S { }
 partial explicit extension X for S { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,28): error CS9315: Partial declarations of 'X' must specify the same extension modifier ('implicit' or 'explicit').
             // partial implicit extension X for S { }
@@ -4905,7 +4857,7 @@ struct S { }
 partial {{keyword}} extension X for S { }
 partial extension X for S { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,39): error CS1031: Type expected
             // partial explicit extension X for S { }
@@ -4937,7 +4889,7 @@ explicit extension R for C1 { }
 class C2 : R { } // 1
 class C3 : C1, R { } // 2
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,12): error CS0527: Type 'R' in interface list is not an interface
             // class C2 : R { } // 1
@@ -4956,7 +4908,7 @@ struct S1 { }
 explicit extension R for S1 { }
 struct S2 : R { } // 1
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,13): error CS0527: Type 'R' in interface list is not an interface
             // struct S2 : R { } // 1
@@ -4972,7 +4924,7 @@ interface I1 { }
 explicit extension R for I1 { }
 interface I2 : R { } // 1
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,16): error CS0527: Type 'R' in interface list is not an interface
             // interface I2 : R { } // 1
@@ -4988,7 +4940,7 @@ enum E1 { }
 explicit extension R for E1 { }
 enum E2 : R { } // 1
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,11): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
             // enum E2 : R { } // 1
@@ -5020,7 +4972,7 @@ record struct R1(int i) { }
 explicit extension Extension for R1 { }
 record struct R2(int j) : Extension { } // 1
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,27): error CS0527: Type 'Extension' in interface list is not an interface
             // record struct R2(int j) : Extension { } // 1
@@ -5040,9 +4992,9 @@ explicit extension R3 for C : R1, R2 { }
 partial explicit extension R4 for C : R1 { }
 partial explicit extension R4 for C : R2 { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
 
         return;
 
@@ -5075,9 +5027,9 @@ class D<U>
     partial explicit extension R4<V> for C<U, V> : R2<U, V> { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -5114,7 +5066,7 @@ explicit extension R for C : error
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,30): error CS0246: The type or namespace name 'error' could not be found (are you missing a using directive or an assembly reference?)
             // explicit extension R for C : error
@@ -5139,7 +5091,7 @@ explicit extension R2 for C : R1<error>
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,34): error CS0246: The type or namespace name 'error' could not be found (are you missing a using directive or an assembly reference?)
             // explicit extension R2 for C : R1<error>
@@ -5172,7 +5124,7 @@ public class C
     {{thisAccessibility}} explicit extension R2 for UnderlyingStruct : R1 { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,43): error CS9310: Inconsistent accessibility: base extension 'C.R1' is less accessible than extension 'C.R2'
             //     internal protected explicit extension R2 for UnderlyingStruct : R1 { }
@@ -5203,7 +5155,7 @@ public class C
     {{thisAccessibility}} explicit extension R2 for UnderlyingStruct : R1 { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
     }
 
@@ -5215,7 +5167,7 @@ class UnderlyingClass { }
 file explicit extension R1 for UnderlyingClass { }
 explicit extension R for UnderlyingClass : R1 { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,20): error CS9053: File-local type 'R1' cannot be used as a base type of non-file-local type 'R'.
             // explicit extension R for UnderlyingClass : R1 { }
@@ -5237,7 +5189,7 @@ explicit extension R1 for UnderlyingClass { }
 file explicit extension R2 for UnderlyingClass { }
 explicit extension R for UnderlyingClass : R1, R2 { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,20): error CS9053: File-local type 'R2' cannot be used as a base type of non-file-local type 'R'.
             // explicit extension R for UnderlyingClass : R1, R2 { }
@@ -5258,7 +5210,7 @@ file explicit extension R1 for UnderlyingClass { }
 file explicit extension R2 for UnderlyingClass { }
 explicit extension R for UnderlyingClass : R1, R2 { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,20): error CS9053: File-local type 'R1' cannot be used as a base type of non-file-local type 'R'.
             // explicit extension R for UnderlyingClass : R1, R2 { }
@@ -5280,7 +5232,7 @@ class C { }
 {{(baseIsExplicit ? "explicit" : "implicit")}} extension R1 for C { }
 {{(thisIsExplicit ? "explicit" : "implicit")}} extension R for C : R1 { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
     }
 
@@ -5307,7 +5259,7 @@ explicit extension R8 for S : R7? { } // PROTOTYPE
 unsafe explicit extension R9 for C : C* { } // 6
 """;
         // PROTOTYPE need to revisit binding of annotated types to account for extension types
-        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
             // (5,31): error CS9307: A base extension must be an extension type.
             // explicit extension R1 for C : I { } // 1
@@ -5363,7 +5315,7 @@ explicit extension D<T> for C { }
 unsafe explicit extension R1 for C : D<int*> { } // 1
 explicit extension R2 for C : D<int*> { } // 2, 3
 """;
-        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
             // (3,27): error CS0306: The type 'int*' may not be used as a type argument
             // unsafe explicit extension R1 for C : D<int*> { } // 1
@@ -5391,7 +5343,7 @@ explicit extension R4<T> for C : D<T> where T : struct { } // 2
 explicit extension R5<T> for C : D<T> { } // 3
 explicit extension R6 for C : D<R1> { } // 4
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,20): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'D<T>'
             // explicit extension R2 for C : D<int> { } // 1
@@ -5419,7 +5371,7 @@ explicit extension R1<T> for C where T : I1, I2 { }
 explicit extension R2<T> for C : R1<T> where T : I2 { } // 1
 explicit extension R3<T> for C : R2<T>, R1<T> { } // 2, 3, 4
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,20): error CS0314: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'R1<T>'. There is no boxing conversion or type parameter conversion from 'T' to 'I1'.
             // explicit extension R2<T> for C : R1<T> where T : I2 { } // 1
@@ -5483,7 +5435,7 @@ explicit extension R7 for C : R3<object>, R3<dynamic> { } // 5
 
 explicit extension R8 for C : R3<(int i, int j)>, R3<(int, int)> { } // 6
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,35): error CS9320: 'R0' is already listed in the base extension list
             // explicit extension R1 for C : R0, R0 { } // 1
@@ -5536,7 +5488,7 @@ explicit extension R7b for C : R7a, R3<dynamic> { } // 2
 explicit extension R8a for C : R3<(int i, int j)> { }
 explicit extension R8b for C : R8a, R3<(int, int)> { } // 3
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (19,20): warning CS9317: 'R3<object?>' is already listed in the base extension list on type 'R6b' with different nullability of reference types.
             // explicit extension R6b for C : R6a, R3<object?> { } // 1
@@ -5561,7 +5513,7 @@ explicit extension R2<T1, T2> for C : R1<T1>, R1<T2> { }
 interface I1<T> { }
 interface I2<T1, T2> : I1<T1>, I1<T2> { } // 1
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (6,11): error CS0695: 'I2<T1, T2>' cannot implement both 'I1<T1>' and 'I1<T2>' because they may unify for some type parameter substitutions
             // interface I2<T1, T2> : I1<T1>, I1<T2> { } // 1
@@ -5597,7 +5549,7 @@ explicit extension R12 for C<string> : R11 { } // 5
 #nullable enable
 explicit extension R11 for C<string> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,20): error CS9316: Extension 'R2' extends 'long' but base extension 'R1' extends 'int'.
             // explicit extension R2 for long : R1 { } // 1
@@ -5628,7 +5580,7 @@ class C<T> { }
 explicit extension R3<T> for C<T> { }
 explicit extension R4<U> for C<U> : R3<U> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
@@ -5682,7 +5634,7 @@ public explicit extension R3 for object : R2 { }
 public explicit extension R4 for C : R2 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,27): error CS9316: Extension 'R3' extends 'object' but base extension 'R2' extends 'C'.
             // public explicit extension R3 for object : R2 { }
@@ -5705,14 +5657,14 @@ public explicit extension R4 for C : R2 { }
 public class C { }
 public explicit extension E1 for C { }
 """;
-        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net70,
+        var comp1 = CreateCompilation(src1,
             assemblyName: "first");
         comp1.VerifyDiagnostics();
 
         var src2 = """
 public explicit extension E2 for C : E1 { }
 """;
-        var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.Net70,
+        var comp2 = CreateCompilation(src2,
             references: new[] { comp1.EmitToImageReference() });
         comp2.VerifyDiagnostics();
 
@@ -5720,7 +5672,7 @@ public explicit extension E2 for C : E1 { }
 public class C { }
 public explicit extension E1 for object { }
 """;
-        var comp1Updated = CreateCompilation(src1Updated, targetFramework: TargetFramework.Net70,
+        var comp1Updated = CreateCompilation(src1Updated,
             assemblyName: "first");
         comp1Updated.VerifyDiagnostics();
 
@@ -5728,7 +5680,7 @@ public explicit extension E1 for object { }
 explicit extension E3 for C : E2 { }
 explicit extension E4 for object : E2 { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70,
+        var comp = CreateCompilation(src,
             references: new[] { comp1Updated.EmitToImageReference(), comp2.ToMetadataReference() });
         comp.VerifyDiagnostics(
             // (1,20): error CS8090: There is an error in a referenced assembly 'first, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -5758,7 +5710,7 @@ class UnderlyingClass { }
 static explicit extension StaticExtension for UnderlyingClass { }
 explicit extension R for UnderlyingClass : StaticExtension { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var r = comp.GlobalNamespace.GetTypeMember("R");
@@ -5784,7 +5736,7 @@ partial explicit extension R
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
@@ -5800,7 +5752,7 @@ class C { }
 partial explicit extension R for C { }
 explicit extension R for C { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,20): error CS0260: Missing partial modifier on declaration of type 'R'; another partial declaration of this type exists
             // explicit extension R for C { }
@@ -5820,7 +5772,7 @@ unsafe explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,27): error CS0227: Unsafe code may only appear if compiling with /unsafe
             // unsafe explicit extension R for UnderlyingClass
@@ -5842,7 +5794,7 @@ unsafe explicit extension R for UnderlyingClass
     int* M(int* i) => i;
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
         Assert.Equal("UnderlyingClass", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
@@ -5865,7 +5817,7 @@ explicit extension DerivedExtension for UnderlyingClass : BaseExtension
     new explicit extension R for UnderlyingClass2 { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("DerivedExtension").GetTypeMember("R");
         Assert.Equal("DerivedExtension.R", r.ToTestDisplayString());
@@ -5883,7 +5835,7 @@ public explicit extension R for UnderlyingStruct
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
@@ -5900,7 +5852,7 @@ protected explicit extension R for UnderlyingStruct
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,30): error CS1527: Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected
             // protected explicit extension R for UnderlyingStruct
@@ -5924,7 +5876,7 @@ sealed class C
     protected explicit extension R for S { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,34): warning CS0628: 'C.R': new protected member declared in sealed type
             //     protected explicit extension R for S { }
@@ -5944,7 +5896,7 @@ class C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("C").GetTypeMember("R");
         Assert.Equal("C.R", r.ToTestDisplayString());
@@ -5963,7 +5915,7 @@ internal explicit extension R for UnderlyingStruct
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
@@ -5980,7 +5932,7 @@ protected internal explicit extension R for UnderlyingStruct
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,39): error CS1527: Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected
             // protected internal explicit extension R for UnderlyingStruct
@@ -6006,7 +5958,7 @@ class C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("C").GetTypeMember("R");
         VerifyExtension<SourceExtensionTypeSymbol>(r, isExplicit: true);
@@ -6023,7 +5975,7 @@ private explicit extension R for UnderlyingStruct
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,28): error CS1527: Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected
             // private explicit extension R for UnderlyingStruct
@@ -6046,7 +5998,7 @@ class C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("C").GetTypeMember("R");
         Assert.Equal("C.R", r.ToTestDisplayString());
@@ -6063,7 +6015,7 @@ file explicit extension R for UnderlyingStruct
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R@<tree 0>", r.ToTestDisplayString());
@@ -6081,7 +6033,7 @@ file internal explicit extension R for UnderlyingStruct
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,34): error CS9052: File-local type 'R' cannot use accessibility modifiers.
             // file internal explicit extension R for UnderlyingStruct
@@ -6107,7 +6059,7 @@ class C
     explicit extension R2 for S { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,25): error CS9071: The namespace '<global namespace>' already contains a definition for 'R' in this file.
             // file explicit extension R for S { }
@@ -6138,7 +6090,7 @@ partial class C
     explicit extension R2 for S { }
 }
 """;
-        var comp = CreateCompilation(new[] { (src1, "1.cs"), (src2, "2.cs") }, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(new[] { (src1, "1.cs"), (src2, "2.cs") });
         comp.VerifyDiagnostics(
             // 2.cs(5,24): error CS0102: The type 'C' already contains a definition for 'R2'
             //     explicit extension R2 for S { }
@@ -6155,7 +6107,7 @@ internal internal explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,10): error CS1004: Duplicate 'internal' modifier
             // internal internal explicit extension R for UnderlyingClass
@@ -6176,7 +6128,7 @@ public internal explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,36): error CS0107: More than one protection modifier
             // public internal explicit extension R for UnderlyingClass
@@ -6200,7 +6152,7 @@ internal public explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,36): error CS0107: More than one protection modifier
             // internal public explicit extension R for UnderlyingClass
@@ -6224,7 +6176,7 @@ abstract explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,29): error CS0106: The modifier 'abstract' is not valid for this item
             // abstract explicit extension R for UnderlyingClass
@@ -6244,7 +6196,7 @@ readonly explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,29): error CS0106: The modifier 'readonly' is not valid for this item
             // readonly explicit extension R for UnderlyingClass
@@ -6263,7 +6215,7 @@ const explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
             // const explicit extension R for UnderlyingClass
@@ -6292,7 +6244,7 @@ volatile explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,29): error CS0106: The modifier 'volatile' is not valid for this item
             // volatile explicit extension R for UnderlyingClass
@@ -6311,7 +6263,7 @@ extern explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,27): error CS0106: The modifier 'extern' is not valid for this item
             // extern explicit extension R for UnderlyingClass
@@ -6328,7 +6280,7 @@ extern explicit extension R for UnderlyingClass
 class UnderlyingClass { }
 fixed explicit extension R for UnderlyingClass { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,7): error CS1031: Type expected
             // fixed explicit extension R for UnderlyingClass { }
@@ -6369,7 +6321,7 @@ virtual explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,28): error CS0106: The modifier 'virtual' is not valid for this item
             // virtual explicit extension R for UnderlyingClass
@@ -6388,7 +6340,7 @@ override explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,29): error CS0106: The modifier 'override' is not valid for this item
             // override explicit extension R for UnderlyingClass
@@ -6407,7 +6359,7 @@ async explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,26): error CS0106: The modifier 'async' is not valid for this item
             // async explicit extension R for UnderlyingClass
@@ -6426,7 +6378,7 @@ ref explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,5): error CS1031: Type expected
             // ref explicit extension R for UnderlyingClass
@@ -6443,7 +6395,7 @@ required explicit extension R for UnderlyingClass
 {
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,29): error CS0106: The modifier 'required' is not valid for this item
             // required explicit extension R for UnderlyingClass
@@ -6749,11 +6701,11 @@ unsafe class C
 {{(isExplicit ? "explicit" : "implicit")}} extension E1<T> for int { }
 explicit extension E2 for int : E1<object> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         if (isExplicit)
         {
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         }
         else
         {
@@ -6789,9 +6741,9 @@ explicit extension E2 for int : E1<object> { }
     {{(isExplicit2 ? "explicit" : "implicit")}} extension E2 for int { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         void validate(ModuleSymbol module)
@@ -6866,7 +6818,7 @@ class C<T> where T : R
     T M() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,22): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
             // class C<T> where T : R
@@ -6897,7 +6849,7 @@ class C2
 }
 """;
         // PROTOTYPE the diagnostic will disappear once we have an identity between R and R2
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (14,54): error CS0315: The type 'R2' cannot be used as type parameter 'U' in the generic type or method 'Container<R>.C<U>'. There is no boxing conversion from 'R2' to 'R'.
             //     void M3(Container<R>.C<R> cr, Container<R>.C<R2> cr2) { }
@@ -6956,7 +6908,7 @@ explicit extension R for C
 }
 """;
         // PROTOTYPE what attribute target should be used for extensions?
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,2): error CS0592: Attribute 'My' is not valid on this declaration type. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
             // [My]
@@ -6980,7 +6932,7 @@ explicit extension record for C { }
 explicit extension file for C { }
 explicit extension required for C { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,20): warning CS8860: Types and aliases should not be named 'record'.
             // explicit extension record for C { }
@@ -6998,7 +6950,7 @@ explicit extension required for C { }
     public void ReservedTypeNames_Keyword()
     {
         var text = """explicit extension unsafe for var { }""";
-        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(text);
         comp.VerifyDiagnostics(
             // (1,20): error CS1001: Identifier expected
             // explicit extension unsafe for var { }
@@ -7056,7 +7008,7 @@ explicit extension R for C
     }
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics();
         Assert.Equal("void R.Main()", comp.GetEntryPoint(cancellationToken: default).ToTestDisplayString());
         // PROTOTYPE confirm we want this and verify execution
@@ -7073,7 +7025,7 @@ explicit extension R for C
     static void Main() { }
 }
 ";
-        var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("R"), targetFramework: TargetFramework.Net70);
+        var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("R"));
         compilation.VerifyDiagnostics(
             // (4,20): error CS1556: 'R' specified for Main method must be a non-generic class, record, struct, or interface
             // explicit extension R for C
@@ -7090,7 +7042,7 @@ public class C { }
 
 partial public explicit extension R for C { }
 ";
-        var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var compilation = CreateCompilation(source);
         compilation.VerifyDiagnostics(
             // (4,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'implicit/explicit extension', or a method return type.
             // partial public explicit extension R for C { }
@@ -7107,7 +7059,7 @@ public class C { }
 public explicit extension R1<T> for C where T : C { }
 public explicit extension R2<T> for C : R1<R2<T>> { }
 ";
-        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(text);
         comp.VerifyDiagnostics(
             // (5,27): error CS0315: The type 'R2<T>' cannot be used as type parameter 'T' in the generic type or method 'R1<T>'. There is no boxing conversion from 'R2<T>' to 'C'.
             // public explicit extension R2<T> for C : R1<R2<T>> { }
@@ -7124,7 +7076,7 @@ public class C { }
 public explicit extension R1<T> for C { }
 public unsafe explicit extension R2<T> for C : R1<int*> { }
 ";
-        var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
             // (5,34): error CS0306: The type 'int*' may not be used as a type argument
             // public unsafe explicit extension R2<T> for C : R1<int*> { }
@@ -7137,7 +7089,7 @@ public unsafe explicit extension R2<T> for C : R1<int*> { }
     {
         var text = """implicit explicit extension R for var { }""";
 
-        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(text);
         comp.VerifyDiagnostics(
             // (1,10): error CS1003: Syntax error, 'operator' expected
             // implicit explicit extension R for var { }
@@ -7181,13 +7133,6 @@ public unsafe explicit extension R2<T> for C : R1<int*> { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -7200,7 +7145,7 @@ public unsafe explicit extension R2<T> for C : R1<int*> { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -7225,13 +7170,6 @@ public explicit extension R2 for object : R1 { }
     .pack 1
     .size 0
 
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -7244,7 +7182,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -7269,13 +7207,6 @@ public explicit extension R2 for object : R1 { }
     .pack 0
     .size 1
 
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -7288,7 +7219,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -7313,13 +7244,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method {{methodAccessibility}} hidebysig static void '{{ExtensionMarkerName(false)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -7337,7 +7261,7 @@ public explicit extension R2 for object : R1 { }
 object.M();
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,8): error CS0117: 'object' does not contain a definition for 'M'
             // object.M();
@@ -7367,7 +7291,7 @@ object.M();
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -7413,7 +7337,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -7455,7 +7379,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -7495,7 +7419,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -7547,7 +7471,7 @@ public explicit extension R2 for object : R1 { }
 object.M();
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,8): error CS0117: 'object' does not contain a definition for 'M'
             // object.M();
@@ -7581,7 +7505,7 @@ object.M();
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -7626,7 +7550,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R2
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '', valuetype R2 modopt(object) '') cil managed
     {
         IL_0000: ret
@@ -7638,7 +7561,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R3 for object : R2 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R3 for object : R2 { }
@@ -7673,7 +7596,6 @@ public explicit extension R3 for object : R2 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
 }
 """;
 
@@ -7681,7 +7603,7 @@ public explicit extension R3 for object : R2 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -7711,15 +7633,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 01 00 00
-    )
-
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -7736,7 +7649,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -7749,9 +7662,6 @@ public explicit extension R2 for object : R1 { }
         if (!new NoBaseExtensions().ShouldSkip)
         {
             comp.VerifyDiagnostics(
-                // (1,43): error CS0619: 'R1' is obsolete: 'Extension type are not supported in this version of your compiler.'
-                // public explicit extension R2 for object : R1 { }
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "R1").WithArguments("R1", PEModule.ExtensionMarker).WithLocation(1, 43),
                 // (1,43): error CS9307: A base extension must be an extension type.
                 // public explicit extension R2 for object : R1 { }
                 Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "R1").WithLocation(1, 43)
@@ -7781,15 +7691,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 01 00 00
-    )
-
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -7806,7 +7707,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -7819,9 +7720,6 @@ public explicit extension R2 for object : R1 { }
         if (!new NoBaseExtensions().ShouldSkip)
         {
             comp.VerifyDiagnostics(
-                // (1,43): error CS0619: 'R1' is obsolete: 'Extension type are not supported in this version of your compiler.'
-                // public explicit extension R2 for object : R1 { }
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "R1").WithArguments("R1", PEModule.ExtensionMarker).WithLocation(1, 43),
                 // (1,43): error CS9307: A base extension must be an extension type.
                 // public explicit extension R2 for object : R1 { }
                 Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "R1").WithLocation(1, 43)
@@ -7869,7 +7767,7 @@ static class OtherExtension
 }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -7903,7 +7801,7 @@ static class OtherExtension
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -7934,7 +7832,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -7991,7 +7889,7 @@ public explicit extension R2 for object : R1 { }
 """;
 
         // PROTOTYPE this test should be updated once we emit erase references to extensions (different metadata format)
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -8040,7 +7938,7 @@ public explicit extension R2 for object : R1 { }
 
         // PROTOTYPE this test should be updated once we emit erase references to extensions (different metadata format)
         // PROTOTYPE should have a use-site error too
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -8073,7 +7971,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '', object '') cil managed
     {
         IL_0000: ret
@@ -8086,7 +7983,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,27): error CS9322: Extension marker method on type 'R1' is malformed.
             // public explicit extension R2 for object : R1 { }
@@ -8113,7 +8010,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '', valuetype R1 '') cil managed
     {
         IL_0000: ret
@@ -8127,7 +8023,7 @@ public explicit extension R2 for object : R1 { }
 """;
 
         // PROTOTYPE this test should be updated once we emit erase references to extensions (different metadata format)
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         // PROTOTYPE consider a dedicated error message
         comp.VerifyDiagnostics(
             // (1,27): error CS0268: Imported type 'R1' is invalid. It contains a circular base type dependency.
@@ -8177,7 +8073,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R3 for object : R2 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         // PROTOTYPE should we consider duplicate base extensions to be bad metadata?
         // PROTOTYPE this test should be updated once we emit erase references to extensions (different metadata format)
         comp.VerifyDiagnostics(
@@ -8205,316 +8101,6 @@ public explicit extension R3 for object : R2 { }
         Assert.False(r3BaseExtensions.Single().IsErrorType());
     }
 
-    [Fact]
-    public void ExtensionMarkerMethod_MissingIsByRefLikeAttribute()
-    {
-        var ilSource = $$"""
-.class public sequential ansi sealed beforefieldinit R1
-    extends [mscorlib]System.ValueType
-{
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 01 00 00
-    )
-
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
-    {
-        IL_0000: ret
-    }
-    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
-}
-""";
-
-        var src = """
-public explicit extension R2 for object : R1 { }
-""";
-
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
-            // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
-            );
-
-        var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
-
-        if (new NoBaseExtensions().ShouldSkip) return;
-
-        comp.VerifyDiagnostics(
-            // (1,43): error CS0619: 'R1' is obsolete: 'Extension types are not supported in this version of your compiler.'
-            // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "R1").WithArguments("R1", PEModule.ExtensionMarker).WithLocation(1, 43),
-            // (1,43): error CS9307: A base extension must be an extension type.
-            // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "R1").WithLocation(1, 43)
-            );
-
-        var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
-    }
-
-    [Fact]
-    public void ObsoleteExtensionMarker_OnMethod()
-    {
-        // public class C
-        // {
-        //     [Obsolete(ExtensionMarker)]
-        //     public void M() { }
-        // }
-        var ilSource = """
-.class public auto ansi beforefieldinit C
-    extends [mscorlib]System.Object
-{
-    .method public hidebysig instance void M() cil managed
-    {
-        .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
-            01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-            65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-            72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-            73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-            70 69 6c 65 72 2e 01 00 00
-        )
-
-        IL_0000: ret
-    }
-
-    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
-    {
-        IL_0000: ldarg.0
-        IL_0001: call instance void [mscorlib]System.Object::.ctor()
-        IL_0006: ret
-    }
-}
-""";
-
-        var src = """
-class C2 : C
-{
-    void M2()
-    {
-        M();
-    }
-}
-""";
-
-        var comp = CreateCompilationWithIL(src, ilSource);
-        comp.VerifyDiagnostics(
-            // (5,9): error CS0619: 'C.M()' is obsolete: 'Extension types are not supported in this version of your compiler.'
-            //         M();
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "M()").WithArguments("C.M()", PEModule.ExtensionMarker).WithLocation(5, 9)
-            );
-    }
-
-    [Fact]
-    public void ObsoleteExtensionMarker_OnField()
-    {
-        // public class C
-        // {
-        //     [Obsolete(ExtensionMarker)]
-        //     public int field;
-        // }
-        var ilSource = """
-.class public auto ansi beforefieldinit C
-    extends [mscorlib]System.Object
-{
-    .field public int32 'field'
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 01 00 00
-    )
-
-    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
-    {
-        IL_0000: ldarg.0
-        IL_0001: call instance void [mscorlib]System.Object::.ctor()
-        IL_0006: ret
-    }
-}
-""";
-
-        var src = """
-class C2 : C
-{
-    void M2()
-    {
-        _ = field;
-    }
-}
-""";
-
-        var comp = CreateCompilationWithIL(src, ilSource);
-        comp.VerifyDiagnostics(
-            // (5,13): error CS0619: 'C.field' is obsolete: 'Extension type are not supported in this version of your compiler.'
-            //         _ = field;
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "field").WithArguments("C.field", PEModule.ExtensionMarker).WithLocation(5, 13)
-            );
-    }
-
-    [Fact]
-    public void ObsoleteExtensionMarker_OnProperty()
-    {
-        // public class C
-        // {
-        //     [Obsolete(ExtensionMarker)]
-        //     public int Property => 0;
-        // }
-        var ilSource = """
-.class public auto ansi beforefieldinit C
-    extends [mscorlib]System.Object
-{
-    .method public hidebysig specialname instance int32 get_Property() cil managed
-    {
-        IL_0000: ldc.i4.0
-        IL_0001: ret
-    }
-
-    .property instance int32 Property()
-    {
-        .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
-            01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-            65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-            72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-            73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-            70 69 6c 65 72 2e 01 00 00
-        )
-
-        .get instance int32 C::get_Property()
-    }
-
-    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
-    {
-        IL_0000: ldarg.0
-        IL_0001: call instance void [mscorlib]System.Object::.ctor()
-        IL_0006: ret
-    }
-}
-""";
-
-        var src = """
-class C2 : C
-{
-    void M2()
-    {
-        _ = Property;
-    }
-}
-""";
-
-        var comp = CreateCompilationWithIL(src, ilSource);
-        comp.VerifyDiagnostics(
-            // (5,13): error CS0619: 'C.Property' is obsolete: 'Extension type are not supported in this version of your compiler.'
-            //         _ = Property;
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Property").WithArguments("C.Property", PEModule.ExtensionMarker).WithLocation(5, 13)
-            );
-    }
-
-    [Fact]
-    public void ObsoleteExtensionMarker_OnEvent()
-    {
-        // public class C
-        // {
-        //     [Obsolete(ExtensionMarker)]
-        //     public event System.Action Event { add => throw null; remove => throw null; }
-        // }
-        var ilSource = """
-.class public auto ansi beforefieldinit C
-    extends [mscorlib]System.Object
-{
-    .method public hidebysig specialname instance void add_Event(class [mscorlib]System.Action 'value') cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig specialname instance void remove_Event(class [mscorlib]System.Action 'value') cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .event [mscorlib]System.Action Event
-    {
-        .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
-            01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-            65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-            72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-            73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-            70 69 6c 65 72 2e 01 00 00
-        )
-
-        .addon instance void C::add_Event(class [mscorlib]System.Action)
-        .removeon instance void C::remove_Event(class [mscorlib]System.Action)
-    }
-
-    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
-    {
-        IL_0000: ldarg.0
-        IL_0001: call instance void [mscorlib]System.Object::.ctor()
-        IL_0006: ret
-    }
-}
-""";
-
-        var src = """
-class C2 : C
-{
-    void M2()
-    {
-        Event += null;
-    }
-}
-""";
-
-        var comp = CreateCompilationWithIL(src, ilSource);
-        comp.VerifyDiagnostics(
-            // (5,9): error CS0619: 'C.Event' is obsolete: 'Extension type are not supported in this version of your compiler.'
-            //         Event += null;
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Event").WithArguments("C.Event", PEModule.ExtensionMarker).WithLocation(5, 9)
-            );
-    }
-
-    [ConditionalFact(typeof(NoBaseExtensions))]
-    public void ObsoleteExtensionMarker_WrongString()
-    {
-        var ilSource = $$"""
-.class public sequential ansi sealed beforefieldinit R1
-    extends [mscorlib]System.ValueType
-{
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = ( 01 00 02 68 69 00 00 )
-    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
-    {
-        IL_0000: ret
-    }
-    .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
-}
-""";
-
-        var src = """
-public explicit extension R2 for object : R1 { }
-""";
-
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (1,43): warning CS0618: 'R1' is obsolete: 'hi'
-            // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "R1").WithArguments("R1", "hi").WithLocation(1, 43)
-            );
-
-        var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
-
-        var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
-    }
-
     [Theory, CombinatorialData]
     public void ExtensionMarkerMethod_NotPrivate(bool isExplicit)
     {
@@ -8534,7 +8120,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -8577,7 +8163,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -8620,7 +8206,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -8654,7 +8240,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -8698,7 +8284,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -8741,7 +8327,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -8774,9 +8360,9 @@ public explicit extension R1<T> for object { }
 public explicit extension R2 for object : R1<dynamic> { }
 """;
 
-        var comp = CreateCompilation(src1, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src1);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -8794,7 +8380,7 @@ public explicit extension R2 for object : R1<dynamic> { }
 explicit extension R1<T> for object { }
 explicit extension R2 for object : R1<dynamic> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_DynamicAttribute);
         comp.VerifyDiagnostics(
             // (2,39): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
@@ -8812,9 +8398,9 @@ public explicit extension R1<T> for object { }
 public explicit extension R2 for object : R1<(int a, int b)> { }
 """;
 
-        var comp = CreateCompilation(src1, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src1);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -8835,9 +8421,9 @@ public explicit extension R1<T> for object { }
 public explicit extension R2 for object : R1<object?> { }
 """;
 
-        var comp = CreateCompilation(src1, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src1);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -8853,7 +8439,7 @@ public explicit extension R2 for object : R1<object?> { }
         var lib_cs = """
 public explicit extension R1<T> for object { }
 """;
-        var libComp = CreateCompilation(lib_cs, targetFramework: TargetFramework.Net70);
+        var libComp = CreateCompilation(lib_cs);
         libComp.VerifyDiagnostics();
 
         var src = """
@@ -8861,10 +8447,10 @@ public explicit extension R1<T> for object { }
 public explicit extension R2 for object : R1<object?> { }
 """;
 
-        var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src, references: new[] { libComp.EmitToImageReference() });
         comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_NullableAttribute);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -8888,10 +8474,10 @@ public explicit extension R1<T> for object { }
 public explicit extension R2 for object : R1<object?> { }
 """;
 
-        var comp = CreateCompilation(src1, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src1);
         comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_NullableContextAttribute);
         comp.VerifyDiagnostics();
-        var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         return;
 
         static void validate(ModuleSymbol module)
@@ -8917,10 +8503,10 @@ public explicit extension R1 for object
     private object M2() => null!;
     private object M3() => null!;
 }";
-        var comp = CreateCompilation(source, assemblyName: "comp", targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source, assemblyName: "comp");
         comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_NullableContextAttribute);
 
-        CompileAndVerify(comp, verify: Verification.FailsPEVerify, symbolValidator: module =>
+        CompileAndVerify(comp, symbolValidator: module =>
         {
             var attributeType = module.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.NullableContextAttribute");
             Assert.NotNull(attributeType);
@@ -8987,7 +8573,7 @@ static class OtherExtension
 }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
@@ -9005,34 +8591,33 @@ static class OtherExtension
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00)
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string, bool) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 01 00 00
-    )
-
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
     {
         IL_0000: ret
     }
     .field public int32 'field'
     .field private object '{{WellKnownMemberNames.ExtensionFieldName}}'
+
+    .method public hidebysig static void M () cil managed
+    {
+        IL_0000: ret
+    }
 }
 """;
 
         var src = """
+object.M();
 public explicit extension R2 for object : R1 { }
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
-            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // (1,8): error CS0117: 'object' does not contain a definition for 'M'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8),
+            // (2,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(2, 41)
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
@@ -9041,9 +8626,9 @@ public explicit extension R2 for object : R1 { }
         if (new NoBaseExtensions().ShouldSkip) return;
 
         comp.VerifyDiagnostics(
-            // (1,43): error CS0619: 'R1' is obsolete: 'Extension type are not supported in this version of your compiler.'
-            // public explicit extension R2 for object : R1 { }
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "R1").WithArguments("R1", PEModule.ExtensionMarker).WithLocation(1, 43),
+            // (1,8): error CS0117: 'object' does not contain a definition for 'M'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8),
             // (1,43): error CS9307: A base extension must be an extension type.
             // public explicit extension R2 for object : R1 { }
             Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "R1").WithLocation(1, 43)
@@ -9057,7 +8642,7 @@ public explicit extension R2 for object : R1 { }
 public explicit extension R for object { }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() },
@@ -9074,7 +8659,7 @@ public explicit extension R for object { }
 public explicit extension R for object { }
 """;
 
-        var comp = CreateCompilation(src1, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src1);
         comp.VerifyDiagnostics(
             // (1,2): error CS0592: Attribute 'System.Obsolete' is not valid on this declaration type. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
             // [System.Obsolete("message")]
@@ -9109,10 +8694,10 @@ public explicit extension E for object
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method Property"),
-            symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "Method Property",
+            symbolValidator: validate, sourceSymbolValidator: validate);
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -9136,9 +8721,9 @@ public explicit extension E for object
         AssertSetStrictlyEqual(["System.Int32 E.Property { get; }"],
             model.LookupSymbols(position: 0, e, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["System.String? System.Object.ToString()"], model.LookupSymbols(position: 0, e, name: "ToString").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["System.String System.Object.ToString()"], model.LookupSymbols(position: 0, e, name: "ToString").ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["System.String? System.Object.ToString()"],
+        AssertSetStrictlyEqual(["System.String System.Object.ToString()"],
             model.LookupSymbols(position: 0, e, name: "ToString", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
@@ -9146,12 +8731,12 @@ public explicit extension E for object
         AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         string[] objectSymbols = [
-            "System.String? System.Object.ToString()",
-            "System.Boolean System.Object.Equals(System.Object? obj)",
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.String System.Object.ToString()",
+            "System.Boolean System.Object.Equals(System.Object obj)",
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
             "System.Int32 System.Object.GetHashCode()",
             "System.Type System.Object.GetType()",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
 
         AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o).ToTestDisplayStrings());
         AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o, includeReducedExtensionMethods: true).ToTestDisplayStrings());
@@ -9190,10 +8775,10 @@ public implicit extension E for object
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method Property"),
-            symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "Method Property",
+            symbolValidator: validate, sourceSymbolValidator: validate);
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -9217,9 +8802,9 @@ public implicit extension E for object
         AssertSetStrictlyEqual(["System.Int32 E.Property { get; }"],
             model.LookupSymbols(position: 0, e, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["System.String? System.Object.ToString()"], model.LookupSymbols(position: 0, e, name: "ToString").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["System.String System.Object.ToString()"], model.LookupSymbols(position: 0, e, name: "ToString").ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["System.String? System.Object.ToString()"],
+        AssertSetStrictlyEqual(["System.String System.Object.ToString()"],
             model.LookupSymbols(position: 0, e, name: "ToString", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
@@ -9268,7 +8853,7 @@ public explicit extension E for object
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,6): warning CS8321: The local function 'M' is declared but never used
             // void M(E e)
@@ -9314,10 +8899,10 @@ public explicit extension Base for object
 public explicit extension E for object : Base { }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         CompileAndVerify(comp, expectedOutput: "Method Property",
-            symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+            symbolValidator: validate, sourceSymbolValidator: validate);
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -9369,7 +8954,7 @@ public explicit extension Base for object
 public explicit extension E for object : Base { }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE execute once instance invocation is implemented
 
@@ -9405,9 +8990,9 @@ public explicit extension E for object : Base
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "Method", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "Method");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -9438,7 +9023,7 @@ public explicit extension Base2 for object
 public explicit extension E for object : Base1, Base2 { }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
              // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'Base1.M()' and 'Base2.M()'
              // E.M();
@@ -9481,7 +9066,7 @@ public explicit extension E for object : Base
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var e2 = comp.GlobalNamespace.GetTypeMember("E2");
@@ -9507,7 +9092,7 @@ public explicit extension E for object : Base
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var e2 = comp.GlobalNamespace.GetTypeMember("E2");
@@ -9536,7 +9121,7 @@ public explicit extension E for object : Base1, Base2
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,45): error CS0104: 'Ambiguous' is an ambiguous reference between 'Base1.Ambiguous' and 'Base2.Ambiguous'
             // public explicit extension E2 for object : E.Ambiguous { }
@@ -9579,10 +9164,10 @@ public explicit extension E for object : Base
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         CompileAndVerify(comp, expectedOutput: "Method Property",
-            symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+            symbolValidator: validate, sourceSymbolValidator: validate);
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -9627,10 +9212,10 @@ public explicit extension E for object : Base
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         CompileAndVerify(comp, expectedOutput: "Member Member",
-            symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+            symbolValidator: validate, sourceSymbolValidator: validate);
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -9680,9 +9265,9 @@ public explicit extension E for object : Base
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "Method(long) Method(string) Method(long)", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "Method(long) Method(string) Method(long)");
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
@@ -9715,9 +9300,9 @@ public explicit extension E4 for object : E2, E3 { }
 """;
 
         // PROTOTYPE should warn about hiding
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "E2.Prop E2.Prop", verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "E2.Prop E2.Prop");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -9748,7 +9333,7 @@ public explicit extension E for object : Base
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,3): error CS0122: 'Base.M()' is inaccessible due to its protection level
             // E.M();
@@ -9775,7 +9360,7 @@ public explicit extension E1 for object : E2
 public explicit extension E2 for object : E1 { }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,4): error CS0117: 'E2' does not contain a definition for 'M'
             // E2.M();
@@ -9849,10 +9434,10 @@ public explicit extension Base2 for object : GrandBase2, GrandBase3
 public explicit extension E for object : Base1, Base2 { }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         CompileAndVerify(comp, expectedOutput: "Method Property",
-            symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+            symbolValidator: validate, sourceSymbolValidator: validate);
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -9908,7 +9493,7 @@ public explicit extension D for object : C.Base
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,5): error CS0117: 'D.E' does not contain a definition for 'M'
             // D.E.M();
@@ -9944,12 +9529,12 @@ public explicit extension D for object : C.Base
         var src1 = """
 public explicit extension A for object { }
 """;
-        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net70, assemblyName: "missing");
+        var comp1 = CreateCompilation(src1, assemblyName: "missing");
 
         var src2 = """
 public explicit extension B for object : A { }
 """;
-        var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.Net70,
+        var comp2 = CreateCompilation(src2,
             references: new[] { comp1.ToMetadataReference() });
         comp2.VerifyDiagnostics();
 
@@ -9983,7 +9568,7 @@ public explicit extension D for object : C.Base
 }
 """;
 
-        var comp3 = CreateCompilation(src3, targetFramework: TargetFramework.Net70,
+        var comp3 = CreateCompilation(src3,
             references: new[] { comp2.ToMetadataReference() });
 
         comp3.VerifyDiagnostics(
@@ -10030,7 +9615,7 @@ public explicit extension D for object : C.Base
         var src1 = """
 public explicit extension Missing for object { }
 """;
-        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net70, assemblyName: "missing");
+        var comp1 = CreateCompilation(src1, assemblyName: "missing");
 
         var src2 = """
 public explicit extension B for object : Missing
@@ -10038,7 +9623,7 @@ public explicit extension B for object : Missing
     public class C { }
 }
 """;
-        var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.Net70,
+        var comp2 = CreateCompilation(src2,
             references: new[] { comp1.ToMetadataReference() });
 
         var src3 = """
@@ -10056,7 +9641,7 @@ public explicit extension E1 for object : E2<B.C>
 }
 """;
 
-        var comp3 = CreateCompilation(src3, targetFramework: TargetFramework.Net70,
+        var comp3 = CreateCompilation(src3,
             references: new[] { comp2.ToMetadataReference() });
 
         // PROTOTYPE should we have a diagnostic for using B (whose base extension is missing)?
@@ -10077,7 +9662,7 @@ public explicit extension E1 for object : E2<B.C>
 explicit extension A<T> for object { }
 explicit extension B for object : A<B.Garbage> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,39): error CS0426: The type name 'Garbage' does not exist in the type 'B'
             // explicit extension B for object : A<B.Garbage> { }
@@ -10096,7 +9681,7 @@ class C
 explicit extension A<T> for C { }
 explicit extension B for C : A<B.Nested> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
     }
 
@@ -10111,7 +9696,7 @@ explicit extension A<T> for C
 }
 explicit extension B for C : A<B.Nested> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
     }
 
@@ -10126,7 +9711,7 @@ class C<T>
 explicit extension A<T> for C<T> { }
 explicit extension B for C<B.Nested> : A<int> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
     }
 
@@ -10179,7 +9764,7 @@ A.ToString();
 
 public explicit extension A for object { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,1): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
             // A.ToString();
@@ -10209,18 +9794,18 @@ public explicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.ToString()");
-        Assert.Equal("System.String? System.Object.ToString()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal("System.String System.Object.ToString()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(thisInvocation));
 
         var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.ToString()");
-        Assert.Equal("System.String? System.Object.ToString()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal("System.String System.Object.ToString()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(instanceInvocation)); // PROTOTYPE need to fix the semantic model
     }
 
@@ -10249,7 +9834,7 @@ namespace N
 }
 """;
         // PROTOTYPE should warn for hiding
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -10285,7 +9870,7 @@ explicit extension E for object : Base
 }
 """;
         // PROTOTYPE should warn for hiding
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -10324,7 +9909,7 @@ explicit extension E for object : Base
 }
 """;
         // PROTOTYPE should warn for hiding
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -10351,13 +9936,13 @@ explicit extension E for object : Base
 public explicit extension E1 for object { }
 """;
 
-        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net70, assemblyName: "first");
+        var comp1 = CreateCompilation(src1, assemblyName: "first");
         comp1.VerifyDiagnostics();
 
         var src2 = """
 public explicit extension E2 for object : E1 { }
 """;
-        var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.Net70,
+        var comp2 = CreateCompilation(src2,
             references: new[] { comp1.EmitToImageReference() });
 
         comp2.VerifyDiagnostics();
@@ -10386,13 +9971,13 @@ public explicit extension Base2 for object : GrandBase2, GrandBase3
 public explicit extension E1 for object : Base1, Base2 { }
 """;
 
-        var comp1Updated = CreateCompilation(src1Updated, targetFramework: TargetFramework.Net70, assemblyName: "first");
+        var comp1Updated = CreateCompilation(src1Updated, assemblyName: "first");
         comp1Updated.VerifyDiagnostics();
 
         var src = """
 public explicit extension E3 for object : E2 { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70,
+        var comp = CreateCompilation(src,
             references: new[] { comp2.ToMetadataReference(), comp1Updated.EmitToImageReference() });
         comp.VerifyDiagnostics();
 
@@ -10446,10 +10031,10 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Property Property2 Field(42) Method"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "Property Property2 Field(42) Method");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -10510,10 +10095,10 @@ implicit extension E for object
     public static int Field = 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Property Field(42)"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "Property Field(42)");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -10545,7 +10130,7 @@ implicit extension E for object
     public static System.Action Property2 => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,19): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
             // System.Action p = object.Property;
@@ -10612,10 +10197,10 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Property Field(42) Type StaticType"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -10646,8 +10231,8 @@ implicit extension E for object
     public static int Field = 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Property"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "Property").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -10675,8 +10260,8 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -10725,7 +10310,7 @@ implicit extension Base for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -10792,7 +10377,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -10850,7 +10435,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,12): error CS0117: 'object' does not contain a definition for 'Property'
             // _ = object.Property;
@@ -10898,7 +10483,7 @@ implicit extension Base for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -10927,7 +10512,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -10967,7 +10552,7 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,12): error CS0117: 'object' does not contain a definition for 'Property'
             // _ = object.Property;
@@ -11016,8 +10601,8 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("M"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "M").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -11077,7 +10662,7 @@ implicit extension Base for object
     public class Type { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics();
 
@@ -11152,7 +10737,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics(
             // (5,39): error CS8000: This language feature ('base extensions') is not yet implemented.
@@ -11199,7 +10784,7 @@ implicit extension E2 for object
     public class Member { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (3,29): error CS0104: 'Member' is an ambiguous reference between 'E1.Member' and 'E2.Member'
             // class C<T> where T : Object.Member { }
@@ -11238,7 +10823,7 @@ implicit extension E3 for object
     public static int Member = 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -11266,7 +10851,7 @@ implicit extension E2 for object
     public int Member<T>() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -11372,8 +10957,8 @@ class Container
 
         void verify(string src, string extensionName)
         {
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Property Field(42) Type StaticType"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType").VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -11471,7 +11056,7 @@ file {{eSrc}}
 
         static void verify(CSharpTestSource src, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(expected);
 
             var tree = comp.SyntaxTrees.First();
@@ -11562,7 +11147,7 @@ using N2; // 1, 2
 {{eSrc}}
 """;
 
-        var comp = CreateCompilation(src2, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src2, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (2,1): hidden CS8019: Unnecessary using directive.
             // using N2; // 1, 2
@@ -11589,8 +11174,8 @@ namespace N3
 
         void verify(string src, string extensionName)
         {
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Property Field(42) Type StaticType"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "Property Field(42) Type StaticType").VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -11642,14 +11227,14 @@ namespace N2
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N1;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1)
             );
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("property"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "property");
     }
 
     [Fact]
@@ -11684,14 +11269,14 @@ namespace N2
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N1;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1)
             );
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("method"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "method");
     }
 
     [Fact]
@@ -11723,7 +11308,7 @@ namespace N2
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
     }
 
@@ -11756,7 +11341,7 @@ namespace N2
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
     }
 
@@ -11792,14 +11377,14 @@ namespace N2
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N1;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1)
             );
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("method"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "method");
     }
 
     [Fact]
@@ -11823,7 +11408,7 @@ explicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,8): error CS0117: 'object' does not contain a definition for 'Method'
             // object.Method();
@@ -11861,7 +11446,7 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,8): error CS0117: 'object' does not contain a definition for 'Method'
             // object.Method();
@@ -11919,7 +11504,7 @@ _ = object.Type.M();
 {{(e1BeforeE2 ? e1 : e2)}}
 {{(e1BeforeE2 ? e2 : e1)}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         if (!e1BeforeE2)
         {
             comp.VerifyEmitDiagnostics(
@@ -11979,8 +11564,8 @@ implicit extension E2 for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E1.Method(42) E2.Method(hello)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)").VerifyDiagnostics();
     }
 
     [Fact]
@@ -12018,8 +11603,8 @@ namespace N1
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E1.Method(42) E2.Method(hello)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)").VerifyDiagnostics();
     }
 
     [Fact]
@@ -12057,8 +11642,8 @@ namespace N1
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E1.Method(42) E2.Method(hello)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)").VerifyDiagnostics();
     }
 
     [Fact]
@@ -12095,13 +11680,13 @@ namespace N2
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N2; // 1
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(1, 1)
             );
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E1.Property"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "E1.Property");
     }
 
     [Fact]
@@ -12132,8 +11717,8 @@ namespace N2
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E1.Method E2.Method"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "E1.Method E2.Method").VerifyDiagnostics();
     }
 
     [Fact]
@@ -12161,8 +11746,8 @@ namespace N2
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
     }
 
     [Fact]
@@ -12179,7 +11764,7 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -12206,7 +11791,7 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -12233,7 +11818,7 @@ implicit extension E for I
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -12261,7 +11846,7 @@ implicit extension E for I
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -12327,7 +11912,7 @@ implicit extension R<T> for C<T> where T : C<T>
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (6,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
             //         T.M(); // 1
@@ -12352,7 +11937,7 @@ implicit extension E for string
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (1,8): error CS0117: 'object' does not contain a definition for 'StaticType'
             // object.StaticType.M();
@@ -12376,8 +11961,8 @@ implicit extension E<T> for C<T>
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran")
            .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -12417,8 +12002,8 @@ implicit extension E<T> for C<T>
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran")
            .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -12474,8 +12059,8 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E+Nested`1[System.String]"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "E+Nested`1[System.String]")
            .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -12508,7 +12093,7 @@ implicit extension E<T> for C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS0426: The type name 'Nested<>' does not exist in the type 'C'
             // D<C.Nested<string>>.M();
@@ -12553,7 +12138,7 @@ implicit extension E<T, U> for I2<T>
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,3): error CS0117: 'I' does not contain a definition for 'Nested'
             // I.Nested<string>.M2();
@@ -12589,13 +12174,6 @@ implicit extension E<T, U> for I2<T>
 .class public sequential ansi sealed beforefieldinit E`1<T>
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -12628,7 +12206,7 @@ class D<T> where T : System.Object.Nested<string>
     }
 }
 """;
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyEmitDiagnostics(
             // (1,8): warning CS0219: The variable 'x' is assigned but its value is never used
             // E<int> x = default;
@@ -12669,7 +12247,7 @@ implicit extension E<T> for C<T>
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS8389: Omitting the type argument is not allowed in the current context
             // C<int>.StaticType<,>.M();
@@ -12700,7 +12278,7 @@ implicit extension E<T> for C<T>
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,19): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'E<int>.StaticType<U>'
             // C<int>.StaticType<string>.M();
@@ -12753,8 +12331,8 @@ implicit extension E<T> for C<T>.D
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -12792,7 +12370,7 @@ implicit extension E for object
 }
 """;
         // PROTOTYPE see if we can improve the diagnostic location for 5 (should be on "StaticType", not "o.StaticType")
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (1,1): error CS0103: The name 'dynamic' does not exist in the current context
             // dynamic.StaticType.M(); // 1
@@ -12828,8 +12406,8 @@ implicit extension E<T> for T where T : C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran")
            .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -12851,7 +12429,7 @@ implicit extension E for object
     public static void Method(object o) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,8): error CS0117: 'object' does not contain a definition for 'M'
             // object.M(d);
@@ -12878,8 +12456,8 @@ implicit extension E for C<object>
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("M"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "M").VerifyDiagnostics();
     }
 
     [Fact]
@@ -12902,8 +12480,8 @@ implicit extension E for C<object>
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("M"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "M").VerifyDiagnostics();
     }
 
     [Fact]
@@ -12926,7 +12504,7 @@ implicit extension E for I<object>
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,11): error CS1966: 'D': cannot implement a dynamic interface 'I<dynamic>'
             // class D : I<dynamic> { }
@@ -12956,8 +12534,8 @@ implicit extension E for C<(int a, int b)>
 }
 """;
         // PROTOTYPE consider warning for certain tuple name differences
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("MMM"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [Fact]
@@ -12985,8 +12563,8 @@ implicit extension E for C<(int a, int b)>
 }
 """;
         // PROTOTYPE consider warning for certain tuple name differences
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("MMM"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [Fact]
@@ -13014,8 +12592,8 @@ implicit extension E for I<(int a, int b)>
 }
 """;
         // PROTOTYPE consider warning for certain tuple name differences
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("MMM"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [Fact]
@@ -13046,8 +12624,8 @@ implicit extension E for C<object?>
 }
 """;
         // PROTOTYPE consider warning for certain nullability differences
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("MMM"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [Fact]
@@ -13083,8 +12661,8 @@ implicit extension E for C<object?>
 }
 """;
         // PROTOTYPE consider warning for certain nullability differences
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("MMM"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [Fact]
@@ -13120,8 +12698,8 @@ implicit extension E for I<object?>
 }
 """;
         // PROTOTYPE consider warning for certain nullability differences
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("MMM"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [Fact]
@@ -13152,8 +12730,8 @@ implicit extension E for C<object>
 }
 """;
         // PROTOTYPE consider warning for certain nullability differences
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("MMM"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [Fact]
@@ -13185,7 +12763,7 @@ implicit extension E for C<object>
 }
 """;
         // PROTOTYPE consider warning for certain nullability differences
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
     }
 
@@ -13221,8 +12799,8 @@ implicit extension E for I<object>
 }
 """;
         // PROTOTYPE consider warning for certain nullability differences
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("MMM"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [Fact]
@@ -13257,8 +12835,8 @@ implicit extension E for C<
 }
 """;
         // PROTOTYPE consider warning for certain nullability differences
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("MMM"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [Fact]
@@ -13297,8 +12875,8 @@ implicit extension E for C<
 }
 """;
         // PROTOTYPE consider warning for certain nullability differences
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("MMM"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
     }
 
     [Fact]
@@ -13326,8 +12904,8 @@ implicit extension E<T> for C<T?>
 }
 """;
         // PROTOTYPE consider warning for certain nullability differences
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran ran"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran ran ran")
           .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -13364,10 +12942,10 @@ implicit extension E<T> for C<T?> where T : class
 }
 """;
         // PROTOTYPE consider warning for certain nullability differences
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran ran"), verify: Verification.FailsPEVerify)
+        CompileAndVerify(comp, expectedOutput: "ran ran ran")
            .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -13392,8 +12970,8 @@ implicit extension E for object
     public static class StaticType { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("M StaticType"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "M StaticType").VerifyDiagnostics();
     }
 
     [Fact]
@@ -13408,8 +12986,8 @@ implicit extension E for object
     public static void M(int i) { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("M"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "M").VerifyDiagnostics();
     }
 
     [Fact]
@@ -13431,7 +13009,7 @@ implicit extension E for object
     public static class StaticType { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,20): error CS0103: The name 'Method' does not exist in the current context
             //         _ = nameof(Method);
@@ -13457,7 +13035,7 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,23): error CS0106: The modifier 'static' is not valid for this item
             //     public static int this[int i]
@@ -13488,7 +13066,7 @@ implicit extension E for object
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "indexer");
@@ -13510,7 +13088,7 @@ Right:
         var expectedDiagnostics = DiagnosticDescription.None;
 
         VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
-            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+            expectedOperationTree, expectedDiagnostics);
     }
 
     [Fact]
@@ -13535,7 +13113,7 @@ implicit extension E for object
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "indexer");
@@ -13557,7 +13135,7 @@ Right:
         var expectedDiagnostics = DiagnosticDescription.None;
 
         VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
-            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+            expectedOperationTree, expectedDiagnostics);
     }
 
     [Fact]
@@ -13579,7 +13157,7 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE Revisit when adding support for emitting non-static members
@@ -13608,7 +13186,7 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE Revisit when adding support for emitting non-static members
@@ -13642,7 +13220,7 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,5): warning CS8602: Dereference of a possibly null reference.
             // _ = o2.Property;
@@ -13671,7 +13249,7 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,1): warning CS8602: Dereference of a possibly null reference.
             // o.Method();
@@ -13697,7 +13275,7 @@ implicit extension E for object
     public static int Property => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,1): error CS0176: Member 'E.Method()' cannot be accessed with an instance reference; qualify it with a type name instead
             // o.Method();
@@ -13732,7 +13310,7 @@ public implicit extension E for object
     public int Field = 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,5): error CS0120: An object reference is required for the non-static field, method, or property 'E.Property'
             // _ = object.Property;
@@ -13768,7 +13346,7 @@ implicit extension E for object
     public void Method() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,1): error CS0120: An object reference is required for the non-static field, method, or property 'E.Method()'
             // object.Method();
@@ -13805,7 +13383,7 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "Property");
@@ -13837,7 +13415,7 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "Method");
@@ -13868,8 +13446,8 @@ implicit extension E for C
     public static int Property => 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -13903,8 +13481,8 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -13936,7 +13514,7 @@ implicit extension E for MyAttribute
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
             // (1,5): error CS0246: The type or namespace name 'Property' could not be found (are you missing a using directive or an assembly reference?)
@@ -13972,7 +13550,7 @@ implicit extension E for MyAttribute
     public const int Constant = 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
             // (1,16): error CS0103: The name 'Constant' does not exist in the current context
@@ -13996,10 +13574,10 @@ implicit extension E for MyAttribute
     public const int Constant = 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, verify: Verification.FailsPEVerify,
+        CompileAndVerify(comp,
             sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
 
         return;
@@ -14029,7 +13607,7 @@ implicit extension E for MyAttribute
     public static int NotConstant = 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
             // [My(Property = MyAttribute.NotConstant)]
@@ -14069,7 +13647,7 @@ implicit extension E3 for string
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "M(int) M(long) M(string)");
@@ -14134,7 +13712,7 @@ implicit extension E3 for string
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "Property(int) Property(long) Property(string)");
@@ -14166,7 +13744,7 @@ implicit extension E for C
     public class Nested<T> where T : C.Nested<T> { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var nested = comp.GlobalNamespace.GetTypeMember("E").GetTypeMember("Nested");
@@ -14196,7 +13774,7 @@ namespace N
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var d = comp.GetTypeByMetadataName("N.D`1");
@@ -14215,7 +13793,7 @@ implicit extension E for C
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var d = comp.GlobalNamespace.GetTypeMember("D");
@@ -14234,7 +13812,7 @@ implicit extension E<U> for C<U> where U : C<U>.Nested
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
@@ -14259,7 +13837,7 @@ implicit extension E for C
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var d = comp.GlobalNamespace.GetTypeMember("D");
@@ -14283,7 +13861,7 @@ implicit extension E for C
     public class Nested<T> { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var d = comp.GlobalNamespace.GetTypeMember("D");
@@ -14315,7 +13893,7 @@ implicit extension E for C
     public class Nested { }
 }
 """;
-        var comp = CreateCompilationWithIL(src, ilSrc, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSrc);
         comp.VerifyDiagnostics();
 
         var d = comp.GlobalNamespace.GetTypeMember("D");
@@ -14347,7 +13925,7 @@ implicit extension E for C
     public class Nested<T> { }
 }
 """;
-        var comp = CreateCompilationWithIL(src, ilSrc, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSrc);
         comp.VerifyDiagnostics();
 
         var d = comp.GlobalNamespace.GetTypeMember("D");
@@ -14366,7 +13944,7 @@ implicit extension E for C
     public class Nested<T> where T : C.Nested<C.Nested<T>> { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,25): error CS0311: The type 'E.Nested<T>' cannot be used as type parameter 'T' in the generic type or method 'E.Nested<T>'. There is no implicit reference conversion from 'E.Nested<T>' to 'E.Nested<E.Nested<E.Nested<T>>>'.
             //     public class Nested<T> where T : C.Nested<C.Nested<T>> { }
@@ -14408,7 +13986,7 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,9): error CS0103: The name 'Method' does not exist in the current context
             //         Method(); // 1
@@ -14445,8 +14023,8 @@ implicit extension E for C
     public static string Method() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -14472,7 +14050,7 @@ implicit extension E for C
     public static string Method(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,17): error CS8917: The delegate type could not be inferred.
             //         var x = C.Method;
@@ -14509,7 +14087,7 @@ class C { }
 {{(e1BeforeE2 ? e1 : e2)}}
 {{(e1BeforeE2 ? e2 : e1)}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         if (!e1BeforeE2)
         {
             comp.VerifyDiagnostics(
@@ -14559,7 +14137,7 @@ implicit extension E2 for C
     public static int Method(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,17): error CS8917: The delegate type could not be inferred.
             //         var x = C.Method;
@@ -14599,7 +14177,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N;
@@ -14637,8 +14215,8 @@ namespace N
 }
 """;
         // PROTOTYPE(static) for static scenarios, we should not require TargetFramework.Net70, enabling us to execute on Desktop (applies to all static tests in this file)
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1));
@@ -14665,7 +14243,7 @@ implicit extension E for C
     public static string Method() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static C;
@@ -14695,8 +14273,8 @@ implicit extension E for C
     public static T Method<T>() { System.Console.Write("ran"); return default; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -14721,7 +14299,7 @@ implicit extension E for C
     public static T Method<T, U>(U u) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,19): error CS0117: 'C' does not contain a definition for 'Method'
             //         var x = C.Method<int>;
@@ -14751,7 +14329,7 @@ implicit extension E for C
     public string Method() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -14777,7 +14355,7 @@ implicit extension E2 for C
     public static int Method(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,9): error CS8917: The delegate type could not be inferred.
             // var x = C.Method;
@@ -14818,8 +14396,8 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
@@ -14857,8 +14435,8 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
@@ -14888,7 +14466,7 @@ implicit extension E<T> for C<T>
     public static class StaticType<U> { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,1): error CS0723: Cannot declare a variable of static type 'E<int>.StaticType<string>'
             // var x = C<int>.StaticType<string>;
@@ -14922,7 +14500,7 @@ implicit extension E<T> for C<T>
     public static class StaticType<U> where U : struct { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,1): error CS0723: Cannot declare a variable of static type 'E<int>.StaticType<string>'
             // var x = C<int>.StaticType<string>;
@@ -14953,7 +14531,7 @@ implicit extension E<T> for C<T>
     public static class StaticType<U> where U : struct { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,1): error CS0723: Cannot declare a variable of static type 'E<int>.StaticType<U>'
             // var x = C<int>.StaticType<>;
@@ -14991,7 +14569,7 @@ implicit extension E for C
     public static string Method() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -15019,7 +14597,7 @@ implicit extension E for C
     public static string Method() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -15044,7 +14622,7 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -15076,7 +14654,7 @@ implicit extension E2 for D
     public int Current => 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
             // foreach (var x in new C())
@@ -15119,7 +14697,7 @@ implicit extension E2 for D
     public int Current => 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
             // foreach (var x in new C())
@@ -15149,7 +14727,7 @@ implicit extension E for C
     public IEnumerator GetEnumerator<T>() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,19): error CS0411: The type arguments for method 'E.GetEnumerator<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // foreach (var x in new C()) { }
@@ -15180,7 +14758,7 @@ implicit extension E for C
     public IEnumerator GetEnumerator => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
             // foreach (var x in new C()) { }
@@ -15211,7 +14789,7 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE confirm when spec'ing pattern-based deconstruction
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
@@ -15250,7 +14828,7 @@ public static class E2
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE confirm when spec'ing pattern-based deconstruction
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
@@ -15279,7 +14857,7 @@ implicit extension E for C
     public D Deconstruct => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE revisit pattern-based deconstruction
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
@@ -15306,7 +14884,7 @@ implicit extension E for C
     public dynamic Deconstruct => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE revisit pattern-based deconstruction
         comp.VerifyDiagnostics(
             // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
@@ -15351,7 +14929,7 @@ implicit extension E for C
 }
 """;
         // PROTOTYPE confirm when spec'ing pattern-based deconstruction
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "(42, 43)");
@@ -15385,7 +14963,7 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE confirm when spec'ing pattern-based disposal
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
@@ -15410,7 +14988,7 @@ implicit extension E for C
         //        var expectedDiagnostics = DiagnosticDescription.None;
 
         //        VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(src,
-        //            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+        //            expectedOperationTree, expectedDiagnostics);
     }
 
     [Fact]
@@ -15428,7 +15006,7 @@ implicit extension E for C
     public System.Func<Task> DisposeAsync => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE(instance) confirm when spec'ing pattern-based disposal
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         comp.VerifyEmitDiagnostics();
@@ -15459,7 +15037,7 @@ implicit extension E for C
 }
 """;
         // PROTOTYPE confirm when spec'ing pattern-based disposal
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "RAN");
@@ -15482,7 +15060,7 @@ implicit extension E for S
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,1): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
             // using var x = new S();
@@ -15518,7 +15096,7 @@ implicit extension E for Fixable
     }
 }
 ";
-        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeReleaseExe);
+        var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
         // PROTOTYPE confirm when spec'ing pattern-based fixed
         comp.VerifyDiagnostics();
 
@@ -15577,7 +15155,7 @@ implicit extension E for Fixable
     public MyDelegate GetPinnableReference => throw null;
 }
 ";
-        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeReleaseExe);
+        var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
         // PROTOTYPE confirm when spec'ing pattern-based fixed
         comp.VerifyDiagnostics();
 
@@ -15642,7 +15220,7 @@ implicit extension E for Fixable
 """;
 
         // PROTOTYPE confirm when spec'ing pattern-based fixed
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeReleaseExe);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeReleaseExe);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "2");
@@ -15672,7 +15250,7 @@ implicit extension E for Fixable
 }
 ";
 
-        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeReleaseExe);
+        var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
         // PROTOTYPE confirm when spec'ing pattern-based fixed
         comp.VerifyDiagnostics(
             // (6,25): error CS0176: Member 'E.GetPinnableReference()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -15710,7 +15288,7 @@ implicit extension E2 for D : INotifyCompletion
 }
 ";
 
-        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(text);
         // PROTOTYPE confirm when spec'ing pattern-based await
         comp.VerifyDiagnostics(
             // (5,9): error CS0117: 'D' does not contain a definition for 'IsCompleted'
@@ -15755,7 +15333,7 @@ implicit extension E2 for D : INotifyCompletion
 
         // PROTOTYPE confirm when spec'ing pattern-based await
         // PROTOTYPE Revisit when adding support for emitting non-static members and adding interfaces
-        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(text);
         comp.VerifyDiagnostics(
             // (5,9): error CS0117: 'D' does not contain a definition for 'IsCompleted'
             // int i = await new C();
@@ -15794,7 +15372,7 @@ implicit extension E for D
 ";
 
         // PROTOTYPE confirm when spec'ing pattern-based await
-        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(text);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
     }
@@ -15827,7 +15405,7 @@ implicit extension E for C
 ";
 
         // PROTOTYPE confirm when spec'ing pattern-based await
-        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(text);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
     }
@@ -15860,7 +15438,7 @@ implicit extension E for D
 ";
 
         // PROTOTYPE confirm when spec'ing pattern-based await
-        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(text);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
     }
@@ -15928,7 +15506,7 @@ implicit extension E for C
         //        var expectedDiagnostics = DiagnosticDescription.None;
 
         //        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
-        //            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+        //            expectedOperationTree, expectedDiagnostics);
     }
 
     [Fact]
@@ -15994,7 +15572,7 @@ implicit extension E for C
         //        var expectedDiagnostics = DiagnosticDescription.None;
 
         //        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
-        //            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+        //            expectedOperationTree, expectedDiagnostics);
     }
 
     [Fact]
@@ -16112,7 +15690,7 @@ implicit extension E for C
         //        var expectedDiagnostics = DiagnosticDescription.None;
 
         //        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
-        //            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+        //            expectedOperationTree, expectedDiagnostics);
     }
 
     [Fact]
@@ -16180,7 +15758,7 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "property");
@@ -16211,7 +15789,7 @@ implicit extension E2 for int
     public int Property2 { get { System.Console.Write("property2"); return 43; } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "property property2");
@@ -16281,7 +15859,7 @@ implicit extension E for C
         //        var expectedDiagnostics = DiagnosticDescription.None;
 
         //        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
-        //            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+        //            expectedOperationTree, expectedDiagnostics);
     }
 
     [Fact]
@@ -16363,7 +15941,7 @@ implicit extension E for C
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "property");
@@ -16396,7 +15974,7 @@ implicit extension E for S
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE need to decide whether extensions apply here
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
@@ -16434,7 +16012,7 @@ implicit extension E for C
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE confirm when spec'ing pattern-based collection initializer
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
@@ -16462,7 +16040,7 @@ implicit extension E for C
         //        var expectedDiagnostics = DiagnosticDescription.None;
 
         //        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src,
-        //            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+        //            expectedOperationTree, expectedDiagnostics);
     }
 
     [Fact]
@@ -16493,7 +16071,7 @@ implicit extension E for C
 """;
 
         // PROTOTYPE confirm when spec'ing pattern-based collection initializer
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "add");
@@ -16695,7 +16273,7 @@ implicit extension E for C
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
@@ -16731,7 +16309,7 @@ implicit extension E for C
         //    null
         //""";
         //        VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(src,
-        //            expectedOperationTree, DiagnosticDescription.None, targetFramework: TargetFramework.Net70);
+        //            expectedOperationTree, DiagnosticDescription.None);
     }
 
     [Fact]
@@ -16755,7 +16333,7 @@ implicit extension E for C
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "hello");
@@ -16781,7 +16359,7 @@ implicit extension E for C
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,30): error CS0103: The name 'nameof' does not exist in the current context
             //         System.Console.Write(nameof());
@@ -16808,8 +16386,8 @@ implicit extension E for C
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("x"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "x").VerifyDiagnostics();
     }
 
     [Fact]
@@ -16830,7 +16408,7 @@ implicit extension E for C
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,14): error CS0159: No such label 'label' within the scope of the goto statement
             //         goto label;
@@ -16856,7 +16434,7 @@ implicit extension E for C
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,1): warning CS0164: This label has not been referenced
             // label:;
@@ -16878,7 +16456,7 @@ implicit extension E<T> for C<T> where T : ExtensionType
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,22): error CS0246: The type or namespace name 'ExtensionType' could not be found (are you missing a using directive or an assembly reference?)
             // class C<T> where T : ExtensionType
@@ -16912,7 +16490,7 @@ implicit extension E for C
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (3,1): error CS0431: Cannot use alias 'C1' with '::' since the alias references a type. Use '.' instead.
             // C1::ExtensionType.M(); // 1
@@ -16943,7 +16521,7 @@ class C<T>
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (15,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
             //         T.M1();
@@ -16991,7 +16569,7 @@ implicit extension E for C
     public string member => throw null;
 }
 """;
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics(
             // (5,15): error CS0229: Ambiguity between 'C.member' and 'C.member'
             //         _ = c.member;
@@ -17034,10 +16612,10 @@ class Program
     }
 }
 ";
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
         // PROTOTYPE missing WRN_UnreadPrimaryConstructorParameter
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Red"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
+        CompileAndVerify(comp, expectedOutput: "Red").VerifyDiagnostics(
             //// (4,27): warning CS9113: Parameter 'Color' is unread.
             ////     public class C1(Color Color)
             //Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(4, 27)
@@ -17066,9 +16644,9 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E.M"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "E.M").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17108,9 +16686,9 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(""), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17139,10 +16717,10 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "E.M", verify: Verification.FailsPEVerify);
+        //CompileAndVerify(comp, expectedOutput: "E.M");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17172,9 +16750,9 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
-        //CompileAndVerify(comp, expectedOutput: "", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17200,7 +16778,7 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE need to confirm what we want for invocations with dynamic arguments (should likely be disallowed)
         comp.VerifyDiagnostics();
     }
@@ -17231,11 +16809,11 @@ implicit extension E for I
     public int M(ref int i) => 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17266,9 +16844,9 @@ implicit extension E for C
     public static void M(string s) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E.M(42)"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "E.M(42)");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17299,10 +16877,10 @@ implicit extension E for C
     public static void M(string s) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "E.M(42)", verify: Verification.FailsPEVerify);
+        //CompileAndVerify(comp, expectedOutput: "E.M(42)");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17342,9 +16920,9 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E2.M(42)"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "E2.M(42)");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17384,10 +16962,10 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "E2.M(42)", verify: Verification.FailsPEVerify);
+        //CompileAndVerify(comp, expectedOutput: "E2.M(42)");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17421,10 +16999,10 @@ static class E2
     public void M(this C c, int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "E1.M(42)", verify: Verification.FailsPEVerify);
+        //CompileAndVerify(comp, expectedOutput: "E1.M(42)");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17459,9 +17037,9 @@ static class E2
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E2.M(42)"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "E2.M(42)");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17486,7 +17064,7 @@ implicit extension E1 for C
     protected static void M(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // 0.cs(1,3): error CS1501: No overload for method 'M' takes 1 arguments
             // C.M(42);
@@ -17525,9 +17103,9 @@ static class E2
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E2.M(42)"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "E2.M(42)");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17556,7 +17134,7 @@ implicit extension E for C
     public void M(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // 0.cs(7,9): error CS1501: No overload for method 'M' takes 1 arguments
             //         M(42); // 1
@@ -17587,8 +17165,8 @@ implicit extension E for C
     public static D Field;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran(42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran(42)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17610,7 +17188,7 @@ public implicit extension E for C
     public static int Field = 0;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (1,3): error CS0117: 'C' does not contain a definition for 'Field'
             // C.Field(42);
@@ -17645,8 +17223,8 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran(42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran(42)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17675,8 +17253,8 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran(42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilationWithCSharp(source);
+        CompileAndVerify(comp, expectedOutput: "ran(42)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17700,7 +17278,7 @@ implicit extension E for C
     public event D Event { add => throw null; remove => throw null; }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (1,9): error CS0079: The event 'E.Event' can only appear on the left hand side of += or -=
             // new C().Event(42);
@@ -17725,7 +17303,7 @@ class C
 }
 """;
 
-        comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS0079: The event 'C.Event' can only appear on the left hand side of += or -=
             // new C().Event(42);
@@ -17760,10 +17338,10 @@ implicit extension E1 for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E1.M(42)"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "E1.M(42)");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17797,10 +17375,10 @@ public static class E2
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E2.M(42)"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "E2.M(42)");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17831,7 +17409,7 @@ implicit extension E2 for C
     public int M(int i) => i;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
 
@@ -17884,8 +17462,8 @@ implicit extension E2 for C
     public static int M(int i) => i;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17917,7 +17495,7 @@ implicit extension E2 for C
     public string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
 
@@ -17948,7 +17526,7 @@ implicit extension E2 for C
     public string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
@@ -17980,7 +17558,7 @@ static class E2
     public static string M(this C c) => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE need to bind and emit an extension method on a receiver of an extension type
         comp.VerifyDiagnostics(
             // (5,9): error CS1929: 'E1' does not contain a definition for 'M' and the best extension method overload 'E2.M(C)' requires a receiver of type 'C'
@@ -18010,8 +17588,8 @@ implicit extension E2 for C
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -18036,7 +17614,7 @@ static class E2
     public static string M(this C c) => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,1): error CS1929: 'E1' does not contain a definition for 'M' and the best extension method overload 'E2.M(C)' requires a receiver of type 'C'
             // E1.M();
@@ -18070,7 +17648,7 @@ implicit extension E2 for C
 }
 """;
         // PROTOTYPE E2 might be a better choice because it extends a more specific type. we have rules around receiver types for regular extension methods.
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "42");
@@ -18102,9 +17680,9 @@ implicit extension E2 for C
     public static int P => 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18132,9 +17710,9 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E.M"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "E.M");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18165,9 +17743,9 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E.M"),
+        var verifier = CompileAndVerify(comp, expectedOutput: "E.M",
             verify: Verification.Fails with { ILVerifyMessage = "[<Main>$]: Unrecognized arguments for delegate .ctor. { Offset = 0xb }" });
 
         verifier.VerifyDiagnostics();
@@ -18179,7 +17757,7 @@ implicit extension E for C
   .maxstack  2
   IL_0000:  newobj     "C..ctor()"
   IL_0005:  ldftn      "void E.M(int)"
-  IL_000b:  newobj     "D..ctor(object, nint)"
+  IL_000b:  newobj     "D..ctor(object, System.IntPtr)"
   IL_0010:  ldc.i4.s   42
   IL_0012:  callvirt   "void D.Invoke(int)"
   IL_0017:  ret
@@ -18218,7 +17796,7 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // 0.cs(9,15): error CS0123: No overload for 'M' matches delegate 'D'
             //         D d = M;
@@ -18248,8 +17826,8 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify);
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18275,10 +17853,10 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify);
+        //CompileAndVerify(comp, expectedOutput: "ran");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18310,8 +17888,8 @@ implicit extension E for C
     public static void M(string s) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify);
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran ran");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18343,9 +17921,9 @@ implicit extension E for C
     public void M(string s) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
+        //CompileAndVerify(comp, expectedOutput: "ran ran");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18380,8 +17958,8 @@ implicit extension E2 for C
     public static void M(string s) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify);
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran ran");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18416,9 +17994,9 @@ implicit extension E2 for C
     public void M(string s) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
+        //CompileAndVerify(comp, expectedOutput: "ran ran");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18458,8 +18036,8 @@ implicit extension E2 for C
     public static void M(string s) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18499,10 +18077,10 @@ implicit extension E2 for C
     public void M(string s) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify);
+        //CompileAndVerify(comp, expectedOutput: "ran");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18545,8 +18123,8 @@ implicit extension E2 for C
     public static void M(string s) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18589,10 +18167,10 @@ implicit extension E2 for C
     public void M(string s) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "ran ran", verify: Verification.FailsPEVerify);
+        //CompileAndVerify(comp, expectedOutput: "ran ran");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18630,14 +18208,14 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
             // using N;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
             );
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "ran");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18665,8 +18243,8 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18694,9 +18272,9 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsPEVerify);
+        //CompileAndVerify(comp, expectedOutput: "ran");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18719,7 +18297,7 @@ implicit extension E for C
     public static void M<T>(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should give an updated error message (possibly ERR_NoSuchMemberOrExtension)
         comp.VerifyDiagnostics(
             // 0.cs(1,3): error CS0117: 'C' does not contain a definition for 'M'
@@ -18748,7 +18326,7 @@ implicit extension E for C
     public void M<T>(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // 0.cs(1,9): error CS1061: 'C' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
             // new C().M<object, object>(42);
@@ -18775,7 +18353,7 @@ implicit extension E for C
     public static void M<T>(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // 0.cs(1,1): error CS8389: Omitting the type argument is not allowed in the current context
             // C.M<>(42);
@@ -18802,7 +18380,7 @@ implicit extension E for C
     public void M<T>(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (1,1): error CS8389: Omitting the type argument is not allowed in the current context
             // new C().M<>(42);
@@ -18833,8 +18411,8 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("M(42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "M(42)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18860,9 +18438,9 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "M(42)", verify: Verification.FailsPEVerify);
+        //CompileAndVerify(comp, expectedOutput: "M(42)");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18885,7 +18463,7 @@ implicit extension E for C
     public void M() => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // 0.cs(1,1): error CS0120: An object reference is required for the non-static field, method, or property 'E.M()'
             // C.M();
@@ -18913,7 +18491,7 @@ implicit extension E for C
     public static void M() => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // 0.cs(1,1): error CS0176: Member 'E.M()' cannot be accessed with an instance reference; qualify it with a type name instead
             // new C().M();
@@ -18955,7 +18533,7 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         string expectedOperationTree = """
@@ -18978,7 +18556,7 @@ Right:
         var expectedDiagnostics = DiagnosticDescription.None;
 
         VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source,
-            expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+            expectedOperationTree, expectedDiagnostics);
     }
 
     [Fact]
@@ -18994,7 +18572,7 @@ public static class E
     public static void Method(this C c) { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // 0.cs(1,1): error CS0120: An object reference is required for the non-static field, method, or property 'E.Method(C)'
             // C.Method();
@@ -19020,8 +18598,8 @@ implicit extension E2 for C
     public static void Method() { System.Console.Write("ran"); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19047,7 +18625,7 @@ public class C<T>
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // 0.cs(5,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
             //         T.Method();
@@ -19078,7 +18656,7 @@ public class C<T>
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // 0.cs(5,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
             //         _ = nameof(T.Method);
@@ -19214,7 +18792,7 @@ public class C<T>
 }
 """;
         // PROTOTYPE need to confirm what we want for extension invocations on type parameters
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (5,11): error CS1061: 'T' does not contain a definition for 'Method' and no accessible extension method 'Method' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
             //         t.Method();
@@ -19241,7 +18819,7 @@ implicit extension E<T> for C<T>
     public static class StaticType<U> { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,8): error CS0117: 'C<int>' does not contain a definition for 'StaticType'
             // C<int>.StaticType<string>();
@@ -19269,7 +18847,7 @@ implicit extension E<T> for C<T>
     public static System.Action Field = null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,8): error CS0117: 'C<int>' does not contain a definition for 'Field'
             // C<int>.Field<string>();
@@ -19310,7 +18888,7 @@ class X
     }
 }
 ";
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
     }
 
@@ -19331,10 +18909,10 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE need to infer delegate type
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E.M"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "E.M");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19357,7 +18935,7 @@ implicit extension E for C
     public static void M() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (1,9): error CS0176: Member 'E.M()' cannot be accessed with an instance reference; qualify it with a type name instead
             // var d = new C().M; // 1
@@ -19393,7 +18971,7 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -19422,7 +19000,7 @@ public static class E2
     public static void M(this C c, string s) { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE we will want to merge extension type members and extension methods, resulting in an error here
         comp.VerifyDiagnostics();
 
@@ -19450,7 +19028,7 @@ implicit extension E for C
     public static void M() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -19477,8 +19055,8 @@ implicit extension E for C
     public static void M() => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19505,8 +19083,8 @@ implicit extension E for C
     public static void M(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19528,7 +19106,7 @@ implicit extension E for C
     public static void M() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // 0.cs(1,3): error CS0119: 'E.M()' is a method, which is not valid in the given context
             // C.M.ToString();
@@ -19558,7 +19136,7 @@ implicit extension E for C
     public int this[int i] { get { throw null; } set { throw null; } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (2,3): error CS1061: 'C' does not contain a definition for 'Item' and no accessible extension method 'Item' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
             // c.Item.ToString();
@@ -19599,7 +19177,7 @@ public class Program
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should we produce ERR_NameofExtensionMethod (Extension method groups are not allowed as an argument to 'nameof') or something similar?
         comp.VerifyDiagnostics();
 
@@ -19688,8 +19266,8 @@ implicit extension E for C
 }
 """;
 
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("f"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "f").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19716,7 +19294,7 @@ implicit extension E for C
 }
 """;
 
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
@@ -19755,9 +19333,9 @@ implicit extension E for C
 }
 """;
 
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe);
 
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"),
+        var verifier = CompileAndVerify(comp, expectedOutput: "ran",
             verify: Verification.Fails with { ILVerifyMessage = "[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0x11 }" });
 
         verifier.VerifyDiagnostics();
@@ -19772,7 +19350,7 @@ implicit extension E for C
   IL_0001:  newobj     "D..ctor()"
   IL_0006:  newobj     "C..ctor()"
   IL_000b:  ldftn      "int E.M()"
-  IL_0011:  newobj     "System.Func<int>..ctor(object, nint)"
+  IL_0011:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
   IL_0016:  call       "int D.Select<int>(System.Func<int>)"
   IL_001b:  stloc.0
   IL_001c:  ret
@@ -19813,8 +19391,8 @@ implicit extension E for C
 }
 """;
 
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19841,7 +19419,7 @@ implicit extension E for C
     public static void M(object o, string s) {}
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugDll);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
             // (5,48): error CS0121: The call is ambiguous between the following methods or properties: 'E.M(string, object)' and 'E.M(object, string)'
             //         delegate*<string, string, void> ptr = &C.M;
@@ -19891,7 +19469,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "ran ran ran");
@@ -19947,8 +19525,8 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19992,7 +19570,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
 
@@ -20026,10 +19604,10 @@ public static class E2
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("not-invocation invocation"),
+        var verifier = CompileAndVerify(comp, expectedOutput: "not-invocation invocation",
             verify: Verification.Fails with { ILVerifyMessage = """
                 [<Main>$]: Callvirt on a value type method. { Offset = 0x6 }
                 [<Main>$]: Unexpected type on the stack. { Offset = 0x6, Found = ref 'object', Expected = address of 'E1' }
@@ -20076,7 +19654,7 @@ public static class E2
     public static void Member(this object o) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (2,19): error CS0029: Cannot implicitly convert type 'string' to 'System.Action'
             // System.Action y = o.Member;
@@ -20117,8 +19695,8 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("not-invocation invocation"),
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp, expectedOutput: "not-invocation invocation",
            verify: Verification.Fails with { ILVerifyMessage = """
                 [<Main>$]: Callvirt on a value type method. { Offset = 0x6 }
                 [<Main>$]: Unexpected type on the stack. { Offset = 0x6, Found = ref 'object', Expected = address of 'N.E1' }
@@ -20170,7 +19748,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (4,19): error CS0029: Cannot implicitly convert type 'string' to 'System.Action'
             // System.Action y = o.Member;
@@ -20224,9 +19802,9 @@ namespace N2
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics();
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran ran"), verify: Verification.FailsPEVerify);
+        var verifier = CompileAndVerify(comp, expectedOutput: "ran ran ran");
 
         verifier.VerifyIL("N1.C.Main", """
 {
@@ -20240,14 +19818,14 @@ namespace N2
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldftn      "void N2.E2.Member(object)"
-  IL_000e:  newobj     "System.Action..ctor(object, nint)"
+  IL_000e:  newobj     "System.Action..ctor(object, System.IntPtr)"
   IL_0013:  stloc.1
   IL_0014:  ldloc.1
   IL_0015:  callvirt   "void System.Action.Invoke()"
   IL_001a:  nop
   IL_001b:  ldloc.0
   IL_001c:  ldftn      "void N2.E2.Member(object)"
-  IL_0022:  newobj     "System.Action..ctor(object, nint)"
+  IL_0022:  newobj     "System.Action..ctor(object, System.IntPtr)"
   IL_0027:  stloc.2
   IL_0028:  ldloc.2
   IL_0029:  callvirt   "void System.Action.Invoke()"
@@ -20299,8 +19877,8 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.Fails).VerifyDiagnostics();
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Fails).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20334,7 +19912,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N;
@@ -20378,7 +19956,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N;
@@ -20424,7 +20002,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //        var verifier = CompileAndVerify(comp, expectedOutput: "ran");
@@ -20478,7 +20056,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -20514,7 +20092,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (18,23): error CS0428: Cannot convert method group 'Member' to non-delegate type 'int'. Did you intend to invoke the method?
             //             int x = o.Member;
@@ -20547,7 +20125,7 @@ public class C : Base
     public new int M;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,19): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
             // System.Action a = c.M; // 1
@@ -20582,7 +20160,7 @@ public class C
     public int M;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,19): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
             // System.Action a = c.M; // 1
@@ -20617,7 +20195,7 @@ public class C
     public int M => 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,19): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
             // System.Action a = c.M; // 1
@@ -20652,7 +20230,7 @@ public class C
     public int M => 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,19): error CS0029: Cannot implicitly convert type 'int' to 'System.Action'
             // System.Action a = c.M; // 1
@@ -20697,7 +20275,7 @@ implicit extension E for Color
 }
 """;
         // PROTOTYPE missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyDiagnostics(
             //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
             ////         Color.M1(this);
@@ -20736,7 +20314,7 @@ implicit extension E2 for Color
     public static int P1 => 0;
 }
 """;
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyDiagnostics(
             // (5,19): error CS0229: Ambiguity between 'E1.P1' and 'E2.P1'
             //         _ = Color.P1;
@@ -20781,7 +20359,7 @@ implicit extension E2 for Color
 }
 """;
         // PROTOTYPE missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyDiagnostics(
             //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
             ////         Color.M1(this);
@@ -20823,7 +20401,7 @@ implicit extension E for Base
     public int P => 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (7,9): error CS0103: The name 'M' does not exist in the current context
             //         M(); // 1
@@ -20856,8 +20434,8 @@ implicit extension E for object
     public static int Field = 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Property(43) Field(43)"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "Property(43) Field(43)")
             .VerifyDiagnostics();
     }
 
@@ -20886,7 +20464,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (3,19): error CS0119: 'E1.Member' is a type, which is not valid in the given context
             // System.Action a = object.Member;
@@ -20923,8 +20501,8 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -20954,7 +20532,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using N;
@@ -20982,9 +20560,9 @@ implicit extension E for object
     public static int M() => 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify)
+        CompileAndVerify(comp, expectedOutput: "42")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21007,9 +20585,9 @@ implicit extension E for object
     public static string M(string s) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify)
+        CompileAndVerify(comp, expectedOutput: "42")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21029,7 +20607,7 @@ implicit extension E for object
     public class M { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,9): error CS0119: 'E.M' is a type, which is not valid in the given context
             // int i = object.M;
@@ -21055,7 +20633,7 @@ implicit extension E1 for object
     public class M { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,28): error CS0119: 'E1.M' is a type, which is not valid in the given context
             // System.Console.Write(local(object.M));
@@ -21126,8 +20704,8 @@ implicit extension E for object
     public static int f = 2;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("3"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "3")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21148,8 +20726,8 @@ implicit extension E for object
     public static int f = 2;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "2")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21170,8 +20748,8 @@ implicit extension E for object
     public static int f = 2;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -21191,9 +20769,9 @@ implicit extension E for object
     public static string f = "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -21212,7 +20790,7 @@ implicit extension E for object
     public static int f = 2;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,9): error CS8310: Operator '+' cannot be applied to operand 'default'
             // int i = default + object.f;
@@ -21237,8 +20815,8 @@ implicit extension E for object
     public static int f = 2;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("4"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "4")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21262,8 +20840,8 @@ implicit extension E for object
     public static string f = null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hi"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "hi")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21285,8 +20863,8 @@ implicit extension E for object
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hi"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "hi")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21308,8 +20886,8 @@ implicit extension E for object
     public static string f = "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -21330,8 +20908,8 @@ implicit extension E for object
     public static string f = "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -21351,8 +20929,8 @@ implicit extension E for object
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hi"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "hi")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21377,8 +20955,8 @@ implicit extension E for object
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hi"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "hi")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21399,8 +20977,8 @@ implicit extension E for object
     public static string f = "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -21422,8 +21000,8 @@ implicit extension E for object
     public static bool f = true;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hi"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "hi")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21446,8 +21024,8 @@ implicit extension E for object
     public static string[] f = new[] { "hi" };
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hi"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "hi")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21467,7 +21045,7 @@ implicit extension E for object
     public static string[] f = new[] { "hi" };
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,6): error CS1001: Identifier expected
             // goto object.f;
@@ -21501,8 +21079,8 @@ implicit extension E for object
     public static bool f = true;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -21524,8 +21102,8 @@ implicit extension E for object
     public static string f2 = null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -21552,7 +21130,7 @@ implicit extension E2 for object
     public static void f() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (2,38): error CS0029: Cannot implicitly convert type 'string' to 'System.Action'
             // System.Action a = b switch { true => D.f, false => throw null };
@@ -21581,8 +21159,8 @@ implicit extension E for object
     public static ref object P => ref o;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hi"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "hi")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21605,9 +21183,9 @@ implicit extension E<T> for C<T>
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hi"), verify: Verification.FailsPEVerify)
+        CompileAndVerify(comp, expectedOutput: "hi")
            .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21630,7 +21208,7 @@ implicit extension E<T> for C<T ,T>
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21661,8 +21239,8 @@ implicit extension E<T1, T2> for C<T1>.Nested<T2>
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hi"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp, expectedOutput: "hi")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21691,8 +21269,8 @@ implicit extension E<T1, T2, T3> for C<T1>.Nested1<T2>.Nested2<T3>
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hi"), verify: Verification.FailsPEVerify)
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "hi")
             .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21719,7 +21297,7 @@ implicit extension E<T1, T2> for C<T1>.Nested<T2>
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,22): error CS0122: 'C<string>.Nested<U>' is inaccessible due to its protection level
             // string s = C<string>.Nested<int>.f;
@@ -21742,7 +21320,7 @@ implicit extension E<T1, T2> for C<T1>.Nested<T2>
         var src = """
 string s = (string, string).Nested.f;
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,13): error CS1525: Invalid expression term 'string'
             // string s = (string, string).Nested.f;
@@ -21770,7 +21348,7 @@ implicit extension E<T1, T2> for C<(T1, T1)>.Nested<(T2, T2)>
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21802,7 +21380,7 @@ unsafe implicit extension E<T1, T2> for C<T1*[]>.Nested<T2*[]>
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21832,7 +21410,7 @@ unsafe implicit extension E<T1, T2> for C<T1[]>.Nested<T2[]>
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe);
         comp.VerifyDiagnostics(
             // (3,42): error CS0117: 'C<long*[]>.Nested<int*[]>' does not contain a definition for 'f'
             //     string s = C<long*[]>.Nested<int*[]>.f;
@@ -21866,7 +21444,7 @@ unsafe implicit extension E<T1, T2> for C<delegate*<T1>[]>.Nested<delegate*<T2>[
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe);
         comp.VerifyDiagnostics(
             // (3,62): error CS0117: 'C<delegate*<int>[]>.Nested<delegate*<long>[]>' does not contain a definition for 'f'
             //     string s = C<delegate*<int>[]>.Nested<delegate*<long>[]>.f;
@@ -21899,7 +21477,7 @@ implicit extension E<T1, T2> for C<T1>.Nested<T2>
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (12,41): error CS0117: 'C<C<T1>>.Nested<int>' does not contain a definition for 'f'
             //         string s = C<C<T1>>.Nested<int>.f;
@@ -21927,9 +21505,9 @@ implicit extension E<T> for I<T>
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hi"), verify: Verification.FailsPEVerify)
+        CompileAndVerify(comp, expectedOutput: "hi")
            .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21954,9 +21532,9 @@ implicit extension E<T> for I2<T>
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hi"), verify: Verification.FailsPEVerify)
+        CompileAndVerify(comp, expectedOutput: "hi")
            .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -21975,7 +21553,7 @@ interface I<{{variance}} T> { }
 
 implicit extension E<T> for I<T> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
     }
 
@@ -21987,7 +21565,7 @@ interface I<in T> { }
 
 {{(isExplicit ? "explicit" : "implicit")}} extension E<in T> for I<T> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (3,22): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
             // implicit extension E<in T> for I<T> { }
@@ -22003,7 +21581,7 @@ interface I<out T> { }
 
 {{(isExplicit ? "explicit" : "implicit")}} extension E<out T> for I<T> { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (3,22): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
             // explicit extension E<out T> for I<T> { }
@@ -22026,9 +21604,9 @@ implicit extension E<T, U> for Base<T, U>
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hi"), verify: Verification.FailsPEVerify)
+        CompileAndVerify(comp, expectedOutput: "hi")
            .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -22056,7 +21634,7 @@ implicit extension E<T1, T2> for C<T1>.Nested<T2>
     public class Nested<U> { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE could give a better diagnostic, such as the underlying type of an extension type may not rely on the extension declaration
         comp.VerifyDiagnostics(
             // (1,22): error CS0117: 'C<string>' does not contain a definition for 'Nested'
@@ -22093,7 +21671,7 @@ implicit extension E for C.Nested
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,14): error CS0117: 'C' does not contain a definition for 'Nested'
             // string s = C.Nested.f;
@@ -22118,7 +21696,7 @@ implicit extension E for Nested
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,26): error CS0246: The type or namespace name 'Nested' could not be found (are you missing a using directive or an assembly reference?)
             // implicit extension E for Nested
@@ -22166,7 +21744,7 @@ implicit extension E for object
     public static event System.Action Event { add { throw null; } remove { throw null; } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,9): error CS0619: 'E.Property' is obsolete: 'Property is obsolete'
             // int p = object.Property; // 1
@@ -22226,7 +21804,7 @@ implicit extension E for object
 }
 """;
         // PROTOTYPE add event
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,9): error CS0619: 'E.Property' is obsolete: 'Property is obsolete'
             // int p = new object().Property; // 1
@@ -22264,11 +21842,11 @@ implicit extension E for C
     public int this[int i] => i;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify)
+        //CompileAndVerify(comp, expectedOutput: "42")
         //    .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -22291,11 +21869,11 @@ implicit extension E for C
     public int this[int i] { set { System.Console.Write($"[{i}] = {value}"); } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "[42] = 43", verify: Verification.FailsPEVerify)
+        //CompileAndVerify(comp, expectedOutput: "[42] = 43")
         //    .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -22320,7 +21898,7 @@ implicit extension E for C
     public int this[int i] => i;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -22345,7 +21923,7 @@ implicit extension E for C
     public int this[int i] { set { throw null; } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (2,37): error CS0832: An expression tree may not contain an assignment operator
             // Expression<System.Action> x = () => new C()[42] = 43;
@@ -22376,11 +21954,11 @@ implicit extension E for C
     public int this[int i] => i;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify)
+        //CompileAndVerify(comp, expectedOutput: "42")
         //    .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -22410,7 +21988,7 @@ implicit extension E for Base
     public int this[int i] => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE confirm we don't want to add special rules for `base`
         comp.VerifyEmitDiagnostics(
             // (7,30): error CS0021: Cannot apply indexing with [] to an expression of type 'Base'
@@ -22445,10 +22023,10 @@ implicit extension E2 for C
     public int this[int i] => i;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) implement indexer access on receiver of extension type
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.Fails).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Fails).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22472,11 +22050,11 @@ implicit extension E for Base
     public int this[int i] => 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsPEVerify)
+        //CompileAndVerify(comp, expectedOutput: "42")
         //    .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -22537,7 +22115,7 @@ implicit extension E for C
     protected int this[int i] { get { throw null; } set { throw null; } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = new C()[1];
@@ -22580,7 +22158,7 @@ implicit extension E for C
     public int this[int i] { protected get { throw null; } set { throw null; } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS0271: The property or indexer 'E.this[int]' cannot be used in this context because the get accessor is inaccessible
             // _ = new C()[1];
@@ -22620,7 +22198,7 @@ implicit extension E for C
     public int this[int i] { get { throw null; } protected set { throw null; } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (2,1): error CS0272: The property or indexer 'E.this[int]' cannot be used in this context because the set accessor is inaccessible
             // new C()[2] = 42;
@@ -22658,7 +22236,7 @@ implicit extension E for C
     public string this[int i] => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS0119: 'C' is a type, which is not valid in the given context
             // _ = C[1];
@@ -22689,7 +22267,7 @@ implicit extension E for C
     public string this[int i] => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
@@ -22714,7 +22292,7 @@ implicit extension E for C
     public string this[int i, int j] => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
@@ -22739,7 +22317,7 @@ implicit extension E for C
     public string this[int i, int j] => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
@@ -22768,7 +22346,7 @@ implicit extension E for C
     public string this[int i, int j] => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'T'
             //         _ = t[0];
@@ -22802,8 +22380,8 @@ implicit extension E for object[]
     public string this[int i] => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22833,8 +22411,8 @@ implicit extension E for C
     public int this[int i] => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilationWithCSharp(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22869,8 +22447,8 @@ implicit extension E for C
     public int this[int i] => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("caught"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilationWithCSharp(source);
+        CompileAndVerify(comp, expectedOutput: "caught").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22900,8 +22478,8 @@ implicit extension E for C
     public int this[int i] => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilationWithCSharp(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -22929,7 +22507,7 @@ implicit extension E for C
     public int this[int i] => 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE need to confirm what we want for element access with dynamic arguments (should likely be disallowed)
         comp.VerifyEmitDiagnostics(
             // (7,30): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
@@ -22963,7 +22541,7 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
@@ -23008,7 +22586,7 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (2,1): error CS0200: Property or indexer 'C.this[int]' cannot be assigned to -- it is read only
             // new C()[2] = 2;
@@ -23044,7 +22622,7 @@ implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS0154: The property or indexer 'C.this[int]' cannot be used in this context because it lacks the get accessor
             // _ = new C()[1];
@@ -23068,7 +22646,7 @@ implicit extension E for C
     public int this[params int[] i] { get { System.Console.Write($"{i[0]} {i[1]} "); return 42; } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
@@ -23093,7 +22671,7 @@ implicit extension E for C
     public int this[int i, int j = 2] { get { System.Console.Write($"{i} {j} "); return 42; } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
@@ -23118,7 +22696,7 @@ implicit extension E for C
     public int this[int i] { set { System.Console.Write($"{i}={value} "); } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
@@ -23146,7 +22724,7 @@ implicit extension E for I
     public int this[ref int i] => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (16,21): error CS0631: ref and out are not valid in this context
             //     public int this[ref int i] => throw null;
@@ -23179,7 +22757,7 @@ implicit extension E2 for C
     public string this[int i] { get { return "ran"; } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE(instance) implement indexer access on receiver of extension type
         comp.VerifyDiagnostics(
             // (5,30): error CS0021: Cannot apply indexing with [] to an expression of type 'E1'
@@ -23216,7 +22794,7 @@ implicit extension E2 for C
     public string this[int i] { get { return "ran"; } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE(instance) implement indexer access on receiver of extension type
         comp.VerifyDiagnostics(
             // (5,30): error CS0021: Cannot apply indexing with [] to an expression of type 'E1'
@@ -23242,7 +22820,7 @@ public class C { }
 
 static implicit extension E for C { }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (1,3): error CS0117: 'E' does not contain a definition for 'Missing'
             // E.Missing.M();
@@ -23274,7 +22852,7 @@ static implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (1,3): error CS0122: 'E.Inaccessible' is inaccessible due to its protection level
             // E.Inaccessible.M();
@@ -23307,7 +22885,7 @@ static implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (1,5): error CS0122: 'E.D.Inaccessible()' is inaccessible due to its protection level
             // E.D.Inaccessible();
@@ -23343,8 +22921,8 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public static void M2() { System.Console.Write("M2 "); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("M2 M4 M2 M4"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        var verifier = CompileAndVerify(comp, expectedOutput: "M2 M4 M2 M4").VerifyDiagnostics();
         verifier.VerifyIL("E.M", """
 {
   // Code size       11 (0xb)
@@ -23403,8 +22981,8 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public static void M() { M4(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("M4 M4"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        var verifier = CompileAndVerify(comp, expectedOutput: "M4 M4").VerifyDiagnostics();
         verifier.VerifyIL("E.M", """
 {
   // Code size        6 (0x6)
@@ -23453,8 +23031,8 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public static void M2<T>() { System.Console.Write("M2 "); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("M2 M4 M2 M4"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "M2 M4 M2 M4").VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -23476,8 +23054,8 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public static void M() { Method(""); Method<string>(""); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method Method Method Method"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        var verifier = CompileAndVerify(comp, expectedOutput: "Method Method Method Method").VerifyDiagnostics();
         verifier.VerifyIL("E.M", """
 {
   // Code size       21 (0x15)
@@ -23516,8 +23094,8 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 }
 """;
         // PROTOTYPE should warn about hiding
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -23551,8 +23129,8 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public static void M() { M2(42); M2(""); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("M2Int M2String M2Int M2String"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "M2Int M2String M2Int M2String").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -23597,8 +23175,8 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public static void M2(string s) { System.Console.Write("E.M2 "); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("C.M2 E.M2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "C.M2 E.M2").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -23633,8 +23211,8 @@ class C : Base
 
 static {{(isExplicit ? "explicit" : "implicit")}} extension E for C { }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Base.M2 C.M2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "Base.M2 C.M2").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -23661,8 +23239,8 @@ static class C
 
 static {{(isExplicit ? "explicit" : "implicit")}} extension E for C { }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("C.M2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "C.M2").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -23685,8 +23263,8 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public static void M2(int i) { System.Console.Write("E.M2 "); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E.M2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "E.M2").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -23721,8 +23299,8 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 }
 """;
         // PROTOTYPE should warn about hiding
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -23762,8 +23340,8 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -23799,7 +23377,7 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (3,27): error CS1057: 'C.MProtected()': static classes cannot contain protected members
             //     protected static void MProtected() { } // 1
@@ -23844,7 +23422,7 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (7,9): error CS0103: The name 'Missing' does not exist in the current context
             //         Missing(); // 1
@@ -23887,8 +23465,8 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension EOuter for C
     public static void M2() { System.Console.Write("M2 "); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("M2 M3"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        var verifier = CompileAndVerify(comp, expectedOutput: "M2 M3").VerifyDiagnostics();
         verifier.VerifyIL("EOuter.EInner.M", """
 {
   // Code size       11 (0xb)
@@ -23935,7 +23513,7 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension EOuter for C
     public static void M2() => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (14,20): error CS0117: 'EOuter.EInner' does not contain a definition for 'M2'
             //             EInner.M2();
@@ -23983,8 +23561,8 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension EOuter for C
 }
 """;
         // PROTOTYPE should warn about hiding on EOuter.Method
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method Method"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        var verifier = CompileAndVerify(comp, expectedOutput: "Method Method").VerifyDiagnostics();
         verifier.VerifyIL("EOuter.EInner.M", """
 {
   // Code size       11 (0xb)
@@ -24032,7 +23610,7 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension EOuter for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (3,27): error CS1057: 'C.MProtected()': static classes cannot contain protected members
             //     protected static void MProtected() { } // 1
@@ -24240,9 +23818,9 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("13"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "13").VerifyDiagnostics();
         verifier.VerifyIL("E.M", """
 {
   // Code size       21 (0x15)
@@ -24293,9 +23871,9 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
+        var verifier = CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics(
             // (11,23): warning CS0108: 'C.Field2' hides inherited member 'Base.Field2'. Use the new keyword if hiding was intended.
             //     public static int Field2 = 2;
             Diagnostic(ErrorCode.WRN_NewRequired, "Field2").WithArguments("C.Field2", "Base.Field2").WithLocation(11, 23),
@@ -24347,8 +23925,8 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public static int Field3 = 3;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("13"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "13").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -24381,8 +23959,8 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 }
 """;
         // PROTOTYPE should warn about hiding
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("11"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        var verifier = CompileAndVerify(comp, expectedOutput: "11").VerifyDiagnostics();
         verifier.VerifyIL("E.M", """
 {
   // Code size       21 (0x15)
@@ -24428,9 +24006,9 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("1313"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "1313").VerifyDiagnostics();
         verifier.VerifyIL("E.M", """
 {
   // Code size       13 (0xd)
@@ -24470,8 +24048,8 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public const int Const3 = 3;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("13"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "13").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -24505,8 +24083,8 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 }
 """;
         // PROTOTYPE should warn about hiding
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("13"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        var verifier = CompileAndVerify(comp, expectedOutput: "13").VerifyDiagnostics();
         verifier.VerifyIL("E.M", """
 {
   // Code size       21 (0x15)
@@ -24558,8 +24136,8 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 }
 """;
         // PROTOTYPE should warn about hiding
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: Verification.FailsPEVerify).VerifyDiagnostics(
+        var comp = CreateCompilation(source);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics(
             // (11,23): warning CS0108: 'C.Property2' hides inherited member 'Base.Property2'. Use the new keyword if hiding was intended.
             //     public static int Property2 => 2;
             Diagnostic(ErrorCode.WRN_NewRequired, "Property2").WithArguments("C.Property2", "Base.Property2").WithLocation(11, 23),
@@ -24615,8 +24193,8 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("13"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        var verifier = CompileAndVerify(comp, expectedOutput: "13").VerifyDiagnostics();
         verifier.VerifyIL("E.M", """
 {
   // Code size       21 (0x15)
@@ -24659,8 +24237,8 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("11"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        var verifier = CompileAndVerify(comp, expectedOutput: "11").VerifyDiagnostics();
         verifier.VerifyIL("E.M", """
  {
   // Code size       11 (0xb)
@@ -24704,7 +24282,7 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension EDerived for 
 }
 """;
         // PROTOTYPE should warn about hiding
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -24733,7 +24311,7 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -24761,8 +24339,8 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -24792,7 +24370,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
         //var verifier = CompileAndVerify(comp, expectedOutput: "11").VerifyDiagnostics();
@@ -24825,7 +24403,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE we should synthesize a receiver (in Binder.SynthesizeReceiver)
         comp.VerifyDiagnostics(
             // (13,30): error CS0120: An object reference is required for the non-static field, method, or property 'C.field'
@@ -24863,7 +24441,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
         //var verifier = CompileAndVerify(comp, expectedOutput: "11").VerifyDiagnostics();
@@ -24896,7 +24474,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE we should synthesize a receiver (in Binder.SynthesizeReceiver)
         comp.VerifyDiagnostics(
             // (13,30): error CS0120: An object reference is required for the non-static field, method, or property 'C.Property'
@@ -24936,7 +24514,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
@@ -25004,7 +24582,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 }
 """;
         // PROTOTYPE we should synthesize a receiver (in Binder.SynthesizeReceiver)
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (11,23): error CS0120: An object reference is required for the non-static field, method, or property 'C.M2()'
             //     public void M() { M2(); }
@@ -25071,7 +24649,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     public void M(E e) { this.HasFlag(Underlying.Zero); e.HasFlag(Underlying.Zero); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -25097,7 +24675,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     public void M(E e) { HasFlag(Underlying.Zero); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE we should synthesize a receiver (in Binder.SynthesizeReceiver)
         comp.VerifyDiagnostics(
             // (5,26): error CS0120: An object reference is required for the non-static field, method, or property 'Enum.HasFlag(Enum)'
@@ -25126,7 +24704,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     public void M(E e) { this.HasFlag(Underlying.Zero); e.HasFlag(Underlying.Zero); HasFlag(Underlying.Zero); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics();
 
@@ -25158,7 +24736,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     public void M(E e) { this.ToString(); e.ToString(); ToString(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics();
 
@@ -25304,7 +24882,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     public static void M() { IsNegative(42); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (1,3): error CS0117: 'E' does not contain a definition for 'IsNegative'
             // E.IsNegative(42);
@@ -25338,7 +24916,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
     public void M(E<T> e) { this.M2(); e.M2(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -25367,7 +24945,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
     public void M(E<T> e) { M2(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE we should synthesize a receiver (in Binder.SynthesizeReceiver)
         comp.VerifyDiagnostics(
             // (8,29): error CS0120: An object reference is required for the non-static field, method, or property 'C.M2()'
@@ -25403,8 +24981,8 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
     public static void M() { M2(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -25441,8 +25019,8 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
     public static void M() { M2(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -25476,8 +25054,8 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
     public static void M() { M2(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -25506,7 +25084,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
     public void M(E<T> e) { this.M2(); e.M2(); M2(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics();
 
@@ -25547,8 +25125,8 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
     public static void M() { M2(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -25586,10 +25164,10 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T, T2> for T where
     public static void M() { M2(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         if (isExplicit)
         {
-            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
         }
         else
         {
@@ -25637,10 +25215,10 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T, T2> for T where
     public static void M() { M2(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         if (isExplicit)
         {
-            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
         }
         else
         {
@@ -25687,10 +25265,10 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T, T2, T3> for T w
     public static void M() { M2(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         if (isExplicit)
         {
-            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
         }
         else
         {
@@ -25741,10 +25319,10 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T, T2, T3> for T w
     public static void M() { M2(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         if (isExplicit)
         {
-            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
         }
         else
         {
@@ -25784,7 +25362,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
     public void M(E<T> e) { this.HasFlag(default(System.Enum)); e.HasFlag(default(System.Enum)); HasFlag(default(System.Enum)); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics();
 
@@ -25814,7 +25392,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
     public void M(E<T> e) { this.ToString(); e.ToString(); ToString(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics();
 
@@ -25843,18 +25421,18 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
     public void M(E<T> e) { this.ToString(); e.ToString(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         // PROTOTYPE need to fix the semantic model
         var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.ToString()");
-        Assert.Equal("System.String? System.ValueType.ToString()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal("System.String System.ValueType.ToString()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(thisInvocation));
 
         var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.ToString()");
-        Assert.Equal("System.String? System.ValueType.ToString()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal("System.String System.ValueType.ToString()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(instanceInvocation));
     }
 
@@ -25917,7 +25495,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T, T2> for T where
 {
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         if (isExplicit)
         {
             comp.VerifyDiagnostics(
@@ -25998,7 +25576,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
     public void M(E<T> e) { ToString(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE we should synthesize a receiver (in Binder.SynthesizeReceiver)
         comp.VerifyDiagnostics(
             // (3,29): error CS0120: An object reference is required for the non-static field, method, or property 'ValueType.ToString()'
@@ -26010,7 +25588,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
         var model = comp.GetSemanticModel(tree);
         // PROTOTYPE need to fix the semantic model
         var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "ToString()");
-        Assert.Equal("System.String? System.ValueType.ToString()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal("System.String System.ValueType.ToString()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(simpleInvocation));
     }
 
@@ -26024,7 +25602,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
     public void M(E<T> e) { this.ToString(); e.ToString(); ToString(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics();
 
@@ -26058,7 +25636,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     public void M(E e) { this.ToString(); e.ToString(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (3,19): warning CS0114: 'Underlying.ToString()' hides inherited member 'ValueType.ToString()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
             //     public string ToString() { System.Console.Write("Underlying.ToString "); return ""; }
@@ -26091,7 +25669,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     public void M(E e) { ToString(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE we should synthesize a receiver (in Binder.SynthesizeReceiver)
         comp.VerifyDiagnostics(
             // (3,19): warning CS0114: 'Underlying.ToString()' hides inherited member 'ValueType.ToString()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
@@ -26125,7 +25703,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     public void M(E e) { this.ToString(); e.ToString(); ToString(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics(
             // (3,19): warning CS0114: 'Underlying.ToString()' hides inherited member 'ValueType.ToString()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
@@ -26267,7 +25845,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     public void M(E e) { this.Clone(); e.Clone(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -26294,7 +25872,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     public void M(E e) { this.Clone(); e.Clone(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics();
 
@@ -26321,7 +25899,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     public void M(E e) { this(); e(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE delegate invocation is not supported yet
         comp.VerifyDiagnostics(
             // (5,26): error CS0149: Method name expected
@@ -26354,7 +25932,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -26391,7 +25969,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics();
 
@@ -26517,7 +26095,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
 }
 """;
         // PROTOTYPE fix pattern-based foreach to recognize MoveNext() method from the underlying type
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (13,27): error CS0202: foreach requires that the return type 'E' of 'E.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
             //         foreach (var i in this)
@@ -26566,7 +26144,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
 }
 """;
         // PROTOTYPE fix pattern-based foreach to recognize Current property from the underlying type
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (13,27): error CS0202: foreach requires that the return type 'E' of 'E.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
             //         foreach (var i in this)
@@ -26603,7 +26181,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
 }
 """;
         // PROTOTYPE fix pattern-based using to recognize Dispose method from the underlying type
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (10,16): error CS1674: 'E': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
             //         using (this) { }
@@ -26636,7 +26214,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -26675,7 +26253,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -26707,7 +26285,7 @@ public unsafe {{(isExplicit ? "explicit" : "implicit")}} extension E for Underly
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugDll);
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics();
         // PROTOTYPE execute and verify the symbols using semantic model and/or IOperation
     }
@@ -26732,7 +26310,7 @@ public unsafe {{(isExplicit ? "explicit" : "implicit")}} extension E for Underly
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugDll);
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics();
         // PROTOTYPE execute and verify the symbols using semantic model and/or IOperation
     }
@@ -26793,7 +26371,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public void M(E e) { this.Method(""); e.Method(""); this.Method<string>(""); e.Method<string>(""); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
         //CompileAndVerify(comp, expectedOutput: "Method Method Method Method").VerifyDiagnostics();
@@ -26828,7 +26406,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 }
 """;
         // PROTOTYPE we should synthesize a receiver (in Binder.SynthesizeReceiver)
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (12,23): error CS0120: An object reference is required for the non-static field, method, or property 'C.Method<string>(string)'
             //     public void M() { Method(""); Method<string>(""); }
@@ -27203,7 +26781,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public void M() { base.M2(); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (8,23): error CS0174: A base class is required for a 'base' reference
             //     public void M() { base.M2(); }
@@ -27234,7 +26812,7 @@ public implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (9,14): error CS1061: 'E' does not contain a definition for 'Missing' and no accessible extension method 'Missing' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)
             //         this.Missing();
@@ -27279,7 +26857,7 @@ public implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (11,9): error CS0122: 'C.MProtected()' is inaccessible due to its protection level
             //         MProtected(); // 1
@@ -27338,7 +26916,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public int this[string s] { get { System.Console.Write($"[{s}] "); return 0; } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE(instance) implement indexer access on receiver of extension type
         // PROTOTYPE move e[43] and e["two"] outside of E (to top-level statement)
         comp.VerifyEmitDiagnostics(
@@ -27379,7 +26957,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
         // PROTOTYPE(instance) implement indexer access on receiver of extension type (overload resolution should already pick the extension member)
         comp.VerifyEmitDiagnostics(
@@ -27416,7 +26994,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
         // PROTOTYPE(instance) implement indexer access on receiver of extension type (overload resolution should already pick the extension member)
         comp.VerifyEmitDiagnostics(
@@ -27442,7 +27020,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for int[]
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE(instance) implement indexer access on receiver of extension type
         comp.VerifyEmitDiagnostics(
             // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'E'
@@ -27467,7 +27045,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for int[]
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE(instance) implement indexer access on receiver of extension type
         comp.VerifyEmitDiagnostics(
             // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'E'
@@ -27493,7 +27071,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public void M() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -27516,7 +27094,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public void M() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (8,6): error CS0122: 'C.PrivateAttribute' is inaccessible due to its protection level
             //     [PrivateAttribute]
@@ -27536,7 +27114,7 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public static void M() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (5,6): error CS0246: The type or namespace name 'MissingAttributeAttribute' could not be found (are you missing a using directive or an assembly reference?)
             //     [MissingAttribute]
@@ -27565,7 +27143,7 @@ public implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (10,14): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'C.MInapplicable(int)'
             //         this.MInapplicable();
@@ -27613,7 +27191,7 @@ public implicit extension E for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
         //CompileAndVerify(comp, expectedOutput: "C.M C.M C.M E.M E.M E.M").VerifyDiagnostics();
@@ -27670,7 +27248,7 @@ public implicit extension E for C
 }
 """;
         // PROTOTYPE(instance) implement indexer access on receiver of extension type
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (14,13): error CS0021: Cannot apply indexing with [] to an expression of type 'E'
             //         _ = this[42];
@@ -27722,7 +27300,7 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension EOuter for C
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
     }
 
@@ -27752,7 +27330,7 @@ public implicit extension E for C
         try
         {
             Assert.True(new NoBaseExtensions().ShouldSkip);
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
 
@@ -27789,7 +27367,7 @@ public implicit extension E for C
     public int Current => 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE add support for iterating over collections of extension type
         comp.VerifyDiagnostics(
             // (10,27): error CS0202: foreach requires that the return type 'E' of 'E.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
@@ -27822,7 +27400,7 @@ public implicit extension E for C
     public bool MoveNext() => true;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE add support for iterating over collections of extension type
         comp.VerifyDiagnostics(
             // (10,27): error CS0202: foreach requires that the return type 'E' of 'E.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
@@ -27967,7 +27545,7 @@ implicit extension E for C
     public class MyAttribute : System.Attribute { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (3,6): error CS0246: The type or namespace name 'MyAttributeAttribute' could not be found (are you missing a using directive or an assembly reference?)
             //     [MyAttribute] // 1, 2
@@ -28001,7 +27579,7 @@ class C { }
     void M() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
     }
 
@@ -28024,7 +27602,7 @@ public implicit extension E for MyAttribute
     public int Property1 { get => throw null; set => throw null; }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (3,18): error CS0246: The type or namespace name 'Property1' could not be found (are you missing a using directive or an assembly reference?)
             //     [MyAttribute(Property1 = 42, Property2 = 43)]
@@ -28056,7 +27634,7 @@ public implicit extension E for System.Attribute
 }
 """;
         // PROTOTYPE can an extension type be used in an attribute?
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (3,6): error CS0616: 'E' is not an attribute class
             //     [E(Property1 = 42, Property2 = 43)]
@@ -28083,7 +27661,7 @@ public implicit extension E for System.Attribute
 }
 """;
         // PROTOTYPE can an extension type be used in an attribute?
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (3,6): error CS0616: 'E' is not an attribute class
             //     [E(Property1 = 42)]
@@ -28107,7 +27685,7 @@ public implicit extension E for C
     public static int j;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (4,17): error CS0103: The name 'j' does not exist in the current context
             //     int M2() => j;
@@ -28146,7 +27724,7 @@ public implicit extension E for C
         try
         {
             Assert.True(new NoBaseExtensions().ShouldSkip);
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
         catch (System.IndexOutOfRangeException) { }
@@ -28178,7 +27756,7 @@ public implicit extension E for C.Enumerator
 }
 """;
         // PROTOTYPE fix pattern-based lookup
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (1,19): error CS0117: 'C.Enumerator' does not contain a definition for 'Current'
             // foreach (var x in new C())
@@ -28215,7 +27793,7 @@ public implicit extension E for C.Enumerator
 }
 """;
         // PROTOTYPE fix pattern-based lookup
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (1,19): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNext'
             // foreach (var x in new C())
@@ -28240,8 +27818,8 @@ implicit extension E for C
     public static string Field = "hello";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hello"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "hello").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -28275,8 +27853,8 @@ namespace Inner
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -28302,8 +27880,8 @@ implicit extension E for C
     public static string Property => "hello";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hello"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "hello").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -28370,8 +27948,8 @@ implicit extension E for C
     public static string Method<T>() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -28396,7 +27974,7 @@ implicit extension E for C
     public static string Method<T, U>() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,11): error CS0117: 'C' does not contain a definition for 'Method'
             // var x = C.Method<int>;
@@ -28439,8 +28017,8 @@ namespace Inner
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -28465,7 +28043,7 @@ implicit extension E for C
     public static string Method<T>() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS8917: The delegate type could not be inferred.
             // var x = C.Method;
@@ -28495,7 +28073,7 @@ implicit extension E for C
     public static string Method<T>() where T : struct => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS8917: The delegate type could not be inferred.
             // var x = C.Method<object>;
@@ -28530,7 +28108,7 @@ implicit extension E2 for C
     public static string Method() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E1.Method()' and 'E2.Method()'
             // var x = C.Method;
@@ -28573,7 +28151,7 @@ namespace Inner
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (12,21): error CS8917: The delegate type could not be inferred.
             //             var x = object.Member;
@@ -28625,8 +28203,8 @@ namespace Inner
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -28658,7 +28236,7 @@ implicit extension E2 for object
     public static string Member = null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,16): error CS0229: Ambiguity between 'E2.Member' and 'E1.Member<T>()'
             // var x = object.Member;
@@ -28692,7 +28270,7 @@ class C
     public static string Member<T>() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,9): error CS8917: The delegate type could not be inferred.
             // var x = C.Member;
@@ -28733,7 +28311,7 @@ class C : Base
     public static new string Member<T>() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,9): error CS8917: The delegate type could not be inferred.
             // var x = C.Member;
@@ -28778,8 +28356,8 @@ class C
     public static string Member<T>() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -28817,8 +28395,8 @@ class C
     public string Member<T>() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -28952,7 +28530,7 @@ implicit extension E1 for object
     public static string Member() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS0229: Ambiguity between 'E2.Member' and 'E1.Member()'
             // var x = object.Member;
@@ -29002,9 +28580,9 @@ implicit extension E2 for object
     public static string Member = null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29033,7 +28611,7 @@ implicit extension E2 for object
     public static string Member = null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS0229: Ambiguity between 'E2.Member' and 'E1.Member'
             // var x = object.Member;
@@ -29241,8 +28819,8 @@ file implicit extension E2 for object
     public static string Member = null;
 }
 """;
-        var comp = CreateCompilation([(src1, "1.cs"), (src2, "2.cs")], targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation([(src1, "1.cs"), (src2, "2.cs")]);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -29253,7 +28831,7 @@ file implicit extension E2 for object
         Assert.Equal("System.String E1.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(memberAccess));
 
-        comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net70);
+        comp = CreateCompilation(src1 + src2);
         comp.VerifyDiagnostics(
             // (1,16): error CS0229: Ambiguity between 'E2.Member' and 'E1.Member'
             // var x = object.Member;
@@ -29277,7 +28855,7 @@ implicit extension E2 for object
     public static string Member = null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,16): error CS0229: Ambiguity between 'E1.Member' and 'E2.Member'
             // var x = object.Member;
@@ -29315,7 +28893,7 @@ implicit extension E for C
     public static string Member = "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyEmitDiagnostics(
             // (5,17): error CS8917: The delegate type could not be inferred.
             //         var x = C.Member;
@@ -29358,8 +28936,8 @@ namespace Inner
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29397,8 +28975,8 @@ namespace Inner
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29419,7 +28997,7 @@ implicit extension E for object
     public static string Member() => throw null;;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE consider updating error message
         comp.VerifyDiagnostics(
             // (3,49): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
@@ -29455,7 +29033,7 @@ namespace Inner
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
             // (15,15): error CS0119: 'E1.Member<T>()' is a method, which is not valid in the given context
             //             C.Member<object>.M();
@@ -29482,8 +29060,8 @@ implicit extension E for C
     public static string Method() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29504,8 +29082,8 @@ implicit extension E for C
     public static string Method<T>() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29525,7 +29103,7 @@ implicit extension E for object
     public static class Nested<U> { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -29560,8 +29138,8 @@ namespace Inner
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29587,8 +29165,8 @@ class C
 
 implicit extension E for C { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29614,8 +29192,8 @@ implicit extension E for C
     public static string Field = "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29641,8 +29219,8 @@ class C
 
 implicit extension E for C { }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29673,8 +29251,8 @@ implicit extension E2 for C
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29703,8 +29281,8 @@ implicit extension E2 for C
     public static string Member = "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29736,7 +29314,7 @@ implicit extension E2 for C
     public static string Member = "";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (7,17): error CS0103: The name 'Member' does not exist in the current context
             //         var x = Member;
@@ -29772,7 +29350,7 @@ implicit extension E2 for C
     public static string Member = "";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,9): error CS8917: The delegate type could not be inferred.
             // var x = E1.Member;
@@ -29810,7 +29388,7 @@ implicit extension E2 for C
     public string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
         //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
@@ -29841,8 +29419,8 @@ static class E2
     public static string M(this Base b) => "ran";
 }
 """;
-        var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp2 = CreateCompilation(src2);
+        CompileAndVerify(comp2, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree2 = comp2.SyntaxTrees.Single();
         var model2 = comp2.GetSemanticModel(tree2);
@@ -29876,7 +29454,7 @@ static class E2
     public static string M(this C c) => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,17): error CS0411: The type arguments for method 'C.M<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             //         var x = e.M;
@@ -29909,9 +29487,9 @@ static class E2
     public static string M(this Base b) => "ran";
 }
 """;
-        var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.Net70);
+        var comp2 = CreateCompilation(src2);
         comp2.VerifyDiagnostics();
-        CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp2, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree2 = comp2.SyntaxTrees.Single();
         var model2 = comp2.GetSemanticModel(tree2);
@@ -29944,7 +29522,7 @@ static class E2
     public static string M(this C c) => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE need to bind and emit an extension method on a receiver of an extension type
         comp.VerifyDiagnostics(
             // (5,19): error CS1061: 'E1' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'E1' could be found (are you missing a using directive or an assembly reference?)
@@ -29974,8 +29552,8 @@ static class E2
     public static string M(this Base b) => "ran";
 }
 """;
-        var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp2 = CreateCompilation(src2);
+        CompileAndVerify(comp2, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree2 = comp2.SyntaxTrees.Single();
         var model2 = comp2.GetSemanticModel(tree2);
@@ -30003,7 +29581,7 @@ public implicit extension E2 for C
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -30028,7 +29606,7 @@ implicit extension E2 for C
     public class Nested<T> { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -30055,7 +29633,7 @@ implicit extension E for C
     public static string Method(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (5,17): error CS8917: The delegate type could not be inferred.
             //         var x = C.Method;
@@ -30090,8 +29668,8 @@ static class E2
     public static string Method(this C c) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.Fails).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.Fails).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30122,7 +29700,7 @@ static class E2
     public static string Method(this C c, int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
 
@@ -30161,7 +29739,7 @@ static class E2
 """;
         // PROTOTYPE(instance) It should be possible to create this delegate as long as we can create it on the extended type
         // PROTOTYPE(instance) We should be binding to the underlying type, not the extension type
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (6,17): error CS1113: Extension method 'E2.Method<E>(E)' defined on value type 'E' cannot be used to create delegates
             //         var x = e.Method;
@@ -30198,7 +29776,7 @@ implicit extension E2 for object
     public static string M = null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,29): error CS0229: Ambiguity between 'E1.M' and 'E2.M'
             // System.Console.Write(object.M);
@@ -30228,8 +29806,8 @@ implicit extension E2 for C
     public static string M = "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30253,7 +29831,7 @@ implicit extension E2 for object
     public static string M => null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,29): error CS0229: Ambiguity between 'E1.M' and 'E2.M'
             // System.Console.Write(object.M);
@@ -30281,7 +29859,7 @@ implicit extension E2 for object
     public static string M => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,29): error CS0229: Ambiguity between 'E1.M()' and 'E2.M'
             // System.Console.Write(object.M);
@@ -30312,9 +29890,9 @@ implicit extension E2 for object
     public static string M => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30346,7 +29924,7 @@ implicit extension E2 for int[]
     public string M => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
 
@@ -30374,9 +29952,9 @@ implicit extension E2 for S
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30403,8 +29981,8 @@ implicit extension E2 for S
     public static string M() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30431,8 +30009,8 @@ implicit extension E2 for E
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30460,9 +30038,9 @@ implicit extension E2 for E
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE(static) we need a preference for more specific extension methods during overload resolution
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30491,7 +30069,7 @@ implicit extension E2 for int[]
     public string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
 
@@ -30521,8 +30099,8 @@ implicit extension E2 for C
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
 
         var tree = comp.SyntaxTrees.Single();
@@ -30552,8 +30130,8 @@ implicit extension E2 for I2
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30582,8 +30160,8 @@ implicit extension E2 for C
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30611,8 +30189,8 @@ implicit extension E2 for S
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30640,8 +30218,8 @@ implicit extension E2 for S
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30669,8 +30247,8 @@ implicit extension E2 for System.ValueType
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30693,8 +30271,8 @@ implicit extension E1 for object
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30723,8 +30301,8 @@ implicit extension E2 for C
     public static string M = "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30752,8 +30330,8 @@ implicit extension E2 for C
     public static string M(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30779,7 +30357,7 @@ implicit extension E2 for E1
     public static string M() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (8,27): error CS9305: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // implicit extension E2 for E1
@@ -30818,7 +30396,7 @@ implicit extension E2 for I2
     public static string M() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,25): error CS0121: The call is ambiguous between the following methods or properties: 'E1.M()' and 'E2.M()'
             // System.Console.Write(I3.M());
@@ -30857,7 +30435,7 @@ implicit extension E2 for I2
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,25): error CS0121: The call is ambiguous between the following methods or properties: 'E1Base.M()' and 'E2.M()'
             // System.Console.Write(I3.M());
@@ -30892,8 +30470,8 @@ implicit extension E2 for C
     public static string M(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30922,8 +30500,8 @@ implicit extension E2 for C
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30954,7 +30532,7 @@ implicit extension E2 for C
     public string this[string s] => s;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
 
@@ -30981,7 +30559,7 @@ implicit extension E2 for object
     public string this[string s] => s;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE(instance) implement indexer access on receiver of extension type
         comp.VerifyEmitDiagnostics(
             // (1,22): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
@@ -31012,7 +30590,7 @@ implicit extension E2 for int[]
 }
 """;
         // PROTOTYPE(instance) extension indexers should come into play on array types
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (2,24): error CS0029: Cannot implicitly convert type 'string' to 'int'
             // System.Console.Write(i["ran"]);
@@ -31043,8 +30621,8 @@ implicit extension E2 for IDerived
     public static string M = "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -31072,7 +30650,7 @@ implicit extension E2 for IBase2
     public static string M = null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,31): error CS0229: Ambiguity between 'E1.M' and 'E2.M'
             // System.Console.Write(IDerived.M);
@@ -31101,7 +30679,7 @@ implicit extension E<T> for I<T>
     public static string M = null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,24): error CS0229: Ambiguity between 'E<int>.M' and 'E<string>.M'
             // System.Console.Write(C.M);
@@ -31147,7 +30725,7 @@ implicit extension E<T> for I<T>
     public static void M() { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E<int>.M()' and 'E<string>.M()'
             // var x = C.M;
@@ -31176,7 +30754,7 @@ implicit extension E<T> for I<T>
     public static void M() { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'E<int>.M()' and 'E<string>.M()'
             // C.M();
@@ -31207,7 +30785,7 @@ implicit extension E<T> for I<T>
     public static void M<U>() { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'E<int>.M<int>()' and 'E<string>.M<int>()'
             // C.M<int>();
@@ -31284,8 +30862,8 @@ implicit extension E2 for IBase2
     public static string M = "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -31313,8 +30891,8 @@ implicit extension E2 for IBase2
     public static string M = "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -31345,8 +30923,8 @@ implicit extension E3 for {{(position == 3 ? "C" : "object")}}
     public static int M = 3;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(position.ToString()), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: position.ToString()).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -31379,7 +30957,7 @@ implicit extension E3 for {{(position == 3 ? "object" : "C")}}
 """;
         var first = new[] { 1, 2, 3 }.First(p => p != position);
         var last = new[] { 1, 2, 3 }.Last(p => p != position);
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,24): error CS0229: Ambiguity between 'Efirst.M' and 'Elast.M'
             // System.Console.Write(C.M.ToString());
@@ -31417,7 +30995,7 @@ System.Console.Write(object.M());
 {{(e1BeforeE2 ? e1 : e2)}}
 {{(e1BeforeE2 ? e2 : e1)}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         if (!e1BeforeE2)
         {
             comp.VerifyEmitDiagnostics(
@@ -31456,8 +31034,8 @@ implicit extension E2 for object
     public static string M(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -31515,8 +31093,8 @@ class C { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -31560,8 +31138,8 @@ class C { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -31614,7 +31192,7 @@ class C : I1, I2 { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,24): error CS0229: Ambiguity between 'E1.M' and 'E2.M'
             // System.Console.Write(C.M);
@@ -31672,7 +31250,7 @@ class C : I1, I2 { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,24): error CS0121: The call is ambiguous between the following methods or properties: 'E3.M()' and 'E4.M()'
             // System.Console.Write(C.M());
@@ -31730,8 +31308,8 @@ class C : I1, I2 { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -31775,7 +31353,7 @@ class C { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         bool isE1beforeE2 = segmentIndex(0) < segmentIndex(1);
         if (!isE1beforeE2)
         {
@@ -31844,8 +31422,8 @@ class C { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -31889,8 +31467,8 @@ class C { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -31933,8 +31511,8 @@ class Derived : Base { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -31978,7 +31556,7 @@ class C { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
             // (1,24): error CS0229: Ambiguity between 'E2.M' and 'E3.M()'
@@ -32029,8 +31607,8 @@ class C { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32067,8 +31645,8 @@ interface I3 : I2, I1 { }
 
 {{(order ? e2 : e1)}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32105,8 +31683,8 @@ interface I3 : I2, I1 { }
 
 {{(order ? e2 : e1)}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32134,8 +31712,8 @@ implicit extension E2 for C
     public static System.Func<string> M = () => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32163,8 +31741,8 @@ implicit extension E2 for C
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32192,7 +31770,7 @@ implicit extension E2 for {{(order ? "C" : "object")}}
     public int this[int i] => i + 2;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE(instance) implement indexer access on receiver of extension type
         comp.VerifyEmitDiagnostics();
 
@@ -32228,8 +31806,8 @@ implicit extension E2 for Derived<string?>
     public static System.Func<string> M = () => "ran ";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32266,9 +31844,9 @@ implicit extension E2 for Derived<string>
     public static System.Func<string> M = () => "ran ";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // PROTOTYPE(static) consider warning for certain nullability differences
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32302,8 +31880,8 @@ implicit extension E2 for Derived<object>
     public static System.Func<string> M = () => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32335,8 +31913,8 @@ implicit extension E2 for Derived<string?>
     public class M { public static void Method() { System.Console.Write("ran"); } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32366,8 +31944,8 @@ implicit extension E2 for Derived<object>
     public class M { public static void Method() { System.Console.Write("ran"); } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32399,8 +31977,8 @@ implicit extension E2 for IDerived<string?>
     public static System.Func<string> M = () => "ran ";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32437,8 +32015,8 @@ implicit extension E2 for IDerived<string>
     public static System.Func<string> M = () => "ran ";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32472,8 +32050,8 @@ implicit extension E2 for IDerived<object>
     public static System.Func<string> M = () => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32502,8 +32080,8 @@ implicit extension E2 for IDerived<(int c, int d)>
     public static System.Func<string> M = () => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32527,7 +32105,7 @@ implicit extension E for C
     public int this[int i] => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,22): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // System.Console.Write(new C()[42]);
@@ -32558,7 +32136,7 @@ implicit extension E for C
     public static int Field = 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,24): error CS0229: Ambiguity between 'E.Field' and 'E.Field'
             // System.Console.Write(C.Field);
@@ -32591,7 +32169,7 @@ implicit extension E for C
     public static int Property => 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,24): error CS0229: Ambiguity between 'E.Property' and 'E.Property'
             // System.Console.Write(C.Property);
@@ -32625,7 +32203,7 @@ implicit extension E for C
     public static class D { public static void M() { } } // 3, 4
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS0121: The call is ambiguous between the following methods or properties: 'E.D.M()' and 'E.D.M()'
             // C.D.M(); // 1
@@ -32691,12 +32269,12 @@ public implicit extension EDerived for Derived
     public int this[string x] { get { return 0; } }
 }
 ";
-        var missingRef = CreateCompilation(missingSource, assemblyName: "Missing", targetFramework: TargetFramework.Net70).EmitToImageReference();
-        var libRef = CreateCompilation(libSource, new[] { missingRef }, targetFramework: TargetFramework.Net70).EmitToImageReference();
-        CreateCompilation(testSource, new[] { libRef, missingRef }, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        var missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+        var libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+        CreateCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
 
         // NOTE: No errors reported when the EDerived member wins.
-        CreateCompilation(testSource, new[] { libRef /* and not missingRef */ }, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+        CreateCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
             // (9,13): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         i = d.M(1);
             Diagnostic(ErrorCode.ERR_NoTypeDef, "d.M").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 13),
@@ -32723,7 +32301,7 @@ implicit extension E for object
     public int Property2 { get => throw null; set => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0619: 'E.Property1' is obsolete: 'error'
             // object.Property1 = 1;
@@ -32760,7 +32338,7 @@ implicit extension E for object
     public int Property2 { get => throw null; set => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (5,14): error CS0117: 'object' does not contain a definition for 'Property1'
             //         base.Property1 = 1;
@@ -32799,7 +32377,7 @@ implicit extension E for Base
     public int Property2 { get => throw null; set => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (7,14): error CS0117: 'Base' does not contain a definition for 'Property1'
             //         base.Property1 = 1;
@@ -32837,7 +32415,7 @@ static class C
     public static int Field = 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0619: 'E.Field' is obsolete: 'error'
             // object.Field = 1;
@@ -32866,7 +32444,7 @@ implicit extension E for object
     public static event System.Action Event { add { throw null; } remove { throw null; } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0619: 'E.Event' is obsolete: 'error'
             // object.Event += null;
@@ -32889,7 +32467,7 @@ implicit extension E for object
     public event System.Action Event { add { throw null; } remove { throw null; } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0619: 'E.Event' is obsolete: 'error'
             // new object().Event += null;
@@ -32919,9 +32497,9 @@ implicit extension E for object
     public static int Property { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "set get").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32954,10 +32532,10 @@ implicit extension E for object
     public int Property { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "set get").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -32990,10 +32568,10 @@ implicit extension E for object
     public int this[int i] { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "set get").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33017,8 +32595,8 @@ implicit extension E for object
     public class Nested { public static void M() { System.Console.Write("ran"); } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33037,10 +32615,10 @@ implicit extension E for int
     public int Property { get { System.Console.Write("get"); return 42; } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "get").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33059,7 +32637,7 @@ implicit extension E for int
     public int Property { set => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // Consider improving the error message
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
@@ -33085,7 +32663,7 @@ implicit extension E for int
     public int field;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // Consider improving the error message
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
@@ -33119,7 +32697,7 @@ implicit extension E for Enum
     public int Property { set => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // Consider improving the error message
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
@@ -33145,7 +32723,7 @@ implicit extension E for int
     public int this[int i] { set => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // Consider improving the error message
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
@@ -33177,7 +32755,7 @@ implicit extension E for Enum
 }
 """;
         // PROTOTYPE(instance) extension indexers should probably be allowed on enums
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0021: Cannot apply indexing with [] to an expression of type 'Enum'
             // Enum.Zero[42] = 1;
@@ -33202,7 +32780,7 @@ implicit extension E for long
     public int Property { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); }  }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,3): error CS1061: 'int' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // 1.Property = 42;
@@ -33236,10 +32814,10 @@ implicit extension E for string
     public int Property { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); }  }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "set get").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33263,10 +32841,10 @@ implicit extension E for string
     public int Property { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); }  }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "set get").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33290,10 +32868,10 @@ implicit extension E for string
     public int this[string s] { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); }  }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "set get").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33317,10 +32895,10 @@ implicit extension E for string
     public int Property { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); }  }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "set get").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33343,7 +32921,7 @@ implicit extension E for object
     public int Property { get => throw null; set => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
             // null.Property = 1;
@@ -33377,7 +32955,7 @@ implicit extension E for object
     public int Property { get => throw null; set => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS8716: There is no target type for the default literal.
             // default.Property = 1;
@@ -33410,10 +32988,10 @@ implicit extension E for (int, int)
     public int Property { get { System.Console.Write("get "); return 42; } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "get").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33432,7 +33010,7 @@ implicit extension E for (int, int)
     public int Property { set { System.Console.Write($"set(value)"); }}
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // Consider improving the error message
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
@@ -33459,7 +33037,7 @@ implicit extension E for (object, object)
     public int Property { get => throw null; set => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,2): error CS8716: There is no target type for the default literal.
             // (default, default).Property = 1;
@@ -33499,7 +33077,7 @@ implicit extension E for (long, long)
     public int Property { get => throw null; set => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,8): error CS1061: '(int, int)' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
             // (1, 1).Property = 1;
@@ -33534,10 +33112,10 @@ implicit extension E for string
     public void Member() { System.Console.Write("ran"); }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "set get").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33563,7 +33141,7 @@ implicit extension E for string
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (2,17): error CS1061: 'string' does not contain a definition for 'Nested' and no accessible extension method 'Nested' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
             // (b ? "" : null).Nested.M();
@@ -33589,10 +33167,10 @@ implicit extension E for string
     public int Property => 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33615,7 +33193,7 @@ implicit extension E for object
     public static S Property { get => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS1612: Cannot modify the return value of 'E.Property' because it is not a variable
             // object.Property.field = 1;
@@ -33637,7 +33215,7 @@ implicit extension E for object
     public static int Property { get => throw null; set => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,18): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
             // localFuncRef(ref object.Property);
@@ -33658,7 +33236,7 @@ implicit extension E for object
     public static ref readonly int Property { get => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS8331: Cannot assign to property 'Property' or use it as the right hand side of a ref assignment because it is a readonly variable
             // object.Property = 1;
@@ -33676,7 +33254,7 @@ implicit extension E for object
     public static int Property { get => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0200: Property or indexer 'E.Property' cannot be assigned to -- it is read only
             // object.Property = 1;
@@ -33694,7 +33272,7 @@ implicit extension E for object
     public static int Property { init => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (5,34): error CS8856: The 'init' accessor is not valid on static members
             //     public static int Property { init => throw null; }
@@ -33794,7 +33372,7 @@ implicit extension E for object
     public static int Property { get => throw null; private set => throw null; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0272: The property or indexer 'E.Property' cannot be used in this context because the set accessor is inaccessible
             // object.Property = 1;
@@ -33822,10 +33400,10 @@ implicit extension E for object
     public static int Property { get { System.Console.Write("get "); return 10; } set { System.Console.Write($"set({value}) "); } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
 
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set(1) get set(12) set(3) get set(14) set(5) get set(16)"),
-            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "set(1) get set(12) set(3) get set(14) set(5) get set(16)")
+            .VerifyDiagnostics();
     }
 
     [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
@@ -33847,12 +33425,11 @@ implicit extension E for object
     public int Property { get { System.Console.Write("get "); return 10; } set { System.Console.Write($"set({value}) "); } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
         // PROTOTYPE(instance) execute once instance scenarios are implemented
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set(1) get set(12) set(3) get set(14)"),
-        //    verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "set(1) get set(12) set(3) get set(14)").VerifyDiagnostics();
     }
 
     [Fact]
@@ -33876,9 +33453,9 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33907,9 +33484,9 @@ implicit extension E for int
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -33928,7 +33505,7 @@ implicit extension E for int
     public event System.Action Event { add { } remove { } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // Consider improving the error message
         comp.VerifyEmitDiagnostics(
             // (1,3): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
@@ -33957,7 +33534,7 @@ implicit extension E for int
     public event System.Action Event;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         // Consider improving the error message
         comp.VerifyEmitDiagnostics(
             // (5,11): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
@@ -33986,7 +33563,7 @@ implicit extension E for int
     public static event System.Action Event;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS0070: The event 'E.Event' can only appear on the left hand side of += or -= (except when used from within the type 'E')
             // int.Event = null;
@@ -34017,9 +33594,9 @@ implicit extension E for int
     public static event System.Action Event;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -34043,7 +33620,7 @@ implicit extension E for int
     public static event System.Action Event;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0176: Member 'E.Event' cannot be accessed with an instance reference; qualify it with a type name instead
             // C.Property.Event = null;
@@ -34079,7 +33656,7 @@ implicit extension E for int
     public event System.Action Event;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (10,9): error CS1612: Cannot modify the return value of 'C.Property' because it is not a variable
             //         C.Property.Event = null;
@@ -34115,7 +33692,7 @@ implicit extension E for int
     public event System.Action Event;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (10,9): error CS1612: Cannot modify the return value of 'C.Property' because it is not a variable
             //         C.Property.Event = null;
@@ -34143,7 +33720,7 @@ implicit extension E for object
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0118: 'E.Nested' is a type but is used like a variable
             // object.Nested = 1;
@@ -34168,7 +33745,7 @@ implicit extension E for object
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,8): error CS0117: 'object' does not contain a definition for 'Nested'
             // object.Nested();
@@ -34194,7 +33771,7 @@ implicit extension E for object
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,8): error CS0023: Operator '.' cannot be applied to operand of type 'void'
             // local().Nested = 1;
@@ -34219,7 +33796,7 @@ implicit extension E for object
     public static void M() { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,11): error CS0023: Operator '.' cannot be applied to operand of type 'void'
             // object.M().ToString();
@@ -34237,7 +33814,7 @@ implicit extension E for object
     public static void M() { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS1656: Cannot assign to 'M' because it is a 'method group'
             // object.M = null;
@@ -34262,7 +33839,7 @@ implicit extension E for object
     public static readonly int field = 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
             // object.field = null;
@@ -34360,9 +33937,9 @@ implicit extension E for object
     public static int field;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe);
         comp.VerifyEmitDiagnostics();
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.Fails).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Fails).VerifyDiagnostics();
         verifier.VerifyIL("C.Main", """
 {
   // Code size       36 (0x24)
@@ -34414,9 +33991,9 @@ static class D
     public static int field;
 }
 """;
-        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugExe);
+        comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe);
         comp.VerifyEmitDiagnostics();
-        verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.Fails).VerifyDiagnostics();
+        verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Fails).VerifyDiagnostics();
         verifier.VerifyIL("C.Main", """
 {
   // Code size       36 (0x24)
@@ -34466,7 +34043,7 @@ implicit extension E for S
 """;
         if (!CompilationExtensions.EnableVerifyIOperation)
         {
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(src);
             // PROTOTYPE(instance) update CheckValue logic
         }
     }
@@ -34504,7 +34081,7 @@ implicit extension E for I
     public int Property { set => this.SetValue(value); }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (7,7): error CS1061: 'T' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
             //     t.Property = 42; // PROTOTYPE(instance) should we produce ERR_AssgLvalueExpected here once we resolve extension members on type parameters?
@@ -34544,7 +34121,7 @@ implicit extension E for I
     public int Property { set => this.SetValue(value); }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (7,7): error CS1061: 'T' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
             //     t.Property = 42; // PROTOTYPE(instance) should we produce ERR_AssgLvalueExpected here once we resolve extension members on type parameters?
@@ -34580,9 +34157,9 @@ namespace N
 }
 """;
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method Property"), verify: Verification.FailsPEVerify);
+        CompileAndVerify(comp, expectedOutput: "Method Property");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -34607,9 +34184,9 @@ namespace N
         AssertSetStrictlyEqual(["System.Int32 N.E.Property { get; }"],
             model.LookupSymbols(position: 0, e, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["System.String? System.Object.ToString()"], model.LookupSymbols(position: 0, e, name: "ToString").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["System.String System.Object.ToString()"], model.LookupSymbols(position: 0, e, name: "ToString").ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["System.String? System.Object.ToString()"],
+        AssertSetStrictlyEqual(["System.String System.Object.ToString()"],
             model.LookupSymbols(position: 0, e, name: "ToString", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
@@ -34636,7 +34213,7 @@ implicit extension E for C
     public static event System.Action StaticEvent { add { } remove { } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -34663,8 +34240,8 @@ implicit extension E for C
             "E.Nested",
             "event System.Action E.StaticEvent",
             "System.Int32 E.StaticField",
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
 
         AssertSetStrictlyEqual(eStaticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
 
@@ -34693,7 +34270,7 @@ implicit extension E for C
     public int this[int i] => throw null; // We'll look up base members here
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -34717,8 +34294,8 @@ implicit extension E for C
         AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
 
         string[] objectStaticSymbols = [
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
 
         AssertSetStrictlyEqual(objectStaticSymbols,
             model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
@@ -34754,7 +34331,7 @@ explicit extension E for C
     public int this[int i] => throw null; // We'll look up base members here
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -34779,8 +34356,8 @@ explicit extension E for C
         AssertSetStrictlyEqual(["E.Nested"], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
 
         string[] objectStaticSymbols = [
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
 
         string[] eStaticSymbols = [
             "System.Int32 E.StaticProperty { get; }",
@@ -34817,7 +34394,7 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (2,9): error CS0119: 'E.StaticType<string>' is a type, which is not valid in the given context
             // int x = object.StaticType<string>;
@@ -34878,7 +34455,7 @@ implicit extension E2 for C
     public static event System.Action StaticEvent { add { } remove { } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -34922,7 +34499,7 @@ implicit extension E2 for C
     public int this[int i] => throw null; // We'll look up base members here
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -34946,8 +34523,8 @@ implicit extension E2 for C
         AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
 
         AssertSetStrictlyEqual([
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"],
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"],
             model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
     }
 
@@ -34966,7 +34543,7 @@ file implicit extension E2 for C
     public static int StaticField = 0;
 }
 """;
-        var comp = CreateCompilation([(src1, "src1"), (src2, "src2")], targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation([(src1, "src1"), (src2, "src2")]);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -34983,8 +34560,8 @@ file implicit extension E2 for C
         AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
 
         AssertSetStrictlyEqual([
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"],
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"],
             model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
     }
 
@@ -35007,7 +34584,7 @@ implicit extension E for C
     private void M() => throw null; // We'll look up base members here
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -35037,8 +34614,8 @@ implicit extension E for C
             "C.Nested",
             "event System.Action C.Event",
             "System.Int32 C.Field",
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
 
         AssertSetStrictlyEqual(staticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
 
@@ -35073,7 +34650,7 @@ implicit extension E for C
     private void M() => throw null; // We'll look up base members here
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -35081,12 +34658,12 @@ implicit extension E for C
 
         var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
         string[] objectPublicSymbols = [
-            "System.String? System.Object.ToString()",
-            "System.Boolean System.Object.Equals(System.Object? obj)",
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.String System.Object.ToString()",
+            "System.Boolean System.Object.Equals(System.Object obj)",
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
             "System.Int32 System.Object.GetHashCode()",
             "System.Type System.Object.GetType()",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
 
         AssertSetStrictlyEqual(objectPublicSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
         AssertSetStrictlyEqual(objectPublicSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
@@ -35098,8 +34675,8 @@ implicit extension E for C
         AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
 
         string[] staticSymbols = [
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
         AssertSetStrictlyEqual(staticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
 
         var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
@@ -35114,14 +34691,14 @@ implicit extension E for C
             "C.Nested",
             "event System.Action C.Event",
             "System.Int32 C.Field",
-            "System.String? System.Object.ToString()",
-            "System.Boolean System.Object.Equals(System.Object? obj)",
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.String System.Object.ToString()",
+            "System.Boolean System.Object.Equals(System.Object obj)",
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
             "void System.Object.Finalize()",
             "System.Int32 System.Object.GetHashCode()",
             "System.Type System.Object.GetType()",
             "System.Object System.Object.MemberwiseClone()",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
 
         int positionInC = src.IndexOf("protected");
         AssertSetStrictlyEqual(symbolsWithinCFromC, model.LookupSymbols(position: positionInC, c).ToTestDisplayStrings());
@@ -35171,7 +34748,7 @@ implicit extension E for C
     private void M() => throw null; // We'll look up base members here
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (5,24): warning CS0414: The field 'C.Field' is assigned but its value is never used
             //     private static int Field = 0;
@@ -35193,8 +34770,8 @@ implicit extension E for C
         AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
 
         string[] staticSymbols = [
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
         AssertSetStrictlyEqual(staticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
 
         var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
@@ -35209,14 +34786,14 @@ implicit extension E for C
             "C.Nested",
             "event System.Action C.Event",
             "System.Int32 C.Field",
-            "System.String? System.Object.ToString()",
-            "System.Boolean System.Object.Equals(System.Object? obj)",
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.String System.Object.ToString()",
+            "System.Boolean System.Object.Equals(System.Object obj)",
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
             "void System.Object.Finalize()",
             "System.Int32 System.Object.GetHashCode()",
             "System.Type System.Object.GetType()",
             "System.Object System.Object.MemberwiseClone()",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
 
         int positionInC = src.IndexOf("private");
         AssertSetStrictlyEqual(symbolsWithinCFromC, model.LookupSymbols(position: positionInC, c).ToTestDisplayStrings());
@@ -35266,7 +34843,7 @@ class Container<T>
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (7,13): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
             //         _ = T.Field;
@@ -35305,7 +34882,7 @@ implicit extension E for I
     public static event System.Action StaticEvent { add { } remove { } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -35314,8 +34891,8 @@ implicit extension E for I
         var i = ((Compilation)comp).GlobalNamespace.GetTypeMember("I");
 
         string[] objectStaticSymbols = [
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
 
         AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, i).ToTestDisplayStrings());
 
@@ -35349,7 +34926,7 @@ implicit extension E for I
     public int this[int i] => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -35364,8 +34941,8 @@ implicit extension E for I
 
         AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, i).ToTestDisplayStrings());
         AssertSetStrictlyEqual([
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"],
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"],
             model.LookupStaticMembers(position: 0, i).ToTestDisplayStrings());
     }
 
@@ -35386,7 +34963,7 @@ implicit extension E for IBase
     public static event System.Action StaticEvent { add { } remove { } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -35427,7 +35004,7 @@ implicit extension E for IBase
     public int this[int i] => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -35464,7 +35041,7 @@ implicit extension E for IBase
     private static event System.Action StaticEvent { add { } remove { } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (11,24): warning CS0414: The field 'E.StaticField' is assigned but its value is never used
             //     private static int StaticField = 0;
@@ -35513,7 +35090,7 @@ implicit extension E for IBase
     private int this[int i] => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -35552,8 +35129,8 @@ public implicit extension E<T> for T where T : struct
     public static event System.Action StaticEvent { add { } remove { } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -35567,24 +35144,24 @@ public implicit extension E<T> for T where T : struct
 
         var n = ((Compilation)comp).GetSpecialType(SpecialType.System_Nullable_T);
         string[] nullableInstanceSymbols = [
-            "readonly T System.Nullable<T>.Value { get; }",
-            "System.Boolean System.Nullable<T>.Equals(System.Object? other)",
-            "System.Boolean System.ValueType.Equals(System.Object? obj)",
-            "System.Boolean System.Object.Equals(System.Object? obj)",
+            "T System.Nullable<T>.Value { get; }",
+            "System.Boolean System.Nullable<T>.Equals(System.Object other)",
+            "System.Boolean System.ValueType.Equals(System.Object obj)",
+            "System.Boolean System.Object.Equals(System.Object obj)",
             "System.Int32 System.Nullable<T>.GetHashCode()",
             "System.Int32 System.ValueType.GetHashCode()",
             "System.Int32 System.Object.GetHashCode()",
-            "readonly T System.Nullable<T>.GetValueOrDefault()",
-            "readonly T System.Nullable<T>.GetValueOrDefault(T defaultValue)",
-            "System.String? System.Nullable<T>.ToString()",
-            "System.String? System.ValueType.ToString()",
-            "System.String? System.Object.ToString()",
-            "readonly System.Boolean System.Nullable<T>.HasValue { get; }",
+            "T System.Nullable<T>.GetValueOrDefault()",
+            "T System.Nullable<T>.GetValueOrDefault(T defaultValue)",
+            "System.String System.Nullable<T>.ToString()",
+            "System.String System.ValueType.ToString()",
+            "System.String System.Object.ToString()",
+            "System.Boolean System.Nullable<T>.HasValue { get; }",
             "System.Type System.Object.GetType()"];
 
         string[] nullableStaticSymbols = [
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
 
         AssertSetStrictlyEqual([.. nullableInstanceSymbols, .. nullableStaticSymbols], model.LookupSymbols(position: 0, n).ToTestDisplayStrings());
 
@@ -35618,7 +35195,7 @@ public implicit extension E<T> for T where T : struct
     public int this[int i] => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics();
 
@@ -35641,22 +35218,22 @@ public implicit extension E<T> for T where T : struct
 
         var n = ((Compilation)comp).GetSpecialType(SpecialType.System_Nullable_T);
         string[] nullableSymbols = [
-            "readonly T System.Nullable<T>.Value { get; }",
-            "System.Boolean System.Nullable<T>.Equals(System.Object? other)",
-            "System.Boolean System.ValueType.Equals(System.Object? obj)",
-            "System.Boolean System.Object.Equals(System.Object? obj)",
-            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "T System.Nullable<T>.Value { get; }",
+            "System.Boolean System.Nullable<T>.Equals(System.Object other)",
+            "System.Boolean System.ValueType.Equals(System.Object obj)",
+            "System.Boolean System.Object.Equals(System.Object obj)",
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
             "System.Int32 System.Nullable<T>.GetHashCode()",
             "System.Int32 System.ValueType.GetHashCode()",
             "System.Int32 System.Object.GetHashCode()",
-            "readonly T System.Nullable<T>.GetValueOrDefault()",
-            "readonly T System.Nullable<T>.GetValueOrDefault(T defaultValue)",
-            "System.String? System.Nullable<T>.ToString()",
-            "System.String? System.ValueType.ToString()",
-            "System.String? System.Object.ToString()",
-            "readonly System.Boolean System.Nullable<T>.HasValue { get; }",
+            "T System.Nullable<T>.GetValueOrDefault()",
+            "T System.Nullable<T>.GetValueOrDefault(T defaultValue)",
+            "System.String System.Nullable<T>.ToString()",
+            "System.String System.ValueType.ToString()",
+            "System.String System.Object.ToString()",
+            "System.Boolean System.Nullable<T>.HasValue { get; }",
             "System.Type System.Object.GetType()",
-            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
 
         AssertSetStrictlyEqual(nullableSymbols, model.LookupSymbols(position: 0, n).ToTestDisplayStrings());
 
@@ -35675,13 +35252,6 @@ public implicit extension E<T> for T where T : struct
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -35712,7 +35282,7 @@ public implicit extension E<T> for T where T : struct
 _ = new object().Item[42];
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyEmitDiagnostics(
             // (2,18): error CS1061: 'object' does not contain a definition for 'Item' and no accessible extension method 'Item' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // _ = new object().Item[42];
@@ -35743,7 +35313,7 @@ public implicit extension E for C
     public static int StaticField = 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -35780,7 +35350,7 @@ public implicit extension E for C
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -35818,7 +35388,7 @@ public implicit extension E for C
     public static int Property { set { } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -35856,7 +35426,7 @@ public implicit extension E for C
     public int Property { set { } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -35898,7 +35468,7 @@ implicit extension E2 for C
     public static event System.Action StaticEvent { add { } remove { } }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -35971,7 +35541,7 @@ implicit extension E2 for C
     public int this[int i] => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -36017,7 +35587,7 @@ implicit extension E for C
     public class Nested<T> { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -36069,7 +35639,7 @@ implicit extension E for C
     public void Method<T>() { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -36112,7 +35682,7 @@ implicit extension E for C
     private class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -36155,7 +35725,7 @@ file implicit extension E2 for C
     private class Nested2 { }
 }
 """;
-        var comp = CreateCompilation([(src, "src"), (src2, "src2")], targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation([(src, "src"), (src2, "src2")]);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -36214,7 +35784,7 @@ implicit extension E3 for C
     public class Nested3 { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -36310,7 +35880,7 @@ implicit extension E3 for C
     public static void StaticMethod3() { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -36426,7 +35996,7 @@ implicit extension ETop2 for C
     public static int M3 => 0;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -36520,7 +36090,7 @@ implicit extension E for C
     protected class Nested { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (2,7): error CS0117: 'C' does not contain a definition for 'M'
             // _ = C.M;
@@ -36565,8 +36135,8 @@ public implicit extension E for object
     public static int StaticField = 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -36587,8 +36157,8 @@ public implicit extension E for object
     public static bool StaticField = true;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -36612,7 +36182,7 @@ public implicit extension E2 for object
     public static int StaticField = 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (2,20): error CS0229: Ambiguity between 'E1.StaticField' and 'E2.StaticField'
             // var x = b ? object.StaticField : object.StaticField;
@@ -36640,7 +36210,7 @@ public implicit extension E for object
     public static void M() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (2,9): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'method group'
             // var x = b ? object.M : object.M;
@@ -36671,8 +36241,8 @@ public implicit extension E for object
     public static int StaticProperty => 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -36693,7 +36263,7 @@ public implicit extension E for object
     public static event System.Action StaticEvent { add { } remove { } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (2,20): error CS0079: The event 'E.StaticEvent' can only appear on the left hand side of += or -=
             // var x = b ? object.StaticEvent : object.StaticEvent;
@@ -36721,7 +36291,7 @@ public implicit extension E for object
     public static event System.Action StaticEvent;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (2,20): error CS0070: The event 'E.StaticEvent' can only appear on the left hand side of += or -= (except when used from within the type 'E')
             // var x = b ? object.StaticEvent : object.StaticEvent;
@@ -36749,7 +36319,7 @@ public implicit extension E for object
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (2,13): error CS0119: 'E.Nested' is a type, which is not valid in the given context
             // var x = b ? object.Nested : object.Nested;
@@ -36779,8 +36349,8 @@ public implicit extension E for object
     public static long StaticField2 = 43;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -36804,8 +36374,8 @@ public implicit extension E for object
     public static int StaticField = 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -36840,8 +36410,8 @@ implicit extension E2 for object
     public static void f() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -36876,7 +36446,7 @@ implicit extension E2 for object
     public static void f() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (2,19): error CS0029: Cannot implicitly convert type 'string' to 'System.Action'
             // System.Action x = b ? D.f : D.f;
@@ -36907,8 +36477,8 @@ public implicit extension E for object
     public static int StaticField = 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -36938,8 +36508,8 @@ implicit extension E2 for object
     public static void f() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -36966,7 +36536,7 @@ implicit extension E2 for object
     public static void f() => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS0030: Cannot convert type 'string' to 'System.Action'
             // var x = (System.Action)D.f;
@@ -37017,7 +36587,7 @@ public implicit extension E for object
     public class M { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS0030: Cannot convert type 'int' to 'E.M'
             // var x = (System.Object.M)0;
@@ -37046,9 +36616,9 @@ public implicit extension E for object
         if (!CompilationExtensions.EnableVerifyIOperation)
         {
             // PROTOTYPE update SymbolDisplayVisitor.AddNameAndTypeARgumentsOrParameters logic
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
-            //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -37069,8 +36639,8 @@ public implicit extension E for object
     public static int M = 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37092,7 +36662,7 @@ public implicit extension E for object
     public class M { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -37118,10 +36688,10 @@ public implicit extension E for object
         if (!CompilationExtensions.EnableVerifyIOperation)
         {
             // PROTOTYPE update SymbolDisplayVisitor.AddNameAndTypeARgumentsOrParameters logic
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-            //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -37142,8 +36712,8 @@ public implicit extension E for object
     public static int StaticField = 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("(42, 42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "(42, 42)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37164,8 +36734,8 @@ public implicit extension E for object
     public static int StaticField = 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37185,8 +36755,8 @@ public implicit extension E for object
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("(1, True)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "(1, True)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37205,7 +36775,7 @@ public implicit extension E for object
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,19): error CS1526: A new expression requires an argument list or (), [], or {} after type
             // var x = new object.Nested[1];
@@ -37224,7 +36794,7 @@ public implicit extension E for object
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
             // (1,9): error CS0572: 'Nested': cannot reference a type through an expression; try 'E.Nested' instead
             // var x = new object.Nested[1];
@@ -37247,8 +36817,8 @@ public implicit extension E for object
     public static (int, int) M = (42, 43);
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("(42, 43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37269,8 +36839,8 @@ public implicit extension E for object
     public static (int, int) M = (42, 43);
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("(42, 43)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37289,8 +36859,8 @@ public implicit extension E for object
     public static int M = 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("(42, 42)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "(42, 42)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37311,8 +36881,8 @@ public implicit extension E for object
     public static int M = 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37340,10 +36910,10 @@ public class MyCollection : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Fact]
@@ -37366,7 +36936,7 @@ public class MyCollection : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (4,18): error CS0118: 'Add' is a property but is used like a method
             // MyCollection c = [42];
@@ -37385,8 +36955,8 @@ public implicit extension E for object
     public static int M = 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37405,7 +36975,7 @@ public implicit extension E for object
     public static void M() => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,54): error CS1950: The best overloaded Add method 'List<int>.Add(int)' for the collection initializer has some invalid arguments
             // var x = new System.Collections.Generic.List<int>() { object.M };
@@ -37440,9 +37010,9 @@ public implicit extension E for object
     public static int M = 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37461,8 +37031,8 @@ public implicit extension E for object
     public static string M = "ran";
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37482,10 +37052,10 @@ public implicit extension E for object
     public string M => "ran";
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        // CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        // CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37506,10 +37076,10 @@ public implicit extension E for object
     public string M(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        // CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        // CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37529,8 +37099,8 @@ public implicit extension E for object
     public static int M = 1;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37551,8 +37121,8 @@ public implicit extension E for object
     public static int M = 41;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37571,8 +37141,8 @@ public implicit extension E for object
     public static event System.Action M { add { System.Console.Write("ran"); } remove { } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37597,9 +37167,9 @@ public implicit extension E for object
     public static C M = new C();
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37625,7 +37195,7 @@ public implicit extension E for object
     public static C M = new C();
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'C'
             // var x = object.M + object.M;
@@ -37655,9 +37225,9 @@ public implicit extension E for object
     public static int M = 41;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37681,9 +37251,9 @@ public implicit extension E for object
     public static bool M { get { System.Console.Write("ran"); return true; } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37708,8 +37278,8 @@ public implicit extension E for object
     public static string M2 = "ran";
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37733,8 +37303,8 @@ public implicit extension E for object
     public static string M2 = "ran";
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37763,8 +37333,8 @@ public implicit extension E for object
     public static string M = "ran";
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37790,8 +37360,8 @@ public implicit extension E for object
     public static object[] M2 = [""];
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37822,8 +37392,8 @@ public implicit extension E for object
     public static int M2 = 0;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37846,8 +37416,8 @@ public implicit extension E for object
     public static int M = 42;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37879,8 +37449,8 @@ public implicit extension E for object
     public static int M2 = 0;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37915,7 +37485,7 @@ public implicit extension E for object
     public static int M2 = 0;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,56): error CS1643: Not all code paths return a value in lambda expression of type 'Func<IEnumerable<int>>'
             // var x = System.Collections.Generic.IEnumerable<int> () =>
@@ -37954,8 +37524,8 @@ public implicit extension E for object
     public static System.Exception M = new System.Exception("ran");
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -37979,8 +37549,8 @@ public implicit extension E for object
     public static string M = "ran";
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38004,8 +37574,8 @@ implicit extension E for object
     public static string M = "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38029,8 +37599,8 @@ implicit extension E for object
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38054,8 +37624,8 @@ implicit extension E for object
     public static string M => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38079,8 +37649,8 @@ implicit extension E for object
     public static string M() => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38104,8 +37674,8 @@ implicit extension E for object
     public static string ToString(int i) => "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38138,7 +37708,7 @@ public static class E2
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (2,5): error CS1503: Argument 1: cannot convert from 'string' to 'System.Action'
             // C.M(o.Member);
@@ -38167,9 +37737,9 @@ public implicit extension E for object
     public static string M = "ran";
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38200,7 +37770,7 @@ implicit extension E2 for object
     public static void f() { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,10): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'C'
             // bool b = D.f + D.f;
@@ -38230,7 +37800,7 @@ implicit extension E2 for object
     public static void f() { }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,22): error CS0229: Ambiguity between 'E1.f' and 'E2.f()'
             // var l = () => object.f;
@@ -38260,7 +37830,7 @@ implicit extension E2 for object
     public static void f() { System.Console.Write("ran"); }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,45): error CS0229: Ambiguity between 'E1.f' and 'E2.f()'
             // System.Func<System.Action> l = () => object.f;
@@ -38291,7 +37861,7 @@ public static class E2
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,43): error CS0029: Cannot implicitly convert type 'string' to 'System.Action'
             // System.Func<System.Action> lambda = () => new object().Member;
@@ -38319,10 +37889,10 @@ public implicit extension E for object
     public void Member(int i) => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38348,7 +37918,7 @@ implicit extension E2 for object
     public static void f() { System.Console.Write("ran"); }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,29): error CS0029: Cannot implicitly convert type 'string' to 'System.Action'
             // var l = System.Action () => D.f;
@@ -38381,7 +37951,7 @@ implicit extension E2 for object
     public static void f() { System.Console.Write("ran"); }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,38): error CS0029: Cannot implicitly convert type 'string' to 'System.Action'
             // System.Func<System.Action> l = () => D.f;
@@ -38415,8 +37985,8 @@ implicit extension E2 for D
     public static void f() { System.Console.Write("ran"); }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38445,8 +38015,8 @@ implicit extension E2 for object
     public static void f() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38475,7 +38045,7 @@ implicit extension E2 for object
     public static void f() => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS0411: The type arguments for method 'local<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // var s = local(D.f, new System.Action(() => { }));
@@ -38503,8 +38073,8 @@ implicit extension E for object
     public static string f = "hi";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("hi"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "hi").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38529,8 +38099,8 @@ implicit extension E for object
     public static string f = "ran";
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38550,7 +38120,7 @@ implicit extension E for object
 }
 """;
         // PROTOTYPE should warn about hiding
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,33): error CS0119: 'object.ToString()' is a method, which is not valid in the given context
             // string query = from x in object.ToString select x;
@@ -38560,7 +38130,7 @@ implicit extension E for object
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.ToString");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["System.String? System.Object.ToString()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Equal(["System.String System.Object.ToString()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -38574,7 +38144,7 @@ implicit extension E for object
     public static string M() => null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,33): error CS0119: 'E.M()' is a method, which is not valid in the given context
             // string query = from x in object.M select x;
@@ -38598,7 +38168,7 @@ implicit extension E for object
     public static string M = null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,26): error CS1935: Could not find an implementation of the query pattern for source type 'string'.  'Select' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?
             // string query = from x in object.M select x;
@@ -38636,10 +38206,10 @@ implicit extension E for object
     public System.Action M => () => { System.Console.Write("ran"); };
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38673,10 +38243,10 @@ implicit extension E for object
     public System.Action M => () => { System.Console.Write("ran"); };
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38711,9 +38281,9 @@ implicit extension E for object
     public System.Action M => () => throw null;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38748,10 +38318,10 @@ implicit extension E for object
     public System.Action M => () => { System.Console.Write("ran"); };
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38785,7 +38355,7 @@ implicit extension E for object
     public int M => 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyEmitDiagnostics(
             // (7,34): error CS0428: Cannot convert method group 'M' to non-delegate type 'int'. Did you intend to invoke the method?
             //             int x = new object().M;
@@ -38823,7 +38393,7 @@ implicit extension E for object
     public static int M => 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyEmitDiagnostics(
             // (7,28): error CS0428: Cannot convert method group 'M' to non-delegate type 'int'. Did you intend to invoke the method?
             //             int x = object.M;
@@ -38861,7 +38431,7 @@ implicit extension E2 for object
     public static int M => 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyEmitDiagnostics(
             // (7,28): error CS0428: Cannot convert method group 'M' to non-delegate type 'int'. Did you intend to invoke the method?
             //             int x = object.M;
@@ -38899,7 +38469,7 @@ implicit extension E2 for object
     public int M => 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyEmitDiagnostics(
             // (7,34): error CS0428: Cannot convert method group 'M' to non-delegate type 'int'. Did you intend to invoke the method?
             //             int x = new object().M;
@@ -38938,10 +38508,10 @@ implicit extension E for object
     public int M => 42;
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -38975,10 +38545,10 @@ implicit extension E for object
     public void M() { System.Console.Write("ran"); }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -39012,10 +38582,10 @@ implicit extension E for object
     public void M() { System.Console.Write("ran"); }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -39061,8 +38631,8 @@ class C : I1, I2 { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -39103,7 +38673,7 @@ class C : I1<int>, I2 { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,24): error CS0229: Ambiguity between 'E1<int>.M' and 'E1<string>.M'
             // System.Console.Write(C.M);
@@ -39148,7 +38718,7 @@ class C : Base, I1<int> { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,24): error CS0229: Ambiguity between 'E1<string>.M' and 'E1<int>.M'
             // System.Console.Write(C.M);
@@ -39196,7 +38766,7 @@ class C : Base, I1<int> { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,24): error CS0229: Ambiguity between 'E1<int>.M' and 'E2.M'
             // System.Console.Write(C.M);
@@ -39242,8 +38812,8 @@ class C : I1<int>, I2 { }
 
 {{segments[third]}}
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -39265,8 +38835,8 @@ public implicit extension E<T> for T
     public static void StaticMethod() { System.Console.Write("ran"); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -39281,7 +38851,6 @@ public implicit extension E<T> for T
             "void E<System.IComparable>.StaticMethod()",
             "void E<System.IComparable<System.Int32>>.StaticMethod()",
             "void E<System.IEquatable<System.Int32>>.StaticMethod()",
-            "void E<System.ISpanFormattable>.StaticMethod()",
             "void E<System.IFormattable>.StaticMethod()"],
             model.LookupStaticMembers(position: 0, int32).Where(m => m.ContainingType.Name != "Int32").ToTestDisplayStrings());
     }
@@ -39297,7 +38866,7 @@ public implicit extension E<T> for T where T : struct
     public static void StaticMethod() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,8): error CS0117: 'object' does not contain a definition for 'StaticMethod'
             // object.StaticMethod();
@@ -39318,7 +38887,7 @@ public implicit extension E<T> for T where T : notnull
     public void Method() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (4,1): warning CS8602: Dereference of a possibly null reference.
             // o.Method();
@@ -39347,9 +38916,9 @@ public implicit extension E<T> for C<T> where T : notnull
 }
 """;
         // PROTOTYPE(static) we should warn for nullability issues
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         //comp.VerifyDiagnostics();
-        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Fact]
@@ -39364,7 +38933,7 @@ public implicit extension E<T> for T
     public static void StaticMethod() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (2,8): error CS1001: Identifier expected
             // object?.StaticMethod();
@@ -39386,7 +38955,7 @@ public implicit extension E<T> for T
     public static void StaticMethod() { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (2,10): error CS1525: Invalid expression term '.'
             // (object?).StaticMethod();
@@ -39436,7 +39005,7 @@ internal class AnyClass : AnyBaseClass
 
 implicit extension E for AnyClass.AnyEnum { }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
@@ -39466,7 +39035,7 @@ implicit extension E for AnyClass.AnyEnum
     public class Val { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
@@ -39502,7 +39071,7 @@ implicit extension E for C.Interface
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
@@ -39537,7 +39106,7 @@ implicit extension E for C.Interface
     public class Nested { public static void M() { System.Console.Write("ran"); } }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,30): error CS0426: The type name 'Nested' does not exist in the type 'C.Interface'
             // using MyNested = C.Interface.Nested;
@@ -39559,7 +39128,7 @@ implicit extension E for E.Nested
     public class Nested { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,20): error CS0146: Circular base type dependency involving 'E.Nested' and 'E'
             // implicit extension E for E.Nested
@@ -39589,8 +39158,8 @@ implicit extension E for InterfaceAlias
     public static void M() { System.Console.Write("ran"); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -39610,7 +39179,7 @@ implicit extension E for C<MyInterface>
     public interface Interface { }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (1,36): error CS0426: The type name 'Interface' does not exist in the type 'C<E.Interface>'
             // using MyInterface = C<E.Interface>.Interface;
@@ -39637,7 +39206,7 @@ implicit extension E for object
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70);
         // PROTOTYPE(static) We should be able to parse this using/alias directive
         comp.VerifyEmitDiagnostics(
             // (1,27): error CS1002: ; expected
@@ -39672,8 +39241,8 @@ implicit extension E for Alias
     public static void M() { System.Console.Write("ran"); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -39700,7 +39269,7 @@ namespace N
     using static C.Interface.Nested;
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
 
         comp.VerifyDiagnostics(
             // (13,5): hidden CS8019: Unnecessary using directive.
@@ -39744,7 +39313,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
             // (13,34): error CS0426: The type name 'Nested' does not exist in the type 'C.Interface'
             //     using MyNested = C.Interface.Nested;
@@ -39809,9 +39378,9 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     public static void M() { System.Console.Write("ran"); }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"),
-            sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran",
+            sourceSymbolValidator: validate, symbolValidator: validate).VerifyDiagnostics();
 
         void validate(ModuleSymbol module)
         {
@@ -39835,13 +39404,6 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -39861,8 +39423,8 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 object.M();
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilationWithIL(src, ilSource);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
         VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
@@ -39881,13 +39443,6 @@ object.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -39905,7 +39460,7 @@ object.M();
 object.M();
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyEmitDiagnostics(
             // (1,8): error CS0117: 'object' does not contain a definition for 'M'
             // object.M();
@@ -39925,13 +39480,6 @@ object.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -39951,7 +39499,7 @@ object.M();
 object.M();
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyEmitDiagnostics(
             // (1,8): error CS0117: 'object' does not contain a definition for 'M'
             // object.M();
@@ -39968,13 +39516,6 @@ object.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -39994,7 +39535,7 @@ object.M();
 object.M();
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyEmitDiagnostics(
             // (1,8): error CS0117: 'object' does not contain a definition for 'M'
             // object.M();
@@ -40011,13 +39552,6 @@ object.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -40037,7 +39571,7 @@ object.M();
 object.M();
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyEmitDiagnostics(
             // (1,8): error CS0117: 'object' does not contain a definition for 'M'
             // object.M();
@@ -40057,13 +39591,6 @@ object.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -40083,7 +39610,7 @@ object.M();
 object.M();
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyEmitDiagnostics(
             // (1,8): error CS0117: 'object' does not contain a definition for 'M'
             // object.M();
@@ -40103,13 +39630,6 @@ object.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -40131,8 +39651,8 @@ object.M();
 object.M();
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilationWithIL(src, ilSource);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
         VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
@@ -40149,13 +39669,6 @@ object.M();
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = ( 01 00 01 00 00 )
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -40177,8 +39690,8 @@ object.M();
 object.M();
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilationWithIL(src, ilSource);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
         VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
@@ -40207,13 +39720,6 @@ object.M();
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = ( 01 00 01 00 00)
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(class C`1<object> '') cil managed
     {
         .param [1]
@@ -40236,8 +39742,8 @@ object.M();
 C<object>.M();
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var comp = CreateCompilationWithIL(src, ilSource);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         // PROTOTYPE what should we do about the top-level annotation in marker method?
         var e = comp.GlobalNamespace.GetTypeMember("E");
@@ -40254,13 +39760,6 @@ C<object>.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -40280,7 +39779,7 @@ C<object>.M();
 object.M();
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyEmitDiagnostics(
             // (1,8): error CS0117: 'object' does not contain a definition for 'M'
             // object.M();
@@ -40300,13 +39799,6 @@ object.M();
 .class public sequential ansi sealed beforefieldinit E
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
-        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
-        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
-        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
-        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
-        70 69 6c 65 72 2e 00 00
-    )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -40326,7 +39818,7 @@ object.M();
 object.M();
 """;
 
-        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyEmitDiagnostics(
             // (1,8): error CS0117: 'object' does not contain a definition for 'M'
             // object.M();

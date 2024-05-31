@@ -1728,11 +1728,6 @@ next:;
                         PEModule.ByRefLikeMarker, nameof(CompilerFeatureRequiredFeatures.RefStructs), isOptionalUse: true);
                 }
             }
-            else if (this.IsExtension)
-            {
-                addPoisonAttributes(ref attributes, compilation, hasObsolete,
-                    PEModule.ExtensionMarker, nameof(CompilerFeatureRequiredFeatures.ExtensionTypes), isOptionalUse: false);
-            }
 
             if (this.IsReadOnly)
             {
