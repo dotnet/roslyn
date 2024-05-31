@@ -1972,7 +1972,7 @@ partial class C
                     Assert.Equal("p2", indexer.Parameters.Single().Name);
                 });
                 verifier.VerifyDiagnostics(
-                    // (5,24): warning CS9308: Partial property declarations 'int C.this[int p2]' and 'int C.this[int p1]' have signature differences.
+                    // (5,24): warning CS9256: Partial property declarations 'int C.this[int p2]' and 'int C.this[int p1]' have signature differences.
                     //     public partial int this[int p1] => 42;
                     Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("int C.this[int p2]", "int C.this[int p1]").WithLocation(5, 24));
 
@@ -2033,7 +2033,7 @@ partial class C
                     // (4,42): warning CS1734: XML comment on 'C.this[int]' has a paramref tag for 'p2', but there is no parameter by that name
                     //     /** <summary>Accepts <paramref name="p2"/>.</summary> */
                     Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "p2").WithArguments("p2", "C.this[int]").WithLocation(4, 42),
-                    // (5,24): warning CS9308: Partial property declarations 'int C.this[int p2]' and 'int C.this[int p1]' have signature differences.
+                    // (5,24): warning CS9256: Partial property declarations 'int C.this[int p2]' and 'int C.this[int p1]' have signature differences.
                     //     public partial int this[int p1] => 42;
                     Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("int C.this[int p2]", "int C.this[int p1]").WithLocation(5, 24));
 
@@ -2094,7 +2094,7 @@ partial class C
                     Assert.Equal("p2", indexer.Parameters.Single().Name);
                 });
                 verifier.VerifyDiagnostics(
-                    // (4,24): warning CS9308: Partial property declarations 'int C.this[int p2]' and 'int C.this[int p1]' have signature differences.
+                    // (4,24): warning CS9256: Partial property declarations 'int C.this[int p2]' and 'int C.this[int p1]' have signature differences.
                     //     public partial int this[int p1] => 42;
                     Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("int C.this[int p2]", "int C.this[int p1]").WithLocation(4, 24),
                     // (4,42): warning CS1734: XML comment on 'C.this[int]' has a paramref tag for 'p1', but there is no parameter by that name
@@ -2158,7 +2158,7 @@ partial class C
                     Assert.Equal("p2", indexer.Parameters.Single().Name);
                 });
                 verifier.VerifyDiagnostics(
-                    // (4,24): warning CS9308: Partial property declarations 'int C.this[int p2]' and 'int C.this[int p1]' have signature differences.
+                    // (4,24): warning CS9256: Partial property declarations 'int C.this[int p2]' and 'int C.this[int p1]' have signature differences.
                     //     public partial int this[int p1] => 42;
                     Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("int C.this[int p2]", "int C.this[int p1]").WithLocation(4, 24));
 

@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourcePropertySymbol : SourcePropertySymbolBase
     {
-        // PROTOTYPE(partial-properties): Verify that the increase in memory consumption from this is acceptable
         private SourcePropertySymbol? _otherPartOfPartial;
 
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
@@ -175,7 +174,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Attributes on partial properties are owned by the definition part.
             // If this symbol has a non-null PartialDefinitionPart, we should have accessed this method through that definition symbol instead
-            Debug.Assert(PartialDefinitionPart is null);
+            Debug.Assert(PartialDefinitionPart is null
+                // We might still get here when asking for the attributes on a backing field.
+                // This is an error scenario (requires using a property initializer and field-targeted attributes on partial property implementation part).
+                || this.BackingField is not null);
 
             if (PartialImplementationPart is { } implementationPart)
             {
@@ -610,6 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsPartialDefinition && OtherPartOfPartial is { } implementation)
             {
                 PartialPropertyChecks(implementation, diagnostics);
+                implementation.CheckInitializerIfNeeded(diagnostics);
             }
         }
 

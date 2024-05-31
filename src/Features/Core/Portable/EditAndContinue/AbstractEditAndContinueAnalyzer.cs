@@ -3185,6 +3185,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     // The partial type needs to be specified in the following cases:
                     // 1) partial method is updated (in case both implementation and definition are updated)
                     // 2) partial type is updated
+                    // https://github.com/dotnet/roslyn/issues/73772: do we also need to check IPropertySymbol.PartialDefinitionPart here?
                     var partialType = editKind == SemanticEditKind.Update && symbol is IMethodSymbol { PartialDefinitionPart: not null }
                         ? symbolCache.GetKey(symbol.ContainingType, cancellationToken)
                         : IsPartialTypeEdit(oldSymbol, newSymbol, oldTree, newTree)
@@ -3354,6 +3355,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     var result = symbolKey.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
 
                     // If we were looking for a definition and an implementation is returned the definition does not exist.
+                    // https://github.com/dotnet/roslyn/issues/73772: Does PartialDefinitionPart also need to be checked here?
                     return symbol is IMethodSymbol { PartialDefinitionPart: not null } && result is IMethodSymbol { IsPartialDefinition: true } ? null : result;
                 }
 
@@ -3666,6 +3668,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             if (symbol is null)
                 return;
 
+            // https://github.com/dotnet/roslyn/issues/73772
             Debug.Assert(symbol is not IMethodSymbol { IsPartialDefinition: true });
 
             var partialType = symbol is IMethodSymbol { PartialDefinitionPart: not null } ? SymbolKey.Create(symbol.ContainingType, cancellationToken) : (SymbolKey?)null;

@@ -287,8 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureRefStructInterfaces = MessageBase + 12844,
 
-        // PROTOTYPE(partial-properties): pack
-        IDS_FeaturePartialProperties = MessageBase + 13000,
+        IDS_FeaturePartialProperties = MessageBase + 12845,
     }
 
     // Message IDs may refer to strings that need to be localized.

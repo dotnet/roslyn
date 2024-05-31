@@ -298,8 +298,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
-        // PROTOTYPE(partial-properties): Perhaps this API should be implemented as '_underlying.OriginalDefinition.IsPartialDefinition()' instead.
-        // However, this would be a behavior change. Callers may have been assuming that if the API returned true, then the receiver is an original definition symbol.
         bool IMethodSymbol.IsPartialDefinition => _underlying.IsDefinition && _underlying.IsPartialDefinition();
 
         INamedTypeSymbol IMethodSymbol.AssociatedAnonymousDelegate

@@ -14087,10 +14087,10 @@ partial class C
                 // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.
                 //     partial int f;
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,20): error CS9301: Partial property 'C.P' must have a definition part.
+                // (5,20): error CS9249: Partial property 'C.P' must have a definition part.
                 //     partial object P { get { return null; } }
                 Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "P").WithArguments("C.P").WithLocation(5, 20),
-                // (6,17): error CS9301: Partial property 'C.this[int]' must have a definition part.
+                // (6,17): error CS9249: Partial property 'C.this[int]' must have a definition part.
                 //     partial int this[int index]
                 Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "this").WithArguments("C.this[int]").WithLocation(6, 17),
                 // (4,17): warning CS0169: The field 'C.f' is never used
