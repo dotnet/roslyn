@@ -4689,8 +4689,14 @@ public partial class C
 
                     [Attr(nameof(p1))]
                     [Attr(nameof(p2))] // 7
-                    public partial void M(int p1);
-                    public partial void M(int p2) { } // 8
+                    public partial void M(
+                        [Attr(nameof(p1))] // 8
+                        [Attr(nameof(p2))]
+                        int p1);
+                    public partial void M( // 9
+                        [Attr(nameof(p1))] // 10
+                        [Attr(nameof(p2))]
+                        int p2) { }
                 }
                 """;
 
@@ -4717,9 +4723,15 @@ public partial class C
                 // (31,18): error CS0103: The name 'p2' does not exist in the current context
                 //     [Attr(nameof(p2))] // 7
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(31, 18),
-                // (33,25): warning CS8826: Partial method declarations 'void C.M(int p1)' and 'void C.M(int p2)' have signature differences.
-                //     public partial void M(int p2) { } // 8
-                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void C.M(int p1)", "void C.M(int p2)").WithLocation(33, 25));
+                // (33,22): error CS0103: The name 'p1' does not exist in the current context
+                //         [Attr(nameof(p1))] // 8
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(33, 22),
+                // (36,25): warning CS8826: Partial method declarations 'void C.M(int p1)' and 'void C.M(int p2)' have signature differences.
+                //     public partial void M( // 9
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void C.M(int p1)", "void C.M(int p2)").WithLocation(36, 25),
+                // (37,22): error CS0103: The name 'p1' does not exist in the current context
+                //         [Attr(nameof(p1))] // 10
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(37, 22));
         }
 
         [Fact]
