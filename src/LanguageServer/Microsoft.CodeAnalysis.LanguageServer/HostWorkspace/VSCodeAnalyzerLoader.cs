@@ -4,6 +4,7 @@
 
 using System.Composition;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.Extensions.Logging;
@@ -25,21 +26,21 @@ internal class VSCodeAnalyzerLoader
     {
     }
 
-    public static IAnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader(ExtensionAssemblyManager extensionAssemblyManager, ILogger logger)
+    public static IAnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader(Workspace workspace, ExtensionAssemblyManager extensionAssemblyManager, ILogger logger)
     {
-        return new VSCodeExtensionAssemblyAnalyzerLoader(extensionAssemblyManager, logger);
+        var analyzerLoaderProvider = workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+        var loader = analyzerLoaderProvider.GetLoader(new AnalyzerAssemblyLoaderOptions(shadowCopy: true));
+        return new VSCodeExtensionAssemblyAnalyzerLoader(loader, extensionAssemblyManager, logger);
     }
 
     /// <summary>
     /// Analyzer loader that will re-use already loaded assemblies from the extension load context.
     /// </summary>
-    private class VSCodeExtensionAssemblyAnalyzerLoader(ExtensionAssemblyManager extensionAssemblyManager, ILogger logger) : IAnalyzerAssemblyLoader
+    private class VSCodeExtensionAssemblyAnalyzerLoader(IAnalyzerAssemblyLoader defaultLoader, ExtensionAssemblyManager extensionAssemblyManager, ILogger logger) : IAnalyzerAssemblyLoader
     {
-        private readonly DefaultAnalyzerAssemblyLoader _defaultLoader = new();
-
         public void AddDependencyLocation(string fullPath)
         {
-            _defaultLoader.AddDependencyLocation(fullPath);
+            defaultLoader.AddDependencyLocation(fullPath);
         }
 
         public Assembly LoadFromPath(string fullPath)
@@ -51,7 +52,7 @@ internal class VSCodeAnalyzerLoader
                 return assembly;
             }
 
-            return _defaultLoader.LoadFromPath(fullPath);
+            return defaultLoader.LoadFromPath(fullPath);
         }
     }
 }

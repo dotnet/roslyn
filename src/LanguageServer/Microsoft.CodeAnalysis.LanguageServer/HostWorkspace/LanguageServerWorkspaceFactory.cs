@@ -59,7 +59,7 @@ internal sealed class LanguageServerWorkspaceFactory
     public async Task InitializeSolutionLevelAnalyzersAsync(ImmutableArray<string> analyzerPaths, ExtensionAssemblyManager extensionAssemblyManager)
     {
         var references = new List<AnalyzerFileReference>();
-        var analyzerLoader = VSCodeAnalyzerLoader.CreateAnalyzerAssemblyLoader(extensionAssemblyManager, _logger);
+        var analyzerLoader = VSCodeAnalyzerLoader.CreateAnalyzerAssemblyLoader(Workspace, extensionAssemblyManager, _logger);
 
         foreach (var analyzerPath in analyzerPaths)
         {
