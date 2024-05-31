@@ -13,10 +13,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options;
 
+#pragma warning disable RS0030 // Do not use banned APIs (IGlobalOptionService)
 [Export(typeof(ILegacyGlobalOptionService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class LegacyGlobalOptionService(IGlobalOptionService globalOptionService) : ILegacyGlobalOptionService
+#pragma warning restore
 {
     [ExportWorkspaceService(typeof(ILegacyWorkspaceOptionService)), Shared]
     [method: ImportingConstructor]
@@ -26,7 +28,9 @@ internal sealed class LegacyGlobalOptionService(IGlobalOptionService globalOptio
         public ILegacyGlobalOptionService LegacyGlobalOptions { get; } = legacyGlobalOptions;
     }
 
+#pragma warning disable RS0030 // Do not use banned APIs (IGlobalOptionService)
     public IGlobalOptionService GlobalOptions { get; } = globalOptionService;
+#pragma warning restore
 
     // access is interlocked
     private ImmutableArray<WeakReference<Workspace>> _registeredWorkspaces = [];

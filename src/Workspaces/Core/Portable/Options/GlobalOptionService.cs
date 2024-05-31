@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
+#pragma warning disable RS0030 // Do not use banned APIs (IGlobalOptionService)
+
 namespace Microsoft.CodeAnalysis.Options;
 
 [Export(typeof(IGlobalOptionService)), Shared]
