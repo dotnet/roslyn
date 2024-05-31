@@ -57,7 +57,7 @@ public partial class Solution
     internal Solution(
         Workspace workspace,
         SolutionInfo.SolutionAttributes solutionAttributes,
-        SolutionOptionSet options,
+        LegacySolutionOptionSet options,
         IReadOnlyList<AnalyzerReference> analyzerReferences)
         : this(new SolutionCompilationState(
                   new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences),
@@ -1640,7 +1640,7 @@ public partial class Solution
     {
         return options switch
         {
-            SolutionOptionSet serializableOptions => WithOptions(serializableOptions),
+            LegacySolutionOptionSet serializableOptions => WithOptions(serializableOptions),
             null => throw new ArgumentNullException(nameof(options)),
             _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(options))
         };
@@ -1649,7 +1649,7 @@ public partial class Solution
     /// <summary>
     /// Creates a new solution instance with the specified serializable <paramref name="options"/>.
     /// </summary>
-    internal Solution WithOptions(SolutionOptionSet options)
+    internal Solution WithOptions(LegacySolutionOptionSet options)
         => WithCompilationState(_compilationState.WithOptions(options));
 
     private void CheckContainsProject(ProjectId projectId)

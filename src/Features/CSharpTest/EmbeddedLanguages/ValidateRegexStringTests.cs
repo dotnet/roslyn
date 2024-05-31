@@ -43,7 +43,7 @@ public class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderBasedUse
                 }     
             }
             """,
-            globalOptions: OptionOn(),
+            options: OptionOn(),
             diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning,
             diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
@@ -63,7 +63,7 @@ public class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderBasedUse
                 }     
             }
             """,
-            globalOptions: OptionOn(),
+            options: OptionOn(),
             diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning,
             diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));

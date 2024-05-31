@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RS0030 // Do not use banned APIs (IGlobalOptionsService)
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             using var workspace1 = new AdhocWorkspace();
             using var workspace2 = new AdhocWorkspace();
             var optionService = GetLegacyGlobalOptionService(workspace1.Services);
-            var optionSet = new SolutionOptionSet(optionService);
+            var optionSet = new LegacySolutionOptionSet(optionService);
 
             var option = subclass ? (IOption)new TestOption<int>(defaultValue: 1) : new TestOption() { DefaultValue = 1 };
             var perLanguageOption = subclass ? (IOption)new PerLanguageTestOption<int>(defaultValue: 1) : new TestOption() { IsPerLanguage = true, DefaultValue = 1 };
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             using var workspace1 = new AdhocWorkspace();
             using var workspace2 = new AdhocWorkspace();
             var optionService = GetLegacyGlobalOptionService(workspace1.Services);
-            var optionSet = new SolutionOptionSet(optionService);
+            var optionSet = new LegacySolutionOptionSet(optionService);
 
             var perLanguageOptionKey = new OptionKey(FormattingOptions.NewLine, "lang");
 
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             using var workspace = new AdhocWorkspace();
             var optionService = GetLegacyGlobalOptionService(workspace.Services);
-            var optionSet = new SolutionOptionSet(optionService);
+            var optionSet = new LegacySolutionOptionSet(optionService);
 
             var optionvalid = new PerLanguageOption<bool>("Test Feature", "Test Name", false);
             Assert.False(optionSet.GetOption(optionvalid, "CS"));
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             using var workspace = new AdhocWorkspace();
             var optionService = GetLegacyGlobalOptionService(workspace.Services);
-            var optionSet = new SolutionOptionSet(optionService);
+            var optionSet = new LegacySolutionOptionSet(optionService);
             var option = new Option<bool>("Test Feature", "Test Name", false);
             Assert.False(optionSet.GetOption(option));
         }
@@ -209,7 +211,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             using var workspace = new AdhocWorkspace();
             var optionService = GetLegacyGlobalOptionService(workspace.Services);
-            OptionSet optionSet = new SolutionOptionSet(optionService);
+            OptionSet optionSet = new LegacySolutionOptionSet(optionService);
             var option = new Option<bool>("Test Feature", "Test Name", false);
             var key = new OptionKey(option);
             Assert.False(optionSet.GetOption(option));
@@ -221,7 +223,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void GettingOptionWithoutChangedOption()
         {
             using var workspace = new AdhocWorkspace();
-            var optionSet = new SolutionOptionSet(GetLegacyGlobalOptionService(workspace.Services));
+            var optionSet = new LegacySolutionOptionSet(GetLegacyGlobalOptionService(workspace.Services));
 
             var optionFalse = new Option<bool>("Test Feature", "Test Name", false);
             Assert.False(optionSet.GetOption(optionFalse));
@@ -241,14 +243,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             using var workspace = new AdhocWorkspace();
             var optionService = GetLegacyGlobalOptionService(workspace.Services);
-            var optionSet = new SolutionOptionSet(optionService);
+            var optionSet = new LegacySolutionOptionSet(optionService);
 
             var option = new Option<bool>("Test Feature", "Test Name", defaultValue: true);
             var optionKey = new OptionKey(option);
             var newOptionSet = optionSet.WithChangedOption(optionKey, false);
-            var changedOptions = ((SolutionOptionSet)newOptionSet).GetChangedOptions();
+            var changedOptions = ((LegacySolutionOptionSet)newOptionSet).GetChangedOptions();
             optionService.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);
-            var isOptionSet = (bool?)new SolutionOptionSet(optionService).GetOption(optionKey);
+            var isOptionSet = (bool?)new LegacySolutionOptionSet(optionService).GetOption(optionKey);
             Assert.False(isOptionSet);
         }
 
@@ -257,7 +259,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             using var workspace = new AdhocWorkspace();
             var optionService = GetLegacyGlobalOptionService(workspace.Services);
-            var optionSet = new SolutionOptionSet(optionService);
+            var optionSet = new LegacySolutionOptionSet(optionService);
 
             var option = new Option<bool>("Test Feature", "Test Name", defaultValue: true);
             var optionKey = new OptionKey(option);
@@ -279,7 +281,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             TestInternalOption(workspace, perLanguageOption2, language: LanguageNames.CSharp, newValueCodeStyleOption2);
 
             var optionService = GetLegacyGlobalOptionService(workspace.Services);
-            var originalOptionSet = new SolutionOptionSet(optionService);
+            var originalOptionSet = new LegacySolutionOptionSet(optionService);
         }
 
         [Fact]
@@ -298,7 +300,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         private static void TestPublicOption(Workspace workspace, IPublicOption option, string? language, CodeStyleOption<bool> newPublicValue)
         {
             var optionService = GetLegacyGlobalOptionService(workspace.Services);
-            var originalOptionSet = new SolutionOptionSet(optionService);
+            var originalOptionSet = new LegacySolutionOptionSet(optionService);
 
             var optionKey = new OptionKey(option, language);
 

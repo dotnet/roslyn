@@ -1245,7 +1245,7 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithNewWorkspace(workspaceKind, workspaceVersion, services));
     }
 
-    public SolutionCompilationState WithOptions(SolutionOptionSet options)
+    public SolutionCompilationState WithOptions(LegacySolutionOptionSet options)
     {
         return this.Branch(
             this.SolutionState.WithOptions(options));

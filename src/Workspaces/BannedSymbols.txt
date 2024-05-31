@@ -1,0 +1,1 @@
+T:Microsoft.CodeAnalysis.Options.IGlobalOptionService; Pass required options or options provider to each feature/service explicitly
