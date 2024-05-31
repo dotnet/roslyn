@@ -99,7 +99,7 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
     /// the <see cref="FixAllState"/> in case that would be useful (for example if the <see
     /// cref="IFixAllState.CodeActionEquivalenceKey"/> is used.
     /// <para/>
-    /// Only one of these three overloads needs to be overridden if you want to customize behavior.
+    /// Only one of these two overloads needs to be overridden if you want to customize behavior.
     /// </summary>
     protected virtual bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
         => IncludeDiagnosticDuringFixAll(diagnostic);
