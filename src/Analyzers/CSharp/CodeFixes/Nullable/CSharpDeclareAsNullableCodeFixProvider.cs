@@ -44,10 +44,10 @@ internal sealed class CSharpDeclareAsNullableCodeFixProvider() : SyntaxEditorBas
     {
         var cancellationToken = context.CancellationToken;
 
-        var model = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var node = context.Diagnostics.First().Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-        var declarationTypeToFix = TryGetDeclarationTypeToFix(model, node, cancellationToken);
+        var declarationTypeToFix = await TryGetDeclarationTypeToFixAsync(
+            context.Document, model: null, node, cancellationToken).ConfigureAwait(false);
         if (declarationTypeToFix == null)
             return;
 
@@ -86,7 +86,8 @@ internal sealed class CSharpDeclareAsNullableCodeFixProvider() : SyntaxEditorBas
         foreach (var diagnostic in diagnostics)
         {
             var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-            MakeDeclarationNullable(editor, model, node, alreadyHandled, cancellationToken);
+            await MakeDeclarationNullableAsync(
+                document, model, editor, node, alreadyHandled, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -96,10 +97,11 @@ internal sealed class CSharpDeclareAsNullableCodeFixProvider() : SyntaxEditorBas
         return equivalenceKey == GetEquivalenceKey(node);
     }
 
-    private static void MakeDeclarationNullable(
-        SyntaxEditor editor, SemanticModel model, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled, CancellationToken cancellationToken)
+    private static async Task MakeDeclarationNullableAsync(
+        Document document, SemanticModel model, SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled, CancellationToken cancellationToken)
     {
-        var declarationTypeToFix = TryGetDeclarationTypeToFix(model, node, cancellationToken);
+        var declarationTypeToFix = await TryGetDeclarationTypeToFixAsync(
+            document, model, node, cancellationToken).ConfigureAwait(false);
         if (declarationTypeToFix != null && alreadyHandled.Add(declarationTypeToFix))
         {
             var fixedDeclaration = SyntaxFactory.NullableType(declarationTypeToFix.WithoutTrivia()).WithTriviaFrom(declarationTypeToFix);
@@ -107,8 +109,8 @@ internal sealed class CSharpDeclareAsNullableCodeFixProvider() : SyntaxEditorBas
         }
     }
 
-    private static TypeSyntax? TryGetDeclarationTypeToFix(
-        SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
+    private static async Task<TypeSyntax?> TryGetDeclarationTypeToFixAsync(
+        Document document, SemanticModel? model, SyntaxNode node, CancellationToken cancellationToken)
     {
         if (!IsExpressionSupported(node))
             return null;
@@ -163,6 +165,8 @@ internal sealed class CSharpDeclareAsNullableCodeFixProvider() : SyntaxEditorBas
             // string x = null, y = null;
             return variableDeclaration.Variables.Count == 1 ? variableDeclaration.Type : null;
         }
+
+        model ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         // x = null;
         if (node.Parent is AssignmentExpressionSyntax assignment)
