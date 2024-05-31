@@ -1688,9 +1688,8 @@ public partial class C
         [Fact]
         public void NullableDifference_Analysis()
         {
-            // Nullable annotations from the *definition* part parameters are used when analyzing implementations.
-            // Nullable annotations from the *implementation* part are used when analyzing returns.
-            // Only the definition part is used when analyzing use sites.
+            // The implementation part signature is used to analyze the implementation part bodies.
+            // The definition part signature is used to analyze use sites.
             // This is consistent with methods.
             var source = """
                 #nullable enable
