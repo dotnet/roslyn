@@ -29,7 +29,7 @@ internal class VSCodeAnalyzerLoader
     public static IAnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader(HostWorkspaceServices services, ExtensionAssemblyManager extensionAssemblyManager, ILogger logger)
     {
         var analyzerLoaderProvider = services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-        var loader = analyzerLoaderProvider.GetLoader(new AnalyzerAssemblyLoaderOptions(shadowCopy: true));
+        var loader = analyzerLoaderProvider.GetLoader(shadowCopy: true);
         return new VSCodeExtensionAssemblyAnalyzerLoader(loader, extensionAssemblyManager, logger);
     }
 

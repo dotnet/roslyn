@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _shadowCopyLoader = new(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"), resolvers);
         }
 
-        public IAnalyzerAssemblyLoader GetLoader(in AnalyzerAssemblyLoaderOptions options)
-            => options.ShadowCopy ? _shadowCopyLoader : _loader;
+        public IAnalyzerAssemblyLoader GetLoader(bool shadowCopy)
+            => shadowCopy ? _shadowCopyLoader : _loader;
     }
 }
