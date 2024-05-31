@@ -62,13 +62,13 @@ internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTy
             return (INamedTypeSymbol)this;
         }
 
-        return CodeGenerationSymbolMappingFactory.CreateConstructedNamedTypeSymbol(
+        return CodeGenerationSymbolMappingFactory.Instance.CreateConstructedNamedTypeSymbol(
             ConstructedFrom, [.. typeArguments], this.TypeMembers);
     }
 
     public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
     {
-        return CodeGenerationSymbolMappingFactory.CreateConstructedNamedTypeSymbol(
+        return CodeGenerationSymbolMappingFactory.Instance.CreateConstructedNamedTypeSymbol(
             ConstructedFrom, typeArguments, this.TypeMembers);
     }
 

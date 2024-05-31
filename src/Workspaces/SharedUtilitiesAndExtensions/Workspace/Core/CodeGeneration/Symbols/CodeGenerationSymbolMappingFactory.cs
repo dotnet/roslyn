@@ -73,11 +73,22 @@ internal class CodeGenerationSymbolMappingFactory : SymbolMappingFactory
         ////return (IMethodSymbol)constructor(constructedFrom, typeArguments);
     }
 
-    public static INamedTypeSymbol CreateConstructedNamedTypeSymbol(
+    public INamedTypeSymbol CreateConstructedNamedTypeSymbol(
         CodeGenerationNamedTypeSymbol constructedFrom,
         ImmutableArray<ITypeSymbol> typeArguments,
         ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
-        => throw new NotImplementedException();
+    {
+        var implementationType = GetOrCreateImplementationType(typeof(CodeGenerationConstructedNamedTypeSymbol));
+        var constructor = (Func<CodeGenerationNamedTypeSymbol, ImmutableArray<ITypeSymbol>, ImmutableArray<CodeGenerationAbstractNamedTypeSymbol>, CodeGenerationConstructedNamedTypeSymbol>)GetOrCreateConstructor(
+            implementationType,
+            [
+                typeof(CodeGenerationNamedTypeSymbol),
+                typeof(ImmutableArray<ITypeSymbol>),
+                typeof(ImmutableArray<CodeGenerationAbstractNamedTypeSymbol>),
+            ]);
+
+        return (INamedTypeSymbol)constructor(constructedFrom, typeArguments, typeMembers);
+    }
 
     public IMethodSymbol CreateConstructorSymbol(
         INamedTypeSymbol? containingType,

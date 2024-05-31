@@ -94,7 +94,7 @@ internal abstract class CodeGenerationConstructedNamedTypeSymbol : CodeGeneratio
 
     protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
     {
-        return (CodeGenerationTypeSymbol)CodeGenerationSymbolMappingFactory.CreateConstructedNamedTypeSymbol(
+        return (CodeGenerationTypeSymbol)CodeGenerationSymbolMappingFactory.Instance.CreateConstructedNamedTypeSymbol(
             (CodeGenerationNamedTypeSymbol)_constructedFrom.WithNullableAnnotation(nullableAnnotation),
             _typeArguments,
             this.TypeMembers);
