@@ -48,6 +48,14 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
             result.Add(node);
     }
 
+    private static void AddNode<TSyntaxNode>(bool allowEmptyNodes, ref TemporaryArray<TSyntaxNode> result, TSyntaxNode node) where TSyntaxNode : SyntaxNode
+    {
+        if (!allowEmptyNodes && node.Span.IsEmpty)
+            return;
+
+        result.Add(node);
+    }
+
     private void AddRelevantNodes<TSyntaxNode>(
         ParsedDocument document, TextSpan selectionRaw, bool stopOnFirst, ref TemporaryArray<TSyntaxNode> relevantNodes, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
