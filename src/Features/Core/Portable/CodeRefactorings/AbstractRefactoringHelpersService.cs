@@ -127,12 +127,11 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
             // above code could've changed current location.
             AddNonHiddenCorrectTypeNodes(ExtractNodesInHeader(root, location, headerFacts), ref relevantNodes, cancellationToken);
 
-            var (tokenToLeft, tokenToRight) = await GetTokensToLeftAndRightAsync(
-                document, root, location, cancellationToken).ConfigureAwait(false);
+            var (tokenToLeft, tokenToRight) = GetTokensToLeftAndRight(document, root, location);
 
             // Add Nodes for touching tokens as described above.
-            AddNodesForTokenToRight(syntaxFacts, root, relevantNodes, tokenToRight, cancellationToken);
-            AddNodesForTokenToLeft(syntaxFacts, relevantNodes, tokenToLeft, cancellationToken);
+            AddNodesForTokenToRight(syntaxFacts, root, ref relevantNodes, tokenToRight, cancellationToken);
+            AddNodesForTokenToLeft(syntaxFacts, ref relevantNodes, tokenToLeft, cancellationToken);
 
             // If the wanted node is an expression syntax -> traverse upwards even if location is deep within a SyntaxNode.
             // We want to treat more types like expressions, e.g.: ArgumentSyntax should still trigger even if deep-in.
@@ -140,7 +139,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
             {
                 // Reason to treat Arguments (and potentially others) as Expression-like: 
                 // https://github.com/dotnet/roslyn/pull/37295#issuecomment-516145904
-                await AddNodesDeepInAsync(document, location, relevantNodes, cancellationToken).ConfigureAwait(false);
+                AddNodesDeepIn(document, location, ref relevantNodes, cancellationToken);
             }
         }
     }
@@ -163,16 +162,15 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
         }
     }
 
-    private static async Task<(SyntaxToken tokenToLeft, SyntaxToken tokenToRight)> GetTokensToLeftAndRightAsync(
-        Document document,
+    private static (SyntaxToken tokenToLeft, SyntaxToken tokenToRight) GetTokensToLeftAndRight(
+        ParsedDocument document,
         SyntaxNode root,
-        int location,
-        CancellationToken cancellationToken)
+        int location)
     {
         // get Token for current location
         var tokenOnLocation = root.FindToken(location);
 
-        var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
+        var syntaxKinds = document.LanguageServices.GetRequiredService<ISyntaxKindsService>();
         if (tokenOnLocation.RawKind == syntaxKinds.CommaToken && location >= tokenOnLocation.Span.End)
         {
             var commaToken = tokenOnLocation;
@@ -223,7 +221,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
         // closest token/Node. Thus, we move the location to the token in whose `.FullSpan` the original location was.
         if (tokenToLeft == default && tokenToRight == default)
         {
-            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = document.Text;
 
             if (IsAcceptableLineDistanceAway(sourceText, tokenOnLocation, location))
             {
@@ -273,7 +271,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
 
     private void AddNodesForTokenToLeft<TSyntaxNode>(
         ISyntaxFactsService syntaxFacts,
-        ArrayBuilder<TSyntaxNode> relevantNodesBuilder,
+        ref TemporaryArray<TSyntaxNode> relevantNodesBuilder,
         SyntaxToken tokenToLeft,
         CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
@@ -287,7 +285,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
             {
                 // Consider either a Node that is:
                 // - Ancestor Node of such Token as long as their span ends on location (it's still on the edge)
-                AddNonHiddenCorrectTypeNodes(ExtractNodesSimple(leftNode, syntaxFacts), relevantNodesBuilder, cancellationToken);
+                AddNonHiddenCorrectTypeNodes(ExtractNodesSimple(leftNode, syntaxFacts), ref relevantNodesBuilder, cancellationToken);
 
                 leftNode = leftNode?.Parent;
                 if (leftNode is null)
@@ -308,7 +306,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
     private void AddNodesForTokenToRight<TSyntaxNode>(
         ISyntaxFactsService syntaxFacts,
         SyntaxNode root,
-        ArrayBuilder<TSyntaxNode> relevantNodesBuilder,
+        ref TemporaryArray<TSyntaxNode> relevantNodesBuilder,
         SyntaxToken tokenToRightOrIn,
         CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
@@ -322,7 +320,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
                 // Consider either a Node that is:
                 // - Parent of touched Token (location can be within) 
                 // - Ancestor Node of such Token as long as their span starts on location (it's still on the edge)
-                AddNonHiddenCorrectTypeNodes(ExtractNodesSimple(rightNode, syntaxFacts), relevantNodesBuilder, cancellationToken);
+                AddNonHiddenCorrectTypeNodes(ExtractNodesSimple(rightNode, syntaxFacts), ref relevantNodesBuilder, cancellationToken);
 
                 rightNode = rightNode?.Parent;
                 if (rightNode == null)
@@ -511,19 +509,17 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
             yield return typeDeclaration;
     }
 
-    protected virtual async Task AddNodesDeepInAsync<TSyntaxNode>(
-        Document document,
+    private static void AddNodesDeepIn<TSyntaxNode>(
+        ParsedDocument document,
         int position,
-        ArrayBuilder<TSyntaxNode> relevantNodesBuilder,
+        ref TemporaryArray<TSyntaxNode> relevantNodesBuilder,
         CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
         // If we're deep inside we don't have to deal with being on edges (that gets dealt by TryGetSelectedNodeAsync)
         // -> can simply FindToken -> proceed testing its ancestors
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var root = document.Root;
         if (root is null)
-        {
             throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
-        }
 
         var token = root.FindTokenOnRightOfPosition(position, true);
 
@@ -533,7 +529,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
         {
             if (ancestor is TSyntaxNode correctTypeNode)
             {
-                var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = document.Text;
 
                 var argumentStartLine = sourceText.Lines.GetLineFromPosition(correctTypeNode.Span.Start).LineNumber;
                 var caretLine = sourceText.Lines.GetLineFromPosition(position).LineNumber;
