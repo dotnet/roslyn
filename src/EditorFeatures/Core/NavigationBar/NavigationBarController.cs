@@ -206,7 +206,7 @@ internal partial class NavigationBarController : IDisposable
         if (_disconnected)
             return;
 
-        // Cancel any expensive, in-flight, nav--bar work as there's now a request to perform lightweight tagging. Note:
+        // Cancel any expensive, in-flight, nav-bar work as there's now a request to perform lightweight tagging. Note:
         // intentionally ignoring the return value here.  We're enqueuing normal work here, so it has no associated
         // token with it.
         _ = _nonFrozenComputationCancellationSeries.CreateNext();
