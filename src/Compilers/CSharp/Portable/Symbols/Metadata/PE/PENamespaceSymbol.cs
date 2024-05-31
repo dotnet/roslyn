@@ -77,23 +77,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyFlattenedNamespacesAndTypes.IsDefault)
             {
+                var flattenedTypes = StaticCast<NamespaceOrTypeSymbol>.From(GetMemberTypesPrivate());
+
                 if (lazyNamespaces.Count == 0)
                 {
-                    var flattenedTypes = StaticCast<NamespaceOrTypeSymbol>.From(GetMemberTypesPrivate());
                     ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedNamespacesAndTypes, flattenedTypes);
                 }
                 else
                 {
-                    ArrayBuilder<NamespaceOrTypeSymbol> builder = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
+                    ArrayBuilder<NamespaceOrTypeSymbol> builder = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance(lazyNamespaces.Count + flattenedTypes.Length);
+
+                    builder.AddRange(flattenedTypes);
 
                     foreach (var kvp in lazyNamespaces)
                     {
                         builder.Add(kvp.Value);
-                    }
-
-                    foreach (var kvp in lazyTypes)
-                    {
-                        builder.AddRange(kvp.Value);
                     }
 
                     ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedNamespacesAndTypes, builder.ToImmutableAndFree());
