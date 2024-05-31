@@ -29,20 +29,23 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
     public void AddRelevantNodes<TSyntaxNode>(
         ParsedDocument document, TextSpan selectionRaw, bool allowEmptyNodes, bool stopOnFirst, ref TemporaryArray<TSyntaxNode> result, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
-        await AddRelevantNodesAsync(document, selectionRaw, ref result, cancellationToken).ConfigureAwait(false);
+        AddRelevantNodes(document, selectionRaw, ref result, cancellationToken);
 
         if (allowEmptyNodes)
             return;
 
-        using var _2 = ArrayBuilder<TSyntaxNode>.GetInstance(out var nonEmptyNodes);
-        foreach (var node in relevantNodesBuilder)
+        using var _2 = ArrayBuilder<TSyntaxNode>.GetInstance(result.Count, out var nonEmptyNodes);
+        foreach (var node in result)
         {
             if (node.Span.Length > 0)
                 nonEmptyNodes.Add(node);
         }
 
         nonEmptyNodes.RemoveDuplicates();
-        return nonEmptyNodes.ToImmutableAndClear();
+        result.Clear();
+
+        foreach (var node in nonEmptyNodes)
+            result.Add(node);
     }
 
     private void AddRelevantNodes<TSyntaxNode>(
@@ -57,7 +60,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
 
         var syntaxFacts = document.LanguageServices.GetRequiredService<ISyntaxFactsService>();
         var headerFacts = document.LanguageServices.GetRequiredService<IHeaderFactsService>();
-        var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpanAsync(document, selectionRaw, cancellationToken).ConfigureAwait(false);
+        var selectionTrimmed = CodeRefactoringHelpers.GetTrimmedTextSpan(document, selectionRaw);
 
         // If user selected only whitespace we don't want to return anything. We could do following:
         //  1) Consider token that owns (as its trivia) the whitespace.
@@ -85,7 +88,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
         // registering as `   [||]token`.
         if (!selectionTrimmed.IsEmpty)
         {
-            AddRelevantNodesForSelection(syntaxFacts, root, selectionTrimmed, relevantNodes, cancellationToken);
+            AddRelevantNodesForSelection(syntaxFacts, root, selectionTrimmed, ref relevantNodes, cancellationToken);
         }
         else
         {
@@ -122,7 +125,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
             // higher level desired node once. We do that only for locations because otherwise `[|int|] A { get;
             // set; }) would trigger all refactorings for Property Decl. We cannot check this any sooner because the
             // above code could've changed current location.
-            AddNonHiddenCorrectTypeNodes(ExtractNodesInHeader(root, location, headerFacts), relevantNodes, cancellationToken);
+            AddNonHiddenCorrectTypeNodes(ExtractNodesInHeader(root, location, headerFacts), ref relevantNodes, cancellationToken);
 
             var (tokenToLeft, tokenToRight) = await GetTokensToLeftAndRightAsync(
                 document, root, location, cancellationToken).ConfigureAwait(false);
@@ -347,7 +350,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
         ISyntaxFactsService syntaxFacts,
         SyntaxNode root,
         TextSpan selectionTrimmed,
-        ArrayBuilder<TSyntaxNode> relevantNodesBuilder,
+        ref TemporaryArray<TSyntaxNode> relevantNodesBuilder,
         CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
         var selectionNode = root.FindNode(selectionTrimmed, getInnermostNodeForTie: true);
@@ -551,11 +554,16 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
     }
 
     private static void AddNonHiddenCorrectTypeNodes<TSyntaxNode>(
-        IEnumerable<SyntaxNode> nodes, ArrayBuilder<TSyntaxNode> resultBuilder, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        IEnumerable<SyntaxNode> nodes, ref TemporaryArray<TSyntaxNode> resultBuilder, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
-        var correctTypeNonHiddenNodes = nodes.OfType<TSyntaxNode>().Where(n => !n.OverlapsHiddenPosition(cancellationToken));
-        foreach (var nodeToBeAdded in correctTypeNonHiddenNodes)
-            resultBuilder.Add(nodeToBeAdded);
+        foreach (var node in nodes)
+        {
+            if (node is TSyntaxNode typedNode &&
+                !node.OverlapsHiddenPosition(cancellationToken))
+            {
+                resultBuilder.Add(typedNode);
+            }
+        }
     }
 
     public bool IsOnTypeHeader(SyntaxNode root, int position, bool fullHeader, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
