@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
@@ -59,8 +60,9 @@ internal static class CodeRefactoringContextExtensions
 
     public static TSyntaxNode? TryGetRelevantNode<TSyntaxNode>(this ParsedDocument document, TextSpan span, bool allowEmptyNode, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
-        var potentialNodes = GetRelevantNodes<TSyntaxNode>(document, span, allowEmptyNode, cancellationToken);
-        return potentialNodes.FirstOrDefault();
+        using var result = TemporaryArray<TSyntaxNode>.Empty;
+        AddRelevantNodes(document, span, allowEmptyNode, stopOnFirst: true, ref result.AsRef(), cancellationToken);
+        return result.FirstOrDefault();
     }
 
     public static ImmutableArray<TSyntaxNode> GetRelevantNodes<TSyntaxNode>(
@@ -70,7 +72,16 @@ internal static class CodeRefactoringContextExtensions
     public static ImmutableArray<TSyntaxNode> GetRelevantNodes<TSyntaxNode>(
         this ParsedDocument document, TextSpan span, bool allowEmptyNodes, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
+        using var result = TemporaryArray<TSyntaxNode>.Empty;
+        AddRelevantNodes(document, span, allowEmptyNodes, stopOnFirst: false, ref result.AsRef(), cancellationToken);
+
+        return result.ToImmutableAndClear();
+    }
+
+    private static void AddRelevantNodes<TSyntaxNode>(
+        this ParsedDocument document, TextSpan span, bool allowEmptyNodes, bool stopOnFirst, ref TemporaryArray<TSyntaxNode> result, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+    {
         var helpers = document.LanguageServices.GetRequiredService<IRefactoringHelpersService>();
-        return helpers.GetRelevantNodes<TSyntaxNode>(document, span, allowEmptyNodes, cancellationToken);
+        helpers.AddRelevantNodes(document, span, allowEmptyNodes, stopOnFirst, ref result, cancellationToken);
     }
 }

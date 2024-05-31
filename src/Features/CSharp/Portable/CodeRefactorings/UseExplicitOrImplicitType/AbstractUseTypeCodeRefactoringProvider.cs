@@ -106,11 +106,10 @@ internal abstract class AbstractUseTypeCodeRefactoringProvider : CodeRefactoring
 
         var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
 
-        var typeNode = await context.TryGetRelevantNodeAsync<TypeSyntax>().ConfigureAwait(false);
-        var typeNodeParent = typeNode?.Parent;
+        var typeNodeParent = type?.Parent;
         if (typeNodeParent != null &&
             (typeNodeParent.Kind() is SyntaxKind.DeclarationExpression or SyntaxKind.VariableDeclaration ||
-            (typeNodeParent.IsKind(SyntaxKind.ForEachStatement) && !syntaxFacts.IsExpressionOfForeach(typeNode))))
+            (typeNodeParent.IsKind(SyntaxKind.ForEachStatement) && !syntaxFacts.IsExpressionOfForeach(type))))
         {
             return typeNodeParent;
         }

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -25,14 +26,13 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
 
     public abstract bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
 
-    public async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
-        Document document, TextSpan selectionRaw, bool allowEmptyNodes, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+    public void AddRelevantNodes<TSyntaxNode>(
+        ParsedDocument document, TextSpan selectionRaw, bool allowEmptyNodes, bool stopOnFirst, ref TemporaryArray<TSyntaxNode> result, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
-        using var _1 = ArrayBuilder<TSyntaxNode>.GetInstance(out var relevantNodesBuilder);
-        await AddRelevantNodesAsync(document, selectionRaw, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
+        await AddRelevantNodesAsync(document, selectionRaw, ref result, cancellationToken).ConfigureAwait(false);
 
         if (allowEmptyNodes)
-            return relevantNodesBuilder.ToImmutableAndClear();
+            return;
 
         using var _2 = ArrayBuilder<TSyntaxNode>.GetInstance(out var nonEmptyNodes);
         foreach (var node in relevantNodesBuilder)
@@ -45,18 +45,18 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
         return nonEmptyNodes.ToImmutableAndClear();
     }
 
-    private async Task AddRelevantNodesAsync<TSyntaxNode>(
-        Document document, TextSpan selectionRaw, ArrayBuilder<TSyntaxNode> relevantNodes, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+    private void AddRelevantNodes<TSyntaxNode>(
+        ParsedDocument document, TextSpan selectionRaw, ref TemporaryArray<TSyntaxNode> relevantNodes, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
         // Given selection is trimmed first to enable over-selection that spans multiple lines. Since trailing whitespace ends
         // at newline boundary over-selection to e.g. a line after LocalFunctionStatement would cause FindNode to find enclosing
         // block's Node. That is because in addition to LocalFunctionStatement the selection would also contain trailing trivia 
         // (whitespace) of following statement.
 
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var root = document.Root;
 
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var headerFacts = document.GetRequiredLanguageService<IHeaderFactsService>();
+        var syntaxFacts = document.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+        var headerFacts = document.LanguageServices.GetRequiredService<IHeaderFactsService>();
         var selectionTrimmed = await CodeRefactoringHelpers.GetTrimmedTextSpanAsync(document, selectionRaw, cancellationToken).ConfigureAwait(false);
 
         // If user selected only whitespace we don't want to return anything. We could do following:

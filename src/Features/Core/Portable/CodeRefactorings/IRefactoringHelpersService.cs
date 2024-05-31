@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
@@ -52,14 +53,15 @@ internal interface IRefactoringHelpersService : IHeaderFactsService, ILanguageSe
     /// handled correctly. 
     /// </para>
     /// </summary>
-    ImmutableArray<TSyntaxNode> GetRelevantNodes<TSyntaxNode>(ParsedDocument document, TextSpan selection, bool allowEmptyNodes, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
+    void AddRelevantNodes<TSyntaxNode>(
+        ParsedDocument document, TextSpan selection, bool allowEmptyNodes, bool stopOnFirst, ref TemporaryArray<TSyntaxNode> result, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
 }
 
-internal static class IRefactoringHelpersServiceExtensions
-{
-    public static ImmutableArray<TSyntaxNode> GetRelevantNodes<TSyntaxNode>(
-        this IRefactoringHelpersService service, ParsedDocument document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
-    {
-        return service.GetRelevantNodes<TSyntaxNode>(document, selection, allowEmptyNodes: false, cancellationToken);
-    }
-}
+//internal static class IRefactoringHelpersServiceExtensions
+//{
+//    public static ImmutableArray<TSyntaxNode> GetRelevantNodes<TSyntaxNode>(
+//        this IRefactoringHelpersService service, ParsedDocument document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+//    {
+//        return service.GetRelevantNodes<TSyntaxNode>(document, selection, allowEmptyNodes: false, cancellationToken);
+//    }
+//}
