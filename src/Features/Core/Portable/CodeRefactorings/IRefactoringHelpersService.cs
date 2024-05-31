@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
@@ -53,14 +52,14 @@ internal interface IRefactoringHelpersService : IHeaderFactsService, ILanguageSe
     /// handled correctly. 
     /// </para>
     /// </summary>
-    Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(Document document, TextSpan selection, bool allowEmptyNodes, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
+    ImmutableArray<TSyntaxNode> GetRelevantNodes<TSyntaxNode>(ParsedDocument document, TextSpan selection, bool allowEmptyNodes, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
 }
 
 internal static class IRefactoringHelpersServiceExtensions
 {
-    public static Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
-        this IRefactoringHelpersService service, Document document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+    public static ImmutableArray<TSyntaxNode> GetRelevantNodes<TSyntaxNode>(
+        this IRefactoringHelpersService service, ParsedDocument document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
-        return service.GetRelevantNodesAsync<TSyntaxNode>(document, selection, allowEmptyNodes: false, cancellationToken);
+        return service.GetRelevantNodes<TSyntaxNode>(document, selection, allowEmptyNodes: false, cancellationToken);
     }
 }
