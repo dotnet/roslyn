@@ -48,7 +48,7 @@ internal partial class NavigationBarController
             using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(lastNonFrozenComputationToken, cancellationToken);
             try
             {
-                return await ComputeModelAndSelectItemAsync(frozenPartialSemantics, linkedTokenSource.Token).ConfigureAwait(false);
+                return await ComputeModelAndSelectItemAsync(frozenPartialSemantics: false, linkedTokenSource.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException ex) when (ExceptionUtilities.IsCurrentOperationBeingCancelled(ex, linkedTokenSource.Token))
             {
@@ -58,7 +58,14 @@ internal partial class NavigationBarController
         else
         {
             // Normal request to either compute nav-bar items using frozen partial semantics.
-            return await ComputeModelAndSelectItemAsync(frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
+            var model = await ComputeModelAndSelectItemAsync(frozenPartialSemantics: true, cancellationToken).ConfigureAwait(false);
+
+            // After that completes, enqueue work to compute *without* frozen partial snapshots so we move to accurate
+            // results shortly. Create and pass along a new cancellation token for this expensive work so that it can be
+            // canceled by future lightweight work.
+            _computeModelQueue.AddWork(new NavigationBarQueueItem(FrozenPartialSemantics: false, _nonFrozenComputationCancellationSeries.CreateNext(default)));
+
+            return model;
         }
     }
 
@@ -84,12 +91,6 @@ internal partial class NavigationBarController
         await TaskScheduler.Default;
 
         var model = await ComputeModelAsync().ConfigureAwait(false);
-
-        // If we were computing with frozen partial semantics here, enqueue work to compute *without* frozen
-        // partial snapshots so we move to accurate results shortly. Create and pass along a new cancellation
-        // token for this expensive work so that it can be canceled by future lightweight work.
-        if (frozenPartialSemantics)
-            _computeModelQueue.AddWork(new NavigationBarQueueItem(FrozenPartialSemantics: false, _nonFrozenComputationCancellationSeries.CreateNext(default)));
 
         // Now, enqueue work to select the right item in this new model. Note: we don't want to cancel existing items in
         // the queue as it may be the case that the user moved between us capturing the initial caret point and now, and
