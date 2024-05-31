@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
 // TODO: Remove. This is only needed to support Solution Explorer Analyzer node population. 
 // Analyzers should not be loaded in devenv process (see https://github.com/dotnet/roslyn/issues/43008).
-internal sealed class ProjectAnalyzerReference(string fullPath, IProjectSystemDiagnosticSource projectSystemDiagnosticSource, ProjectId projectId, string language) : IDisposable
+internal sealed class ProjectAnalyzerReference(string fullPath, IAnalyzerAssemblyLoader assemblyLoader, IProjectSystemDiagnosticSource projectSystemDiagnosticSource, ProjectId projectId, string language) : IDisposable
 {
     // Shadow copy analyzer files coming from packages to avoid locking the files in NuGet cache.
     // NOTE: It is important that we share the same shadow copy assembly loader for all VisualStudioAnalyzer instances.
     // This is required to ensure that shadow copied analyzer dependencies are correctly loaded.
     private static readonly IAnalyzerAssemblyLoader s_analyzerAssemblyLoader =
-        new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"));
+        DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"));
 
     // these 2 are mutable states that must be guarded under the _gate.
     private readonly object _gate = new();
