@@ -1049,7 +1049,9 @@ namespace Microsoft.CodeAnalysis.Text
                 return [0];
             }
 
-            var lineStarts = new SegmentedList<int>()
+            // Initial line capacity estimated at 64 chars / line. This value was obtained by
+            // looking at ratios in large files in the roslyn repo.
+            var lineStarts = new SegmentedList<int>(Length / 64)
             {
                 0 // there is always the first line
             };

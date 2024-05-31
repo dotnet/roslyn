@@ -21,15 +21,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 
-[Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-internal class CurlyBraceCompletionService : AbstractCurlyBraceOrBracketCompletionService
+[ExportBraceCompletionService(LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class CurlyBraceCompletionService() : AbstractCurlyBraceOrBracketCompletionService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CurlyBraceCompletionService()
-    {
-    }
-
     protected override char OpeningBrace => CurlyBrace.OpenCharacter;
 
     protected override char ClosingBrace => CurlyBrace.CloseCharacter;

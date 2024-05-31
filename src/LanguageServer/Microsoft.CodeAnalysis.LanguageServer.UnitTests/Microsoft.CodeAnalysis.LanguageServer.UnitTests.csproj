@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(NetVSCode)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
+
+    <IsPackable>false</IsPackable>
+
+    <!--
+      NETSDK1206: Until we move to a newer release of the SQLitePCLRaw packages (2.1.6+) that removes the libs for alpine RIDs, we have to ignore the SDK warning about distribution specific RIDs.
+    -->
+    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj"/>
+
+    <ProjectReference Include="..\..\VisualStudio\DevKit\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj"
+                      ReferenceOutputAssembly="false"
+                      Private="false" />
+  </ItemGroup>
+
+  <!--
+    Copy files contained in the NPM package to a DevKit subdirectory to emulate deployment of the DevKit extension in VS Code.
+  -->
+  <Target Name="_CopyDevKitExtensionFiles" AfterTargets="ResolveProjectReferences">
+    <MSBuild Projects="..\..\VisualStudio\DevKit\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj"
+             Targets="GetPackInputs">
+      <Output TaskParameter="TargetOutputs" ItemName="_DevKitExtensionFile"/>
+    </MSBuild>
+
+    <ItemGroup>
+      <Content Include="@(_DevKitExtensionFile)" Link="DevKit\%(_DevKitExtensionFile.Filename)%(_DevKitExtensionFile.Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+</Project>

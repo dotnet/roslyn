@@ -1454,7 +1454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
         }
 
-        private void GenerateImplicitConversionErrorForCollectionExpression(
+        internal void GenerateImplicitConversionErrorForCollectionExpression(
             BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
             BindingDiagnosticBag diagnostics)

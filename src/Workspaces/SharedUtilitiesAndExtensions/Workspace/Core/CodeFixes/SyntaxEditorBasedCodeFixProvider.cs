@@ -10,19 +10,15 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
 
-internal abstract partial class SyntaxEditorBasedCodeFixProvider : CodeFixProvider
+internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFixAll = true) : CodeFixProvider
 {
     private static readonly ImmutableArray<FixAllScope> s_defaultSupportedFixAllScopes =
         [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType];
 
-    private readonly bool _supportsFixAll;
-
-    protected SyntaxEditorBasedCodeFixProvider(bool supportsFixAll = true)
-        => _supportsFixAll = supportsFixAll;
+    private readonly bool _supportsFixAll = supportsFixAll;
 
     public sealed override FixAllProvider? GetFixAllProvider()
     {
@@ -32,15 +28,13 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider : CodeFixProvid
         return FixAllProvider.Create(
             async (fixAllContext, document, diagnostics) =>
             {
-                var model = await document.GetRequiredSemanticModelAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
-
                 // Ensure that diagnostics for this document are always in document location order.  This provides a
                 // consistent and deterministic order for fixers that want to update a document.
                 //
                 // Also ensure that we do not pass in duplicates by invoking Distinct.  See
                 // https://github.com/dotnet/roslyn/issues/31381, that seems to be causing duplicate diagnostics.
                 var filteredDiagnostics = diagnostics.Distinct()
-                                                     .WhereAsArray(d => this.IncludeDiagnosticDuringFixAll(d, document, model, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken))
+                                                     .WhereAsArray(d => this.IncludeDiagnosticDuringFixAll(d, document, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken))
                                                      .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
 
                 if (filteredDiagnostics.Length == 0)
@@ -96,44 +90,33 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider : CodeFixProvid
         Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Whether or not this diagnostic should be included when performing a FixAll.  This is
-    /// useful for providers that create multiple diagnostics for the same issue (For example,
-    /// one main diagnostic and multiple 'faded out code' diagnostics).  FixAll can be invoked
-    /// from any of those, but we'll only want perform an edit for only one diagnostic for each
-    /// of those sets of diagnostics.
-    ///
-    /// This overload differs from <see cref="IncludeDiagnosticDuringFixAll(Diagnostic, Document, SemanticModel, string, CancellationToken)"/>
-    /// in that it also passes along the <see cref="SemanticModel"/>.
-    ///
-    /// This overload differs from <see cref="IncludeDiagnosticDuringFixAll(Diagnostic)"/> in
-    /// that it also passes along the <see cref="FixAllState"/> in case that would be useful
-    /// (for example if the <see cref="IFixAllState.CodeActionEquivalenceKey"/> is used.
-    ///
-    /// Only one of these three overloads needs to be overridden if you want to customize
-    /// behavior.
+    /// Whether or not this diagnostic should be included when performing a FixAll.  This is useful for providers that
+    /// create multiple diagnostics for the same issue (For example, one main diagnostic and multiple 'faded out code'
+    /// diagnostics).  FixAll can be invoked from any of those, but we'll only want perform an edit for only one
+    /// diagnostic for each of those sets of diagnostics.
+    /// <para/>
+    /// This overload differs from <see cref="IncludeDiagnosticDuringFixAll(Diagnostic)"/> in that it also passes along
+    /// the <see cref="FixAllState"/> in case that would be useful (for example if the <see
+    /// cref="IFixAllState.CodeActionEquivalenceKey"/> is used.
+    /// <para/>
+    /// Only one of these two overloads needs to be overridden if you want to customize behavior.
     /// </summary>
-    protected virtual bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, SemanticModel model, string? equivalenceKey, CancellationToken cancellationToken)
-        => IncludeDiagnosticDuringFixAll(diagnostic, document, equivalenceKey, cancellationToken);
-
     protected virtual bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
         => IncludeDiagnosticDuringFixAll(diagnostic);
 
     /// <summary>
-    /// Whether or not this diagnostic should be included when performing a FixAll.  This is
-    /// useful for providers that create multiple diagnostics for the same issue (For example,
-    /// one main diagnostic and multiple 'faded out code' diagnostics).  FixAll can be invoked
-    /// from any of those, but we'll only want perform an edit for only one diagnostic for each
-    /// of those sets of diagnostics.
-    ///
-    /// By default, all diagnostics will be included in fix-all unless they are filtered out
-    /// here. If only the diagnostic needs to be queried to make this determination, only this
-    /// overload needs to be overridden.  However, if information from <see cref="FixAllState"/>
-    /// is needed (for example <see cref="IFixAllState.CodeActionEquivalenceKey"/>), then <see
-    /// cref="IncludeDiagnosticDuringFixAll(Diagnostic, Document, SemanticModel, string, CancellationToken)"/>
-    /// should be overridden instead.
-    ///
-    /// Only one of these two overloads needs to be overridden if you want to customize
-    /// behavior.
+    /// Whether or not this diagnostic should be included when performing a FixAll.  This is useful for providers that
+    /// create multiple diagnostics for the same issue (For example, one main diagnostic and multiple 'faded out code'
+    /// diagnostics).  FixAll can be invoked from any of those, but we'll only want perform an edit for only one
+    /// diagnostic for each of those sets of diagnostics.
+    /// <para/>
+    /// By default, all diagnostics will be included in fix-all unless they are filtered out here. If only the
+    /// diagnostic needs to be queried to make this determination, only this overload needs to be overridden.  However,
+    /// if information from <see cref="FixAllState"/> is needed (for example <see
+    /// cref="IFixAllState.CodeActionEquivalenceKey"/>), then <see cref="IncludeDiagnosticDuringFixAll(Diagnostic,
+    /// Document, string, CancellationToken)"/> should be overridden instead.
+    /// <para/>
+    /// Only one of these two overloads needs to be overridden if you want to customize behavior.
     /// </summary>
     protected virtual bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
         => true;

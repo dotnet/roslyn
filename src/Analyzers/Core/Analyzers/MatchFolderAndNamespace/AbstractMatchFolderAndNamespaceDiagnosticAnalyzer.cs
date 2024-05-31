@@ -79,9 +79,11 @@ internal abstract class AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<TSynta
             var nameSyntax = GetSyntaxFacts().GetNameOfBaseNamespaceDeclaration(namespaceDecl);
             RoslynDebug.AssertNotNull(nameSyntax);
 
-            context.ReportDiagnostic(Diagnostic.Create(
+            context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 nameSyntax.GetLocation(),
+                option.Notification,
+                context.Options,
                 additionalLocations: null,
                 properties: ImmutableDictionary<string, string?>.Empty.Add(MatchFolderAndNamespaceConstants.TargetNamespace, targetNamespace),
                 messageArgs: new[] { currentNamespace, targetNamespace }));

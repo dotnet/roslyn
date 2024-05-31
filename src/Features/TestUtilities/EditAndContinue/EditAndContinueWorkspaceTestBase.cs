@@ -74,20 +74,9 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
     }
 
     internal static Project AddEmptyTestProject(Solution solution)
-    {
-        var projectId = ProjectId.CreateNewId();
-
-        return solution.
-            AddProject(ProjectInfo.Create(
-                projectId,
-                VersionStamp.Create(),
-                "proj",
-                "proj",
-                LanguageNames.CSharp,
-                parseOptions: CSharpParseOptions.Default.WithNoRefSafetyRulesAttribute())
-                .WithTelemetryId(s_defaultProjectTelemetryId)).GetRequiredProject(projectId).
-            WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
-    }
+        => solution
+            .AddTestProject("proj")
+            .WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
 
     internal static Solution AddDefaultTestProject(
         Solution solution,
