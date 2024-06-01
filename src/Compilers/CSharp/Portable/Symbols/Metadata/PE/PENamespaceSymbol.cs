@@ -68,37 +68,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             EnsureAllMembersLoaded();
 
-            var memberNamespacesAndTypes = GetMemberNamespacesAndTypesPrivate();
+            var memberNamespacesAndTypes = getMemberNamespacesAndTypesPrivate();
 
-            return StaticCast<Symbol>.From(memberNamespacesAndTypes);
-        }
-
-        private ImmutableArray<NamespaceOrTypeSymbol> GetMemberNamespacesAndTypesPrivate()
-        {
             if (_lazyFlattenedNamespacesAndTypes.IsDefault)
             {
-                var flattenedTypes = StaticCast<NamespaceOrTypeSymbol>.From(GetMemberTypesPrivate());
-
-                if (lazyNamespaces.Count == 0)
-                {
-                    ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedNamespacesAndTypes, flattenedTypes);
-                }
-                else
-                {
-                    ArrayBuilder<NamespaceOrTypeSymbol> builder = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance(lazyNamespaces.Count + flattenedTypes.Length);
-
-                    builder.AddRange(flattenedTypes);
-
-                    foreach (var kvp in lazyNamespaces)
-                    {
-                        builder.Add(kvp.Value);
-                    }
-
-                    ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedNamespacesAndTypes, builder.ToImmutableAndFree());
-                }
+                ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedNamespacesAndTypes, memberNamespacesAndTypes);
             }
 
-            return _lazyFlattenedNamespacesAndTypes;
+            return StaticCast<Symbol>.From(memberNamespacesAndTypes);
+
+            ImmutableArray<NamespaceOrTypeSymbol> getMemberNamespacesAndTypesPrivate()
+            {
+                if (!_lazyFlattenedNamespacesAndTypes.IsDefault)
+                {
+                    return _lazyFlattenedNamespacesAndTypes;
+                }
+
+                var flattenedTypes = StaticCast<NamespaceOrTypeSymbol>.From(GetMemberTypesPrivate());
+                if (lazyNamespaces.Count == 0)
+                {
+                    return flattenedTypes;
+                }
+
+                ArrayBuilder<NamespaceOrTypeSymbol> builder = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance(lazyNamespaces.Count + flattenedTypes.Length);
+
+                builder.AddRange(flattenedTypes);
+                foreach (var kvp in lazyNamespaces)
+                {
+                    builder.Add(kvp.Value);
+                }
+
+                return builder.ToImmutableAndFree();
+            }
         }
 
         private ImmutableArray<NamedTypeSymbol> GetMemberTypesPrivate()
