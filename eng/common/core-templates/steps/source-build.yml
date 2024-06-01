@@ -14,7 +14,6 @@ parameters:
   is1ESPipeline: false
 
 steps:
-- template: /eng/common/core-templates/steps/enable-internal-sources.yml
 # Build. Keep it self-contained for simple reusability. (No source-build-specific job variables.)
 - script: |
     set -x

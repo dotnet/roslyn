@@ -3,6 +3,9 @@ parameters:
 - name: nugetFederatedServiceConnection
   type: string
   default: 'dnceng-artifacts-feeds-read'
+- name: is1ESPipeline
+  type: boolean
+  default: false
 
 steps:
 - ${{ if ne(variables['System.TeamProject'], 'public') }}:
