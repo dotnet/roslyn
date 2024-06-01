@@ -24,7 +24,8 @@ public class TagSpanIntervalTreeTests
     {
         var exportProvider = EditorTestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
         var buffer = EditorFactory.CreateBuffer(exportProvider, text);
-        var tags = spans.Select(s => new TagSpan<ITextMarkerTag>(new SnapshotSpan(buffer.CurrentSnapshot, s), new TextMarkerTag(string.Empty)));
+        var tags = new SegmentedList<TagSpan<ITextMarkerTag>>(
+            spans.Select(s => new TagSpan<ITextMarkerTag>(new SnapshotSpan(buffer.CurrentSnapshot, s), new TextMarkerTag(string.Empty))));
         return (new TagSpanIntervalTree<ITextMarkerTag>(buffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive, tags), buffer);
     }
 
