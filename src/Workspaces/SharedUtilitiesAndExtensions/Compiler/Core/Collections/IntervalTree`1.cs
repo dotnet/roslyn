@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -35,24 +36,60 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
     protected Node? root;
 
-    public static IntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values1 = null, IEnumerable<T>? values2 = null)
+    public static IntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values = null)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var result = new IntervalTree<T>();
 
-        AddAll(in introspector, values1);
-        AddAll(in introspector, values2);
+        if (values != null)
+        {
+            foreach (var value in values)
+                result.root = Insert(result.root, new Node(value), in introspector);
+        }
 
         return result;
+    }
 
-        void AddAll(in TIntrospector introspector, IEnumerable<T>? values)
+    public static IntervalTree<T> CreateFromSorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
+        where TIntrospector : struct, IIntervalIntrospector<T>
+    {
+#if DEBUG
+        if (values.Count >= 2)
         {
-            if (values != null)
+            var current = values[0];
+            for (var i = 1; i < values.Count; i++)
             {
-                foreach (var value in values)
-                    result.root = Insert(result.root, new Node(value), in introspector);
+                var next = values[i];
+                Debug.Assert(introspector.GetSpan(current).Start <= introspector.GetSpan(next).Start);
+                current = next;
             }
         }
+#endif
+
+        if (values.Count == 0)
+            return Empty;
+
+        return new IntervalTree<T>
+        {
+            root = CreateFromSortedWorker(values, 0, values.Count, in introspector),
+        };
+    }
+
+    private static Node? CreateFromSortedWorker<TIntrospector>(
+        SegmentedList<T> values, int startInclusive, int endExclusive, in TIntrospector introspector) where TIntrospector : struct, IIntervalIntrospector<T>
+    {
+        var length = endExclusive - startInclusive;
+        if (length <= 0)
+            return null;
+
+        var mid = startInclusive + (length >> 1);
+        var node = new Node(values[mid]);
+        node.SetLeftRight(
+            CreateFromSortedWorker(values, startInclusive, mid, in introspector),
+            CreateFromSortedWorker(values, mid + 1, endExclusive, in introspector),
+            in introspector);
+
+        return node;
     }
 
     protected static bool Contains<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
