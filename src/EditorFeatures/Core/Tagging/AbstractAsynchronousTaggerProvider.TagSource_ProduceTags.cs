@@ -478,9 +478,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                         spansToInvalidateInBuffer.Add(span);
                 }
 
-                // Note: newTagsInBuffer will be mutated by ComputeNewTagTree.  This is fine as we don't use it after
-                // this and immediately clear it on the next iteration of the loop (or dispose of it once the loop
-                // finishes).
+                // Note: newTagsInBuffer_safeToMutate will be mutated by ComputeNewTagTree.  This is fine as we don't
+                // use it after this and immediately clear it on the next iteration of the loop (or dispose of it once
+                // the loop finishes).
                 var newTagTree = ComputeNewTagTree(oldTagTrees, buffer, newTagsInBuffer_safeToMutate, spansToInvalidateInBuffer);
                 if (newTagTree != null)
                     newTagTrees.Add(buffer, newTagTree);
