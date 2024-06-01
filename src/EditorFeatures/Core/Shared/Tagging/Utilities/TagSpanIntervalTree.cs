@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 /// tracked. That way you can query for intersecting/overlapping spans in a different snapshot
 /// than the one for the tag spans that were added.
 /// </summary>
-internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTrackingMode)
-    : IComparer<TagSpan<TTag>>
-    where TTag : ITag
+internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTrackingMode) where TTag : ITag
 {
     // Tracking mode passed in here doesn't matter (since the tree is empty).
     public static readonly TagSpanIntervalTree<TTag> Empty = new(SpanTrackingMode.EdgeInclusive);
@@ -41,11 +39,6 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
 
         _tree = IntervalTree<TagSpan<TTag>>.CreateFromSorted(
             new IntervalIntrospector(textSnapshot, trackingMode), values);
-    }
-
-    int IComparer<TagSpan<TTag>>.Compare(TagSpan<TTag>? x, TagSpan<TTag>? y)
-    {
-        return x!.Span.Start.Position - y!.Span.Start.Position;
     }
 
     private static SnapshotSpan GetTranslatedSpan(TagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
