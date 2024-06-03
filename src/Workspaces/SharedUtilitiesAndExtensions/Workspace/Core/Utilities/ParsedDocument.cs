@@ -32,7 +32,7 @@ internal readonly record struct ParsedDocument(
 {
     public SyntaxTree SyntaxTree => Root.SyntaxTree;
 
-    public LanguageServices LanguageServices => SolutionServices.GetLanguageServices(Root.Language);
+    public readonly LanguageServices LanguageServices = SolutionServices.GetLanguageServices(Root.Language);
 
     public static async ValueTask<ParsedDocument> CreateAsync(Document document, CancellationToken cancellationToken)
     {
