@@ -103,13 +103,13 @@ internal abstract class AbstractUseTypeCodeRefactoringProvider : CodeRefactoring
         if (foreachStatement1 != null)
             return foreachStatement1;
 
-        if (typeParent is DeclarationExpressionSyntax or VariableDeclarationSyntax)
-            return typeParent;
+        if (type?.Parent is DeclarationExpressionSyntax or VariableDeclarationSyntax)
+            return type.Parent;
 
-        if (typeParent is ForEachStatementSyntax foreachStatement2 &&
-            foreachStatement2.Expression == typeParent)
+        if (type?.Parent is ForEachStatementSyntax foreachStatement2 &&
+            foreachStatement2.Type == type)
         {
-            return typeParent;
+            return foreachStatement2;
         }
 
         return null;
