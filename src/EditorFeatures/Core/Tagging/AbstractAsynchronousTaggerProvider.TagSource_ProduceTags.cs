@@ -95,8 +95,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 return;
 
             using var _1 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var tagsToRemove);
-            using var _2 = _tagSpanSetPool.GetPooledObject(out var allTagsSet);
-            using var _3 = s_tagSpanListPool.GetPooledObject(out var allTagsList);
+            using var _2 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var allTagsList);
+            using var _3 = _tagSpanSetPool.GetPooledObject(out var allTagsSet);
 
             // Everything we're passing in here is synchronous.  So we can assert that this must complete synchronously
             // as well.
@@ -460,7 +460,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             foreach (var spanToTag in context.SpansToTag)
                 buffersToTag.Add(spanToTag.SnapshotSpan.Snapshot.TextBuffer);
 
-            using var _2 = s_tagSpanListPool.GetPooledObject(out var newTagsInBuffer_safeToMutate);
+            using var _2 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var newTagsInBuffer_safeToMutate);
             using var _3 = ArrayBuilder<SnapshotSpan>.GetInstance(out var spansToInvalidateInBuffer);
 
             var newTagTrees = ImmutableDictionary.CreateBuilder<ITextBuffer, TagSpanIntervalTree<TTag>>();
@@ -629,8 +629,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             TagSpanIntervalTree<TTag> latestTree,
             TagSpanIntervalTree<TTag> previousTree)
         {
-            using var _1 = s_tagSpanListPool.GetPooledObject(out var latestSpans);
-            using var _2 = s_tagSpanListPool.GetPooledObject(out var previousSpans);
+            using var _1 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var latestSpans);
+            using var _2 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var previousSpans);
 
             using var _3 = ArrayBuilder<SnapshotSpan>.GetInstance(out var added);
             using var _4 = ArrayBuilder<SnapshotSpan>.GetInstance(out var removed);
