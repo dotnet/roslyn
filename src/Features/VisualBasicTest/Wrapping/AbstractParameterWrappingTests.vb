@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
         End Function
 
         Private Protected Function GetIndentionColumn(column As Integer) As TestParameters
-            Return New TestParameters(globalOptions:=[Option](CodeActionOptionsStorage.WrappingColumn, column))
+            Return New TestParameters(options:=[Option](CodeActionOptionsStorage.WrappingColumn, column))
         End Function
 
         Protected Function TestAllWrappingCasesAsync(

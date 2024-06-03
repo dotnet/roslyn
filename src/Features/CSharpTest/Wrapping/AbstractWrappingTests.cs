@@ -23,7 +23,7 @@ public abstract class AbstractWrappingTests : AbstractCSharpCodeActionTest_NoEdi
         => FlattenActions(actions);
 
     private protected TestParameters GetIndentionColumn(int column)
-        => new(globalOptions: Option(CodeActionOptionsStorage.WrappingColumn, column));
+        => new(options: Option(CodeActionOptionsStorage.WrappingColumn, column));
 
     protected Task TestAllWrappingCasesAsync(
         string input,

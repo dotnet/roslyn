@@ -658,8 +658,7 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
 
         await TestDiagnosticInfoAsync(
             source,
-            options: null,
-            globalOptions: options,
+            options: options,
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
@@ -679,7 +678,7 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             """;
         var options = Option(IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, false);
 
-        await TestDiagnosticMissingAsync(source, new TestParameters(globalOptions: options));
+        await TestDiagnosticMissingAsync(source, new TestParameters(options: options));
     }
 #endif
     [Fact]

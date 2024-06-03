@@ -1656,7 +1656,7 @@ class Program
 </Workspace>";
 
         await TestMissingAsync(initialWorkspace, new TestParameters(
-            globalOptions: Option(CompletionOptionsStorage.HideAdvancedMembers, true),
+            options: Option(CompletionOptionsStorage.HideAdvancedMembers, true),
             testHost: testHost));
     }
 }

@@ -1713,7 +1713,7 @@ public partial class ImplementAbstractClassTests(ITestOutputHelper logger) : Abs
 
                 public override int Prop => throw new System.NotImplementedException();
             }
-            """, globalOptions: options);
+            """, options: options);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17274")]
@@ -1910,7 +1910,7 @@ public partial class ImplementAbstractClassTests(ITestOutputHelper logger) : Abs
                 public override int ReadWriteProp { get; set; }
                 public override int WriteOnlyProp { set => throw new System.NotImplementedException(); }
             }
-            """, parameters: new TestParameters(globalOptions: options));
+            """, parameters: new TestParameters(options: options));
     }
 
     [Theory, CombinatorialData]
