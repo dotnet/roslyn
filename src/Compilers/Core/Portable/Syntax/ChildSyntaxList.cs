@@ -83,22 +83,22 @@ namespace Microsoft.CodeAnalysis
             return green.IsList ? green.SlotCount : 1;
         }
 
-        internal struct SlotData
+        internal readonly struct SlotData
         {
             /// <summary>
             /// The green node slot index at which to start the search
             /// </summary>
-            public int SlotIndex;
+            public readonly int SlotIndex;
 
             /// <summary>
             /// Indicates the total number of occupants in preceding slots
             /// </summary>
-            public int PrecedingOccupantSlotCount;
+            public readonly int PrecedingOccupantSlotCount;
 
             /// <summary>
             /// Indicates the node start position plus any prior slot full widths
             /// </summary>
-            public int PositionAtSlotIndex;
+            public readonly int PositionAtSlotIndex;
 
             public SlotData(int slotIndex, int precedingOccupantSlotCount, int positionAtSlotIndex)
             {
@@ -162,11 +162,8 @@ namespace Microsoft.CodeAnalysis
 
             if (slotIndex != slotData.SlotIndex)
             {
-                slotData.SlotIndex = slotIndex;
-
                 // (index - idx) represents the number of occupants prior to this new slotIndex
-                slotData.PrecedingOccupantSlotCount = index - idx;
-                slotData.PositionAtSlotIndex = position;
+                slotData = new SlotData(slotIndex, index - idx, position);
             }
 
             // get node that represents this slot
@@ -335,11 +332,8 @@ namespace Microsoft.CodeAnalysis
 
             if (slotIndex != slotData.SlotIndex)
             {
-                slotData.SlotIndex = slotIndex;
-
                 // (index - idx) represents the number of occupants prior to this new slotIndex
-                slotData.PrecedingOccupantSlotCount = index - idx;
-                slotData.PositionAtSlotIndex = position;
+                slotData = new SlotData(slotIndex, index - idx, position);
             }
 
             // get node that represents this slot
