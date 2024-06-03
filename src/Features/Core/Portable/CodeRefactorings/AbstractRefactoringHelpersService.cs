@@ -108,7 +108,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
             // higher level desired node once. We do that only for locations because otherwise `[|int|] A { get;
             // set; }) would trigger all refactorings for Property Decl. We cannot check this any sooner because the
             // above code could've changed current location.
-            AddNonHiddenCorrectTypeNodes(ExtractNodesInHeader(root, location, headerFacts), allowEmptyNodes, maxCount, ref result, cancellationToken);
+            AddNodesInHeader(root, location, headerFacts, allowEmptyNodes, maxCount, ref result, cancellationToken);
             if (result.Count >= maxCount)
                 return;
 
@@ -474,41 +474,50 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
         }
     }
 
-    /// <summary>
-    /// Extractor function that checks and retrieves all nodes current location is in a header.
-    /// </summary>
-    protected virtual IEnumerable<SyntaxNode> ExtractNodesInHeader(SyntaxNode root, int location, IHeaderFactsService headerFacts)
+    private static void AddNodesInHeader<TSyntaxNode>(
+        SyntaxNode root,
+        int location,
+        IHeaderFactsService headerFacts,
+        bool allowEmptyNodes,
+        int maxCount,
+        ref TemporaryArray<TSyntaxNode> result,
+        CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
         // Header: [Test] `public int a` { get; set; }
-        if (headerFacts.IsOnPropertyDeclarationHeader(root, location, out var propertyDeclaration))
-            yield return propertyDeclaration;
+        if (headerFacts.IsOnPropertyDeclarationHeader(root, location, out var propertyDeclaration) && AddNode(propertyDeclaration, ref result))
+            return;
 
         // Header: public C([Test]`int a = 42`) {}
-        if (headerFacts.IsOnParameterHeader(root, location, out var parameter))
-            yield return parameter;
+        if (headerFacts.IsOnParameterHeader(root, location, out var parameter) && AddNode(parameter, ref result))
+            return;
 
         // Header: `public I.C([Test]int a = 42)` {}
-        if (headerFacts.IsOnMethodHeader(root, location, out var method))
-            yield return method;
+        if (headerFacts.IsOnMethodHeader(root, location, out var method) && AddNode(method, ref result))
+            return;
 
         // Header: `static C([Test]int a = 42)` {}
-        if (headerFacts.IsOnLocalFunctionHeader(root, location, out var localFunction))
-            yield return localFunction;
+        if (headerFacts.IsOnLocalFunctionHeader(root, location, out var localFunction) && AddNode(localFunction, ref result))
+            return;
 
         // Header: `var a = `3,` b = `5,` c = `7 + 3``;
-        if (headerFacts.IsOnLocalDeclarationHeader(root, location, out var localDeclaration))
-            yield return localDeclaration;
+        if (headerFacts.IsOnLocalDeclarationHeader(root, location, out var localDeclaration) && AddNode(localDeclaration, ref result))
+            return;
 
         // Header: `if(...)`{ };
-        if (headerFacts.IsOnIfStatementHeader(root, location, out var ifStatement))
-            yield return ifStatement;
+        if (headerFacts.IsOnIfStatementHeader(root, location, out var ifStatement) && AddNode(ifStatement, ref result))
+            return;
 
         // Header: `foreach (var a in b)` { }
-        if (headerFacts.IsOnForeachHeader(root, location, out var foreachStatement))
-            yield return foreachStatement;
+        if (headerFacts.IsOnForeachHeader(root, location, out var foreachStatement) && AddNode(foreachStatement, ref result))
+            return;
 
-        if (headerFacts.IsOnTypeHeader(root, location, out var typeDeclaration))
-            yield return typeDeclaration;
+        if (headerFacts.IsOnTypeHeader(root, location, out var typeDeclaration) && AddNode(typeDeclaration, ref result))
+            return;
+
+        return;
+
+        bool AddNode(SyntaxNode node, ref TemporaryArray<TSyntaxNode> result)
+            => TryAddNode(node, allowEmptyNodes, maxCount, ref result, cancellationToken);
     }
 
     private static void AddNodesDeepIn<TSyntaxNode>(
@@ -560,14 +569,23 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
     {
         foreach (var node in nodes)
         {
-            if (node is TSyntaxNode typedNode &&
-                !node.OverlapsHiddenPosition(cancellationToken))
-            {
-                AddNode(allowEmptyNodes, ref result, typedNode);
-                if (result.Count >= maxCount)
-                    return;
-            }
+            if (TryAddNode(node, allowEmptyNodes, maxCount, ref result, cancellationToken))
+                return;
         }
+    }
+
+    private static bool TryAddNode<TSyntaxNode>(
+        SyntaxNode node, bool allowEmptyNodes, int maxCount, ref TemporaryArray<TSyntaxNode> result, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+    {
+        if (node is TSyntaxNode typedNode &&
+            !node.OverlapsHiddenPosition(cancellationToken))
+        {
+            AddNode(allowEmptyNodes, ref result, typedNode);
+            if (result.Count >= maxCount)
+                return true;
+        }
+
+        return false;
     }
 
     public bool IsOnTypeHeader(SyntaxNode root, int position, bool fullHeader, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
