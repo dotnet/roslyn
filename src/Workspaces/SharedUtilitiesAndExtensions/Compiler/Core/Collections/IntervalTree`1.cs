@@ -65,16 +65,8 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
 #if DEBUG
-        if (values.Count >= 2)
-        {
-            var current = values[0];
-            for (var i = 1; i < values.Count; i++)
-            {
-                var next = values[i];
-                Debug.Assert(introspector.GetSpan(current).Start <= introspector.GetSpan(next).Start);
-                current = next;
-            }
-        }
+        var localIntrospector = introspector;
+        Debug.Assert(values.IsSorted(Comparer<T>.Create((t1, t2) => localIntrospector.GetSpan(t1).Start - localIntrospector.GetSpan(t2).Start)));
 #endif
 
         if (values.Count == 0)
