@@ -2352,9 +2352,8 @@ Module Program
 End Module
 </Code>
 
-            Dim parameters2 As New TestParameters()
+            Dim parameters2 As New TestParameters(globalOptions:=PreferIntrinsicPredefinedTypeEverywhere())
             Using workspace = CreateWorkspaceFromOptions(source.ToString(), parameters2)
-                PreferIntrinsicPredefinedTypeEverywhere().SetGlobalOptions(workspace.GlobalOptions)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters2)).Where(Function(d) d.Id = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using

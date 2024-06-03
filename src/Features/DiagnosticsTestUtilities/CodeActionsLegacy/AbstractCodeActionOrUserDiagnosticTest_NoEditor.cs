@@ -197,7 +197,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
 #if !CODE_STYLE
-            parameters.globalOptions?.SetGlobalOptions(workspace.GlobalOptions);
+#pragma warning disable RS0030 // Do not use banned APIs (IGlobalOptionService)
+            if (parameters.globalOptions != null)
+            {
+                foreach (var (optionKey, value) in parameters.globalOptions.Options)
+                {
+                    workspace.GlobalOptions.SetGlobalOption(optionKey, value);
+                }
+            }
+#pragma warning restore
 #endif
             return workspace;
         }

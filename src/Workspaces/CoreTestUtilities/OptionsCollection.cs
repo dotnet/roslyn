@@ -4,14 +4,11 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Test.Utilities;
 
 #if !NETCOREAPP
-using System;
 using Roslyn.Utilities;
 #endif
 
@@ -30,6 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         public string DefaultExtension => _languageName == LanguageNames.CSharp ? "cs" : "vb";
 
         public int Count => _options.Count;
+
+        public IEnumerable<KeyValuePair<OptionKey2, object?>> Options
+            => _options;
 
         public void Add<T>(OptionKey2 optionKey, T value)
         {
@@ -77,19 +77,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
-
-#if !CODE_STYLE
-        public OptionSet ToOptionSet()
-            => new TestOptionSet(_options.ToImmutableDictionary(entry => new OptionKey(entry.Key.Option, entry.Key.Language), entry => entry.Value));
-
-        public void SetGlobalOptions(IGlobalOptionService globalOptions)
-        {
-            foreach (var (optionKey, value) in _options)
-            {
-                globalOptions.SetGlobalOption(optionKey, value);
-            }
-        }
-#endif
 
         public bool TryGetOption<T>(OptionKey2 optionKey, out T value)
         {
