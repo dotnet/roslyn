@@ -95,16 +95,21 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 return;
 
             using var _1 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var tagsToRemove);
-            using var _2 = _tagSpanSetPool.GetPooledObject(out var allTags);
+            using var _2 = _tagSpanSetPool.GetPooledObject(out var allTagsSet);
+            using var _3 = s_tagSpanListPool.GetPooledObject(out var allTagsList);
 
             // Everything we're passing in here is synchronous.  So we can assert that this must complete synchronously
             // as well.
             var (oldTagTrees, newTagTrees, _) = CompareAndSwapTagTreesAsync(
                 static (oldTagTrees, args, _) =>
                 {
-                    var (@this, e, tagsToRemove, allTags) = args;
-                    args.tagsToRemove.Clear();
-                    args.allTags.Clear();
+                    var (@this, e, tagsToRemove, allTagsSet, allTagsList) = args;
+
+                    // Compre-and-swap loops until we can successfully update the tag trees.  Clear out the collections
+                    // so we're back in an initial state before performing any work in this lambda.
+                    tagsToRemove.Clear();
+                    allTagsSet.Clear();
+                    allTagsList.Clear();
 
                     var snapshot = e.After;
                     var buffer = snapshot.TextBuffer;
@@ -116,12 +121,14 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                         if (tagsToRemove.Count > 0)
                         {
-                            using var _3 = s_tagSpanListPool.GetPooledObject(out var allTagsList);
+                            // Determine the final tags for the interval tree, using a set so that we can efficiently
+                            // remove the intersecting tags.
+                            treeForBuffer.AddAllSpans(snapshot, allTagsSet);
+                            allTagsSet.RemoveAll(tagsToRemove);
 
-                            treeForBuffer.AddAllSpans(snapshot, allTags);
-                            allTags.RemoveAll(tagsToRemove);
-
-                            allTagsList.AddRange(allTags);
+                            // Then, copy into a list so we can efficiently sort them and create the interval tree from
+                            // those sorted items.
+                            allTagsList.AddRange(allTagsSet);
 
                             var newTagTree = new TagSpanIntervalTree<TTag>(
                                 snapshot,
@@ -134,7 +141,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     // return oldTagTrees to indicate nothing changed.
                     return ValueTaskFactory.FromResult((oldTagTrees, default(VoidResult)));
                 },
-                args: (this, e, tagsToRemove, allTags),
+                args: (this, e, tagsToRemove, allTagsSet, allTagsList),
                 _disposalTokenSource.Token).VerifyCompleted();
 
             // Can happen if we were canceled.  Just bail out immediate.
