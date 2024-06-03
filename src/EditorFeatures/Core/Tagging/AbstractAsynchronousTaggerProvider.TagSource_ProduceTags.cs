@@ -103,13 +103,13 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             var (oldTagTrees, newTagTrees, _) = CompareAndSwapTagTreesAsync(
                 static (oldTagTrees, args, _) =>
                 {
-                    var (@this, e, tagsToRemove, allTagsSet, allTagsList) = args;
+                    var (@this, e, tagsToRemove, allTagsList, allTagsSet) = args;
 
                     // Compre-and-swap loops until we can successfully update the tag trees.  Clear out the collections
                     // so we're back in an initial state before performing any work in this lambda.
                     tagsToRemove.Clear();
-                    allTagsSet.Clear();
                     allTagsList.Clear();
+                    allTagsSet.Clear();
 
                     var snapshot = e.After;
                     var buffer = snapshot.TextBuffer;
@@ -141,7 +141,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     // return oldTagTrees to indicate nothing changed.
                     return ValueTaskFactory.FromResult((oldTagTrees, default(VoidResult)));
                 },
-                args: (this, e, tagsToRemove, allTagsSet, allTagsList),
+                args: (this, e, tagsToRemove, allTagsList, allTagsSet),
                 _disposalTokenSource.Token).VerifyCompleted();
 
             // Can happen if we were canceled.  Just bail out immediate.
