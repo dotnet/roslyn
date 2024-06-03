@@ -54,6 +54,14 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             // looked at.
             => _viewPortToTag == ViewPortToTag.InView ? _callback.EventChangeDelay : TaggerDelay.NonFocus;
 
+        protected override bool CancelOnNewWork
+            // For what's in view, we don't want to cancel work when changes come in.  That way we still finish
+            // computing whatever was in progress, which we can map forward to the latest snapshot.  This helps ensure
+            // that colors come in quickly, even as the user is typing fast.  For what's above/below, we don't want to
+            // do the same.  We can just cancel that work entirely, pushing things out until the next lull in typing. 
+            // This can save a lot of CPU time for things that may never even be looked at.
+            => _viewPortToTag != ViewPortToTag.InView;
+
         protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
         {
             this.ThreadingContext.ThrowIfNotOnUIThread();

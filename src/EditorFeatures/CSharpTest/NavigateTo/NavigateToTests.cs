@@ -607,6 +607,20 @@ class Goo
     }
 
     [Theory, CombinatorialData]
+    public async Task FindPartialProperties(TestHost testHost, Composition composition)
+    {
+        await TestAsync(testHost, composition, "partial class Goo { partial int Prop { get; set; } } partial class Goo { partial int Prop { get => 1; set { } } }", async w =>
+        {
+            var expecteditem1 = new NavigateToItem("Prop", NavigateToItemKind.Property, "csharp", null, null, s_emptyExactPatternMatch, null);
+            var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem1 };
+
+            var items = await _aggregator.GetItemsAsync("Prop");
+
+            VerifyNavigateToResultItems(expecteditems, items);
+        });
+    }
+
+    [Theory, CombinatorialData]
     public async Task FindPartialMethodDefinitionOnly(TestHost testHost, Composition composition)
     {
         await TestAsync(

@@ -160,6 +160,35 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         var implementation = definition.PartialImplementationPart;
 
         // Assert that both the definition and implementation resolve back to themselves
+        // https://github.com/dotnet/roslyn/issues/73772: add a similar test for properties
+        Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+        Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
+    }
+
+    [Fact]
+    public void ExtendedPartialPropertyDefinitionAndImplementationResolveCorrectly()
+    {
+        var src = """
+            using System;
+            namespace NS
+            {
+                public partial class C1
+                {
+                    private int x;
+                    public partial int Prop { get; set; }
+                    public partial int Prop { get => x; set => x = value; }
+                }
+            }
+            """;
+
+        var comp = (Compilation)CreateCompilation(src, assemblyName: "Test");
+
+        var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
+        var type = ns.GetTypeMembers("C1").FirstOrDefault();
+        var definition = type.GetMembers("Prop").First() as IPropertySymbol;
+        var implementation = definition.PartialImplementationPart;
+
+        // Assert that both the definition and implementation resolve back to themselves
         Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
         Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
     }

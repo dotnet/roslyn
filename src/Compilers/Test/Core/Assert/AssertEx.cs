@@ -872,11 +872,19 @@ namespace Roslyn.Test.Utilities
             public int GetHashCode(string str) => str.Trim().GetHashCode();
         }
 
-        public static void AssertLinesEqual(string expected, string actual, string message, string expectedValueSourcePath, int expectedValueSourceLine, bool escapeQuotes)
-        {
-            IEnumerable<string> GetLines(string str) =>
+        private static IEnumerable<string> GetLines(string str) =>
                 str.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
+        public static void AssertLinesEqual(string expected, string actual)
+        {
+            AssertEx.Equal(
+                GetLines(expected),
+                GetLines(actual),
+                comparer: LineComparer.Instance);
+        }
+
+        public static void AssertLinesEqual(string expected, string actual, string message, string expectedValueSourcePath, int expectedValueSourceLine, bool escapeQuotes)
+        {
             AssertEx.Equal(
                 GetLines(expected),
                 GetLines(actual),

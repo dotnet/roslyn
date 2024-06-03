@@ -2764,6 +2764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The partial definition part may include optional parameters whose default values we want to simulate assigning at the beginning of the method
+            // https://github.com/dotnet/roslyn/issues/73772: is this actually used/meaningful?
             methodSymbol = methodSymbol.PartialDefinitionPart ?? methodSymbol;
 
             var methodParameters = methodSymbol.Parameters;

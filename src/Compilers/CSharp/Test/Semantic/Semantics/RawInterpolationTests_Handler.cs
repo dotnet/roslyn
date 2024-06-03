@@ -7958,61 +7958,60 @@ public partial struct CustomHandler
             verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsILVerify : Verification.Skipped);
         verifier.VerifyIL("<top-level-statements-entry-point>", refness == "in" ? @"
 {
-  // Code size       46 (0x2e)
+  // Code size       47 (0x2f)
   .maxstack  4
   .locals init (C V_0, //c
-                C& V_1,
+                C V_1,
                 CustomHandler V_2)
   IL_0000:  ldc.i4.1
   IL_0001:  newobj     ""C..ctor(int)""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  call       ""ref C Program.<<Main>$>g__GetC|0_0(ref C)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
-  IL_0010:  ldind.ref
+  IL_000e:  ldind.ref
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
   IL_0011:  ldc.i4.7
   IL_0012:  ldc.i4.0
-  IL_0013:  ldloc.1
-  IL_0014:  newobj     ""CustomHandler..ctor(int, int, in C)""
-  IL_0019:  stloc.2
-  IL_001a:  ldloca.s   V_2
-  IL_001c:  ldstr      ""literal""
-  IL_0021:  call       ""bool CustomHandler.AppendLiteral(string)""
-  IL_0026:  pop
-  IL_0027:  ldloc.2
-  IL_0028:  callvirt   ""void C.M(CustomHandler)""
-  IL_002d:  ret
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  newobj     ""CustomHandler..ctor(int, int, in C)""
+  IL_001a:  stloc.2
+  IL_001b:  ldloca.s   V_2
+  IL_001d:  ldstr      ""literal""
+  IL_0022:  call       ""bool CustomHandler.AppendLiteral(string)""
+  IL_0027:  pop
+  IL_0028:  ldloc.2
+  IL_0029:  callvirt   ""void C.M(CustomHandler)""
+  IL_002e:  ret
 }
 "
 : @"
 {
-  // Code size       48 (0x30)
+  // Code size       47 (0x2f)
   .maxstack  5
   .locals init (C V_0, //c
-                C& V_1,
+                C V_1,
                 CustomHandler V_2)
   IL_0000:  ldc.i4.1
   IL_0001:  newobj     ""C..ctor(int)""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  call       ""ref C Program.<<Main>$>g__GetC|0_0(ref C)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
-  IL_0010:  ldind.ref
+  IL_000e:  ldind.ref
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
   IL_0011:  ldloca.s   V_2
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.0
   IL_0015:  ldloc.1
-  IL_0016:  ldind.ref
-  IL_0017:  call       ""CustomHandler..ctor(int, int, C)""
-  IL_001c:  ldloca.s   V_2
-  IL_001e:  ldstr      ""literal""
-  IL_0023:  call       ""bool CustomHandler.AppendLiteral(string)""
-  IL_0028:  pop
-  IL_0029:  ldloc.2
-  IL_002a:  callvirt   ""void C.M(CustomHandler)""
-  IL_002f:  ret
+  IL_0016:  call       ""CustomHandler..ctor(int, int, C)""
+  IL_001b:  ldloca.s   V_2
+  IL_001d:  ldstr      ""literal""
+  IL_0022:  call       ""bool CustomHandler.AppendLiteral(string)""
+  IL_0027:  pop
+  IL_0028:  ldloc.2
+  IL_0029:  callvirt   ""void C.M(CustomHandler)""
+  IL_002e:  ret
 }
 ");
 
@@ -8067,31 +8066,30 @@ public partial struct CustomHandler
         verifier.VerifyDiagnostics();
         verifier.VerifyIL($"Program.<<Main>$>g__localFunc|0_0({parameterRefness} C)", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       42 (0x2a)
   .maxstack  5
-  .locals init (C& V_0,
+  .locals init (C V_0,
                 CustomHandler V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.1
   IL_0002:  newobj     ""C..ctor(int)""
   IL_0007:  stind.ref
   IL_0008:  ldarg.0
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  ldind.ref
+  IL_0009:  ldind.ref
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
   IL_000c:  ldloca.s   V_1
   IL_000e:  ldc.i4.7
   IL_000f:  ldc.i4.0
   IL_0010:  ldloc.0
-  IL_0011:  ldind.ref
-  IL_0012:  call       ""CustomHandler..ctor(int, int, C)""
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  ldstr      ""literal""
-  IL_001e:  call       ""bool CustomHandler.AppendLiteral(string)""
-  IL_0023:  pop
-  IL_0024:  ldloc.1
-  IL_0025:  callvirt   ""void C.M(CustomHandler)""
-  IL_002a:  ret
+  IL_0011:  call       ""CustomHandler..ctor(int, int, C)""
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  ldstr      ""literal""
+  IL_001d:  call       ""bool CustomHandler.AppendLiteral(string)""
+  IL_0022:  pop
+  IL_0023:  ldloc.1
+  IL_0024:  callvirt   ""void C.M(CustomHandler)""
+  IL_0029:  ret
 }
 ");
 

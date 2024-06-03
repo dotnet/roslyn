@@ -9835,19 +9835,19 @@ partial class C1
             Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test3").PartialImplementationPart.Parameters.Single().EffectiveScope);
 
             comp.VerifyDiagnostics(
-                // (13,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (13,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test1(params Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test1").WithLocation(13, 18),
-                // (13,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial method declaration.
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test1").WithLocation(13, 18),
+                // (13,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial definition.
                 //     partial void Test1(params Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "Test1").WithArguments("a").WithLocation(13, 18),
-                // (17,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (17,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test2(params scoped Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test2").WithLocation(17, 18),
-                // (17,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial method declaration.
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test2").WithLocation(17, 18),
+                // (17,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial definition.
                 //     partial void Test2(params scoped Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "Test2").WithArguments("a").WithLocation(17, 18),
-                // (21,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial method declaration.
+                // (21,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial definition.
                 //     partial void Test3(scoped Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "Test3").WithArguments("a").WithLocation(21, 18)
                 );
@@ -9888,19 +9888,19 @@ partial class C1
             Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test3").PartialImplementationPart.Parameters.Single().EffectiveScope);
 
             comp.VerifyDiagnostics(
-                // (13,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (13,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test1(Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test1").WithLocation(13, 18),
-                // (13,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial method declaration.
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test1").WithLocation(13, 18),
+                // (13,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial definition.
                 //     partial void Test1(Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "Test1").WithArguments("a").WithLocation(13, 18),
-                // (17,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (17,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test2(Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test2").WithLocation(17, 18),
-                // (17,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial method declaration.
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test2").WithLocation(17, 18),
+                // (17,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial definition.
                 //     partial void Test2(Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "Test2").WithArguments("a").WithLocation(17, 18),
-                // (21,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial method declaration.
+                // (21,18): error CS8988: The 'scoped' modifier of parameter 'a' doesn't match partial definition.
                 //     partial void Test3(Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "Test3").WithArguments("a").WithLocation(21, 18)
                 );
@@ -9947,15 +9947,15 @@ partial class C1
             Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test3").PartialImplementationPart.Parameters.Single().EffectiveScope);
 
             comp.VerifyDiagnostics(
-                // (14,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (14,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test1([UnscopedRef] Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test1").WithLocation(14, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test1").WithLocation(14, 18),
                 // (14,25): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
                 //     partial void Test1([UnscopedRef] Span<long> a)
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(14, 25),
-                // (18,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (18,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test2([UnscopedRef] Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test2").WithLocation(18, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test2").WithLocation(18, 18),
                 // (18,25): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
                 //     partial void Test2([UnscopedRef] Span<long> a)
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(18, 25),
@@ -10006,9 +10006,9 @@ partial class C1
             Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test3").PartialImplementationPart.Parameters.Single().EffectiveScope);
 
             comp.VerifyDiagnostics(
-                // (20,31): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (20,31): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     public partial Span<long> Test3([UnscopedRef] params Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test3").WithLocation(20, 31)
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test3").WithLocation(20, 31)
                 );
         }
 
@@ -14435,18 +14435,18 @@ partial class Program
                 // (5,24): error CS0225: The params parameter must have a valid collection type
                 //     partial void Test1(params int a)
                 Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(5, 24),
-                // (11,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (11,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test2(params int a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test2").WithLocation(11, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test2").WithLocation(11, 18),
                 // (11,24): error CS0225: The params parameter must have a valid collection type
                 //     partial void Test2(params int a)
                 Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(11, 24),
                 // (15,24): error CS0225: The params parameter must have a valid collection type
                 //     partial void Test3(params int a);
                 Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(15, 24),
-                // (17,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (17,18): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test3(int a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test3").WithLocation(17, 18)
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "Test3").WithLocation(17, 18)
                 );
         }
 

@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -28,9 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 aliasQualifierOpt: null,
                 modifiers: DeclarationModifiers.Public | (isOverride ? DeclarationModifiers.Override : DeclarationModifiers.None),
                 hasInitializer: true, // Synthesized record properties always have a synthesized initializer
+                hasExplicitAccessMod: false,
                 isAutoProperty: true,
                 isExpressionBodied: false,
                 isInitOnly: ShouldUseInit(containingType),
+                accessorsHaveImplementation: true,
                 RefKind.None,
                 backingParameter.Name,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
@@ -40,13 +43,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BackingParameter = (SourceParameterSymbol)backingParameter;
         }
 
+        protected override SourcePropertySymbolBase? BoundAttributesSource => null;
+
         public override IAttributeTargetSymbol AttributesOwner => BackingParameter as IAttributeTargetSymbol ?? this;
 
         protected override Location TypeLocation
             => ((ParameterSyntax)CSharpSyntaxNode).Type!.Location;
 
-        public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-            => BackingParameter.AttributeDeclarationList;
+        public override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+            => OneOrMany.Create(BackingParameter.AttributeDeclarationList);
 
         protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
