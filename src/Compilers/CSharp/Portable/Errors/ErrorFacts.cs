@@ -558,9 +558,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
-                case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
-                case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
-                case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
 
                     return 1;
                 default:
@@ -2423,9 +2420,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_ConvertingLock
                 or ErrorCode.ERR_DynamicDispatchToParamsCollection
                 or ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument
-                or ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod
-                or ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer
-                or ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor
                 or ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls
                 or ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember
                 or ErrorCode.ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember
