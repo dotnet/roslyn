@@ -108,18 +108,18 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
             // higher level desired node once. We do that only for locations because otherwise `[|int|] A { get;
             // set; }) would trigger all refactorings for Property Decl. We cannot check this any sooner because the
             // above code could've changed current location.
-            AddNonHiddenCorrectTypeNodes(ExtractNodesInHeader(root, location, headerFacts), stopOnFirst, ref result, cancellationToken);
+            AddNonHiddenCorrectTypeNodes(ExtractNodesInHeader(root, location, headerFacts), allowEmptyNodes, stopOnFirst, ref result, cancellationToken);
             if (stopOnFirst && result.Count > 0)
                 return;
 
             var (tokenToLeft, tokenToRight) = GetTokensToLeftAndRight(document, root, location);
 
             // Add Nodes for touching tokens as described above.
-            AddNodesForTokenToRight(syntaxFacts, root, stopOnFirst, ref result, tokenToRight, cancellationToken);
+            AddNodesForTokenToRight(syntaxFacts, root, allowEmptyNodes, stopOnFirst, ref result, tokenToRight, cancellationToken);
             if (stopOnFirst && result.Count > 0)
                 return;
 
-            AddNodesForTokenToLeft(syntaxFacts, stopOnFirst, ref result, tokenToLeft, cancellationToken);
+            AddNodesForTokenToLeft(syntaxFacts, allowEmptyNodes, stopOnFirst, ref result, tokenToLeft, cancellationToken);
             if (stopOnFirst && result.Count > 0)
                 return;
 
@@ -261,6 +261,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
 
     private void AddNodesForTokenToLeft<TSyntaxNode>(
         ISyntaxFactsService syntaxFacts,
+        bool allowEmptyNodes,
         bool stopOnFirst,
         ref TemporaryArray<TSyntaxNode> result,
         SyntaxToken tokenToLeft,
@@ -276,7 +277,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
             {
                 // Consider either a Node that is:
                 // - Ancestor Node of such Token as long as their span ends on location (it's still on the edge)
-                AddNonHiddenCorrectTypeNodes(ExtractNodesSimple(leftNode, syntaxFacts), stopOnFirst, ref result, cancellationToken);
+                AddNonHiddenCorrectTypeNodes(ExtractNodesSimple(leftNode, syntaxFacts), allowEmptyNodes, stopOnFirst, ref result, cancellationToken);
                 if (stopOnFirst && result.Count > 0)
                     return;
 
@@ -299,6 +300,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
     private void AddNodesForTokenToRight<TSyntaxNode>(
         ISyntaxFactsService syntaxFacts,
         SyntaxNode root,
+        bool allowEmptyNodes,
         bool stopOnFirst,
         ref TemporaryArray<TSyntaxNode> result,
         SyntaxToken tokenToRightOrIn,
@@ -314,7 +316,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
                 // Consider either a Node that is:
                 // - Parent of touched Token (location can be within) 
                 // - Ancestor Node of such Token as long as their span starts on location (it's still on the edge)
-                AddNonHiddenCorrectTypeNodes(ExtractNodesSimple(rightNode, syntaxFacts), stopOnFirst, ref result, cancellationToken);
+                AddNonHiddenCorrectTypeNodes(ExtractNodesSimple(rightNode, syntaxFacts), allowEmptyNodes, stopOnFirst, ref result, cancellationToken);
                 if (stopOnFirst && result.Count > 0)
                     return;
 
@@ -554,14 +556,14 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
     }
 
     private static void AddNonHiddenCorrectTypeNodes<TSyntaxNode>(
-        IEnumerable<SyntaxNode> nodes, bool stopOnFirst, ref TemporaryArray<TSyntaxNode> resultBuilder, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        IEnumerable<SyntaxNode> nodes, bool allowEmptyNodes, bool stopOnFirst, ref TemporaryArray<TSyntaxNode> result, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
         foreach (var node in nodes)
         {
             if (node is TSyntaxNode typedNode &&
                 !node.OverlapsHiddenPosition(cancellationToken))
             {
-                resultBuilder.Add(typedNode);
+                AddNode(allowEmptyNodes, ref result, typedNode);
                 if (stopOnFirst)
                     return;
             }
