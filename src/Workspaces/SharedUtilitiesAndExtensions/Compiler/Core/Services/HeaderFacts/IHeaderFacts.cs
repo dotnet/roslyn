@@ -8,6 +8,8 @@ namespace Microsoft.CodeAnalysis.LanguageService;
 
 internal interface IHeaderFacts
 {
+    bool IsHeaderType<TSyntaxNode>() where TSyntaxNode : SyntaxNode;
+
     /// <summary>
     /// <paramref name="fullHeader"/> controls how much of the type header should be considered. If <see
     /// langword="false"/> only the span up through the type name will be considered.  If <see langword="true"/>

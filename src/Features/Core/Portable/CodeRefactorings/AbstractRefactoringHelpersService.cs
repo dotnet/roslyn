@@ -21,6 +21,9 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
 {
     protected abstract IHeaderFacts HeaderFacts { get; }
 
+    public bool IsHeaderType<TSyntaxNode>() where TSyntaxNode : SyntaxNode
+        => this.HeaderFacts.IsHeaderType<TSyntaxNode>();
+
     public abstract bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
 
     private static void AddNode<TSyntaxNode>(bool allowEmptyNodes, ref TemporaryArray<TSyntaxNode> result, TSyntaxNode node) where TSyntaxNode : SyntaxNode
@@ -483,6 +486,9 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
         ref TemporaryArray<TSyntaxNode> result,
         CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
+        if (!headerFacts.IsHeaderType<TSyntaxNode>())
+            return;
+
         // Header: [Test] `public int a` { get; set; }
         if (headerFacts.IsOnPropertyDeclarationHeader(root, location, out var propertyDeclaration) && AddNode(propertyDeclaration, ref result))
             return;

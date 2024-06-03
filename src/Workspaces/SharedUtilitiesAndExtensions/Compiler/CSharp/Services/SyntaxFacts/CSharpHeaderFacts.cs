@@ -21,6 +21,30 @@ internal class CSharpHeaderFacts : AbstractHeaderFacts
 
     protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
+    public override bool IsHeaderType<TSyntaxNode>()
+    {
+        if (typeof(TSyntaxNode) == typeof(BaseTypeDeclarationSyntax))
+            return true;
+        if (typeof(TSyntaxNode) == typeof(PropertyDeclarationSyntax))
+            return true;
+        if (typeof(TSyntaxNode) == typeof(ParameterSyntax))
+            return true;
+        if (typeof(TSyntaxNode) == typeof(MethodDeclarationSyntax))
+            return true;
+        if (typeof(TSyntaxNode) == typeof(LocalFunctionStatementSyntax))
+            return true;
+        if (typeof(TSyntaxNode) == typeof(LocalDeclarationStatementSyntax))
+            return true;
+        if (typeof(TSyntaxNode) == typeof(IfStatementSyntax))
+            return true;
+        if (typeof(TSyntaxNode) == typeof(WhileStatementSyntax))
+            return true;
+        if (typeof(TSyntaxNode) == typeof(ForEachStatementSyntax))
+            return true;
+
+        return false;
+    }
+
     public override bool IsOnTypeHeader(SyntaxNode root, int position, bool fullHeader, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
     {
         var node = TryGetAncestorForLocation<BaseTypeDeclarationSyntax>(root, position);
