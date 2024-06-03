@@ -56,12 +56,3 @@ internal interface IRefactoringHelpersService : IHeaderFactsService, ILanguageSe
     void AddRelevantNodes<TSyntaxNode>(
         ParsedDocument document, TextSpan selection, bool allowEmptyNodes, bool stopOnFirst, ref TemporaryArray<TSyntaxNode> result, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
 }
-
-//internal static class IRefactoringHelpersServiceExtensions
-//{
-//    public static ImmutableArray<TSyntaxNode> GetRelevantNodes<TSyntaxNode>(
-//        this IRefactoringHelpersService service, ParsedDocument document, TextSpan selection, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
-//    {
-//        return service.GetRelevantNodes<TSyntaxNode>(document, selection, allowEmptyNodes: false, cancellationToken);
-//    }
-//}
