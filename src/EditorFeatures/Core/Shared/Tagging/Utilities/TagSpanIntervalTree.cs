@@ -35,6 +35,8 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
         SegmentedList<TagSpan<TTag>> values)
         : this(trackingMode)
     {
+        // Sort the values by their start position.  This is extremely fast (defer'ing to the runtime's sorting
+        // routines), and allows us to build the balanced tree directly without having to do any additional work.
         values.Sort(static (t1, t2) => t1.Span.Start.Position - t2.Span.Start.Position);
 
         _tree = IntervalTree<TagSpan<TTag>>.CreateFromSorted(
