@@ -13,8 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType;
@@ -94,25 +92,24 @@ internal abstract class AbstractUseTypeCodeRefactoringProvider : CodeRefactoring
         // `ref var` is a bit of an interesting construct.  'ref' looks like a modifier, but is actually a
         // type-syntax.  Ensure the user can get the feature anywhere on this construct
         var type = await context.TryGetRelevantNodeAsync<TypeSyntax>().ConfigureAwait(false);
-        if (type?.Parent is RefTypeSyntax)
-            type = (TypeSyntax)type.Parent;
+        var typeParent = type?.Parent;
+        if (typeParent is RefTypeSyntax refType)
+            type = refType;
 
         if (type?.Parent is VariableDeclarationSyntax)
             return type.Parent;
 
-        var foreachStatement = await context.TryGetRelevantNodeAsync<ForEachStatementSyntax>().ConfigureAwait(false);
-        if (foreachStatement != null)
-            return foreachStatement;
+        var foreachStatement1 = await context.TryGetRelevantNodeAsync<ForEachStatementSyntax>().ConfigureAwait(false);
+        if (foreachStatement1 != null)
+            return foreachStatement1;
 
-        var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
+        if (type?.Parent is DeclarationExpressionSyntax or VariableDeclarationSyntax)
+            return type.Parent;
 
-        var typeNode = await context.TryGetRelevantNodeAsync<TypeSyntax>().ConfigureAwait(false);
-        var typeNodeParent = typeNode?.Parent;
-        if (typeNodeParent != null &&
-            (typeNodeParent.Kind() is SyntaxKind.DeclarationExpression or SyntaxKind.VariableDeclaration ||
-            (typeNodeParent.IsKind(SyntaxKind.ForEachStatement) && !syntaxFacts.IsExpressionOfForeach(typeNode))))
+        if (type?.Parent is ForEachStatementSyntax foreachStatement2 &&
+            foreachStatement2.Type == type)
         {
-            return typeNodeParent;
+            return foreachStatement2;
         }
 
         return null;
