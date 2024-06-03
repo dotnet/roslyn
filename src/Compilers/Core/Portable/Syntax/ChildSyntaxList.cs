@@ -83,22 +83,29 @@ namespace Microsoft.CodeAnalysis
             return green.IsList ? green.SlotCount : 1;
         }
 
-        internal struct SlotData(int slotIndex, int precedingOccupantSlotCount, int positionAtSlotIndex)
+        internal struct SlotData
         {
             /// <summary>
             /// The green node slot index at which to start the search
             /// </summary>
-            public int SlotIndex { get; set; } = slotIndex;
+            public int SlotIndex;
 
             /// <summary>
             /// Indicates the total number of occupants in preceding slots
             /// </summary>
-            public int PrecedingOccupantSlotCount { get; set; } = precedingOccupantSlotCount;
+            public int PrecedingOccupantSlotCount;
 
             /// <summary>
             /// Indicates the node start position plus any prior slot full widths
             /// </summary>
-            public int PositionAtSlotIndex { get; set; } = positionAtSlotIndex;
+            public int PositionAtSlotIndex;
+
+            public SlotData(int slotIndex, int precedingOccupantSlotCount, int positionAtSlotIndex)
+            {
+                SlotIndex = slotIndex;
+                PrecedingOccupantSlotCount = precedingOccupantSlotCount;
+                PositionAtSlotIndex = positionAtSlotIndex;
+            }
         }
 
         internal static SyntaxNodeOrToken ItemInternal(SyntaxNode node, int index)
@@ -123,6 +130,8 @@ namespace Microsoft.CodeAnalysis
             var idx = index - slotData.PrecedingOccupantSlotCount;
             var slotIndex = slotData.SlotIndex;
             var position = slotData.PositionAtSlotIndex;
+
+            Debug.Assert(idx >= 0);
 
             // find a slot that contains the node or its parent list (if node is in a list)
             // we will be skipping whole slots here so we will not loop for long
@@ -294,6 +303,9 @@ namespace Microsoft.CodeAnalysis
             var green = node.Green;
             var idx = index - slotData.PrecedingOccupantSlotCount;
             var slotIndex = slotData.SlotIndex;
+            var position = slotData.PositionAtSlotIndex;
+
+            Debug.Assert(idx >= 0);
 
             // find a slot that contains the node or its parent list (if node is in a list)
             // we will be skipping whole slots here so we will not loop for long
@@ -315,6 +327,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     idx -= currentOccupancy;
+                    position += greenChild.FullWidth;
                 }
 
                 slotIndex++;
@@ -323,10 +336,10 @@ namespace Microsoft.CodeAnalysis
             if (slotIndex != slotData.SlotIndex)
             {
                 slotData.SlotIndex = slotIndex;
-                slotData.PrecedingOccupantSlotCount = index - idx;
 
-                // Not used in this codepath
-                slotData.PositionAtSlotIndex = 0;
+                // (index - idx) represents the number of occupants prior to this new slotIndex
+                slotData.PrecedingOccupantSlotCount = index - idx;
+                slotData.PositionAtSlotIndex = position;
             }
 
             // get node that represents this slot
