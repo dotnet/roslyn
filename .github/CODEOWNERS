@@ -45,4 +45,5 @@ src/Features/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/EditorFeatures/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 
 src/Tools/ExternalAccess/OmniSharp*/ @333fred @dibarbet
+src/Tools/ExternalAccess/RazorCompiler*/ @dotnet/roslyn-compiler
 src/Tools/ExternalAccess/CompilerDeveloperSDK/ @333fred
