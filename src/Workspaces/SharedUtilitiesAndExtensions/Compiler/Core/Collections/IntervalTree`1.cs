@@ -103,8 +103,8 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         // Everything is sorted, and we're always building a node up from equal subtrees.  So we're never unbalanced
         // enough to require balancing here.
         var balanceFactor = BalanceFactor(node);
-        Debug.Assert(balanceFactor > -1);
-        Debug.Assert(balanceFactor < 1);
+        Debug.Assert(balanceFactor >= -1);
+        Debug.Assert(balanceFactor <= 1);
 
         return node;
     }
