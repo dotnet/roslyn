@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -58,6 +59,112 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return list;
+        }
+
+        [return: NotNullIfNotNull(nameof(symbol))]
+        protected virtual AliasSymbol? VisitAliasSymbol(AliasSymbol? symbol) => symbol;
+
+        protected virtual DiscardSymbol VisitDiscardSymbol(DiscardSymbol symbol) => symbol;
+
+        protected virtual EventSymbol VisitEventSymbol(EventSymbol symbol) => symbol;
+
+        [return: NotNullIfNotNull(nameof(symbol))]
+        protected virtual LabelSymbol? VisitLabelSymbol(LabelSymbol? symbol) => symbol;
+
+        protected virtual LocalSymbol VisitLocalSymbol(LocalSymbol symbol) => symbol;
+
+        protected virtual NamespaceSymbol VisitNamespaceSymbol(NamespaceSymbol symbol) => symbol;
+
+        [return: NotNullIfNotNull(nameof(symbol))]
+        protected virtual RangeVariableSymbol? VisitRangeVariableSymbol(RangeVariableSymbol? symbol) => symbol;
+
+        [return: NotNullIfNotNull(nameof(symbol))]
+        protected virtual FieldSymbol? VisitFieldSymbol(FieldSymbol? symbol) => symbol;
+
+        protected virtual ParameterSymbol VisitParameterSymbol(ParameterSymbol symbol) => symbol;
+
+        [return: NotNullIfNotNull(nameof(symbol))]
+        protected virtual PropertySymbol? VisitPropertySymbol(PropertySymbol? symbol) => symbol;
+
+        [return: NotNullIfNotNull(nameof(symbol))]
+        protected virtual MethodSymbol? VisitMethodSymbol(MethodSymbol? symbol) => symbol;
+
+        [return: NotNullIfNotNull(nameof(symbol))]
+        protected Symbol? VisitSymbol(Symbol? symbol)
+        {
+            if (symbol is null)
+            {
+                return null;
+            }
+
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Alias:
+                    return VisitAliasSymbol((AliasSymbol)symbol);
+                case SymbolKind.Discard:
+                    return VisitDiscardSymbol((DiscardSymbol)symbol);
+                case SymbolKind.Event:
+                    return VisitEventSymbol((EventSymbol)symbol);
+                case SymbolKind.Label:
+                    return VisitLabelSymbol((LabelSymbol)symbol);
+                case SymbolKind.Local:
+                    return VisitLocalSymbol((LocalSymbol)symbol);
+                case SymbolKind.Namespace:
+                    return VisitNamespaceSymbol((NamespaceSymbol)symbol);
+                case SymbolKind.RangeVariable:
+                    return VisitRangeVariableSymbol((RangeVariableSymbol)symbol);
+                case SymbolKind.Field:
+                    return VisitFieldSymbol((FieldSymbol)symbol);
+                case SymbolKind.Parameter:
+                    return VisitParameterSymbol((ParameterSymbol)symbol);
+                case SymbolKind.Property:
+                    return VisitPropertySymbol((PropertySymbol)symbol);
+                case SymbolKind.Method:
+                    return VisitMethodSymbol((MethodSymbol)symbol);
+
+                default:
+                    if (symbol is TypeSymbol type)
+                    {
+                        return VisitType(type);
+                    }
+
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
+        }
+
+        protected ImmutableArray<T> VisitSymbols<T>(ImmutableArray<T> symbols) where T : Symbol?
+        {
+            if (symbols.IsDefault)
+            {
+                return symbols;
+            }
+
+            ArrayBuilder<T>? builder = null;
+
+            for (int i = 0; i < symbols.Length; i++)
+            {
+                T symbol = symbols[i];
+
+                var newSymbol = (T?)VisitSymbol(symbol);
+                if (newSymbol != (object?)symbol)
+                {
+                    Debug.Assert(newSymbol is not null);
+
+                    if (builder is null)
+                    {
+                        builder = ArrayBuilder<T>.GetInstance(symbols.Length);
+                        builder.AddRange(symbols, i);
+                    }
+
+                    builder.Add(newSymbol);
+                }
+                else if (builder is not null)
+                {
+                    builder.Add(newSymbol!);
+                }
+            }
+
+            return builder is null ? symbols : builder.ToImmutableAndFree();
         }
     }
 

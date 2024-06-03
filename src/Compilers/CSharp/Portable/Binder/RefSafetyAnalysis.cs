@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            var localFunction = node.Symbol;
+            var localFunction = (LocalFunctionSymbol)node.Symbol;
             // https://github.com/dotnet/roslyn/issues/65353: We should not reuse _localEscapeScopes
             // across nested local functions or lambdas because _localScopeDepth is reset when entering
             // the function or lambda so the scopes across the methods are unrelated.
