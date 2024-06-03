@@ -100,6 +100,12 @@ internal partial class IntervalTree<T> : IEnumerable<T>
             CreateFromSortedWorker(values, mid + 1, endExclusive, in introspector),
             in introspector);
 
+        // Everything is sorted, and we're always building a node up from equal subtrees.  So we're never unbalanced
+        // enough to require balancing here.
+        var balanceFactor = BalanceFactor(node);
+        Debug.Assert(balanceFactor > -1);
+        Debug.Assert(balanceFactor < 1);
+
         return node;
     }
 
