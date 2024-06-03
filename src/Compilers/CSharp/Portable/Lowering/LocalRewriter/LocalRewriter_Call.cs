@@ -677,17 +677,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    refKind = rewrittenReceiver.GetRefKind();
-
-                    if (refKind == RefKind.None &&
-                        !rewrittenReceiver.Type.IsReferenceType &&
-                        Binder.HasHome(rewrittenReceiver,
-                                       Binder.AddressKind.Constrained,
-                                       _factory.CurrentFunction,
-                                       peVerifyCompatEnabled: false,
-                                       stackLocalsOpt: null))
+                    if (rewrittenReceiver.Type.IsReferenceType)
                     {
-                        refKind = RefKind.Ref;
+                        refKind = RefKind.None;
+                    }
+                    else
+                    {
+                        refKind = rewrittenReceiver.GetRefKind();
+
+                        if (refKind == RefKind.None &&
+                            Binder.HasHome(rewrittenReceiver,
+                                           Binder.AddressKind.Constrained,
+                                           _factory.CurrentFunction,
+                                           peVerifyCompatEnabled: false,
+                                           stackLocalsOpt: null))
+                        {
+                            refKind = RefKind.Ref;
+                        }
                     }
                 }
 
