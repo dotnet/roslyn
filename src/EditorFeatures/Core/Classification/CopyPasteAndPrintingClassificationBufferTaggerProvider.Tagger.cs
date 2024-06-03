@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,12 +89,15 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             return [];
         }
 
-        private static IEnumerable<ITagSpan<IClassificationTag>> GetIntersectingTags(NormalizedSnapshotSpanCollection spans, TagSpanIntervalTree<IClassificationTag> cachedTags)
-            => SegmentedListPool<ITagSpan<IClassificationTag>>.ComputeList(
+        private static IReadOnlyList<TagSpan<IClassificationTag>> GetIntersectingTags(NormalizedSnapshotSpanCollection spans, TagSpanIntervalTree<IClassificationTag> cachedTags)
+            => SegmentedListPool<TagSpan<IClassificationTag>>.ComputeList(
                 static (args, tags) => args.cachedTags.AddIntersectingTagSpans(args.spans, tags),
                 (cachedTags, spans));
 
-        public IEnumerable<ITagSpan<IClassificationTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
+        IEnumerable<ITagSpan<IClassificationTag>> IAccurateTagger<IClassificationTag>.GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
+            => GetAllTags(spans, cancellationToken);
+
+        public IEnumerable<TagSpan<IClassificationTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
         {
             if (spans.Count == 0)
                 return [];
@@ -126,7 +128,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             }
         }
 
-        private IEnumerable<ITagSpan<IClassificationTag>> ComputeAndCacheAllTags(
+        private IEnumerable<TagSpan<IClassificationTag>> ComputeAndCacheAllTags(
             NormalizedSnapshotSpanCollection spans,
             ITextSnapshot snapshot,
             Document document,
@@ -139,7 +141,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             var options = _globalOptions.GetClassificationOptions(document.Project.Language);
 
             // Final list of tags to produce, containing syntax/semantic/embedded classification tags.
-            using var _ = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var mergedTags);
+            using var _ = SegmentedListPool.GetPooledList<TagSpan<IClassificationTag>>(out var mergedTags);
 
             _owner._threadingContext.JoinableTaskFactory.Run(async () =>
             {
@@ -157,8 +159,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                     arg: default).ConfigureAwait(false);
             });
 
-            var cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, mergedTags);
-
+            var cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot, SpanTrackingMode.EdgeExclusive, mergedTags);
             lock (_gate)
             {
                 _cachedTaggedSpan = spanToTag;
@@ -167,7 +168,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
 
             return GetIntersectingTags(spans, cachedTags);
 
-            Func<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, VoidResult, Task> GetTaggingFunction(
+            Func<NormalizedSnapshotSpanCollection, SegmentedList<TagSpan<IClassificationTag>>, VoidResult, Task> GetTaggingFunction(
                 bool requireSingleSpan, Func<TextSpan, SegmentedList<ClassifiedSpan>, Task> addTagsAsync)
             {
                 Contract.ThrowIfTrue(requireSingleSpan && spans.Count != 1, "We should only be asking for a single span");
@@ -176,7 +177,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
 
             async Task AddSpansAsync(
                 NormalizedSnapshotSpanCollection spans,
-                SegmentedList<ITagSpan<IClassificationTag>> result,
+                SegmentedList<TagSpan<IClassificationTag>> result,
                 Func<TextSpan, SegmentedList<ClassifiedSpan>, Task> addAsync)
             {
                 // temp buffer we can use across all our classification calls.  Should be cleared between each call.

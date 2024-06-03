@@ -1231,6 +1231,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // a diagnostic has been reported by ReportDelegateOrFunctionPointerMethodGroupDiagnostics
                 }
+                else if (argument.Kind == BoundKind.UnconvertedCollectionExpression)
+                {
+                    binder.GenerateImplicitConversionErrorForCollectionExpression((BoundUnconvertedCollectionExpression)argument, parameterType, diagnostics);
+                }
                 else
                 {
                     // There's no symbol for the argument, so we don't need a SymbolDistinguisher.

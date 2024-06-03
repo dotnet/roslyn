@@ -18,19 +18,17 @@ internal static class CodeRefactoringHelpers
     /// Determines if a <paramref name="node"/> is under-selected given <paramref name="selection"/>.
     /// </para>
     /// <para>
-    /// Under-selection is defined as omitting whole nodes from either the beginning or the end. It can be used e.g.
-    /// to detect that following selection `1 + [|2 + 3|]` is under-selecting the whole expression node tree.
+    /// Under-selection is defined as omitting whole nodes from either the beginning or the end. It can be used e.g. to
+    /// detect that following selection `1 + [|2 + 3|]` is under-selecting the whole expression node tree.
     /// </para>
     /// <para>
     /// Returns false if only and precisely one <see cref="SyntaxToken"/> is selected. In that case the <paramref
     /// name="selection"/> is treated more as a caret location.
     /// </para>
     /// <para>
-    /// It's intended to be used in conjunction with <see
-    /// cref="IRefactoringHelpersService.GetRelevantNodesAsync{TSyntaxNode}(Document, TextSpan, bool,
-    /// CancellationToken)"/> that, for non-empty selections, returns the smallest encompassing node. A node that
-    /// can, for certain refactorings, be too large given user-selection even though it is the smallest that can be
-    /// retrieved.
+    /// It's intended to be used in conjunction with <see cref="IRefactoringHelpersService.AddRelevantNodes"/> that, for
+    /// non-empty selections, returns the smallest encompassing node. A node that can, for certain refactorings, be too
+    /// large given user-selection even though it is the smallest that can be retrieved.
     /// </para>
     /// <para>
     /// When <paramref name="selection"/> doesn't intersect the node in any way it's not considered to be
@@ -105,26 +103,20 @@ internal static class CodeRefactoringHelpers
     /// Returns unchanged <paramref name="span"/> in case <see cref="TextSpan.IsEmpty"/>.
     /// Returns empty Span with original <see cref="TextSpan.Start"/> in case it contains only whitespace.
     /// </remarks>
-    public static async Task<TextSpan> GetTrimmedTextSpanAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+    public static TextSpan GetTrimmedTextSpan(ParsedDocument document, TextSpan span)
     {
         if (span.IsEmpty)
-        {
             return span;
-        }
 
-        var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = document.Text;
         var start = span.Start;
         var end = span.End;
 
         while (start < end && char.IsWhiteSpace(sourceText[end - 1]))
-        {
             end--;
-        }
 
         while (start < end && char.IsWhiteSpace(sourceText[start]))
-        {
             start++;
-        }
 
         return TextSpan.FromBounds(start, end);
     }

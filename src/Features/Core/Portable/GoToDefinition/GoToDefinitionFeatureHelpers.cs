@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -48,10 +45,9 @@ internal static class GoToDefinitionFeatureHelpers
 
         symbol = definition ?? symbol;
 
-        // If it is a partial method declaration with no body, choose to go to the implementation
-        // that has a method body.
-        if (symbol is IMethodSymbol method)
-            symbol = method.PartialImplementationPart ?? symbol;
+        // If symbol has a partial implementation part, prefer to go to it, since that is where the body is.
+        symbol = (symbol as IMethodSymbol)?.PartialImplementationPart ?? symbol;
+        symbol = (symbol as IPropertySymbol)?.PartialImplementationPart ?? symbol;
 
         return symbol;
     }

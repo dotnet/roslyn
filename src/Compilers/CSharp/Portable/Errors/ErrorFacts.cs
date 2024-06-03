@@ -558,6 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
+                case ErrorCode.WRN_PartialPropertySignatureDifference:
 
                     return 1;
                 default:
@@ -1073,18 +1074,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator
                 or ErrorCode.ERR_InvalidInitializerElementInitializer
                 or ErrorCode.ERR_InconsistentLambdaParameterUsage
-                or ErrorCode.ERR_PartialMethodInvalidModifier
-                or ErrorCode.ERR_PartialMethodOnlyInPartialClass
-                or ErrorCode.ERR_PartialMethodNotExplicit
+                or ErrorCode.ERR_PartialMemberCannotBeAbstract
+                or ErrorCode.ERR_PartialMemberOnlyInPartialClass
+                or ErrorCode.ERR_PartialMemberNotExplicit
                 or ErrorCode.ERR_PartialMethodExtensionDifference
                 or ErrorCode.ERR_PartialMethodOnlyOneLatent
                 or ErrorCode.ERR_PartialMethodOnlyOneActual
-                or ErrorCode.ERR_PartialMethodParamsDifference
+                or ErrorCode.ERR_PartialMemberParamsDifference
                 or ErrorCode.ERR_PartialMethodMustHaveLatent
                 or ErrorCode.ERR_PartialMethodInconsistentConstraints
                 or ErrorCode.ERR_PartialMethodToDelegate
-                or ErrorCode.ERR_PartialMethodStaticDifference
-                or ErrorCode.ERR_PartialMethodUnsafeDifference
+                or ErrorCode.ERR_PartialMemberStaticDifference
+                or ErrorCode.ERR_PartialMemberUnsafeDifference
                 or ErrorCode.ERR_PartialMethodInExpressionTree
                 or ErrorCode.ERR_ExplicitImplCollisionOnRefOut
                 or ErrorCode.ERR_IndirectRecursiveConstructorCall
@@ -1747,7 +1748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CantChangeTupleNamesOnOverride
                 or ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList
                 or ErrorCode.ERR_ImplBadTupleNames
-                or ErrorCode.ERR_PartialMethodInconsistentTupleNames
+                or ErrorCode.ERR_PartialMemberInconsistentTupleNames
                 or ErrorCode.ERR_ExpressionTreeContainsTupleLiteral
                 or ErrorCode.ERR_ExpressionTreeContainsTupleConversion
                 or ErrorCode.ERR_AutoPropertyCannotBeRefReturning
@@ -1840,7 +1841,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_FieldsInRoStruct
                 or ErrorCode.ERR_AutoPropsInRoStruct
                 or ErrorCode.ERR_FieldlikeEventsInRoStruct
-                or ErrorCode.ERR_RefStructInterfaceImpl
                 or ErrorCode.ERR_BadSpecialByRefIterator
                 or ErrorCode.ERR_FieldAutoPropCantBeByRefLike
                 or ErrorCode.ERR_StackAllocConversionNotPossible
@@ -1984,7 +1984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InvalidPropertyReadOnlyMods
                 or ErrorCode.ERR_DuplicatePropertyReadOnlyMods
                 or ErrorCode.ERR_FieldLikeEventCantBeReadOnly
-                or ErrorCode.ERR_PartialMethodReadOnlyDifference
+                or ErrorCode.ERR_PartialMemberReadOnlyDifference
                 or ErrorCode.ERR_ReadOnlyModMissingAccessor
                 or ErrorCode.ERR_OverrideRefConstraintNotSatisfied
                 or ErrorCode.ERR_OverrideValConstraintNotSatisfied
@@ -2054,8 +2054,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods
                 or ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods
                 or ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods
-                or ErrorCode.ERR_PartialMethodAccessibilityDifference
-                or ErrorCode.ERR_PartialMethodExtendedModDifference
+                or ErrorCode.ERR_PartialMemberAccessibilityDifference
+                or ErrorCode.ERR_PartialMemberExtendedModDifference
                 or ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement
                 or ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements
                 or ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType
@@ -2073,7 +2073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid
                 or ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric
                 or ErrorCode.ERR_PartialMethodReturnTypeDifference
-                or ErrorCode.ERR_PartialMethodRefReturnDifference
+                or ErrorCode.ERR_PartialMemberRefReturnDifference
                 or ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial
                 or ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable
                 or ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis
@@ -2437,6 +2437,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_BadYieldInLock
                 or ErrorCode.ERR_BadYieldInUnsafe
                 or ErrorCode.ERR_AddressOfInIterator
+                or ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics
+                or ErrorCode.ERR_RefStructConstraintAlreadySpecified
+                or ErrorCode.ERR_AllowsClauseMustBeLast
+                or ErrorCode.ERR_ClassIsCombinedWithRefStruct
+                or ErrorCode.ERR_NotRefStructConstraintNotSatisfied
+                or ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember
+                or ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike
+                or ErrorCode.ERR_BadAllowByRefLikeEnumerator
+                or ErrorCode.ERR_PartialPropertyMissingImplementation
+                or ErrorCode.ERR_PartialPropertyMissingDefinition
+                or ErrorCode.ERR_PartialPropertyDuplicateDefinition
+                or ErrorCode.ERR_PartialPropertyDuplicateImplementation
+                or ErrorCode.ERR_PartialPropertyMissingAccessor
+                or ErrorCode.ERR_PartialPropertyUnexpectedAccessor
+                or ErrorCode.ERR_PartialPropertyInitMismatch
+                or ErrorCode.ERR_PartialPropertyTypeDifference
+                or ErrorCode.WRN_PartialPropertySignatureDifference
+                or ErrorCode.ERR_PartialPropertyRequiredDifference
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (isMethodBody)
                 {
-                    Debug.Assert(_lazyPreviousContextVariables?.IsEmpty() != false);
+                    Debug.Assert(_lazyPreviousContextVariables?.IsEmpty != false);
                     _lazyPreviousContextVariables?.Free();
                     _lazyPreviousContextVariables = null;
                 }
@@ -236,6 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUnmanaged,
                     _ when variableType.IsRefLikeType && !hasOverriddenToString(variableType)
                         => null, // not possible to invoke ToString on ref struct that doesn't override it
+                    _ when variableType is TypeParameterSymbol { AllowsRefLikeType: true }
+                        => null, // not possible to invoke ToString on ref struct type parameter
                     _ when variableType.TypeKind is TypeKind.Struct
                         // we'll emit ToString constrained virtcall to avoid boxing the struct
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreString,

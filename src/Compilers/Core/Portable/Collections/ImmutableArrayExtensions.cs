@@ -764,19 +764,6 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        internal static bool HasAnyErrors<T>(this ImmutableArray<T> diagnostics) where T : Diagnostic
-        {
-            foreach (var diagnostic in diagnostics)
-            {
-                if (diagnostic.Severity == DiagnosticSeverity.Error)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         // In DEBUG, swap the first and last elements of a read-only array, yielding a new read only array.
         // This helps to avoid depending on accidentally sorted arrays.
         internal static ImmutableArray<T> ConditionallyDeOrder<T>(this ImmutableArray<T> array)
@@ -1034,8 +1021,8 @@ namespace Microsoft.CodeAnalysis
             where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
             where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
         {
-            foreach (var (name, value) in dictionary)
-                result.Add(name, createMembers(value));
+            foreach (var entry in dictionary)
+                result.Add(entry.Key, createMembers(entry.Value));
 
             return;
 
@@ -1076,11 +1063,11 @@ namespace Microsoft.CodeAnalysis
 
             var dictionary = new Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>>(capacity, comparer);
 
-            foreach (var (name, members) in map)
+            foreach (var entry in map)
             {
-                var namedTypes = getOrCreateNamedTypes(members);
+                var namedTypes = getOrCreateNamedTypes(entry.Value);
                 if (namedTypes.Length > 0)
-                    dictionary.Add(name, namedTypes);
+                    dictionary.Add(entry.Key, namedTypes);
             }
 
             return dictionary;

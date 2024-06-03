@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -69,15 +68,15 @@ internal class StreamingProgressCollector(
         }
     }
 
-    public ValueTask OnReferencesFoundAsync(
+    public async ValueTask OnReferencesFoundAsync(
         ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
     {
         lock (_gate)
         {
-            foreach (var (_, definition, location) in references)
-                _symbolToLocations[definition].Add(location);
+            foreach (var tuple in references)
+                _symbolToLocations[tuple.symbol].Add(tuple.location);
         }
 
-        return underlyingProgress.OnReferencesFoundAsync(references, cancellationToken);
+        await underlyingProgress.OnReferencesFoundAsync(references, cancellationToken).ConfigureAwait(false);
     }
 }

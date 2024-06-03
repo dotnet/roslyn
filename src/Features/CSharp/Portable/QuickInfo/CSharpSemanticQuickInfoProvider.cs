@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -142,6 +142,13 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
 
         if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
             !await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        // Checks to see if there have been any files excluded at the workspace level
+        // since the copilot service passes along symbol information.
+        if (await copilotService.IsAnyExclusionAsync(cancellationToken).ConfigureAwait(false))
         {
             return null;
         }

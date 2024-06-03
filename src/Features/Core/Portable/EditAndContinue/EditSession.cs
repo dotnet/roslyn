@@ -570,7 +570,7 @@ internal sealed class EditSession
             }
 
             // rude edits detected:
-            if (!analysis.RudeEditErrors.IsEmpty)
+            if (analysis.HasBlockingRudeEdits)
             {
                 return ProjectAnalysisSummary.RudeEdits;
             }
@@ -805,6 +805,12 @@ internal sealed class EditSession
             var hasEmitErrors = false;
             foreach (var newProject in solution.Projects)
             {
+                if (newProject.FilePath == null)
+                {
+                    log.Write("Skipping project '{0}' without a file path", newProject.Id);
+                    continue;
+                }
+
                 var oldProject = oldSolution.GetProject(newProject.Id);
                 if (oldProject == null)
                 {
@@ -825,7 +831,7 @@ internal sealed class EditSession
                 }
 
                 await PopulateChangedAndAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
-                if (changedOrAddedDocuments.IsEmpty())
+                if (changedOrAddedDocuments.IsEmpty)
                 {
                     continue;
                 }
@@ -914,16 +920,17 @@ internal sealed class EditSession
                 }
                 else if (projectSummary == ProjectAnalysisSummary.RudeEdits)
                 {
-                    foreach (var analysis in changedDocumentAnalyses)
-                    {
-                        if (analysis.RudeEditErrors.Length > 0)
-                        {
-                            documentsWithRudeEdits.Add((analysis.DocumentId, analysis.RudeEditErrors));
-                            Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors, newProject.State.Attributes.TelemetryId);
-                        }
-                    }
-
                     isBlocked = true;
+                }
+
+                // Report rude edit diagnostics - these can be blocking (errors) or non-blocking (warnings):
+                foreach (var analysis in changedDocumentAnalyses)
+                {
+                    if (!analysis.RudeEdits.IsEmpty)
+                    {
+                        documentsWithRudeEdits.Add((analysis.DocumentId, analysis.RudeEdits));
+                        Telemetry.LogRudeEditDiagnostics(analysis.RudeEdits, newProject.State.Attributes.TelemetryId);
+                    }
                 }
 
                 if (isModuleEncBlocked || projectSummary != ProjectAnalysisSummary.ValidChanges)
@@ -1048,6 +1055,7 @@ internal sealed class EditSession
                         var delta = new ManagedHotReloadUpdate(
                             mvid,
                             newCompilation.AssemblyName ?? newProject.Name, // used for display in debugger diagnostics
+                            newProject.Id,
                             ilStream.ToImmutableArray(),
                             metadataStream.ToImmutableArray(),
                             pdbStream.ToImmutableArray(),

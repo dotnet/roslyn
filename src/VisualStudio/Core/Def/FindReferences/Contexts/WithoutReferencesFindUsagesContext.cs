@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Options;
@@ -63,8 +62,8 @@ internal partial class StreamingFindUsagesPresenter
 
             lock (Gate)
             {
-                EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.Add(entry);
-                EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.Add(entry);
+                EntriesWhenGroupingByDefinition.Add(entry);
+                EntriesWhenNotGroupingByDefinition.Add(entry);
                 CurrentVersionNumber++;
             }
 
@@ -108,8 +107,8 @@ internal partial class StreamingFindUsagesPresenter
             {
                 lock (Gate)
                 {
-                    EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.AddRange(entries);
-                    EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.AddRange(entries);
+                    AddRange(EntriesWhenGroupingByDefinition, entries);
+                    AddRange(EntriesWhenNotGroupingByDefinition, entries);
                     CurrentVersionNumber++;
                 }
 
