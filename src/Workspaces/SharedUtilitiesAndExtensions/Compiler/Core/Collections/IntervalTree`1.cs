@@ -50,6 +50,17 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         return result;
     }
 
+    /// <summary>
+    /// Creates an interval tree from a sorted list of values.  This is more efficient than creating from an unsorted
+    /// list as building doesn't need to figure out where the nodes need to go n-log(n) and doesn't have to rebalance
+    /// anything (again, another n-log(n) operation).  Rebalancing is particularly expensive as it involves tons of
+    /// pointer chasing operations, which is both slow, and which impacts the GC which has to track all those writes.
+    /// </summary>
+    /// <remarks>
+    /// The values must be sorted such that given any two elements 'a' and 'b' in the list, if 'a' comes before 'b' in
+    /// the list, then it's "start position" (as determined by the introspector) must be less than or equal to 'b's
+    /// start position.  This is a requirement for the algorithm to work correctly.
+    /// </remarks>
     public static IntervalTree<T> CreateFromSorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
