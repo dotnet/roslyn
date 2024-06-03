@@ -67,7 +67,7 @@ internal static class CodeRefactoringContextExtensions
     public static TSyntaxNode? TryGetRelevantNode<TSyntaxNode>(this ParsedDocument document, TextSpan span, bool allowEmptyNode, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
         using var result = TemporaryArray<TSyntaxNode>.Empty;
-        AddRelevantNodes(document, span, allowEmptyNode, stopOnFirst: true, ref result.AsRef(), cancellationToken);
+        AddRelevantNodes(document, span, allowEmptyNode, maxCount: 1, ref result.AsRef(), cancellationToken);
         return result.FirstOrDefault();
     }
 
@@ -92,15 +92,15 @@ internal static class CodeRefactoringContextExtensions
         this ParsedDocument document, TextSpan span, bool allowEmptyNodes, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
         using var result = TemporaryArray<TSyntaxNode>.Empty;
-        AddRelevantNodes(document, span, allowEmptyNodes, stopOnFirst: false, ref result.AsRef(), cancellationToken);
+        AddRelevantNodes(document, span, allowEmptyNodes, maxCount: int.MaxValue, ref result.AsRef(), cancellationToken);
 
         return result.ToImmutableAndClear();
     }
 
     private static void AddRelevantNodes<TSyntaxNode>(
-        this ParsedDocument document, TextSpan span, bool allowEmptyNodes, bool stopOnFirst, ref TemporaryArray<TSyntaxNode> result, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
+        this ParsedDocument document, TextSpan span, bool allowEmptyNodes, int maxCount, ref TemporaryArray<TSyntaxNode> result, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
     {
         var helpers = document.LanguageServices.GetRequiredService<IRefactoringHelpersService>();
-        helpers.AddRelevantNodes(document, span, allowEmptyNodes, stopOnFirst, ref result, cancellationToken);
+        helpers.AddRelevantNodes(document, span, allowEmptyNodes, maxCount, ref result, cancellationToken);
     }
 }

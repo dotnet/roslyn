@@ -54,5 +54,5 @@ internal interface IRefactoringHelpersService : IHeaderFactsService, ILanguageSe
     /// </para>
     /// </summary>
     void AddRelevantNodes<TSyntaxNode>(
-        ParsedDocument document, TextSpan selection, bool allowEmptyNodes, bool stopOnFirst, ref TemporaryArray<TSyntaxNode> result, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
+        ParsedDocument document, TextSpan selection, bool allowEmptyNodes, int maxCount, ref TemporaryArray<TSyntaxNode> result, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode;
 }
