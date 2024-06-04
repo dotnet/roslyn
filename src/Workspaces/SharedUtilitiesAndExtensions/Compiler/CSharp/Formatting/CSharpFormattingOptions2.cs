@@ -274,6 +274,15 @@ internal static partial class CSharpFormattingOptions2
         CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BetweenQueryExpressionClauses))
         .WithPublicOption(PublicFeatureName, "NewLineForClausesInQuery");
 
+    /// <summary>
+    /// Internal option -- not exposed to editorconfig tooling via <see cref="AllOptions"/>.
+    /// </summary>
+    public static readonly Option2<int> CollectionExpressionWrappingLength = new(
+        $"csharp_internal_collection_expression_wrapping_length",
+        defaultValue: 120,
+        languageName: LanguageNames.CSharp,
+        isEditorConfigOption: true);
+
     static CSharpFormattingOptions2()
     {
         // Note that the static constructor executes after all the static field initializers for the options have executed,

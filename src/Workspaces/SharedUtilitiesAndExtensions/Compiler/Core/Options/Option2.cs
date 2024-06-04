@@ -67,7 +67,7 @@ internal partial class Option2<T> : ISingleValuedOption<T>
             return;
         }
 
-        Debug.Assert(LanguageName is null == (Definition.ConfigName.StartsWith("dotnet_", StringComparison.Ordinal) ||
+        Debug.Assert(LanguageName is null == (Definition.ConfigName.StartsWith(OptionDefinition.LanguageAgnosticConfigNamePrefix, StringComparison.Ordinal) ||
             Definition.ConfigName is "file_header_template" or "insert_final_newline"));
         Debug.Assert(LanguageName is LanguageNames.CSharp == Definition.ConfigName.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
         Debug.Assert(LanguageName is LanguageNames.VisualBasic == Definition.ConfigName.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));

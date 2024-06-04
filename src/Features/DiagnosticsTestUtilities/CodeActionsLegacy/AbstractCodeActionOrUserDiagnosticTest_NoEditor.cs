@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// editorconfig options.
             /// </summary>
             internal readonly OptionsCollectionAlias options;
-            internal readonly OptionsCollectionAlias globalOptions;
             internal readonly TestHost testHost;
             internal readonly string workspaceKind;
             internal readonly object fixProviderData;
@@ -191,17 +190,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 AddAnalyzerConfigDocumentWithOptions(workspace, parameters.options);
             }
 
-#if !CODE_STYLE
-#pragma warning disable RS0030 // Do not use banned APIs (IGlobalOptionService)
-            if (parameters.globalOptions != null)
-            {
-                foreach (var (optionKey, value) in parameters.globalOptions.Options)
-                {
-                    workspace.GlobalOptions.SetGlobalOption(optionKey, value);
-                }
-            }
-#pragma warning restore
-#endif
             return workspace;
         }
 
