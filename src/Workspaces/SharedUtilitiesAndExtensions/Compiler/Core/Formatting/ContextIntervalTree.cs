@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Formatting;
 /// it now has an ability to return a smallest span that contains a position rather than
 /// all Intersecting or overlapping spans
 /// </summary>
-internal class ContextIntervalTree<T, TIntrospector> : SimpleIntervalTree<T, TIntrospector>
+internal class ContextIntervalTree<T, TIntrospector> : SimpleBinaryIntervalTree<T, TIntrospector>
     where TIntrospector : struct, IIntervalIntrospector<T>
 {
     private readonly Func<T, int, int, bool> _edgeExclusivePredicate;

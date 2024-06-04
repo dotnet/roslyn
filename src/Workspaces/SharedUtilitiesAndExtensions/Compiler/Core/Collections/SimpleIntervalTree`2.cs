@@ -7,12 +7,12 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
-internal class SimpleIntervalTree<T, TIntrospector> : IntervalTree<T>
+internal class SimpleBinaryIntervalTree<T, TIntrospector> : BinaryIntervalTree<T>
     where TIntrospector : struct, IIntervalIntrospector<T>
 {
     private readonly TIntrospector _introspector;
 
-    public SimpleIntervalTree(in TIntrospector introspector, IEnumerable<T>? values)
+    public SimpleBinaryIntervalTree(in TIntrospector introspector, IEnumerable<T>? values)
     {
         _introspector = introspector;
 

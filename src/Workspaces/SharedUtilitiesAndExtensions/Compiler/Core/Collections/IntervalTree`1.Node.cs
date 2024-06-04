@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
-internal partial class IntervalTree<T>
+internal partial class BinaryIntervalTree<T>
 {
     protected sealed class Node
     {

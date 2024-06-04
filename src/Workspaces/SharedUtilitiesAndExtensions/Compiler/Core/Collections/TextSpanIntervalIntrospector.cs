@@ -14,7 +14,7 @@ internal readonly struct TextSpanIntervalIntrospector : IIntervalIntrospector<Te
 }
 
 internal sealed class TextSpanIntervalTree(IEnumerable<TextSpan>? values)
-    : SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), values)
+    : SimpleBinaryIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), values)
 {
     public TextSpanIntervalTree() : this(null)
     {

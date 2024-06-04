@@ -22,12 +22,12 @@ public sealed class IntervalTreeTests
             => new(value.Item1, value.Item2);
     }
 
-    private static IEnumerable<SimpleIntervalTree<Tuple<int, int, string>, TupleIntrospector<string>>> CreateTrees(params Tuple<int, int, string>[] values)
+    private static IEnumerable<SimpleBinaryIntervalTree<Tuple<int, int, string>, TupleIntrospector<string>>> CreateTrees(params Tuple<int, int, string>[] values)
         => CreateTrees((IEnumerable<Tuple<int, int, string>>)values);
 
-    private static IEnumerable<SimpleIntervalTree<Tuple<int, int, string>, TupleIntrospector<string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values)
+    private static IEnumerable<SimpleBinaryIntervalTree<Tuple<int, int, string>, TupleIntrospector<string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values)
     {
-        yield return SimpleIntervalTree.Create(new TupleIntrospector<string>(), values);
+        yield return BinaryIntervalTree.Create(new TupleIntrospector<string>(), values);
     }
 
     [Fact]
@@ -262,8 +262,8 @@ public sealed class IntervalTreeTests
             => new(value, 0);
     }
 
-    private static IntervalTree<int> CreateIntTree(params int[] values)
-        => IntervalTree<int>.Create(new Int32Introspector(), values);
+    private static BinaryIntervalTree<int> CreateIntTree(params int[] values)
+        => BinaryIntervalTree<int>.Create(new Int32Introspector(), values);
 
     [Fact]
     public void TestSortedEnumerable1()
@@ -302,7 +302,7 @@ public sealed class IntervalTreeTests
     [Fact]
     public void TestSortedEnumerable2()
     {
-        var tree = IntervalTree<int>.Create(new Int32Introspector(), new[] { 1, 0 });
+        var tree = BinaryIntervalTree<int>.Create(new Int32Introspector(), new[] { 1, 0 });
 
         Assert.Equal(tree, new[] { 0, 1 });
     }

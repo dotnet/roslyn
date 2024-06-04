@@ -251,7 +251,7 @@ internal static partial class ClassifierHelper
             }
         }
 
-        var semanticPartsTree = new SimpleIntervalTree<TClassifiedSpan, TClassifiedSpanIntervalIntrospector>(default, values: semanticSpans);
+        var semanticPartsTree = new SimpleBinaryIntervalTree<TClassifiedSpan, TClassifiedSpanIntervalIntrospector>(default, values: semanticSpans);
 
         using var tempBuffer = TemporaryArray<TClassifiedSpan>.Empty;
 

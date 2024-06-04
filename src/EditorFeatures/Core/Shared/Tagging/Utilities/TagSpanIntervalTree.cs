@@ -27,7 +27,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
     public static readonly TagSpanIntervalTree<TTag> Empty = new(SpanTrackingMode.EdgeInclusive);
 
     private readonly SpanTrackingMode _spanTrackingMode = spanTrackingMode;
-    private readonly IntervalTree<TagSpan<TTag>> _tree = IntervalTree<TagSpan<TTag>>.Empty;
+    private readonly BinaryIntervalTree<TagSpan<TTag>> _tree = BinaryIntervalTree<TagSpan<TTag>>.Empty;
 
     public TagSpanIntervalTree(
         ITextSnapshot textSnapshot,
@@ -39,7 +39,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
         // routines), and allows us to build the balanced tree directly without having to do any additional work.
         values.Sort(static (t1, t2) => t1.Span.Start.Position - t2.Span.Start.Position);
 
-        _tree = IntervalTree<TagSpan<TTag>>.CreateFromSorted(
+        _tree = BinaryIntervalTree<TagSpan<TTag>>.CreateFromSorted(
             new IntervalIntrospector(textSnapshot, trackingMode), values);
     }
 

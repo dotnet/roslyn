@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections;
 /// [start, end).  It allows you to efficiently find all intervals that intersect or overlap 
 /// a provided interval.
 /// </summary>
-internal partial class IntervalTree<T> : IEnumerable<T>
+internal partial class BinaryIntervalTree<T> : IEnumerable<T>
 {
-    public static readonly IntervalTree<T> Empty = new();
+    public static readonly BinaryIntervalTree<T> Empty = new();
 
     private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool = new(() => new(), trimOnFree: false);
 
@@ -36,10 +36,10 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
     protected Node? root;
 
-    public static IntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values = null)
+    public static BinaryIntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values = null)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        var result = new IntervalTree<T>();
+        var result = new BinaryIntervalTree<T>();
 
         if (values != null)
         {
@@ -61,7 +61,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     /// the list, then it's "start position" (as determined by the introspector) must be less than or equal to 'b's
     /// start position.  This is a requirement for the algorithm to work correctly.
     /// </remarks>
-    public static IntervalTree<T> CreateFromSorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
+    public static BinaryIntervalTree<T> CreateFromSorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
 #if DEBUG
@@ -72,7 +72,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         if (values.Count == 0)
             return Empty;
 
-        return new IntervalTree<T>
+        return new BinaryIntervalTree<T>
         {
             root = CreateFromSortedWorker(values, 0, values.Count, in introspector),
         };
