@@ -15,18 +15,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
-internal interface IIntervalTree<T>
-{
-    int FillWithIntervalsThatMatch<TIntrospector>(
-        int start, int length, TestInterval<T, TIntrospector> testInterval,
-        ref TemporaryArray<T> builder, in TIntrospector introspector,
-        bool stopAfterFirst)
-        where TIntrospector : struct, IIntervalIntrospector<T>;
-
-    bool Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>;
-}
-
 internal delegate bool TestInterval<T, TIntrospector>(T value, int start, int length, in TIntrospector introspector)
     where TIntrospector : struct, IIntervalIntrospector<T>;
 
