@@ -752,7 +752,27 @@ public partial class CodeGenerationTests
     }
 
     private static Func<SemanticModel, INamedTypeSymbol> GetTypeSymbol(Type type)
-        => GetTypeSymbol(type.FullName);
+    {
+        return semanticModel =>
+        {
+            if (semanticModel is null)
+                return null;
+
+            if (!type.IsGenericType || type.IsGenericTypeDefinition)
+            {
+                return semanticModel.Compilation.GetTypeByMetadataName(type.FullName);
+            }
+
+            var typeArguments = type.GenericTypeArguments.SelectAsArray(
+                argument => (ITypeSymbol)GetTypeSymbol(argument)(semanticModel));
+
+            var genericTypeDefinition = semanticModel.Compilation.GetTypeByMetadataName(type.GetGenericTypeDefinition().FullName);
+            return CodeGenerationSymbolMappingFactory.Instance.CreateConstructedNamedTypeSymbol(
+                (CodeGenerationNamedTypeSymbol)genericTypeDefinition.ToCodeGenerationSymbol(),
+                typeArguments,
+                typeMembers: ImmutableArray<CodeGenerationAbstractNamedTypeSymbol>.Empty);
+        };
+    }
 
     private static Func<SemanticModel, INamedTypeSymbol> GetTypeSymbol(string typeMetadataName)
         => s => s?.Compilation.GetTypeByMetadataName(typeMetadataName);

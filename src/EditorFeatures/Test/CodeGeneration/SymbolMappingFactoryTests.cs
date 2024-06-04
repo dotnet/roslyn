@@ -285,6 +285,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 Assert.Same(CodeGenerationType.KnownThirdValue, instance.ImplicitShadowValue);
                 Assert.Same(CodeGenerationType.KnownSecondValue, instance.SecondValue);
 
+                // The IEquatable<IInterface> implementation exists on both ICodeGenerationInterface and IInterface.
+                // Verify that the implementation is preserved during generation of the new type (a default
+                // implementation of a bool-returning method would return false for this call).
+                Assert.True(instance.Equals(instance));
+
                 // The new base interface has no mapping, so its members return default values even if another member
                 // with the same signature existed in the derived interface.
                 Assert.Null(((INewBaseInterface)instance).ExplicitShadowValue);
@@ -301,14 +306,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 object? AccidentalShadowValue { get; }
             }
 
-            public interface IInterface : INewBaseInterface
+            public interface IInterface : IEquatable<IInterface>, INewBaseInterface
             {
                 new object? ExplicitShadowValue { get; }
                 new object? ImplicitShadowValue { get; }
                 object? SecondValue { get; }
             }
 
-            internal interface ICodeGenerationInterface
+            internal interface ICodeGenerationInterface : IEquatable<IInterface>
             {
                 object? ExplicitShadowValue { get; }
                 object? ImplicitShadowValue { get; }
@@ -329,6 +334,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 object? ICodeGenerationInterface.SecondValue => KnownSecondValue;
 
                 public object? AccidentalShadowValue => KnownFourthValue;
+
+                public bool Equals(IInterface other)
+                    => this == other;
             }
 
             private sealed class Factory : SymbolMappingFactory

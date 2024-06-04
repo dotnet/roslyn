@@ -495,6 +495,18 @@ End Class";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        public async Task AddMethodToClassWithConstructedGenericReturnType()
+        {
+            var input = "Class [|C|]\n End Class";
+            var expected = @"Class C
+    Public Function M() As Action(Of Integer)
+    End Function
+End Class";
+            await TestAddMethodAsync(input, expected,
+                returnType: typeof(Action<int>));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddMethodToClassFromSourceSymbol()
         {
             var sourceGenerated = @"Public Class [|C2|]

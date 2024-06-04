@@ -523,6 +523,20 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        public async Task AddMethodToClassWithConstructedGenericReturnType()
+        {
+            var input = "class [|C|] { }";
+            var expected = @"class C
+{
+    public Action<int> M()
+    {
+    }
+}";
+            await TestAddMethodAsync(input, expected,
+                returnType: typeof(Action<int>));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddMethodToClassFromSourceSymbol()
         {
             var sourceGenerated = @"class [|C2|]
