@@ -1259,15 +1259,12 @@ public partial class UseObjectInitializerTests
     }
 
     [Theory]
-    [InlineData(8.0)]
-    [InlineData(9.0)]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/72094")]
-    public async Task TestWithConflictingSeverityConfigurationEntries(double analysisLevel)
+    public async Task TestWithConflictingSeverityConfigurationEntries(bool enabled)
     {
-        var expectFix = analysisLevel >= 9.0;
-
         string testCode, fixedCode;
-        if (expectFix)
+        if (enabled)
         {
             testCode =
                 """
@@ -1324,7 +1321,7 @@ public partial class UseObjectInitializerTests
             dotnet_style_object_initializer = true:suggestion
             dotnet_diagnostic.IDE0017.severity = none
 
-            build_property.EffectiveAnalysisLevelStyle = {analysisLevel}
+            build_property.EnableCodeStyleSeverity = {enabled}
             """;
 
         var test = new VerifyCS.Test
@@ -1352,9 +1349,8 @@ public partial class UseObjectInitializerTests
     }
 
     [Theory]
-    [InlineData(8.0)]
-    [InlineData(9.0)]
-    public async Task TestFallbackSeverityConfiguration(double analysisLevel)
+    [CombinatorialData]
+    public async Task TestFallbackSeverityConfiguration(bool enabled)
     {
         var testCode =
             """
@@ -1393,7 +1389,7 @@ public partial class UseObjectInitializerTests
             dotnet_style_object_initializer = true
             dotnet_diagnostic.IDE0017.severity = warning
 
-            build_property.EffectiveAnalysisLevelStyle = {analysisLevel}
+            build_property.EnableCodeStyleSeverity = {enabled}
             """;
 
         await new VerifyCS.Test
