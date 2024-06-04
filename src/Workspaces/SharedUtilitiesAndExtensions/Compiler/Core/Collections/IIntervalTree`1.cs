@@ -35,7 +35,7 @@ internal interface IIntervalTree<T>
     /// <summary>
     /// Practically equivalent to <see cref="FillWithIntervalsThatMatch{TIntrospector}"/> with a check that at least one
     /// item was found.  However, separated out as a separate method as implementations can often be more efficient just
-    /// answering this question, versus the more complex "full with intervals" question above.
+    /// answering this question, versus the more complex "fill with intervals" question above.
     /// </summary>
     bool Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>;
