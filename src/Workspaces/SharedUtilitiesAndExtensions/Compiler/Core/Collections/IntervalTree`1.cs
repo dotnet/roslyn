@@ -16,10 +16,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
 /// <summary>
-/// An interval tree represents an ordered tree data structure to store intervals of the form 
-/// [start, end).  It allows you to efficiently find all intervals that intersect or overlap 
-/// a provided interval.
+/// An interval tree represents an ordered tree data structure to store intervals of the form [start, end).  It allows
+/// you to efficiently find all intervals that intersect or overlap a provided interval.
 /// </summary>
+/// <remarks>
+/// Ths is the root type for all interval trees that store their data in a binary tree format.  This format is good for
+/// when mutation of the tree is expected, and a client wants to perform tests before and after such mutation.
+/// </remarks>
 internal partial class BinaryIntervalTree<T> : IEnumerable<T>, IIntervalTree<T>
 {
     public static readonly BinaryIntervalTree<T> Empty = new();
@@ -50,6 +53,9 @@ internal partial class BinaryIntervalTree<T> : IEnumerable<T>, IIntervalTree<T>
         return result;
     }
 
+    /// <summary>
+    /// Provides access to lots of common algorithms on this interval tree.
+    /// </summary>
     public IntervalTreeExtensions<T, BinaryIntervalTree<T>> Extensions => new(this);
 
     /// <summary>
