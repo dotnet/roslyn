@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
@@ -24,7 +25,7 @@ internal delegate bool TestInterval<T, TIntrospector>(T value, int start, int le
 /// built upon. Consumers of an interval tree should use <c>.Algorithms</c> on the instance to get access to a wealth of
 /// fast operations through the <see cref="IntervalTreeAlgorithms{T, TIntervalTree}"/> type.
 /// </summary>
-internal interface IIntervalTree<T>
+internal interface IIntervalTree<T> : IEnumerable<T>
 {
     /// <summary>
     /// Adds all intervals within the tree within the given start/length pair that match the given <paramref
@@ -305,6 +306,9 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
 
         return false;
     }
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
 
     public IEnumerator<T> GetEnumerator()
     {

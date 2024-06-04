@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
@@ -14,28 +15,27 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections;
 
-public sealed class IntervalTreeTests
+public abstract class IntervalTreeTests
 {
-    private readonly struct TupleIntrospector<T> : IIntervalIntrospector<Tuple<int, int, T>>
+    private protected readonly struct TupleIntrospector<T> : IIntervalIntrospector<Tuple<int, int, T>>
     {
         public TextSpan GetSpan(Tuple<int, int, T> value)
             => new(value.Item1, value.Item2);
     }
 
-    private static IEnumerable<SimpleBinaryIntervalTree<Tuple<int, int, string>, TupleIntrospector<string>>> CreateTrees(params Tuple<int, int, string>[] values)
+    private IEnumerable<IIntervalTree<Tuple<int, int, string>>> CreateTrees(params Tuple<int, int, string>[] values)
         => CreateTrees((IEnumerable<Tuple<int, int, string>>)values);
 
-    private static IEnumerable<SimpleBinaryIntervalTree<Tuple<int, int, string>, TupleIntrospector<string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values)
-    {
-        yield return BinaryIntervalTree.Create(new TupleIntrospector<string>(), values);
-    }
+    private protected abstract IEnumerable<IIntervalTree<Tuple<int, int, string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values);
+
+    private protected abstract ImmutableArray<Tuple<int, int, string>> GetIntervalsThatOverlapWith<T>(IIntervalTree<Tuple<int, int, string>> tree, int start, int length);
 
     [Fact]
     public void TestEmpty()
     {
         foreach (var tree in CreateTrees())
         {
-            var spans = tree.GetIntervalsThatOverlapWith(0, 1);
+            var spans = GetIntervalsThatOverlapWith(tree, 0, 1);
 
             Assert.Empty(spans);
         }
@@ -307,7 +307,7 @@ public sealed class IntervalTreeTests
         Assert.Equal(tree, new[] { 0, 1 });
     }
 
-    private static void TestOverlapsAndIntersects(IList<Tuple<int, int, string>> spans)
+    private void TestOverlapsAndIntersects(IList<Tuple<int, int, string>> spans)
     {
         foreach (var tree in CreateTrees(spans))
         {
@@ -344,4 +344,17 @@ public sealed class IntervalTreeTests
 
     private static IList<T> List<T>(params T[] values)
         => new List<T>(values);
+}
+
+public sealed class BinaryIntervalTreeTests : IntervalTreeTests
+{
+    private protected override IEnumerable<IIntervalTree<Tuple<int, int, string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values)
+    {
+        yield return BinaryIntervalTree.Create(new TupleIntrospector<string>(), values);
+    }
+
+    private protected override ImmutableArray<Tuple<int, int, string>> GetIntervalsThatOverlapWith(IIntervalTree<Tuple<int, int, string>> tree, int start, int length)
+    {
+        return ((BinaryIntervalTree<string>)tree).Algorithms.GetIntervalsThatOverlapWith(start, length, new TupleIntrospector<string>());
+    }
 }

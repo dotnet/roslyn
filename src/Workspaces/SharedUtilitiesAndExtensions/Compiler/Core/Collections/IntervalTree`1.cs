@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections;
 /// Ths is the root type for all interval trees that store their data in a binary tree format.  This format is good for
 /// when mutation of the tree is expected, and a client wants to perform tests before and after such mutation.
 /// </remarks>
-internal partial class BinaryIntervalTree<T> : IEnumerable<T>, IIntervalTree<T>
+internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
 {
     public static readonly BinaryIntervalTree<T> Empty = new();
 
