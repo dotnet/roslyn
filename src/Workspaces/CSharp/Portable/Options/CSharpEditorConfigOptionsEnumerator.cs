@@ -18,14 +18,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Options;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpEditorConfigOptionsEnumerator() : IEditorConfigOptionsEnumerator
 {
-    public IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetOptions()
+    public IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetOptions(bool includeUndocumented)
     {
-        foreach (var entry in EditorConfigOptionsEnumerator.GetLanguageAgnosticEditorConfigOptions())
+        foreach (var entry in EditorConfigOptionsEnumerator.GetLanguageAgnosticEditorConfigOptions(includeUndocumented))
         {
             yield return entry;
         }
 
-        yield return (CSharpWorkspaceResources.CSharp_Coding_Conventions, CSharpCodeStyleOptions.AllOptions);
-        yield return (CSharpWorkspaceResources.CSharp_Formatting_Rules, CSharpFormattingOptions2.AllOptions);
+        yield return (CSharpWorkspaceResources.CSharp_Coding_Conventions, CSharpCodeStyleOptions.EditorConfigOptions);
+        yield return (CSharpWorkspaceResources.CSharp_Formatting_Rules, CSharpFormattingOptions2.EditorConfigOptions);
+
+        if (includeUndocumented)
+        {
+            yield return (CSharpWorkspaceResources.CSharp_Formatting_Rules, CSharpFormattingOptions2.UndocumentedOptions);
+        }
     }
 }

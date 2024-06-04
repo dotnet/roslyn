@@ -65,8 +65,41 @@ internal sealed partial class FormattingOptions2
         group: FormattingOptionGroups.IndentationAndSpacing)
         .WithPublicOption(PublicFeatureName, "SmartIndent", static value => (PublicIndentStyle)value, static value => (IndentStyle)value);
 
+    /// <summary>
+    /// Default value of 120 was picked based on the amount of code in a github.com diff at 1080p.
+    /// That resolution is the most common value as per the last DevDiv survey as well as the latest
+    /// Steam hardware survey.  This also seems to a reasonable length default in that shorter
+    /// lengths can often feel too cramped for .NET languages, which are often starting with a
+    /// default indentation of at least 16 (for namespace, class, member, plus the final construct
+    /// indentation).
+    /// 
+    /// TODO: Currently the option has no storage and always has its default value. See https://github.com/dotnet/roslyn/pull/30422#issuecomment-436118696.
+    /// 
+    /// Internal option -- not exposed to tooling via <see cref="EditorConfigOptions"/>.
+    /// </summary>
+    public static readonly PerLanguageOption2<int> WrappingColumn = new(
+        $"dotnet_internal_wrapping_column",
+        defaultValue: 120,
+        isEditorConfigOption: true);
+
+    /// <summary>
+    /// Internal option -- not exposed to editorconfig tooling via <see cref="EditorConfigOptions"/>.
+    /// </summary>
+    public static readonly Option2<int> ConditionalExpressionWrappingLength = new(
+        $"dotnet_internal_conditional_expression_wrapping_length",
+        defaultValue: 120,
+        isEditorConfigOption: true);
+
 #if !CODE_STYLE
-    internal static readonly ImmutableArray<IOption2> Options = [UseTabs, TabSize, IndentationSize, NewLine, InsertFinalNewLine];
+    /// <summary>
+    /// Options that we expect the user to set in editorconfig.
+    /// </summary>
+    internal static readonly ImmutableArray<IOption2> EditorConfigOptions = [UseTabs, TabSize, IndentationSize, NewLine, InsertFinalNewLine];
+
+    /// <summary>
+    /// Options that can be set via editorconfig but we do not provide tooling support.
+    /// </summary>
+    internal static readonly ImmutableArray<IOption2> UndocumentedOptions = [WrappingColumn, ConditionalExpressionWrappingLength];
 #endif
 }
 

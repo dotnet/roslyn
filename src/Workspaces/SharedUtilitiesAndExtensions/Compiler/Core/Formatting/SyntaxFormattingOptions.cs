@@ -26,6 +26,8 @@ internal record class SyntaxFormattingOptions
     [DataMember] public LineFormattingOptions LineFormatting { get; init; } = LineFormattingOptions.Default;
     [DataMember] public bool SeparateImportDirectiveGroups { get; init; } = false;
     [DataMember] public AccessibilityModifiersRequired AccessibilityModifiersRequired { get; init; } = AccessibilityModifiersRequired.ForNonInterfaceMembers;
+    [DataMember] public int WrappingColumn { get; init; } = 120;
+    [DataMember] public int ConditionalExpressionWrappingLength { get; init; } = 120;
 
     private protected SyntaxFormattingOptions()
     {
@@ -36,6 +38,8 @@ internal record class SyntaxFormattingOptions
         LineFormatting = options.GetLineFormattingOptions(language, fallbackOptions.LineFormatting);
         SeparateImportDirectiveGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language, fallbackOptions.SeparateImportDirectiveGroups);
         AccessibilityModifiersRequired = options.GetOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, language, fallbackOptions.AccessibilityModifiersRequired);
+        WrappingColumn = options.GetOption(FormattingOptions2.WrappingColumn, language, fallbackOptions.WrappingColumn);
+        ConditionalExpressionWrappingLength = options.GetOption(FormattingOptions2.ConditionalExpressionWrappingLength, fallbackOptions.ConditionalExpressionWrappingLength);
     }
 
     public bool UseTabs => LineFormatting.UseTabs;
