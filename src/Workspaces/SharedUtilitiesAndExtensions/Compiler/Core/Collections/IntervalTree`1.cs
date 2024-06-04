@@ -104,8 +104,7 @@ internal partial class BinaryIntervalTree<T> : IEnumerable<T>, IIntervalTree<T>
         return node;
     }
 
-    public bool Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
+    bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
     {
         // Inlined version of FillWithIntervalsThatMatch, optimized to do less work and stop once it finds a match.
         if (root is null)
@@ -135,12 +134,10 @@ internal partial class BinaryIntervalTree<T> : IEnumerable<T>, IIntervalTree<T>
         return false;
     }
 
-    /// <returns>The number of matching intervals found by the method.</returns>
-    public int FillWithIntervalsThatMatch<TIntrospector>(
+    int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector>(
         int start, int length, TestInterval<T, TIntrospector> testInterval,
         ref TemporaryArray<T> builder, in TIntrospector introspector,
         bool stopAfterFirst)
-        where TIntrospector : struct, IIntervalIntrospector<T>
     {
         if (root == null)
             return 0;

@@ -25,6 +25,7 @@ internal interface IIntervalTree<T>
     /// name="stopAfterFirst"/> indicates if the search should stop after the first interval is found.  Results will be
     /// returned in a sorted order based on the start point of the interval.
     /// </summary>
+    /// <returns>The number of matching intervals found by the method.</returns>
     int FillWithIntervalsThatMatch<TIntrospector>(
         int start, int length, TestInterval<T, TIntrospector> testInterval,
         ref TemporaryArray<T> builder, in TIntrospector introspector,
