@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -35,24 +36,69 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
     protected Node? root;
 
-    public static IntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values1 = null, IEnumerable<T>? values2 = null)
+    public static IntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values = null)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var result = new IntervalTree<T>();
 
-        AddAll(in introspector, values1);
-        AddAll(in introspector, values2);
+        if (values != null)
+        {
+            foreach (var value in values)
+                result.root = Insert(result.root, new Node(value), in introspector);
+        }
 
         return result;
+    }
 
-        void AddAll(in TIntrospector introspector, IEnumerable<T>? values)
+    /// <summary>
+    /// Creates an interval tree from a sorted list of values.  This is more efficient than creating from an unsorted
+    /// list as building doesn't need to figure out where the nodes need to go n-log(n) and doesn't have to rebalance
+    /// anything (again, another n-log(n) operation).  Rebalancing is particularly expensive as it involves tons of
+    /// pointer chasing operations, which is both slow, and which impacts the GC which has to track all those writes.
+    /// </summary>
+    /// <remarks>
+    /// The values must be sorted such that given any two elements 'a' and 'b' in the list, if 'a' comes before 'b' in
+    /// the list, then it's "start position" (as determined by the introspector) must be less than or equal to 'b's
+    /// start position.  This is a requirement for the algorithm to work correctly.
+    /// </remarks>
+    public static IntervalTree<T> CreateFromSorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
+        where TIntrospector : struct, IIntervalIntrospector<T>
+    {
+#if DEBUG
+        var localIntrospector = introspector;
+        Debug.Assert(values.IsSorted(Comparer<T>.Create((t1, t2) => localIntrospector.GetSpan(t1).Start - localIntrospector.GetSpan(t2).Start)));
+#endif
+
+        if (values.Count == 0)
+            return Empty;
+
+        return new IntervalTree<T>
         {
-            if (values != null)
-            {
-                foreach (var value in values)
-                    result.root = Insert(result.root, new Node(value), in introspector);
-            }
-        }
+            root = CreateFromSortedWorker(values, 0, values.Count, in introspector),
+        };
+    }
+
+    private static Node? CreateFromSortedWorker<TIntrospector>(
+        SegmentedList<T> values, int startInclusive, int endExclusive, in TIntrospector introspector) where TIntrospector : struct, IIntervalIntrospector<T>
+    {
+        var length = endExclusive - startInclusive;
+        if (length <= 0)
+            return null;
+
+        var mid = startInclusive + (length >> 1);
+        var node = new Node(values[mid]);
+        node.SetLeftRight(
+            CreateFromSortedWorker(values, startInclusive, mid, in introspector),
+            CreateFromSortedWorker(values, mid + 1, endExclusive, in introspector),
+            in introspector);
+
+        // Everything is sorted, and we're always building a node up from equal subtrees.  So we're never unbalanced
+        // enough to require balancing here.
+        var balanceFactor = BalanceFactor(node);
+        Debug.Assert(balanceFactor >= -1, "balanceFactor >= -1");
+        Debug.Assert(balanceFactor <= 1, "balanceFactor <= 1");
+
+        return node;
     }
 
     protected static bool Contains<TIntrospector>(T value, int start, int length, in TIntrospector introspector)

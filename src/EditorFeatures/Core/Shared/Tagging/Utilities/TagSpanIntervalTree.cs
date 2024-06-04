@@ -32,13 +32,15 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
     public TagSpanIntervalTree(
         ITextSnapshot textSnapshot,
         SpanTrackingMode trackingMode,
-        IEnumerable<TagSpan<TTag>>? values1 = null,
-        IEnumerable<TagSpan<TTag>>? values2 = null)
+        SegmentedList<TagSpan<TTag>> values)
         : this(trackingMode)
     {
-        _tree = IntervalTree.Create(
-            new IntervalIntrospector(textSnapshot, trackingMode),
-            values1, values2);
+        // Sort the values by their start position.  This is extremely fast (defer'ing to the runtime's sorting
+        // routines), and allows us to build the balanced tree directly without having to do any additional work.
+        values.Sort(static (t1, t2) => t1.Span.Start.Position - t2.Span.Start.Position);
+
+        _tree = IntervalTree<TagSpan<TTag>>.CreateFromSorted(
+            new IntervalIntrospector(textSnapshot, trackingMode), values);
     }
 
     private static SnapshotSpan GetTranslatedSpan(TagSpan<TTag> originalTagSpan, ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
