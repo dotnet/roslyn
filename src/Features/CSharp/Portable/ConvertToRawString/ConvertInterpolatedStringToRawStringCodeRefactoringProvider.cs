@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -477,15 +478,15 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
     private static (TextSpanIntervalTree interpolationInteriorSpans, TextSpanIntervalTree restrictedSpans) GetInterpolationSpans(
         InterpolatedStringExpressionSyntax stringExpression, CancellationToken cancellationToken)
     {
-        var interpolationInteriorSpans = new TextSpanIntervalTree();
-        var restrictedSpans = new TextSpanIntervalTree();
+        var interpolationInteriorSpans = new SegmentedList<TextSpan>();
+        var restrictedSpans = new SegmentedList<TextSpan>();
 
         SourceText? text = null;
         foreach (var content in stringExpression.Contents)
         {
             if (content is InterpolationSyntax interpolation)
             {
-                interpolationInteriorSpans.AddIntervalInPlace(TextSpan.FromBounds(interpolation.OpenBraceToken.Span.End, interpolation.CloseBraceToken.Span.Start));
+                interpolationInteriorSpans.Add(TextSpan.FromBounds(interpolation.OpenBraceToken.Span.End, interpolation.CloseBraceToken.Span.Start));
 
                 // We don't want to touch any nested strings within us, mark them as off limits.  note, we only care if
                 // the nested strings actually span multiple lines.  A nested string on a single line is safe to move
@@ -506,14 +507,14 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
                             var start = startLine.GetFirstNonWhitespacePosition() == descendantSpan.Start
                                 ? startLine.Start
                                 : descendantSpan.Start;
-                            restrictedSpans.AddIntervalInPlace(TextSpan.FromBounds(start, descendantSpan.End));
+                            restrictedSpans.Add(TextSpan.FromBounds(start, descendantSpan.End));
                         }
                     }
                 }
             }
         }
 
-        return (interpolationInteriorSpans, restrictedSpans);
+        return (new TextSpanIntervalTree(interpolationInteriorSpans), new TextSpanIntervalTree(restrictedSpans));
     }
 
     private static InterpolatedStringExpressionSyntax CleanInterpolatedString(
