@@ -19,8 +19,8 @@ internal delegate bool TestInterval<T, TIntrospector>(T value, int start, int le
 /// <summary>
 /// Base interface all interval trees need to implement to get full functionality.  Callers are not expected to use
 /// these methods directly.  Instead, they are the low level building blocks that the higher level extension methods are
-/// built upon. Consumers of an interface tree should use <c>.Algorithms</c> on the instance to get access to a wealth
-/// of fast operations through the <see cref="IntervalTreeAlgorithms{T, TIntervalTree}"/> type.
+/// built upon. Consumers of an interval tree should use <c>.Algorithms</c> on the instance to get access to a wealth of
+/// fast operations through the <see cref="IntervalTreeAlgorithms{T, TIntervalTree}"/> type.
 /// </summary>
 internal interface IIntervalTree<T>
 {
@@ -40,7 +40,7 @@ internal interface IIntervalTree<T>
     /// <summary>
     /// Practically equivalent to <see cref="FillWithIntervalsThatMatch{TIntrospector}"/> with a check that at least one
     /// item was found.  However, separated out as a separate method as implementations can often be more efficient just
-    /// answering this question, versus the more complex "full with intervals" question above.
+    /// answering this question, versus the more complex "fill with intervals" question above.
     /// </summary>
     bool Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>;
