@@ -426,6 +426,7 @@ namespace Analyzer.Utilities
         public const string SystemThreadingCancellationToken = "System.Threading.CancellationToken";
         public const string SystemThreadingInterlocked = "System.Threading.Interlocked";
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
+        public const string SystemThreadingSemaphoreSlim = "System.Threading.SemaphoreSlim";
         public const string SystemThreadingSpinLock = "System.Threading.SpinLock";
         public const string SystemThreadingTasksConfigureAwaitOptions = "System.Threading.Tasks.ConfigureAwaitOptions";
         public const string SystemThreadingTasksTaskAsyncEnumerableExtensions = "System.Threading.Tasks.TaskAsyncEnumerableExtensions";
