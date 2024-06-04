@@ -202,16 +202,15 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
             if (testInterval(node.Value, start, length, in introspector))
                 return true;
 
-            if (ShouldExamineRight(start, end, currentNodeIndex, in introspector, out var rightIndex))
+            if (ShouldExamineRight(array, start, end, currentNodeIndex, in introspector, out var rightIndex))
                 candidates.Push(rightIndex);
 
-            if (ShouldExamineLeft(start, currentNodeIndex, in introspector, out var leftIndex))
+            if (ShouldExamineLeft(array, start, currentNodeIndex, in introspector, out var leftIndex))
                 candidates.Push(leftIndex);
         }
 
         return false;
     }
-
 
     int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector>(
         int start, int length, TestInterval<T, TIntrospector> testInterval,
@@ -253,12 +252,12 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
                 // the node again, then the left side.  This time we mark the current node with 'false' to indicate that
                 // it's the second time we're seeing it the next time it comes around.
 
-                if (ShouldExamineRight(start, end, currentNodeIndex, in introspector, out var right))
+                if (ShouldExamineRight(array, start, end, currentNodeIndex, in introspector, out var right))
                     candidates.Push((right, firstTime: true));
 
                 candidates.Push((currentNodeIndex, firstTime: false));
 
-                if (ShouldExamineLeft(start, currentNodeIndex, in introspector, out var left))
+                if (ShouldExamineLeft(array, start, currentNodeIndex, in introspector, out var left))
                     candidates.Push((left, firstTime: true));
             }
         }
@@ -266,15 +265,16 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         return matches;
     }
 
-    private bool ShouldExamineRight<TIntrospector>(
-        int start, int end,
+    private static bool ShouldExamineRight<TIntrospector>(
+        SegmentedArray<Node> array,
+        int start,
+        int end,
         int currentNodeIndex,
         in TIntrospector introspector,
         out int rightIndex) where TIntrospector : struct, IIntervalIntrospector<T>
     {
         // right children's starts will never be to the left of the parent's start so we should consider right
         // subtree only if root's start overlaps with interval's End, 
-        var array = _array;
         if (introspector.GetSpan(array[currentNodeIndex].Value).Start <= end)
         {
             rightIndex = GetRightChildIndex(currentNodeIndex);
@@ -286,7 +286,8 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         return false;
     }
 
-    private bool ShouldExamineLeft<TIntrospector>(
+    private static bool ShouldExamineLeft<TIntrospector>(
+        SegmentedArray<Node> array,
         int start,
         int currentNodeIndex,
         in TIntrospector introspector,
@@ -294,7 +295,6 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
     {
         // only if left's maxVal overlaps with interval's start, we should consider 
         // left subtree
-        var array = _array;
         leftIndex = GetLeftChildIndex(currentNodeIndex);
         if (leftIndex < array.Length && GetEnd(array[array[leftIndex].MaxEndNodeIndex].Value, in introspector) >= start)
             return true;
