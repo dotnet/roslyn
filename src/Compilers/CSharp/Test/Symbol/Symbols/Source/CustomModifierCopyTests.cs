@@ -270,6 +270,71 @@ class Derived : MethodCustomModifierCombinations
         }
 
         /// <summary>
+        /// Test copying custom modifiers in/on parameters/return types.
+        /// </summary>
+        [Fact]
+        public void TestPartialMethodOverrideCombinations()
+        {
+            var text = @"
+partial class Derived : MethodCustomModifierCombinations
+{
+    public override partial int[] Method1111(int[] a) { return a; }
+    public override partial int[] Method1110(int[] a) { return a; }
+    public override partial int[] Method1101(int[] a) { return a; }
+    public override partial int[] Method1100(int[] a) { return a; }
+    public override partial int[] Method1011(int[] a) { return a; }
+    public override partial int[] Method1010(int[] a) { return a; }
+    public override partial int[] Method1001(int[] a) { return a; }
+    public override partial int[] Method1000(int[] a) { return a; }
+    public override partial int[] Method0111(int[] a) { return a; }
+    public override partial int[] Method0110(int[] a) { return a; }
+    public override partial int[] Method0101(int[] a) { return a; }
+    public override partial int[] Method0100(int[] a) { return a; }
+    public override partial int[] Method0011(int[] a) { return a; }
+    public override partial int[] Method0010(int[] a) { return a; }
+    public override partial int[] Method0001(int[] a) { return a; }
+    public override partial int[] Method0000(int[] a) { return a; }
+
+    public override partial int[] Method1111(int[] a);
+    public override partial int[] Method1110(int[] a);
+    public override partial int[] Method1101(int[] a);
+    public override partial int[] Method1100(int[] a);
+    public override partial int[] Method1011(int[] a);
+    public override partial int[] Method1010(int[] a);
+    public override partial int[] Method1001(int[] a);
+    public override partial int[] Method1000(int[] a);
+    public override partial int[] Method0111(int[] a);
+    public override partial int[] Method0110(int[] a);
+    public override partial int[] Method0101(int[] a);
+    public override partial int[] Method0100(int[] a);
+    public override partial int[] Method0011(int[] a);
+    public override partial int[] Method0010(int[] a);
+    public override partial int[] Method0001(int[] a);
+    public override partial int[] Method0000(int[] a);
+}
+";
+
+            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
+
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var global = comp.GlobalNamespace;
+
+            comp.VerifyEmitDiagnostics();
+
+            var @class = global.GetMember<NamedTypeSymbol>("Derived");
+
+            for (int i = 0; i < 0xf; i++)
+            {
+                CheckMethodCustomModifiers(
+                    @class.GetMember<MethodSymbol>("Method" + Convert.ToString(i, 2).PadLeft(4, '0')),
+                    inReturnType: (i & 0x8) != 0,
+                    onReturnType: (i & 0x4) != 0,
+                    inParameterType: (i & 0x2) != 0,
+                    onParameterType: (i & 0x1) != 0);
+            }
+        }
+
+        /// <summary>
         /// Test copying custom modifiers in/on property types.
         /// </summary>
         [Fact]
@@ -290,7 +355,61 @@ class Derived : PropertyCustomModifierCombinations
             var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+
+            var @class = global.GetMember<NamedTypeSymbol>("Derived");
+
+            for (int i = 0; i < 0x4; i++)
+            {
+                PropertySymbol property = @class.GetMember<PropertySymbol>("Property" + Convert.ToString(i, 2).PadLeft(2, '0'));
+                bool inType = (i & 0x2) != 0;
+                bool onType = (i & 0x1) != 0;
+
+                CheckPropertyCustomModifiers(property, inType, onType);
+                CheckMethodCustomModifiers(
+                    property.GetMethod,
+                    inReturnType: inType,
+                    onReturnType: onType,
+                    inParameterType: false,
+                    onParameterType: false);
+                CheckMethodCustomModifiers(
+                    property.SetMethod,
+                    inReturnType: false,
+                    onReturnType: false,
+                    inParameterType: inType,
+                    onParameterType: onType);
+            }
+        }
+
+        /// <summary>
+        /// Test copying custom modifiers in/on partial property types.
+        /// </summary>
+        [Fact]
+        public void TestPartialPropertyOverrideCombinations()
+        {
+            var text = @"
+partial class Derived : PropertyCustomModifierCombinations
+{
+    public override partial int[] Property11 { get; set; }
+    public override partial int[] Property11 { get => new int[0]; set { } }
+
+    public override partial int[] Property10 { get; set; }
+    public override partial int[] Property10 { get => new int[0]; set { } }
+
+    public override partial int[] Property01 { get; set; }
+    public override partial int[] Property01 { get => new int[0]; set { } }
+
+    public override partial int[] Property00 { get; set; }
+    public override partial int[] Property00 { get => new int[0]; set { } }
+}
+";
+
+            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
+
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var global = comp.GlobalNamespace;
+
+            comp.VerifyEmitDiagnostics();
 
             var @class = global.GetMember<NamedTypeSymbol>("Derived");
 

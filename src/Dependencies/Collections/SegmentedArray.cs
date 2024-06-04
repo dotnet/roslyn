@@ -394,22 +394,6 @@ namespace Microsoft.CodeAnalysis.Collections
             }
         }
 
-        public static void Sort<T>(SegmentedArray<T> array, int index, int length, Comparison<T> comparison)
-        {
-            if (index < 0)
-                ThrowHelper.ThrowIndexArgumentOutOfRange_NeedNonNegNumException();
-            if (length < 0)
-                ThrowHelper.ThrowLengthArgumentOutOfRange_ArgumentOutOfRange_NeedNonNegNum();
-            if (array.Length - index < length)
-                ThrowHelper.ThrowArgumentException(ExceptionResource.Argument_InvalidOffLen);
-
-            if (length > 1)
-            {
-                var segment = new SegmentedArraySegment<T>(array, index, length);
-                SegmentedArraySortHelper<T>.Sort(segment, comparison);
-            }
-        }
-
         public static void Sort<T>(SegmentedArray<T> array, Comparison<T> comparison)
         {
             if (comparison is null)

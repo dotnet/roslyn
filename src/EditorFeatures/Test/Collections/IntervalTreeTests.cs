@@ -8,20 +8,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections;
 
-public class IntervalTreeTests
+public sealed class IntervalTreeTests
 {
     private readonly struct TupleIntrospector<T> : IIntervalIntrospector<Tuple<int, int, T>>
     {
-        public int GetStart(Tuple<int, int, T> value)
-            => value.Item1;
-
-        public int GetLength(Tuple<int, int, T> value)
-            => value.Item2;
+        public TextSpan GetSpan(Tuple<int, int, T> value)
+            => new(value.Item1, value.Item2);
     }
 
     private static IEnumerable<SimpleIntervalTree<Tuple<int, int, string>, TupleIntrospector<string>>> CreateTrees(params Tuple<int, int, string>[] values)
@@ -260,11 +258,8 @@ public class IntervalTreeTests
 
     private readonly struct Int32Introspector : IIntervalIntrospector<int>
     {
-        public int GetLength(int value)
-            => 0;
-
-        public int GetStart(int value)
-            => value;
+        public TextSpan GetSpan(int value)
+            => new(value, 0);
     }
 
     private static IntervalTree<int> CreateIntTree(params int[] values)

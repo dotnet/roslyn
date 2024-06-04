@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !isExtensionMethodThis &&
                 (syntax.Default == null) &&
                 (syntax.AttributeLists.Count == 0) &&
-                !owner.IsPartialMethod() &&
+                !owner.IsPartialMember() &&
                 scope == ScopedKind.None)
             {
                 return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, location);

@@ -52,7 +52,7 @@ public partial class Workspace
             oldSolution =>
             {
                 var updates = GetUpdatedSourceGeneratorVersions(oldSolution, projectIds);
-                return oldSolution.WithSourceGeneratorExecutionVersions(updates, cancellationToken);
+                return oldSolution.UpdateSpecificSourceGeneratorExecutionVersions(updates, cancellationToken);
             },
             static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
             onBeforeUpdate: null,

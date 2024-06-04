@@ -107,6 +107,20 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return result;
         }
 
+        public static T? FirstOrDefault<T>(this in TemporaryArray<T> array)
+            => array.Count > 0 ? array[0] : default;
+
+        public static T? FirstOrDefault<T, TArg>(this in TemporaryArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            foreach (var item in array)
+            {
+                if (predicate(item, arg))
+                    return item;
+            }
+
+            return default;
+        }
+
         public static void AddIfNotNull<T>(this ref TemporaryArray<T> array, T? value)
             where T : struct
         {

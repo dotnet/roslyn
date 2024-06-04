@@ -411,7 +411,7 @@ internal enum FunctionId
     SolutionCreator_AssetDifferences = 326,
     Extension_InfoBar = 327,
     FxCopAnalyzersInstall = 328,
-    AssetStorage_ForceGC = 329,
+    // obsolete: AssetStorage_ForceGC = 329,
     // obsolete: RemoteHost_Bitness = 330,
     Intellisense_Completion = 331,
     MetadataOnlyImage_EmitFailure = 332,

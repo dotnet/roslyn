@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -23,8 +24,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 {
     public static readonly IntervalTree<T> Empty = new();
 
-    private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool
-        = SharedPools.Default<Stack<(Node node, bool firstTime)>>();
+    private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool = new(() => new(), trimOnFree: false);
 
     /// <summary>
     /// Keep around a fair number of these as we often use them in parallel algorithms.
@@ -36,16 +36,69 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
     protected Node? root;
 
-    public static IntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T> values)
+    public static IntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values = null)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var result = new IntervalTree<T>();
-        foreach (var value in values)
+
+        if (values != null)
         {
-            result.root = Insert(result.root, new Node(value), in introspector);
+            foreach (var value in values)
+                result.root = Insert(result.root, new Node(value), in introspector);
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Creates an interval tree from a sorted list of values.  This is more efficient than creating from an unsorted
+    /// list as building doesn't need to figure out where the nodes need to go n-log(n) and doesn't have to rebalance
+    /// anything (again, another n-log(n) operation).  Rebalancing is particularly expensive as it involves tons of
+    /// pointer chasing operations, which is both slow, and which impacts the GC which has to track all those writes.
+    /// </summary>
+    /// <remarks>
+    /// The values must be sorted such that given any two elements 'a' and 'b' in the list, if 'a' comes before 'b' in
+    /// the list, then it's "start position" (as determined by the introspector) must be less than or equal to 'b's
+    /// start position.  This is a requirement for the algorithm to work correctly.
+    /// </remarks>
+    public static IntervalTree<T> CreateFromSorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
+        where TIntrospector : struct, IIntervalIntrospector<T>
+    {
+#if DEBUG
+        var localIntrospector = introspector;
+        Debug.Assert(values.IsSorted(Comparer<T>.Create((t1, t2) => localIntrospector.GetSpan(t1).Start - localIntrospector.GetSpan(t2).Start)));
+#endif
+
+        if (values.Count == 0)
+            return Empty;
+
+        return new IntervalTree<T>
+        {
+            root = CreateFromSortedWorker(values, 0, values.Count, in introspector),
+        };
+    }
+
+    private static Node? CreateFromSortedWorker<TIntrospector>(
+        SegmentedList<T> values, int startInclusive, int endExclusive, in TIntrospector introspector) where TIntrospector : struct, IIntervalIntrospector<T>
+    {
+        var length = endExclusive - startInclusive;
+        if (length <= 0)
+            return null;
+
+        var mid = startInclusive + (length >> 1);
+        var node = new Node(values[mid]);
+        node.SetLeftRight(
+            CreateFromSortedWorker(values, startInclusive, mid, in introspector),
+            CreateFromSortedWorker(values, mid + 1, endExclusive, in introspector),
+            in introspector);
+
+        // Everything is sorted, and we're always building a node up from equal subtrees.  So we're never unbalanced
+        // enough to require balancing here.
+        var balanceFactor = BalanceFactor(node);
+        Debug.Assert(balanceFactor >= -1, "balanceFactor >= -1");
+        Debug.Assert(balanceFactor <= 1, "balanceFactor <= 1");
+
+        return node;
     }
 
     protected static bool Contains<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
@@ -54,10 +107,12 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         var otherStart = start;
         var otherEnd = start + length;
 
-        var thisEnd = GetEnd(value, in introspector);
-        var thisStart = introspector.GetStart(value);
+        var thisSpan = introspector.GetSpan(value);
+        var thisStart = thisSpan.Start;
+        var thisEnd = thisSpan.End;
 
-        // make sure "Contains" test to be same as what TextSpan does
+        // TODO(cyrusn): This doesn't actually seem to match what TextSpan.Contains does.  It doesn't specialize empty
+        // length in any way.  Preserving this behavior for now, but we should consider changing this.
         if (length == 0)
         {
             return thisStart <= otherStart && otherEnd < thisEnd;
@@ -72,8 +127,9 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         var otherStart = start;
         var otherEnd = start + length;
 
-        var thisEnd = GetEnd(value, in introspector);
-        var thisStart = introspector.GetStart(value);
+        var thisSpan = introspector.GetSpan(value);
+        var thisStart = thisSpan.Start;
+        var thisEnd = thisSpan.End;
 
         return otherStart <= thisEnd && otherEnd >= thisStart;
     }
@@ -84,13 +140,14 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         var otherStart = start;
         var otherEnd = start + length;
 
-        var thisEnd = GetEnd(value, in introspector);
-        var thisStart = introspector.GetStart(value);
+        var thisSpan = introspector.GetSpan(value);
+        var thisStart = thisSpan.Start;
+        var thisEnd = thisSpan.End;
 
+        // TODO(cyrusn): This doesn't actually seem to match what TextSpan.OverlapsWith does.  It doesn't specialize empty
+        // length in any way.  Preserving this behavior for now, but we should consider changing this.
         if (length == 0)
-        {
             return thisStart < otherStart && otherStart < thisEnd;
-        }
 
         var overlapStart = Math.Max(thisStart, otherStart);
         var overlapEnd = Math.Min(thisEnd, otherEnd);
@@ -145,8 +202,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         if (root is null)
             return false;
 
-        using var pooledObject = s_nodePool.GetPooledObject();
-        var candidates = pooledObject.Object;
+        using var _ = s_nodePool.GetPooledObject(out var candidates);
 
         var end = start + length;
 
@@ -189,8 +245,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         if (root == null)
             return 0;
 
-        using var pooledObject = s_stackPool.GetPooledObject();
-        var candidates = pooledObject.Object;
+        using var _ = s_stackPool.GetPooledObject(out var candidates);
 
         var matches = 0;
         var end = start + length;
@@ -241,7 +296,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     {
         // right children's starts will never be to the left of the parent's start so we should consider right
         // subtree only if root's start overlaps with interval's End, 
-        if (introspector.GetStart(currentNode.Value) <= end)
+        if (introspector.GetSpan(currentNode.Value).Start <= end)
         {
             right = currentNode.Right;
             if (right != null && GetEnd(right.MaxEndNode.Value, in introspector) >= start)
@@ -272,7 +327,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     protected static Node Insert<TIntrospector>(Node? root, Node newNode, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        var newNodeStart = introspector.GetStart(newNode.Value);
+        var newNodeStart = introspector.GetSpan(newNode.Value).Start;
         return Insert(root, newNode, newNodeStart, in introspector);
     }
 
@@ -286,7 +341,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
         Node? newLeft, newRight;
 
-        if (newNodeStart < introspector.GetStart(root.Value))
+        if (newNodeStart < introspector.GetSpan(root.Value).Start)
         {
             newLeft = Insert(root.Left, newNode, newNodeStart, in introspector);
             newRight = root.Right;
@@ -339,26 +394,27 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
     public IEnumerator<T> GetEnumerator()
     {
-        if (root == null)
-        {
-            yield break;
-        }
+        return this == Empty || root == null ? SpecializedCollections.EmptyEnumerator<T>() : GetEnumeratorWorker();
 
-        using var _ = ArrayBuilder<(Node? node, bool firstTime)>.GetInstance(out var candidates);
-        candidates.Push((root, firstTime: true));
-        while (candidates.TryPop(out var tuple))
+        IEnumerator<T> GetEnumeratorWorker()
         {
-            var (currentNode, firstTime) = tuple;
-            if (currentNode != null)
+            Contract.ThrowIfNull(root);
+            using var _ = ArrayBuilder<(Node node, bool firstTime)>.GetInstance(out var candidates);
+            candidates.Push((root, firstTime: true));
+            while (candidates.TryPop(out var tuple))
             {
+                var (currentNode, firstTime) = tuple;
                 if (firstTime)
                 {
-                    // First time seeing this node.  Mark that we've been seen and recurse
-                    // down the left side.  The next time we see this node we'll yield it
-                    // out.
-                    candidates.Push((currentNode.Right, firstTime: true));
+                    // First time seeing this node.  Mark that we've been seen and recurse down the left side.  The
+                    // next time we see this node we'll yield it out.
+                    if (currentNode.Right != null)
+                        candidates.Push((currentNode.Right, firstTime: true));
+
                     candidates.Push((currentNode, firstTime: false));
-                    candidates.Push((currentNode.Left, firstTime: true));
+
+                    if (currentNode.Left != null)
+                        candidates.Push((currentNode.Left, firstTime: true));
                 }
                 else
                 {
@@ -373,7 +429,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
     protected static int GetEnd<TIntrospector>(T value, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
-        => introspector.GetStart(value) + introspector.GetLength(value);
+        => introspector.GetSpan(value).End;
 
     protected static int MaxEndValue<TIntrospector>(Node? node, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>

@@ -18,7 +18,7 @@ internal abstract class AbstractNavigationBarItemService : INavigationBarItemSer
 {
     protected abstract Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsInCurrentProcessAsync(Document document, bool supportsCodeGeneration, CancellationToken cancellationToken);
 
-    public async Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(Document document, bool supportsCodeGeneration, bool forceFrozenPartialSemanticsForCrossProcessOperations, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(Document document, bool supportsCodeGeneration, bool frozenPartialSemantics, CancellationToken cancellationToken)
     {
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client != null)
@@ -28,7 +28,7 @@ internal abstract class AbstractNavigationBarItemService : INavigationBarItemSer
             var documentId = document.Id;
             var result = await client.TryInvokeAsync<IRemoteNavigationBarItemService, ImmutableArray<SerializableNavigationBarItem>>(
                 document.Project,
-                (service, solutionInfo, cancellationToken) => service.GetItemsAsync(solutionInfo, documentId, supportsCodeGeneration, forceFrozenPartialSemanticsForCrossProcessOperations, cancellationToken),
+                (service, solutionInfo, cancellationToken) => service.GetItemsAsync(solutionInfo, documentId, supportsCodeGeneration, frozenPartialSemantics, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             return result.HasValue

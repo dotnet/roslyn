@@ -85,11 +85,8 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         public static SnapshotSpan GetSpan(this ITextSnapshot snapshot, Span span)
             => new SnapshotSpan(snapshot, span);
 
-        public static ITagSpan<TTag> GetTagSpan<TTag>(this ITextSnapshot snapshot, Span span, TTag tag)
-            where TTag : ITag
-        {
-            return new TagSpan<TTag>(new SnapshotSpan(snapshot, span), tag);
-        }
+        public static TagSpan<TTag> GetTagSpan<TTag>(this ITextSnapshot snapshot, Span span, TTag tag) where TTag : ITag
+            => new(new SnapshotSpan(snapshot, span), tag);
 
         public static SnapshotSpan GetSpan(this ITextSnapshot snapshot, int startLine, int startIndex, int endLine, int endIndex)
             => TryGetSpan(snapshot, startLine, startIndex, endLine, endIndex) ?? throw new InvalidOperationException(TextEditorResources.The_snapshot_does_not_contain_the_specified_span);

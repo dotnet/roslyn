@@ -26,10 +26,13 @@ internal abstract class EfficientTagger<TTag> : ITagger<TTag>, IDisposable where
 
     public abstract void Dispose();
 
+    IEnumerable<ITagSpan<TTag>> ITagger<TTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+        => GetTags(spans);
+
     /// <summary>
     /// Default impl of the core <see cref="ITagger{T}"/> interface.  Forces an allocation.
     /// </summary>
-    public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+    public IReadOnlyList<TagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         => SegmentedListPool<TagSpan<TTag>>.ComputeList(
             static (args, tags) => args.@this.AddTags(args.spans, tags),
             (@this: this, spans));

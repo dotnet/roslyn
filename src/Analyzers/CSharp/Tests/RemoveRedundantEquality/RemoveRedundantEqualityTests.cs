@@ -15,7 +15,7 @@ using VerifyCS = CSharpCodeFixVerifier<
    CSharpRemoveRedundantEqualityDiagnosticAnalyzer,
    RemoveRedundantEqualityCodeFixProvider>;
 
-public class RemoveRedundantEqualityTests
+public sealed class RemoveRedundantEqualityTests
 {
     [Fact]
     public async Task TestSimpleCaseForEqualsTrue()
@@ -88,7 +88,7 @@ public class RemoveRedundantEqualityTests
     }
 
     [Fact]
-    public async Task TestSimpleCaseForNotEqualsTrue_NoDiagnostics()
+    public async Task TestSimpleCaseForNotEqualsTrue()
     {
         await VerifyCS.VerifyCodeFixAsync("""
             public class C
@@ -252,7 +252,7 @@ public class RemoveRedundantEqualityTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48236")]
-    public async Task TestNullableValueTypes_DoesntCrash()
+    public async Task TestNullableValueTypes_DoesNotCrash()
     {
         var code = """
             public class C
@@ -264,5 +264,84 @@ public class RemoveRedundantEqualityTests
             }
             """;
         await VerifyCS.VerifyAnalyzerAsync(code);
+    }
+
+    [Fact]
+    public async Task TestSimpleCaseForIsFalse()
+    {
+        var code = """
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return x [|is|] false;
+                }
+            }
+            """;
+        var fixedCode = """
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return !x;
+                }
+            }
+            """;
+        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+    }
+
+    [Fact]
+    public async Task TestSimpleCaseForIsTrue1()
+    {
+        var code = """
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return x [|is|] true;
+                }
+            }
+            """;
+        var fixedCode = """
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return x;
+                }
+            }
+            """;
+        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+    }
+
+    [Fact]
+    public async Task TestSimpleCaseForIsTrue2()
+    {
+        var code = """
+            public class C
+            {
+                public const bool MyTrueConstant = true;
+                public bool M1(bool x)
+                {
+                    return x is MyTrueConstant;
+                }
+            }
+            """;
+        await VerifyCS.VerifyCodeFixAsync(code, code);
+    }
+
+    [Fact]
+    public async Task TestNotForNullableBool()
+    {
+        var code = """
+            public class C
+            {
+                public bool M1(bool? x)
+                {
+                    return x is true;
+                }
+            }
+            """;
+        await VerifyCS.VerifyCodeFixAsync(code, code);
     }
 }
