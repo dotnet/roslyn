@@ -822,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                ReportDynamicInvocationWarnings(syntax, methodGroup, diagnostics, resolution, finalApplicableCandidates);
+                                ReportDynamicInvocationWarnings(syntax, methodGroup, diagnostics, finalApplicableCandidates);
 
                                 result = BindDynamicInvocation(syntax, methodGroup, resolution.AnalyzedArguments, finalApplicableCandidates.SelectAsArray(r => r.Member), diagnostics, queryClause);
                             }
@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private void ReportDynamicInvocationWarnings(SyntaxNode syntax, BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics, MethodGroupResolution resolution, ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates)
+        private void ReportDynamicInvocationWarnings(SyntaxNode syntax, BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics, ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates)
         {
             if (HasApplicableConditionalMethod(finalApplicableCandidates))
             {
