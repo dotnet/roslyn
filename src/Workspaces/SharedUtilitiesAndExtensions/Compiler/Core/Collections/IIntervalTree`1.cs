@@ -97,33 +97,65 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         if (values.Count == 0)
             return Empty;
 
-        var array = new SegmentedArray<T>()
-        return new BinaryIntervalTree<T>
-        {
-            root = CreateFromSortedWorker(values, 0, values.Count, in introspector),
-        };
+        var array = new SegmentedArray<Node>(values.Count);
+        CreateFromSortedWorker(values, startInclusive: 0, endExclusive: values.Count, destination: array, destinationIndex: 0, in introspector);
+        return new FlatArrayIntervalTree<T>(array);
     }
 
-    private static Node? CreateFromSortedWorker<TIntrospector>(
-        SegmentedList<T> values, int startInclusive, int endExclusive, in TIntrospector introspector) where TIntrospector : struct, IIntervalIntrospector<T>
+    private static void CreateFromSortedWorker<TIntrospector>(
+        SegmentedList<T> values,
+        int startInclusive,
+        int endExclusive,
+        SegmentedArray<Node> destination,
+        int destinationIndex,
+        in TIntrospector introspector) where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var length = endExclusive - startInclusive;
         if (length <= 0)
-            return null;
+            return;
 
+        // Start in the middle of the range of values we were asked to look at.
         var mid = startInclusive + (length >> 1);
-        var node = new Node(values[mid]);
-        node.SetLeftRight(
-            CreateFromSortedWorker(values, startInclusive, mid, in introspector),
-            CreateFromSortedWorker(values, mid + 1, endExclusive, in introspector),
-            in introspector);
+        var midValue = values[mid];
 
-        // Everything is sorted, and we're always building a node up from equal subtrees.  So we're never unbalanced
-        // enough to require balancing here.
-        var balanceFactor = BalanceFactor(node);
-        Debug.Assert(balanceFactor >= -1, "balanceFactor >= -1");
-        Debug.Assert(balanceFactor <= 1, "balanceFactor <= 1");
+        // Process the left side.  Everything from the start up to the mid.
+        var leftChildDestinationIndex = (2 * destinationIndex) + 1;
+        CreateFromSortedWorker(values, startInclusive, mid, destination, destinationIndex: leftChildDestinationIndex, in introspector);
 
-        return node;
+        // Process the right side.  Everything after the mid up to the end.
+        var rightChildDestinationIndex = (2 * destinationIndex) + 2;
+        CreateFromSortedWorker(values, mid + 1, endExclusive, destination, destinationIndex: rightChildDestinationIndex, in introspector);
+
+        var thisEndValue = GetEnd(midValue, in introspector);
+        var leftEndValue = MaxEndValue(destination, leftChildDestinationIndex, in introspector);
+        var rightEndValue = MaxEndValue(destination, rightChildDestinationIndex, in introspector);
+
+        int maxEndNodeIndex;
+        if (thisEndValue >= leftEndValue && thisEndValue >= rightEndValue)
+        {
+            maxEndNodeIndex = destinationIndex;
+        }
+        else if ((leftEndValue >= rightEndValue) && leftChildDestinationIndex < destination.Length)
+        {
+            maxEndNodeIndex = destination[leftChildDestinationIndex].MaxEndNodeIndex;
+        }
+        else if (rightChildDestinationIndex < destination.Length)
+        {
+            maxEndNodeIndex = destination[rightChildDestinationIndex].MaxEndNodeIndex;
+        }
+        else
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        destination[destinationIndex] = new Node(midValue, maxEndNodeIndex);
     }
+
+    private static int GetEnd<TIntrospector>(T value, in TIntrospector introspector)
+        where TIntrospector : struct, IIntervalIntrospector<T>
+        => introspector.GetSpan(value).End;
+
+    private static int MaxEndValue<TIntrospector>(SegmentedArray<Node> nodes, int index, in TIntrospector introspector)
+        where TIntrospector : struct, IIntervalIntrospector<T>
+        => index >= nodes.Length ? 0 : GetEnd(nodes[nodes[index].MaxEndNodeIndex].Value, in introspector);
 }
