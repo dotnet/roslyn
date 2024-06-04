@@ -252,7 +252,7 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         // Razor is responsible for handling diagnostics for the virtual JS file and should not be returned here.
         // This workaround should be removed in 17.11 as JS diagnostics are no longer returned via Roslyn in 17.11
         if (context.ServerKind == WellKnownLspServerKinds.RoslynTypeScriptLspServer &&
-            (document.FilePath?.EndsWith("__virtual.js") == true || document.FilePath?.EndsWith(".razor") == true))
+            (document.FilePath?.EndsWith("__virtual.js") == true || document.FilePath?.EndsWith(".razor") == true || document.FilePath?.EndsWith(".cshtml") == true))
         {
             return true;
         }
