@@ -5,6 +5,13 @@
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
 /// <summary>
+/// Generic function representing the type of interval testing operation that can be performed on an interval tree. For
+/// example checking if an interval 'contains', 'intersects', or 'overlaps' with a requested span.
+/// </summary>
+internal delegate bool TestInterval<T, TIntrospector>(T value, int start, int length, in TIntrospector introspector)
+    where TIntrospector : struct, IIntervalIntrospector<T>;
+
+/// <summary>
 /// Base interface all interval trees need to implement to get full functionality.  Callers are not expected to use
 /// these methods directly.  Instead, they are the low level building blocks that the higher level extension methods are
 /// built upon.
