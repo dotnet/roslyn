@@ -212,22 +212,23 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         return false;
     }
 
-    private static bool ShouldExamineRight<TIntrospector>(
+    private bool ShouldExamineRight<TIntrospector>(
         int start, int end,
-        Node currentNode,
+        int currentNodeIndex,
         in TIntrospector introspector,
-        [NotNullWhen(true)] out int? rightIndex) where TIntrospector : struct, IIntervalIntrospector<T>
+        out int rightIndex) where TIntrospector : struct, IIntervalIntrospector<T>
     {
         // right children's starts will never be to the left of the parent's start so we should consider right
         // subtree only if root's start overlaps with interval's End, 
-        if (introspector.GetSpan(currentNode.Value).Start <= end)
+        var array = _array;
+        if (introspector.GetSpan(array[currentNodeIndex].Value).Start <= end)
         {
-            right = currentNode.Right;
-            if (right != null && GetEnd(right.MaxEndNode.Value, in introspector) >= start)
+            rightIndex = GetRightChildIndex(currentNodeIndex);
+            if (rightIndex < array.Length && GetEnd(array[array[rightIndex].MaxEndNodeIndex].Value, in introspector) >= start)
                 return true;
         }
 
-        right = null;
+        rightIndex = 0;
         return false;
     }
 
