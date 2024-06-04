@@ -1350,4 +1350,69 @@ public partial class UseObjectInitializerTests
 
         await test.RunAsync();
     }
+
+    [Theory]
+    [InlineData(8.0)]
+    [InlineData(9.0)]
+    public async Task TestFallbackSeverityConfiguration(double analysisLevel)
+    {
+        var testCode =
+            """
+            class C
+            {
+                int i;
+            
+                void M()
+                {
+                    var c = {|#1:{|#0:new|} C()|};
+                    {|#2:c.|}i = 1{|#3:;|}
+                }
+            }
+            """;
+
+        var fixedCode =
+            """
+            class C
+            {
+                int i;
+            
+                void M()
+                {
+                    var c = new C
+                    {
+                        i = 1
+                    };
+                }
+            }
+            """;
+
+        var globalConfig =
+            $"""
+            is_global = true
+
+            dotnet_style_object_initializer = true
+            dotnet_diagnostic.IDE0017.severity = warning
+
+            build_property.EffectiveAnalysisLevelStyle = {analysisLevel}
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { testCode },
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(7,17): warning IDE0017: Object initialization can be simplified
+                    VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Warning).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+                },
+                AnalyzerConfigFiles =
+                {
+                    ("/.globalconfig", globalConfig),
+                }
+            },
+            FixedState = { Sources = { fixedCode } },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }
