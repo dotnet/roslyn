@@ -26,7 +26,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 internal sealed partial class GraphBuilder
 {
     private readonly Graph _graph = new();
+    // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
+#pragma warning disable RS0030 // Do not use banned APIs
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
+#pragma warning restore RS0030 // Do not use banned APIs
 
     private readonly ISet<GraphNode> _createdNodes = new HashSet<GraphNode>();
     private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = new List<Tuple<GraphNode, GraphProperty, object>>();

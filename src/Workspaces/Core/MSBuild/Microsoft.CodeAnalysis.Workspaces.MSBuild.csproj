@@ -38,6 +38,9 @@
     <ProjectReference Include="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" PrivateAssets="all" ReferenceOutputAssembly="false">
       <IncludeOutputInThisPackage>true</IncludeOutputInThisPackage>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" PrivateAssets="all">
+      <IncludeOutputInThisPackage>true</IncludeOutputInThisPackage>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

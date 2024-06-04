@@ -84,6 +84,10 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
     </Dependency>
+    <Dependency Name="System.Threading.Tasks.Dataflow" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
+    </Dependency>
     <Dependency Name="System.Reflection.Metadata" Version="8.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
@@ -125,7 +129,7 @@
       <Sha>73f0850939d96131c28cf6ea6ee5aacb4da0083a</Sha>
     </Dependency>
     <!-- Intermediate is necessary for source build. -->
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.xliff-tasks" Version="1.0.0-beta.23475.1" CoherentParentDependency="Microsoft.DotNet.Arcade.Sdk">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.xliff-tasks" Version="1.0.0-beta.23475.1">
       <Uri>https://github.com/dotnet/xliff-tasks</Uri>
       <Sha>73f0850939d96131c28cf6ea6ee5aacb4da0083a</Sha>
       <SourceBuild RepoName="xliff-tasks" ManagedOnly="true" />
