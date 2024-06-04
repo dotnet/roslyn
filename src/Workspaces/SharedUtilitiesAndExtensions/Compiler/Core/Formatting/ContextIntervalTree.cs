@@ -27,7 +27,7 @@ internal sealed class ContextIntervalTree<T, TIntrospector> : SimpleBinaryInterv
     {
         _edgeExclusivePredicate = ContainsEdgeExclusive;
         _edgeInclusivePredicate = ContainsEdgeInclusive;
-        _containPredicate = (value, start, end) => IntervalTreeExtensions<T, ContextIntervalTree<T, TIntrospector>>.Contains(value, start, end, in Introspector);
+        _containPredicate = (value, start, end) => IntervalTreeAlgorithms<T, ContextIntervalTree<T, TIntrospector>>.Contains(value, start, end, in Introspector);
     }
 
     public T? GetSmallestEdgeExclusivelyContainingInterval(int start, int length)
