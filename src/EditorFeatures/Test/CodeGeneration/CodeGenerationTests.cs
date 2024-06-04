@@ -774,9 +774,6 @@ public partial class CodeGenerationTests
         };
     }
 
-    private static Func<SemanticModel, INamedTypeSymbol> GetTypeSymbol(string typeMetadataName)
-        => s => s?.Compilation.GetTypeByMetadataName(typeMetadataName);
-
     internal static IEnumerable<SyntaxToken> CreateModifierTokens(Editing.DeclarationModifiers modifiers, string language)
     {
         if (language == LanguageNames.CSharp)
