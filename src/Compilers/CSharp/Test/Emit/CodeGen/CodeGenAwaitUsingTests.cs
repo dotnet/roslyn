@@ -3519,5 +3519,147 @@ ref struct C
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
+        public void PatternBasedFails_WithInterfaceImplementation()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+await using var x = new Class1();
+
+internal class Class1 : IAsyncDisposable
+{
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        System.Console.Write("DISPOSED");
+        await Task.Yield();
+    }
+}
+
+internal static class EnumerableExtensions
+{
+    public static ValueTask DisposeAsync(this IEnumerable<object> objects)
+    {
+        throw null;
+    }
+}
+""";
+            var comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition]);
+            CompileAndVerify(comp, expectedOutput: "DISPOSED").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
+        public void PatternBasedFails_NoInterfaceImplementation()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+await using var x = new Class1();
+
+internal class Class1 { }
+
+internal static class EnumerableExtensions
+{
+    public static ValueTask DisposeAsync(this IEnumerable<object> objects)
+    {
+        throw null;
+    }
+}
+""";
+            var comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (5,1): error CS8410: 'Class1': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                // await using var x = new Class1();
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new Class1();").WithArguments("Class1").WithLocation(5, 1),
+                // (5,1): error CS1929: 'Class1' does not contain a definition for 'DisposeAsync' and the best extension method overload 'EnumerableExtensions.DisposeAsync(IEnumerable<object>)' requires a receiver of type 'System.Collections.Generic.IEnumerable<object>'
+                // await using var x = new Class1();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "await using var x = new Class1();").WithArguments("Class1", "DisposeAsync", "EnumerableExtensions.DisposeAsync(System.Collections.Generic.IEnumerable<object>)", "System.Collections.Generic.IEnumerable<object>").WithLocation(5, 1));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
+        public void PatternBasedFails_WithInterfaceImplementation_UseSite()
+        {
+            // We attempt to bind pattern-based disposal (and collect diagnostics)
+            // then we bind to the IAsyncDisposable interface, which reports a use-site error
+            // and so we add the collected diagnostics
+            var source = """
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+internal class Class1 : IAsyncDisposable
+{
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        throw null;
+    }
+
+    public async Task MethodWithCompilerError()
+    {
+        await using var x = new Class1();
+    }
+}
+
+internal static class EnumerableExtensions
+{
+    public static ValueTask DisposeAsync(this IEnumerable<object> objects)
+    {
+        throw null;
+    }
+}
+
+namespace System.Threading.Tasks
+{
+    public struct ValueTask
+    {
+        public Awaiter GetAwaiter() => null;
+        public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
+        {
+            public void OnCompleted(Action a) { }
+            public bool IsCompleted => true;
+            public void GetResult() { }
+        }
+    }
+}
+""";
+
+            var ilSrc = """
+.class interface public auto ansi abstract beforefieldinit System.IAsyncDisposable
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = ( 01 00 02 68 69 00 00 )
+    .method public hidebysig newslot abstract virtual instance valuetype [mscorlib]System.Threading.Tasks.ValueTask DisposeAsync () cil managed 
+    {
+    }
+}
+""";
+            var comp = CreateCompilationWithIL(source, ilSrc);
+            comp.VerifyEmitDiagnostics(
+                // (5,16): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                // internal class Class1 : IAsyncDisposable
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Class1").WithArguments("System.IAsyncDisposable", "hi").WithLocation(5, 16),
+                // (5,25): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                // internal class Class1 : IAsyncDisposable
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "IAsyncDisposable").WithArguments("System.IAsyncDisposable", "hi").WithLocation(5, 25),
+                // (7,15): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                //     ValueTask IAsyncDisposable.DisposeAsync()
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "IAsyncDisposable").WithArguments("System.IAsyncDisposable", "hi").WithLocation(7, 15),
+                // (7,32): error CS0539: 'Class1.DisposeAsync()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     ValueTask IAsyncDisposable.DisposeAsync()
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "DisposeAsync").WithArguments("Class1.DisposeAsync()").WithLocation(7, 32),
+                // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                //         await using var x = new Class1();
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await using var x = new Class1();").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9),
+                // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                //         await using var x = new Class1();
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9),
+                // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                //         await using var x = new Class1();
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await using var x = new Class1();").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9));
+        }
     }
 }

@@ -190,14 +190,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Pattern-based binding
                 // If this is a ref struct, or we're in a valid asynchronous using, try binding via pattern.
+                BindingDiagnosticBag? patternDiagnostics = null;
                 if (type is object && (type.IsRefLikeType || hasAwait))
                 {
                     BoundExpression? receiver = fromExpression
                                                ? expressionOpt
                                                : new BoundLocal(syntax, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
 
-                    BindingDiagnosticBag patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDisposalPattern)
-                                                       ? diagnostics
+                    patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDisposalPattern)
+                                                       ? BindingDiagnosticBag.GetInstance(diagnostics)
                                                        : BindingDiagnosticBag.Discarded;
                     MethodSymbol disposeMethod = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics, out bool expanded);
                     if (disposeMethod is object)
@@ -228,6 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             awaitableType = disposeMethod.ReturnType;
                         }
+
+                        diagnostics.AddRange(patternDiagnostics);
                         return true;
                     }
                 }
@@ -245,7 +248,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         awaitableType = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
                     }
 
-                    return !ReportUseSite(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
+                    var wasSuccess = !ReportUseSite(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
+                    if (!wasSuccess)
+                    {
+                        diagnostics.AddRange(patternDiagnostics);
+                    }
+
+                    return wasSuccess;
                 }
 
                 if (type is null || !type.IsErrorType())
@@ -261,6 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, errorCode, syntax, declarationTypeOpt ?? expressionOpt!.Display);
                 }
 
+                diagnostics.AddRange(patternDiagnostics);
                 return false;
             }
 

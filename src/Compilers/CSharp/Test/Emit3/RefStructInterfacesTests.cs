@@ -13557,13 +13557,10 @@ class C
 }
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
-
-            // https://github.com/dotnet/roslyn/issues/72819: The failure is likely unexpected, but is not specific to `allow ref struct` scenario.
-            comp.VerifyDiagnostics(
-                // (36,22): error CS0121: The call is ambiguous between the following methods or properties: 'IMyAsyncDisposable1.DisposeAsync()' and 'IMyAsyncDisposable2.DisposeAsync()'
+            comp.VerifyEmitDiagnostics(
+                // (36,22): error CS9244: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Activator.CreateInstance<T>()'
                 //         await using (new T())
-                Diagnostic(ErrorCode.ERR_AmbigCall, "new T()").WithArguments("IMyAsyncDisposable1.DisposeAsync()", "IMyAsyncDisposable2.DisposeAsync()").WithLocation(36, 22)
-                );
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "new T()").WithArguments("System.Activator.CreateInstance<T>()", "T", "T").WithLocation(36, 22));
         }
 
         [ConditionalFact(typeof(NoUsedAssembliesValidation))] // https://github.com/dotnet/roslyn/issues/73563
