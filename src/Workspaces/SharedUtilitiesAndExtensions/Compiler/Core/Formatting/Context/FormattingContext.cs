@@ -431,7 +431,7 @@ internal partial class FormattingContext
     }
 
     public IEnumerable<IndentBlockOperation> GetAllRelativeIndentBlockOperations()
-        => _relativeIndentationTree.Extensions.GetIntervalsThatIntersectWith(this.TreeData.StartPosition, this.TreeData.EndPosition, new FormattingContextIntervalIntrospector()).Select(i => i.Operation);
+        => _relativeIndentationTree.Algorithms.GetIntervalsThatIntersectWith(this.TreeData.StartPosition, this.TreeData.EndPosition, new FormattingContextIntervalIntrospector()).Select(i => i.Operation);
 
     public bool TryGetEndTokenForRelativeIndentationSpan(SyntaxToken token, int maxChainDepth, out SyntaxToken endToken, CancellationToken cancellationToken)
     {

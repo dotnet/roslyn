@@ -465,7 +465,7 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
         {
             // Treat the caret as if it has length 1.  That way if it is in between two items, it will naturally
             // only intersect right the item on the right of it.
-            var overlappingModels = modelTree.Extensions.GetIntervalsThatOverlapWith(
+            var overlappingModels = modelTree.Algorithms.GetIntervalsThatOverlapWith(
                 caretPosition.Position, 1, new IntervalIntrospector());
 
             if (overlappingModels.Length == 0)

@@ -57,10 +57,10 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
             : new(GetTranslatedSpan(originalTagSpan, textSnapshot, trackingMode), originalTagSpan.Tag);
 
     public bool HasSpanThatContains(SnapshotPoint point)
-        => _tree.Extensions.HasIntervalThatContains(point.Position, length: 0, new IntervalIntrospector(point.Snapshot, _spanTrackingMode));
+        => _tree.Algorithms.HasIntervalThatContains(point.Position, length: 0, new IntervalIntrospector(point.Snapshot, _spanTrackingMode));
 
     public bool HasSpanThatIntersects(SnapshotPoint point)
-        => _tree.Extensions.HasIntervalThatIntersectsWith(point.Position, new IntervalIntrospector(point.Snapshot, _spanTrackingMode));
+        => _tree.Algorithms.HasIntervalThatIntersectsWith(point.Position, new IntervalIntrospector(point.Snapshot, _spanTrackingMode));
 
     /// <summary>
     /// Gets all the spans that intersect with <paramref name="snapshotSpan"/> in sorted order and adds them to
@@ -72,7 +72,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
         var snapshot = snapshotSpan.Snapshot;
 
         using var intersectingIntervals = TemporaryArray<TagSpan<TTag>>.Empty;
-        _tree.Extensions.FillWithIntervalsThatIntersectWith(
+        _tree.Algorithms.FillWithIntervalsThatIntersectWith(
             snapshotSpan.Start, snapshotSpan.Length,
             ref intersectingIntervals.AsRef(),
             new IntervalIntrospector(snapshot, _spanTrackingMode));
@@ -132,7 +132,7 @@ internal sealed partial class TagSpanIntervalTree<TTag>(SpanTrackingMode spanTra
             buffer.Clear();
 
             var textSnapshot = snapshotSpan.Snapshot;
-            _tree.Extensions.FillWithIntervalsThatIntersectWith(
+            _tree.Algorithms.FillWithIntervalsThatIntersectWith(
                 snapshotSpan.Span.Start,
                 snapshotSpan.Span.Length,
                 ref buffer.AsRef(),

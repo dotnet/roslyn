@@ -56,7 +56,7 @@ internal partial class BinaryIntervalTree<T> : IEnumerable<T>, IIntervalTree<T>
     /// <summary>
     /// Provides access to lots of common algorithms on this interval tree.
     /// </summary>
-    public IntervalTreeExtensions<T, BinaryIntervalTree<T>> Extensions => new(this);
+    public IntervalTreeAlgorithms<T, BinaryIntervalTree<T>> Algorithms => new(this);
 
     /// <summary>
     /// Creates an interval tree from a sorted list of values.  This is more efficient than creating from an unsorted

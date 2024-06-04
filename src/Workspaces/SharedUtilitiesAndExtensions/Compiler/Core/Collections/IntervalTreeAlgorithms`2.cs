@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections;
 /// involved here is too complex for C# to handle (specifically using a <c>TIntervalTree</c> type), which would make
 /// ergonomics extremely painful as the callsites would have to pass three type arguments along explicitly.
 /// </summary>
-internal readonly struct IntervalTreeExtensions<T, TIntervalTree>(TIntervalTree tree) where TIntervalTree : IIntervalTree<T>
+internal readonly struct IntervalTreeAlgorithms<T, TIntervalTree>(TIntervalTree tree) where TIntervalTree : IIntervalTree<T>
 {
     public ImmutableArray<T> GetIntervalsThatMatch<TIntrospector>(
         int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
