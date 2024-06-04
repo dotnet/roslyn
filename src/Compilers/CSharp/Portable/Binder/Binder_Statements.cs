@@ -479,6 +479,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var binder = this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteInfo: ref useSiteInfo, options: LookupOptions.LabelsOnly);
 
+            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
+
             // result.Symbols can be empty in some malformed code, e.g. when a labeled statement is used an embedded statement in an if or foreach statement
             // In this case we create new label symbol on the fly, and an error is reported by parser
             var symbol = result.Symbols.Count > 0 && result.IsMultiViable ?
@@ -506,8 +508,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(node, useSiteInfo);
             result.Free();
-
-            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
 
             var body = BindStatement(node.Statement, diagnostics);
             return new BoundLabeledStatement(node, symbol, body, hasError);
