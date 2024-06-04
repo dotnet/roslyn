@@ -5,7 +5,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
@@ -52,12 +55,24 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
 
     public static readonly FlatArrayIntervalTree<T> Empty = new(new SegmentedArray<Node>(0));
 
+    private static readonly ObjectPool<Stack<(int nodeIndex, bool firstTime)>> s_stackPool = new(() => new(), trimOnFree: false);
+
+    /// <summary>
+    /// Keep around a fair number of these as we often use them in parallel algorithms.
+    /// </summary>
+    private static readonly ObjectPool<Stack<int>> s_nodeIndexPool = new(() => new(), 128, trimOnFree: false);
+
     private readonly SegmentedArray<Node> _array;
 
     private FlatArrayIntervalTree(SegmentedArray<Node> array)
     {
         _array = array;
     }
+
+    /// <summary>
+    /// Provides access to lots of common algorithms on this interval tree.
+    /// </summary>
+    public IntervalTreeAlgorithms<T, FlatArrayIntervalTree<T>> Algorithms => new(this);
 
     /// <summary>
     /// Creates a <see cref="FlatArrayIntervalTree{T}"/> from an unsorted list of <paramref name="values"/>.  This will
@@ -98,7 +113,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
             return Empty;
 
         var array = new SegmentedArray<Node>(values.Count);
-        CreateFromSortedWorker(values, startInclusive: 0, endExclusive: values.Count, destination: array, destinationIndex: 0, in introspector);
+        CreateFromSortedWorker(values, startInclusive: 0, endExclusive: values.Count, destination: array, middleElementIndex: 0, in introspector);
         return new FlatArrayIntervalTree<T>(array);
     }
 
@@ -107,7 +122,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         int startInclusive,
         int endExclusive,
         SegmentedArray<Node> destination,
-        int destinationIndex,
+        int middleElementIndex,
         in TIntrospector introspector) where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var length = endExclusive - startInclusive;
@@ -119,12 +134,12 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         var midValue = values[mid];
 
         // Process the left side.  Everything from the start up to the mid.
-        var leftChildDestinationIndex = (2 * destinationIndex) + 1;
-        CreateFromSortedWorker(values, startInclusive, mid, destination, destinationIndex: leftChildDestinationIndex, in introspector);
+        var leftChildDestinationIndex = GetLeftChildIndex(middleElementIndex);
+        CreateFromSortedWorker(values, startInclusive, mid, destination, middleElementIndex: leftChildDestinationIndex, in introspector);
 
         // Process the right side.  Everything after the mid up to the end.
-        var rightChildDestinationIndex = (2 * destinationIndex) + 2;
-        CreateFromSortedWorker(values, mid + 1, endExclusive, destination, destinationIndex: rightChildDestinationIndex, in introspector);
+        var rightChildDestinationIndex = GetRightChildIndex(middleElementIndex);
+        CreateFromSortedWorker(values, mid + 1, endExclusive, destination, middleElementIndex: rightChildDestinationIndex, in introspector);
 
         var thisEndValue = GetEnd(midValue, in introspector);
         var leftEndValue = MaxEndValue(destination, leftChildDestinationIndex, in introspector);
@@ -133,7 +148,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         int maxEndNodeIndex;
         if (thisEndValue >= leftEndValue && thisEndValue >= rightEndValue)
         {
-            maxEndNodeIndex = destinationIndex;
+            maxEndNodeIndex = middleElementIndex;
         }
         else if ((leftEndValue >= rightEndValue) && leftChildDestinationIndex < destination.Length)
         {
@@ -148,8 +163,14 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
             throw ExceptionUtilities.Unreachable();
         }
 
-        destination[destinationIndex] = new Node(midValue, maxEndNodeIndex);
+        destination[middleElementIndex] = new Node(midValue, maxEndNodeIndex);
     }
+
+    private static int GetLeftChildIndex(int nodeIndex)
+        => (2 * nodeIndex) + 1;
+
+    private static int GetRightChildIndex(int nodeIndex)
+        => (2 * nodeIndex) + 2;
 
     private static int GetEnd<TIntrospector>(T value, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
@@ -158,4 +179,71 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
     private static int MaxEndValue<TIntrospector>(SegmentedArray<Node> nodes, int index, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
         => index >= nodes.Length ? 0 : GetEnd(nodes[nodes[index].MaxEndNodeIndex].Value, in introspector);
+
+    bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
+    {
+        // Inlined version of FillWithIntervalsThatMatch, optimized to do less work and stop once it finds a match.
+        var array = _array;
+        if (array.Length == 0)
+            return false;
+
+        using var _ = s_nodeIndexPool.GetPooledObject(out var candidates);
+
+        var end = start + length;
+
+        candidates.Push(0);
+
+        while (candidates.TryPop(out var currentNodeIndex))
+        {
+            // Check the nodes as we go down.  That way we can stop immediately when we find something that matches,
+            // instead of having to do an entire in-order walk, which might end up hitting a lot of nodes we don't care
+            // about and placing a lot into the stack.
+            var node = array[currentNodeIndex];
+            if (testInterval(node.Value, start, length, in introspector))
+                return true;
+
+            if (ShouldExamineRight(start, end, currentNodeIndex, in introspector, out var rightIndex))
+                candidates.Push(rightIndex);
+
+            if (ShouldExamineLeft(start, currentNodeIndex, in introspector, out var leftIndex))
+                candidates.Push(leftIndex);
+        }
+
+        return false;
+    }
+
+    private static bool ShouldExamineRight<TIntrospector>(
+        int start, int end,
+        Node currentNode,
+        in TIntrospector introspector,
+        [NotNullWhen(true)] out int? rightIndex) where TIntrospector : struct, IIntervalIntrospector<T>
+    {
+        // right children's starts will never be to the left of the parent's start so we should consider right
+        // subtree only if root's start overlaps with interval's End, 
+        if (introspector.GetSpan(currentNode.Value).Start <= end)
+        {
+            right = currentNode.Right;
+            if (right != null && GetEnd(right.MaxEndNode.Value, in introspector) >= start)
+                return true;
+        }
+
+        right = null;
+        return false;
+    }
+
+    private bool ShouldExamineLeft<TIntrospector>(
+        int start,
+        int currentNodeIndex,
+        in TIntrospector introspector,
+        out int leftIndex) where TIntrospector : struct, IIntervalIntrospector<T>
+    {
+        // only if left's maxVal overlaps with interval's start, we should consider 
+        // left subtree
+        var array = _array;
+        leftIndex = GetLeftChildIndex(currentNodeIndex);
+        if (leftIndex < array.Length && GetEnd(array[array[leftIndex].MaxEndNodeIndex].Value, in introspector) >= start)
+            return true;
+
+        return false;
+    }
 }
