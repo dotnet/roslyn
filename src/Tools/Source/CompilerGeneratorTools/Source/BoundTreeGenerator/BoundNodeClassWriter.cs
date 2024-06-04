@@ -1403,16 +1403,7 @@ namespace BoundTreeGenerator
 
                                 if (!IsImmutableArray(field.Type, out string elementType))
                                 {
-                                    switch (field.Type.TrimEnd('?'))
-                                    {
-                                        case "Symbol":
-                                            WriteLine($"{field.Type} {ToCamelCase(field.Name)} = this.VisitSymbol(node.{field.Name});");
-                                            break;
-
-                                        default:
-                                            WriteLine($"{field.Type} {ToCamelCase(field.Name)} = this.Visit{field.Type.TrimEnd('?')}(node.{field.Name});");
-                                            break;
-                                    }
+                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = this.Visit{field.Type.TrimEnd('?')}(node.{field.Name});");
                                 }
                                 else
                                 {
