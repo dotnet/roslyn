@@ -38,34 +38,34 @@ internal class SimpleBinaryIntervalTree<T, TIntrospector> : BinaryIntervalTree<T
     }
 
     public ImmutableArray<T> GetIntervalsThatOverlapWith(int start, int length)
-        => this.GetIntervalsThatOverlapWith(this, start, length, in _introspector);
+        => this.Extensions.GetIntervalsThatOverlapWith(start, length, in _introspector);
 
     public ImmutableArray<T> GetIntervalsThatIntersectWith(int start, int length)
-        => this.GetIntervalsThatIntersectWith(start, length, in _introspector);
+        => this.Extensions.GetIntervalsThatIntersectWith(start, length, in _introspector);
 
     public ImmutableArray<T> GetIntervalsThatContain(int start, int length)
-        => this.GetIntervalsThatContain(start, length, in _introspector);
+        => this.Extensions.GetIntervalsThatContain(start, length, in _introspector);
 
     public void FillWithIntervalsThatOverlapWith(int start, int length, ref TemporaryArray<T> builder)
-        => FillWithIntervalsThatOverlapWith(start, length, ref builder, in _introspector);
+        => this.Extensions.FillWithIntervalsThatOverlapWith(start, length, ref builder, in _introspector);
 
     public void FillWithIntervalsThatIntersectWith(int start, int length, ref TemporaryArray<T> builder)
-        => FillWithIntervalsThatIntersectWith(start, length, ref builder, in _introspector);
+        => this.Extensions.FillWithIntervalsThatIntersectWith(start, length, ref builder, in _introspector);
 
     public void FillWithIntervalsThatContain(int start, int length, ref TemporaryArray<T> builder)
-        => FillWithIntervalsThatContain(start, length, ref builder, in _introspector);
+        => this.Extensions.FillWithIntervalsThatContain(start, length, ref builder, in _introspector);
 
     public bool HasIntervalThatIntersectsWith(int position)
-        => HasIntervalThatIntersectsWith(position, in _introspector);
+        => this.Extensions.HasIntervalThatIntersectsWith(position, in _introspector);
 
     public bool HasIntervalThatOverlapsWith(int start, int length)
-        => HasIntervalThatOverlapsWith(start, length, in _introspector);
+        => this.Extensions.HasIntervalThatOverlapsWith(start, length, in _introspector);
 
     public bool HasIntervalThatIntersectsWith(int start, int length)
-        => HasIntervalThatIntersectsWith(start, length, in _introspector);
+        => this.Extensions.HasIntervalThatIntersectsWith(start, length, in _introspector);
 
     public bool HasIntervalThatContains(int start, int length)
-        => HasIntervalThatContains(start, length, in _introspector);
+        => this.Extensions.HasIntervalThatContains(start, length, in _introspector);
 
     protected int MaxEndValue(Node node)
         => GetEnd(node.MaxEndNode.Value, in _introspector);
