@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <summary>
         /// All namespace and type members in a flat array
         /// </summary>
-        private ImmutableArray<NamespaceOrTypeSymbol> _lazyFlattenedNamespacesAndTypes;
+        private ImmutableArray<Symbol> _lazyFlattenedNamespacesAndTypes;
 
         internal sealed override NamespaceExtent Extent
         {
@@ -66,36 +66,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             AllowGenericEnumeration = false)]
         public sealed override ImmutableArray<Symbol> GetMembers()
         {
-            EnsureAllMembersLoaded();
-
-            var memberNamespacesAndTypes = getMemberNamespacesAndTypesPrivate();
-
             if (_lazyFlattenedNamespacesAndTypes.IsDefault)
             {
-                ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedNamespacesAndTypes, memberNamespacesAndTypes);
+                EnsureAllMembersLoaded();
+                ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedNamespacesAndTypes, calculateMembers());
             }
 
-            return StaticCast<Symbol>.From(memberNamespacesAndTypes);
+            return StaticCast<Symbol>.From(_lazyFlattenedNamespacesAndTypes);
 
-            ImmutableArray<NamespaceOrTypeSymbol> getMemberNamespacesAndTypesPrivate()
+            ImmutableArray<Symbol> calculateMembers()
             {
-                if (!_lazyFlattenedNamespacesAndTypes.IsDefault)
-                {
-                    return _lazyFlattenedNamespacesAndTypes;
-                }
+                var memberTypes = GetMemberTypesPrivate();
 
-                var flattenedTypes = StaticCast<NamespaceOrTypeSymbol>.From(GetMemberTypesPrivate());
                 if (lazyNamespaces.Count == 0)
-                {
-                    return flattenedTypes;
-                }
+                    return StaticCast<Symbol>.From(memberTypes);
 
-                ArrayBuilder<NamespaceOrTypeSymbol> builder = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance(lazyNamespaces.Count + flattenedTypes.Length);
+                var builder = ArrayBuilder<Symbol>.GetInstance(memberTypes.Length + lazyNamespaces.Count);
 
-                builder.AddRange(flattenedTypes);
-                foreach (var kvp in lazyNamespaces)
+                builder.AddRange(memberTypes);
+                foreach (var pair in lazyNamespaces)
                 {
-                    builder.Add(kvp.Value);
+                    builder.Add(pair.Value);
                 }
 
                 return builder.ToImmutableAndFree();
