@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { ".xaml", s_xamlLanguageInformation },
             { ".ts", s_typeScriptLanguageInformation },
             { ".js", s_typeScriptLanguageInformation },
+            { ".tsx", s_typeScriptLanguageInformation },
+            { ".jsx", s_typeScriptLanguageInformation },
         };
 
         public LanguageInformation GetLanguageInformation(string documentPath, string? lspLanguageId)
