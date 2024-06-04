@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
@@ -16,13 +14,16 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 
 /// <summary>
-/// An interval tree represents an ordered tree data structure to store intervals of the form 
-/// [start, end).  It allows you to efficiently find all intervals that intersect or overlap 
-/// a provided interval.
+/// An interval tree represents an ordered tree data structure to store intervals of the form [start, end).  It allows
+/// you to efficiently find all intervals that intersect or overlap a provided interval.
 /// </summary>
-internal partial class IntervalTree<T> : IEnumerable<T>
+/// <remarks>
+/// Ths is the root type for all interval trees that store their data in a binary tree format.  This format is good for
+/// when mutation of the tree is expected, and a client wants to perform tests before and after such mutation.
+/// </remarks>
+internal partial class BinaryIntervalTree<T> : IEnumerable<T>, IIntervalTree<T>
 {
-    public static readonly IntervalTree<T> Empty = new();
+    public static readonly BinaryIntervalTree<T> Empty = new();
 
     private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool = new(() => new(), trimOnFree: false);
 
@@ -31,15 +32,12 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     /// </summary>
     private static readonly ObjectPool<Stack<Node>> s_nodePool = new(() => new(), 128);
 
-    private delegate bool TestInterval<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>;
-
     protected Node? root;
 
-    public static IntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values = null)
+    public static BinaryIntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values = null)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        var result = new IntervalTree<T>();
+        var result = new BinaryIntervalTree<T>();
 
         if (values != null)
         {
@@ -49,6 +47,11 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
         return result;
     }
+
+    /// <summary>
+    /// Provides access to lots of common algorithms on this interval tree.
+    /// </summary>
+    public IntervalTreeAlgorithms<T, BinaryIntervalTree<T>> Algorithms => new(this);
 
     /// <summary>
     /// Creates an interval tree from a sorted list of values.  This is more efficient than creating from an unsorted
@@ -61,7 +64,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
     /// the list, then it's "start position" (as determined by the introspector) must be less than or equal to 'b's
     /// start position.  This is a requirement for the algorithm to work correctly.
     /// </remarks>
-    public static IntervalTree<T> CreateFromSorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
+    public static BinaryIntervalTree<T> CreateFromSorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
 #if DEBUG
@@ -72,7 +75,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         if (values.Count == 0)
             return Empty;
 
-        return new IntervalTree<T>
+        return new BinaryIntervalTree<T>
         {
             root = CreateFromSortedWorker(values, 0, values.Count, in introspector),
         };
@@ -101,102 +104,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         return node;
     }
 
-    protected static bool Contains<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-    {
-        var otherStart = start;
-        var otherEnd = start + length;
-
-        var thisSpan = introspector.GetSpan(value);
-        var thisStart = thisSpan.Start;
-        var thisEnd = thisSpan.End;
-
-        // TODO(cyrusn): This doesn't actually seem to match what TextSpan.Contains does.  It doesn't specialize empty
-        // length in any way.  Preserving this behavior for now, but we should consider changing this.
-        if (length == 0)
-        {
-            return thisStart <= otherStart && otherEnd < thisEnd;
-        }
-
-        return thisStart <= otherStart && otherEnd <= thisEnd;
-    }
-
-    private static bool IntersectsWith<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-    {
-        var otherStart = start;
-        var otherEnd = start + length;
-
-        var thisSpan = introspector.GetSpan(value);
-        var thisStart = thisSpan.Start;
-        var thisEnd = thisSpan.End;
-
-        return otherStart <= thisEnd && otherEnd >= thisStart;
-    }
-
-    private static bool OverlapsWith<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-    {
-        var otherStart = start;
-        var otherEnd = start + length;
-
-        var thisSpan = introspector.GetSpan(value);
-        var thisStart = thisSpan.Start;
-        var thisEnd = thisSpan.End;
-
-        // TODO(cyrusn): This doesn't actually seem to match what TextSpan.OverlapsWith does.  It doesn't specialize empty
-        // length in any way.  Preserving this behavior for now, but we should consider changing this.
-        if (length == 0)
-            return thisStart < otherStart && otherStart < thisEnd;
-
-        var overlapStart = Math.Max(thisStart, otherStart);
-        var overlapEnd = Math.Min(thisEnd, otherEnd);
-
-        return overlapStart < overlapEnd;
-    }
-
-    public ImmutableArray<T> GetIntervalsThatOverlapWith<TIntrospector>(int start, int length, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => this.GetIntervalsThatMatch(start, length, Tests<TIntrospector>.OverlapsWithTest, in introspector);
-
-    public ImmutableArray<T> GetIntervalsThatIntersectWith<TIntrospector>(int start, int length, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => this.GetIntervalsThatMatch(start, length, Tests<TIntrospector>.IntersectsWithTest, in introspector);
-
-    public ImmutableArray<T> GetIntervalsThatContain<TIntrospector>(int start, int length, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => this.GetIntervalsThatMatch(start, length, Tests<TIntrospector>.ContainsTest, in introspector);
-
-    public void FillWithIntervalsThatOverlapWith<TIntrospector>(int start, int length, ref TemporaryArray<T> builder, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => this.FillWithIntervalsThatMatch(start, length, Tests<TIntrospector>.OverlapsWithTest, ref builder, in introspector, stopAfterFirst: false);
-
-    public void FillWithIntervalsThatIntersectWith<TIntrospector>(int start, int length, ref TemporaryArray<T> builder, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => this.FillWithIntervalsThatMatch(start, length, Tests<TIntrospector>.IntersectsWithTest, ref builder, in introspector, stopAfterFirst: false);
-
-    public void FillWithIntervalsThatContain<TIntrospector>(int start, int length, ref TemporaryArray<T> builder, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => this.FillWithIntervalsThatMatch(start, length, Tests<TIntrospector>.ContainsTest, ref builder, in introspector, stopAfterFirst: false);
-
-    public bool HasIntervalThatIntersectsWith<TIntrospector>(int position, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => HasIntervalThatIntersectsWith(position, 0, in introspector);
-
-    public bool HasIntervalThatIntersectsWith<TIntrospector>(int start, int length, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => Any(start, length, Tests<TIntrospector>.IntersectsWithTest, in introspector);
-
-    public bool HasIntervalThatOverlapsWith<TIntrospector>(int start, int length, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => Any(start, length, Tests<TIntrospector>.OverlapsWithTest, in introspector);
-
-    public bool HasIntervalThatContains<TIntrospector>(int start, int length, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-        => Any(start, length, Tests<TIntrospector>.ContainsTest, in introspector);
-
-    private bool Any<TIntrospector>(int start, int length, TestInterval<TIntrospector> testInterval, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
+    bool IIntervalTree<T>.Any<TIntrospector>(int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
     {
         // Inlined version of FillWithIntervalsThatMatch, optimized to do less work and stop once it finds a match.
         if (root is null)
@@ -226,21 +134,10 @@ internal partial class IntervalTree<T> : IEnumerable<T>
         return false;
     }
 
-    private ImmutableArray<T> GetIntervalsThatMatch<TIntrospector>(
-        int start, int length, TestInterval<TIntrospector> testInterval, in TIntrospector introspector)
-        where TIntrospector : struct, IIntervalIntrospector<T>
-    {
-        using var result = TemporaryArray<T>.Empty;
-        FillWithIntervalsThatMatch(start, length, testInterval, ref result.AsRef(), in introspector, stopAfterFirst: false);
-        return result.ToImmutableAndClear();
-    }
-
-    /// <returns>The number of matching intervals found by the method.</returns>
-    private int FillWithIntervalsThatMatch<TIntrospector>(
-        int start, int length, TestInterval<TIntrospector> testInterval,
+    int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector>(
+        int start, int length, TestInterval<T, TIntrospector> testInterval,
         ref TemporaryArray<T> builder, in TIntrospector introspector,
         bool stopAfterFirst)
-        where TIntrospector : struct, IIntervalIntrospector<T>
     {
         if (root == null)
             return 0;
@@ -440,12 +337,4 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
     private static int BalanceFactor(Node? node)
         => node == null ? 0 : Height(node.Left) - Height(node.Right);
-
-    private static class Tests<TIntrospector>
-        where TIntrospector : struct, IIntervalIntrospector<T>
-    {
-        public static readonly TestInterval<TIntrospector> IntersectsWithTest = IntersectsWith;
-        public static readonly TestInterval<TIntrospector> ContainsTest = Contains;
-        public static readonly TestInterval<TIntrospector> OverlapsWithTest = OverlapsWith;
-    }
 }
