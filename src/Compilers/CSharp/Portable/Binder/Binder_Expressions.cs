@@ -1549,6 +1549,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var members = ArrayBuilder<Symbol>.GetInstance();
                 Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out isError, qualifierOpt: null);  // reports diagnostics in result.
 
+                if (symbol is not SynthesizedAccessorValueParameterSymbol { Name: "value" })
+                {
+                    ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
+                }
+
                 if ((object)symbol == null)
                 {
                     Debug.Assert(members.Count > 0);
@@ -1595,11 +1600,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Note, this call can clear and reuse lookupResult and members
                 reportPrimaryConstructorParameterShadowing(node, symbol ?? members[0], name, invoked, lookupResult, members, diagnostics);
                 members.Free();
-
-                if (symbol is not SynthesizedAccessorValueParameterSymbol { Name: "value" })
-                {
-                    ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
-                }
             }
             else
             {

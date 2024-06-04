@@ -193,6 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
+                    ReportFieldOrValueContextualKeywordConflictIfAny(p, p.Identifier, diagnostics);
+
                     namesBuilder.Add(p.Identifier.ValueText);
                     typesBuilder.Add(type);
                     refKindsBuilder.Add(refKind);
@@ -304,14 +306,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (refKind, returnType);
         }
 
-        private void CheckParenthesizedLambdaParameters(
+        private static void CheckParenthesizedLambdaParameters(
             SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, BindingDiagnosticBag diagnostics)
         {
             if (parameterSyntaxList.Count > 0)
             {
                 var hasTypes = parameterSyntaxList[0].Type != null;
 
-                checkParameter(hasTypes, parameterSyntaxList[0], diagnostics);
+                checkForImplicitDefault(hasTypes, parameterSyntaxList[0], diagnostics);
 
                 for (int i = 1, n = parameterSyntaxList.Count; i < n; i++)
                 {
@@ -329,15 +331,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 parameter.Type?.GetLocation() ?? parameter.Identifier.GetLocation());
                         }
 
-                        checkParameter(thisParameterHasType, parameter, diagnostics);
+                        checkForImplicitDefault(thisParameterHasType, parameter, diagnostics);
                     }
                 }
             }
 
-            void checkParameter(bool hasType, ParameterSyntax param, BindingDiagnosticBag diagnostics)
+            static void checkForImplicitDefault(bool hasType, ParameterSyntax param, BindingDiagnosticBag diagnostics)
             {
-                ReportFieldOrValueContextualKeywordConflictIfAny(param, param.Identifier, diagnostics);
-
                 if (!hasType && param.Default != null)
                 {
                     diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedDefaultParameter,

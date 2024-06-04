@@ -869,6 +869,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SourceLocalSymbol localSymbol = LookupLocal(designation.Identifier);
 
+            ReportFieldOrValueContextualKeywordConflictIfAny(designation, designation.Identifier, diagnostics);
+
             // is this a local?
             if ((object)localSymbol != null)
             {
@@ -904,7 +906,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Use the binder that owns the scope for the local because this (the current) binder
                 // might own nested scope.
                 var hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
-                ReportFieldOrValueContextualKeywordConflictIfAny(designation, designation.Identifier, diagnostics);
 
                 if (declTypeWithAnnotations.HasType)
                 {

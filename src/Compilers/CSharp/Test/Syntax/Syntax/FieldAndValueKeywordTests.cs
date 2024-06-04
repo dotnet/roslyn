@@ -1353,6 +1353,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void Lambda_Parameter_03()
+        {
+            string source = """
+                #pragma warning disable 649
+                using System;
+                class C
+                {
+                    object P
+                    {
+                        set
+                        {
+                            Action<object, object> a;
+                            a = delegate (object field, object @value) { };
+                            a = delegate (object @field, object value) { };
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyEmitDiagnostics(
+                // (10,27): info CS9258: 'field' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@field' to avoid a breaking change when compiling with language version preview or later.
+                //             a = delegate (object field, object @value) { };
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "object field").WithArguments("field", "preview").WithLocation(10, 27),
+                // (11,42): info CS9258: 'value' is a contextual keyword, with a specific meaning, starting in language version preview. Use '@value' to avoid a breaking change when compiling with language version preview or later.
+                //             a = delegate (object @field, object value) { };
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "object value").WithArguments("value", "preview").WithLocation(11, 42));
+        }
+
+        [Fact]
         public void LocalFunction_Local()
         {
             string source = """
