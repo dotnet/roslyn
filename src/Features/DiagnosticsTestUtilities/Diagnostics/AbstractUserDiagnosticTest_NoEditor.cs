@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             return TestActionCountInAllFixesAsync(
                 initialMarkup,
-                new TestParameters(parseOptions, compilationOptions, options, fixProviderData),
+                new TestParameters(parseOptions, compilationOptions, options, globalOptions: null, fixProviderData),
                 count);
         }
 
