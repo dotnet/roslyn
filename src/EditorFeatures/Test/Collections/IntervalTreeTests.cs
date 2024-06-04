@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -28,7 +29,9 @@ public abstract class IntervalTreeTests
 
     private protected abstract IEnumerable<IIntervalTree<Tuple<int, int, string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values);
 
-    private protected abstract ImmutableArray<Tuple<int, int, string>> GetIntervalsThatOverlapWith<T>(IIntervalTree<Tuple<int, int, string>> tree, int start, int length);
+    private protected abstract ImmutableArray<Tuple<int, int, string>> GetIntervalsThatIntersectWith(IIntervalTree<Tuple<int, int, string>> tree, int start, int length);
+    private protected abstract ImmutableArray<Tuple<int, int, string>> GetIntervalsThatOverlapWith(IIntervalTree<Tuple<int, int, string>> tree, int start, int length);
+    private protected abstract bool HasIntervalThatIntersectsWith(IIntervalTree<Tuple<int, int, string>> tree, int position);
 
     [Fact]
     public void TestEmpty()
@@ -46,7 +49,7 @@ public abstract class IntervalTreeTests
     {
         foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
         {
-            var spans = tree.GetIntervalsThatOverlapWith(0, 1);
+            var spans = GetIntervalsThatOverlapWith(tree, 0, 1);
 
             Assert.Empty(spans);
         }
@@ -57,7 +60,7 @@ public abstract class IntervalTreeTests
     {
         foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
         {
-            var spans = tree.GetIntervalsThatOverlapWith(0, 5);
+            var spans = GetIntervalsThatOverlapWith(tree, 0, 5);
 
             Assert.Empty(spans);
         }
@@ -68,7 +71,7 @@ public abstract class IntervalTreeTests
     {
         foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
         {
-            var spans = tree.GetIntervalsThatOverlapWith(15, 5);
+            var spans = GetIntervalsThatOverlapWith(tree, 15, 5);
 
             Assert.Empty(spans);
         }
@@ -79,7 +82,7 @@ public abstract class IntervalTreeTests
     {
         foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
         {
-            var spans = tree.GetIntervalsThatOverlapWith(10, 5);
+            var spans = GetIntervalsThatOverlapWith(tree, 10, 5);
 
             Assert.Empty(spans);
         }
@@ -90,7 +93,7 @@ public abstract class IntervalTreeTests
     {
         foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
         {
-            var spans = tree.GetIntervalsThatOverlapWith(5, 5).Select(t => t.Item3);
+            var spans = GetIntervalsThatOverlapWith(tree, 5, 5).Select(t => t.Item3);
 
             Assert.True(Set("A").SetEquals(spans));
         }
@@ -101,7 +104,7 @@ public abstract class IntervalTreeTests
     {
         foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
         {
-            var spans = tree.GetIntervalsThatOverlapWith(5, 2).Select(i => i.Item3);
+            var spans = GetIntervalsThatOverlapWith(tree, 5, 2).Select(i => i.Item3);
 
             Assert.True(Set("A").SetEquals(spans));
         }
@@ -112,7 +115,7 @@ public abstract class IntervalTreeTests
     {
         foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
         {
-            var spans = tree.GetIntervalsThatOverlapWith(8, 2).Select(i => i.Item3);
+            var spans = GetIntervalsThatOverlapWith(tree, 8, 2).Select(i => i.Item3);
 
             Assert.True(Set("A").SetEquals(spans));
         }
@@ -123,7 +126,7 @@ public abstract class IntervalTreeTests
     {
         foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
         {
-            var spans = tree.GetIntervalsThatOverlapWith(7, 2).Select(i => i.Item3);
+            var spans = GetIntervalsThatOverlapWith(tree, 7, 2).Select(i => i.Item3);
 
             Assert.True(Set("A").SetEquals(spans));
         }
@@ -134,7 +137,7 @@ public abstract class IntervalTreeTests
     {
         foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
         {
-            var spans = tree.GetIntervalsThatOverlapWith(4, 2).Select(i => i.Item3);
+            var spans = GetIntervalsThatOverlapWith(tree, 4, 2).Select(i => i.Item3);
 
             Assert.True(Set("A").SetEquals(spans));
         }
@@ -145,7 +148,7 @@ public abstract class IntervalTreeTests
     {
         foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
         {
-            var spans = tree.GetIntervalsThatOverlapWith(9, 2).Select(i => i.Item3);
+            var spans = GetIntervalsThatOverlapWith(tree, 9, 2).Select(i => i.Item3);
 
             Assert.True(Set("A").SetEquals(spans));
         }
@@ -156,7 +159,7 @@ public abstract class IntervalTreeTests
     {
         foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
         {
-            var spans = tree.GetIntervalsThatOverlapWith(4, 7).Select(i => i.Item3);
+            var spans = GetIntervalsThatOverlapWith(tree, 4, 7).Select(i => i.Item3);
 
             Assert.True(Set("A").SetEquals(spans));
         }
@@ -168,19 +171,19 @@ public abstract class IntervalTreeTests
         foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A"), Tuple.Create(15, 5, "B")))
         {
             // Test between the spans
-            Assert.Empty(tree.GetIntervalsThatOverlapWith(2, 2));
-            Assert.Empty(tree.GetIntervalsThatOverlapWith(11, 2));
-            Assert.Empty(tree.GetIntervalsThatOverlapWith(22, 2));
+            Assert.Empty(GetIntervalsThatOverlapWith(tree, 2, 2));
+            Assert.Empty(GetIntervalsThatOverlapWith(tree, 11, 2));
+            Assert.Empty(GetIntervalsThatOverlapWith(tree, 22, 2));
 
             // Test in the spans
-            Assert.True(Set("A").SetEquals(tree.GetIntervalsThatOverlapWith(6, 2).Select(i => i.Item3)));
-            Assert.True(Set("B").SetEquals(tree.GetIntervalsThatOverlapWith(16, 2).Select(i => i.Item3)));
+            Assert.True(Set("A").SetEquals(GetIntervalsThatOverlapWith(tree, 6, 2).Select(i => i.Item3)));
+            Assert.True(Set("B").SetEquals(GetIntervalsThatOverlapWith(tree, 16, 2).Select(i => i.Item3)));
 
             // Test covering both spans
-            Assert.True(Set("A", "B").SetEquals(tree.GetIntervalsThatOverlapWith(2, 20).Select(i => i.Item3)));
-            Assert.True(Set("A", "B").SetEquals(tree.GetIntervalsThatOverlapWith(2, 14).Select(i => i.Item3)));
-            Assert.True(Set("A", "B").SetEquals(tree.GetIntervalsThatOverlapWith(6, 10).Select(i => i.Item3)));
-            Assert.True(Set("A", "B").SetEquals(tree.GetIntervalsThatOverlapWith(6, 20).Select(i => i.Item3)));
+            Assert.True(Set("A", "B").SetEquals(GetIntervalsThatOverlapWith(tree, 2, 20).Select(i => i.Item3)));
+            Assert.True(Set("A", "B").SetEquals(GetIntervalsThatOverlapWith(tree, 2, 14).Select(i => i.Item3)));
+            Assert.True(Set("A", "B").SetEquals(GetIntervalsThatOverlapWith(tree, 6, 10).Select(i => i.Item3)));
+            Assert.True(Set("A", "B").SetEquals(GetIntervalsThatOverlapWith(tree, 6, 20).Select(i => i.Item3)));
         }
     }
 
@@ -214,11 +217,11 @@ public abstract class IntervalTreeTests
 
         foreach (var tree in CreateTrees(spans))
         {
-            Assert.False(tree.HasIntervalThatIntersectsWith(-1));
-            Assert.True(tree.HasIntervalThatIntersectsWith(0));
-            Assert.True(tree.HasIntervalThatIntersectsWith(1));
-            Assert.True(tree.HasIntervalThatIntersectsWith(2));
-            Assert.False(tree.HasIntervalThatIntersectsWith(3));
+            Assert.False(HasIntervalThatIntersectsWith(tree, -1));
+            Assert.True(HasIntervalThatIntersectsWith(tree, 0));
+            Assert.True(HasIntervalThatIntersectsWith(tree, 1));
+            Assert.True(HasIntervalThatIntersectsWith(tree, 2));
+            Assert.False(HasIntervalThatIntersectsWith(tree, 3));
         }
     }
 
@@ -318,14 +321,14 @@ public abstract class IntervalTreeTests
                 {
                     var span = new Span(start, length);
 
-                    var set1 = new HashSet<string>(tree.GetIntervalsThatOverlapWith(start, length).Select(i => i.Item3));
+                    var set1 = new HashSet<string>(GetIntervalsThatOverlapWith(tree, start, length).Select(i => i.Item3));
                     var set2 = new HashSet<string>(spans.Where(t =>
                     {
                         return span.OverlapsWith(new Span(t.Item1, t.Item2));
                     }).Select(t => t.Item3));
                     Assert.True(set1.SetEquals(set2));
 
-                    var set3 = new HashSet<string>(tree.GetIntervalsThatIntersectWith(start, length).Select(i => i.Item3));
+                    var set3 = new HashSet<string>(GetIntervalsThatIntersectWith(tree, start, length).Select(i => i.Item3));
                     var set4 = new HashSet<string>(spans.Where(t =>
                     {
                         return span.IntersectsWith(new Span(t.Item1, t.Item2));
@@ -353,8 +356,41 @@ public sealed class BinaryIntervalTreeTests : IntervalTreeTests
         yield return BinaryIntervalTree.Create(new TupleIntrospector<string>(), values);
     }
 
+    private protected override bool HasIntervalThatIntersectsWith(IIntervalTree<Tuple<int, int, string>> tree, int position)
+    {
+        return ((BinaryIntervalTree<Tuple<int, int, string>>)tree).Algorithms.HasIntervalThatIntersectsWith(position, new TupleIntrospector<string>());
+    }
+
+    private protected override ImmutableArray<Tuple<int, int, string>> GetIntervalsThatIntersectWith(IIntervalTree<Tuple<int, int, string>> tree, int start, int length)
+    {
+        return ((BinaryIntervalTree<Tuple<int, int, string>>)tree).Algorithms.GetIntervalsThatIntersectWith(start, length, new TupleIntrospector<string>());
+    }
+
     private protected override ImmutableArray<Tuple<int, int, string>> GetIntervalsThatOverlapWith(IIntervalTree<Tuple<int, int, string>> tree, int start, int length)
     {
-        return ((BinaryIntervalTree<string>)tree).Algorithms.GetIntervalsThatOverlapWith(start, length, new TupleIntrospector<string>());
+        return ((BinaryIntervalTree<Tuple<int, int, string>>)tree).Algorithms.GetIntervalsThatOverlapWith(start, length, new TupleIntrospector<string>());
+    }
+}
+
+public sealed class FlatArrayIntervalTreeTests : IntervalTreeTests
+{
+    private protected override IEnumerable<IIntervalTree<Tuple<int, int, string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values)
+    {
+        yield return FlatArrayIntervalTree<Tuple<int, int, string>>.CreateFromUnsorted(new TupleIntrospector<string>(), new SegmentedList<Tuple<int, int, string>>(values));
+    }
+
+    private protected override bool HasIntervalThatIntersectsWith(IIntervalTree<Tuple<int, int, string>> tree, int position)
+    {
+        return ((FlatArrayIntervalTree<Tuple<int, int, string>>)tree).Algorithms.HasIntervalThatIntersectsWith(position, new TupleIntrospector<string>());
+    }
+
+    private protected override ImmutableArray<Tuple<int, int, string>> GetIntervalsThatIntersectWith(IIntervalTree<Tuple<int, int, string>> tree, int start, int length)
+    {
+        return ((FlatArrayIntervalTree<Tuple<int, int, string>>)tree).Algorithms.GetIntervalsThatIntersectWith(start, length, new TupleIntrospector<string>());
+    }
+
+    private protected override ImmutableArray<Tuple<int, int, string>> GetIntervalsThatOverlapWith(IIntervalTree<Tuple<int, int, string>> tree, int start, int length)
+    {
+        return ((FlatArrayIntervalTree<Tuple<int, int, string>>)tree).Algorithms.GetIntervalsThatOverlapWith(start, length, new TupleIntrospector<string>());
     }
 }
