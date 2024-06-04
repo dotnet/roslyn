@@ -38,13 +38,13 @@ internal class SimpleBinaryIntervalTree<T, TIntrospector> : BinaryIntervalTree<T
     }
 
     public ImmutableArray<T> GetIntervalsThatOverlapWith(int start, int length)
-        => GetIntervalsThatOverlapWith(start, length, in _introspector);
+        => IntervalTreeExtensions.GetIntervalsThatOverlapWith(this, start, length, in _introspector);
 
     public ImmutableArray<T> GetIntervalsThatIntersectWith(int start, int length)
-        => GetIntervalsThatIntersectWith(start, length, in _introspector);
+        => this.GetIntervalsThatIntersectWith(start, length, in _introspector);
 
     public ImmutableArray<T> GetIntervalsThatContain(int start, int length)
-        => GetIntervalsThatContain(start, length, in _introspector);
+        => this.GetIntervalsThatContain(start, length, in _introspector);
 
     public void FillWithIntervalsThatOverlapWith(int start, int length, ref TemporaryArray<T> builder)
         => FillWithIntervalsThatOverlapWith(start, length, ref builder, in _introspector);
