@@ -1133,16 +1133,18 @@ public class FirstClassSpanTests : CSharpTestBase
                 {
                     M1(a);
                     M2(a);
+                    M3(a);
                 }
                 void M1(params Span<string> s) { }
                 void M2(params ReadOnlySpan<string> s) { }
+                void M3(params string[] s) { }
             }
             """;
         var comp = CreateCompilationWithSpan(source);
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
-              // Code size       25 (0x19)
+              // Code size       32 (0x20)
               .maxstack  2
               IL_0000:  ldarg.0
               IL_0001:  ldarg.1
@@ -1152,7 +1154,10 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_000d:  ldarg.1
               IL_000e:  call       "System.ReadOnlySpan<string> System.ReadOnlySpan<string>.op_Implicit(string[])"
               IL_0013:  call       "void C.M2(params System.ReadOnlySpan<string>)"
-              IL_0018:  ret
+              IL_0018:  ldarg.0
+              IL_0019:  ldarg.1
+              IL_001a:  call       "void C.M3(params string[])"
+              IL_001f:  ret
             }
             """);
     }
@@ -1169,16 +1174,18 @@ public class FirstClassSpanTests : CSharpTestBase
                 {
                     M1(a);
                     M2(a);
+                    M3(a);
                 }
                 void M1(params Span<object> s) { }
                 void M2(params ReadOnlySpan<object> s) { }
+                void M3(params object[] p) { }
             }
             """;
         var comp = CreateCompilationWithSpan(source);
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
-              // Code size       29 (0x1d)
+              // Code size       38 (0x26)
               .maxstack  2
               .locals init (object[] V_0)
               IL_0000:  ldarg.0
@@ -1193,7 +1200,12 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0011:  ldloc.0
               IL_0012:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.op_Implicit(object[])"
               IL_0017:  call       "void C.M2(params System.ReadOnlySpan<object>)"
-              IL_001c:  ret
+              IL_001c:  ldarg.0
+              IL_001d:  ldarg.1
+              IL_001e:  stloc.0
+              IL_001f:  ldloc.0
+              IL_0020:  call       "void C.M3(params object[])"
+              IL_0025:  ret
             }
             """);
     }
@@ -2435,6 +2447,51 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(string[])", "C.M(System.ReadOnlySpan<object>)").WithLocation(5, 3));
     }
 
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_03(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            var a = new string[] { "a" };
+            C.M(a);
+            C.M([a]);
+            C.M([..a, a]);
+            C.M([..a]);
+            C.M(["a"]);
+
+            static class C
+            {
+                public static void M(object[] x) => Console.Write(" a" + x[0]);
+                public static void M(ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa rSystem.String[] ra ra ra").VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_04(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            var a = new object[] { "a" };
+            C.M(a);
+            C.M([a]);
+            C.M([..a, a]);
+            C.M([..a]);
+
+            static class C
+            {
+                public static void M(object[] x) => Console.Write(" a" + x[0]);
+                public static void M(ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa rSystem.Object[] ra ra").VerifyDiagnostics();
+    }
+
     [Fact]
     public void OverloadResolution_ReadOnlySpanVsArray_Params_01()
     {
@@ -2483,6 +2540,51 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params string[])", "C.M(params System.ReadOnlySpan<object>)").WithLocation(5, 3));
     }
 
+    [Fact]
+    public void OverloadResolution_ReadOnlySpanVsArray_Params_03()
+    {
+        var source = """
+            using System;
+
+            var a = new string[] { "a" };
+            C.M(a);
+            C.M([a]);
+            C.M([..a, a]);
+            C.M([..a]);
+            C.M(["a"]);
+
+            static class C
+            {
+                public static void M(params object[] x) => Console.Write(" a" + x[0]);
+                public static void M(params ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: "aa rSystem.String[] ra ra ra").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_ReadOnlySpanVsArray_Params_04()
+    {
+        var source = """
+            using System;
+
+            var a = new object[] { "a" };
+            C.M(a);
+            C.M([a]);
+            C.M([..a, a]);
+            C.M([..a]);
+
+            static class C
+            {
+                public static void M(params object[] x) => Console.Write(" a" + x[0]);
+                public static void M(params ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: "aa rSystem.Object[] ra ra").VerifyDiagnostics();
+    }
+
     [Theory, MemberData(nameof(LangVersions))]
     public void OverloadResolution_ReadOnlySpanVsArray_ExtensionMethodReceiver_01(LanguageVersion langVersion)
     {
@@ -2529,34 +2631,136 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_ExtensionMethodReceiver_03(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            var a = new string[] { "a" };
+            a.M();
+
+            static class C
+            {
+                public static void M(this object[] x) => Console.Write(" a" + x[0]);
+                public static void M(this ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa").VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArray_ExtensionMethodReceiver_04(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            var a = new object[] { "a" };
+            a.M();
+
+            static class C
+            {
+                public static void M(this object[] x) => Console.Write(" a" + x[0]);
+                public static void M(this ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa").VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_SpanVsReadOnlySpan_01(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            C.M(new int[0]);
+            C.M(default(Span<int>));
+            C.M(default(ReadOnlySpan<int>));
+
+            static class C
+            {
+                public static void M(Span<int> arg) => Console.Write(1);
+                public static void M(ReadOnlySpan<int> arg) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "112").VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_SpanVsReadOnlySpan_02(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            C.M(new object[0]);
+            C.M(default(Span<object>));
+            C.M(default(ReadOnlySpan<object>));
+
+            C.M(new string[0]);
+
+            static class C
+            {
+                public static void M(Span<object> arg) => Console.Write(1);
+                public static void M(ReadOnlySpan<object> arg) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "1121").VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_SpanVsReadOnlySpan_03(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            C.M(default(Span<string>));
+            C.M(default(ReadOnlySpan<string>));
+
+            static class C
+            {
+                public static void M(Span<object> arg) { }
+                public static void M(ReadOnlySpan<object> arg) { }
+            }
+            """;
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (3,5): error CS1503: Argument 1: cannot convert from 'System.Span<string>' to 'System.Span<object>'
+            // C.M(default(Span<string>));
+            Diagnostic(ErrorCode.ERR_BadArgType, "default(Span<string>)").WithArguments("1", "System.Span<string>", "System.Span<object>").WithLocation(3, 5),
+            // (4,5): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<string>' to 'System.Span<object>'
+            // C.M(default(ReadOnlySpan<string>));
+            Diagnostic(ErrorCode.ERR_BadArgType, "default(ReadOnlySpan<string>)").WithArguments("1", "System.ReadOnlySpan<string>", "System.Span<object>").WithLocation(4, 5));
+    }
+
     [Fact]
     public void OverloadResolution_SpanVsReadOnlySpan_ExtensionMethodReceiver_01()
     {
         var source = """
             using System;
 
+            (new int[0]).E();
+
             static class C
             {
-                static void M(int[] arg) => arg.E();
-
-                static void E(this Span<int> arg) { }
-                static void E(this ReadOnlySpan<int> arg) { }
+                public static void E(this Span<int> arg) => Console.Write(1);
+                public static void E(this ReadOnlySpan<int> arg) => Console.Write(2);
             }
             """;
         CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (5,33): error CS1929: 'int[]' does not contain a definition for 'E' and the best extension method overload 'C.E(Span<int>)' requires a receiver of type 'System.Span<int>'
-            //     static void M(int[] arg) => arg.E();
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "arg").WithArguments("int[]", "E", "C.E(System.Span<int>)", "System.Span<int>").WithLocation(5, 33));
+            // (3,2): error CS1929: 'int[]' does not contain a definition for 'E' and the best extension method overload 'C.E(Span<int>)' requires a receiver of type 'System.Span<int>'
+            // (new int[0]).E();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new int[0]").WithArguments("int[]", "E", "C.E(System.Span<int>)", "System.Span<int>").WithLocation(3, 2));
 
-        var expectedDiagnostics = new[]
-        {
-            // (5,37): error CS0121: The call is ambiguous between the following methods or properties: 'C.E(Span<int>)' and 'C.E(ReadOnlySpan<int>)'
-            //     static void M(int[] arg) => arg.E();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("C.E(System.Span<int>)", "C.E(System.ReadOnlySpan<int>)").WithLocation(5, 37)
-        };
+        var expectedOutput = "1";
 
-        CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilationWithSpan(source).VerifyDiagnostics(expectedDiagnostics);
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -2565,20 +2769,166 @@ public class FirstClassSpanTests : CSharpTestBase
         var source = """
             using System;
 
-            C.M1(default);
-            C.M2(default);
+            default(Span<int>).E();
+            default(ReadOnlySpan<int>).E();
 
             static class C
             {
-                public static void M1(Span<int> arg) => arg.E();
-                public static void M2(ReadOnlySpan<int> arg) => arg.E();
-
-                static void E(this Span<int> arg) => Console.Write("S ");
-                static void E(this ReadOnlySpan<int> arg) => Console.Write("R ");
+                public static void E(this Span<int> arg) => Console.Write(1);
+                public static void E(this ReadOnlySpan<int> arg) => Console.Write(2);
             }
             """;
-
         var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
-        CompileAndVerify(comp, expectedOutput: "S R").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_SpanVsReadOnlySpan_ExtensionMethodReceiver_03()
+    {
+        var source = """
+            using System;
+
+            (new string[0]).E();
+            (new object[0]).E();
+
+            static class C
+            {
+                public static void E(this Span<object> arg) => Console.Write(1);
+                public static void E(this ReadOnlySpan<object> arg) => Console.Write(2);
+            }
+            """;
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (3,2): error CS1929: 'string[]' does not contain a definition for 'E' and the best extension method overload 'C.E(Span<object>)' requires a receiver of type 'System.Span<object>'
+            // (new string[0]).E();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new string[0]").WithArguments("string[]", "E", "C.E(System.Span<object>)", "System.Span<object>").WithLocation(3, 2),
+            // (4,2): error CS1929: 'object[]' does not contain a definition for 'E' and the best extension method overload 'C.E(Span<object>)' requires a receiver of type 'System.Span<object>'
+            // (new string[0]).E();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new object[0]").WithArguments("object[]", "E", "C.E(System.Span<object>)", "System.Span<object>").WithLocation(4, 2));
+
+        var expectedOutput = "21";
+
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_SpanVsReadOnlySpan_ExtensionMethodReceiver_04(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            default(Span<string>).E();
+            default(ReadOnlySpan<string>).E();
+
+            static class C
+            {
+                public static void E(this Span<object> arg) { }
+                public static void E(this ReadOnlySpan<object> arg) { }
+            }
+            """;
+        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (3,1): error CS1929: 'Span<string>' does not contain a definition for 'E' and the best extension method overload 'C.E(Span<object>)' requires a receiver of type 'System.Span<object>'
+            // default(Span<string>).E();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "default(Span<string>)").WithArguments("System.Span<string>", "E", "C.E(System.Span<object>)", "System.Span<object>").WithLocation(3, 1),
+            // (4,1): error CS1929: 'ReadOnlySpan<string>' does not contain a definition for 'E' and the best extension method overload 'C.E(Span<object>)' requires a receiver of type 'System.Span<object>'
+            // default(ReadOnlySpan<string>).E();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "default(ReadOnlySpan<string>)").WithArguments("System.ReadOnlySpan<string>", "E", "C.E(System.Span<object>)", "System.Span<object>").WithLocation(4, 1));
+
+        // PROTOTYPE: Should work in C# 13 when ROS->ROS conversion is implemented.
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArrayVsSpan(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            var a = new string[] { "a" };
+            C.M(a);
+            C.M([a]);
+            C.M([..a, a]);
+            C.M([..a]);
+            C.M(["a"]);
+
+            var b = new object[] { "b" };
+            C.M(b);
+            C.M([b]);
+            C.M([..b, b]);
+            C.M([..b]);
+
+            static class C
+            {
+                public static void M(object[] x) => Console.Write(" a" + x[0]);
+                public static void M(ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+                public static void M(Span<object> x) => Console.Write(" s" + x[0]);
+                public static void M(IEnumerable<object> x) => Console.Write(" e" + x.First());
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa rSystem.String[] ra ra ra ab rSystem.Object[] rb rb").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_ReadOnlySpanVsArrayVsSpan_Params()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            var a = new string[] { "a" };
+            C.M(a);
+            C.M([a]);
+            C.M([..a, a]);
+            C.M([..a]);
+            C.M(["a"]);
+
+            var b = new object[] { "b" };
+            C.M(b);
+            C.M([b]);
+            C.M([..b, b]);
+            C.M([..b]);
+
+            static class C
+            {
+                public static void M(params object[] x) => Console.Write(" a" + x[0]);
+                public static void M(params ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+                public static void M(params Span<object> x) => Console.Write(" s" + x[0]);
+                public static void M(params IEnumerable<object> x) => Console.Write(" e" + x.First());
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source);
+        CompileAndVerify(comp, expectedOutput: "aa rSystem.String[] ra ra ra ab rSystem.Object[] rb rb").VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void OverloadResolution_ReadOnlySpanVsArrayVsSpan_ExtensionMethodReceiver(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            var a = new string[] { "a" };
+            a.M();
+
+            var b = new object[] { "b" };
+            b.M();
+
+            static class C
+            {
+                public static void M(this object[] x) => Console.Write(" a" + x[0]);
+                public static void M(this ReadOnlySpan<object> x) => Console.Write(" r" + x[0]);
+                public static void M(this Span<object> x) => Console.Write(" s" + x[0]);
+                public static void M(this IEnumerable<object> x) => Console.Write(" e" + x.First());
+            }
+            """;
+        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "aa ab").VerifyDiagnostics();
     }
 }
