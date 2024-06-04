@@ -361,7 +361,7 @@ public abstract partial class Workspace : IDisposable
         {
             // Changing a document in a linked-doc-chain will end up producing N changed documents.  We only want to
             // process that chain once.
-            using var _ = PooledDictionary<DocumentId, DocumentState>.GetInstance(out var documentIdsToUpdate);
+            using var _ = PooledDictionary<DocumentId, DocumentState>.GetInstance(out var relatedDocumentIdsAndStates);
 
             foreach (var changedDocumentId in changedDocumentIds)
             {
@@ -376,17 +376,17 @@ public abstract partial class Workspace : IDisposable
                     if (!changedDocumentIds.Contains(relatedDocumentId))
                     {
                         changedDocument ??= solution.GetRequiredDocument(changedDocumentId);
-                        documentIdsToUpdate[relatedDocumentId] = changedDocument.DocumentState;
+                        relatedDocumentIdsAndStates[relatedDocumentId] = changedDocument.DocumentState;
                     }
                 }
             }
 
-            if (documentIdsToUpdate.Count == 0)
+            if (relatedDocumentIdsAndStates.Count == 0)
                 return solution;
 
-            var toProcessRelatedDocumentIds = documentIdsToUpdate.SelectAsArray(kvp => (kvp.Key, kvp.Value));
+            var relatedDocumentIdsAndStatesArray = relatedDocumentIdsAndStates.SelectAsArray(static kvp => (kvp.Key, kvp.Value));
 
-            return solution.WithDocumentContentsFrom(toProcessRelatedDocumentIds, forceEvenIfTreesWouldDiffer: false);
+            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStatesArray, forceEvenIfTreesWouldDiffer: false);
         }
     }
 

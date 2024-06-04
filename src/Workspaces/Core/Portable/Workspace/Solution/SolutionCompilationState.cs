@@ -819,9 +819,6 @@ internal sealed partial class SolutionCompilationState
             documentIdsAndStates,
             isUnchanged: static (oldDocumentState, documentState, forceEvenIfTreesWouldDiffer) =>
             {
-                if (oldDocumentState == documentState)
-                    return true;
-
                 return oldDocumentState.TextAndVersionSource == documentState.TextAndVersionSource
                     && oldDocumentState.TreeSource == documentState.TreeSource;
             },
