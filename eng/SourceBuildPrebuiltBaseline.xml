@@ -50,4 +50,11 @@
     <UsagePattern IdentityGlob="Microsoft.Extensions.Logging*/7.0*" />
     <UsagePattern IdentityGlob="Microsoft.Extensions.Options.ConfigurationExtension*/7.0*" />
   </IgnorePatterns>
+  <Usages>
+    <Usage Id="Microsoft.Build" Version="17.3.4" IsDirectDependency="true" />
+    <Usage Id="Microsoft.Build.Framework" Version="17.3.4" IsDirectDependency="true" />
+    <Usage Id="Microsoft.Build.Tasks.Core" Version="17.3.4" IsDirectDependency="true" />
+    <Usage Id="Microsoft.Build.Utilities.Core" Version="17.3.4" />
+    <Usage Id="Microsoft.NET.StringTools" Version="17.3.4" />
+  </Usages>
 </UsageData>
