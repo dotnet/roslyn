@@ -1213,6 +1213,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics, basesBeingResolved, qualifierOpt, node, plainName, node.Arity, options);
             NamedTypeSymbol resultType;
 
+            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
+
             if (isUnboundTypeExpr)
             {
                 if (!IsUnboundTypeAllowed(node))
@@ -1255,8 +1257,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     basesBeingResolved,
                     diagnostics);
             }
-
-            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
 
             return TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(node.TypeArgumentList.GreaterThanToken), resultType);
         }

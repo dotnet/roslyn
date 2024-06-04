@@ -972,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(declarator != null);
 
-            return BindVariableDeclaration(LocateDeclaredVariableSymbol(declarator, typeSyntax, kind),
+            return BindVariableDeclaration(LocateDeclaredVariableSymbol(declarator, typeSyntax, kind, diagnostics),
                                            kind,
                                            isVar,
                                            declarator,
@@ -1009,8 +1009,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // might own nested scope.
             bool nameConflict = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
             bool hasErrors = false;
-
-            ReportFieldOrValueContextualKeywordConflictIfAny(declarator, declarator.Identifier, diagnostics);
 
             if (localSymbol.RefKind != RefKind.None)
             {
@@ -1208,8 +1206,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return arguments;
         }
 
-        private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax, LocalDeclarationKind outerKind)
+        private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax, LocalDeclarationKind outerKind, BindingDiagnosticBag diagnostics)
         {
+            ReportFieldOrValueContextualKeywordConflictIfAny(declarator, declarator.Identifier, diagnostics);
+
             LocalDeclarationKind kind = outerKind == LocalDeclarationKind.UsingVariable ? LocalDeclarationKind.UsingVariable : LocalDeclarationKind.RegularVariable;
             return LocateDeclaredVariableSymbol(declarator.Identifier, typeSyntax, declarator.Initializer, kind);
         }
