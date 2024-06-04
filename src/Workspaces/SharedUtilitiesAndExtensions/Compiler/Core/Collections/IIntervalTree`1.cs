@@ -212,6 +212,60 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         return false;
     }
 
+
+    int IIntervalTree<T>.FillWithIntervalsThatMatch<TIntrospector>(
+        int start, int length, TestInterval<T, TIntrospector> testInterval,
+        ref TemporaryArray<T> builder, in TIntrospector introspector,
+        bool stopAfterFirst)
+    {
+        var array = _array;
+        if (array.Length == 0)
+            return 0;
+
+        using var _ = s_stackPool.GetPooledObject(out var candidates);
+
+        var matches = 0;
+        var end = start + length;
+
+        candidates.Push((nodeIndex: 0, firstTime: true));
+
+        while (candidates.TryPop(out var currentTuple))
+        {
+            var currentNodeIndex = currentTuple.nodeIndex;
+            var currentNode = array[currentNodeIndex];
+
+            if (!currentTuple.firstTime)
+            {
+                // We're seeing this node for the second time (as we walk back up the left
+                // side of it).  Now see if it matches our test, and if so return it out.
+                if (testInterval(currentNode.Value, start, length, in introspector))
+                {
+                    matches++;
+                    builder.Add(currentNode.Value);
+
+                    if (stopAfterFirst)
+                        return 1;
+                }
+            }
+            else
+            {
+                // First time we're seeing this node.  In order to see the node 'in-order', we push the right side, then
+                // the node again, then the left side.  This time we mark the current node with 'false' to indicate that
+                // it's the second time we're seeing it the next time it comes around.
+
+                if (ShouldExamineRight(start, end, currentNodeIndex, in introspector, out var right))
+                    candidates.Push((right, firstTime: true));
+
+                candidates.Push((currentNodeIndex, firstTime: false));
+
+                if (ShouldExamineLeft(start, currentNodeIndex, in introspector, out var left))
+                    candidates.Push((left, firstTime: true));
+            }
+        }
+
+        return matches;
+    }
+
     private bool ShouldExamineRight<TIntrospector>(
         int start, int end,
         int currentNodeIndex,
