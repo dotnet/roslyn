@@ -17,6 +17,25 @@ namespace Microsoft.CodeAnalysis.CodeGeneration;
 
 using TypeInfo = System.Reflection.TypeInfo;
 
+/// <summary>
+/// Generates implementations of an interface at runtime based on a mirroring interface implementation provided by the
+/// type. The simplest concrete example is generating a type that implements <see cref="ISymbol"/> from a type that
+/// implements <see cref="ICodeGenerationSymbol"/>.
+/// </summary>
+/// <remarks>
+/// <para>The mapping process for a type <c>T</c> produces a type <c>U</c> which is derived from <c>T</c>. Each
+/// interface implemented by <c>T</c> is looked up in <paramref name="interfaceMapping"/>, and if a match is found, the
+/// type <c>U</c> will implement the mapped interface found in the collection. Every member of the mapped run-time
+/// interface will be examined against the compile-time interface for a matching definition, and if found, that
+/// implementation will be used. Otherwise, a default implementation will be generated based on the parameter and return
+/// types.</para>
+///
+/// <para>This factory allows for future versions of an interface (e.g. <see cref="ISymbol"/>) to contain members which
+/// were not present at the time a library was compiled, and still be able to provide implementations of the complete
+/// interface.</para>
+/// </remarks>
+/// <seealso href="https://github.com/dotnet/roslyn/issues/72811"/>
+/// <param name="interfaceMapping">The mapping of compile-time interfaces to run-time interfaces.</param>
 internal abstract class SymbolMappingFactory(FrozenDictionary<Type, Type> interfaceMapping)
 {
     /// <summary>
