@@ -61,6 +61,11 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
     /// </summary>
     private static readonly ObjectPool<Stack<int>> s_nodeIndexPool = new(() => new(), 128, trimOnFree: false);
 
+    /// <summary>
+    /// The nodes of this interval tree flatted into a single array.  The root is as index 0.  The left child of any
+    /// node at index <c>i</c> is at <c>2*i + 1</c> and the right child is at <c>2*i + 2</c>. If a left/right child
+    /// index is beyond the length of this array, that is equivalent to that node not having such a child.
+    /// </summary>
     private readonly SegmentedArray<Node> _array;
 
     private FlatArrayIntervalTree(SegmentedArray<Node> array)
@@ -299,5 +304,40 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
             return true;
 
         return false;
+    }
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        var array = _array;
+        return array.Length == 0 ? SpecializedCollections.EmptyEnumerator<T>() : GetEnumeratorWorker(array);
+
+        static IEnumerator<T> GetEnumeratorWorker(SegmentedArray<Node> array)
+        {
+            using var _ = s_stackPool.GetPooledObject(out var candidates);
+            candidates.Push((0, firstTime: true));
+            while (candidates.TryPop(out var tuple))
+            {
+                var (currentNodeIndex, firstTime) = tuple;
+                if (firstTime)
+                {
+                    // First time seeing this node.  Mark that we've been seen and recurse down the left side.  The
+                    // next time we see this node we'll yield it out.
+                    var rightIndex = GetRightChildIndex(currentNodeIndex);
+                    var leftIndex = GetLeftChildIndex(currentNodeIndex);
+
+                    if (rightIndex < array.Length)
+                        candidates.Push((rightIndex, firstTime: true));
+
+                    candidates.Push((currentNodeIndex, firstTime: false));
+
+                    if (leftIndex < array.Length)
+                        candidates.Push((leftIndex, firstTime: true));
+                }
+                else
+                {
+                    yield return array[currentNodeIndex].Value;
+                }
+            }
+        }
     }
 }
