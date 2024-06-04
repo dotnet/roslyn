@@ -111,7 +111,7 @@ internal readonly struct IntervalTreeExtensions<T, TIntervalTree>(TIntervalTree 
         return tree.Any(start, length, Tests<TIntrospector>.ContainsTest, in introspector);
     }
 
-    private static bool Contains<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
+    public static bool Contains<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var otherStart = start;
