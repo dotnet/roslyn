@@ -3,12 +3,37 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
 internal static class CodeAnalysisProgressExtensions
 {
+    public static void AddItems(this IProgress<CodeAnalysisProgressWrapper> progress, int count)
+        => progress.Report(CodeAnalysisProgressWrapper.AddIncompleteItems(count));
+
+    public static void ItemCompleted(this IProgress<CodeAnalysisProgressWrapper> progress)
+        => progress.Report(CodeAnalysisProgressWrapper.AddCompleteItems(count: 1));
+
+    /// <summary>
+    /// Opens a scope that will call <see cref="IProgress{T}.Report(T)"/> with an instance of <see
+    /// cref="CodeAnalysisProgressWrapper.AddCompleteItems"/> on <paramref name="progress"/> once disposed. This is useful to
+    /// easily wrap a series of operations and now that progress will be reported no matter how it completes.
+    /// </summary>
+    public static ItemCompletedWrapperDisposer ItemCompletedScope(this IProgress<CodeAnalysisProgressWrapper> progress, string? description = null)
+    {
+        if (description != null)
+            progress.Report(CodeAnalysisProgressWrapper.Description(description));
+
+        return new ItemCompletedWrapperDisposer(progress);
+    }
+
+    public readonly struct ItemCompletedWrapperDisposer(IProgress<CodeAnalysisProgressWrapper> progress) : IDisposable
+    {
+        public void Dispose()
+            => progress.ItemCompleted();
+    }
+
+#if !CODE_STYLE
     public static void AddItems(this IProgress<CodeAnalysisProgress> progress, int count)
         => progress.Report(CodeAnalysisProgress.AddIncompleteItems(count));
 
@@ -33,4 +58,5 @@ internal static class CodeAnalysisProgressExtensions
         public void Dispose()
             => progress.ItemCompleted();
     }
+#endif
 }

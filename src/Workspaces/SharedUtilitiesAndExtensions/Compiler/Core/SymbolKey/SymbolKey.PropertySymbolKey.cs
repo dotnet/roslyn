@@ -99,7 +99,7 @@ internal partial struct SymbolKey
                     property.OriginalDefinition.Parameters))
             {
                 if (isPartialImplementationPart)
-                    property = property.PartialImplementationPart ?? property;
+                    property = property.PartialImplementationPart() ?? property;
 
                 Debug.Assert(property != null);
                 return property;

@@ -521,7 +521,7 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
             }
 
             var suppressionInfo = diagnostic.GetSuppressionInfo(compilationWithAnalyzers.Compilation);
-            if (suppressionInfo == null || !suppressionInfo.ProgrammaticSuppressions.IsEmpty)
+            if (suppressionInfo == null || !suppressionInfo.ProgrammaticSuppressions().IsEmpty)
             {
                 // Skip diagnostics that are not suppressed in source or suppressed via programmatic suppressions from suppressors.
                 continue;

@@ -41,8 +41,11 @@
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Extensions" />
     <Import Include="Roslyn.Utilities" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisCommonFixedVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisVisualBasicFixedVersion)" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
   </ItemGroup>
   <ItemGroup>

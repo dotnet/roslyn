@@ -91,7 +91,7 @@ internal static class DiagnosticCustomTags
         }
         else if (isCustomConfigurable)
         {
-            customTagsBuilder.Add(WellKnownDiagnosticTags.CustomSeverityConfigurable);
+            customTagsBuilder.Add(WellKnownDiagnosticTagsEx.CustomSeverityConfigurable);
         }
 
         if (isUnnecessary)

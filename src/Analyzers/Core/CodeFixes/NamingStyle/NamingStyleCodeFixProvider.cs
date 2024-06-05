@@ -150,14 +150,16 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
         protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
             => [new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false))];
 
+#if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
+        protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+        {
+            return base.ComputeOperationsAsync(cancellationToken);
+        }
+#else
         protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             var newSolution = await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
             var codeAction = new ApplyChangesOperation(newSolution);
-
-#if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
-            return [codeAction];
-#else
 
             using var operations = TemporaryArray<CodeActionOperation>.Empty;
 
@@ -169,8 +171,8 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
             }
 
             return operations.ToImmutableAndClear();
-#endif
         }
+#endif
 
         public override string Title => _title;
 

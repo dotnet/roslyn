@@ -27,8 +27,10 @@ internal class CodeGenerationParameterSymbol(
 {
     public RefKind RefKind { get; } = refKind;
     public bool IsParams { get; } = isParams;
+#if !CODE_STYLE
     bool IParameterSymbol.IsParamsArray => IsParams;
     bool IParameterSymbol.IsParamsCollection => false;
+#endif
     public ITypeSymbol Type { get; } = type;
     public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
     public bool IsOptional { get; } = isOptional;

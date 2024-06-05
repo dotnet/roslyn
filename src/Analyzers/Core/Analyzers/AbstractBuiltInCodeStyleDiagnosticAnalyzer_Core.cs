@@ -74,7 +74,7 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
 
     public sealed override void Initialize(AnalysisContext context)
     {
-        _minimumReportedSeverity = context.MinimumReportedSeverity;
+        _minimumReportedSeverity = context.MinimumReportedSeverity();
 
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags);
         context.EnableConcurrentExecution();

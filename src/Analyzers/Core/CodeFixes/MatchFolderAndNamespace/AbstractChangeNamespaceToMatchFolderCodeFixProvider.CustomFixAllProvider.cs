@@ -44,7 +44,7 @@ internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvi
                 cancellationToken => FixAllByDocumentAsync(
                     fixAllContext.Project.Solution,
                     diagnostics,
-                    fixAllContext.Progress,
+                    fixAllContext.Progress(),
 #if CODE_STYLE
                     CodeActionOptions.DefaultProvider,
 #else
@@ -70,7 +70,7 @@ internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvi
         private static async Task<Solution> FixAllByDocumentAsync(
             Solution solution,
             ImmutableArray<Diagnostic> diagnostics,
-            IProgress<CodeAnalysisProgress> progressTracker,
+            IProgress<CodeAnalysisProgressWrapper> progressTracker,
             CodeActionOptionsProvider options,
             CancellationToken cancellationToken)
         {

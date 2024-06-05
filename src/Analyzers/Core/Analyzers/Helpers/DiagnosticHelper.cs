@@ -275,7 +275,7 @@ internal static class DiagnosticHelper
             {
                 foreach (var customTag in descriptor.CustomTags)
                 {
-                    if (customTag != WellKnownDiagnosticTags.CustomSeverityConfigurable)
+                    if (customTag != WellKnownDiagnosticTagsEx.CustomSeverityConfigurable)
                         yield return customTag;
                 }
 
@@ -286,7 +286,7 @@ internal static class DiagnosticHelper
             var hasCustomConfigurableTag = false;
             foreach (var customTag in descriptor.CustomTags)
             {
-                if (customTag == WellKnownDiagnosticTags.CustomSeverityConfigurable)
+                if (customTag == WellKnownDiagnosticTagsEx.CustomSeverityConfigurable)
                 {
                     hasCustomConfigurableTag = true;
                     if (!isCustomConfigured)
@@ -297,7 +297,7 @@ internal static class DiagnosticHelper
             }
 
             if (isCustomConfigured && !hasCustomConfigurableTag)
-                yield return WellKnownDiagnosticTags.CustomSeverityConfigurable;
+                yield return WellKnownDiagnosticTagsEx.CustomSeverityConfigurable;
         }
     }
 

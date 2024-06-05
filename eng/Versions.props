@@ -61,6 +61,19 @@
     <MicrosoftDotNetXliffTasksVersion Condition="'$(DotnetBuildFromSource)' != 'true'">9.0.0-beta.24076.5</MicrosoftDotNetXliffTasksVersion>
   </PropertyGroup>
   <PropertyGroup>
+    <!--
+      The CodeStyle layer depends on a prior stable release of the CodeAnalysis assemblies so the NuGet packages
+      produced by the build can be installed in projects building with those older releases.
+    -->
+    <CodeStyleLayerCodeAnalysisVersion>4.8.0</CodeStyleLayerCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisCommonFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisCommonFixedVersion>
+    <MicrosoftCodeAnalysisWorkspacesCommonFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisWorkspacesCommonFixedVersion>
+    <MicrosoftCodeAnalysisCSharpFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpFixedVersion>
+    <MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion>
+    <MicrosoftCodeAnalysisVisualBasicFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisVisualBasicFixedVersion>
+    <MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>
+  </PropertyGroup>
+  <PropertyGroup>
     <UsingToolVSSDK Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolVSSDK>
     <UsingToolPdbConverter>false</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
