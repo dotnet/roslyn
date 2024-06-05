@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections;
@@ -392,5 +393,23 @@ public sealed class FlatArrayIntervalTreeTests : IntervalTreeTests
     private protected override ImmutableArray<Tuple<int, int, string>> GetIntervalsThatOverlapWith(IIntervalTree<Tuple<int, int, string>> tree, int start, int length)
     {
         return ((FlatArrayIntervalTree<Tuple<int, int, string>>)tree).Algorithms.GetIntervalsThatOverlapWith(start, length, new TupleIntrospector<string>());
+    }
+
+    private readonly struct Int32IntervalIntrospector : IIntervalIntrospector<int>
+    {
+        public TextSpan GetSpan(int value)
+            => new(value, 0);
+    }
+
+    [Fact]
+    public void TestProperBalancing()
+    {
+        for (var i = 0; i < 3000; i++)
+        {
+            var tree = FlatArrayIntervalTree<int>.CreateFromUnsorted(new Int32IntervalIntrospector(), new(Enumerable.Range(1, i)));
+
+            // Ensure that the tree produces the same elements in sorted order.
+            AssertEx.Equal(tree, Enumerable.Range(1, i));
+        }
     }
 }

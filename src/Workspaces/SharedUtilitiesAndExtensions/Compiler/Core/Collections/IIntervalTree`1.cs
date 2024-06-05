@@ -158,15 +158,16 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
 
             // How many extra elements will be on the last level of the binary tree (if this is not a perfect tree).
             // For the example above, this is 7.  
-            var extraElements = source.Count - (int)(Math.Pow(2, level) - 1);
+            var extraElementsCount = source.Count - (int)(Math.Pow(2, level) - 1);
 
-            if (extraElements > 0)
+            if (extraElementsCount > 0)
             {
-                var lastElementToSwap = extraElements * 2 - 2;
+                var lastElementToSwap = extraElementsCount * 2 - 2;
 
                 for (int i = lastElementToSwap, j = 0; i > 1; i -= 2, j++)
                 {
-                    destination[destination.Length - 1 - j] = new Node(source[i], MaxEndNodeIndex: -1);
+                    var destinationIndex = destination.Length - 1 - j;
+                    destination[destination.Length - 1 - j] = new Node(source[i], MaxEndNodeIndex: destinationIndex);
                     source[lastElementToSwap - j] = source[i - 1];
                 }
 
@@ -179,7 +180,8 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
                 // Destination will be equal to:
                 // ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, 3, 5, 7, 9, 11, 13
 
-                destination[^extraElements] = new Node(source[0], MaxEndNodeIndex: -1);
+                var firstOddIndex = destination.Length - extraElementsCount;
+                destination[firstOddIndex] = new Node(source[0], MaxEndNodeIndex: firstOddIndex);
                 // Destination will be equal to:
                 // ␀, ␀, ␀, ␀, ␀, ␀, ␀, 1, 3, 5, 7, 9, 11, 13
             }
@@ -188,7 +190,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
             // of the array.  In the above example, this is bulding the perfect balanced tree for the event elements
             // 8-14.
             BuildCompleteTreeRecursive(
-                source, destination, startInclusive: extraElements, endExclusive: source.Count, destinationIndex: 0);
+                source, destination, startInclusive: extraElementsCount, endExclusive: source.Count, destinationIndex: 0);
         }
 
         static void BuildCompleteTreeRecursive(
@@ -202,7 +204,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
                 return;
 
             var midPoint = (startInclusive + endExclusive) / 2;
-            destination[destinationIndex] = new Node(source[midPoint], MaxEndNodeIndex: -1);
+            destination[destinationIndex] = new Node(source[midPoint], MaxEndNodeIndex: destinationIndex);
 
             BuildCompleteTreeRecursive(source, destination, startInclusive, midPoint, GetLeftChildIndex(destinationIndex));
             BuildCompleteTreeRecursive(source, destination, midPoint + 1, endExclusive, GetRightChildIndex(destinationIndex));
