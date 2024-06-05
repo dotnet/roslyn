@@ -2592,17 +2592,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, errorCode, syntax, symbol, parameterName);
         }
 
-        private bool UseUpdatedEscapeRulesForInvocation(Symbol symbol)
-        {
-            var method = symbol switch
-            {
-                MethodSymbol m => m,
-                PropertySymbol p => p.GetMethod ?? p.SetMethod,
-                _ => throw ExceptionUtilities.UnexpectedValue(symbol)
-            };
-            return method?.UseUpdatedEscapeRules == true;
-        }
-
         private bool ShouldInferDeclarationExpressionValEscape(BoundExpression argument, [NotNullWhen(true)] out SourceLocalSymbol? localSymbol)
         {
             var symbol = argument switch
