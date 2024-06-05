@@ -333,13 +333,13 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
 
                     // The above loop will do the following over the first few iterations (changes highlighted with *):
                     //
-                    // Dst: ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀,   ␀, *m* // m placed at the end of the destination.
+                    // Dst: ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞,   ∞, *m* // m placed at the end of the destination.
                     // Src: a, b, c, d, e, f, g, h, i, j, k, l, *l*,   n // l moved to where m was in the original source.
                     //
-                    // Dst: ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀,   ␀, *k*, m // k placed right before m in the destination.
+                    // Dst: ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞,   ∞, *k*, m // k placed right before m in the destination.
                     // Src: a, b, c, d, e, f, g, h, i, j, k, *j*,   l, n // j moved right before where we placed l in the original source.
                     //
-                    // Dst: ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀,   ␀, *i*, k, m // i placed right before k in the destination.
+                    // Dst: ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞,   ∞, *i*, k, m // i placed right before k in the destination.
                     // Src: a, b, c, d, e, f, g, h, i, j, *h*,   j, l, n // h moved right before where we placed j in the original source.
                     //
                     // Each iteration takes the next odd element from the end of the source list and places it at the
@@ -361,7 +361,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
                 // 'destination' arrays.
                 //
                 // Destination will be equal to:
-                // ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, c, e, g, i, k, m
+                // ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, c, e, g, i, k, m
                 //
                 // which is the odd elements from the original list.
 
@@ -370,7 +370,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
                 var firstOddIndex = destination.Length - extraElementsCount;
                 destination[firstOddIndex] = new Node(source[0], MaxEndNodeIndex: firstOddIndex);
                 // Destination will be equal to:
-                // ␀, ␀, ␀, ␀, ␀, ␀, ␀, a, c, e, g, i, k, m
+                // ∞, ∞, ∞, ∞, ∞, ∞, ∞, a, c, e, g, i, k, m
             }
 
             // Recursively build the perfect balanced subtree from the remaining elements, storing them into the start

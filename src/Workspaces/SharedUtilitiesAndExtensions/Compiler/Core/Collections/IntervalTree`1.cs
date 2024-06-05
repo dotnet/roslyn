@@ -23,16 +23,13 @@ internal partial class BinaryIntervalTree<T> : IIntervalTree<T>
 
     protected Node? root;
 
-    public static BinaryIntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T>? values = null)
+    public static BinaryIntervalTree<T> Create<TIntrospector>(in TIntrospector introspector, IEnumerable<T> values)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         var result = new BinaryIntervalTree<T>();
 
-        if (values != null)
-        {
-            foreach (var value in values)
-                result.root = Insert(result.root, new Node(value), in introspector);
-        }
+        foreach (var value in values)
+            result.root = Insert(result.root, new Node(value), in introspector);
 
         return result;
     }
