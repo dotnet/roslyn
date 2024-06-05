@@ -37,6 +37,11 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
     /// node at index <c>i</c> is at <c>2*i + 1</c> and the right child is at <c>2*i + 2</c>. If a left/right child
     /// index is beyond the length of this array, that is equivalent to that node not having such a child.
     /// </summary>
+    /// <remarks>
+    /// The binary tree we represent here is a *complete* binary tree (not to be confused with a *perfect* binary tree).
+    /// A complete binary tree is a binary tree in which every level, except possibly the last, is completely filled,
+    /// and all nodes in the last level are as far left as possible. 
+    /// </remarks>
     private readonly SegmentedArray<Node> _array;
 
     private FlatArrayIntervalTree(SegmentedArray<Node> array)
@@ -93,9 +98,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         // Create the array to sort the binary search tree nodes in.
         var array = new SegmentedArray<Node>(values.Count);
 
-        // Place the values into the array in a way that will create a complete binary tree.  A complete binary tree is
-        // a binary tree in which every level, except possibly the last, is completely filled, and all nodes in the last
-        // level are as far left as possible. 
+        // Place the values into the array in a way that will create a complete binary tree.
         BuildCompleteTreeTop(values, array);
 
         // Next, do a pass over the entire tree, updating each node to point at the max end node in its subtree.
