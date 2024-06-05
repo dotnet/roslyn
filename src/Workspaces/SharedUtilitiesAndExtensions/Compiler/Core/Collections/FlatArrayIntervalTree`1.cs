@@ -70,10 +70,68 @@ internal static class IntervalTreeHelpers<T, TIntervalTree, TNode, TIntervalTree
         }
     }
 
+    public static int FillWithIntervalsThatMatch<TIntrospector>(
+        TIntervalTree tree, int start, int length,
+        TestInterval<T, TIntrospector> testInterval,
+        ref TemporaryArray<T> builder,
+        in TIntrospector introspector,
+        bool stopAfterFirst)
+        where TIntrospector : struct, IIntervalIntrospector<T>
+    {
+        var helper = default(TIntervalTreeHelper);
+
+        if (!helper.TryGetRoot(tree, out var root))
+            return 0;
+
+        using var _ = s_preorderNodeStackPool.GetPooledObject(out var candidates);
+
+        var matches = 0;
+        var end = start + length;
+
+        candidates.Push((root, firstTime: true));
+
+        while (candidates.TryPop(out var currentTuple))
+        {
+            var (currentNode, firstTime) = currentTuple;
+
+            if (!firstTime)
+            {
+                // We're seeing this node for the second time (as we walk back up the left
+                // side of it).  Now see if it matches our test, and if so return it out.
+                var currentNodeValue = helper.GetValue(tree, currentNode);
+                if (testInterval(currentNodeValue, start, length, in introspector))
+                {
+                    matches++;
+                    builder.Add(currentNodeValue);
+
+                    if (stopAfterFirst)
+                        return 1;
+                }
+            }
+            else
+            {
+                // First time we're seeing this node.  In order to see the node 'in-order', we push the right side, then
+                // the node again, then the left side.  This time we mark the current node with 'false' to indicate that
+                // it's the second time we're seeing it the next time it comes around.
+
+                if (ShouldExamineRight(tree, start, end, currentNode, in introspector, out var right))
+                    candidates.Push((right, firstTime: true));
+
+                candidates.Push((currentNode, firstTime: false));
+
+                if (ShouldExamineLeft(tree, start, currentNode, in introspector, out var left))
+                    candidates.Push((left, firstTime: true));
+            }
+        }
+
+        return matches;
+    }
+
     public static bool Any<TIntrospector>(TIntervalTree tree, int start, int length, TestInterval<T, TIntrospector> testInterval, in TIntrospector introspector)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
         // Inlined version of FillWithIntervalsThatMatch, optimized to do less work and stop once it finds a match.
+
         var helper = default(TIntervalTreeHelper);
         if (!helper.TryGetRoot(tree, out var root))
             return false;
@@ -163,8 +221,6 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
     private readonly record struct Node(T Value, int MaxEndNodeIndex);
 
     public static readonly FlatArrayIntervalTree<T> Empty = new(new SegmentedArray<Node>(0));
-
-    private static readonly ObjectPool<Stack<(int nodeIndex, bool firstTime)>> s_stackPool = new(() => new(), trimOnFree: false);
 
     /// <summary>
     /// The nodes of this interval tree flatted into a single array.  The root is as index 0.  The left child of any
@@ -409,89 +465,8 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         ref TemporaryArray<T> builder, in TIntrospector introspector,
         bool stopAfterFirst)
     {
-        var array = _array;
-        if (array.Length == 0)
-            return 0;
-
-        using var _ = s_stackPool.GetPooledObject(out var candidates);
-
-        var matches = 0;
-        var end = start + length;
-
-        candidates.Push((nodeIndex: 0, firstTime: true));
-
-        while (candidates.TryPop(out var currentTuple))
-        {
-            var currentNodeIndex = currentTuple.nodeIndex;
-            var currentNode = array[currentNodeIndex];
-
-            if (!currentTuple.firstTime)
-            {
-                // We're seeing this node for the second time (as we walk back up the left
-                // side of it).  Now see if it matches our test, and if so return it out.
-                if (testInterval(currentNode.Value, start, length, in introspector))
-                {
-                    matches++;
-                    builder.Add(currentNode.Value);
-
-                    if (stopAfterFirst)
-                        return 1;
-                }
-            }
-            else
-            {
-                // First time we're seeing this node.  In order to see the node 'in-order', we push the right side, then
-                // the node again, then the left side.  This time we mark the current node with 'false' to indicate that
-                // it's the second time we're seeing it the next time it comes around.
-
-                if (ShouldExamineRight(array, start, end, currentNodeIndex, in introspector, out var right))
-                    candidates.Push((right, firstTime: true));
-
-                candidates.Push((currentNodeIndex, firstTime: false));
-
-                if (ShouldExamineLeft(array, start, currentNodeIndex, in introspector, out var left))
-                    candidates.Push((left, firstTime: true));
-            }
-        }
-
-        return matches;
-    }
-
-    private static bool ShouldExamineRight<TIntrospector>(
-        SegmentedArray<Node> array,
-        int start,
-        int end,
-        int currentNodeIndex,
-        in TIntrospector introspector,
-        out int rightIndex) where TIntrospector : struct, IIntervalIntrospector<T>
-    {
-        // right children's starts will never be to the left of the parent's start so we should consider right
-        // subtree only if root's start overlaps with interval's End, 
-        if (introspector.GetSpan(array[currentNodeIndex].Value).Start <= end)
-        {
-            rightIndex = GetRightChildIndex(currentNodeIndex);
-            if (rightIndex < array.Length && GetEnd(array[array[rightIndex].MaxEndNodeIndex].Value, in introspector) >= start)
-                return true;
-        }
-
-        rightIndex = 0;
-        return false;
-    }
-
-    private static bool ShouldExamineLeft<TIntrospector>(
-        SegmentedArray<Node> array,
-        int start,
-        int currentNodeIndex,
-        in TIntrospector introspector,
-        out int leftIndex) where TIntrospector : struct, IIntervalIntrospector<T>
-    {
-        // only if left's maxVal overlaps with interval's start, we should consider 
-        // left subtree
-        leftIndex = GetLeftChildIndex(currentNodeIndex);
-        if (leftIndex < array.Length && GetEnd(array[array[leftIndex].MaxEndNodeIndex].Value, in introspector) >= start)
-            return true;
-
-        return false;
+        return IntervalTreeHelpers<T, FlatArrayIntervalTree<T>, /*TNode*/ int, FlatArrayIntervalTreeHelper>.FillWithIntervalsThatMatch(
+            this, start, length, testInterval, ref builder, in introspector, stopAfterFirst);
     }
 
     IEnumerator IEnumerable.GetEnumerator()
