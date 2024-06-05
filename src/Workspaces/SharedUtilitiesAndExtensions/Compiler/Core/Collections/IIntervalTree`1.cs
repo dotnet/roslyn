@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Collections.Internal;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -102,9 +104,12 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
     /// pointer chasing operations, which is both slow, and which impacts the GC which has to track all those writes.
     /// </summary>
     /// <remarks>
-    /// The values must be sorted such that given any two elements 'a' and 'b' in the list, if 'a' comes before 'b' in
-    /// the list, then it's "start position" (as determined by the introspector) must be less than or equal to 'b's
-    /// start position.  This is a requirement for the algorithm to work correctly.
+    /// <list type="bullet">The values must be sorted such that given any two elements 'a' and 'b' in the list, if 'a'
+    /// comes before 'b' in the list, then it's "start position" (as determined by the introspector) must be less than
+    /// or equal to 'b's start position.  This is a requirement for the algorithm to work correctly.
+    /// </list>
+    /// <list type="bullet">The <paramref name="values"/> list will be mutated as part of this operation.
+    /// </list>
     /// </remarks>
     public static FlatArrayIntervalTree<T> CreateFromSorted<TIntrospector>(in TIntrospector introspector, SegmentedList<T> values)
         where TIntrospector : struct, IIntervalIntrospector<T>
@@ -117,11 +122,128 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
         if (values.Count == 0)
             return Empty;
 
+        // Create the array to sort the binary search tree nodes in.
         var array = new SegmentedArray<Node>(values.Count);
-        CreateFromSortedWorker(values, startInclusive: 0, endExclusive: values.Count, destination: array, middleElementIndex: 0, in introspector);
+
+        // Place the values into the array in a way that will create a complete binary tree.  A complete binary tree is
+        // a binary tree in which every level, except possibly the last, is completely filled, and all nodes in the last
+        // level are as far left as possible. 
+        BuildCompleteTreeTop(values, array);
+
+        // Next, do a pass over the entire tree, updating each node to point at the max end node in its subtree.
+        ComputeMaxEndNodes(array, 0, in introspector);
+
         return new FlatArrayIntervalTree<T>(array);
+
+        static void BuildCompleteTreeTop(SegmentedList<T> source, SegmentedArray<Node> destination)
+        {
+            // The nature of a complete tree is that the last level always only contains the odd remaining numbers.
+            // For example, given the initial values 1-14 the final tree will look like:
+            //
+            // 8, 4, 12, 2, 6, 10, 14, 1, 3, 5, 7, 9, 11, 13.  Which corresponds to;
+            //
+            //               8
+            //        /            \
+            //       4              12
+            //      / \            /  \
+            //     2   6        10      14
+            //    / \ / \       / \    /
+            //   1  3 5  7     9  11  13
+            //
+            // Note that 8-14 (even values) are a perfect balanced tree, and the 1-13 (odd values) are the remaining
+            // values on the last level.
+
+            // How many levels will be in the perfect binary tree.  For the example above, this would be 3. 
+            var level = SegmentedArraySortUtils.Log2((uint)source.Count + 1);
+
+            // How many extra elements will be on the last level of the binary tree (if this is not a perfect tree).
+            // For the example above, this is 7.  
+            var extraElements = source.Count - (int)(Math.Pow(2, level) - 1);
+
+            if (extraElements > 0)
+            {
+                var lastElementToSwap = extraElements * 2 - 2;
+
+                for (int i = lastElementToSwap, j = 0; i > 1; i -= 2, j++)
+                {
+                    destination[destination.Length - 1 - j] = new Node(source[i], MaxEndNodeIndex: -1);
+                    source[lastElementToSwap - j] = source[i - 1];
+                }
+
+                // After this, source will be equal to:
+                // 1, 2, 3, 4, 5, 6, 7, 2, 4, 6, 8, 10, 12, 14.
+                //
+                // In other words, the last half (after '2') will be updated to be the even elements.  This will be what
+                // we'll create the perfect tree from below.
+                //
+                // Destination will be equal to:
+                // ␀, ␀, ␀, ␀, ␀, ␀, ␀, ␀, 3, 5, 7, 9, 11, 13
+
+                destination[^extraElements] = new Node(source[0], MaxEndNodeIndex: -1);
+                // Destination will be equal to:
+                // ␀, ␀, ␀, ␀, ␀, ␀, ␀, 1, 3, 5, 7, 9, 11, 13
+            }
+
+            // Recursively build the perfect balanced subtree from the remaining elements, storing them into the start
+            // of the array.  In the above example, this is bulding the perfect balanced tree for the event elements
+            // 8-14.
+            BuildCompleteTreeRecursive(
+                source, destination, startInclusive: extraElements, endExclusive: source.Count, destinationIndex: 0);
+        }
+
+        static void BuildCompleteTreeRecursive(
+            SegmentedList<T> source,
+            SegmentedArray<Node> destination,
+            int startInclusive,
+            int endExclusive,
+            int destinationIndex)
+        {
+            if (startInclusive >= endExclusive)
+                return;
+
+            var midPoint = (startInclusive + endExclusive) / 2;
+            destination[destinationIndex] = new Node(source[midPoint], MaxEndNodeIndex: -1);
+
+            BuildCompleteTreeRecursive(source, destination, startInclusive, midPoint, GetLeftChildIndex(destinationIndex));
+            BuildCompleteTreeRecursive(source, destination, midPoint + 1, endExclusive, GetRightChildIndex(destinationIndex));
+        }
+
+        static void ComputeMaxEndNodes(SegmentedArray<Node> array, int currentElementIndex, in TIntrospector introspector)
+        {
+            if (currentElementIndex >= array.Length)
+                return;
+
+            var leftChildIndex = GetLeftChildIndex(currentElementIndex);
+            var rightChildIndex = GetRightChildIndex(currentElementIndex);
+
+            var currentNode = array[currentElementIndex];
+            var thisEndValue = GetEnd(currentNode.Value, in introspector);
+            var leftEndValue = MaxEndValue(array, leftChildIndex, in introspector);
+            var rightEndValue = MaxEndValue(array, rightChildIndex, in introspector);
+
+            int maxEndNodeIndex;
+            if (thisEndValue >= leftEndValue && thisEndValue >= rightEndValue)
+            {
+                maxEndNodeIndex = currentElementIndex;
+            }
+            else if ((leftEndValue >= rightEndValue) && leftEndValue < array.Length)
+            {
+                maxEndNodeIndex = array[leftEndValue].MaxEndNodeIndex;
+            }
+            else if (rightChildIndex < array.Length)
+            {
+                maxEndNodeIndex = array[rightChildIndex].MaxEndNodeIndex;
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            array[currentElementIndex] = new Node(currentNode.Value, maxEndNodeIndex);
+        }
     }
 
+#if false
     private static void CreateFromSortedWorker<TIntrospector>(
         SegmentedList<T> values,
         int startInclusive,
@@ -170,6 +292,7 @@ internal readonly struct FlatArrayIntervalTree<T> : IIntervalTree<T>
 
         destination[middleElementIndex] = new Node(midValue, maxEndNodeIndex);
     }
+#endif
 
     private static int GetLeftChildIndex(int nodeIndex)
         => (2 * nodeIndex) + 1;
