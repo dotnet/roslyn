@@ -143,7 +143,7 @@ internal partial class MutableIntervalTree<T> : IIntervalTree<T>
     /// <summary>
     /// Wrapper type to allow the IntervalTreeHelpers type to work with this type.
     /// </summary>
-    private readonly struct BinaryIntervalTreeHelper : IIntervalTreeHelper<T, MutableIntervalTree<T>, Node>
+    private readonly struct BinaryIntervalTreeHelper : IIntervalTreeWitness<T, MutableIntervalTree<T>, Node>
     {
         public T GetValue(MutableIntervalTree<T> tree, Node node)
             => node.Value;

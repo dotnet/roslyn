@@ -275,7 +275,7 @@ internal readonly struct ImmutableIntervalTree<T> : IIntervalTree<T>
     /// <summary>
     /// Wrapper type to allow the IntervalTreeHelpers type to work with this type.
     /// </summary>
-    private readonly struct FlatArrayIntervalTreeHelper : IIntervalTreeHelper<T, ImmutableIntervalTree<T>, int>
+    private readonly struct FlatArrayIntervalTreeHelper : IIntervalTreeWitness<T, ImmutableIntervalTree<T>, int>
     {
         public T GetValue(ImmutableIntervalTree<T> tree, int node)
             => tree._array[node].Value;
