@@ -51,11 +51,9 @@ internal sealed class LegacySolutionOptionSet : OptionSet
             return value;
         }
 
-#pragma warning disable RS0030 // Do not use banned APIs (IGlobalOptionService)
         value = (optionKey.Option is IOption2 internallyDefinedOption)
             ? _legacyGlobalOptions.GlobalOptions.GetOption<object?>(new OptionKey2(internallyDefinedOption, optionKey.Language))
             : _legacyGlobalOptions.GetExternallyDefinedOption(optionKey);
-#pragma warning restore
 
         return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);
     }

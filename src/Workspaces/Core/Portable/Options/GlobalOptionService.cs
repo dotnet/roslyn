@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+
+#pragma warning disable LAYERING_IGlobalOptionService
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,8 +17,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
-
-#pragma warning disable RS0030 // Do not use banned APIs (IGlobalOptionService)
 
 namespace Microsoft.CodeAnalysis.Options;
 

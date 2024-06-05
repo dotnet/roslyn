@@ -5,13 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Options;
 
 /// <summary>
 /// Provides services for reading and writing global client (in-proc) options
 /// shared across all workspaces.
+/// 
+/// Should only be used in LSP layer and above.
 /// </summary>
+[Experimental("LAYERING_IGlobalOptionService")]
 internal interface IGlobalOptionService : IOptionsReader
 {
     /// <summary>

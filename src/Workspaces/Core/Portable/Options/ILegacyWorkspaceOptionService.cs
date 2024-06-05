@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 
+#pragma warning disable LAYERING_IGlobalOptionService
+
 namespace Microsoft.CodeAnalysis.Options;
 
 /// <summary>

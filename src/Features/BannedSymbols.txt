@@ -11,4 +11,3 @@ T:System.ComponentModel.Composition.PartNotDiscoverableAttribute; Use types from
 T:System.ComponentModel.Composition.SharedAttribute; Use types from System.Composition instead
 T:System.ComponentModel.Composition.SharingBoundaryAttribute; Use types from System.Composition instead
 T:System.ComponentModel.Composition.Convention.AttributedModelProvider; Use types from System.Composition instead
-T:Microsoft.CodeAnalysis.Options.IGlobalOptionService; Pass required options or options provider to each feature/service explicitly

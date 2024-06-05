@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
 #if !CODE_STYLE
-#pragma warning disable RS0030 // Do not use banned APIs (IGlobalOptionService)
+#pragma warning disable LAYERING_IGlobalOptionsService
             if (parameters.globalOptions != null)
             {
                 foreach (var (optionKey, value) in parameters.globalOptions.Options)
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     workspace.GlobalOptions.SetGlobalOption(optionKey, value);
                 }
             }
-#pragma warning restore
+#pragma warning restore LAYERING_IGlobalOptionsService
 #endif
             return workspace;
         }
